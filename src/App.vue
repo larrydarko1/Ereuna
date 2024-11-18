@@ -1,30 +1,78 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
+  <router-view></router-view>
 </template>
 
-<style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
+
+const store = useStore();
+const user = store.getters.getUser;
+
+const number = ref(0); // Replace this with your actual number variable
+
+onMounted(async () => {
+  await store.dispatch('fetchUser');
+});
+
+const numberClass = computed(() => {
+  return number.value > 0 ? 'positive' : 'negative';
+});
+</script>
+
+<style>
+* {
+  font-family: Helvetica, Arial;
+  font-size: 10px;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+body {
+  background-color: #0f0f1b;
+  padding: 0%;
+  margin: 0%;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+.positive {
+  color: #4caf50;
 }
+
+.negative {
+  color: #90bff9;
+}
+
+/* #0f0f1b  - colore background base scuro / header footer base
+#6848a8 - colore viola per bottone login - potrebbe essere bello come highlight
+#fffff - bianco puro, per me va bene, magari usarlo con opacità per effetto highlight 
+#b2b2b2 - bianco sporco, per icone dentro bianco, anche questo mi piace 
+#2c2b3e- secondo background, più chiaro, può servire.
+#4caf50 - colore verde, positivo, buono
+#90bff9 - colore azzurrino misto viola per indicare valore negativo, buono.
+
+
+#51428b - colore hover element screener, non è male dai.
+#4c4a66 - colore hover menu tendina, non è male.
+
+
+#7662be - colore selected screener, non mi piace tanto, andrebbe sostituito
+#544966 - colore da sostituire, summary tabelle charts , anche screener.
+#3a3246 - colore da sostituire, watchlist, mi fa ancora più schifo di quello di prima.
+#3a3246 - colore earnings grafico, sostituisci con #6848a8 e vediamo 
+
+Servono colori standardizzati per la piattaforma.
+
+Base 1 - #0f0f1b
+Base 2 (contrasto) - #2c2b3e
+Standard (colore superficie base) - ???
+Bianco 1 
+Bianco 2 (più scuro) - icone nello screener vanno benissimo, usiamo quelle come riferimento
+Colore UP 
+Colore DOWN
+Hover-color 1 (acceso)
+Hover-color2 (pacato)
+Highlight-color 1 (più acceso)
+Highlight-color 2 (più leggero)
+*/
 </style>
