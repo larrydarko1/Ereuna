@@ -1,0 +1,3619 @@
+<template>
+  <body>
+    <Header />
+    <div id="main">
+      <div v-if="showCreateNote" class="CreateNote">
+        <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
+        <p style="font-size: 9px; padding: 0; color: whitesmoke; opacity: 0.60; margin: 5px;">350 characters max / 10 notes limit for each symbol</p>
+  <textarea  id="notes-container" 
+      placeholder="write notes here" 
+      :class="{ error: characterCount > 350 }" 
+      v-model="noteContent" 
+      @input="updateCharacterCount"></textarea>
+        <div class="inner">
+          <button @click="showCreateNote = false"><img class="imgbtn" src="@/assets/icons/back-arrow.png" alt=""></button>
+          <button @click="sendNote()"><img class="imgbtn" src="@/assets/icons/submit.png" alt=""></button>
+        </div>
+      </div>
+      <div v-if="showCreateWatchlist" class="CreateWatchlist">
+        <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
+        <h3 class="title">Create Watchlist</h3>
+        <p style="font-size: 7px; color: whitesmoke; opacity: 0.60; margin: 0; padding: 0;" >Max 20 characters / 20 Watchlists for each user</p>
+        <input
+      id="inputcreate"
+      placeholder="Enter Watchlist Name"
+      type="text"
+      v-model="watchlistName"
+      :class="{'input-error': watchlistName.length > 20}"
+    />
+        <div class="inner">
+          <button @click="showCreateWatchlist = false"><img class="imgbtn" src="@/assets/icons/back-arrow.png" alt=""></button>
+          <button @click="CreateWatchlist()"><img class="imgbtn" src="@/assets/icons/submit.png" alt=""></button>
+        </div>
+      </div>
+      <div v-if="showRenameWatchlist" class="RenameWatchlist">
+        <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
+        <h3 class="title">Rename Watchlist</h3>
+        <input 
+        id="inputrename" 
+        placeholder="Enter Watchlist Name" 
+        type="text"
+        v-model="watchlistName"
+      :class="{'input-error': watchlistName.length > 20}"
+      />
+        <div class="inner">
+          <button @click="showRenameWatchlist = false"><img class="imgbtn" src="@/assets/icons/back-arrow.png" alt=""></button>
+          <button @click="UpdateWatchlist()"><img class="imgbtn" src="@/assets/icons/submit.png" alt=""></button>
+        </div>
+      </div>
+      <div id="sidebar-left">
+        <div v-if="isLoading3" style="position: relative; height: 100%;">
+    <div style="position: absolute; top: 45%; left: 43%;">
+    <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="bars" size="32" />
+  </div>
+</div>
+<div v-else style="border:none" >
+<div class="summary-container">
+  <div class="summary-row">
+    <div class="category">Asset Type</div>
+    <div class="response">{{ assetInfo.AssetType }}</div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Exchange</div>
+    <div class="response">
+      {{ assetInfo.Exchange.charAt(0).toUpperCase() + assetInfo.Exchange.slice(1).toLowerCase() }}
+    </div>
+  </div>
+  <div class="summary-row">
+    <div class="category">ISIN</div>
+    <div class="response">{{ assetInfo.ISIN }}</div>
+  </div>
+  <div class="summary-row">
+    <div class="category">IPO Date</div>
+    <div class="response">{{ formatDate(assetInfo.IPO) }}</div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Sector</div>
+    <div class="response">
+      {{ assetInfo.Sector.charAt(0).toUpperCase() + assetInfo.Sector.slice(1).toLowerCase() }}
+    </div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Industry</div>
+    <div class="response">
+      {{ assetInfo.Industry.charAt(0).toUpperCase() + assetInfo.Industry.slice(1).toLowerCase() }}
+    </div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Currency</div>
+    <div class="response">{{ assetInfo.Currency }}</div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Technical Score (1W)</div>
+    <div class="response">{{ assetInfo.RSScore1W }}</div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Technical Score (1M)</div>
+    <div class="response">{{ assetInfo.RSScore1M }}</div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Technical Score (4M)</div>
+    <div class="response">{{ assetInfo.RSScore4M }}</div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Market Cap</div>
+    <div class="response">{{ parseInt(assetInfo.MarketCapitalization).toLocaleString() }}</div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Shares Outstanding</div>
+    <div class="response">{{ parseInt(assetInfo.SharesOutstanding).toLocaleString() }}</div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Country</div>
+    <div class="response">{{ assetInfo.Country }}</div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Dividend Date</div>
+    <div class="response">
+      {{ 
+        (assetInfo.DividendDate !== 'Invalid Date' && assetInfo.DividendDate != null && !isNaN(Date.parse(assetInfo.DividendDate))) 
+          ? formatDate(assetInfo.DividendDate) 
+          : '-' 
+      }}
+    </div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Dividend Yield</div>
+    <div class="response">
+      {{ (assetInfo.DividendYield != null && !isNaN(assetInfo.DividendYield)) ? (parseFloat(assetInfo.DividendYield) * 100).toFixed(2) + '%' : '-' }}
+    </div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Beta</div>
+    <div class="response">
+      {{ (assetInfo.Beta != null && !isNaN(assetInfo.Beta)) ? parseFloat(assetInfo.Beta) : '-' }}
+    </div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Book Value</div>
+    <div class="response">
+      {{ (assetInfo.BookValue != null && !isNaN(assetInfo.BookValue)) ? parseFloat(assetInfo.BookValue) : '-' }}
+    </div>
+  </div>
+  <div class="summary-row">
+    <div class="category">PEG Ratio</div>
+    <div class="response">
+      {{ (assetInfo.PEGRatio != null && !isNaN(assetInfo.PEGRatio)) ? parseFloat(assetInfo.PEGRatio) : '-' }}
+    </div>
+  </div>
+  <div class="summary-row">
+    <div class="category">PE Ratio</div>
+    <div class="response">
+      {{ (assetInfo.PERatio != null && !isNaN(assetInfo.PERatio)) ? parseFloat(assetInfo.PERatio) : '-' }}
+    </div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Forward PE Ratio</div>
+    <div class="response">
+      {{ (assetInfo.ForwardPE != null && !isNaN(assetInfo.ForwardPE)) ? parseFloat(assetInfo.ForwardPE) : '-' }}
+    </div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Trailing PE Ratio</div>
+    <div class="response">
+      {{ (assetInfo.TrailingPE != null && !isNaN(assetInfo.TrailingPE)) ? parseFloat(assetInfo.TrailingPE) : '-' }}
+    </div>
+  </div>
+</div>
+<div v-if="displayedEPSItems.length > 0" id="EPStable">
+  <div class="eps-header">
+    <div class="eps-cell" style="flex: 0 0 20%;">Reported</div>
+    <div class="eps-cell" style="flex: 0 0 40%;">EPS</div>
+    <div class="eps-cell" style="flex: 0 0 20%;">Chg (%)</div>
+    <div class="eps-cell" style="flex: 0 0 10%;">QoQ</div>
+    <div class="eps-cell" style="flex: 0 0 10%;">YoY</div>
+</div>
+  <div class="eps-body">
+    <div v-for="(earnings, index) in displayedEPSItems" :key="earnings.fiscalDateEnding" class="eps-row">
+      <div class="eps-cell" style="flex: 0 0 20%;">{{ formatDate(earnings.fiscalDateEnding) }}</div>
+      <div class="eps-cell" style="flex: 0 0 40%;">{{ earnings.reportedEPS }}</div>
+      <div class="eps-cell" style="flex: 0 0 20%;"
+           :class="calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) > 0 ? 'positive' : 'negative'">
+        {{ calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) }}%
+      </div>
+      <div class="eps-cell" style="flex: 0 0 10%;">
+        <img v-if="getQoQClass(calculateQoQ1(earnings.reportedEPS)) === 'green'" src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+        <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+      </div>
+      <div class="eps-cell" style="flex: 0 0 10%;">
+        <img v-if="getYoYClass(calculateYoY1(earnings.reportedEPS)) === 'green'" src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+        <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+      </div>
+    </div>
+  </div>
+</div>
+<div v-else class="no-data">No EPS data available</div>
+<button 
+    v-if="showEPSButton" 
+    @click="showAllEPS = !showAllEPS" 
+    class="toggle-btn">
+    {{ showAllEPS ? 'Show Less' : 'Show All' }}
+</button>
+<div v-if="displayedEarningsItems.length > 0" id="Earntable">
+  <div class="earn-header">
+    <div class="earn-cell" style="flex: 0 0 20%;">Reported</div>
+    <div class="earn-cell" style="flex: 0 0 40%;">Earnings</div>
+    <div class="earn-cell" style="flex: 0 0 20%;">Chg (%)</div>
+    <div class="earn-cell" style="flex: 0 0 10%;">QoQ</div>
+    <div class="earn-cell" style="flex: 0 0 10%;">YoY</div>
+  </div>
+  <div class="earn-body">
+    <div v-for="quarterlyReport in displayedEarningsItems" :key="quarterlyReport.fiscalDateEnding" class="earn-row">
+      <div class="earn-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
+      <div class="earn-cell" style="flex: 0 0 40%;">{{ parseInt(quarterlyReport.netIncome).toLocaleString() }}</div>
+      <div class="earn-cell" style="flex: 0 0 20%;"
+           :class="calculateNet(quarterlyReport.netIncome) > 0 ? 'positive' : 'negative'">
+        {{ calculateNet(quarterlyReport.netIncome) }}%
+      </div>
+      <div class="earn-cell" style="flex: 0 0 10%;">
+        <img v-if="getQoQClass(calculateQoQ2(quarterlyReport.netIncome)) === 'green'" 
+             src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+        <img v-else 
+             src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+      </div>
+      <div class="earn-cell" style="flex: 0 0 10%;">
+        <img v-if="getYoYClass(calculateYoY2(quarterlyReport.netIncome)) === 'green'" 
+             src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+        <img v-else 
+             src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+      </div>
+    </div>
+  </div>
+</div>
+<div v-else class="no-data">No earnings data available</div>
+<button 
+    v-if="showEarningsButton" 
+    @click="showAllEarnings = !showAllEarnings" 
+    class="toggle-btn"
+>
+    {{ showAllEarnings ? 'Show Less' : 'Show All' }}
+</button>
+<div v-if="displayedSalesItems.length > 0" id="Salestable">
+  <div class="sales-header">
+    <div class="sales-cell" style="flex: 0 0 20%;">Reported</div>
+    <div class="sales-cell" style="flex: 0 0 40%;">Sales</div>
+    <div class="sales-cell" style="flex: 0 0 20%;">Chg (%)</div>
+    <div class="sales-cell" style="flex: 0 0 10%;">QoQ</div>
+    <div class="sales-cell" style="flex: 0 0 10%;">YoY</div>
+  </div>
+  <div class="sales-body">
+    <div v-for="quarterlyReport in displayedSalesItems" :key="quarterlyReport.fiscalDateEnding" class="sales-row">
+      <div class="sales-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
+      <div class="sales-cell" style="flex: 0 0 40%;">{{ parseInt(quarterlyReport.totalRevenue).toLocaleString() }}</div>
+      <div class="sales-cell" style="flex: 0 0 20%;"
+           :class="calculateRev(quarterlyReport.totalRevenue) > 0 ? 'positive' : 'negative'">
+        {{ calculateRev(quarterlyReport.totalRevenue) }}%
+      </div>
+      <div class="sales-cell" style="flex: 0 0 10%;">
+        <img v-if="getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'" 
+             src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+        <img v-else 
+             src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+      </div>
+      <div class="sales-cell" style="flex: 0 0 10%;">
+        <img v-if="getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'" 
+             src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+        <img v-else 
+             src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+      </div>
+    </div>
+  </div>
+</div>
+<div v-else class="no-data">No sales data available</div>
+<button 
+    v-if="showSalesButton" 
+    @click="showAllSales = !showAllSales" 
+    class="toggle-btn"
+>
+    {{ showAllSales ? 'Show Less' : 'Show All' }}
+</button>
+        <h3 class="title">Notes Container</h3>
+<div v-if="BeautifulNotes.length > 0">
+  <div class="note" v-for="note in BeautifulNotes" :key="note.Date">
+    <div class="inline-note">
+      <img class="img" src="@/assets/icons/note.png" alt="">
+    </div>
+    <button class="notebtn" @click="removeNote(note._id)">
+        <img class="imgdlt" src="@/assets/icons/close.png" alt="">
+      </button>
+    <p class="note-msg-date" style="color: whitesmoke; opacity: 0.60;">Created: {{ formatDate(note.Date) }}</p>
+    <p class="note-msg">{{ note.Message }}</p>
+  </div>
+</div>
+<div v-else>
+</div>
+<div class="results"></div>
+</div>
+</div>
+<div id="chart-container">
+    <div id="legend"></div>
+    <div id="legend2">
+      <button class="navbtng" v-b-tooltip.hover title="Change Chart View" @click="toggleChartView">{{ chartView }}</button>
+      <button 
+  class="navbtng" 
+  v-b-tooltip.hover 
+  title="Change Chart type" 
+  @click="toggleChartType"
+>
+  <img :src="chartTypeIcon" alt="Chart Type" class="chart-type-icon">
+</button>
+<button 
+  class="navbtng" 
+  v-b-tooltip.hover 
+  title="Measure Percentage" 
+  @click="">
+  <img src='@/assets/icons/ruler.png' alt="Ruler" class="chart-type-icon">
+</button>
+    </div>
+    <div id="legend3"></div>
+    <div id="legend4">
+      <p class="ticker" >{{assetInfo.Symbol}} </p> <p class="name" > - {{assetInfo.Name}}</p>
+    </div>
+    <div id="chartdiv"></div>
+    <div class="loading-container" v-if="isChartLoading">
+      <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="64" />
+    </div>
+    <div class="loading-container" v-if="isLoading">
+      <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="64" />
+    </div>
+    <div id="chartdiv2"></div>
+  </div>
+      <div id="sidebar-right">
+      <div style="position: sticky; top: 0; z-index: 1000;">
+        <div id="searchtable">
+          <input type="text" id="searchbar" name="search" placeholder="Search Ticker" 
+          v-model="searchQuery" @input="toUpperCase" @keydown.enter="searchTicker()">
+            <button class="wlbtn2" id="searchBtn" @click="searchTicker()" v-b-tooltip.hover title="Search Symbol"><img class="img" src="@/assets/icons/search.png" alt=""></button>
+        </div>
+        <div id="wlnav">
+          <div id="realwatchlist" class="select-container">
+  <p class="selected-value" @click.stop="">{{ selectedWatchlist ? selectedWatchlist.Name : 'Select a watch' }}</p>
+  <div class="dropdown-container">
+    <div v-for="watch in watchlist.tickers" :key="watch.Name" :class="{'selected': selectedWatchlist && selectedWatchlist.Name === watch.Name}" @click="filterWatchlist(watch)">
+      {{ watch.Name }} ({{ watch.List.length }})
+      <button class="icondlt" id="watchlistDelete" @click.stop="DeleteWatchlist(watch)" v-b-tooltip.hover title="Delete Watchlist">
+        <img class="img" src="@/assets/icons/delete.png" alt="delete watchlist">
+      </button>
+    </div>
+  </div>
+</div>
+<div class="wlnav-dropdown">
+    <button class="dropdown-toggle wlbtn" v-b-tooltip.hover title="More Options">
+      <img class="img" src="@/assets/icons/dots.png" alt="more options">
+    </button>
+    <div class="dropdown-vnav">
+      <button class="dropdown-item" @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Watchlist">
+        <img class="img" src="@/assets/icons/play.png" alt="autoplay watchlist"> Autoplay
+      </button>
+      <button class="dropdown-item" @click="addWatchlist()" v-b-tooltip.hover title="Add ticker to watchlist">
+        <img class="img" src="@/assets/icons/bookmark.png" alt="add to watchlist"> Add Ticker
+      </button>
+      <button class="dropdown-item" @click="showCreateNote = true" v-b-tooltip.hover title="Create a Note">
+        <img class="img" src="@/assets/icons/note.png" alt=""> Create Note
+      </button>
+      <button class="dropdown-item" @click="showCreateWatchlist = true" v-b-tooltip.hover title="Create New Watchlist">
+        <img class="img" src="@/assets/icons/add.png" alt="create new watchlist"> New Watchlist
+      </button>
+      <button class="dropdown-item" @click="showRenameWatchlist = true" v-b-tooltip.hover title="Rename Watchlist">
+        <img class="img" src="@/assets/icons/edit2.png" alt="edit watchlist name"> Rename Watchlist
+      </button>
+    </div>
+  </div>
+</div>
+<div id="watch-container">
+  <div class="ntbl" style="flex: 0.5"></div>
+  <div class="ntbl" style="flex: 1"></div>
+  <div class="tbl" style="flex: 1" @click="sortTable('ticker')"><img class="img2" src="@/assets/icons/sort.png" alt="sort">Ticker</div>
+  <div class="tbl" style="flex: 1" @click="sortTable('last')"><img class="img2" src="@/assets/icons/sort.png" alt="sort">Last</div>
+  <div class="tbl" style="flex: 1" @click="sortTable('chg')"><img class="img2" src="@/assets/icons/sort.png" alt="sort">Chg</div>
+  <div class="tbl" style="flex: 1" @click="sortTable('perc')"><img class="img2" src="@/assets/icons/sort.png" alt="sort">%</div>
+</div>
+</div>
+  <div v-if="isLoading2" style="position: relative; height: 100%;">
+    <div style="position: absolute; top: 45%; left: 43%;">
+    <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="bars" size="32" />
+  </div>
+</div>
+  <div v-else>
+    <div id="list" 
+       ref="watchlistContainer"
+       tabindex="0"
+       @keydown="handleKeydown"
+       @click="handleClick">
+      <div ref="sortable">
+        <div
+          v-for="item in watchlist2.tickers"
+          :key="item"
+          :class="{ 'selected': selectedItem === item, 'wlist': true }"
+          @click="selectRow(item)"
+        >
+          <div style="flex: 0.5; position: relative;">
+            <button class="dropdown-btn">
+              <img class="imgm" src="@/assets/icons/dots.png" alt="" style="border: none;">
+            </button>
+            <div class="dropdown-menu">
+              <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
+                <label :for="'watchlist-' + index" class="checkbox-label">
+                  <div @click.stop="toggleWatchlist(ticker, item)" style="cursor: pointer;">
+                    <img
+  class="watchlist-icon"
+  :src="getWatchlistIcon(ticker, item)"
+  alt="Toggle Watchlist"
+/>
+                  </div>
+                  <span class="checkmark"></span>
+                  {{ ticker.Name }}
+                </label>
+              </div>
+            </div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <img class="cmp-logo" :src="getImagePath(item)" alt="">
+          </div>
+          <div style="flex: 1; text-align: center;" class="btsymbol">{{ item }}</div>
+          <div style="flex: 1; text-align: center;">{{ quotes[item] }}</div>
+          <div style="flex: 1; text-align: center;" :class="changes[item] > 0 ? 'positive' : 'negative'">{{ changes[item] }}</div>
+          <div style="flex: 1; text-align: center;" :class="perc[item] > 0 ? 'positive' : 'negative'">{{ perc[item] }}%</div>
+          <div class="delete-cell" style="position: relative;">
+            <button class="dbtn" @click="deleteTicker(item)" style="position: absolute; right: 0;" @click.stop>╳</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="results"></div>
+      </div>
+    </div>
+    <Footer />
+  </body>
+</template>
+
+<script setup>
+// @ is an alias to /src
+import Header from '@/components/Header.vue'
+import Footer from '@/components/Footer.vue'
+import { reactive, onMounted, onUnmounted, ref, watch, computed, nextTick } from 'vue';
+import { createChart, ColorType, CrosshairMode} from 'lightweight-charts';
+import LoadingOverlay from 'vue-loading-overlay';
+import Sortable from 'sortablejs';
+import { useStore } from 'vuex';
+import barsIcon from '@/assets/icons/bars.png';
+import candlesIcon from '@/assets/icons/candles.png';
+import blankImage from '@/assets/images/Blank.svg';
+
+const store = useStore();
+let user = store.getters.getUser;
+const abortController = ref(new AbortController());
+
+onUnmounted(() => {
+  abortController.value.abort();
+  // Cancel any other ongoing operations, timers, etc.
+});
+
+const isLoading2 = ref(true);
+const isLoading3 = ref(true);
+const sortable = ref(null);
+
+function getWatchlistIcon(ticker, item) {
+  return isAssetInWatchlist(ticker.Name, item) 
+    ? new URL('@/assets/icons/checked.png', import.meta.url).href
+    : new URL('@/assets/icons/unchecked.png', import.meta.url).href;
+}
+
+function initializeSortable() {
+  if (sortable.value) {
+    new Sortable(sortable.value, {
+      animation: 150,
+      onEnd: async function() {
+        await UpdateWatchlistOrder();
+      }
+    });
+  }
+}
+
+async function fetchItemData(item) {
+  await Promise.all([
+    getQuote(item),
+    getChange(item),
+    getPercentChange(item),
+    getImagePath(item)
+  ]);
+}
+
+async function initializeComponent() {
+  try {
+    isLoading2.value = true;
+    isLoading3.value = true;
+
+    // Force a render cycle to ensure loading state is displayed
+    await nextTick();
+
+    // Wrap all initialization operations in Promise.all
+    await Promise.all([
+      getWatchlists(),
+      filterWatchlist(),
+      fetchSymbolsAndExchanges() // This populates ImagePaths
+    ]);
+
+    // After filterWatchlist has populated watchlist2.tickers, fetch data for each item
+    if (watchlist2.tickers && watchlist2.tickers.length > 0) {
+      await Promise.all(watchlist2.tickers.map(fetchItemData));
+    }
+
+    await nextTick();
+    
+    await Promise.all([
+    await searchTicker(),
+    await searchNotes()
+  ]);
+
+    isLoading2.value = false;
+    isLoading3.value = false;
+
+    await nextTick(() => {
+      initializeWatchlistNavigation();
+      initializeSortable();
+    });
+  } catch (error) {
+    console.error('Initialization error:', error);
+    isLoading2.value = false;
+  }
+}
+
+onMounted(() => {
+  initializeComponent();
+  nextTick(() => {
+    initializeSortable();
+  });
+});
+
+let defaultSymbol = localStorage.getItem('defaultSymbol');
+let selectedItem = defaultSymbol;
+let isChartLoading = ref(false);
+
+const searchQuery = ref('');
+
+const toUpperCase = () => {
+  searchQuery.value = searchQuery.value.toUpperCase();
+};
+
+
+async function fetchUserDefaultSymbol() {
+  try {
+    if (!user) return null;
+
+    const response = await fetch(`/api/${user}/default-symbol`);
+    if (!response.ok) throw new Error('Failed to fetch default symbol');
+
+    const data = await response.json();
+    return data.defaultSymbol;
+  } catch (error) {
+    console.error('Error fetching user default symbol:', error);
+    return null;
+  }
+}
+
+async function updateUserDefaultSymbol(symbol) {
+  try {
+    if (!user) return;
+
+    const response = await fetch(`/api/${user}/update-default-symbol`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ defaultSymbol: symbol })
+    });
+
+    if (!response.ok) throw new Error('Failed to update default symbol');
+  } catch (error) {
+    console.error('Error updating user default symbol:', error);
+  }
+}
+
+const showAllEPS = ref(false);
+const showAllEarnings = ref(false);
+const showAllSales = ref(false);
+
+// Computed properties with error handling
+const displayedEPSItems = computed(() => {
+  const earnings = assetInfo?.quarterlyEarnings || [];
+  if (earnings.length === 0) return [];
+  if (earnings.length <= 4) return earnings;
+  return showAllEPS.value ? earnings : earnings.slice(0, 4);
+});
+
+const displayedEarningsItems = computed(() => {
+  const income = assetInfo?.quarterlyIncome || [];
+  if (income.length === 0) return [];
+  if (income.length <= 4) return income;
+  return showAllEarnings.value ? income : income.slice(0, 4);
+});
+
+const displayedSalesItems = computed(() => {
+  const income = assetInfo?.quarterlyIncome || [];
+  if (income.length === 0) return [];
+  if (income.length <= 4) return income;
+  return showAllSales.value ? income : income.slice(0, 4);
+});
+
+const showEPSButton = computed(() => {
+  return (assetInfo?.quarterlyEarnings?.length || 0) > 4;
+});
+
+const showEarningsButton = computed(() => {
+  return (assetInfo?.quarterlyIncome?.length || 0) > 4;
+});
+
+const showSalesButton = computed(() => {
+  return (assetInfo?.quarterlyIncome?.length || 0) > 4;
+});
+
+async function searchTicker() {
+  let response; 
+  try {
+    isChartLoading.value = true;
+    const searchbar = document.getElementById('searchbar');
+    let symbol;
+    {
+      symbol = (searchbar.value || defaultSymbol).toUpperCase(); 
+      response = await fetch(`/api/chart/${symbol}`); 
+
+      if (response.status === 404) {
+        alert('Ticker not found');
+        isChartLoading.value = false;
+        return;
+      }
+
+      const data = await response.json();
+
+      searchbar.value = data.Symbol;
+      localStorage.setItem('defaultSymbol', data.Symbol);
+      defaultSymbol = data.Symbol;
+      selectedItem = data.Symbol;
+      await updateUserDefaultSymbol(data.Symbol); 
+
+      assetInfo.Name = data.Name;
+      assetInfo.ISIN = data.ISIN;
+      assetInfo.Symbol = data.Symbol;
+      assetInfo.Sector = data.Sector;
+      assetInfo.Industry = data.Industry;
+      assetInfo.MarketCapitalization = data.MarketCapitalization;
+      assetInfo.SharesOutstanding = data.SharesOutstanding;
+      assetInfo.Country = data.Country;
+      assetInfo.AssetType = data.AssetType;
+      assetInfo.Address = data.Address;
+      assetInfo.Currency = data.Currency;
+      assetInfo.Beta = data.Beta;
+      assetInfo.BookValue = data.BookValue;
+      assetInfo.DividendYield = data.DividendYield;
+      assetInfo.DividendDate = data.DividendDate;
+      assetInfo.Exchange = data.Exchange;
+      assetInfo.PEGRatio = data.PEGRatio;
+      assetInfo.PERatio = data.PERatio;
+      assetInfo.Exchange = data.Exchange;
+      assetInfo.ForwardPE = data.ForwardPE;
+      assetInfo.PriceToBookRatio = data.PriceToBookRatio;
+      assetInfo.TrailingPE = data.TrailingPE;
+      assetInfo.WeekHigh = data.WeekHigh;
+      assetInfo.WeekLow = data.WeekLow;
+      assetInfo.quarterlyEarnings = data.quarterlyEarnings;
+      assetInfo.annualEarnings = data.annualEarnings;
+      assetInfo.quarterlyIncome = data.quarterlyIncome;
+      assetInfo.annualIncome = data.annualIncome;
+      assetInfo.RSScore1W = data.RSScore1W;
+      assetInfo.RSScore1M = data.RSScore1M;
+      assetInfo.RSScore4M = data.RSScore4M;
+      assetInfo.IPO = data.IPO;
+    }
+  } catch (err) {
+    console.log(err);
+    isChartLoading.value = false;
+  } finally {
+    if (response && response.status !== 404) {
+      await searchNotes();
+      await fetchData();
+      await fetchData2();
+      await fetchData3();
+      await fetchData4();
+      await fetchData5();
+      await fetchData6();
+      await fetchData7();
+      await fetchData8();
+      await fetchData9();
+      await fetchData10();
+      await fetchData11();
+      await fetchData12();
+      await fetchEarningsDate();
+      await fetchSplitsDate();
+    }
+    isChartLoading.value = false;
+  }
+}
+
+const isInitializing = ref(true);
+const assetInfo = reactive({
+  Name: '',
+  ISIN: '',
+  Sector: '',
+  Exchange: '',
+  Industry: '',
+  MarketCap: '',
+  SharesOutstanding: '',
+  PEGRatio: '',
+  PERatio: '',
+  ForwardPE: '',
+  PriceToBookRatio: '',
+  TrailingPE: '',
+  WeekHigh: '',
+  WeekLow: '',
+  Country: '',
+  AssetType: '',
+  Address: '',
+  Beta: '',
+  BookValue: '',
+  DividendYield: '',
+  DividendDate: '',
+  quarterlyEarnings: [],
+  annualEarnings: [],
+  quarterlyIncome: [],
+  annualIncome: [],
+  Symbol: '',
+  RSScore1W: '',
+  RSScore1M: '',
+  RSScore4M: '',
+  IPO: '',
+});
+
+//takes date strings inside database and converts them into actual date, in italian format
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+  return date.toLocaleDateString('it-IT', options);
+}
+
+//converts floats to percentage (%) for info box
+function calculatePercentageChange(currentValue, previousValue) {
+  const change = currentValue - previousValue;
+  let percentageChange;
+  if (previousValue < 0) {
+    // If previousValue is negative, flip the sign of the change
+    percentageChange = (change / Math.abs(previousValue)) * 100;
+  } else {
+    percentageChange = (change / previousValue) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+function calculateQoQ1(reportedEPS) {
+  if (!reportedEPS) return null;
+  const quarterlyEarnings = assetInfo.quarterlyEarnings;
+  if (!quarterlyEarnings) return null;
+  const index = quarterlyEarnings.findIndex(earnings => earnings.reportedEPS === reportedEPS);
+  if (index === -1) return null;
+  const previousQuarterlyEarnings = quarterlyEarnings[index + 1];
+  if (!previousQuarterlyEarnings) return null;
+  const previousReportedEPS = previousQuarterlyEarnings.reportedEPS;
+  if (previousReportedEPS === undefined) return null;
+  let percentageChange;
+  if (previousReportedEPS < 0) {
+    percentageChange = ((reportedEPS - previousReportedEPS) / Math.abs(previousReportedEPS)) * 100;
+  } else {
+    percentageChange = ((reportedEPS - previousReportedEPS) / previousReportedEPS) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+function calculateYoY1(reportedEPS) {
+  if (!reportedEPS) return null;
+  const earnings = assetInfo.quarterlyEarnings;
+  if (!earnings) return null;
+  const index = earnings.findIndex(earnings => earnings.reportedEPS === reportedEPS);
+  if (index === -1) return null;
+  const previousEarnings = earnings[index + 4];
+  if (!previousEarnings) return null;
+  const previousReportedEPS = previousEarnings.reportedEPS;
+  if (previousReportedEPS === undefined) return null;
+  let percentageChange;
+  if (previousReportedEPS < 0) {
+    percentageChange = ((reportedEPS - previousReportedEPS) / Math.abs(previousReportedEPS)) * 100;
+  } else {
+    percentageChange = ((reportedEPS - previousReportedEPS) / previousReportedEPS) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+function getQoQClass(percentageChange) {
+  return percentageChange > 20 ? 'green' : 'red';
+}
+
+function getYoYClass(percentageChange) {
+  return percentageChange > 20 ? 'green' : 'red';
+}
+
+function calculateQoQ2(netIncome) {
+  if (!netIncome) return null;
+  const quarterlyIncome = assetInfo.quarterlyIncome;
+  if (!quarterlyIncome) return null;
+  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
+  if (index === -1) return null;
+  const previousQuarterlyIncome = quarterlyIncome[index + 1];
+  if (!previousQuarterlyIncome) return null;
+  const previousReportedIncome = previousQuarterlyIncome.netIncome;
+  if (previousReportedIncome === undefined) return null;
+  let percentageChange;
+  if (previousReportedIncome < 0) {
+    percentageChange = ((netIncome - previousReportedIncome) / Math.abs(previousReportedIncome)) * 100;
+  } else {
+    percentageChange = ((netIncome - previousReportedIncome) / previousReportedIncome) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+function calculateYoY2(netIncome) {
+  if (!netIncome) return null;
+  const quarterlyIncome = assetInfo.quarterlyIncome;
+  if (!quarterlyIncome) return null;
+  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
+  if (index === -1) return null;
+  const previousQuarterlyIncome = quarterlyIncome[index + 4];
+  if (!previousQuarterlyIncome) return null;
+  const previousReportedIncome = previousQuarterlyIncome.netIncome;
+  if (previousReportedIncome === undefined) return null;
+  let percentageChange;
+  if (previousReportedIncome < 0) {
+    percentageChange = ((netIncome - previousReportedIncome) / Math.abs(previousReportedIncome)) * 100;
+  } else {
+    percentageChange = ((netIncome - previousReportedIncome) / previousReportedIncome) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+function calculateQoQ3(totalRevenue) {
+  if (!totalRevenue) return null;
+  const quarterlyIncome = assetInfo.quarterlyIncome;
+  if (!quarterlyIncome) return null;
+  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
+  if (index === -1) return null;
+  const previousQuarterlyIncome = quarterlyIncome[index + 1];
+  if (!previousQuarterlyIncome) return null;
+  const previousReportedRevenue = previousQuarterlyIncome.totalRevenue;
+  if (previousReportedRevenue === undefined) return null;
+  let percentageChange;
+  if (previousReportedRevenue < 0) {
+    percentageChange = ((totalRevenue - previousReportedRevenue) / Math.abs(previousReportedRevenue)) * 100;
+  } else {
+    percentageChange = ((totalRevenue - previousReportedRevenue) / previousReportedRevenue) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+function calculateYoY3(totalRevenue) {
+  if (!totalRevenue) return null;
+  const quarterlyIncome = assetInfo.quarterlyIncome;
+  if (!quarterlyIncome) return null;
+  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
+  if (index === -1) return null;
+  const previousQuarterlyIncome = quarterlyIncome[index + 4];
+  if (!previousQuarterlyIncome) return null;
+  const previousReportedRevenue = previousQuarterlyIncome.totalRevenue;
+  if (previousReportedRevenue === undefined) return null;
+  let percentageChange;
+  if (previousReportedRevenue < 0) {
+    percentageChange = ((totalRevenue - previousReportedRevenue) / Math.abs(previousReportedRevenue)) * 100;
+  } else {
+    percentageChange = ((totalRevenue - previousReportedRevenue) / previousReportedRevenue) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+function calculateNet(netIncome) {
+  if (!netIncome) return null;
+  const quarterlyIncome = assetInfo.quarterlyIncome;
+  if (!quarterlyIncome) return null;
+  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
+  if (index === -1) return null;
+  const previousQuarterlyIncome = quarterlyIncome[index + 1];
+  if (!previousQuarterlyIncome) return null;
+  const previousReportedIncome = previousQuarterlyIncome.netIncome;
+  if (previousReportedIncome === undefined) return null;
+  let percentageChange;
+  if (previousReportedIncome < 0) {
+    percentageChange = ((netIncome - previousReportedIncome) / Math.abs(previousReportedIncome)) * 100;
+  } else {
+    percentageChange = ((netIncome - previousReportedIncome) / previousReportedIncome) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+function calculateRev(totalRevenue) {
+  if (!totalRevenue) return null;
+  const quarterlyIncome = assetInfo.quarterlyIncome;
+  if (!quarterlyIncome) return null;
+  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
+  if (index === -1) return null;
+  const previousQuarterlyIncome = quarterlyIncome[index + 1];
+  if (!previousQuarterlyIncome) return null;
+  const previousReportedRevenue = previousQuarterlyIncome.totalRevenue;
+  if (previousReportedRevenue === undefined) return null;
+  let percentageChange;
+  if (previousReportedRevenue < 0) {
+    percentageChange = ((totalRevenue - previousReportedRevenue) / Math.abs(previousReportedRevenue)) * 100;
+  } else {
+    percentageChange = ((totalRevenue - previousReportedRevenue) / previousReportedRevenue) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+const BeautifulNotes = ref([]);
+const loading = ref(false);
+const error = ref(null);
+
+async function searchNotes() {
+  try {
+    const Username = user;
+    const searchbar = document.getElementById('searchbar');
+    const symbol = searchbar.value || defaultSymbol;
+    const response = await fetch(`/api/${Username}/${symbol}/notes`);
+    const data = await response.json();
+    BeautifulNotes.value = data;
+  } catch (err) {
+    error.value = err;
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function sendNote() {
+  const note = document.getElementById('notes-container').value;
+  const symbol = document.getElementById('searchbar').value || defaultSymbol;
+
+  // Check character limit
+  if (note.length > 350) {
+    error.value = 'Note exceeds 350 character limit';
+    return;
+  }
+
+  if (note.trim() !== '') {
+    try {
+      const response = await fetch(`/api/${symbol}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note, Username: user }), 
+      });
+
+      const responseData = await response.json();
+
+      if (response.ok) {
+        document.getElementById('notes-container').value = '';
+        showCreateNote.value = false;
+        await searchNotes(symbol);
+      } else {
+        // Display the error message from the server
+        error.value = responseData.message || 'Failed to create note';
+      }
+    } catch (err) {
+      error.value = err.message;
+    }
+  } else {
+    console.log('No message to send');
+  }
+}
+
+async function removeNote(_id, note) {
+  const Username = user;
+  const symbol = document.getElementById('searchbar').value || defaultSymbol;
+  const noteId = _id;
+
+  try {
+    const response = await fetch(`/api/${symbol}/notes/${noteId}?user=${Username}`, {
+      method: 'DELETE',
+    });
+    if (response.ok) {
+      BeautifulNotes.value = BeautifulNotes.value.filter((n) => n._id !== noteId);
+    } else {
+      error.value = response.statusText;
+    }
+  } catch (err) {
+    error.value = err;
+  }
+  await searchNotes();
+}
+
+onMounted(async () => {
+  await searchNotes();
+});
+
+async function showTicker() {
+  try {
+    let symbol;
+    {
+      symbol = defaultSymbol;
+      const response = await fetch(`/api/chart/${symbol}`);
+      const data = await response.json();
+
+      assetInfo.Name = data.Name;
+      assetInfo.ISIN = data.ISIN;
+      assetInfo.Symbol = data.Symbol;
+      assetInfo.Sector = data.Sector;
+      assetInfo.Industry = data.Industry;
+      assetInfo.MarketCapitalization = data.MarketCapitalization;
+      assetInfo.SharesOutstanding = data.SharesOutstanding;
+      assetInfo.Country = data.Country;
+      assetInfo.AssetType = data.AssetType;
+      assetInfo.Address = data.Address;
+      assetInfo.Currency = data.Currency;
+      assetInfo.Beta = data.Beta;
+      assetInfo.BookValue = data.BookValue;
+      assetInfo.DividendYield = data.DividendYield;
+      assetInfo.DividendDate = data.DividendDate;
+      assetInfo.Exchange = data.Exchange;
+      assetInfo.PEGRatio = data.PEGRatio;
+      assetInfo.PERatio = data.PERatio;
+      assetInfo.Exchange = data.Exchange;
+      assetInfo.ForwardPE = data.ForwardPE;
+      assetInfo.PriceToBookRatio = data.PriceToBookRatio;
+      assetInfo.TrailingPE = data.TrailingPE;
+      assetInfo.WeekHigh = data.WeekHigh;
+      assetInfo.WeekLow = data.WeekLow;
+      assetInfo.quarterlyEarnings = data.quarterlyEarnings;
+      assetInfo.annualEarnings = data.annualEarnings;
+      assetInfo.quarterlyIncome = data.quarterlyIncome;
+      assetInfo.annualIncome = data.annualIncome;
+      assetInfo.RSScore1W = data.RSScore1W;
+      assetInfo.RSScore1M = data.RSScore1M;
+      assetInfo.RSScore4M = data.RSScore4M;
+      assetInfo.IPO = data.IPO;
+    }
+  } catch (err) {
+    console.log(err);
+  } finally {
+    await searchNotes();
+    await fetchData();
+    await fetchData2();
+    await fetchData3();
+    await fetchData4();
+    await fetchData5();
+    await fetchData6();
+    await fetchData7();
+    await fetchData8();
+    await fetchData9();
+    await fetchData10();
+    await fetchData11();
+    await fetchData12();
+  }
+}
+
+async function fetchEarningsDate() {
+  abortController.value = new AbortController();
+  let symbol = document.getElementById('searchbar');
+  if (!symbol) {
+    console.log('Searchbar not found, aborting fetchEarningsDate');
+    return;
+  }
+  let ticker = symbol.value || defaultSymbol;
+  try {
+    const response = await fetch(`/api/${ticker}/earningsdate`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newEARNDates = await response.json();
+    const ipoDate = data.value[0].time; // extract IPO date from the first document in the data list
+    const ipoDateObject = new Date(ipoDate); // convert ipoDate to a date object
+    const filteredEARNDates = newEARNDates.filter((date) => {
+      const dateObject = new Date(`${date.time.year}-${date.time.month}-${date.time.day}`); // convert date to a date object
+      return dateObject >= ipoDateObject;
+    });
+    EARNdates.value = filteredEARNDates.map((date) => {
+      return {
+        time: date.time,
+      };
+    });
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchEarningsDate aborted');
+      return;
+    }
+    console.error('Error fetching earnings date:', error);
+  }
+}
+
+async function fetchSplitsDate() {
+  abortController.value = new AbortController();
+  let symbol = document.getElementById('searchbar');
+  if (!symbol) {
+    console.log('Searchbar not found, aborting fetchSplitsDate');
+    return;
+  }
+  let ticker = symbol.value || defaultSymbol;
+  try {
+    const response = await fetch(`/api/${ticker}/splitsdate`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newSPLITDates = await response.json();
+    SPLITdates.value = newSPLITDates;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchSplitsDate aborted');
+      return;
+    }
+    console.error('Error fetching splits date:', error);
+  }
+}
+
+const data = ref([]); // Daily OHCL Data
+const data2 = ref([]); // Daily Volume Data
+const data3 = ref([]); // daily 10MA
+const data4 = ref([]); // daily 20MA
+const data5 = ref([]); // daily 50MA
+const data6 = ref([]); // daily 200MA
+const data7 = ref([]); // Weekly OHCL Data
+const data8 = ref([]); // Weekly Volume Data
+const data9 = ref([]); // weekly 10MA
+const data10 = ref([]); // weekly 20MA
+const data11 = ref([]); // weekly 50MA
+const data12 = ref([]); // weekly 200MA
+const EARNdates = ref([]); // Earnings Data - just date
+const SPLITdates = ref([]); // Splits Data - just date
+
+async function fetchData() {
+  abortController.value = new AbortController();
+  let searchbar = document.getElementById('searchbar');
+  if (!searchbar) {
+    console.log('Searchbar not found, aborting fetchData');
+    return;
+  }
+  try {
+    let symbol = searchbar.value || defaultSymbol;
+    const response = await fetch(`/api/${symbol}/data`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newData = await response.json();
+    data.value = newData;
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchData aborted');
+      return;
+    }
+    console.error('Error fetching data:', error);
+  }
+}
+
+async function fetchData2() {
+  abortController.value = new AbortController();
+  let symbol = document.getElementById('searchbar');
+  if (!symbol) {
+    console.log('Searchbar not found, aborting fetchData2');
+    return;
+  }
+  let ticker = symbol.value || defaultSymbol;
+  try {
+    const response = await fetch(`/api/${ticker}/data2`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newData2 = await response.json();
+    data2.value = newData2;
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchData2 aborted');
+      return;
+    }
+    console.error('Error fetching data:', error);
+  }
+}
+
+async function fetchData3() {
+  abortController.value = new AbortController();
+  let symbol = document.getElementById('searchbar');
+  if (!symbol) {
+    console.log('Searchbar not found, aborting fetchData3');
+    return;
+  }
+  let ticker = symbol.value || defaultSymbol;
+  try {
+    const response = await fetch(`/api/${ticker}/data3`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newData3 = await response.json();
+    data3.value = newData3;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchData3 aborted');
+      return;
+    }
+    console.error('Error fetching data:', error);
+  }
+}
+
+async function fetchData4() {
+  abortController.value = new AbortController();
+  let symbol = document.getElementById('searchbar');
+  if (!symbol) {
+    console.log('Searchbar not found, aborting fetchData4');
+    return;
+  }
+  let ticker = symbol.value || defaultSymbol;
+  try {
+    const response = await fetch(`/api/${ticker}/data4`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newData4 = await response.json();
+    data4.value = newData4;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchData4 aborted');
+      return;
+    }
+    console.error('Error fetching data:', error);
+  }
+}
+
+async function fetchData5() {
+  abortController.value = new AbortController();
+  let symbol = document.getElementById('searchbar');
+  if (!symbol) {
+    console.log('Searchbar not found, aborting fetchData5');
+    return;
+  }
+  let ticker = symbol.value || defaultSymbol;
+  try {
+    const response = await fetch(`/api/${ticker}/data5`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newData5 = await response.json();
+    data5.value = newData5;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchData5 aborted');
+      return;
+    }
+    console.error('Error fetching data:', error);
+  }
+}
+
+async function fetchData6() {
+  abortController.value = new AbortController();
+  let symbol = document.getElementById('searchbar');
+  if (!symbol) {
+    console.log('Searchbar not found, aborting fetchData6');
+    return;
+  }
+  let ticker = symbol.value || defaultSymbol;
+  try {
+    const response = await fetch(`/api/${ticker}/data6`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newData6 = await response.json();
+    data6.value = newData6;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchData6 aborted');
+      return;
+    }
+    console.error('Error fetching data:', error);
+  }
+}
+
+async function fetchData7() {
+  abortController.value = new AbortController();
+  let symbol = document.getElementById('searchbar');
+  if (!symbol) {
+    console.log('Searchbar not found, aborting fetchData7');
+    return;
+  }
+  let ticker = symbol.value || defaultSymbol;
+  try {
+    const response = await fetch(`/api/${ticker}/data7`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newData7 = await response.json();
+    data7.value = newData7;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchData7 aborted');
+      return;
+    }
+    console.error('Error fetching data:', error);
+  }
+}
+
+async function fetchData8() {
+  abortController.value = new AbortController();
+  let symbol = document.getElementById('searchbar');
+  if (!symbol) {
+    console.log('Searchbar not found, aborting fetchData8');
+    return;
+  }
+  let ticker = symbol.value || defaultSymbol;
+  try {
+    const response = await fetch(`/api/${ticker}/data8`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newData8 = await response.json();
+    data8.value = newData8;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchData8 aborted');
+      return;
+    }
+    console.error('Error fetching data:', error);
+  }
+}
+
+async function fetchData9() {
+  abortController.value = new AbortController();
+  let symbol = document.getElementById('searchbar');
+  if (!symbol) {
+    console.log('Searchbar not found, aborting fetchData3');
+    return;
+  }
+  let ticker = symbol.value || defaultSymbol;
+  try {
+    const response = await fetch(`/api/${ticker}/data9`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newData9 = await response.json();
+    data3.value = newData9;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchData9 aborted');
+      return;
+    }
+    console.error('Error fetching data:', error);
+  }
+}
+
+async function fetchData10() {
+  abortController.value = new AbortController();
+  let symbol = document.getElementById('searchbar');
+  if (!symbol) {
+    console.log('Searchbar not found, aborting fetchData4');
+    return;
+  }
+  let ticker = symbol.value || defaultSymbol;
+  try {
+    const response = await fetch(`/api/${ticker}/data10`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newData10 = await response.json();
+    data10.value = newData10;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchData4 aborted');
+      return;
+    }
+    console.error('Error fetching data:', error);
+  }
+}
+
+async function fetchData11() {
+  abortController.value = new AbortController();
+  let symbol = document.getElementById('searchbar');
+  if (!symbol) {
+    console.log('Searchbar not found, aborting fetchData5');
+    return;
+  }
+  let ticker = symbol.value || defaultSymbol;
+  try {
+    const response = await fetch(`/api/${ticker}/data11`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newData11 = await response.json();
+    data11.value = newData11;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchData5 aborted');
+      return;
+    }
+    console.error('Error fetching data:', error);
+  }
+}
+
+async function fetchData12() {
+  abortController.value = new AbortController();
+  let symbol = document.getElementById('searchbar');
+  if (!symbol) {
+    console.log('Searchbar not found, aborting fetchData6');
+    return;
+  }
+  let ticker = symbol.value || defaultSymbol;
+  try {
+    const response = await fetch(`/api/${ticker}/data12`, {
+      signal: abortController.value.signal
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newData12 = await response.json();
+    data12.value = newData12;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('fetchData6 aborted');
+      return;
+    }
+    console.error('Error fetching data:', error);
+  }
+}
+
+let chartView = ref('D')
+let useAlternateData = false;
+const isLoading = ref(true)
+const charttype = ref('Bar')
+const isBarChart = ref(true);
+
+const chartTypeIcon = computed(() => {
+  return isBarChart.value ? barsIcon : candlesIcon;
+});
+
+const toggleChartType = () => {
+  isBarChart.value = !isBarChart.value;
+  charttype.value = isBarChart.value ? 'Bar' : 'Candlestick';
+};
+
+// mounts chart (including volume)
+onMounted(async () => {
+  try {
+    isInitializing.value = true;
+    // Clear localStorage on mount to prevent using old data
+    localStorage.removeItem('defaultSymbol');
+    
+    // Get user's default symbol
+    selectedItem = await fetchUserDefaultSymbol();
+    if (selectedItem) {
+      defaultSymbol = selectedItem;
+      localStorage.setItem('defaultSymbol', selectedItem);
+    }
+
+    // Initialize with the fetched symbol
+    await showTicker();
+
+    await nextTick()
+const chartDiv = document.getElementById('chartdiv');
+  const chart = createChart(chartDiv, {
+    layout: {
+      background: {
+        type: ColorType.Solid,
+        color: '#0f0f1b',
+      },
+      textColor: '#ffffff',
+    },
+    grid: {
+      vertLines: {
+        color: 'transparent',
+      },
+      horzLines: {
+        color: 'transparent',
+      }
+    }, crosshair: { mode: CrosshairMode.Normal,
+      vertLine: {
+        color: "#8c8dfe",
+        labelBackgroundColor: "#8c8dfe",
+      },
+      horzLine: {
+        color: "#8c8dfe",
+        labelBackgroundColor: "#8c8dfe",
+      },
+    },
+    timeScale: {
+      barSpacing: 2.5,
+      minBarSpacing: 0.1,
+      rightOffset: 20,
+    },});
+
+let barSeries = chart.addBarSeries({
+  downColor: '#90bff9',
+  upColor: '#4caf50',
+  priceLineVisible: true,
+});
+
+function toggleChartType() {
+  // Remove the existing series
+  chart.removeSeries(barSeries);
+
+  if (isBarChart.value) {
+    // Create a bar series
+    barSeries = chart.addBarSeries({
+      downColor: '#90bff9',
+      upColor: '#4caf50',
+      priceLineVisible: true,
+    });
+  } else {
+    // Create a candlestick series
+    barSeries = chart.addCandlestickSeries({
+      downColor: '#90bff9',
+      upColor: '#4caf50',
+      borderDownColor: '#90bff9',
+      borderUpColor: '#4caf50',
+      wickDownColor: '#90bff9',
+      wickUpColor: '#4caf50',
+      priceLineVisible: true,
+    });
+  }
+
+  // Update the data for the new series
+  const currentData = useAlternateData ? data7.value : data.value;
+  const changes = calculateChanges(currentData);
+  barSeries.setData(changes);
+}
+
+// Watch for changes in the chart type
+watch(isBarChart, () => {
+  toggleChartType();
+});
+
+// Update the existing watchers (keep these as they were)
+watch(data, (newData) => {
+  const changes = calculateChanges(newData);
+  if (!useAlternateData) {
+    barSeries.setData(changes);
+    updateLastRecordedValue(changes);
+  }
+});
+
+watch(data7, (newData7) => {
+  const changes = calculateChanges(newData7);
+  if (useAlternateData) {
+    barSeries.setData(changes);
+    updateLastRecordedValue(changes);
+  }
+});
+
+// Modified toggleChartTypeUI function
+function toggleChartTypeUI() {
+  isBarChart.value = !isBarChart.value;
+  toggleChartType();
+}
+
+  const Histogram = chart.addHistogramSeries({
+    color: '#4D4D4D',
+    priceLineVisible: true,
+    priceFormat: {
+      type: 'volume',
+    },
+    priceScaleId: '',
+  });
+
+  const MaSeries1 = chart.addLineSeries({
+    color: '#00bcd4',
+    priceLineVisible: false,
+    lastValueVisible: false,
+    crosshairMarkerVisible: false,
+    lineWidth: 1,
+  });
+
+  const MaSeries2 = chart.addLineSeries({
+    color: '#2862ff',
+    priceLineVisible: false,
+    lastValueVisible: false,
+    crosshairMarkerVisible: false,
+    lineWidth: 1,
+  });
+
+  const MaSeries3 = chart.addLineSeries({
+    color: '#ffeb3b',
+    priceLineVisible: false,
+    lastValueVisible: false,
+    crosshairMarkerVisible: false,
+    lineWidth: 1,
+  });
+
+  const MaSeries4 = chart.addLineSeries({
+    color: '#4caf50',
+    priceLineVisible: false,
+    lastValueVisible: false,
+    crosshairMarkerVisible: false,
+    lineWidth: 1,
+  });
+
+  Histogram.priceScale().applyOptions({
+    scaleMargins: {
+      top: 0.9,
+      bottom: 0,
+    }
+  });
+
+  let lastRecordedValue = null;
+
+  function updateLastRecordedValue(changes) {
+  if (chartView.value === 'D') {
+    lastRecordedValue = changes[changes.length - 1];
+  } else if (chartView.value === 'W') {
+    lastRecordedValue = changes[changes.length - 1];
+  }
+  updateFirstRow(lastRecordedValue);
+}
+
+watch(data, (newData) => {
+  const changes = calculateChanges(newData);
+  if (!useAlternateData) {
+    barSeries.setData(changes);
+    updateLastRecordedValue(changes);
+  }
+});
+
+watch(data7, (newData7) => {
+  const changes = calculateChanges(newData7);
+  if (useAlternateData) {
+    barSeries.setData(changes);
+    updateLastRecordedValue(changes);
+  }
+});
+
+  watch(data2, (newData2) => {
+    if (!useAlternateData) {
+      Histogram.setData(newData2);
+    }
+  });
+
+  watch(data8, (newData8) => {
+    if (useAlternateData) {
+      Histogram.setData(newData8);
+    }
+  });
+
+  watch(data3, (newData3) => {
+  if (!useAlternateData) {
+    MaSeries1.setData(newData3);
+  }
+});
+
+watch(data4, (newData4) => {
+  if (!useAlternateData) {
+    MaSeries2.setData(newData4);
+  }
+});
+
+watch(data5, (newData5) => {
+  if (!useAlternateData) {
+    MaSeries3.setData(newData5);
+  }
+});
+
+watch(data6, (newData6) => {
+  if (!useAlternateData) {
+    MaSeries4.setData(newData6);
+  }
+});
+
+watch(data9, (newData9) => {
+  if (useAlternateData) {
+    MaSeries1.setData(newData9);
+  }
+});
+
+watch(data10, (newData10) => {
+  if (useAlternateData) {
+    MaSeries2.setData(newData10);
+  }
+});
+
+watch(data11, (newData11) => {
+  if (useAlternateData) {
+    MaSeries3.setData(newData11);
+  }
+});
+
+watch(data12, (newData12) => {
+  if (useAlternateData) {
+    MaSeries4.setData(newData12);
+  }
+});
+
+  watch(data2, (newData2) => {
+  const relativeVolumeData = newData2.map((dataPoint, index) => {
+    const averageVolume = calculateAverageVolume(newData2, index);
+    const relativeVolume = dataPoint.value / averageVolume;
+    const color = relativeVolume > 2 ? '#8c8dfe' : '#4D4D4D'; 
+    return {
+      time: dataPoint.time, 
+      value: dataPoint.value,
+      color,
+    };
+  });
+  Histogram.setData(relativeVolumeData);
+});
+
+watch(EARNdates, (newEARNdates) => {
+  newEARNdates.sort((a, b) => {
+    return a.time.year - b.time.year || a.time.month - b.time.month || a.time.day - b.time.day;
+  });
+  const markers1 = newEARNdates.map((date) => {
+    return {
+      time: date.time,
+      position: 'aboveBar',
+      color: '#8c8dfe', 
+      shape: 'circle',
+      size: 1,
+      text: 'E',
+      tooltip: 'Earnings Date',
+    };
+  });
+  Histogram.setMarkers(markers1); 
+});
+
+
+watch(SPLITdates, (newSPLITdates) => {
+  newSPLITdates.sort((a, b) => {
+    return a.time.year - b.time.year || a.time.month - b.time.month || a.time.day - b.time.day;
+  });
+const markers2 = newSPLITdates.map((date) => {
+    return {
+      time: date.time,
+      position: 'aboveBar',
+      color: '#8c8dfe', 
+      shape: 'circle',
+      size: 1,
+      text: 'S',
+      tooltip: 'Earnings Date',
+    };
+  });
+  barSeries.setMarkers(markers2);
+});
+
+function calculateChanges(dataPoints) {
+  const changes = [];
+  for (let i = 0; i < dataPoints.length; i++) {
+    const currentPoint = dataPoints[i];
+    const previousPoint = i > 0 ? dataPoints[i - 1] : null;
+    let change = 0;
+    let percentageChange = 0;
+
+    if (previousPoint) {
+      change = currentPoint.close - previousPoint.close;
+      percentageChange = (change / previousPoint.close) * 100;
+    }
+
+    changes.push({
+      time: currentPoint.time,
+      open: currentPoint.open,
+      high: currentPoint.high,
+      low: currentPoint.low,
+      close: currentPoint.close,
+      change: change.toFixed(2),
+      percentageChange: percentageChange.toFixed(2) + '%',
+    });
+  }
+  return changes;
+}
+
+watch(data, (newData) => {
+  const changes = calculateChanges(newData);
+  barSeries.setData(changes);
+});
+
+function calculateAverageVolume(data, index) {
+  const windowSize = 365; // adjust this value to change the window size for calculating average volume
+  const start = Math.max(0, index - windowSize + 1);
+  const end = index + 1;
+  const sum = data.slice(start, end).reduce((acc, current) => acc + current.value, 0);
+  return sum / (end - start);
+}
+
+  const container = document.getElementById('legend');
+  const firstRow = document.createElement('div');
+  container.appendChild(firstRow);
+
+  function updateFirstRow(value) {
+  if (value) {
+    const priceOpen = value.open.toFixed(2);
+    const priceHigh = value.high.toFixed(2);
+    const priceLow = value.low.toFixed(2);
+    const priceClose = value.close.toFixed(2);
+    const priceChange = value.change;
+    const changePerc = value.percentageChange;
+
+    // Check if the current candle is up or down
+    const isUp = priceClose > priceOpen;
+    const className = isUp ? 'positive' : 'negative';
+
+    firstRow.innerHTML = `
+      <strong class="${className}"><span style="color: white">Open:</span> ${priceOpen}</strong>
+      <strong class="${className}"><span style="color: white">High:</span> ${priceHigh}</strong>
+      <strong class="${className}"><span style="color: white">Low:</span> ${priceLow}</strong>
+      <strong class="${className}"><span style="color: white">Close:</span> ${priceClose}</strong>
+      <strong class="${className}">${priceChange}</strong>
+      <strong class="${className}">${changePerc}</strong>
+    `;
+  }
+}
+
+  chart.subscribeCrosshairMove(param => {
+  if (param.time) {
+    let changes;
+    if (chartView.value === 'D') {
+      changes = calculateChanges(data.value);
+    } else if (chartView.value === 'W') {
+      changes = calculateChanges(data7.value); // Use weekly data for weekly chart view
+    }
+
+    const currentChange = changes.find(change => change.time === param.time);
+    if (currentChange) {
+      const priceOpen = currentChange.open.toFixed(2);
+      const priceHigh = currentChange.high.toFixed(2);
+      const priceLow = currentChange.low.toFixed(2);
+      const priceClose = currentChange.close.toFixed(2);
+      const priceChange = currentChange.change;
+      const changePerc = currentChange.percentageChange;
+
+      // Check if the current candle is up or down
+      const isUp = priceClose > priceOpen;
+      const className = isUp ? 'positive' : 'negative';
+
+      firstRow.innerHTML = `
+        <strong class="${className}"><span style="color: white">Open:</span> ${priceOpen}</strong>
+        <strong class="${className}"><span style="color: white">High:</span> ${priceHigh}</strong>
+        <strong class="${className}"><span style="color: white">Low:</span> ${priceLow}</strong>
+        <strong class="${className}"><span style="color: white">Close:</span> ${priceClose}</strong>
+        <strong class="${className}">${priceChange}</strong>
+        <strong class="${className}">${changePerc}</strong>
+      `;
+    }
+  }
+
+});
+
+function calculateReturns(data) {
+  const returns = {};
+  const periods = ['1W', '1M', '3M', '6M', '1Y', '3Y', '5Y'];
+
+  periods.forEach((period) => {
+    let initialValue;
+    let finalValue;
+    
+    // Get the last (most recent) closing price
+    finalValue = data[data.length - 1]?.close || 0;
+
+    switch (period) {
+      case '1W':
+        // 5 trading days
+        initialValue = data[data.length - 5]?.close || 0;
+        break;
+      case '1M':
+        // ~21 trading days
+        initialValue = data[data.length - 21]?.close || 0;
+        break;
+      case '3M':
+        // ~63 trading days
+        initialValue = data[data.length - 63]?.close || 0;
+        break;
+      case '6M':
+        // ~126 trading days
+        initialValue = data[data.length - 126]?.close || 0;
+        break;
+      case '1Y':
+        // ~252 trading days
+        initialValue = data[data.length - 252]?.close || 0;
+        break;
+      case '3Y':
+        // ~756 trading days
+        initialValue = data[data.length - 756]?.close || 0;
+        break;
+      case '5Y':
+        // ~1260 trading days
+        initialValue = data[data.length - 1260]?.close || 0;
+        break;
+      default:
+        break;
+    }
+
+    if (initialValue > 0) {
+      const returnPercentage = ((finalValue - initialValue) / initialValue * 100).toFixed(2) + '%';
+      returns[period] = returnPercentage;
+    } else {
+      returns[period] = '-';
+    }
+  });
+
+  return returns;
+}
+
+const legend3 = document.getElementById('legend3');
+
+function updateLegend3(data) {
+  const returns = calculateReturns(data);
+  let html = '';
+
+  Object.keys(returns).forEach((period) => {
+    const isUp = parseFloat(returns[period].replace('%', '')) > 0;
+    const className = isUp ? 'positive' : 'negative';
+
+    html += `
+      <strong style="color: white">${period}: <span class="${className}">${returns[period]}</span></strong>
+    `;
+  });
+
+  legend3.innerHTML = html;
+}
+
+  await fetchData();
+  await fetchData2();
+  await fetchData3();
+  await fetchData4();
+  await fetchData5();
+  await fetchData6();
+  await fetchData7();
+  await fetchData8();
+  await fetchData9();
+  await fetchData10();
+  await fetchData11();
+  await fetchData12();
+  await fetchEarningsDate();
+  await fetchSplitsDate();
+  updateLegend3(data.value);
+  isLoading.value = false
+
+  watch(data, (newData) => {
+  updateLegend3(newData);
+});
+
+  } catch (error) {
+    console.error('Initialization error:', error);
+  } finally {
+    isInitializing.value = false;
+  }
+
+});
+
+async function toggleChartView() {
+  chartView.value = chartView.value === 'D' ? 'W' : 'D';
+  useAlternateData = !useAlternateData;
+    await fetchData();
+    await fetchData2();
+    await fetchData3();
+    await fetchData4();
+    await fetchData5();
+    await fetchData6();
+    await fetchData7();
+    await fetchData8();
+    await fetchData9();
+    await fetchData10();
+    await fetchData11();
+    await fetchData12();
+}
+
+const watchlist = reactive([]); // dynamic list containing watchlist names for every user 
+const watchlist2 = reactive([]); // dynamic list containing content of watchlists
+const quotes = reactive({});
+const changes = reactive ({});
+const perc = reactive({});
+const selectedWatchlist = ref(JSON.parse(localStorage.getItem('selectedWatchlist')) || null);
+
+function updateSelectedWatchlist(watch) {
+  selectedWatchlist.value = watch;
+  localStorage.setItem('selectedWatchlist', JSON.stringify(watch));
+}
+
+const showCreateWatchlist = ref(false)
+const showRenameWatchlist = ref(false)
+const showCreateNote = ref(false)
+
+// generates all watchlist names 
+async function getWatchlists() {
+  try {
+    user = store.getters.getUser;
+    if (!user) {
+      console.error('User not found');
+      return;
+    }
+    try {
+      const response = await fetch(`/api/${user}/watchlists`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      watchlist.tickers = data;
+      
+      // If no watchlist is selected, select the first one
+      if (!selectedWatchlist.value && data.length > 0) {
+        updateSelectedWatchlist(data[0]);
+      } else if (selectedWatchlist.value) {
+        // Find the current selectedWatchlist in the new data
+        const updatedSelectedWatchlist = data.find(w => w.Name === selectedWatchlist.value.Name);
+        if (updatedSelectedWatchlist) {
+          updateSelectedWatchlist(updatedSelectedWatchlist);
+        } else if (data.length > 0) {
+          // If the previously selected watchlist is not found, select the first one
+          updateSelectedWatchlist(data[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching watchlists:', error);
+      watchlist.tickers = [];
+    }
+  } catch (error) {
+    console.error('Error getting user:', error);
+  }
+}
+
+onMounted (async() => {
+await getWatchlists();
+await filterWatchlist(); 
+})
+
+
+// generates the current watchlist tickers 
+async function filterWatchlist(watch) {
+  if (watch) {
+    updateSelectedWatchlist(watch);
+  }
+  
+  try {
+    const response = await fetch(`/api/${user}/watchlists/${selectedWatchlist.value.Name}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    watchlist2.tickers = data;
+    isLoading2.value = true;
+    // Fetch data for each ticker in the updated watchlist
+    await Promise.all(watchlist2.tickers.map(ticker => fetchItemData(ticker)));
+    isLoading2.value = false;
+    await nextTick(() => {
+      initializeWatchlistNavigation();
+      initializeSortable(); // Reinitialize Sortable after data updates
+    });
+  } catch (error) {
+    isLoading2.value = false;
+    console.error('Error fetching watchlists:', error);
+  }
+}
+
+const ImagePaths = ref([]);
+
+// Async function to fetch symbols and exchanges
+async function fetchSymbolsAndExchanges() {
+  try {
+    const response = await fetch('/api/symbols-exchanges');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Map the data to the required format for ImagePaths
+    ImagePaths.value = data.map(item => ({
+      symbol: item.Symbol,
+      exchange: item.Exchange,
+      path: getImagePath(item.Symbol, item.Exchange) // Pass both symbol and exchange
+    }));
+  } catch (error) {
+    console.error('Error fetching symbols and exchanges:', error);
+  }
+}
+
+// Call the function when component is mounted
+onMounted(() => {
+  fetchSymbolsAndExchanges();
+});
+
+// Helper function to get image path based on symbol
+function getImagePath(item) {
+  if (!ImagePaths.value || ImagePaths.value.length === 0) {
+    return getBlankImage();
+  }
+
+  const imageObject = ImagePaths.value.find(image => image.symbol === item);
+
+  if (imageObject) {
+    const { symbol, exchange } = imageObject;
+    try {
+      // Use a dynamic import with a template literal
+      const imagePath = `/src/assets/images/${exchange}/${symbol}.svg`;
+      return imagePath;
+    } catch (error) {
+      return getBlankImage();
+    }
+  } else {
+    return getBlankImage();
+  }
+}
+
+function getBlankImage() {
+  return blankImage; // Return the imported blank image
+}
+
+async function getQuote(item) {
+  try {
+    const response = await fetch(`/api/${item}/quotes`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    const closeValue = parseFloat(data.close).toFixed(2); // Extract the float value from the object
+    quotes[item] = closeValue; // Store the float value in the reactive object
+  } catch (error) {
+    console.error('Error fetching quote:', error);
+  }
+}
+
+async function getChange(item) {
+  try {
+    const response = await fetch(`/api/${item}/changes`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    const diffValue = parseFloat(data.closeDiff); // Extract the float value from the object
+    changes[item] = diffValue; // Store the float value in the reactive object
+  } catch (error) {
+    console.error('Error fetching quote:', error);
+  }
+}
+
+async function getPercentChange(item) {
+  try {
+    const response = await fetch(`/api/${item}/percchanges`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    const percValue = parseFloat(data.percChange); // Extract the float value from the object
+    perc[item] = percValue; // Store the float value in the reactive object
+  } catch (error) {
+    console.error('Error fetching quote:', error);
+  }
+}
+
+async function CreateWatchlist() {
+  user = user;
+  const watchlistName = document.getElementById('inputcreate').value;
+  const existingWatchlists = watchlist.tickers.map(watch => watch.Name);
+
+  // Check for existing watchlist
+  if (existingWatchlists.includes(watchlistName)) {
+    alert("Watchlist already exists");
+    return;
+  }
+
+  // Check for length
+  if (watchlistName.length > 20) {
+    alert("Watchlist name cannot exceed 20 characters.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/${user}/create/watchlists/${watchlistName}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    // Check if the request was successful
+    if (response.ok) {
+      console.log('Watchlist created successfully!');
+      // You can also update your component's state here
+    } else {
+      const errorData = await response.json();
+      console.error('Error creating watchlist:', errorData);
+    }
+  } catch (error) {
+    console.error('Error creating watchlist:', error);
+  }
+  showCreateWatchlist.value = false;
+  await getWatchlists();
+  
+  // Find the newly created watchlist and select it
+  const newWatchlist = watchlist.tickers.find(watch => watch.Name === watchlistName);
+  if (newWatchlist) {
+    await filterWatchlist(newWatchlist);
+  }
+}
+
+async function UpdateWatchlist() {
+  user = user;
+  const watchlistName = document.getElementById('inputrename').value;
+  const existingWatchlists = watchlist.tickers.map(watch => watch.Name)
+
+  // Check if watchlist already exists
+  if (existingWatchlists.includes(watchlistName)) {
+    alert("Watchlist already exists")
+    return
+  }
+
+  // Check if watchlist name is empty
+  if (!watchlistName) {
+    console.error('Please enter a new name');
+    return;
+  }
+
+  // Check if watchlist name exceeds 20 characters
+  if (watchlistName.length > 20) {
+    alert("Watchlist name cannot exceed 20 characters.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/${user}/rename/watchlists/${selectedWatchlist.value.Name}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newname: watchlistName })
+    });
+
+    // Check if the request was successful
+    if (response.ok) {
+      console.log('Watchlist renamed successfully!');
+      // You can also update your component's state here
+    } else {
+      const errorData = await response.json();
+      alert(errorData.message); // Show the error message from the server
+      console.error('Error renaming watchlist:', errorData);
+    }
+  } catch (error) {
+    console.error('Error renaming watchlist:', error);
+  }
+  
+  showRenameWatchlist.value = false;
+  await getWatchlists();
+
+  // Find the newly created watchlist and select it
+  const newWatchlist = watchlist.tickers.find(watch => watch.Name === watchlistName);
+  if (newWatchlist) {
+    await filterWatchlist(newWatchlist);
+  }
+} 
+
+async function DeleteWatchlist(watch) {
+  user = user;
+  const currentWatchlistName = watch.Name;
+
+  // Set up the API request
+  const apiUrl = `/api/${user}/delete/watchlists/${currentWatchlistName}`; 
+  const requestOptions = {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ currentWatchlistName })
+  };
+
+  try {
+    // Send the request
+    const response = await fetch(apiUrl, requestOptions);
+    const data = await response.json();
+
+    // Handle the response
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+  await getWatchlists();
+  await filterWatchlist();
+}
+
+async function deleteTicker(item) {
+  const selectedWatchlistName = this.selectedWatchlist.Name;
+  const ticker = item;
+  user = user;
+
+  const patchData = {
+    watchlist: selectedWatchlistName,
+    ticker: ticker
+  };
+
+  console.log(patchData);
+
+  try {
+    const response = await fetch(`/api/${user}/deleteticker/watchlists/${patchData.watchlist}/${patchData.ticker}`, { 
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(patchData)
+    });
+
+    const data = await response.json();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+  await getWatchlists();
+  await filterWatchlist();
+  await getFullWatchlists(user);
+}
+
+async function addWatchlist() {
+  user = user;
+  try {
+    const searchbar = document.getElementById('searchbar');
+    const realwatchlist = document.getElementById('realwatchlist');
+    let symbol;
+    let selectedWatchlistName;
+
+    {
+      symbol = searchbar.value.toUpperCase() || defaultSymbol; // Use defaultSymbol if searchbar value is empty
+
+      // Get the selected watchlist name without the length
+      const selectedWatchlistElement = realwatchlist.querySelector('div.selected');
+      if (selectedWatchlistElement) {
+        selectedWatchlistName = selectedWatchlistElement.textContent.split(' (')[0]; // Split to get only the name
+      } else {
+        // Handle the case where no watchlist is selected
+        alert('No watchlist selected');
+        return;
+      }
+
+      // Check if the symbol already exists in the watchlist
+      if (watchlist2.includes(symbol)) {
+        alert('Ticker already exists in the watchlist');
+        return;
+      }
+
+      // Check if the symbol is valid by making a request to the API
+      const response = await fetch(`/api/chart/${symbol}`);
+      if (response.status === 404) {
+        // Ticker not found
+        alert('Ticker not found');
+        return;
+      }
+
+      const assetData = await response.json();
+      if (!assetData.Symbol) {
+        // Invalid data, symbol doesn't exist
+        alert('Invalid data, symbol doesn\'t exist');
+        return;
+      }
+
+      const patchData = { Name: selectedWatchlistName, symbol }; // Use the selected watchlist name
+      const patchResponse = await fetch(`/api/${user}/watchlists/${patchData.Name}`, { // Use the value of the option
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(patchData)
+      });
+
+      const data = await patchResponse.json();
+      await fetchItemData(symbol);
+      // You can update the UI or perform any other necessary actions here
+    }
+  } catch (err) {
+    console.log(err);
+  } 
+
+  await filterWatchlist();
+  await getWatchlists();
+  await getFullWatchlists(user);
+}
+
+let rowCount = ref(0);
+let selectedIndex = ref(0);
+const watchlistContainer = ref(null); 
+
+watch(() => watchlist2.tickers, async () => {
+  await nextTick();
+  if (watchlistContainer.value) {
+    watchlistContainer.value.focus();
+  }
+});
+
+function handleClick() {
+  if (watchlistContainer.value) {
+    watchlistContainer.value.focus();
+  }
+}
+
+function updateSelectedIndex() {
+  if (watchlist2.tickers && watchlist2.tickers.length > 0) {
+    selectedIndex.value = watchlist2.tickers.findIndex((item) => item === selectedItem);
+    if (selectedIndex.value === -1) {
+      selectedIndex.value = 0;
+    }
+  }
+}
+
+function handleKeydown(event) {
+  if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+    event.preventDefault();
+    const direction = event.key === 'ArrowUp' ? -1 : 1;
+    const newRowIndex = selectedIndex.value + direction;
+    
+    if (newRowIndex >= 0 && newRowIndex < rowCount.value) {
+      const newSelectedItem = watchlist2.tickers[newRowIndex];
+      selectRow(newSelectedItem);
+      selectedIndex.value = newRowIndex;
+    }
+  }
+}
+
+
+function initializeWatchlistNavigation() {
+  if (watchlist2.tickers) {
+    rowCount.value = watchlist2.tickers.length;
+    updateSelectedIndex();
+    if (watchlistContainer.value) {
+      watchlistContainer.value.focus();
+    }
+  }
+}
+
+onMounted(() => {
+  initializeWatchlistNavigation();
+});
+
+// same effect input 
+async function selectRow(item) {
+  isChartLoading.value = true;
+  localStorage.setItem('defaultSymbol', item);
+  defaultSymbol = item;
+  selectedItem = item;
+  updateSelectedIndex();
+  await updateUserDefaultSymbol(item);
+  try {
+    const searchbar = document.getElementById('searchbar');
+    if (searchbar) {
+      searchbar.value = item;
+      await searchTicker();
+      isChartLoading.value = false;
+    } else {
+      console.error('Searchbar element not found');
+      isChartLoading.value = false;
+    }
+  } catch (err) {
+    console.log(err);
+    isChartLoading.value = false;
+  }
+}
+
+let sortKey = '';
+let sortOrder = 1;
+
+function sortTable(key) {
+  if (sortKey === key) {
+    sortOrder = sortOrder === 1 ? -1 : 1;
+  } else {
+    sortKey = key;
+    sortOrder = 1;
+  }
+
+  watchlist2.tickers.sort((a, b) => {
+    let valueA, valueB;
+
+    switch (sortKey) {
+      case 'ticker':
+        valueA = a;
+        valueB = b;
+        break;
+      case 'last':
+        valueA = parseFloat(quotes[a]);
+        valueB = parseFloat(quotes[b]);
+        break;
+      case 'chg':
+        valueA = changes[a];
+        valueB = changes[b];
+        break;
+      case 'perc':
+        valueA = perc[a];
+        valueB = perc[b];
+        break;
+    }
+
+    if (valueA < valueB) {
+      return -sortOrder;
+    } else if (valueA > valueB) {
+      return sortOrder;
+    } else {
+      return 0;
+    }
+  });
+}
+
+let autoplayRunning = false;
+let autoplayIndex = 0;
+let autoplayTimeoutId = null;
+
+function AutoPlay() {
+  if (autoplayRunning) {
+    clearTimeout(autoplayTimeoutId);
+    autoplayRunning = false;
+  } else {
+    autoplayRunning = true;
+    autoplayIndex = 0;
+    logElement();
+  }
+}
+
+function logElement() {
+  const rows = document.querySelectorAll('div.wlist');
+
+  if (autoplayIndex >= rows.length) {
+    autoplayIndex = 0;
+  }
+
+  rows[autoplayIndex].click();
+
+  const symbolElement = rows[autoplayIndex].querySelector('.btsymbol');
+
+  if (symbolElement) {
+    const symbolValue = symbolElement.textContent;
+    console.log(symbolValue);
+  } else {
+    console.error('No element with class "btsymbol" found in row', autoplayIndex);
+  }
+
+  autoplayIndex++;
+  autoplayTimeoutId = setTimeout(logElement, 5000); // 7 seconds
+}
+
+// updates the order of the watchlist, triggered by drag and drop 
+async function UpdateWatchlistOrder() {
+  try {
+    if (!sortable.value) {
+      console.error('Sortable element not found');
+      return;
+    }
+
+    const selectedOption = selectedWatchlist.value.Name; // Use the reactive reference
+    const newListOrder = [...sortable.value.children]
+      .map(item => item.querySelector('.btsymbol')?.textContent)
+      .filter(Boolean); // Filter out any undefined values
+
+    const requestBody = {
+      user: user,
+      Name: selectedOption,
+      newListOrder,
+    };
+
+    console.log('Request body:', requestBody);
+
+    const response = await fetch(`/api/watchlists/update-order/${user}/${selectedOption}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error updating watchlist order: ${response.status}`);
+    }
+
+    console.log('Watchlist order updated successfully!');
+    await filterWatchlist(); // Refresh the watchlists after updating order
+
+  } catch (error) {
+    console.error('Error updating watchlist order:', error);
+  }
+}
+
+const toggleWatchlist = async (ticker, symbol) => {
+  const isCurrentlyInWatchlist = isAssetInWatchlist(ticker.Name, symbol);
+  const simulatedEvent = {
+    target: {
+      checked: !isCurrentlyInWatchlist
+    }
+  };
+  await addtoWatchlist(ticker, symbol, simulatedEvent);
+  updateCheckbox(ticker, symbol, simulatedEvent);
+  await getFullWatchlists(user);
+  await filterWatchlist();
+  await getWatchlists();
+};
+
+async function addtoWatchlist(ticker, symbol, $event) {
+  const isChecked = $event.target.checked;
+  user = user;
+  const isAdding = isChecked;
+  try {
+    const response = await fetch(`/api/watchlist/addticker/${isAdding ? 'true' : 'false'}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        watchlistName: ticker.Name,
+        symbol: symbol,
+        user: user
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const result = await response.json()
+    // You might want to update your local state here based on the server response
+  } catch (error) {
+    console.error('Error updating watchlist:', error)
+    // You might want to revert the checkbox state here if the API call fails
+  }
+}
+
+const checkedWatchlists = ref({});
+
+watch(() => watchlist.tickers, (newTickers) => {
+  newTickers.forEach((ticker) => {
+    checkedWatchlists.value[ticker.Name] = [];
+  });
+});
+
+const updateCheckbox = (ticker, symbol, $event) => {
+  const isChecked = $event.target.checked;
+  if (isChecked) {
+    checkedWatchlists.value[ticker.Name].push(symbol);
+  } else {
+    checkedWatchlists.value[ticker.Name] = checkedWatchlists.value[ticker.Name].filter((s) => s !== symbol);
+  }
+  addtoWatchlist(ticker, symbol, $event);
+  getFullWatchlists(user);
+  isAssetInWatchlist(ticker, symbol);
+};
+
+const FullWatchlists = ref([]);
+
+async function getFullWatchlists(user){
+  const response = await fetch(`/api/${user}/full-watchlists`)
+  FullWatchlists.value = await response.json()
+};
+getFullWatchlists(user);
+
+
+const isAssetInWatchlist = (ticker, symbol) => {
+  const watchlist = FullWatchlists.value.find(w => w.Name === ticker);
+  if (watchlist) {
+    return watchlist.List.includes(symbol);
+  }
+  return false;
+};
+
+const noteContent = ref('');
+const characterCount = ref(0);
+
+const updateCharacterCount = () => {
+  characterCount.value = noteContent.value.length;
+};
+
+const watchlistName = ref('');
+
+</script>
+
+<style scoped>
+#main {
+  display: flex;
+  height: 100vh;
+}
+
+#sidebar-left {
+  flex: 0 0 22%;
+  flex-direction: column;
+  background-color: #2c2b3e;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+#chart-container {
+  position: relative;
+  flex: 0 0 60%;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  background-repeat: no-repeat;
+}
+
+#chartdiv {
+  flex: 1;
+  border: none;
+}
+
+#chartdiv2 {
+  height: 9%;
+  border:none;
+}
+
+body {
+  background-color: #0f0f1b;
+}
+
+h1 {
+  border: none;
+  font-size: 20px;
+  opacity: 0.20;
+}
+
+#sidebar-right {
+  flex: 0 0 18%;
+  display: flex;
+  flex-direction: column;
+  background-color: #2c2b3e;
+  overflow-y: scroll;
+}
+
+#searchtable {
+  display: flex;
+  align-items: center;
+  background-color: #3f3e56;
+}
+
+.searchbutton {
+  background-color: transparent;
+  color: #ebebeb;
+  padding: 20px;
+  outline: none;
+  float: right;
+  border: none;
+  opacity: 0.60;
+}
+
+.searchbutton:hover {
+  opacity: 1;
+  cursor: pointer;
+}
+
+#wlnav {
+  display: flex;
+  align-items: center; 
+  justify-content: space-between; 
+  background-color: #3f3e56;
+}
+
+#realwatchlist {
+  height: 20px; 
+  outline: none;
+  border: none;
+  color: #ebebeb;
+  text-align: center;
+  flex-grow: 1; 
+  background-color: transparent;
+}
+
+.wlbtn {
+  flex-shrink: 0;
+  color: #ffffff;
+  background-color: transparent;
+  border: none;
+  padding: 5px;
+  outline: none;
+  cursor: pointer;
+  height: 22px;
+  opacity: 0.60;
+}
+
+.wlbtn:hover {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.wlbtn2 {
+  flex-shrink: 0;
+  color: #ffffff;
+  background-color: #8c8dfe;
+  border: none;
+  padding: 5px;
+  outline: none;
+  cursor: pointer;
+  height: 22px;
+  width: 22px;
+}
+
+.wlbtn2:hover {
+  cursor: pointer;
+  background-color: #9b9cfc;
+}
+
+#realwatchlist:hover {
+  cursor: pointer;
+}
+
+#searchbar {
+  flex: 1;
+  min-width: 0; 
+  background-color: #e0e0e0;
+  color: rgb(7, 7, 7);
+  outline: none;
+  border: solid 1px #171728;
+  padding: 5px;
+  padding-left: 25px;
+  background-image: url('@/assets/icons/icon-search.png');
+  background-size: 15px 15px;
+  background-position: left 5px center;
+  background-repeat: no-repeat;
+}
+
+#searchbar:focus {
+  border-color: #8c8dfe;
+}
+
+#notes-container {
+  background-color: #22222d;
+  color: aliceblue;
+  width: 300px;
+  height: 80px;
+  padding-left: 5px;
+  padding-top: 5px;
+  margin: 5px;
+  border: 1px solid #22222d;
+  outline: none;
+  resize: none;
+}
+
+#idSummary {
+  color: whitesmoke;
+}
+
+table {
+  border: none;
+  display: flexbox;
+  width: 100%;
+  border-collapse: collapse;
+  color: whitesmoke;
+}
+
+td {
+  border: none;
+}
+
+.category {
+  text-align: left;
+  border: none;
+}
+
+.response {
+  text-align: right;
+  border: none;
+}
+
+.title {
+  background-color: #0f0f1b;
+  color: whitesmoke;
+  text-align: center;
+  padding: 3.5px;
+  border: none;
+  margin: 0;
+}
+
+.note {
+  background-color: #8c8dfe;
+  color: whitesmoke;
+  padding: 10px;
+  border: none;
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 1px;
+  position: relative;
+}
+
+.notebtn {
+  background-color: transparent;
+  border: none;
+  color: whitesmoke;
+  cursor: pointer;
+  position: absolute; 
+  top: 5px;       
+  right: 5px;     
+  padding: 5px; 
+  z-index: 1;    
+}
+
+.img {
+  width: 15px;
+  height: 15px;
+  float: left;
+  border: none;
+}
+
+.img2 {
+  width: 8px;
+  height: 8px;
+  border: none;
+}
+
+.inline-note {
+  opacity: 0.50;
+  border: none;
+}
+
+.note-msg {
+  color: #f2f2f2;
+  border: none;
+  margin-top: 0;
+  padding-top: 0;
+  word-wrap: break-word;    
+  overflow-wrap: break-word; 
+  white-space: normal;       
+  width: 100%;               
+  display: block; 
+}
+
+.note-msg-date {
+  color: #1e1e1e;
+  border: none;
+  bottom: 11.5px;
+  left: 14px;
+  position: relative;
+}
+
+.tbl{
+  text-align: center;
+  background-color: #0f0f1b;
+  border: none;
+  color: whitesmoke;
+  cursor: pointer;
+}
+
+.tbl:hover {
+  background-color: #23233a;
+}
+
+.ntbl{
+  text-align: center;
+  background-color: #0f0f1b;
+  border: none;
+  color: whitesmoke;
+}
+
+#title2 {
+  color: whitesmoke;
+  text-align: center;
+  padding: 3.5px;
+  border: none;
+  margin: 0px;
+  background-color: #121212;
+}
+
+#list {
+  display: flexbox;
+  width: 100%;
+  color: whitesmoke;
+  border-collapse: collapse;
+  border: none;
+  outline: none;
+}
+
+#list td {
+  border-collapse: collapse;
+  border: none;
+}
+
+.btn {
+  background-color: transparent;
+  border: none;
+}
+
+.btn:hover {
+  cursor: pointer;
+}
+
+.imgdlt {
+  width: 10px;
+  height: 10px;
+  border: none;
+  text-align: center;
+}
+
+.img {
+  width: 10px;
+  height: 10px;
+  border: none;
+  text-align: center;
+}
+
+.cmp-logo {
+  width: 20px;
+  height: 20px;
+  border: none;
+  text-align: center;
+  border-radius: 25px;
+}
+
+#legend {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  background-color: transparent;
+  color: whitesmoke;
+  border: none;
+  margin-top: 10px;
+  margin-left: 12px;
+}
+
+#legend3 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  background-color: transparent;
+  color: whitesmoke;
+  border: none;
+  margin-top: 25px;
+  margin-left: 12px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 2px;
+}
+
+#legend4 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  background-color: transparent;
+  color: whitesmoke;
+  border: none;
+  margin-top: 20px;
+  margin-left: 12px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2px;
+}
+
+.ticker{
+color: whitesmoke;
+font-size: 20px;
+font-weight: bold;
+}
+
+.name{
+  color: whitesmoke;
+  font-size: 15px;
+font-weight: bold;
+}
+
+
+.delete-cell {
+  text-align: center;
+  top: -30%;
+}
+
+.dbtn {
+  background-color: transparent;
+  border: none;
+  color: whitesmoke;
+  cursor: pointer;
+}
+
+.wlist{
+  background-color: #3f3e56;
+  height: 27px;
+  border: solid 1px #171728;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #b3b3b3
+}
+
+.wlist:hover{
+  background-color: #67648b;
+  cursor: pointer;
+}
+
+.wlist .dbtn {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.wlist:hover .dbtn {
+  opacity: 1;
+}
+
+.RenameWatchlist, .CreateWatchlist {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #3f3e56;
+    width: 300px;
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+  }
+
+  .CreateNote {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #3f3e56;
+    width: 350px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+  }
+
+  .RenameWatchlist h3, .CreateWatchlist h3, .CreateNote h3 {
+    background-color: transparent;
+    color: whitesmoke;
+    border: none;
+    margin-top: 10px;
+  }
+
+  .RenameWatchlist input, .CreateWatchlist input  {
+    margin-bottom: 3px;
+    margin-top: 5px;
+    text-align: center;
+    background-color: #e0e0e0;
+  color: rgb(7, 7, 7);
+  padding: 5px;
+  outline: none;
+  border: solid 1px #3f3e56;
+  }
+
+  .RenameWatchlist input:focus , .CreateWatchlist input:focus{
+  border-color: #8c8dfe;
+}
+  
+  .inner {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    border: none;
+  }
+
+  .inner button {
+    background-color: transparent;
+    padding: 5px;
+    outline: none;
+    margin: 2px ;
+    border: none;
+    opacity: 0.60;
+  }
+
+  .inner button:hover {
+    cursor: pointer;
+    opacity: 1;
+  }
+
+  .inner-logo{
+    opacity: 0.30;
+    width: 30px;
+    height: 30px;
+    border: none;
+  }
+
+ .green {
+    background-image: url('@/assets/icons/green.png');
+    width: 10px;
+   height: 10px;
+   border: none;
+   text-align: center;
+}
+
+.red {
+    background-image: url('@/assets/icons/red.png');
+    width: 10px;
+  height: 10px;
+  border: none;
+  text-align: center;
+}
+
+.btnnav{
+  display: flex;
+  float:inline-end;
+}
+
+.wlist.selected {
+  background-color: #1c1a26 !important; 
+  border-left-color: #8c8dfe !important;
+  border-left-width: 3px !important;
+  color: whitesmoke;
+}
+
+.results {
+  background-color: #2c2b3e;
+  color: whitesmoke;
+  text-align: center;
+  align-items: center;
+  padding: 10px;
+  height: 50px;
+  border:none;
+}
+
+.loading-container {
+  position: absolute;
+  top: -10%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  border: none ;
+}
+
+.select-container {
+  position: relative;
+  background-color: #2c2b3e;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.select-container  .dropdown-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+}
+
+.select-container  .dropdown-container div {
+  display: none;
+  background-color: #2c2b3e;
+  border-top: 0.1px solid #151515;
+  border-bottom: 0.1px solid #151515;
+}
+
+.select-container:hover  .dropdown-container div {
+  display: block;
+  background-color: #2c2b3e;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.select-container .dropdown-container div:hover {
+  background-color: #4c4a66;
+}
+
+.icondlt{
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  float: right;
+  opacity: 0.60;
+}
+
+
+.icondlt:hover{
+  cursor: pointer;
+  opacity: 1;
+}
+
+.toggle-btn {
+  background-color: #343348;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  color: whitesmoke;
+  opacity: 0.60;
+}
+
+.toggle-btn:hover {
+  background-color: #51506e;
+  opacity: 1;
+}
+
+.no-data {
+  padding: 20px;
+  text-align: center;
+  background-color: #343348;
+  color: #f5f5f59d;
+}
+
+.imgbtn{
+  width: 15px;
+  height: 15px;
+}
+
+.chart-type-icon {
+  width: 20px;  
+  height: 20px; 
+}
+
+.navbtng{
+  background-color: transparent;
+  color: whitesmoke;
+  text-align: center;
+  justify-content: center;
+  cursor: pointer;
+  border: solid #615f83 1px;
+  opacity: 0.60;
+  width: 25px; 
+  height: 25px; 
+  align-items: center;
+  margin: 2px;
+  display: flex;
+}
+
+.navbtng:hover{
+  opacity: 1;
+}
+
+#legend2 {
+  position: absolute;
+  top: 2%;
+  left: 80%;
+  z-index: 1000;
+  background-color: transparent;
+  color: whitesmoke;
+  border: none;
+  flex-direction: row;
+  display: flex;
+}
+
+.imgm {
+  width: 20px;
+  height: 20px;
+  border: none;
+}
+
+.select-container {
+  position: relative;
+  background-color: #2c2b3d;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 24.5px;
+  border-right: solid 1px #3d354a;
+  z-index: 1000;
+}
+
+.select-container .dropdown-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.select-container .dropdown-container div {
+  display: none;
+  background-color: #2c2b3e;
+  border-top: 0.1px solid #151515;
+  border-bottom: 0.1px solid #151515;
+  z-index: 1000;
+}
+
+.select-container:hover .dropdown-container div {
+  display: block;
+  background-color: #2c2b3e;
+  padding: 5px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.select-container .dropdown-container div:hover {
+  background-color: #4c4a66;
+  z-index: 1000;
+}
+
+.dropdown-btn {
+  background-color: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dropdown-menu {
+  display: none;
+  cursor: pointer;
+  width: 125px;
+  position: absolute; 
+  z-index: 1000;
+  top: -10px;
+  left: 20px;
+}
+
+.dropdown-menu > div {
+  background-color: #322f3b;
+  padding: 5px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-menu > div:hover {
+  background-color: #565265;
+}
+
+.dropdown-btn:hover + .dropdown-menu, 
+.dropdown-menu:hover {
+  display: block;
+}
+
+.nested-dropdown {
+  position: relative;
+}
+
+.watchlist-item {
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  height: 24px;
+  box-sizing: border-box;
+}
+
+.watchlist-item:hover {
+  background-color: #565265;
+}
+
+.watchlist-item input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+/* Remove focus outline */
+.dropdown-btn:focus,
+.watchlist-item input[type="checkbox"]:focus {
+  outline: none;
+}
+
+/* Remove hover border */
+.dropdown-menu > div:hover,
+.watchlist-item:hover {
+  border: none;
+  outline: none;
+}
+
+.iconbtn{
+  width: 15px;
+  height: 15px;
+  opacity: 0.60;
+}
+
+.iconbtn:hover{
+  opacity: 1;
+}
+
+.watchlist-icon {
+  width: 20px; 
+  height: 20px; 
+  margin-right: 8px;  
+}
+
+.checkbox-label {
+  display: flex;         
+  align-items: center;       
+}
+
+#notes-container.error {
+  border-color: red; 
+}
+
+.RenameWatchlist input.input-error, 
+.CreateWatchlist input.input-error {
+  border: solid 1px red !important; /* Use !important to ensure it takes precedence */
+}
+
+.summary-container , #EPStable{
+  display: flex;
+  flex-direction: column;
+  color: #b3b3b3;
+  border: none;
+}
+
+.summary-row {
+  display: flex;
+  height: 20px;
+  padding-left: 5px;
+  padding-right: 5px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  border-bottom:solid 1px #2a2a38;
+  align-items: center;
+  justify-content: center;
+  background-color: #3f3e56;
+}
+
+.summary-row:last-child {
+  border-bottom:none;
+}
+
+.summary-row .category {
+  flex: 0 0 40%;
+  font-weight: bold;
+}
+
+.summary-row .response {
+  flex: 0 0 60%;
+  font-weight: bold;
+}
+
+.eps-header, .earn-header, .sales-header{
+  display: flex; 
+  font-weight: bold; 
+  background-color: #0f0f1b;
+  text-align: center;
+  color: whitesmoke;
+  height: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.eps-body, .earn-body, .sales-body{
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  color: #b3b3b3;
+}
+
+.eps-row, .earn-row, .sales-row {
+  display: flex;
+  height: 20px;
+  text-align: center;
+  border-bottom:solid 1px #2a2a38;
+  justify-content: center;
+  align-items: center;
+  background-color: #3f3e56;
+  font-weight: bold;
+}
+
+#watch-container{
+  display: flex; 
+  flex-direction: row; 
+  width: 100%;
+}
+
+.tbl{
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.wlnav-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown-vnav{
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: #322f3b;
+  min-width: 180px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  z-index: 10000;
+}
+
+.wlnav-dropdown:hover .dropdown-vnav {
+  display: block;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+  background-color: #322f3b;
+  border: none;
+  color: white;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #4a4a4a;
+}
+
+.dropdown-item img {
+  margin-right: 10px;
+}
+
+</style>

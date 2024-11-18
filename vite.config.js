@@ -22,14 +22,14 @@ export default defineConfig({
       '/api': {
         target: 'https://localhost:5500',
         changeOrigin: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
   },
   resolve: {
     alias: {
-      // Add any necessary aliases
-      // '@': path.resolve(__dirname, './src')
+      '@': path.resolve(__dirname, './src') // Add alias for src directory
     },
     // Polyfills for Node.js core modules
     browserField: false,
