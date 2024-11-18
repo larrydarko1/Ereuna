@@ -418,7 +418,11 @@
             </div>
           </div>
           <div style="flex: 1; text-align: center;">
-            <img class="cmp-logo" :src="getImagePath(item)" alt="">
+            <img 
+  class="cmp-logo" 
+  :src="getImagePath(item)" 
+  alt="" 
+/>
           </div>
           <div style="flex: 1; text-align: center;" class="btsymbol">{{ item }}</div>
           <div style="flex: 1; text-align: center;">{{ quotes[item] }}</div>
@@ -449,7 +453,6 @@ import Sortable from 'sortablejs';
 import { useStore } from 'vuex';
 import barsIcon from '@/assets/icons/bars.png';
 import candlesIcon from '@/assets/icons/candles.png';
-import blankImage from '@/assets/images/Blank.svg';
 
 const store = useStore();
 let user = store.getters.getUser;
@@ -2089,12 +2092,21 @@ async function fetchSymbolsAndExchanges() {
     
     const data = await response.json();
     
+    // Dynamically import all SVG files from the exchanges directories
+    const importedImages = import.meta.glob('/src/assets/images/*/*.svg');
+    
     // Map the data to the required format for ImagePaths
-    ImagePaths.value = data.map(item => ({
-      symbol: item.Symbol,
-      exchange: item.Exchange,
-      path: getImagePath(item.Symbol, item.Exchange) // Pass both symbol and exchange
-    }));
+    ImagePaths.value = data.map(item => {
+      const imagePath = Object.keys(importedImages).find(path => 
+        path.includes(`/${item.Exchange}/${item.Symbol}.svg`)
+      );
+      
+      return {
+        symbol: item.Symbol,
+        exchange: item.Exchange,
+        path: imagePath ? imagePath : '/src/assets/images/Blank.svg'
+      };
+    });
   } catch (error) {
     console.error('Error fetching symbols and exchanges:', error);
   }
@@ -2107,28 +2119,16 @@ onMounted(() => {
 
 // Helper function to get image path based on symbol
 function getImagePath(item) {
-  if (!ImagePaths.value || ImagePaths.value.length === 0) {
-    return getBlankImage();
-  }
-
-  const imageObject = ImagePaths.value.find(image => image.symbol === item);
+  // If item is an object, use its Symbol
+  const symbol = typeof item === 'object' ? item.Symbol : item;
+  
+  const imageObject = ImagePaths.value.find(image => image.symbol === symbol);
 
   if (imageObject) {
-    const { symbol, exchange } = imageObject;
-    try {
-      // Use a dynamic import with a template literal
-      const imagePath = `/src/assets/images/${exchange}/${symbol}.svg`;
-      return imagePath;
-    } catch (error) {
-      return getBlankImage();
-    }
-  } else {
-    return getBlankImage();
+    return imageObject.path;
   }
-}
-
-function getBlankImage() {
-  return blankImage; // Return the imported blank image
+  
+  return '/src/assets/images/Blank.svg'; // Default to Blank.svg
 }
 
 async function getQuote(item) {
