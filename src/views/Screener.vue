@@ -1000,18 +1000,18 @@
       <div id="sidebar-r">
         <h1 class="title3">WEEKLY CHART</h1>
         <div class="loading-container1" v-if="isChartLoading1">
-      <LoadingOverlay :active="true" color="#ffffff" opacity="1" loader="spinner" size="32" />
+      <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="32" />
     </div>
     <div class="loading-container1" v-if="isLoading1">
-      <LoadingOverlay :active="true" color="#ffffff" opacity="1" loader="spinner" size="64" />
+      <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="32" />
     </div>
         <div id="wk-chart"></div>
         <h1 class="title3">DAILY CHART</h1>
         <div class="loading-container2" v-if="isChartLoading2">
-      <LoadingOverlay :active="true" color="#ffffff" opacity="1" loader="spinner" size="32" />
+      <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="32" />
     </div>
     <div class="loading-container2" v-if="isLoading2">
-      <LoadingOverlay :active="true" color="#ffffff" opacity="1" loader="spinner" size="64" />
+      <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="32" />
     </div>
         <div id="dl-chart"></div>
         <div style="padding-top: 5px; overflow: scroll; border:none" id="summary">
