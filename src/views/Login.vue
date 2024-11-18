@@ -182,16 +182,12 @@ function togglePasswordVisibility() {
 .input-with-icon .icon {
   position: absolute;
   top: 33%;
-  left: 3px;
+  left: 15px;
   opacity: 0.3;
-  transform: translateY(-50%);
   border: none;
   width: 12px;
-  /* adjust the size of the icon */
   height: 12px;
-  /* adjust the size of the icon */
   pointer-events: none;
-  /* prevent the icon from interfering with the input */
 }
 
 .input-with-icon .form-input {
