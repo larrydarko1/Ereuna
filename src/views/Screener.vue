@@ -690,13 +690,9 @@
               </div>
               <div style="flex:0.5;">
                 <img 
-  v-if="getImagePath(asset)" 
   :src="getImagePath(asset)" 
   class="img" 
 />
-                <span v-else
-                  :style="{ backgroundColor: 'grey', border: 'none', padding: '4px 6px', borderRadius: '50%', textAlign: 'center', display: 'inline-block' }">{{
-                    asset.Name.charAt(0).toUpperCase() }}</span>
               </div>
               <div style="flex:1;" class="btsymbol">{{ asset.Symbol }}</div>
               <div style="flex:2;">{{ asset.Name }}</div>
@@ -785,13 +781,9 @@
               </div>
               <div style="flex:0.5;">
                 <img 
-  v-if="getImagePath(asset)" 
   :src="getImagePath(asset)" 
   class="img" 
 />
-                <span v-else
-                  :style="{ backgroundColor: 'grey', border: 'none', padding: '4px 6px', borderRadius: '50%', textAlign: 'center', display: 'inline-block' }">{{
-                    asset.Name.charAt(0).toUpperCase() }}</span>
               </div>
               <div style="flex:1;" class="btsymbol">{{ asset.Symbol }}</div>
               <div style="flex:2;">{{ asset.Name }}</div>
@@ -880,13 +872,9 @@
               </div>
               <div style="flex:0.5;">
                 <img 
-  v-if="getImagePath(asset)" 
   :src="getImagePath(asset)" 
   class="img" 
 />
-                <span v-else
-                  :style="{ backgroundColor: 'grey', border: 'none', padding: '4px 6px', borderRadius: '50%', textAlign: 'center', display: 'inline-block' }">{{
-                    asset.Name.charAt(0).toUpperCase() }}</span>
               </div>
               <div style="flex:1;" class="btsymbol">{{ asset.Symbol }}</div>
               <div style="flex:2;">{{ asset.Name }}</div>
@@ -975,13 +963,9 @@
               </div>
               <div style="flex:0.5;">
                 <img 
-  v-if="getImagePath(asset)" 
   :src="getImagePath(asset)" 
   class="img" 
 />
-                <span v-else
-                  :style="{ backgroundColor: 'grey', border: 'none', padding: '4px 6px', borderRadius: '50%', textAlign: 'center', display: 'inline-block' }">{{
-                    asset.Name.charAt(0).toUpperCase() }}</span>
               </div>
               <div style="flex:1;" class="btsymbol">
                 {{ asset.Symbol }}
@@ -1239,7 +1223,7 @@ async function fetchSymbolsAndExchanges() {
       return {
         symbol: item.Symbol,
         exchange: item.Exchange,
-        path: imagePath ? imagePath : null
+        path: imagePath ? imagePath : '/src/assets/images/Blank.svg'
       };
     });
   } catch (error) {
@@ -1253,11 +1237,11 @@ function getImagePath(item) {
   
   const imageObject = ImagePaths.value.find(image => image.symbol === symbol);
 
-  if (imageObject && imageObject.path) {
+  if (imageObject) {
     return imageObject.path;
   }
   
-  return; // Return undefined if no image found
+  return '/src/assets/images/Blank.svg'; // Default to Blank.svg
 }
 
 // Call the function when component is mounted
