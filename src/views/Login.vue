@@ -40,7 +40,6 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import store from '../store/store';
-import axios from 'axios';
 
 const router = useRouter();
 
@@ -84,9 +83,6 @@ async function login() {
       const token = responseBody.token;
       // receive token (no vuex?)
       localStorage.setItem('token', token);
-      setTimeout(() => { 
-        window.location.reload(); // TEMPORARY SOLUTION, MAKE IT REACTIVE!!!!
-      }, 50);
       router.push({ name: 'Charts' });
     } else {
       const responseBody = await response.json();
