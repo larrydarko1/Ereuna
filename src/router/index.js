@@ -53,20 +53,4 @@ const router = createRouter({
   routes
 })
 
-// Navigation guards can be added here
-router.beforeEach((to, from, next) => {
-  // Example of a simple authentication check
-  const token = localStorage.getItem('token')
-
-  // List of routes that don't require authentication
-  const publicRoutes = ['Login', 'SignUp', 'Recovery', 'PaymentRenew']
-
-  if (!token && !publicRoutes.includes(to.name)) {
-    // Redirect to login if no token and route requires auth
-    next({ name: 'Login' })
-  } else {
-    next()
-  }
-})
-
 export default router

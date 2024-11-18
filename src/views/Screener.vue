@@ -674,7 +674,11 @@
                   <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
                     <label :for="'watchlist-' + index" class="checkbox-label">
                       <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
-                        <img class="watchlist-icon" :src="isAssetInWatchlist(ticker.Name, asset.Symbol)  ? require('@/assets/icons/checked.png')  : require('@/assets/icons/unchecked.png')" alt="Toggle Watchlist" />
+                        <img
+  class="watchlist-icon"
+  :src="getWatchlistIcon(ticker, asset.Symbol)"
+  alt="Toggle Watchlist"
+/>
                       </div>
                       <span class="checkmark"></span>
                       {{ ticker.Name }}
@@ -685,7 +689,11 @@
                 </div>
               </div>
               <div style="flex:0.5;">
-                <img v-if="getImagePath(asset)" :src="getImagePath(asset)" class="img" />
+                <img 
+  v-if="getImagePath(asset)" 
+  :src="getImagePath(asset)" 
+  class="img" 
+/>
                 <span v-else
                   :style="{ backgroundColor: 'grey', border: 'none', padding: '4px 6px', borderRadius: '50%', textAlign: 'center', display: 'inline-block' }">{{
                     asset.Name.charAt(0).toUpperCase() }}</span>
@@ -761,7 +769,11 @@
                   <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
                     <label :for="'watchlist-' + index" class="checkbox-label">
                       <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
-                        <img class="watchlist-icon" :src="isAssetInWatchlist(ticker.Name, asset.Symbol)  ? require('@/assets/icons/checked.png')  : require('@/assets/icons/unchecked.png')" alt="Toggle Watchlist" />
+                        <img
+  class="watchlist-icon"
+  :src="getWatchlistIcon(ticker, asset.Symbol)"
+  alt="Toggle Watchlist"
+/>
                       </div>
                       <span class="checkmark"></span>
                       {{ ticker.Name }}
@@ -772,7 +784,11 @@
                 </div>
               </div>
               <div style="flex:0.5;">
-                <img v-if="getImagePath(asset)" :src="getImagePath(asset)" class="img" />
+                <img 
+  v-if="getImagePath(asset)" 
+  :src="getImagePath(asset)" 
+  class="img" 
+/>
                 <span v-else
                   :style="{ backgroundColor: 'grey', border: 'none', padding: '4px 6px', borderRadius: '50%', textAlign: 'center', display: 'inline-block' }">{{
                     asset.Name.charAt(0).toUpperCase() }}</span>
@@ -848,7 +864,11 @@
                   <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
                     <label :for="'watchlist-' + index" class="checkbox-label">
                       <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
-                        <img class="watchlist-icon" :src="isAssetInWatchlist(ticker.Name, asset.Symbol)  ? require('@/assets/icons/checked.png')  : require('@/assets/icons/unchecked.png')" alt="Toggle Watchlist" />
+                        <img
+  class="watchlist-icon"
+  :src="getWatchlistIcon(ticker, asset.Symbol)"
+  alt="Toggle Watchlist"
+/>
                       </div>
                       <span class="checkmark"></span>
                       {{ ticker.Name }}
@@ -859,7 +879,11 @@
                 </div>
               </div>
               <div style="flex:0.5;">
-                <img v-if="getImagePath(asset)" :src="getImagePath(asset)" class="img" />
+                <img 
+  v-if="getImagePath(asset)" 
+  :src="getImagePath(asset)" 
+  class="img" 
+/>
                 <span v-else
                   :style="{ backgroundColor: 'grey', border: 'none', padding: '4px 6px', borderRadius: '50%', textAlign: 'center', display: 'inline-block' }">{{
                     asset.Name.charAt(0).toUpperCase() }}</span>
@@ -935,7 +959,11 @@
                   <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
                     <label :for="'watchlist-' + index" class="checkbox-label">
                       <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
-                        <img class="watchlist-icon" :src="isAssetInWatchlist(ticker.Name, asset.Symbol)  ? require('@/assets/icons/checked.png')  : require('@/assets/icons/unchecked.png')" alt="Toggle Watchlist" />
+                        <img
+  class="watchlist-icon"
+  :src="getWatchlistIcon(ticker, asset.Symbol)"
+  alt="Toggle Watchlist"
+/>
                       </div>
                       <span class="checkmark"></span>
                       {{ ticker.Name }}
@@ -946,7 +974,11 @@
                 </div>
               </div>
               <div style="flex:0.5;">
-                <img v-if="getImagePath(asset)" :src="getImagePath(asset)" class="img" />
+                <img 
+  v-if="getImagePath(asset)" 
+  :src="getImagePath(asset)" 
+  class="img" 
+/>
                 <span v-else
                   :style="{ backgroundColor: 'grey', border: 'none', padding: '4px 6px', borderRadius: '50%', textAlign: 'center', display: 'inline-block' }">{{
                     asset.Name.charAt(0).toUpperCase() }}</span>
@@ -1027,6 +1059,12 @@ import { useStore } from 'vuex';
 //user import - user session 
 const store = useStore();
 let user = store.getters.getUser;
+
+function getWatchlistIcon(ticker, item) {
+  return isAssetInWatchlist(ticker.Name, item) 
+    ? new URL('@/assets/icons/checked.png', import.meta.url).href
+    : new URL('@/assets/icons/unchecked.png', import.meta.url).href;
+}
 
 // for handling dropdown menu 
 const toggleWatchlist = async (ticker, symbol) => {
@@ -1189,42 +1227,43 @@ async function fetchSymbolsAndExchanges() {
     
     const data = await response.json();
     
+    // Dynamically import all SVG files from the exchanges directories
+    const importedImages = import.meta.glob('/src/assets/images/*/*.svg');
+    
     // Map the data to the required format for ImagePaths
-    ImagePaths.value = data.map(item => ({
-      symbol: item.Symbol,
-      exchange: item.Exchange,
-      path: getImagePath(item.Symbol, item.Exchange) // Pass both symbol and exchange
-    }));
+    ImagePaths.value = data.map(item => {
+      const imagePath = Object.keys(importedImages).find(path => 
+        path.includes(`/${item.Exchange}/${item.Symbol}.svg`)
+      );
+      
+      return {
+        symbol: item.Symbol,
+        exchange: item.Exchange,
+        path: imagePath ? imagePath : null
+      };
+    });
   } catch (error) {
     console.error('Error fetching symbols and exchanges:', error);
   }
+}
+
+function getImagePath(item) {
+  // If item is an object, use its Symbol
+  const symbol = typeof item === 'object' ? item.Symbol : item;
+  
+  const imageObject = ImagePaths.value.find(image => image.symbol === symbol);
+
+  if (imageObject && imageObject.path) {
+    return imageObject.path;
+  }
+  
+  return; // Return undefined if no image found
 }
 
 // Call the function when component is mounted
 onMounted(() => {
   fetchSymbolsAndExchanges();
 });
-
-// Helper function to get image path based on symbol
-function getImagePath(asset) {
-  if (!ImagePaths.value || ImagePaths.value.length === 0) {
-    return require('@/assets/images/Blank.svg');
-  }
-
-  const imageObject = ImagePaths.value.find(image => image.symbol === asset.Symbol);
-
-  if (imageObject) {
-    const { symbol, exchange } = imageObject; // Note: use lowercase properties if that's how they're defined
-    try {
-      const imagePath = require(`@/assets/images/${exchange}/${symbol}.svg`);
-      return imagePath;
-    } catch (error) {
-      return require('@/assets/images/Blank.svg');
-    }
-  } else {
-    return require('@/assets/images/Blank.svg');
-  }
-}
 
 //selected item a displays charts 
 async function setCharts(symbol) {
