@@ -153,6 +153,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+import { loadStripe } from '@stripe/stripe-js'; // Add this import
 
 const showTerms = ref(false);
 const showPrivacy = ref(false);
@@ -172,10 +173,10 @@ const processing = ref(false);
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
 
-onMounted(() => {
+onMounted(async () => {
   // Load Stripe.js
   if (!stripe.value) {
-    stripe.value = Stripe('pk_test_51QEqceJ3BbJLPm9w4D1qgs2xvWXsSNeiSAMNZwAjEJA9ZMDe3Lli2rXeK2SSER4eQGWLTSIBFYCLoMF1QeohS5Mn00Tva9fhaZ'); // Replace with your Stripe publishable key
+    stripe.value = await loadStripe('pk_test_51QEqceJ3BbJLPm9w4D1qgs2xvWXsSNeiSAMNZwAjEJA9ZMDe3Lli2rXeK2SSER4eQGWLTSIBFYCLoMF1QeohS5Mn00Tva9fhaZ');
   }
   
   // Create card element
@@ -383,6 +384,7 @@ p{
 .icon{
     width: 20px;
     height: 20px;
+    margin-right: 10px;
 }
 
 .square{
