@@ -156,8 +156,6 @@ app.post('/signup', async (req, res) => {
 
       // Generate a new raw key
       const rawAuthKey = crypto.randomBytes(64).toString('hex');
-      // Encrypt the raw key
-      const encryptedKey = encryptKey(rawAuthKey, encryptionKey);
 
       // Create new user document
       const newUser = {
@@ -171,7 +169,7 @@ app.post('/signup', async (req, res) => {
         Created: new Date(),
         defaultSymbol: 'NVDA',
         PROMOCODE: promoCodeValidated,
-        AuthKey: encryptedKey,       // Store the encrypted raw key
+        AuthKey: rawAuthKey,       // Store the encrypted raw key
         HashedAuthKey: await bcrypt.hash(rawAuthKey, saltRounds) // Optional: Store a hashed version
       };
 
