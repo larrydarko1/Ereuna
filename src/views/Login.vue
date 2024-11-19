@@ -160,12 +160,6 @@ function togglePasswordVisibility() {
   background-color: #8c8dfe;
 }
 
-.input-with-icon {
-  position: relative;
-  width: 100%;
-  margin-right: 50px;
-}
-
 .toggle-password {
   position: absolute;
   right: -16%;
@@ -179,15 +173,23 @@ function togglePasswordVisibility() {
   opacity: 0.60;
 }
 
-.input-with-icon .icon {
+.input-with-icon {
+  position: relative;
+  width: 100%;
+  margin-right: 50px;
+}
+
+.icon {
   position: absolute;
-  top: 33%;
-  left: 15px;
+  top: 30%;
+  left: 7%;
   opacity: 0.3;
   border: none;
   width: 12px;
   height: 12px;
   pointer-events: none;
+  margin: 0;
+  padding: 0;
 }
 
 .input-with-icon .form-input {
