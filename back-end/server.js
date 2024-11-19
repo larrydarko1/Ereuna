@@ -373,9 +373,35 @@ app.get('/verify', async (req, res) => {
 });
 
 // Endpoint for user login
-app.post('/login', async (req, res) => {
+app.post('/login', [
+  body('username')
+    .trim()
+    .notEmpty().withMessage('Username is required')
+    .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+    .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
+
+  body('password')
+    .trim()
+    .notEmpty().withMessage('Password is required')
+    .isLength({ min: 5 }).withMessage('Password must be at least 5 characters long')
+], async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log('Validation errors:', errors.array());
+    return res.status(400).json({
+      errors: errors.array().map(error => ({
+        field: error.path,
+        message: error.msg
+      }))
+    });
+  }
+
   try {
     const { username, password } = req.body;
+
+    // Additional sanitization
+    const sanitizedUsername = sanitizeInput(username);
 
     const client = new MongoClient(uri);
     try {
@@ -383,8 +409,10 @@ app.post('/login', async (req, res) => {
       const db = client.db('EreunaDB');
       const usersCollection = db.collection('Users');
 
-      // Find the user by username
-      const user = await usersCollection.findOne({ Username: username });
+      // Find the user by username (case-insensitive)
+      const user = await usersCollection.findOne({
+        Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
+      });
 
       if (user) {
         // Compare the provided password with the stored hash
@@ -393,20 +421,20 @@ app.post('/login', async (req, res) => {
         if (passwordMatch) {
           // Extract today's date
           const today = new Date();
-          const expiresDate = new Date(user.Expires); // Assuming 'Expires' is a date string
+          const expiresDate = new Date(user.Expires);
 
           // Compare today's date with the 'Expires' date
           if (today > expiresDate) {
             // Subscription is expired
             await usersCollection.updateOne(
-              { Username: username },
+              { Username: user.Username }, // Use the original username from the database
               { $set: { Paid: false } }
             );
             return res.status(402).json({ message: 'Subscription is expired' });
           } else {
             // Subscription is active
             await usersCollection.updateOne(
-              { Username: username },
+              { Username: user.Username }, // Use the original username from the database
               { $set: { Paid: true } }
             );
           }
@@ -441,18 +469,32 @@ app.post('/login', async (req, res) => {
 });
 
 //endpoint that allows for password reset
-app.post('/recover', async (req, res) => {
+app.post('/recover', [
+  body('recoveryKey')
+    .trim()
+    .notEmpty().withMessage('Recovery key is required')
+    .isLength({ min: 64, max: 128 }).withMessage('Invalid recovery key format')
+    .matches(/^[0-9a-fA-F]+$/).withMessage('Recovery key must be a hexadecimal string')
+], async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log('Validation errors:', errors.array());
+    return res.status(400).json({
+      errors: errors.array().map(error => ({
+        field: error.path,
+        message: error.msg
+      }))
+    });
+  }
+
   try {
     const { recoveryKey } = req.body;
 
-    // Validate input
-    if (!recoveryKey) {
-      return res.status(400).json({
-        message: 'Recovery key is required'
-      });
-    }
+    // Additional sanitization
+    const sanitizedRecoveryKey = sanitizeInput(recoveryKey);
 
-    console.log('Received Recovery Key:', recoveryKey);
+    console.log('Received Recovery Key:', sanitizedRecoveryKey);
 
     const client = new MongoClient(uri);
     try {
@@ -471,7 +513,7 @@ app.post('/recover', async (req, res) => {
           console.log(`Stored Hashed AuthKey: ${user.HashedAuthKey}`);
 
           // Compare the input recoveryKey with the stored hashed AuthKey
-          const isMatch = await bcrypt.compare(recoveryKey, user.HashedAuthKey);
+          const isMatch = await bcrypt.compare(sanitizedRecoveryKey, user.HashedAuthKey);
 
           console.log(`Comparison Result for ${user.Username}: ${isMatch}`);
 
@@ -520,18 +562,36 @@ app.post('/recover', async (req, res) => {
 });
 
 // endpoint that generates a new recovery key upon validation 
-app.patch('/generate-key', async (req, res) => {
+app.patch('/generate-key', [
+  body('user')
+    .trim()
+    .notEmpty().withMessage('Username is required')
+    .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+    .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
+
+  body('password')
+    .trim()
+    .notEmpty().withMessage('Password is required')
+    .isLength({ min: 5 }).withMessage('Password must be at least 5 characters long')
+], async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log('Validation errors:', errors.array());
+    return res.status(400).json({
+      errors: errors.array().map(error => ({
+        field: error.path,
+        message: error.msg
+      }))
+    });
+  }
+
   let client;
   try {
     const { user, password } = req.body;
 
-    // Validate input
-    if (!user) {
-      return res.status(400).json({ message: 'Please provide username' });
-    }
-    if (!password) {
-      return res.status(400).json({ message: 'Please provide password' });
-    }
+    // Additional sanitization
+    const sanitizedUsername = sanitizeInput(user);
 
     client = new MongoClient(uri);
     await client.connect();
@@ -539,11 +599,12 @@ app.patch('/generate-key', async (req, res) => {
     const db = client.db('EreunaDB');
     const collection = db.collection('Users');
 
-    const filter = { Username: user };
+    // Case-insensitive username lookup
+    const filter = { Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } };
     const userDoc = await collection.findOne(filter);
 
     if (!userDoc) {
-      return res.status(404).json({ message: 'User  not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
     // Verify password
@@ -564,8 +625,11 @@ app.patch('/generate-key', async (req, res) => {
       }
     };
 
-    // Update the user document
-    const result = await collection.updateOne(filter, updateDoc);
+    // Update the user document using the original username from the database
+    const result = await collection.updateOne(
+      { Username: userDoc.Username },
+      updateDoc
+    );
 
     if (result.modifiedCount === 0) {
       return res.status(500).json({ message: 'Internal Server Error' });
@@ -587,15 +651,31 @@ app.patch('/generate-key', async (req, res) => {
 });
 
 // endpoint to download recovery key
-app.post('/download-key', async (req, res) => {
+app.post('/download-key', [
+  body('user')
+    .trim()
+    .notEmpty().withMessage('Username is required')
+    .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+    .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
+
+  body('password')
+    .trim()
+    .notEmpty().withMessage('Password is required')
+], async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      errors: errors.array().map(error => ({
+        field: error.path,
+        message: error.msg
+      }))
+    });
+  }
+
   let client;
   try {
     const { user, password } = req.body;
-
-    // Strict authentication checks
-    if (!user || !password) {
-      return res.status(400).json({ message: 'Authentication required' });
-    }
 
     client = new MongoClient(uri);
     await client.connect();
@@ -623,7 +703,7 @@ app.post('/download-key', async (req, res) => {
     const downloadToken = crypto.randomBytes(32).toString('hex');
     const tokenExpiry = Date.now() + (15 * 60 * 1000); // 15 minutes
 
-    // Store token with expiry (could use Redis for better performance)
+    // Store token with expiry
     await db.collection('DownloadTokens').insertOne({
       token: downloadToken,
       username: user,
