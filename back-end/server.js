@@ -10,6 +10,21 @@ import Stripe from 'stripe';
 import crypto from 'crypto';
 import helmet from 'helmet';
 import path from 'path';
+import rateLimit from 'express-rate-limit';
+
+
+// Add this before your other middleware
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 1000, // Limit each IP to 300 requests per `window` (here, per minute)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: {
+    error: 'Too many requests, please try again later',
+    status: 429 // Too Many Requests
+  }
+});
+
 
 // Update Stripe import
 const stripe = Stripe('sk_test_51QEqceJ3BbJLPm9wAt0Kvo260Lt9bLTaEN8UPJQppf6pT6gBFLHlmvnymCkkrlo6uJcAZICA67BnFEqxR1WjLk12007Boy0ilt');
@@ -19,6 +34,7 @@ const port = 5500;
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/';
 
 // middleware
+app.use(limiter);
 app.use(express.json());
 app.use(helmet());
 app.use(express.urlencoded({ extended: false }));
