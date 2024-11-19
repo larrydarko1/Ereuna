@@ -119,149 +119,235 @@ app.get('/verify-mongodb', async (req, res) => {
 });
 
 // endpoint that creates users / assuming payment has been successful on client-side 
-app.post('/signup', async (req, res) => {
-  try {
-    const { username, password, subscriptionPlan, paymentMethodId, return_url, promoCode } = req.body;
+app.post('/signup',
+  [
+    body('username')
+      .trim()
+      .notEmpty().withMessage('Username is required')
+      .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+      .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
 
-    const client = new MongoClient(uri);
-    try {
-      await client.connect();
-      const db = client.db('EreunaDB');
-      const usersCollection = db.collection('Users');
-      const receiptsCollection = db.collection('Receipts');
-      const agentsCollection = db.collection('Agents');
+    body('password')
+      .trim()
+      .notEmpty().withMessage('Password is required')
+      .isLength({ min: 5 }).withMessage('Password must be at least 5 characters long')
+      .withMessage('Password must include uppercase, lowercase, number, and special character'),
 
-      // Check if username already exists
-      const existingUser = await usersCollection.findOne({ Username: username });
-      if (existingUser) {
-        return res.status(400).json({ message: 'Username already exists' });
-      }
+    body('subscriptionPlan')
+      .isInt({ min: 1, max: 2 }).withMessage('Invalid subscription plan')
+      .toInt(),
 
-      // Calculate expiration date and amount based on subscription plan
-      const today = new Date();
-      let expirationDate;
-      let amount;
-      switch (subscriptionPlan) {
-        case 1: // 1 month
-          expirationDate = new Date(today.setMonth(today.getMonth() + 1));
-          amount = 599; // Amount in cents
-          break;
-        case 2: // 4 months
-          expirationDate = new Date(today.setMonth(today.getMonth() + 4));
-          amount = 2399; // Amount in cents
-          break;
-        default:
-          return res.status(400).json({ message: 'Invalid subscription plan' });
-      }
+    body('paymentMethodId')
+      .optional()
+      .notEmpty().withMessage('Payment method ID is required for credit card payment'),
 
-      // Check promo code if provided
-      let promoCodeValidated = 'None';
-      if (promoCode) {
-        const promoCodeDoc = await agentsCollection.findOne({ CODE: promoCode });
-
-        if (promoCodeDoc) {
-          // Apply 50% discount
-          amount = Math.round(amount / 2);
-          promoCodeValidated = promoCode;
-        }
-      }
-
-      // Hash the password
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-      // Generate a new raw key
-      const rawAuthKey = crypto.randomBytes(64).toString('hex');
-
-      // Create new user document
-      const newUser = {
-        Username: username,
-        Password: hashedPassword,
-        Expires: expirationDate,
-        Paid: false, // Set to false initially
-        PaymentMethod: 'Credit Card', // Since we're using Stripe
-        SubscriptionPlan: subscriptionPlan,
-        Hidden: [],
-        Created: new Date(),
-        defaultSymbol: 'NVDA',
-        PROMOCODE: promoCodeValidated,
-        AuthKey: rawAuthKey,       // Store the encrypted raw key
-        HashedAuthKey: await bcrypt.hash(rawAuthKey, saltRounds) // Optional: Store a hashed version
-      };
-
-      // Create a payment intent with Stripe
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: amount,
-        currency: 'eur',
-        payment_method: paymentMethodId,
-        confirm: true,
-        return_url: return_url,
-        automatic_payment_methods: {
-          enabled: true,
-          allow_redirects: 'always'
-        }
+    body('promoCode')
+      .optional()
+      .trim()
+      .isLength({ max: 10 }).withMessage('Promo code cannot exceed 10 characters')
+      .matches(/^[A-Z0-9]+$/).withMessage('Promo code can only contain uppercase letters and numbers')
+  ],
+  async (req, res) => {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log('Validation errors:', errors.array());
+      return res.status(400).json({
+        errors: errors.array().map(error => ({
+          field: error.path,
+          message: error.msg
+        }))
       });
+    }
 
-      // Handle different payment states
-      if (paymentIntent.status === 'requires_action') {
-        return res.json({
-          requiresAction: true,
-          clientSecret: paymentIntent.client_secret
+    try {
+      // Destructure and validate inputs
+      const {
+        username,
+        password,
+        subscriptionPlan,
+        paymentMethodId,
+        return_url,
+        promoCode
+      } = req.body;
+
+      // Additional type and format checks
+      const sanitizedUsername = sanitizeInput(username);
+      const sanitizedPromoCode = promoCode ? sanitizeInput(promoCode) : null;
+      const parsedSubscriptionPlan = parseInt(subscriptionPlan, 10);
+
+      // Validate subscription plan
+      if (![1, 2].includes(parsedSubscriptionPlan)) {
+        return res.status(400).json({
+          errors: [{
+            field: 'subscriptionPlan',
+            message: 'Invalid subscription plan'
+          }]
         });
-      } else if (paymentIntent.status === 'succeeded') {
-        // Payment successful, proceed with user creation
-        newUser.Paid = true;
-        const result = await usersCollection.insertOne(newUser);
+      }
 
-        if (result.insertedId) {
-          // Create receipt document
-          const receiptDocument = {
-            UserID: result.insertedId,
-            Amount: amount,
-            Date: newUser.Created,
-            Method: 'Credit Card',
-            Subscription: subscriptionPlan,
-            PROMOCODE: promoCodeValidated
-          };
+      // Validate payment method
+      if (!paymentMethodId) {
+        return res.status(400).json({
+          errors: [{
+            field: 'paymentMethodId',
+            message: 'Payment method ID is required'
+          }]
+        });
+      }
 
-          // Insert receipt into Receipts collection
-          const receiptResult = await receiptsCollection.insertOne(receiptDocument);
+      // Database connection and user creation
+      const client = new MongoClient(uri);
+      try {
+        await client.connect();
+        const db = client.db('EreunaDB');
+        const usersCollection = db.collection('Users');
+        const receiptsCollection = db.collection('Receipts');
+        const agentsCollection = db.collection('Agents');
 
-          if (receiptResult.insertedId) {
-            // Send the raw authentication key back to the client
-            return res.status(201).json({
-              message: 'User created successfully',
-              rawAuthKey
-            });
+        // Check for existing username (case-insensitive)
+        const existingUser = await usersCollection.findOne({
+          Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
+        });
+
+        if (existingUser) {
+          return res.status(400).json({
+            errors: [{
+              field: 'username',
+              message: 'Username already exists'
+            }]
+          });
+        }
+
+        // Calculate expiration date and amount
+        const today = new Date();
+        let expirationDate;
+        let amount;
+        switch (parsedSubscriptionPlan) {
+          case 1: // 1 month
+            expirationDate = new Date(today.setMonth(today.getMonth() + 1));
+            amount = 599; // Amount in cents
+            break;
+          case 2: // 4 months
+            expirationDate = new Date(today.setMonth(today.getMonth() + 4));
+            amount = 2399; // Amount in cents
+            break;
+        }
+
+        // Check promo code
+        let promoCodeValidated = 'None';
+        if (sanitizedPromoCode) {
+          const promoCodeDoc = await agentsCollection.findOne({ CODE: sanitizedPromoCode });
+
+          if (promoCodeDoc) {
+            // Apply 50% discount
+            amount = Math.round(amount / 2);
+            promoCodeValidated = sanitizedPromoCode;
+          }
+        }
+
+        // Hash the password
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        // Generate authentication key
+        const rawAuthKey = crypto.randomBytes(64).toString('hex');
+
+        // Create new user document
+        const newUser = {
+          Username: sanitizedUsername,
+          Password: hashedPassword,
+          Expires: expirationDate,
+          Paid: false,
+          PaymentMethod: 'Credit Card',
+          SubscriptionPlan: parsedSubscriptionPlan,
+          Hidden: [],
+          Created: new Date(),
+          defaultSymbol: 'NVDA',
+          PROMOCODE: promoCodeValidated,
+          AuthKey: rawAuthKey,
+          HashedAuthKey: await bcrypt.hash(rawAuthKey, saltRounds)
+        };
+
+        // Create Stripe payment intent
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: 'eur',
+          payment_method: paymentMethodId,
+          confirm: true,
+          return_url: return_url,
+          automatic_payment_methods: {
+            enabled: true,
+            allow_redirects: 'always'
+          }
+        });
+
+        // Handle payment states
+        if (paymentIntent.status === 'requires_action') {
+          return res.json({
+            requiresAction: true,
+            clientSecret: paymentIntent.client_secret
+          });
+        } else if (paymentIntent.status === 'succeeded') {
+          // Set user as paid
+          newUser.Paid = true;
+
+          // Insert user
+          const userResult = await usersCollection.insertOne(newUser);
+
+          if (userResult.insertedId) {
+            // Create receipt
+            const receiptDocument = {
+              UserID: userResult.insertedId,
+              Amount: amount,
+              Date: newUser.Created,
+              Method: 'Credit Card',
+              Subscription: parsedSubscriptionPlan,
+              PROMOCODE: promoCodeValidated
+            };
+
+            // Insert receipt
+            const receiptResult = await receiptsCollection.insertOne(receiptDocument);
+
+            if (receiptResult.insertedId) {
+              return res.status(201).json({
+                message: 'User created successfully',
+                rawAuthKey
+              });
+            } else {
+              // Rollback user creation if receipt fails
+              await usersCollection.deleteOne({ _id: userResult.insertedId });
+              return res.status(500).json({ message: 'Failed to create receipt' });
+            }
           } else {
-            await usersCollection.deleteOne({ _id: result.insertedId });
-            return res.status(500).json({ message: 'Failed to create receipt' });
+            return res.status(500).json({ message: 'Failed to create user' });
           }
         } else {
-          return res.status(500).json({ message: 'Failed to create user' });
+          // Payment failed
+          return res.status(400).json({
+            message: 'Payment failed',
+            status: paymentIntent.status
+          });
         }
-      } else {
-        // Payment failed
-        return res.status(400).json({ message: 'Payment failed', status: paymentIntent.status });
+
+      } catch (error) {
+        console.error('Signup process error:', error);
+        return res.status(500).json({
+          message: 'An error occurred during signup',
+          error: error.message
+        });
+      } finally {
+        client.close();
       }
     } catch (error) {
-      console.error('Error:', error);
-      if (error.type === 'StripeCardError') {
-        return res.status(400).json({ message: error.message });
-      } else if (error.type === 'StripeInvalidRequestError') {
-        return res.status(400).json({ message: error.message });
-      } else {
-        return res.status(500).json({ message: 'An unexpected error occurred.', error: error.message });
-      }
-    } finally {
-      client.close();
+      console.error('Signup validation error:', error);
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
     }
-  } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ message: 'Internal Server Error' });
   }
-});
-
+);
 
 // Endpoint for verifying the token
 app.get('/verify', async (req, res) => {
