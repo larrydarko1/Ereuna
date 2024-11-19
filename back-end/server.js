@@ -11,7 +11,7 @@ import crypto from 'crypto';
 import helmet from 'helmet';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
-
+import { validate, body, validationResult, validator, sanitizeInput } from './validationUtils.js'
 
 // Add this before your other middleware
 const limiter = rateLimit({
