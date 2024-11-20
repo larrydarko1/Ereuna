@@ -7,13 +7,15 @@ import bcrypt from 'bcrypt';
 import config from './config.js';
 import jwt from 'jsonwebtoken';
 import Stripe from 'stripe';
+import dotenv from 'dotenv';
 import crypto from 'crypto';
 import helmet from 'helmet';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
 import { validate, validationSchemas, validationResult, validationSets, sanitizeInput } from './validationUtils.js';
-import { logger, httpLogger } from './logger.js';
-import { securityLogger, SecurityEvents, maskSensitiveData } from './securityLogger.js';
+import { logger, httpLogger, metricsHandler } from './logger.js'
+
+dotenv.config();
 
 // Add this before your other middleware
 const limiter = rateLimit({
@@ -27,13 +29,12 @@ const limiter = rateLimit({
   }
 });
 
-
 // Update Stripe import
-const stripe = Stripe('sk_test_51QEqceJ3BbJLPm9wAt0Kvo260Lt9bLTaEN8UPJQppf6pT6gBFLHlmvnymCkkrlo6uJcAZICA67BnFEqxR1WjLk12007Boy0ilt');
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 const port = 5500;
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/';
+const uri = process.env.MONGODB_URI;
 
 // middleware
 app.use(limiter);
@@ -66,10 +67,9 @@ try {
     cert: fs.readFileSync(path.join(process.cwd(), 'localhost.pem'))
   };
 
-  // Add HTTP request logging middleware
+  app.get('/metrics', metricsHandler)
   app.use(httpLogger);
 
-  // Global error handler
   app.use((err, req, res, next) => {
     logger.logError(err, {
       method: req.method,

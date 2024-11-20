@@ -178,7 +178,7 @@ const showConfirmPassword = ref(false);
 onMounted(async () => {
   // Load Stripe.js
   if (!stripe.value) {
-    stripe.value = await loadStripe('pk_test_51QEqceJ3BbJLPm9w4D1qgs2xvWXsSNeiSAMNZwAjEJA9ZMDe3Lli2rXeK2SSER4eQGWLTSIBFYCLoMF1QeohS5Mn00Tva9fhaZ');
+    stripe.value = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
   }
   
   // Create card element
