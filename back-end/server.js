@@ -13,9 +13,91 @@ import helmet from 'helmet';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
 import { validate, validationSchemas, validationResult, validationSets, sanitizeInput } from './validationUtils.js';
-import { logger, httpLogger, metricsHandler } from './logger.js'
+import { logger, httpLogger, metricsHandler as importedMetricsHandler } from './logger.js'
+import client from 'prom-client';
 
 dotenv.config();
+const register = new client.Registry();
+
+// Optional: Add default system metrics
+client.collectDefaultMetrics({
+  register,
+  prefix: 'nodejs_', // Optional prefix for metrics
+});
+
+// Create custom metrics
+const httpRequestDurationMicroseconds = new client.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'code'],
+  buckets: [0.1, 0.3, 0.5, 1, 1.5, 2, 5]
+});
+
+const totalRequests = new client.Counter({
+  name: 'http_total_requests',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'route', 'code']
+});
+
+const activeRequests = new client.Gauge({
+  name: 'http_active_requests',
+  help: 'Number of active requests',
+  labelNames: ['method', 'route']
+});
+
+// Register metrics
+register.registerMetric(httpRequestDurationMicroseconds);
+register.registerMetric(totalRequests);
+register.registerMetric(activeRequests);
+
+// Middleware for tracking metrics
+function prometheusMiddleware(req, res, next) {
+  // Track active requests
+  const labels = {
+    method: req.method,
+    route: req.path
+  };
+
+  activeRequests.inc(labels);
+
+  // Start timer for request duration
+  const end = httpRequestDurationMicroseconds.startTimer();
+
+  // Modify response end to track metrics
+  const oldEnd = res.end;
+  res.end = function (...args) {
+    // Stop timer and record duration
+    end({
+      method: req.method,
+      route: req.path,
+      code: res.statusCode
+    });
+
+    // Track total requests
+    totalRequests.inc({
+      method: req.method,
+      route: req.path,
+      code: res.statusCode
+    });
+
+    // Decrease active requests
+    activeRequests.dec(labels);
+
+    // Call original end method
+    oldEnd.apply(res, args);
+  };
+
+  next();
+}
+
+function prometheusMetricsHandler(req, res) {
+  res.set('Content-Type', register.contentType);
+  register.metrics().then(
+    metrics => res.send(metrics)
+  ).catch(
+    error => res.status(500).send(error)
+  );
+}
 
 // Define origins directly
 const allowedOrigins = [
@@ -45,6 +127,11 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const port = process.env.PORT || 5500;
 const uri = process.env.MONGODB_URI;
+// Apply Prometheus middleware BEFORE other middlewares
+app.use(prometheusMiddleware);
+
+// Metrics endpoint
+app.get('/metrics', prometheusMetricsHandler);
 
 // middleware
 app.use(limiter);
@@ -154,7 +241,6 @@ try {
     cert: fs.readFileSync(path.join(process.cwd(), 'localhost.pem'))
   };
 
-  app.get('/metrics', metricsHandler)
   app.use(httpLogger);
 
   app.use((err, req, res, next) => {
