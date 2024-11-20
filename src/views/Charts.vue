@@ -2438,9 +2438,6 @@ function initializeWatchlistNavigation() {
   if (watchlist2.tickers) {
     rowCount.value = watchlist2.tickers.length;
     updateSelectedIndex();
-    if (watchlistContainer.value) {
-      watchlistContainer.value.focus();
-    }
   }
 }
 
