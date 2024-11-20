@@ -1,78 +1,62 @@
-import winston from 'winston';
-import morgan from 'morgan';
-import path from 'path';
+import pino from 'pino';
+import pinoHttp from 'pino-http';
 import fs from 'fs';
+import path from 'path';
 
-// Ensure logs directory exists
+// Ensure the logs directory exists
 const logDirectory = path.join(process.cwd(), 'logs');
-fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
+if (!fs.existsSync(logDirectory)) {
+    fs.mkdirSync(logDirectory);
+}
 
-// Create a custom logger with Winston
-const logger = winston.createLogger({
+// Create a write stream for file logging
+const fileTransport = pino.transport({
+    target: 'pino/file',
+    options: {
+        destination: path.join(logDirectory, 'app.log'),
+        mkdir: true
+    }
+});
+
+// Create the logger with file transport
+const logger = pino({
     level: process.env.LOG_LEVEL || 'info',
-    format: winston.format.combine(
-        winston.format.timestamp({
-            format: 'YYYY-MM-DD HH:mm:ss'
-        }),
-        winston.format.errors({ stack: true }),
-        winston.format.splat(),
-        winston.format.json()
-    ),
-    defaultMeta: { service: 'ereuna-backend' },
-    transports: [
-        // Console transport for development
-        new winston.transports.Console({
-            format: winston.format.combine(
-                winston.format.colorize(),
-                winston.format.simple()
-            )
-        }),
-
-        // File transport for errors
-        new winston.transports.File({
-            filename: path.join(logDirectory, 'error.log'),
-            level: 'error',
-            maxsize: 5242880, // 5MB
-            maxFiles: 5
-        }),
-
-        // File transport for combined logs
-        new winston.transports.File({
-            filename: path.join(logDirectory, 'combined.log'),
-            maxsize: 5242880, // 5MB
-            maxFiles: 5
-        })
-    ]
-});
-
-// Create a Morgan stream for Winston
-const morganStream = {
-    write: (message) => {
-        logger.info(message.trim());
-    }
-};
-
-// Custom Morgan format
-const morganFormat = process.env.NODE_ENV === 'production'
-    ? 'combined'  // Standard Apache combined log output
-    : 'dev';  // Concise output colored by response status
-
-// Morgan middleware
-const httpLogger = morgan(morganFormat, {
-    stream: morganStream,
-    skip: (req, res) => {
-        // Skip logging for health check or static file requests if needed
-        return req.path === '/health' || req.path.startsWith('/static');
+    transport: {
+        targets: [
+            {
+                target: 'pino/file',
+                options: {
+                    destination: path.join(logDirectory, 'app.log'),
+                    mkdir: true
+                }
+            },
+            {
+                target: 'pino-pretty',
+                options: {
+                    colorize: true
+                }
+            }
+        ]
     }
 });
 
-// Error logging method
-logger.logError = (error, additionalInfo = {}) => {
-    logger.error({
-        message: error.message,
-        stack: error.stack,
-        ...additionalInfo
-    });
+// HTTP logging middleware
+const httpLogger = pinoHttp({
+    logger: logger,
+    customLogLevel: (res, err) => {
+        if (res.statusCode >= 400 && res.statusCode < 500) {
+            return 'warn';
+        } else if (res.statusCode >= 500) {
+            return 'error';
+        }
+        return 'info';
+    }
+});
+
+// Metrics handler
+const metricsHandler = (req, res) => {
+    // Implement your metrics logic here
+    res.json({ status: 'Metrics endpoint' });
 };
 
-export { logger, httpLogger };
+export { logger, httpLogger, metricsHandler };
