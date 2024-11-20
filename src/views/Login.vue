@@ -34,6 +34,7 @@
   <div v-if="welcomePopup" class="welcome-popup">
     <h3>{{ welcomeMessage }}</h3>
   </div>
+  <h3 class="releaseNote"> V1.0.1 </h3>
 </template>
 
 <script setup>
@@ -249,5 +250,13 @@ function togglePasswordVisibility() {
 
 .forgot-password a:hover {
   text-decoration: underline; /* Adds underline on hover */
+}
+
+.releaseNote{
+  color: whitesmoke;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+
 }
 </style>
