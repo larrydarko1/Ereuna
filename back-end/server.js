@@ -17,6 +17,16 @@ import { logger, httpLogger, metricsHandler } from './logger.js'
 
 dotenv.config();
 
+// Define origins directly
+const allowedOrigins = [
+  'http://localhost:8080',
+  'https://localhost:8080',
+  'http://frontend:8080',
+  'https://frontend:8080',
+  'https://ereuna.co',
+  'https://www.ereuna.co'
+];
+
 // Add this before your other middleware
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
@@ -33,31 +43,108 @@ const limiter = rateLimit({
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
-const port = 5500;
+const port = process.env.PORT || 5500;
 const uri = process.env.MONGODB_URI;
 
 // middleware
 app.use(limiter);
 app.use(express.json());
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", ...allowedOrigins.map(origin =>
+        origin.replace(/^https?:\/\//, '')
+      )]
+    }
+  },
+  referrerPolicy: {
+    policy: 'strict-origin-when-cross-origin'
+  }
+}));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('front-end'));
 
 const corsOptions = {
-  origin: [
-    'http://localhost:8080',
-    'https://localhost:8080',
-    'http://frontend:8080',
-    'https://frontend:8080',
-    'https://ereuna.co',
-    'https://www.ereuna.co'
-  ],
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  origin: function (origin, callback) {
+    // If no origin (like server-to-server requests), allow
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      // Log unauthorized access attempts
+      logger.warn('Unauthorized CORS request', {
+        origin: origin,
+        timestamp: new Date().toISOString()
+      });
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
+
+// Create a CORS middleware with detailed logging
+const corsMiddleware = cors(corsOptions);
+
+app.use((req, res, next) => {
+  // Log incoming request details
+  const start = Date.now();
+
+  logger.info('CORS check', {
+    origin: req.get('origin'),
+    method: req.method,
+    path: req.path,
+    ip: req.ip
+  });
+
+  // Modify response end to log response time
+  const oldEnd = res.end;
+  res.end = function (...args) {
+    const duration = Date.now() - start;
+
+    logger.info('Request Completed', {
+      method: req.method,
+      path: req.path,
+      status: res.statusCode,
+      duration: `${duration}ms`
+    });
+
+    oldEnd.apply(res, args);
+  };
+
+  // Apply CORS middleware
+  corsMiddleware(req, res, next);
+});
+
+// CORS Error Handler
+app.use((err, req, res, next) => {
+  if (err.name === 'CorsError') {
+    logger.error('CORS Error', {
+      origin: req.get('origin'),
+      method: req.method,
+      path: req.path,
+      ip: req.ip
+    });
+
+    return res.status(403).json({
+      error: 'Access denied',
+      message: 'Origin not allowed'
+    });
+  }
+  next(err);
+});
 
 // SSL/TLS Certificate options
 let options;
