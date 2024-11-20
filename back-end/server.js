@@ -11,12 +11,18 @@ import crypto from 'crypto';
 import helmet from 'helmet';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
-import { validate, body, validationResult, validator, sanitizeInput } from './validationUtils.js'
+import {
+  validate,
+  validationSchemas,
+  validationResult,
+  validationSets,
+  sanitizeInput
+} from './validationUtils.js';
 
 // Add this before your other middleware
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 1000, // Limit each IP to 300 requests per `window` (here, per minute)
+  max: 1000, // Limit each IP to 1000 requests per `window` (here, per minute)
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: {
@@ -120,46 +126,12 @@ app.get('/verify-mongodb', async (req, res) => {
 
 // endpoint that creates users / assuming payment has been successful on client-side 
 app.post('/signup',
-  [
-    body('username')
-      .trim()
-      .notEmpty().withMessage('Username is required')
-      .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
-      .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
-
-    body('password')
-      .trim()
-      .notEmpty().withMessage('Password is required')
-      .isLength({ min: 5 }).withMessage('Password must be at least 5 characters long')
-      .withMessage('Password must include uppercase, lowercase, number, and special character'),
-
-    body('subscriptionPlan')
-      .isInt({ min: 1, max: 2 }).withMessage('Invalid subscription plan')
-      .toInt(),
-
-    body('paymentMethodId')
-      .optional()
-      .notEmpty().withMessage('Payment method ID is required for credit card payment'),
-
-    body('promoCode')
-      .optional()
-      .trim()
-      .isLength({ max: 10 }).withMessage('Promo code cannot exceed 10 characters')
-      .matches(/^[A-Z0-9]+$/).withMessage('Promo code can only contain uppercase letters and numbers')
-  ],
+  validate([
+    ...validationSets.registration,
+    validationSchemas.paymentMethodId(),
+    validationSchemas.promoCode()
+  ]),
   async (req, res) => {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      console.log('Validation errors:', errors.array());
-      return res.status(400).json({
-        errors: errors.array().map(error => ({
-          field: error.path,
-          message: error.msg
-        }))
-      });
-    }
-
     try {
       // Destructure and validate inputs
       const {
@@ -175,26 +147,6 @@ app.post('/signup',
       const sanitizedUsername = sanitizeInput(username);
       const sanitizedPromoCode = promoCode ? sanitizeInput(promoCode) : null;
       const parsedSubscriptionPlan = parseInt(subscriptionPlan, 10);
-
-      // Validate subscription plan
-      if (![1, 2].includes(parsedSubscriptionPlan)) {
-        return res.status(400).json({
-          errors: [{
-            field: 'subscriptionPlan',
-            message: 'Invalid subscription plan'
-          }]
-        });
-      }
-
-      // Validate payment method
-      if (!paymentMethodId) {
-        return res.status(400).json({
-          errors: [{
-            field: 'paymentMethodId',
-            message: 'Payment method ID is required'
-          }]
-        });
-      }
 
       // Database connection and user creation
       const client = new MongoClient(uri);
@@ -232,6 +184,13 @@ app.post('/signup',
             expirationDate = new Date(today.setMonth(today.getMonth() + 4));
             amount = 2399; // Amount in cents
             break;
+          default:
+            return res.status(400).json({
+              errors: [{
+                field: 'subscriptionPlan',
+                message: 'Invalid subscription plan'
+              }]
+            });
         }
 
         // Check promo code
@@ -268,6 +227,16 @@ app.post('/signup',
           AuthKey: rawAuthKey,
           HashedAuthKey: await bcrypt.hash(rawAuthKey, saltRounds)
         };
+
+        // Validate payment method
+        if (!paymentMethodId) {
+          return res.status(400).json({
+            errors: [{
+              field: 'paymentMethodId',
+              message: 'Payment method ID is required'
+            }]
+          });
+        }
 
         // Create Stripe payment intent
         const paymentIntent = await stripe.paymentIntents.create({
@@ -373,113 +342,190 @@ app.get('/verify', async (req, res) => {
 });
 
 // Endpoint for user login
-app.post('/login', [
-  body('username')
-    .trim()
-    .notEmpty().withMessage('Username is required')
-    .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
-    .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
-
-  body('password')
-    .trim()
-    .notEmpty().withMessage('Password is required')
-    .isLength({ min: 5 }).withMessage('Password must be at least 5 characters long')
-], async (req, res) => {
-  // Check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    console.log('Validation errors:', errors.array());
-    return res.status(400).json({
-      errors: errors.array().map(error => ({
-        field: error.path,
-        message: error.msg
-      }))
-    });
-  }
-
-  try {
-    const { username, password } = req.body;
-
-    // Additional sanitization
-    const sanitizedUsername = sanitizeInput(username);
-
-    const client = new MongoClient(uri);
+app.post('/login',
+  validate([
+    validationSchemas.username(),
+    validationSchemas.password()
+  ]),
+  async (req, res) => {
     try {
-      await client.connect();
-      const db = client.db('EreunaDB');
-      const usersCollection = db.collection('Users');
+      const { username, password } = req.body;
 
-      // Find the user by username (case-insensitive)
-      const user = await usersCollection.findOne({
-        Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
-      });
+      // Additional sanitization
+      const sanitizedUsername = sanitizeInput(username);
 
-      if (user) {
+      const client = new MongoClient(uri);
+      try {
+        await client.connect();
+        const db = client.db('EreunaDB');
+        const usersCollection = db.collection('Users');
+
+        // Find the user by username (case-insensitive)
+        const user = await usersCollection.findOne({
+          Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
+        });
+
+        if (!user) {
+          return res.status(401).json({
+            errors: [{
+              field: 'username',
+              message: 'Username doesn\'t exist'
+            }]
+          });
+        }
+
         // Compare the provided password with the stored hash
         const passwordMatch = await bcrypt.compare(password, user.Password);
 
-        if (passwordMatch) {
-          // Extract today's date
-          const today = new Date();
-          const expiresDate = new Date(user.Expires);
-
-          // Compare today's date with the 'Expires' date
-          if (today > expiresDate) {
-            // Subscription is expired
-            await usersCollection.updateOne(
-              { Username: user.Username }, // Use the original username from the database
-              { $set: { Paid: false } }
-            );
-            return res.status(402).json({ message: 'Subscription is expired' });
-          } else {
-            // Subscription is active
-            await usersCollection.updateOne(
-              { Username: user.Username }, // Use the original username from the database
-              { $set: { Paid: true } }
-            );
-          }
-
-          // Check if the user's subscription is active
-          if (!user.Paid) {
-            return res.status(402).json({ message: 'Subscription is expired' });
-          }
-
-          // Generate a JWT token
-          const tokenExpiration = '30d';
-          const token = jwt.sign({ user: user.Username }, config.secretKey, { expiresIn: tokenExpiration });
-
-          // Return a success response with the token
-          return res.status(200).json({ message: 'Logged in successfully', token });
-        } else {
-          return res.status(401).json({ message: 'Password is incorrect' });
+        if (!passwordMatch) {
+          return res.status(401).json({
+            errors: [{
+              field: 'password',
+              message: 'Password is incorrect'
+            }]
+          });
         }
-      } else {
-        return res.status(401).json({ message: 'Username doesn\'t exist' });
+
+        // Extract today's date
+        const today = new Date();
+        const expiresDate = new Date(user.Expires);
+
+        // Check subscription status
+        if (today > expiresDate) {
+          // Subscription is expired
+          await usersCollection.updateOne(
+            { Username: user.Username },
+            { $set: { Paid: false } }
+          );
+          return res.status(402).json({
+            errors: [{
+              field: 'subscription',
+              message: 'Subscription is expired'
+            }]
+          });
+        }
+
+        // Ensure subscription is active
+        await usersCollection.updateOne(
+          { Username: user.Username },
+          { $set: { Paid: true } }
+        );
+
+        // Generate a JWT token
+        const tokenExpiration = '30d';
+        const token = jwt.sign({ user: user.Username }, config.secretKey, { expiresIn: tokenExpiration });
+
+        // Return a success response with the token
+        return res.status(200).json({
+          message: 'Logged in successfully',
+          token
+        });
+
+      } catch (error) {
+        console.error('Login database error:', error);
+        return res.status(500).json({
+          message: 'Internal Server Error',
+          error: error.message
+        });
+      } finally {
+        client.close();
       }
     } catch (error) {
-      console.error('Error:', error);
-      return res.status(500).json({ message: 'Internal Server Error' });
-    } finally {
-      client.close();
+      console.error('Login process error:', error);
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
     }
-  } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 //endpoint that allows for password reset
-app.post('/recover', [
-  body('recoveryKey')
-    .trim()
-    .notEmpty().withMessage('Recovery key is required')
-    .isLength({ min: 64, max: 128 }).withMessage('Invalid recovery key format')
-    .matches(/^[0-9a-fA-F]+$/).withMessage('Recovery key must be a hexadecimal string')
-], async (req, res) => {
+app.post('/recover',
+  validate([
+    validationSchemas.recoveryKey()
+  ]),
+  async (req, res) => {
+    try {
+      const { recoveryKey } = req.body;
+
+      // Additional sanitization
+      const sanitizedRecoveryKey = sanitizeInput(recoveryKey);
+
+      const client = new MongoClient(uri);
+      try {
+        await client.connect();
+        const db = client.db('EreunaDB');
+        const usersCollection = db.collection('Users');
+
+        // Find users with AuthKey
+        const users = await usersCollection.find({}).toArray();
+
+        // Detailed async comparison 
+        const matchedUser = await Promise.all(users.map(async user => {
+          try {
+            // Compare the input recoveryKey with the stored hashed AuthKey
+            const isMatch = await bcrypt.compare(sanitizedRecoveryKey, user.HashedAuthKey);
+            return isMatch ? user : null;
+          } catch (compareError) {
+            console.error(`Compare error for user ${user.Username}:`, compareError);
+            return null;
+          }
+        })).then(results => {
+          return results.find(user => user !== null);
+        });
+
+        if (matchedUser) {
+          // Optional: Log recovery attempt (consider privacy and security implications)
+          logger.info(`Account recovery initiated for user: ${matchedUser.Username}`);
+
+          return res.status(200).json({
+            valid: true,
+            username: matchedUser.Username
+          });
+        } else {
+          // Log failed recovery attempt
+          logger.warn(`Failed recovery attempt with key: ${sanitizedRecoveryKey.substring(0, 10)}...`);
+
+          return res.status(401).json({
+            valid: false,
+            errors: [{
+              field: 'recoveryKey',
+              message: 'Invalid recovery key'
+            }]
+          });
+        }
+      } catch (error) {
+        // Log database errors
+        logger.error('Database Error during recovery:', error);
+
+        return res.status(500).json({
+          message: 'Internal Server Error',
+          error: 'Unable to process recovery request'
+        });
+      } finally {
+        await client.close();
+      }
+    } catch (error) {
+      // Log unexpected errors
+      logger.error('Unexpected error in recovery process:', error);
+
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: 'Unexpected error occurred'
+      });
+    }
+  }
+);
+
+// endpoint that generates a new recovery key upon validation 
+app.patch('/generate-key', validate([
+  validationSchemas.user(),
+  validationSchemas.password()
+]), async (req, res) => {
   // Check for validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log('Validation errors:', errors.array());
     return res.status(400).json({
       errors: errors.array().map(error => ({
         field: error.path,
@@ -488,96 +534,109 @@ app.post('/recover', [
     });
   }
 
+  let client;
   try {
-    const { recoveryKey } = req.body;
+    const { user, password } = req.body;
 
-    // Additional sanitization
-    const sanitizedRecoveryKey = sanitizeInput(recoveryKey);
+    const sanitizedUsername = sanitizeInput(user);
 
-    console.log('Received Recovery Key:', sanitizedRecoveryKey);
+    client = new MongoClient(uri);
+    await client.connect();
 
-    const client = new MongoClient(uri);
-    try {
-      await client.connect();
-      const db = client.db('EreunaDB');
-      const usersCollection = db.collection('Users');
+    const db = client.db('EreunaDB');
+    const collection = db.collection('Users');
 
-      // Find users with AuthKey
-      const users = await usersCollection.find({}).toArray();
-      console.log(`Total users found: ${users.length}`);
+    // Case-insensitive username lookup
+    const filter = { Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } };
+    const userDoc = await collection.findOne(filter);
 
-      // Detailed async comparison 
-      const matchedUser = await Promise.all(users.map(async user => {
-        try {
-          console.log(`Comparing recovery key with user: ${user.Username}`);
-          console.log(`Stored Hashed AuthKey: ${user.HashedAuthKey}`);
-
-          // Compare the input recoveryKey with the stored hashed AuthKey
-          const isMatch = await bcrypt.compare(sanitizedRecoveryKey, user.HashedAuthKey);
-
-          console.log(`Comparison Result for ${user.Username}: ${isMatch}`);
-
-          return isMatch ? user : null;
-        } catch (compareError) {
-          console.error(`Compare error for user ${user.Username}:`, compareError);
-          return null;
-        }
-      })).then(results => {
-        const matched = results.find(user => user !== null);
-        console.log('Matched User:', matched);
-        return matched;
+    if (!userDoc) {
+      return res.status(404).json({
+        errors: [{
+          field: 'user',
+          message: 'User not found'
+        }]
       });
-
-      if (matchedUser) {
-        console.log('Recovery key validated successfully');
-        return res.status(200).json({
-          valid: true,
-          username: matchedUser.Username
-        });
-      } else {
-        console.log('No matching user found');
-        return res.status(401).json({
-          valid: false,
-          message: 'Invalid recovery key',
-          details: 'No matching user found'
-        });
-      }
-    } catch (error) {
-      console.error('Database Error:', error);
-      return res.status(500).json({
-        message: 'Internal Server Error',
-        error: error.toString()
-      });
-    } finally {
-      await client.close();
     }
+
+    // Verify password
+    const isPasswordCorrect = await bcrypt.compare(password, userDoc.Password);
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        errors: [{
+          field: 'password',
+          message: 'Incorrect password'
+        }]
+      });
+    }
+
+    // Check subscription status
+    const today = new Date();
+    const expiresDate = new Date(userDoc.Expires);
+
+    if (today > expiresDate || !userDoc.Paid) {
+      return res.status(402).json({
+        errors: [{
+          field: 'subscription',
+          message: 'Subscription is expired or inactive'
+        }]
+      });
+    }
+
+    // Generate a new raw key
+    const rawAuthKey = crypto.randomBytes(64).toString('hex');
+
+    // Prepare the update document
+    const updateDoc = {
+      $set: {
+        AuthKey: rawAuthKey,       // Store the raw key
+        HashedAuthKey: await bcrypt.hash(rawAuthKey, 10), // Store a hashed version
+        LastKeyGenerationTime: new Date() // Optional: Track key generation time
+      }
+    };
+
+    // Update the user document using the original username from the database
+    const result = await collection.updateOne(
+      { Username: userDoc.Username },
+      updateDoc
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(500).json({
+        message: 'Failed to update authentication key'
+      });
+    }
+
+    // Return response without raw key in production
+    return res.json({
+      confirm: true,
+      message: 'Key generated successfully'
+    });
+
   } catch (error) {
-    console.error('Outer Error:', error);
+    // Log the error for internal tracking
+    console.error('Error generating new key:', error);
+
     return res.status(500).json({
       message: 'Internal Server Error',
-      errorName: error.name,
-      errorMessage: error.message
+      error: 'Unable to generate authentication key'
     });
+  } finally {
+    if (client) {
+      await client.close();
+    }
   }
 });
 
-// endpoint that generates a new recovery key upon validation 
-app.patch('/generate-key', [
-  body('user')
-    .trim()
-    .notEmpty().withMessage('Username is required')
-    .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
-    .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
-
-  body('password')
-    .trim()
-    .notEmpty().withMessage('Password is required')
-    .isLength({ min: 5 }).withMessage('Password must be at least 5 characters long')
-], async (req, res) => {
+// endpoint to download recovery key
+app.post('/download-key', validate([
+  validationSchemas.user(),
+  validationSchemas.password()
+]), async (req, res) => {
   // Check for validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log('Validation errors:', errors.array());
     return res.status(400).json({
       errors: errors.array().map(error => ({
         field: error.path,
@@ -597,128 +656,88 @@ app.patch('/generate-key', [
     await client.connect();
 
     const db = client.db('EreunaDB');
-    const collection = db.collection('Users');
+    const usersCollection = db.collection('Users');
+    const downloadTokensCollection = db.collection('DownloadTokens');
 
-    // Case-insensitive username lookup
-    const filter = { Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } };
-    const userDoc = await collection.findOne(filter);
+    // Find user with case-insensitive username
+    const userDoc = await usersCollection.findOne({
+      Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
+    });
 
     if (!userDoc) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Verify password
-    const isPasswordCorrect = await bcrypt.compare(password, userDoc.Password);
-
-    if (!isPasswordCorrect) {
-      return res.status(401).json({ message: 'Incorrect password' });
-    }
-
-    // Generate a new raw key
-    const rawAuthKey = crypto.randomBytes(64).toString('hex');
-
-    // Prepare the update document
-    const updateDoc = {
-      $set: {
-        AuthKey: rawAuthKey,       // Store the encrypted raw key
-        HashedAuthKey: await bcrypt.hash(rawAuthKey, 10) // Optional: Store a hashed version
-      }
-    };
-
-    // Update the user document using the original username from the database
-    const result = await collection.updateOne(
-      { Username: userDoc.Username },
-      updateDoc
-    );
-
-    if (result.modifiedCount === 0) {
-      return res.status(500).json({ message: 'Internal Server Error' });
-    }
-
-    res.json({
-      confirm: true,
-      message: 'Key generated successfully',
-      rawAuthKey // Optionally return the raw key for immediate use (be careful with this)
-    });
-  } catch (error) {
-    console.error('Error generating new key:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      await client.close();
-    }
-  }
-});
-
-// endpoint to download recovery key
-app.post('/download-key', [
-  body('user')
-    .trim()
-    .notEmpty().withMessage('Username is required')
-    .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
-    .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
-
-  body('password')
-    .trim()
-    .notEmpty().withMessage('Password is required')
-], async (req, res) => {
-  // Check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      errors: errors.array().map(error => ({
-        field: error.path,
-        message: error.msg
-      }))
-    });
-  }
-
-  let client;
-  try {
-    const { user, password } = req.body;
-
-    client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Users');
-
-    // Find user and verify credentials
-    const userDoc = await collection.findOne({ Username: user });
-    if (!userDoc) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({
+        message: 'User not found'
+      });
     }
 
     // Verify password
     const isPasswordCorrect = await bcrypt.compare(password, userDoc.Password);
     if (!isPasswordCorrect) {
-      return res.status(401).json({ message: 'Incorrect password' });
+      return res.status(401).json({
+        message: 'Incorrect password'
+      });
     }
 
+    // Check subscription status
+    const today = new Date();
+    const expiresDate = new Date(userDoc.Expires);
+
+    if (today > expiresDate || !userDoc.Paid) {
+      return res.status(402).json({
+        message: 'Subscription is expired or inactive'
+      });
+    }
+
+    // Verify AuthKey exists
     if (!userDoc.AuthKey) {
-      return res.status(404).json({ message: 'Recovery key not found' });
+      return res.status(404).json({
+        message: 'Recovery key not found'
+      });
+    }
+
+    // Clean up existing tokens for this user
+    await downloadTokensCollection.deleteMany({
+      username: userDoc.Username,
+      expiresAt: { $lt: new Date() }
+    });
+
+    // Check if user already has an active download token
+    const existingActiveToken = await downloadTokensCollection.findOne({
+      username: userDoc.Username,
+      expiresAt: { $gt: new Date() }
+    });
+
+    if (existingActiveToken) {
+      return res.status(429).json({
+        message: 'An active download token already exists'
+      });
     }
 
     // Generate a one-time download token
     const downloadToken = crypto.randomBytes(32).toString('hex');
-    const tokenExpiry = Date.now() + (15 * 60 * 1000); // 15 minutes
+    const tokenExpiry = new Date(Date.now() + (15 * 60 * 1000)); // 15 minutes
 
     // Store token with expiry
-    await db.collection('DownloadTokens').insertOne({
+    await downloadTokensCollection.insertOne({
       token: downloadToken,
-      username: user,
-      expiresAt: new Date(tokenExpiry)
+      username: userDoc.Username,
+      expiresAt: tokenExpiry,
+      createdAt: new Date()
     });
 
-    // Return token instead of actual key
-    res.json({
+    // Return token
+    return res.json({
       token: downloadToken,
-      expiryTime: tokenExpiry
+      expiryTime: tokenExpiry.getTime()
     });
 
   } catch (error) {
-    console.error('Download key error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Download key generation error:', error);
+
+    return res.status(500).json({
+      message: 'Internal Server Error',
+      error: error.toString()
+    });
   } finally {
     if (client) await client.close();
   }

@@ -1,6 +1,6 @@
 <template>
   <footer>
-    <p>Ereuna Platform / Version 1.0.0 / Copyright &copy; 2024</p>
+    <p>Ereuna Platform / Version 1.0.1 / Copyright &copy; 2024</p>
   </footer>
 </template>
 

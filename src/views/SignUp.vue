@@ -22,6 +22,8 @@
       class="form-input" 
       :type="showPassword ? 'text' : 'password'" 
       placeholder="Password" 
+      minlength="5" 
+      maxlength="40" 
       required
     >
     <button 
