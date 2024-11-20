@@ -20,6 +20,16 @@ const validationSchemas = {
         .notEmpty().withMessage('Password is required')
         .isLength({ min: 5, max: 40 }).withMessage('Password must be between 5 and 40 characters'),
 
+    oldPassword: () => body('oldPassword')
+        .trim()
+        .notEmpty().withMessage('Password is required')
+        .isLength({ min: 5, max: 40 }).withMessage('Password must be between 5 and 40 characters'),
+
+    newPassword: () => body('newPassword')
+        .trim()
+        .notEmpty().withMessage('Password is required')
+        .isLength({ min: 5, max: 40 }).withMessage('Password must be between 5 and 40 characters'),
+
     // Subscription Plan Validation
     subscriptionPlan: () => body('subscriptionPlan')
         .isInt({ min: 1, max: 2 }).withMessage('Invalid subscription plan')

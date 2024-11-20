@@ -11,13 +11,9 @@ import crypto from 'crypto';
 import helmet from 'helmet';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
-import {
-  validate,
-  validationSchemas,
-  validationResult,
-  validationSets,
-  sanitizeInput
-} from './validationUtils.js';
+import { validate, validationSchemas, validationResult, validationSets, sanitizeInput } from './validationUtils.js';
+import { logger, httpLogger } from './logger.js';
+import { securityLogger, SecurityEvents, maskSensitiveData } from './securityLogger.js';
 
 // Add this before your other middleware
 const limiter = rateLimit({
@@ -70,6 +66,24 @@ try {
     cert: fs.readFileSync(path.join(process.cwd(), 'localhost.pem'))
   };
 
+  // Add HTTP request logging middleware
+  app.use(httpLogger);
+
+  // Global error handler
+  app.use((err, req, res, next) => {
+    logger.logError(err, {
+      method: req.method,
+      path: req.path,
+      body: req.body,
+      query: req.query
+    });
+
+    res.status(500).json({
+      message: 'Internal Server Error',
+      error: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred'
+    });
+  });
+
   // Use HTTPS server
   https.createServer(options, app).listen(port, () => {
     console.log(`HTTPS Server running on https://localhost:${port}`);
@@ -85,45 +99,6 @@ try {
 
 export default app;
 
-// endpoint to test if server works (without database)
-app.get('/hello', (req, res) => {
-  res.json({
-    message: 'Hello from the Ereuna backend!',
-    timestamp: new Date().toISOString()
-  });
-});
-
-app.get('/verify-mongodb', async (req, res) => {
-  let client;
-  try {
-    client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collections = await db.listCollections().toArray();
-
-    const collectionDetails = await Promise.all(
-      collections.map(async (collection) => {
-        const count = await db.collection(collection.name).countDocuments();
-        return {
-          name: collection.name,
-          documentCount: count
-        };
-      })
-    );
-
-    res.json({
-      databases: await client.db().admin().listDatabases(),
-      collections: collectionDetails
-    });
-  } catch (error) {
-    console.error('Verification Error:', error);
-    res.status(500).json({ error: error.toString() });
-  } finally {
-    if (client) await client.close();
-  }
-});
-
 // endpoint that creates users / assuming payment has been successful on client-side 
 app.post('/signup',
   validate([
@@ -132,6 +107,14 @@ app.post('/signup',
     validationSchemas.promoCode()
   ]),
   async (req, res) => {
+    // Log signup attempt
+    logger.info('Signup attempt initiated', {
+      username: req.body.username,
+      subscriptionPlan: req.body.subscriptionPlan,
+      ip: req.ip
+    });
+
+    let client;
     try {
       // Destructure and validate inputs
       const {
@@ -149,7 +132,7 @@ app.post('/signup',
       const parsedSubscriptionPlan = parseInt(subscriptionPlan, 10);
 
       // Database connection and user creation
-      const client = new MongoClient(uri);
+      client = new MongoClient(uri);
       try {
         await client.connect();
         const db = client.db('EreunaDB');
@@ -163,6 +146,12 @@ app.post('/signup',
         });
 
         if (existingUser) {
+          // Log username conflict
+          logger.warn('Signup attempt with existing username', {
+            username: sanitizedUsername,
+            ip: req.ip
+          });
+
           return res.status(400).json({
             errors: [{
               field: 'username',
@@ -175,22 +164,37 @@ app.post('/signup',
         const today = new Date();
         let expirationDate;
         let amount;
-        switch (parsedSubscriptionPlan) {
-          case 1: // 1 month
-            expirationDate = new Date(today.setMonth(today.getMonth() + 1));
-            amount = 599; // Amount in cents
-            break;
-          case 2: // 4 months
-            expirationDate = new Date(today.setMonth(today.getMonth() + 4));
-            amount = 2399; // Amount in cents
-            break;
-          default:
-            return res.status(400).json({
-              errors: [{
-                field: 'subscriptionPlan',
-                message: 'Invalid subscription plan'
-              }]
-            });
+        try {
+          switch (parsedSubscriptionPlan) {
+            case 1: // 1 month
+              expirationDate = new Date(today.setMonth(today.getMonth() + 1));
+              amount = 599; // Amount in cents
+              break;
+            case 2: // 4 months
+              expirationDate = new Date(today.setMonth(today.getMonth() + 4));
+              amount = 2399; // Amount in cents
+              break;
+            default:
+              // Log invalid subscription plan
+              logger.warn('Invalid subscription plan attempt', {
+                username: sanitizedUsername,
+                subscriptionPlan: parsedSubscriptionPlan,
+                ip: req.ip
+              });
+
+              return res.status(400).json({
+                errors: [{
+                  field: 'subscriptionPlan',
+                  message: 'Invalid subscription plan'
+                }]
+              });
+          }
+        } catch (dateError) {
+          logger.error('Error calculating subscription expiration', {
+            error: dateError.message,
+            username: sanitizedUsername
+          });
+          throw dateError;
         }
 
         // Check promo code
@@ -202,6 +206,21 @@ app.post('/signup',
             // Apply 50% discount
             amount = Math.round(amount / 2);
             promoCodeValidated = sanitizedPromoCode;
+
+            // Log promo code usage
+            logger.info('Promo code applied', {
+              username: sanitizedUsername,
+              promoCode: promoCodeValidated,
+              originalAmount: amount * 2,
+              discountedAmount: amount
+            });
+          } else {
+            // Log invalid promo code attempt
+            logger.warn('Invalid promo code attempt', {
+              username: sanitizedUsername,
+              promoCode: sanitizedPromoCode,
+              ip: req.ip
+            });
           }
         }
 
@@ -230,6 +249,12 @@ app.post('/signup',
 
         // Validate payment method
         if (!paymentMethodId) {
+          // Log missing payment method
+          logger.warn('Signup attempt without payment method', {
+            username: sanitizedUsername,
+            ip: req.ip
+          });
+
           return res.status(400).json({
             errors: [{
               field: 'paymentMethodId',
@@ -239,20 +264,37 @@ app.post('/signup',
         }
 
         // Create Stripe payment intent
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: amount,
-          currency: 'eur',
-          payment_method: paymentMethodId,
-          confirm: true,
-          return_url: return_url,
-          automatic_payment_methods: {
-            enabled: true,
-            allow_redirects: 'always'
-          }
-        });
+        let paymentIntent;
+        try {
+          paymentIntent = await stripe.paymentIntents.create({
+            amount: amount,
+            currency: 'eur',
+            payment_method: paymentMethodId,
+            confirm: true,
+            return_url: return_url,
+            automatic_payment_methods: {
+              enabled: true,
+              allow_redirects: 'always'
+            }
+          });
+        } catch (paymentError) {
+          // Log payment intent creation failure
+          logger.error('Stripe payment intent creation failed', {
+            username: sanitizedUsername,
+            error: paymentError.message,
+            ip: req.ip
+          });
+          throw paymentError;
+        }
 
         // Handle payment states
         if (paymentIntent.status === 'requires_action') {
+          // Log payment requires additional action
+          logger.info('Payment requires additional action', {
+            username: sanitizedUsername,
+            paymentIntentId: paymentIntent.id
+          });
+
           return res.json({
             requiresAction: true,
             clientSecret: paymentIntent.client_secret
@@ -262,7 +304,17 @@ app.post('/signup',
           newUser.Paid = true;
 
           // Insert user
-          const userResult = await usersCollection.insertOne(newUser);
+          let userResult;
+          try {
+            userResult = await usersCollection.insertOne(newUser);
+          } catch (insertError) {
+            // Log user insertion failure
+            logger.error('Failed to insert new user', {
+              username: sanitizedUsername,
+              error: insertError.message
+            });
+            throw insertError;
+          }
 
           if (userResult.insertedId) {
             // Create receipt
@@ -276,9 +328,26 @@ app.post('/signup',
             };
 
             // Insert receipt
-            const receiptResult = await receiptsCollection.insertOne(receiptDocument);
+            let receiptResult;
+            try {
+              receiptResult = await receiptsCollection.insertOne(receiptDocument);
+            } catch (receiptError) {
+              // Log receipt insertion failure
+              logger.error('Failed to create receipt', {
+                username: sanitizedUsername,
+                error: receiptError.message
+              });
+              throw receiptError;
+            }
 
             if (receiptResult.insertedId) {
+              // Log successful signup
+              logger.info('User signup completed successfully', {
+                username: sanitizedUsername,
+                subscriptionPlan: parsedSubscriptionPlan,
+                paymentMethod: 'Credit Card'
+              });
+
               return res.status(201).json({
                 message: 'User created successfully',
                 rawAuthKey
@@ -286,12 +355,34 @@ app.post('/signup',
             } else {
               // Rollback user creation if receipt fails
               await usersCollection.deleteOne({ _id: userResult.insertedId });
-              return res.status(500).json({ message: 'Failed to create receipt' });
+
+              // Log rollback due to receipt insertion failure
+              logger.error('Rolled back user creation due to receipt insertion failure', {
+                username: sanitizedUsername
+              });
+
+              return res.status(500).json({
+                message: 'Failed to create receipt'
+              });
             }
           } else {
-            return res.status(500).json({ message: 'Failed to create user' });
+            // Log user insertion failure
+            logger.error('Failed to create user document', {
+              username: sanitizedUsername
+            });
+
+            return res.status(500).json({
+              message: 'Failed to create user'
+            });
           }
         } else {
+          // Log payment failure
+          logger.warn('Payment failed', {
+            username: sanitizedUsername,
+            paymentStatus: paymentIntent.status,
+            ip: req.ip
+          });
+
           // Payment failed
           return res.status(400).json({
             message: 'Payment failed',
@@ -300,19 +391,40 @@ app.post('/signup',
         }
 
       } catch (error) {
-        console.error('Signup process error:', error);
+        // Log signup process error
+        logger.error('Signup process error', {
+          username: sanitizedUsername,
+          error: error.message,
+          stack: error.stack,
+          ip: req.ip
+        });
+
         return res.status(500).json({
           message: 'An error occurred during signup',
-          error: error.message
+          error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
         });
       } finally {
-        client.close();
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing MongoDB client', {
+              error: closeError.message
+            });
+          }
+        }
       }
     } catch (error) {
-      console.error('Signup validation error:', error);
+      // Log unexpected validation or processing error
+      logger.error('Unexpected signup error', {
+        error: error.message,
+        stack: error.stack,
+        requestBody: JSON.stringify(req.body)
+      });
+
       return res.status(500).json({
         message: 'Internal Server Error',
-        error: error.message
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Unexpected error occurred'
       });
     }
   }
@@ -795,17 +907,29 @@ app.get('/retrieve-key', async (req, res) => {
 });
 
 // endpoint that updates user document with new password
-app.patch('/password-change', async (req, res) => {
+app.patch('/password-change', validate([
+  validationSchemas.user(),
+  validationSchemas.oldPassword(),
+  validationSchemas.newPassword()
+
+]), async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      errors: errors.array().map(error => ({
+        field: error.path,
+        message: error.msg
+      }))
+    });
+  }
+
   let client;
   try {
-    const oldPassword = req.body.oldPassword;
-    const newPassword = req.body.newPassword;
-    const user = req.body.user;
+    const { oldPassword, newPassword, user } = req.body;
 
-    if (!oldPassword || !newPassword || !user) {
-      res.status(400).json({ message: 'Please provide all required fields' });
-      return;
-    }
+    // Additional sanitization
+    const sanitizedUsername = sanitizeInput(user);
 
     client = new MongoClient(uri);
     await client.connect();
@@ -813,20 +937,24 @@ app.patch('/password-change', async (req, res) => {
     const db = client.db('EreunaDB');
     const collection = db.collection('Users');
 
-    const filter = { Username: user };
-    const userDoc = await collection.findOne(filter);
+    // Find user with case-insensitive username
+    const userDoc = await collection.findOne({
+      Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
+    });
 
     if (!userDoc) {
-      res.status(404).json({ message: 'User not found' });
-      return;
+      return res.status(404).json({
+        message: 'User not found'
+      });
     }
 
     // Compare the provided old password with the stored hashed password
     const isOldPasswordCorrect = await bcrypt.compare(oldPassword, userDoc.Password);
 
     if (!isOldPasswordCorrect) {
-      res.status(401).json({ error: 'old_password_incorrect' });
-      return;
+      return res.status(401).json({
+        message: 'Current password is incorrect'
+      });
     }
 
     // Hash the new password
@@ -834,17 +962,29 @@ app.patch('/password-change', async (req, res) => {
     const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
 
     const updateDoc = { $set: { Password: hashedNewPassword } };
-    const result = await collection.updateOne(filter, updateDoc);
+    const result = await collection.updateOne(
+      { Username: userDoc.Username },
+      updateDoc
+    );
 
     if (result.modifiedCount === 0) {
-      res.status(500).json({ message: 'Internal Server Error' });
-      return;
+      return res.status(500).json({
+        message: 'Failed to update password'
+      });
     }
 
-    res.json({ confirm: true });
+    res.json({
+      message: 'Password successfully changed',
+      confirm: true
+    });
+
   } catch (error) {
     console.error('Error changing password:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+
+    return res.status(500).json({
+      message: 'Internal Server Error',
+      error: error.toString()
+    });
   } finally {
     if (client) {
       await client.close();
@@ -853,82 +993,110 @@ app.patch('/password-change', async (req, res) => {
 });
 
 //endpoint that changes password with recovery method 
-app.patch('/change-password2', async (req, res) => {
-  try {
-    const { recoveryKey, newPassword } = req.body;
+app.patch('/change-password2', validate([
+  validationSchemas.user(),
+  validationSchemas.newPassword(),
+  validationSchemas.recoveryKey()
 
-    // Validate input
-    if (!recoveryKey || !newPassword) {
-      return res.status(400).json({ success: false, message: 'Recovery key and new password are required' });
+]), async (req, res) => {
+  // Check for validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      errors: errors.array().map(error => ({
+        field: error.path,
+        message: error.msg
+      }))
+    });
+  }
+
+  const { recoveryKey, newPassword } = req.body;
+  let client;
+
+  try {
+    client = new MongoClient(uri);
+    await client.connect();
+
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+
+    // Find user with matching recovery key more efficiently
+    const matchedUser = await usersCollection.findOne({
+      HashedAuthKey: { $exists: true }
+    });
+
+    if (!matchedUser) {
+      return res.status(401).json({
+        success: false,
+        message: 'No user found with this recovery key'
+      });
     }
 
-    const client = new MongoClient(uri);
-    try {
-      await client.connect();
-      const db = client.db('EreunaDB');
-      const usersCollection = db.collection('Users');
+    // Verify recovery key
+    const isRecoveryKeyValid = await bcrypt.compare(recoveryKey, matchedUser.HashedAuthKey);
 
-      // Find all users to validate the recovery key
-      const users = await usersCollection.find({}).toArray();
+    if (!isRecoveryKeyValid) {
+      // Log failed recovery key attempt
+      logger.warn(`Failed recovery key attempt for user: ${matchedUser.Username}`);
 
-      // Check if the recovery key matches any user's AuthKey
-      const matchedUser = await Promise.all(users.map(async user => {
-        try {
-          const isMatch = await bcrypt.compare(recoveryKey, user.HashedAuthKey);
-          return isMatch ? user : null;
-        } catch {
-          return null;
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid recovery key'
+      });
+    }
+
+    // Prevent using the same password
+    const isNewPasswordSame = await bcrypt.compare(newPassword, matchedUser.Password);
+    if (isNewPasswordSame) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password cannot be the same as the current password'
+      });
+    }
+
+    // Hash the new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update the user's password
+    const updateResult = await usersCollection.updateOne(
+      { _id: matchedUser._id },
+      {
+        $set: {
+          Password: hashedPassword
+          // Optionally, you might want to invalidate the recovery key here
+          // HashedAuthKey: null
         }
-      })).then(results => results.find(user => user !== null));
-
-      if (!matchedUser) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid recovery key'
-        });
       }
+    );
 
-      // Hash the new password
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    if (updateResult.modifiedCount === 1) {
+      // Log successful password change
+      logger.info(`Password changed via recovery key for user: ${matchedUser.Username}`);
 
-      // Update the user's password
-      const updateResult = await usersCollection.updateOne(
-        { HashedAuthKey: matchedUser.HashedAuthKey },
-        {
-          $set: {
-            Password: hashedPassword
-            // AuthKey remains unchanged
-          }
-        }
-      );
-
-      if (updateResult.modifiedCount === 1) {
-        return res.status(200).json({
-          success: true,
-          message: 'Password successfully changed. For security, please generate a new recovery key for future use.'
-        });
-      } else {
-        return res.status(500).json({
-          success: false,
-          message: 'Failed to update password'
-        });
-      }
-    } catch (error) {
-      console.error('Password change error:', error);
+      return res.status(200).json({
+        success: true,
+        message: 'Password successfully changed. Please generate a new recovery key.'
+      });
+    } else {
       return res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Failed to update password'
       });
-    } finally {
-      client.close();
     }
   } catch (error) {
-    console.error('Unexpected error:', error);
+    console.error('Password recovery error:', error);
+
     return res.status(500).json({
       success: false,
-      message: 'Unexpected error occurred'
+      message: 'Internal server error',
+      errorDetails: process.env.NODE_ENV === 'development' ? error.toString() : undefined
     });
+  } finally {
+    if (client) {
+      await client.close();
+    }
   }
 });
 
