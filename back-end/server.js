@@ -174,27 +174,40 @@ app.use(cors(corsOptions));
 app.use('/login', bruteForceProtection);
 app.use('/signup', bruteForceProtection);
 
-// Logging and Request Tracking Middleware
+// Conditional Logging Middleware
 app.use((req, res, next) => {
-  const start = Date.now();
+  // Only log for non-static routes or specific patterns
+  const shouldLog = ![
+    '/health',  // Health check endpoint
+    '/metrics', // Monitoring endpoint
+  ].includes(req.path) &&
+    !req.path.startsWith('/static') &&
+    !req.path.endsWith('.ico');
 
-  logger.info('Incoming Request', {
-    origin: req.get('origin'),
-    method: req.method,
-    path: req.path,
-    ip: req.ip
-  });
+  if (shouldLog) {
+    const start = Date.now();
 
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-
-    logger.info('Request Completed', {
+    logger.debug('Request Initiated', {
       method: req.method,
       path: req.path,
-      status: res.statusCode,
-      duration: `${duration}ms`
+      // Optionally include sensitive info conditionally
+      ...(process.env.NODE_ENV === 'development' && {
+        origin: req.get('origin'),
+        ip: req.ip
+      })
     });
-  });
+
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+
+      logger.debug('Request Completed', {
+        method: req.method,
+        path: req.path,
+        status: res.statusCode,
+        duration: `${duration}ms`
+      });
+    });
+  }
 
   next();
 });
@@ -2658,373 +2671,970 @@ app.delete('/:symbol/notes/:noteId', validate(validationSets.notesDeletion),
 );
 
 //this endpoint retrieves OHCL Data for the charts 
-app.get('/:ticker/data', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:ticker/data',
+  validate(validationSets.chartData),
+  async (req, res) => {
+    const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+    let client;
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData');
+    try {
+      // Log the chart data request
+      logger.info({
+        msg: 'Chart Data Request',
+        ticker: ticker
+      });
 
-    const Data = await collection.find({ tickerID: ticker }).toArray();
+      client = new MongoClient(uri);
+      await client.connect();
 
-    const formattedData = Data.map(item => ({
-      time: item.timestamp.toISOString().slice(0, 10),
-      open: parseFloat(item.open.toString().slice(0, 8)),
-      high: parseFloat(item.high.toString().slice(0, 8)),
-      low: parseFloat(item.low.toString().slice(0, 8)),
-      close: parseFloat(item.close.toString().slice(0, 8)),
-    }));
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData');
 
-    res.send(formattedData);
+      // Find data for the specific ticker
+      const Data = await collection.find({ tickerID: ticker }).toArray();
 
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+      // Check if data exists
+      if (Data.length === 0) {
+        logger.warn({
+          msg: 'No Chart Data Found',
+          ticker: ticker
+        });
+        return res.status(404).json({ message: 'No data found for this ticker' });
+      }
+
+      // Format the data
+      const formattedData = Data.map(item => ({
+        time: item.timestamp.toISOString().slice(0, 10),
+        open: parseFloat(item.open.toString().slice(0, 8)),
+        high: parseFloat(item.high.toString().slice(0, 8)),
+        low: parseFloat(item.low.toString().slice(0, 8)),
+        close: parseFloat(item.close.toString().slice(0, 8)),
+      }));
+
+      // Log successful data retrieval
+      logger.info({
+        msg: 'Chart Data Retrieved Successfully',
+        ticker: ticker,
+        dataPoints: formattedData.length
+      });
+
+      res.json(formattedData);
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: 'Chart Data Retrieval Error',
+        ticker: ticker,
+        error: error.message
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        await client.close();
+      }
+    }
   }
-});
+);
 
 //this endpoint retrieves volume Data for the charts 
-app.get('/:ticker/data2', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:ticker/data2',
+  validate(validationSets.chartData),
+  async (req, res) => {
+    const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+    let client;
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData');
+    try {
+      // Log the volume data request
+      logger.info({
+        msg: 'Volume Data Request',
+        ticker: ticker
+      });
 
-    const Data = await collection.find({ tickerID: ticker }).toArray();
+      client = new MongoClient(uri);
+      await client.connect();
 
-    // Restructure and format the data
-    const formattedData = Data.map(item => ({
-      time: item.timestamp.toISOString().slice(0, 10),
-      value: item.volume,
-    }));
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData');
 
-    res.send(formattedData);
+      // Find data for the specific ticker
+      const Data = await collection.find({ tickerID: ticker }).toArray();
 
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+      // Check if data exists
+      if (Data.length === 0) {
+        logger.warn({
+          msg: 'No Volume Data Found',
+          ticker: ticker
+        });
+        return res.status(404).json({ message: 'No volume data found for this ticker' });
+      }
+
+      // Restructure and format the data
+      const formattedData = Data.map(item => ({
+        time: item.timestamp.toISOString().slice(0, 10),
+        value: item.volume,
+      }));
+
+      // Log successful data retrieval
+      logger.info({
+        msg: 'Volume Data Retrieved Successfully',
+        ticker: ticker,
+        dataPoints: formattedData.length
+      });
+
+      res.json(formattedData);
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: 'Volume Data Retrieval Error',
+        ticker: ticker,
+        error: error.message
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        await client.close();
+      }
+    }
   }
-});
+);
 
 //sends data for 10DMA (SMA)
-app.get('/:ticker/data3', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:ticker/data3',
+  validate(validationSets.chartData),
+  async (req, res) => {
+    const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+    let client;
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData');
-
-    const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-    // Calculate 20-day moving average
-    const movingAverages = [];
-    for (let i = 9; i < Data.length; i++) {
-      const sum = Data.slice(i - 9, i + 1).reduce((acc, curr) => acc + curr.close, 0);
-      const average = sum / 10;
-      movingAverages.push({
-        time: Data[i].timestamp.toISOString().slice(0, 10),
-        value: average,
+    try {
+      // Log the moving average data request
+      logger.info({
+        msg: '10-Day Moving Average Data Request',
+        ticker: ticker
       });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData');
+
+      // Find and sort data for the specific ticker
+      const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+
+      // Check if data exists
+      if (Data.length === 0) {
+        logger.warn({
+          msg: 'No Moving Average Data Found',
+          ticker: ticker
+        });
+        return res.status(404).json({ message: 'No data found for this ticker' });
+      }
+
+      // Check if there's enough data to calculate moving average
+      if (Data.length < 10) {
+        logger.warn({
+          msg: 'Insufficient Data for Moving Average Calculation',
+          ticker: ticker,
+          dataPoints: Data.length
+        });
+        return res.status(400).json({
+          message: 'Insufficient data to calculate 10-day moving average',
+          availableDataPoints: Data.length
+        });
+      }
+
+      // Calculate 10-day moving average
+      const movingAverages = [];
+      for (let i = 9; i < Data.length; i++) {
+        const sum = Data.slice(i - 9, i + 1).reduce((acc, curr) => acc + curr.close, 0);
+        const average = sum / 10;
+        movingAverages.push({
+          time: Data[i].timestamp.toISOString().slice(0, 10),
+          value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
+        });
+      }
+
+      // Log successful data retrieval
+      logger.info({
+        msg: 'Moving Average Data Retrieved Successfully',
+        ticker: ticker,
+        dataPoints: movingAverages.length
+      });
+
+      res.json(movingAverages);
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: 'Moving Average Data Retrieval Error',
+        ticker: ticker,
+        error: error.message
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        await client.close();
+      }
     }
-
-    res.send(movingAverages);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 //sends data for 20DMA (SMA)
-app.get('/:ticker/data4', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:ticker/data4',
+  validate(validationSets.chartData),
+  async (req, res) => {
+    const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+    let client;
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData');
-
-    const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-    // Calculate 20-day moving average
-    const movingAverages = [];
-    for (let i = 19; i < Data.length; i++) {
-      const sum = Data.slice(i - 19, i + 1).reduce((acc, curr) => acc + curr.close, 0);
-      const average = sum / 20;
-      movingAverages.push({
-        time: Data[i].timestamp.toISOString().slice(0, 10),
-        value: average,
+    try {
+      // Log the 20-day moving average data request
+      logger.info({
+        msg: '20-Day Moving Average Data Request',
+        ticker: ticker
       });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData');
+
+      // Find and sort data for the specific ticker
+      const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+
+      // Check if data exists
+      if (Data.length === 0) {
+        logger.warn({
+          msg: 'No Moving Average Data Found',
+          ticker: ticker
+        });
+        return res.status(404).json({ message: 'No data found for this ticker' });
+      }
+
+      // Check if there's enough data to calculate moving average
+      if (Data.length < 20) {
+        logger.warn({
+          msg: 'Insufficient Data for Moving Average Calculation',
+          ticker: ticker,
+          dataPoints: Data.length
+        });
+        return res.status(400).json({
+          message: 'Insufficient data to calculate 20-day moving average',
+          availableDataPoints: Data.length
+        });
+      }
+
+      // Calculate 20-day moving average
+      const movingAverages = [];
+      for (let i = 19; i < Data.length; i++) {
+        const sum = Data.slice(i - 19, i + 1).reduce((acc, curr) => acc + curr.close, 0);
+        const average = sum / 20;
+        movingAverages.push({
+          time: Data[i].timestamp.toISOString().slice(0, 10),
+          value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
+        });
+      }
+
+      // Log successful data retrieval
+      logger.info({
+        msg: '20-Day Moving Average Data Retrieved Successfully',
+        ticker: ticker,
+        dataPoints: movingAverages.length
+      });
+
+      res.json(movingAverages);
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: '20-Day Moving Average Data Retrieval Error',
+        ticker: ticker,
+        error: error.message
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        await client.close();
+      }
     }
-
-    res.send(movingAverages);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 //sends data for 50DMA (SMA)
-app.get('/:ticker/data5', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:ticker/data5',
+  validate(validationSets.chartData),
+  async (req, res) => {
+    const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+    let client;
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData');
-
-    const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-    // Calculate 20-day moving average
-    const movingAverages = [];
-    for (let i = 49; i < Data.length; i++) {
-      const sum = Data.slice(i - 49, i + 1).reduce((acc, curr) => acc + curr.close, 0);
-      const average = sum / 50;
-      movingAverages.push({
-        time: Data[i].timestamp.toISOString().slice(0, 10),
-        value: average,
+    try {
+      // Log the 50-day moving average data request
+      logger.info({
+        msg: '50-Day Moving Average Data Request',
+        ticker: ticker
       });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData');
+
+      // Find and sort data for the specific ticker
+      const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+
+      // Check if data exists
+      if (Data.length === 0) {
+        logger.warn({
+          msg: 'No Moving Average Data Found',
+          ticker: ticker
+        });
+        return res.status(404).json({ message: 'No data found for this ticker' });
+      }
+
+      // Check if there's enough data to calculate moving average
+      if (Data.length < 50) {
+        logger.warn({
+          msg: 'Insufficient Data for Moving Average Calculation',
+          ticker: ticker,
+          dataPoints: Data.length
+        });
+        return res.status(400).json({
+          message: 'Insufficient data to calculate 50-day moving average',
+          availableDataPoints: Data.length
+        });
+      }
+
+      // Calculate 50-day moving average
+      const movingAverages = [];
+      for (let i = 49; i < Data.length; i++) {
+        const sum = Data.slice(i - 49, i + 1).reduce((acc, curr) => acc + curr.close, 0);
+        const average = sum / 50;
+        movingAverages.push({
+          time: Data[i].timestamp.toISOString().slice(0, 10),
+          value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
+        });
+      }
+
+      // Log successful data retrieval
+      logger.info({
+        msg: '50-Day Moving Average Data Retrieved Successfully',
+        ticker: ticker,
+        dataPoints: movingAverages.length
+      });
+
+      res.json(movingAverages);
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: '50-Day Moving Average Data Retrieval Error',
+        ticker: ticker,
+        error: error.message
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        await client.close();
+      }
     }
-
-    res.send(movingAverages);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 //sends data for 200DMA (SMA)
-app.get('/:ticker/data6', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:ticker/data6',
+  validate(validationSets.chartData),
+  async (req, res) => {
+    const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+    let client;
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData');
-
-    const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-    // Calculate 20-day moving average
-    const movingAverages = [];
-    for (let i = 199; i < Data.length; i++) {
-      const sum = Data.slice(i - 199, i + 1).reduce((acc, curr) => acc + curr.close, 0);
-      const average = sum / 200;
-      movingAverages.push({
-        time: Data[i].timestamp.toISOString().slice(0, 10),
-        value: average,
+    try {
+      // Log the 200-day moving average data request
+      logger.info({
+        msg: '200-Day Moving Average Data Request',
+        ticker: ticker
       });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData');
+
+      // Find and sort data for the specific ticker
+      const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+
+      // Check if data exists
+      if (Data.length === 0) {
+        logger.warn({
+          msg: 'No Moving Average Data Found',
+          ticker: ticker
+        });
+        return res.status(404).json({ message: 'No data found for this ticker' });
+      }
+
+      // Check if there's enough data to calculate moving average
+      if (Data.length < 200) {
+        logger.warn({
+          msg: 'Insufficient Data for Moving Average Calculation',
+          ticker: ticker,
+          dataPoints: Data.length
+        });
+        return res.status(400).json({
+          message: 'Insufficient data to calculate 200-day moving average',
+          availableDataPoints: Data.length
+        });
+      }
+
+      // Calculate 200-day moving average
+      const movingAverages = [];
+      for (let i = 199; i < Data.length; i++) {
+        const sum = Data.slice(i - 199, i + 1).reduce((acc, curr) => acc + curr.close, 0);
+        const average = sum / 200;
+        movingAverages.push({
+          time: Data[i].timestamp.toISOString().slice(0, 10),
+          value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
+        });
+      }
+
+      // Log successful data retrieval
+      logger.info({
+        msg: '200-Day Moving Average Data Retrieved Successfully',
+        ticker: ticker,
+        dataPoints: movingAverages.length
+      });
+
+      res.json(movingAverages);
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: '200-Day Moving Average Data Retrieval Error',
+        ticker: ticker,
+        error: error.message
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        await client.close();
+      }
     }
-
-    res.send(movingAverages);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 //Weekly OHCL Data
-app.get('/:ticker/data7', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:ticker/data7',
+  validate(validationSets.chartData),
+  async (req, res) => {
+    const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+    let client;
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData2');
+    try {
+      // Log the weekly OHLC data request
+      logger.info({
+        msg: 'Weekly OHLC Data Request',
+        ticker: ticker
+      });
 
-    const Data = await collection.find({ tickerID: ticker }).toArray();
+      client = new MongoClient(uri);
+      await client.connect();
 
-    // Restructure and format the data
-    const formattedData = Data.map(item => ({
-      time: item.timestamp.toISOString().slice(0, 10),
-      open: parseFloat(item.open.toString().slice(0, 8)),
-      high: parseFloat(item.high.toString().slice(0, 8)),
-      low: parseFloat(item.low.toString().slice(0, 8)),
-      close: parseFloat(item.close.toString().slice(0, 8)),
-    }));
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData2');
 
-    res.send(formattedData);
+      // Find data for the specific ticker
+      const Data = await collection.find({ tickerID: ticker }).toArray();
 
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+      // Check if data exists
+      if (Data.length === 0) {
+        logger.warn({
+          msg: 'No Weekly OHLC Data Found',
+          ticker: ticker
+        });
+        return res.status(404).json({ message: 'No weekly data found for this ticker' });
+      }
+
+      // Restructure and format the data
+      const formattedData = Data.map(item => ({
+        time: item.timestamp.toISOString().slice(0, 10),
+        open: parseFloat(item.open.toString().slice(0, 8)),
+        high: parseFloat(item.high.toString().slice(0, 8)),
+        low: parseFloat(item.low.toString().slice(0, 8)),
+        close: parseFloat(item.close.toString().slice(0, 8)),
+      }));
+
+      // Log successful data retrieval
+      logger.info({
+        msg: 'Weekly OHLC Data Retrieved Successfully',
+        ticker: ticker,
+        dataPoints: formattedData.length
+      });
+
+      res.json(formattedData);
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: 'Weekly OHLC Data Retrieval Error',
+        ticker: ticker,
+        error: error.message
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        await client.close();
+      }
+    }
   }
-});
+);
 
 // Weekly Volume Data
-app.get('/:ticker/data8', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:ticker/data8',
+  validate(validationSets.chartData),
+  async (req, res) => {
+    const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+    let client;
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData2');
+    try {
+      // Log the weekly volume data request
+      logger.info({
+        msg: 'Weekly Volume Data Request',
+        ticker: ticker
+      });
 
-    const Data = await collection.find({ tickerID: ticker }).toArray();
+      client = new MongoClient(uri);
+      await client.connect();
 
-    // Restructure and format the data
-    const formattedData = Data.map(item => ({
-      time: item.timestamp.toISOString().slice(0, 10),
-      value: item.volume,
-    }));
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData2');
 
-    res.send(formattedData);
+      // Find data for the specific ticker
+      const Data = await collection.find({ tickerID: ticker }).toArray();
 
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+      // Check if data exists
+      if (Data.length === 0) {
+        logger.warn({
+          msg: 'No Weekly Volume Data Found',
+          ticker: ticker
+        });
+        return res.status(404).json({ message: 'No weekly volume data found for this ticker' });
+      }
+
+      // Restructure and format the data
+      const formattedData = Data.map(item => ({
+        time: item.timestamp.toISOString().slice(0, 10),
+        value: item.volume,
+      }));
+
+      // Log successful data retrieval
+      logger.info({
+        msg: 'Weekly Volume Data Retrieved Successfully',
+        ticker: ticker,
+        dataPoints: formattedData.length
+      });
+
+      res.json(formattedData);
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: 'Weekly Volume Data Retrieval Error',
+        ticker: ticker,
+        error: error.message
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        await client.close();
+      }
+    }
   }
-});
+);
 
 //sends data for 10DMA (SMA)
-app.get('/:ticker/data9', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:ticker/data9',
+  validate(validationSets.chartData),
+  async (req, res) => {
+    const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+    let client;
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData2');
-
-    const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-    // Calculate 20-day moving average
-    const movingAverages = [];
-    for (let i = 9; i < Data.length; i++) {
-      const sum = Data.slice(i - 9, i + 1).reduce((acc, curr) => acc + curr.close, 0);
-      const average = sum / 10;
-      movingAverages.push({
-        time: Data[i].timestamp.toISOString().slice(0, 10),
-        value: average,
+    try {
+      // Log the 10-day moving average data request
+      logger.info({
+        msg: '10-Day Moving Average Data Request',
+        ticker: ticker
       });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData2');
+
+      // Find and sort data for the specific ticker
+      const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+
+      // Check if data exists
+      if (Data.length === 0) {
+        logger.warn({
+          msg: 'No Moving Average Data Found',
+          ticker: ticker
+        });
+        return res.status(404).json({ message: 'No data found for this ticker' });
+      }
+
+      // Check if there's enough data to calculate moving average
+      if (Data.length < 10) {
+        logger.warn({
+          msg: 'Insufficient Data for Moving Average Calculation',
+          ticker: ticker,
+          dataPoints: Data.length
+        });
+        return res.status(400).json({
+          message: 'Insufficient data to calculate 10-day moving average',
+          availableDataPoints: Data.length
+        });
+      }
+
+      // Calculate 10-day moving average
+      const movingAverages = [];
+      for (let i = 9; i < Data.length; i++) {
+        const sum = Data.slice(i - 9, i + 1).reduce((acc, curr) => acc + curr.close, 0);
+        const average = sum / 10;
+        movingAverages.push({
+          time: Data[i].timestamp.toISOString().slice(0, 10),
+          value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
+        });
+      }
+
+      // Log successful data retrieval
+      logger.info({
+        msg: '10-Day Moving Average Data Retrieved Successfully',
+        ticker: ticker,
+        dataPoints: movingAverages.length
+      });
+
+      res.json(movingAverages);
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: '10-Day Moving Average Data Retrieval Error',
+        ticker: ticker,
+        error: error.message
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        await client.close();
+      }
     }
-
-    res.send(movingAverages);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 //sends data for 20DMA (SMA)
-app.get('/:ticker/data10', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:ticker/data10',
+  validate(validationSets.chartData),
+  async (req, res) => {
+    const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+    let client;
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData2');
-
-    const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-    // Calculate 20-day moving average
-    const movingAverages = [];
-    for (let i = 19; i < Data.length; i++) {
-      const sum = Data.slice(i - 19, i + 1).reduce((acc, curr) => acc + curr.close, 0);
-      const average = sum / 20;
-      movingAverages.push({
-        time: Data[i].timestamp.toISOString().slice(0, 10),
-        value: average,
+    try {
+      // Log the 20-day moving average data request
+      logger.info({
+        msg: '20-Day Moving Average Data Request',
+        ticker: ticker
       });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData2');
+
+      // Find and sort data for the specific ticker
+      const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+
+      // Check if data exists
+      if (Data.length === 0) {
+        logger.warn({
+          msg: 'No Moving Average Data Found',
+          ticker: ticker
+        });
+        return res.status(404).json({ message: 'No data found for this ticker' });
+      }
+
+      // Check if there's enough data to calculate moving average
+      if (Data.length < 20) {
+        logger.warn({
+          msg: 'Insufficient Data for Moving Average Calculation',
+          ticker: ticker,
+          dataPoints: Data.length
+        });
+        return res.status(400).json({
+          message: 'Insufficient data to calculate 20-day moving average',
+          availableDataPoints: Data.length
+        });
+      }
+
+      // Calculate 20-day moving average
+      const movingAverages = [];
+      for (let i = 19; i < Data.length; i++) {
+        const sum = Data.slice(i - 19, i + 1).reduce((acc, curr) => acc + curr.close, 0);
+        const average = sum / 20;
+        movingAverages.push({
+          time: Data[i].timestamp.toISOString().slice(0, 10),
+          value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
+        });
+      }
+
+      // Log successful data retrieval
+      logger.info({
+        msg: '20-Day Moving Average Data Retrieved Successfully',
+        ticker: ticker,
+        dataPoints: movingAverages.length
+      });
+
+      res.json(movingAverages);
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: '20-Day Moving Average Data Retrieval Error',
+        ticker: ticker,
+        error: error.message
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        await client.close();
+      }
     }
-
-    res.send(movingAverages);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 //sends data for 50DMA (SMA)
-app.get('/:ticker/data11', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:ticker/data11',
+  validate(validationSets.chartData),
+  async (req, res) => {
+    const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+    let client;
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData2');
-
-    const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-    // Calculate 20-day moving average
-    const movingAverages = [];
-    for (let i = 49; i < Data.length; i++) {
-      const sum = Data.slice(i - 49, i + 1).reduce((acc, curr) => acc + curr.close, 0);
-      const average = sum / 50;
-      movingAverages.push({
-        time: Data[i].timestamp.toISOString().slice(0, 10),
-        value: average,
+    try {
+      // Log the 50-day moving average data request
+      logger.info({
+        msg: '50-Day Moving Average Data Request',
+        ticker: ticker
       });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData2');
+
+      // Find and sort data for the specific ticker
+      const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+
+      // Check if data exists
+      if (Data.length === 0) {
+        logger.warn({
+          msg: 'No Moving Average Data Found',
+          ticker: ticker
+        });
+        return res.status(404).json({ message: 'No data found for this ticker' });
+      }
+
+      // Check if there's enough data to calculate moving average
+      if (Data.length < 50) {
+        logger.warn({
+          msg: 'Insufficient Data for Moving Average Calculation',
+          ticker: ticker,
+          dataPoints: Data.length
+        });
+        return res.status(400).json({
+          message: 'Insufficient data to calculate 50-day moving average',
+          availableDataPoints: Data.length
+        });
+      }
+
+      // Calculate 50-day moving average
+      const movingAverages = [];
+      for (let i = 49; i < Data.length; i++) {
+        const sum = Data.slice(i - 49, i + 1).reduce((acc, curr) => acc + curr.close, 0);
+        const average = sum / 50;
+        movingAverages.push({
+          time: Data[i].timestamp.toISOString().slice(0, 10),
+          value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
+        });
+      }
+
+      // Log successful data retrieval
+      logger.info({
+        msg: '50-Day Moving Average Data Retrieved Successfully',
+        ticker: ticker,
+        dataPoints: movingAverages.length
+      });
+
+      res.json(movingAverages);
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: '50-Day Moving Average Data Retrieval Error',
+        ticker: ticker,
+        error: error.message
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        await client.close();
+      }
     }
-
-    res.send(movingAverages);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 //sends data for 200DMA (SMA)
-app.get('/:ticker/data12', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:ticker/data12',
+  validate(validationSets.chartData),
+  async (req, res) => {
+    const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+    let client;
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData2');
-
-    const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-    // Calculate 20-day moving average
-    const movingAverages = [];
-    for (let i = 199; i < Data.length; i++) {
-      const sum = Data.slice(i - 199, i + 1).reduce((acc, curr) => acc + curr.close, 0);
-      const average = sum / 200;
-      movingAverages.push({
-        time: Data[i].timestamp.toISOString().slice(0, 10),
-        value: average,
+    try {
+      // Log the 200-day moving average data request
+      logger.info({
+        msg: '200-Day Moving Average Data Request',
+        ticker: ticker
       });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData2');
+
+      // Find and sort data for the specific ticker
+      const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+
+      // Check if data exists
+      if (Data.length === 0) {
+        logger.warn({
+          msg: 'No Moving Average Data Found',
+          ticker: ticker
+        });
+        return res.status(404).json({ message: 'No data found for this ticker' });
+      }
+
+      // Check if there's enough data to calculate moving average
+      if (Data.length < 200) {
+        logger.warn({
+          msg: 'Insufficient Data for Moving Average Calculation',
+          ticker: ticker,
+          dataPoints: Data.length
+        });
+        return res.status(400).json({
+          message: 'Insufficient data to calculate 200-day moving average',
+          availableDataPoints: Data.length
+        });
+      }
+
+      // Calculate 200-day moving average
+      const movingAverages = [];
+      for (let i = 199; i < Data.length; i++) {
+        const sum = Data.slice(i - 199, i + 1).reduce((acc, curr) => acc + curr.close, 0);
+        const average = sum / 200;
+        movingAverages.push({
+          time: Data[i].timestamp.toISOString().slice(0, 10),
+          value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
+        });
+      }
+
+      // Log successful data retrieval
+      logger.info({
+        msg: '200-Day Moving Average Data Retrieved Successfully',
+        ticker: ticker,
+        dataPoints: movingAverages.length
+      });
+
+      res.json(movingAverages);
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: '200-Day Moving Average Data Retrieval Error',
+        ticker: ticker,
+        error: error.message
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        await client.close();
+      }
     }
-
-    res.send(movingAverages);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // Sends earnings date 
 app.get('/:ticker/earningsdate', async (req, res) => {
