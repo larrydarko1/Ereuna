@@ -94,6 +94,12 @@ const validationSchemas = {
         .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
         .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
 
+    chartData: (fieldName = 'ticker') => param(fieldName)
+        .trim()
+        .notEmpty().withMessage('Ticker symbol is required')
+        .isLength({ min: 1, max: 12 }).withMessage('Ticker symbol must be between 1 and 12 characters')
+        .matches(/^[A-Z0-9]+$/).withMessage('Ticker symbol must be uppercase alphanumeric'),
+
     // Email Validation
     email: () => body('email')
         .trim()
@@ -194,6 +200,10 @@ const validationSets = {
         validationSchemas.symbolParam('symbol'),
         validationSchemas.noteId(),
         validationSchemas.userQuery()
+    ],
+
+    chartData: [
+        validationSchemas.chartData('ticker')
     ],
 };
 
