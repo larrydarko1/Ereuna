@@ -4064,119 +4064,406 @@ app.get('/:user/watchlists/:list',
 );
 
 // 
-app.get('/:symbol/quotes', async (req, res) => {
-  try {
-    const symbol = req.params.symbol;
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:symbol/quotes',
+  validate([
+    validationSchemas.symbolParam('symbol')
+  ]),
+  async (req, res) => {
+    try {
+      const symbol = sanitizeInput(req.params.symbol);
+      const client = new MongoClient(uri);
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData');
+      try {
+        await client.connect();
 
-    const documents = await collection.find({ tickerID: symbol }).sort({ timestamp: -1 }).toArray();
+        const db = client.db('EreunaDB');
+        const collection = db.collection('OHCLVData');
 
-    if (documents.length > 0) {
-      res.send({ close: documents[0].close });
-    } else {
-      res.status(404).json({ message: 'No quotes found for the given symbol' });
+        const documents = await collection.find({ tickerID: symbol })
+          .sort({ timestamp: -1 })
+          .limit(1)
+          .toArray();
+
+        if (documents.length > 0) {
+          logger.info('Quote retrieved successfully', {
+            symbol: symbol,
+            price: documents[0].close
+          });
+
+          res.status(200).json({
+            close: documents[0].close,
+            timestamp: documents[0].timestamp
+          });
+        } else {
+          logger.warn('No quotes found for symbol', { symbol: symbol });
+
+          res.status(404).json({
+            message: 'No quotes found for the given symbol'
+          });
+        }
+      } catch (dbError) {
+        logger.error('Database error retrieving quote', {
+          symbol: symbol,
+          error: dbError.message
+        });
+
+        res.status(500).json({
+          message: 'Internal Server Error',
+          error: 'Failed to retrieve quote'
+        });
+      } finally {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.error('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
+    } catch (unexpectedError) {
+      logger.error('Unexpected error in quote retrieval', {
+        error: unexpectedError.message,
+        stack: unexpectedError.stack
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: 'An unexpected error occurred'
+      });
     }
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint that calculates and sends difference in price for watchlist
-app.get('/:symbol/changes', async (req, res) => {
-  try {
-    const symbol = req.params.symbol;
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:symbol/changes',
+  validate([
+    validationSchemas.symbolParam('symbol')
+  ]),
+  async (req, res) => {
+    try {
+      const symbol = sanitizeInput(req.params.symbol);
+      const client = new MongoClient(uri);
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData');
+      try {
+        await client.connect();
 
-    const documents = await collection.find({ tickerID: symbol }).sort({ timestamp: -1 }).toArray();
+        const db = client.db('EreunaDB');
+        const collection = db.collection('OHCLVData');
 
-    if (documents.length > 1) {
-      const [latest, previous] = documents.slice(0, 2);
-      const closeDiff = latest.close - previous.close;
-      res.send({ closeDiff: closeDiff.toFixed(2) }); // send the difference as a float with 2 decimal places
-    } else if (documents.length === 1) {
-      res.send({ closeDiff: 0 }); // or some other default value if there's only one document
-    } else {
-      res.status(404).json({ message: 'No quotes found for the given symbol' });
+        const documents = await collection.find({ tickerID: symbol })
+          .sort({ timestamp: -1 })
+          .limit(2)
+          .toArray();
+
+        if (documents.length > 1) {
+          const [latest, previous] = documents;
+          const closeDiff = latest.close - previous.close;
+          const percentChange = ((closeDiff / previous.close) * 100).toFixed(2);
+
+          logger.info('Price change calculated', {
+            symbol: symbol,
+            closeDiff: closeDiff.toFixed(2),
+            percentChange: percentChange
+          });
+
+          res.status(200).json({
+            closeDiff: closeDiff.toFixed(2),
+            percentChange: `${percentChange}%`,
+            latestClose: latest.close,
+            previousClose: previous.close,
+            timestamp: {
+              latest: latest.timestamp,
+              previous: previous.timestamp
+            }
+          });
+        } else if (documents.length === 1) {
+          logger.warn('Insufficient data for price change calculation', {
+            symbol: symbol,
+            availableDocuments: documents.length
+          });
+
+          res.status(200).json({
+            closeDiff: 0,
+            percentChange: '0%',
+            latestClose: documents[0].close,
+            message: 'Insufficient historical data for comparison'
+          });
+        } else {
+          logger.warn('No quotes found for symbol', { symbol: symbol });
+
+          res.status(404).json({
+            message: 'No quotes found for the given symbol'
+          });
+        }
+      } catch (dbError) {
+        logger.error('Database error retrieving price changes', {
+          symbol: symbol,
+          error: dbError.message
+        });
+
+        res.status(500).json({
+          message: 'Internal Server Error',
+          error: 'Failed to retrieve price changes'
+        });
+      } finally {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.error('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
+    } catch (unexpectedError) {
+      logger.error('Unexpected error in price change calculation', {
+        error: unexpectedError.message,
+        stack: unexpectedError.stack
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: 'An unexpected error occurred'
+      });
     }
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint that calculates perc change of symbols 
-app.get('/:symbol/percchanges', async (req, res) => {
-  try {
-    const symbol = req.params.symbol;
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:symbol/percchanges',
+  validate([
+    validationSchemas.symbolParam('symbol')
+  ]),
+  async (req, res) => {
+    try {
+      const symbol = sanitizeInput(req.params.symbol);
+      const client = new MongoClient(uri);
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('OHCLVData');
+      try {
+        await client.connect();
 
-    const documents = await collection.find({ tickerID: symbol }).sort({ timestamp: -1 }).toArray();
+        const db = client.db('EreunaDB');
+        const collection = db.collection('OHCLVData');
 
-    if (documents.length > 1) {
-      const [latest, previous] = documents.slice(0, 2);
-      const closeDiff = latest.close - previous.close;
-      const percChange = (closeDiff / previous.close) * 100;
-      res.send({ percChange: percChange.toFixed(2) }); // send the percentage change as a float with 2 decimal places
-    } else if (documents.length === 1) {
-      res.send({ percChange: 0 }); // or some other default value if there's only one document
-    } else {
-      res.status(404).json({ message: 'No quotes found for the given symbol' });
+        const documents = await collection.find({ tickerID: symbol })
+          .sort({ timestamp: -1 })
+          .limit(2)
+          .toArray();
+
+        if (documents.length > 1) {
+          const [latest, previous] = documents;
+          const closeDiff = latest.close - previous.close;
+          const percChange = (closeDiff / previous.close) * 100;
+          const direction = percChange >= 0 ? 'positive' : 'negative';
+
+          logger.info('Percentage change calculated', {
+            symbol: symbol,
+            percChange: percChange.toFixed(2),
+            direction: direction
+          });
+
+          res.status(200).json({
+            percChange: percChange.toFixed(2),
+            formattedPercChange: `${percChange.toFixed(2)}%`,
+            direction: direction,
+            latestClose: latest.close,
+            previousClose: previous.close,
+            timestamp: {
+              latest: latest.timestamp,
+              previous: previous.timestamp
+            }
+          });
+        } else if (documents.length === 1) {
+          logger.warn('Insufficient data for percentage change calculation', {
+            symbol: symbol,
+            availableDocuments: documents.length
+          });
+
+          res.status(200).json({
+            percChange: 0,
+            formattedPercChange: '0%',
+            direction: 'neutral',
+            latestClose: documents[0].close,
+            message: 'Insufficient historical data for comparison'
+          });
+        } else {
+          logger.warn('No quotes found for symbol', { symbol: symbol });
+
+          res.status(404).json({
+            message: 'No quotes found for the given symbol'
+          });
+        }
+      } catch (dbError) {
+        logger.error('Database error retrieving percentage changes', {
+          symbol: symbol,
+          error: dbError.message
+        });
+
+        res.status(500).json({
+          message: 'Internal Server Error',
+          error: 'Failed to retrieve percentage changes'
+        });
+      } finally {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.error('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
+    } catch (unexpectedError) {
+      logger.error('Unexpected error in percentage change calculation', {
+        error: unexpectedError.message,
+        stack: unexpectedError.stack
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: 'An unexpected error occurred'
+      });
     }
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint to add symbol to selected watchlist 
-app.patch('/:user/watchlists/:list', async (req, res) => {
-  try {
-    const list = req.params.list;
-    const user = req.params.user;
-    const { Name, symbol } = req.body; // Get the Name and symbol from the request body
-    const client = new MongoClient(uri);
-    await client.connect();
+app.patch('/:user/watchlists/:list',
+  validate([
+    validationSchemas.userParam('user'),
+    validationSchemas.watchlistName(),
+    body('Name').trim()
+      .isLength({ min: 1, max: 20 })
+      .withMessage('Watchlist name must be between 1 and 20 characters')
+      .matches(/^[a-zA-Z0-9\s_-]+$/)
+      .withMessage('Watchlist name can only contain letters, numbers, spaces, underscores, and hyphens'),
+    body('symbol')
+      .trim()
+      .notEmpty().withMessage('Symbol is required')
+      .isLength({ min: 1, max: 12 }).withMessage('Symbol must be between 1 and 12 characters')
+      .matches(/^[A-Z0-9]+$/).withMessage('Symbol must be uppercase alphanumeric')
+  ]),
+  async (req, res) => {
+    try {
+      const list = sanitizeInput(req.params.list);
+      const user = sanitizeInput(req.params.user);
+      const { Name, symbol } = req.body;
+      const sanitizedSymbol = sanitizeInput(symbol.toUpperCase());
+      const sanitizedName = sanitizeInput(Name);
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Watchlists');
+      const client = new MongoClient(uri);
 
-    const filter = { Name: list, UsernameID: user }; // Use the Name from the request body as the filter
-    const update = { $addToSet: { List: symbol } }; // Add the symbol to the List array if it doesn't exist
+      try {
+        await client.connect();
 
-    const result = await collection.updateOne(filter, update);
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Watchlists');
 
-    if (result.modifiedCount === 0) {
-      res.status(404).json({ message: 'Watchlist not found or symbol already exists' });
-      return;
+        // Check watchlist limit (optional, based on previous implementation)
+        const existingWatchlistsCount = await collection.countDocuments({ UsernameID: user });
+        if (existingWatchlistsCount >= 20) {
+          return res.status(400).json({
+            message: 'Maximum number of watchlists (20) has been reached'
+          });
+        }
+
+        // Verify watchlist exists and belongs to the user
+        const watchlist = await collection.findOne({
+          Name: sanitizedName,
+          UsernameID: user
+        });
+
+        if (!watchlist) {
+          return res.status(404).json({
+            message: 'Watchlist not found',
+            details: 'The specified watchlist does not exist or you do not have access to it'
+          });
+        }
+
+        // Check if symbol already exists in the watchlist
+        if (watchlist.List && watchlist.List.includes(sanitizedSymbol)) {
+          return res.status(409).json({
+            message: 'Symbol already exists in the watchlist',
+            symbol: sanitizedSymbol
+          });
+        }
+
+        // Verify symbol exists in AssetInfo collection
+        const assetInfoCollection = db.collection('AssetInfo');
+        const assetExists = await assetInfoCollection.findOne({ Symbol: sanitizedSymbol });
+
+        if (!assetExists) {
+          return res.status(404).json({
+            message: 'Symbol not found',
+            symbol: sanitizedSymbol
+          });
+        }
+
+        // Add symbol to watchlist
+        const result = await collection.updateOne(
+          { Name: sanitizedName, UsernameID: user },
+          {
+            $addToSet: { List: sanitizedSymbol },
+            $set: { lastUpdated: new Date() }
+          }
+        );
+
+        if (result.modifiedCount === 1) {
+          logger.info('Symbol added to watchlist', {
+            user: user,
+            listName: sanitizedName,
+            symbol: sanitizedSymbol
+          });
+
+          res.status(200).json({
+            message: 'Ticker added successfully',
+            symbol: sanitizedSymbol,
+            watchlist: sanitizedName
+          });
+        } else {
+          logger.warn('Failed to add symbol to watchlist', {
+            user: user,
+            listName: sanitizedName,
+            symbol: sanitizedSymbol
+          });
+
+          res.status(500).json({
+            message: 'Failed to update watchlist',
+            details: 'An unexpected error occurred while adding the symbol'
+          });
+        }
+      } catch (dbError) {
+        logger.error('Database error in adding symbol to watchlist', {
+          user: user,
+          listName: sanitizedName,
+          symbol: sanitizedSymbol,
+          error: dbError.message
+        });
+
+        res.status(500).json({
+          message: 'Internal Server Error',
+          error: 'Failed to add symbol to watchlist'
+        });
+      } finally {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.error('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
+    } catch (unexpectedError) {
+      logger.error('Unexpected error in adding symbol to watchlist', {
+        error: unexpectedError.message,
+        stack: unexpectedError.stack
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: 'An unexpected error occurred'
+      });
     }
-
-    res.send({ message: 'Ticker added successfully' }); // Return a success message
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint that deletes ticker from selected watchlist 
 app.patch('/:user/deleteticker/watchlists/:list/:ticker', async (req, res) => {
