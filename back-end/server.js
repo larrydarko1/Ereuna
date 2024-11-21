@@ -1694,9 +1694,8 @@ app.patch('/password-change',
 //endpoint that changes password with recovery method 
 app.patch('/change-password2',
   validate([
-    validationSchemas.user(),
-    validationSchemas.newPassword(),
-    validationSchemas.recoveryKey()
+    validationSchemas.recoveryKey(),
+    validationSchemas.newPassword()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -1707,167 +1706,127 @@ app.patch('/change-password2',
       path: req.path
     });
 
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      // Log validation errors
-      requestLogger.warn({
-        msg: 'Recovery Password Change Validation Failed',
-        errors: errors.array().map(error => ({
-          field: error.path,
-          message: error.msg
-        }))
-      });
-
-      return res.status(400).json({
-        success: false,
-        errors: errors.array().map(error => ({
-          field: error.path,
-          message: error.msg
-        }))
-      });
-    }
-
-    const { recoveryKey, newPassword } = req.body;
-    let client;
-
     try {
-      // Log recovery password change attempt
-      requestLogger.info('Recovery Password Change Attempt');
+      const { recoveryKey, newPassword } = req.body;
 
-      client = new MongoClient(uri);
-      await client.connect();
-
-      const db = client.db('EreunaDB');
-      const usersCollection = db.collection('Users');
-
-      // Find user with matching recovery key more efficiently
-      const matchedUser = await usersCollection.findOne({
-        HashedAuthKey: { $exists: true }
-      });
-
-      if (!matchedUser) {
-        // Log security event for no user found with recovery key
-        securityLogger.logSecurityEvent('Recovery Password Change - No User Found', {
-          ip: req.ip
-        });
-
-        return res.status(401).json({
-          success: false,
-          message: 'No user found with this recovery key'
-        });
-      }
-
-      // Verify recovery key
-      const isRecoveryKeyValid = await bcrypt.compare(recoveryKey, matchedUser.HashedAuthKey);
-
-      if (!isRecoveryKeyValid) {
-        // Log failed recovery key attempt
-        securityLogger.logSecurityEvent('Recovery Password Change - Invalid Recovery Key', {
-          username: matchedUser.Username,
-          ip: req.ip
-        });
-
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid recovery key'
-        });
-      }
-
-      // Prevent using the same password
-      const isNewPasswordSame = await bcrypt.compare(newPassword, matchedUser.Password);
-      if (isNewPasswordSame) {
-        requestLogger.warn({
-          msg: 'Recovery Password Change Attempt with Same Password',
-          username: matchedUser.Username
+      // Validate input fields are not empty
+      if (!recoveryKey || !newPassword) {
+        requestLogger.warn('Change Password attempt with missing fields', {
+          recoveryKeyProvided: !!recoveryKey,
+          newPasswordProvided: !!newPassword
         });
 
         return res.status(400).json({
-          success: false,
-          message: 'New password cannot be the same as the current password'
+          message: 'Please fill both recovery key and new password fields'
         });
       }
 
-      // Hash the new password
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+      // Additional sanitization
+      const sanitizedRecoveryKey = sanitizeInput(recoveryKey);
+      const sanitizedNewPassword = sanitizeInput(newPassword);
 
-      // Update the user's password and invalidate recovery key
-      const updateResult = await usersCollection.updateOne(
-        { _id: matchedUser._id },
-        {
-          $set: {
-            Password: hashedPassword,
-            HashedAuthKey: null, // Invalidate the recovery key
-            LastPasswordChangeTime: new Date()
+      const client = new MongoClient(uri);
+
+      try {
+        await client.connect();
+        const db = client.db('EreunaDB');
+        const usersCollection = db.collection('Users');
+
+        // Find all users to validate the recovery key
+        const users = await usersCollection.find({}).toArray();
+
+        // Check if the recovery key matches any user's AuthKey
+        const matchedUser = await Promise.all(users.map(async user => {
+          try {
+            const isMatch = await bcrypt.compare(sanitizedRecoveryKey, user.HashedAuthKey);
+            return isMatch ? user : null;
+          } catch (compareError) {
+            requestLogger.warn({
+              msg: 'Recovery Key Comparison Error',
+              username: user.Username,
+              error: compareError.message
+            });
+            return null;
           }
+        })).then(results => results.find(user => user !== null));
+
+        if (!matchedUser) {
+          // Log security event for invalid recovery key
+          securityLogger.logSecurityEvent('Change Password attempt with invalid recovery key', {
+            ip: req.ip
+          });
+
+          return res.status(401).json({
+            message: 'Invalid recovery key'
+          });
         }
-      );
 
-      if (updateResult.modifiedCount === 1) {
-        // Log successful password change
-        requestLogger.info({
-          msg: 'Password Changed via Recovery Key',
-          username: matchedUser.Username.substring(0, 3) + '...'
-        });
+        // Hash the new password
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(sanitizedNewPassword, saltRounds);
 
-        // Security logging for password change
-        securityLogger.logSecurityEvent('Password Changed via Recovery Key', {
-          username: matchedUser.Username.substring(0, 3) + '...'
-        });
+        // Update the user's password
+        const updateResult = await usersCollection.updateOne(
+          { HashedAuthKey: matchedUser.HashedAuthKey },
+          {
+            $set: {
+              Password: hashedPassword
+            }
+          }
+        );
 
-        return res.status(200).json({
-          success: true,
-          message: 'Password successfully changed. Please generate a new recovery key.'
-        });
-      } else {
-        // Log update failure
-        requestLogger.error({
-          msg: 'Failed to Update Password',
-          username: matchedUser.Username
+        if (updateResult.modifiedCount === 1) {
+
+          // Log successful password change with partially obscured username
+          securityLogger.logSecurityEvent('Password Changed Successfully', {
+            username: matchedUser.Username.substring(0, 3) + '...'
+          });
+
+          // Log with request logger (can be more detailed for internal tracking)
+          requestLogger.info({
+            msg: 'Password Changed Successfully',
+            usernamePartial: matchedUser.Username.substring(0, 3) + '...'
+          });
+
+          return res.status(200).json({
+            message: 'Password changed successfully'
+          });
+        } else {
+          // Log update failure
+          requestLogger.error({
+            msg: 'Failed to Update Password',
+            username: matchedUser.Username
+          });
+
+          return res.status(500).json({
+            message: 'Failed to update password'
+          });
+        }
+      } catch (error) {
+        // Log database errors
+        requestLogger.error('Change Password database error', {
+          error: error.message,
+          stack: error.stack
         });
 
         return res.status(500).json({
-          success: false,
-          message: 'Failed to update password'
+          message: 'Database Error',
+          error: error.message
         });
+      } finally {
+        await client.close();
       }
     } catch (error) {
-      // Comprehensive error logging
-      requestLogger.error({
-        msg: 'Unexpected Error in Recovery Password Change Process',
-        error: {
-          message: error.message,
-          name: error.name,
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        }
-      });
-
-      // Security logging for unexpected errors
-      securityLogger.logSecurityEvent('Recovery Password Change Unexpected Error', {
-        ip: req.ip,
-        errorType: error.name
+      // Log any unexpected errors in the main try block
+      requestLogger.error('Unexpected Change Password process error', {
+        error: error.message,
+        stack: error.stack
       });
 
       return res.status(500).json({
-        success: false,
-        message: 'Internal server error',
-        errorDetails: process.env.NODE_ENV === 'development' ? error.toString() : undefined
+        message: 'Internal Server Error',
+        error: error.message
       });
-    } finally {
-      if (client) {
-        try {
-          await client.close();
-        } catch (closeError) {
-          requestLogger.warn({
-            msg: 'MongoDB Client Closure Failed',
-            error: {
-              message: closeError.message,
-              name: closeError.name
-            }
-          });
-        }
-      }
     }
   }
 );

@@ -77,14 +77,14 @@ const changePassword = async () => {
       newPassword: newPassword.value,
     });
 
-    if (response.status === 200 && response.data.success) {
-      successMessage.value = 'Password changed successfully! Please use your new credentials to log in. You will be automatically redirected to the login page in 10 seconds. Remember to generate a new Auth key in the user section';
+    if (response.status === 200) {
+      successMessage.value = response.data.message; // Use the message from the response
       errorMessage.value = '';
-      
-      // Wait 5 seconds before redirecting
+
+      // Wait 3 seconds before redirecting
       setTimeout(() => {
         router.push('/login');
-      }, 10000);
+      }, 3000);
 
       // Reset form values
       recoveryKey.value = '';
@@ -102,6 +102,7 @@ const changePassword = async () => {
     } else {
       errorMessage.value = error.message || 'An unexpected error occurred.';
     }
+    successMessage.value = ''; // Clear success message on error
   }
 };
 
