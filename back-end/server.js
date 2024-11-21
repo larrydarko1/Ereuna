@@ -921,29 +921,50 @@ app.post('/recover',
     validationSchemas.recoveryKey()
   ]),
   async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method,
+      path: req.path
+    });
+
     try {
       const { recoveryKey } = req.body;
 
-      // Additional sanitization
+      // Validate and sanitize input
       const sanitizedRecoveryKey = sanitizeInput(recoveryKey);
 
+      // Log recovery attempt with minimal sensitive information
+      requestLogger.info({
+        msg: 'Recovery Key Attempt',
+        recoveryKeyLength: sanitizedRecoveryKey.length
+      });
+
       const client = new MongoClient(uri);
+
       try {
         await client.connect();
         const db = client.db('EreunaDB');
         const usersCollection = db.collection('Users');
 
         // Find users with AuthKey
-        const users = await usersCollection.find({}).toArray();
+        const users = await usersCollection.find({
+          HashedAuthKey: { $exists: true }
+        }).toArray();
 
-        // Detailed async comparison 
+        // Detailed async comparison with error handling
         const matchedUser = await Promise.all(users.map(async user => {
           try {
             // Compare the input recoveryKey with the stored hashed AuthKey
             const isMatch = await bcrypt.compare(sanitizedRecoveryKey, user.HashedAuthKey);
             return isMatch ? user : null;
           } catch (compareError) {
-            console.error(`Compare error for user ${user.Username}:`, compareError);
+            // Log comparison errors without exposing sensitive details
+            requestLogger.error({
+              msg: 'Recovery Key Comparison Error',
+              userId: user.Username ? user.Username.substring(0, 3) + '...' : 'Unknown'
+            });
             return null;
           }
         })).then(results => {
@@ -951,16 +972,21 @@ app.post('/recover',
         });
 
         if (matchedUser) {
-          // Optional: Log recovery attempt (consider privacy and security implications)
-          logger.info(`Account recovery initiated for user: ${matchedUser.Username}`);
+          // Log successful recovery attempt with minimal user information
+          securityLogger.logSecurityEvent('Account Recovery Initiated', {
+            username: matchedUser.Username ? matchedUser.Username.substring(0, 3) + '...' : 'Unknown'
+          });
 
           return res.status(200).json({
             valid: true,
             username: matchedUser.Username
           });
         } else {
-          // Log failed recovery attempt
-          logger.warn(`Failed recovery attempt with key: ${sanitizedRecoveryKey.substring(0, 10)}...`);
+          // Log failed recovery attempt with security context
+          securityLogger.logSecurityEvent('Recovery Key Validation Failed', {
+            ip: req.ip,
+            recoveryKeyAttemptLength: sanitizedRecoveryKey.length
+          });
 
           return res.status(401).json({
             valid: false,
@@ -971,8 +997,21 @@ app.post('/recover',
           });
         }
       } catch (error) {
-        // Log database errors
-        logger.error('Database Error during recovery:', error);
+        // Log database errors with context
+        requestLogger.error({
+          msg: 'Database Error during Recovery',
+          error: {
+            message: error.message,
+            name: error.name,
+            code: error.code
+          }
+        });
+
+        // Security logging for potential database-related security issues
+        securityLogger.logSecurityEvent('Recovery Process Database Error', {
+          ip: req.ip,
+          errorType: error.name
+        });
 
         return res.status(500).json({
           message: 'Internal Server Error',
@@ -982,8 +1021,21 @@ app.post('/recover',
         await client.close();
       }
     } catch (error) {
-      // Log unexpected errors
-      logger.error('Unexpected error in recovery process:', error);
+      // Log unexpected errors with comprehensive context
+      requestLogger.error({
+        msg: 'Unexpected Error in Recovery Process',
+        error: {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        }
+      });
+
+      // Security logging for unexpected errors
+      securityLogger.logSecurityEvent('Unexpected Recovery Process Error', {
+        ip: req.ip,
+        errorType: error.name
+      });
 
       return res.status(500).json({
         message: 'Internal Server Error',
@@ -994,237 +1046,397 @@ app.post('/recover',
 );
 
 // endpoint that generates a new recovery key upon validation 
-app.patch('/generate-key', validate([
-  validationSchemas.user(),
-  validationSchemas.password()
-]), async (req, res) => {
-  // Check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      errors: errors.array().map(error => ({
-        field: error.path,
-        message: error.msg
-      }))
+app.patch('/generate-key',
+  validate([
+    validationSchemas.user(),
+    validationSchemas.password()
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method,
+      path: req.path
     });
-  }
 
-  let client;
-  try {
-    const { user, password } = req.body;
+    let client;
+    try {
+      const { user, password } = req.body;
 
-    const sanitizedUsername = sanitizeInput(user);
+      // Sanitize and validate input
+      const sanitizedUsername = sanitizeInput(user);
 
-    client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Users');
-
-    // Case-insensitive username lookup
-    const filter = { Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } };
-    const userDoc = await collection.findOne(filter);
-
-    if (!userDoc) {
-      return res.status(404).json({
-        errors: [{
-          field: 'user',
-          message: 'User not found'
-        }]
+      // Log key generation attempt with minimal sensitive information
+      requestLogger.info({
+        msg: 'Authentication Key Generation Attempt',
+        usernameLength: sanitizedUsername.length
       });
-    }
 
-    // Verify password
-    const isPasswordCorrect = await bcrypt.compare(password, userDoc.Password);
+      client = new MongoClient(uri);
+      await client.connect();
 
-    if (!isPasswordCorrect) {
-      return res.status(401).json({
-        errors: [{
-          field: 'password',
-          message: 'Incorrect password'
-        }]
-      });
-    }
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Users');
 
-    // Check subscription status
-    const today = new Date();
-    const expiresDate = new Date(userDoc.Expires);
+      // Case-insensitive username lookup
+      const filter = { Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } };
+      const userDoc = await collection.findOne(filter);
 
-    if (today > expiresDate || !userDoc.Paid) {
-      return res.status(402).json({
-        errors: [{
-          field: 'subscription',
-          message: 'Subscription is expired or inactive'
-        }]
-      });
-    }
+      if (!userDoc) {
+        // Log security event for non-existent user
+        securityLogger.logSecurityEvent('Key Generation Attempt for Non-Existent User', {
+          attemptedUsername: sanitizedUsername,
+          ip: req.ip
+        });
 
-    // Generate a new raw key
-    const rawAuthKey = crypto.randomBytes(64).toString('hex');
-
-    // Prepare the update document
-    const updateDoc = {
-      $set: {
-        AuthKey: rawAuthKey,       // Store the raw key
-        HashedAuthKey: await bcrypt.hash(rawAuthKey, 10), // Store a hashed version
-        LastKeyGenerationTime: new Date() // Optional: Track key generation time
+        return res.status(404).json({
+          errors: [{
+            field: 'user',
+            message: 'User not found'
+          }]
+        });
       }
-    };
 
-    // Update the user document using the original username from the database
-    const result = await collection.updateOne(
-      { Username: userDoc.Username },
-      updateDoc
-    );
+      // Verify password
+      const isPasswordCorrect = await bcrypt.compare(password, userDoc.Password);
 
-    if (result.modifiedCount === 0) {
-      return res.status(500).json({
-        message: 'Failed to update authentication key'
+      if (!isPasswordCorrect) {
+        // Log security event for incorrect password
+        securityLogger.logSecurityEvent('Key Generation Attempt with Incorrect Password', {
+          username: userDoc.Username,
+          ip: req.ip
+        });
+
+        return res.status(401).json({
+          errors: [{
+            field: 'password',
+            message: 'Incorrect password'
+          }]
+        });
+      }
+
+      // Check subscription status
+      const today = new Date();
+      const expiresDate = new Date(userDoc.Expires);
+
+      if (today > expiresDate || !userDoc.Paid) {
+        // Log subscription status issue
+        requestLogger.warn({
+          msg: 'Key Generation Attempt with Expired/Inactive Subscription',
+          username: userDoc.Username,
+          subscriptionExpired: today > expiresDate,
+          paid: userDoc.Paid
+        });
+
+        return res.status(402).json({
+          errors: [{
+            field: 'subscription',
+            message: 'Subscription is expired or inactive'
+          }]
+        });
+      }
+
+      // Generate a new raw key
+      const rawAuthKey = crypto.randomBytes(64).toString('hex');
+
+      // Prepare the update document
+      const updateDoc = {
+        $set: {
+          AuthKey: rawAuthKey,       // Store the raw key
+          HashedAuthKey: await bcrypt.hash(rawAuthKey, 10), // Store a hashed version
+          LastKeyGenerationTime: new Date() // Track key generation time
+        }
+      };
+
+      // Update the user document using the original username from the database
+      const result = await collection.updateOne(
+        { Username: userDoc.Username },
+        updateDoc
+      );
+
+      if (result.modifiedCount === 0) {
+        // Log update failure
+        requestLogger.error({
+          msg: 'Failed to Update Authentication Key',
+          username: userDoc.Username
+        });
+
+        return res.status(500).json({
+          message: 'Failed to update authentication key'
+        });
+      }
+
+      // Log successful key generation
+      requestLogger.info({
+        msg: 'Authentication Key Generated Successfully',
+        username: userDoc.Username.substring(0, 3) + '...'
       });
-    }
 
-    // Return response without raw key in production
-    return res.json({
-      confirm: true,
-      message: 'Key generated successfully'
-    });
+      // Security logging for key generation
+      securityLogger.logSecurityEvent('Authentication Key Regenerated', {
+        username: userDoc.Username.substring(0, 3) + '...'
+      });
 
-  } catch (error) {
-    // Log the error for internal tracking
-    console.error('Error generating new key:', error);
+      // Return response without raw key in production
+      return res.json({
+        confirm: true,
+        message: 'Key generated successfully'
+      });
 
-    return res.status(500).json({
-      message: 'Internal Server Error',
-      error: 'Unable to generate authentication key'
-    });
-  } finally {
-    if (client) {
-      await client.close();
+    } catch (error) {
+      // Comprehensive error logging
+      requestLogger.error({
+        msg: 'Unexpected Error in Key Generation Process',
+        error: {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        }
+      });
+
+      // Security logging for unexpected errors
+      securityLogger.logSecurityEvent('Key Generation Unexpected Error', {
+        ip: req.ip,
+        errorType: error.name
+      });
+
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Unable to generate authentication key'
+      });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          requestLogger.warn({
+            msg: 'MongoDB Client Closure Failed',
+            error: {
+              message: closeError.message,
+              name: closeError.name
+            }
+          });
+        }
+      }
     }
   }
-});
+);
 
 // endpoint to download recovery key
-app.post('/download-key', validate([
-  validationSchemas.user(),
-  validationSchemas.password()
-]), async (req, res) => {
-  // Check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      errors: errors.array().map(error => ({
-        field: error.path,
-        message: error.msg
-      }))
+app.post('/download-key',
+  validate([
+    validationSchemas.user(),
+    validationSchemas.password()
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method,
+      path: req.path
     });
+
+    let client;
+    try {
+      const { user, password } = req.body;
+
+      // Additional sanitization
+      const sanitizedUsername = sanitizeInput(user);
+
+      // Log download key attempt with minimal sensitive information
+      requestLogger.info({
+        msg: 'Download Key Generation Attempt',
+        usernameLength: sanitizedUsername.length
+      });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const usersCollection = db.collection('Users');
+      const downloadTokensCollection = db.collection('DownloadTokens');
+
+      // Find user with case-insensitive username
+      const userDoc = await usersCollection.findOne({
+        Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
+      });
+
+      if (!userDoc) {
+        // Log security event for non-existent user
+        securityLogger.logSecurityEvent('Download Key Attempt for Non-Existent User', {
+          attemptedUsername: sanitizedUsername,
+          ip: req.ip
+        });
+
+        return res.status(404).json({
+          message: 'User not found'
+        });
+      }
+
+      // Verify password
+      const isPasswordCorrect = await bcrypt.compare(password, userDoc.Password);
+      if (!isPasswordCorrect) {
+        // Log security event for incorrect password
+        securityLogger.logSecurityEvent('Download Key Attempt with Incorrect Password', {
+          username: userDoc.Username,
+          ip: req.ip
+        });
+
+        return res.status(401).json({
+          message: 'Incorrect password'
+        });
+      }
+
+      // Check subscription status
+      const today = new Date();
+      const expiresDate = new Date(userDoc.Expires);
+
+      if (today > expiresDate || !userDoc.Paid) {
+        // Log subscription status issue
+        requestLogger.warn({
+          msg: 'Download Key Attempt with Expired/Inactive Subscription',
+          username: userDoc.Username,
+          subscriptionExpired: today > expiresDate,
+          paid: userDoc.Paid
+        });
+
+        return res.status(402).json({
+          message: 'Subscription is expired or inactive'
+        });
+      }
+
+      // Verify AuthKey exists
+      if (!userDoc.AuthKey) {
+        // Log missing recovery key
+        requestLogger.warn({
+          msg: 'Download Key Attempt with Missing Recovery Key',
+          username: userDoc.Username
+        });
+
+        return res.status(404).json({
+          message: 'Recovery key not found'
+        });
+      }
+
+      // Clean up existing tokens for this user
+      const cleanupResult = await downloadTokensCollection.deleteMany({
+        username: userDoc.Username,
+        expiresAt: { $lt: new Date() }
+      });
+
+      // Log token cleanup
+      requestLogger.info({
+        msg: 'Expired Download Tokens Cleaned Up',
+        username: userDoc.Username,
+        deletedTokens: cleanupResult.deletedCount
+      });
+
+      // Check if user already has an active download token
+      const existingActiveToken = await downloadTokensCollection.findOne({
+        username: userDoc.Username,
+        expiresAt: { $gt: new Date() }
+      });
+
+      if (existingActiveToken) {
+        // Log existing active token
+        requestLogger.warn({
+          msg: 'Download Key Generation Blocked - Active Token Exists',
+          username: userDoc.Username
+        });
+
+        return res.status(429).json({
+          message: 'An active download token already exists'
+        });
+      }
+
+      // Generate a one-time download token
+      const downloadToken = crypto.randomBytes(32).toString('hex');
+      const tokenExpiry = new Date(Date.now() + (15 * 60 * 1000)); // 15 minutes
+
+      // Store token with expiry
+      const tokenInsertResult = await downloadTokensCollection.insertOne({
+        token: downloadToken,
+        username: userDoc.Username,
+        expiresAt: tokenExpiry,
+        createdAt: new Date()
+      });
+
+      // Log successful token generation
+      requestLogger.info({
+        msg: 'Downloaded Recovery Token Successfully',
+        username: userDoc.Username.substring(0, 3) + '...',
+        tokenId: tokenInsertResult.insertedId
+      });
+
+      // Security logging for token generation
+      securityLogger.logSecurityEvent('Downloaded Recovery key', {
+        username: userDoc.Username.substring(0, 3) + '...'
+      });
+
+      // Return token
+      return res.json({
+        token: downloadToken,
+        expiryTime: tokenExpiry.getTime()
+      });
+
+    } catch (error) {
+      // Comprehensive error logging
+      requestLogger.error({
+        msg: 'Unexpected Error in Download Key Generation',
+        error: {
+          message: error.message,
+          name: error.name,
+          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        }
+      });
+
+      // Security logging for unexpected errors
+      securityLogger.logSecurityEvent('Download Key Generation Unexpected Error', {
+        ip: req.ip,
+        errorType: error.name
+      });
+
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Unable to generate download key'
+      });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          requestLogger.warn({
+            msg: 'MongoDB Client Closure Failed',
+            error: {
+              message: closeError.message,
+              name: closeError.name
+            }
+          });
+        }
+      }
+    }
   }
-
-  let client;
-  try {
-    const { user, password } = req.body;
-
-    // Additional sanitization
-    const sanitizedUsername = sanitizeInput(user);
-
-    client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const usersCollection = db.collection('Users');
-    const downloadTokensCollection = db.collection('DownloadTokens');
-
-    // Find user with case-insensitive username
-    const userDoc = await usersCollection.findOne({
-      Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
-    });
-
-    if (!userDoc) {
-      return res.status(404).json({
-        message: 'User not found'
-      });
-    }
-
-    // Verify password
-    const isPasswordCorrect = await bcrypt.compare(password, userDoc.Password);
-    if (!isPasswordCorrect) {
-      return res.status(401).json({
-        message: 'Incorrect password'
-      });
-    }
-
-    // Check subscription status
-    const today = new Date();
-    const expiresDate = new Date(userDoc.Expires);
-
-    if (today > expiresDate || !userDoc.Paid) {
-      return res.status(402).json({
-        message: 'Subscription is expired or inactive'
-      });
-    }
-
-    // Verify AuthKey exists
-    if (!userDoc.AuthKey) {
-      return res.status(404).json({
-        message: 'Recovery key not found'
-      });
-    }
-
-    // Clean up existing tokens for this user
-    await downloadTokensCollection.deleteMany({
-      username: userDoc.Username,
-      expiresAt: { $lt: new Date() }
-    });
-
-    // Check if user already has an active download token
-    const existingActiveToken = await downloadTokensCollection.findOne({
-      username: userDoc.Username,
-      expiresAt: { $gt: new Date() }
-    });
-
-    if (existingActiveToken) {
-      return res.status(429).json({
-        message: 'An active download token already exists'
-      });
-    }
-
-    // Generate a one-time download token
-    const downloadToken = crypto.randomBytes(32).toString('hex');
-    const tokenExpiry = new Date(Date.now() + (15 * 60 * 1000)); // 15 minutes
-
-    // Store token with expiry
-    await downloadTokensCollection.insertOne({
-      token: downloadToken,
-      username: userDoc.Username,
-      expiresAt: tokenExpiry,
-      createdAt: new Date()
-    });
-
-    // Return token
-    return res.json({
-      token: downloadToken,
-      expiryTime: tokenExpiry.getTime()
-    });
-
-  } catch (error) {
-    console.error('Download key generation error:', error);
-
-    return res.status(500).json({
-      message: 'Internal Server Error',
-      error: error.toString()
-    });
-  } finally {
-    if (client) await client.close();
-  }
-});
+);
 
 // Endpoint to actually retrieve the key using the token
 app.get('/retrieve-key', async (req, res) => {
+  // Create a child logger with request-specific context
+  const requestLogger = logger.child({
+    requestId: crypto.randomBytes(16).toString('hex'),
+    ip: req.ip,
+    method: req.method,
+    path: req.path
+  });
+
   let client;
   try {
     const { token } = req.query;
 
+    // Check if the token is provided
     if (!token) {
+      requestLogger.warn('Token is required for key retrieval');
       return res.status(400).json({ message: 'Token is required' });
     }
 
@@ -1237,12 +1449,14 @@ app.get('/retrieve-key', async (req, res) => {
     const tokenDoc = await db.collection('DownloadTokens').findOne({ token });
 
     if (!tokenDoc) {
+      requestLogger.warn('Invalid token provided for key retrieval', { token });
       return res.status(404).json({ message: 'Invalid token' });
     }
 
     // Check token expiry
     if (Date.now() > tokenDoc.expiresAt.getTime()) {
       await db.collection('DownloadTokens').deleteOne({ token });
+      requestLogger.warn('Token has expired', { token });
       return res.status(410).json({ message: 'Token has expired' });
     }
 
@@ -1252,216 +1466,411 @@ app.get('/retrieve-key', async (req, res) => {
     });
 
     if (!userDoc || !userDoc.AuthKey) {
+      requestLogger.warn('User  or key not found for token', { username: tokenDoc.username });
       return res.status(404).json({ message: 'User  or key not found' });
     }
 
     // Delete the token after use
     await db.collection('DownloadTokens').deleteOne({ token });
 
+    // Log successful key retrieval
+    requestLogger.info('Successfully retrieved AuthKey', { username: tokenDoc.username });
+
     // Return the raw AuthKey
     res.json({ key: userDoc.AuthKey });
 
   } catch (error) {
-    console.error('Key retrieval error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    // Comprehensive error logging
+    requestLogger.error({
+      msg: 'Key retrieval error',
+      error: {
+        message: error.message,
+        name: error.name,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      }
+    });
+
+    return res.status(500).json({ message: 'Internal server error' });
   } finally {
-    if (client) await client.close();
+    if (client) {
+      try {
+        await client.close();
+      } catch (closeError) {
+        requestLogger.warn({
+          msg: 'MongoDB Client Closure Failed',
+          error: {
+            message: closeError.message,
+            name: closeError.name
+          }
+        });
+      }
+    }
   }
 });
 
 // endpoint that updates user document with new password
-app.patch('/password-change', validate([
-  validationSchemas.user(),
-  validationSchemas.oldPassword(),
-  validationSchemas.newPassword()
-
-]), async (req, res) => {
-  // Check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      errors: errors.array().map(error => ({
-        field: error.path,
-        message: error.msg
-      }))
-    });
-  }
-
-  let client;
-  try {
-    const { oldPassword, newPassword, user } = req.body;
-
-    // Additional sanitization
-    const sanitizedUsername = sanitizeInput(user);
-
-    client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Users');
-
-    // Find user with case-insensitive username
-    const userDoc = await collection.findOne({
-      Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
+app.patch('/password-change',
+  validate([
+    validationSchemas.user(),
+    validationSchemas.oldPassword(),
+    validationSchemas.newPassword()
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method,
+      path: req.path
     });
 
-    if (!userDoc) {
-      return res.status(404).json({
-        message: 'User not found'
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      // Log validation errors
+      requestLogger.warn({
+        msg: 'Password Change Validation Failed',
+        errors: errors.array().map(error => ({
+          field: error.path,
+          message: error.msg
+        }))
       });
-    }
 
-    // Compare the provided old password with the stored hashed password
-    const isOldPasswordCorrect = await bcrypt.compare(oldPassword, userDoc.Password);
-
-    if (!isOldPasswordCorrect) {
-      return res.status(401).json({
-        message: 'Current password is incorrect'
-      });
-    }
-
-    // Hash the new password
-    const saltRounds = 10;
-    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
-
-    const updateDoc = { $set: { Password: hashedNewPassword } };
-    const result = await collection.updateOne(
-      { Username: userDoc.Username },
-      updateDoc
-    );
-
-    if (result.modifiedCount === 0) {
-      return res.status(500).json({
-        message: 'Failed to update password'
-      });
-    }
-
-    res.json({
-      message: 'Password successfully changed',
-      confirm: true
-    });
-
-  } catch (error) {
-    console.error('Error changing password:', error);
-
-    return res.status(500).json({
-      message: 'Internal Server Error',
-      error: error.toString()
-    });
-  } finally {
-    if (client) {
-      await client.close();
-    }
-  }
-});
-
-//endpoint that changes password with recovery method 
-app.patch('/change-password2', validate([
-  validationSchemas.user(),
-  validationSchemas.newPassword(),
-  validationSchemas.recoveryKey()
-
-]), async (req, res) => {
-  // Check for validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      errors: errors.array().map(error => ({
-        field: error.path,
-        message: error.msg
-      }))
-    });
-  }
-
-  const { recoveryKey, newPassword } = req.body;
-  let client;
-
-  try {
-    client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const usersCollection = db.collection('Users');
-
-    // Find user with matching recovery key more efficiently
-    const matchedUser = await usersCollection.findOne({
-      HashedAuthKey: { $exists: true }
-    });
-
-    if (!matchedUser) {
-      return res.status(401).json({
-        success: false,
-        message: 'No user found with this recovery key'
-      });
-    }
-
-    // Verify recovery key
-    const isRecoveryKeyValid = await bcrypt.compare(recoveryKey, matchedUser.HashedAuthKey);
-
-    if (!isRecoveryKeyValid) {
-      // Log failed recovery key attempt
-      logger.warn(`Failed recovery key attempt for user: ${matchedUser.Username}`);
-
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid recovery key'
-      });
-    }
-
-    // Prevent using the same password
-    const isNewPasswordSame = await bcrypt.compare(newPassword, matchedUser.Password);
-    if (isNewPasswordSame) {
       return res.status(400).json({
-        success: false,
-        message: 'New password cannot be the same as the current password'
+        errors: errors.array().map(error => ({
+          field: error.path,
+          message: error.msg
+        }))
       });
     }
 
-    // Hash the new password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    let client;
+    try {
+      const { oldPassword, newPassword, user } = req.body;
 
-    // Update the user's password
-    const updateResult = await usersCollection.updateOne(
-      { _id: matchedUser._id },
-      {
+      // Additional sanitization
+      const sanitizedUsername = sanitizeInput(user);
+
+      // Log password change attempt
+      requestLogger.info({
+        msg: 'Password Change Attempt',
+        usernameLength: sanitizedUsername.length
+      });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Users');
+
+      // Find user with case-insensitive username
+      const userDoc = await collection.findOne({
+        Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
+      });
+
+      if (!userDoc) {
+        // Log security event for non-existent user
+        securityLogger.logSecurityEvent('Password Change Attempt for Non-Existent User', {
+          attemptedUsername: sanitizedUsername,
+          ip: req.ip
+        });
+
+        return res.status(404).json({
+          message: 'User not found'
+        });
+      }
+
+      // Compare the provided old password with the stored hashed password
+      const isOldPasswordCorrect = await bcrypt.compare(oldPassword, userDoc.Password);
+
+      if (!isOldPasswordCorrect) {
+        // Log security event for incorrect current password
+        securityLogger.logSecurityEvent('Password Change Attempt with Incorrect Current Password', {
+          username: userDoc.Username,
+          ip: req.ip
+        });
+
+        return res.status(401).json({
+          message: 'Current password is incorrect'
+        });
+      }
+
+      // Check if new password is different from the old password
+      const isNewPasswordSameAsOld = await bcrypt.compare(newPassword, userDoc.Password);
+      if (isNewPasswordSameAsOld) {
+        requestLogger.warn({
+          msg: 'Password Change Attempt with Same Password',
+          username: userDoc.Username
+        });
+
+        return res.status(400).json({
+          message: 'New password must be different from the current password'
+        });
+      }
+
+      // Hash the new password
+      const saltRounds = 10;
+      const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+      const updateDoc = {
         $set: {
-          Password: hashedPassword
-          // Optionally, you might want to invalidate the recovery key here
-          // HashedAuthKey: null
+          Password: hashedNewPassword,
+          LastPasswordChangeTime: new Date()
+        }
+      };
+
+      const result = await collection.updateOne(
+        { Username: userDoc.Username },
+        updateDoc
+      );
+
+      if (result.modifiedCount === 0) {
+        // Log update failure
+        requestLogger.error({
+          msg: 'Failed to Update Password',
+          username: userDoc.Username
+        });
+
+        return res.status(500).json({
+          message: 'Failed to update password'
+        });
+      }
+
+      // Log successful password change
+      requestLogger.info({
+        msg: 'Password Changed Successfully',
+        username: userDoc.Username.substring(0, 3) + '...'
+      });
+
+      // Security logging for password change
+      securityLogger.logSecurityEvent('Password Changed', {
+        username: userDoc.Username.substring(0, 3) + '...'
+      });
+
+      res.json({
+        message: 'Password successfully changed',
+        confirm: true
+      });
+
+    } catch (error) {
+      // Comprehensive error logging
+      requestLogger.error({
+        msg: 'Unexpected Error in Password Change Process',
+        error: {
+          message: error.message,
+          name: error.name,
+          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        }
+      });
+
+      // Security logging for unexpected errors
+      securityLogger.logSecurityEvent('Password Change Unexpected Error', {
+        ip: req.ip,
+        errorType: error.name
+      });
+
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Unable to change password'
+      });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          requestLogger.warn({
+            msg: 'MongoDB Client Closure Failed',
+            error: {
+              message: closeError.message,
+              name: closeError.name
+            }
+          });
         }
       }
-    );
-
-    if (updateResult.modifiedCount === 1) {
-      // Log successful password change
-      logger.info(`Password changed via recovery key for user: ${matchedUser.Username}`);
-
-      return res.status(200).json({
-        success: true,
-        message: 'Password successfully changed. Please generate a new recovery key.'
-      });
-    } else {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to update password'
-      });
-    }
-  } catch (error) {
-    console.error('Password recovery error:', error);
-
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      errorDetails: process.env.NODE_ENV === 'development' ? error.toString() : undefined
-    });
-  } finally {
-    if (client) {
-      await client.close();
     }
   }
-});
+);
+
+//endpoint that changes password with recovery method 
+app.patch('/change-password2',
+  validate([
+    validationSchemas.user(),
+    validationSchemas.newPassword(),
+    validationSchemas.recoveryKey()
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method,
+      path: req.path
+    });
+
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      // Log validation errors
+      requestLogger.warn({
+        msg: 'Recovery Password Change Validation Failed',
+        errors: errors.array().map(error => ({
+          field: error.path,
+          message: error.msg
+        }))
+      });
+
+      return res.status(400).json({
+        success: false,
+        errors: errors.array().map(error => ({
+          field: error.path,
+          message: error.msg
+        }))
+      });
+    }
+
+    const { recoveryKey, newPassword } = req.body;
+    let client;
+
+    try {
+      // Log recovery password change attempt
+      requestLogger.info('Recovery Password Change Attempt');
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const usersCollection = db.collection('Users');
+
+      // Find user with matching recovery key more efficiently
+      const matchedUser = await usersCollection.findOne({
+        HashedAuthKey: { $exists: true }
+      });
+
+      if (!matchedUser) {
+        // Log security event for no user found with recovery key
+        securityLogger.logSecurityEvent('Recovery Password Change - No User Found', {
+          ip: req.ip
+        });
+
+        return res.status(401).json({
+          success: false,
+          message: 'No user found with this recovery key'
+        });
+      }
+
+      // Verify recovery key
+      const isRecoveryKeyValid = await bcrypt.compare(recoveryKey, matchedUser.HashedAuthKey);
+
+      if (!isRecoveryKeyValid) {
+        // Log failed recovery key attempt
+        securityLogger.logSecurityEvent('Recovery Password Change - Invalid Recovery Key', {
+          username: matchedUser.Username,
+          ip: req.ip
+        });
+
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid recovery key'
+        });
+      }
+
+      // Prevent using the same password
+      const isNewPasswordSame = await bcrypt.compare(newPassword, matchedUser.Password);
+      if (isNewPasswordSame) {
+        requestLogger.warn({
+          msg: 'Recovery Password Change Attempt with Same Password',
+          username: matchedUser.Username
+        });
+
+        return res.status(400).json({
+          success: false,
+          message: 'New password cannot be the same as the current password'
+        });
+      }
+
+      // Hash the new password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+      // Update the user's password and invalidate recovery key
+      const updateResult = await usersCollection.updateOne(
+        { _id: matchedUser._id },
+        {
+          $set: {
+            Password: hashedPassword,
+            HashedAuthKey: null, // Invalidate the recovery key
+            LastPasswordChangeTime: new Date()
+          }
+        }
+      );
+
+      if (updateResult.modifiedCount === 1) {
+        // Log successful password change
+        requestLogger.info({
+          msg: 'Password Changed via Recovery Key',
+          username: matchedUser.Username.substring(0, 3) + '...'
+        });
+
+        // Security logging for password change
+        securityLogger.logSecurityEvent('Password Changed via Recovery Key', {
+          username: matchedUser.Username.substring(0, 3) + '...'
+        });
+
+        return res.status(200).json({
+          success: true,
+          message: 'Password successfully changed. Please generate a new recovery key.'
+        });
+      } else {
+        // Log update failure
+        requestLogger.error({
+          msg: 'Failed to Update Password',
+          username: matchedUser.Username
+        });
+
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to update password'
+        });
+      }
+    } catch (error) {
+      // Comprehensive error logging
+      requestLogger.error({
+        msg: 'Unexpected Error in Recovery Password Change Process',
+        error: {
+          message: error.message,
+          name: error.name,
+          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        }
+      });
+
+      // Security logging for unexpected errors
+      securityLogger.logSecurityEvent('Recovery Password Change Unexpected Error', {
+        ip: req.ip,
+        errorType: error.name
+      });
+
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        errorDetails: process.env.NODE_ENV === 'development' ? error.toString() : undefined
+      });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          requestLogger.warn({
+            msg: 'MongoDB Client Closure Failed',
+            error: {
+              message: closeError.message,
+              name: closeError.name
+            }
+          });
+        }
+      }
+    }
+  }
+);
 
 // endpoint that updates username for user
 app.patch('/change-username', async (req, res) => {
