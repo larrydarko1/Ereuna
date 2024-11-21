@@ -156,9 +156,19 @@ const securityLogger = {
     }
 };
 
+// Obfuscation utility function
+const obfuscateUsername = (username) => {
+    if (!username) return '...';
+    return username.length > 3
+        ? username.substring(0, 3) + '...'
+        : username + '...';
+};
+
+
 export {
     logger,
     httpLogger,
     metricsHandler,
-    securityLogger
+    securityLogger,
+    obfuscateUsername,
 };
