@@ -1,4 +1,4 @@
-import { body, validationResult } from 'express-validator';
+import { body, validationResult, param, query, } from 'express-validator';
 import validator from 'validator';
 
 const validationSchemas = {
@@ -58,6 +58,13 @@ const validationSchemas = {
         .notEmpty().withMessage('Recovery key is required')
         .isLength({ min: 64, max: 128 }).withMessage('Invalid recovery key format')
         .matches(/^[0-9a-fA-F]+$/).withMessage('Recovery key must be a hexadecimal string'),
+
+    // tickers or ISIN
+    identifier: () => param('identifier')
+        .trim()
+        .notEmpty().withMessage('Identifier is required')
+        .isLength({ min: 3, max: 12 }).withMessage('Identifier must be between 3 and 12 characters')
+        .matches(/^[A-Z0-9]+$/).withMessage('Identifier must be uppercase alphanumeric'),
 
     // Email Validation
     email: () => body('email')

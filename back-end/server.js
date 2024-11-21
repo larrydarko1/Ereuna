@@ -12,7 +12,7 @@ import crypto from 'crypto';
 import helmet from 'helmet';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
-import { logger, httpLogger, securityLogger, metricsHandler as importedMetricsHandler } from './logger.js';
+import { logger, obfuscateUsername, httpLogger, securityLogger, metricsHandler as importedMetricsHandler } from './logger.js';
 import client from 'prom-client';
 import {
   validate,
@@ -93,7 +93,7 @@ const allowedOrigins = [
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 1000, // Limit each IP to 1000 requests per window
+  max: 2000, // Limit each IP to 2000 requests per window
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -1832,184 +1832,574 @@ app.patch('/change-password2',
 );
 
 // endpoint that updates username for user
-app.patch('/change-username', async (req, res) => {
-  try {
-    const { user, newUsername } = req.body;
-
-    if (user === newUsername) {
-      res.status(400).json({ error: 'current username and new username cannot be the same' });
-      return;
-    }
-
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-
-    const usersCollection = db.collection('Users');
-    const existingUser = await usersCollection.findOne({ Username: newUsername });
-
-    if (existingUser) {
-      res.status(400).json({ error: 'username_taken' });
-      client.close();
-      return;
-    }
-
-    const filter = { Username: user };
-    const updateDoc = { $set: { Username: newUsername } };
-    const result = await usersCollection.updateOne(filter, updateDoc);
-
-    if (result.modifiedCount === 0) {
-      res.status(404).json({ error: 'user not found' });
-      client.close();
-      return;
-    }
-
-    const notesCollection = db.collection('Notes');
-    const notesFilter = { Username: user };
-    const notesUpdateDoc = { $set: { Username: newUsername } };
-    await notesCollection.updateMany(notesFilter, notesUpdateDoc);
-
-    const screenersCollection = db.collection('Screeners');
-    const screenersFilter = { UsernameID: user };
-    const screenersUpdateDoc = { $set: { UsernameID: newUsername } };
-    await screenersCollection.updateMany(screenersFilter, screenersUpdateDoc);
-
-    const watchlistsCollection = db.collection('Watchlists');
-    const watchlistsFilter = { UsernameID: user };
-    const watchlistsUpdateDoc = { $set: { UsernameID: newUsername } };
-    await watchlistsCollection.updateMany(watchlistsFilter, watchlistsUpdateDoc);
-
-    client.close();
-    res.json({ confirm: true });
-  } catch (error) {
-    console.error('Error changing username:', error);
-    res.status(500).json({ error: 'internal server error' });
-  }
-});
-
-app.delete('/account-delete', async (req, res) => {
-  try {
-    const { user, password } = req.body;
+app.patch('/change-username',
+  // Validation middleware
+  validate([
+    validationSchemas.user('user'),
+    validationSchemas.newUsername()
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method,
+      path: req.path
+    });
 
     let client;
-    client = new MongoClient(uri);
-    await client.connect();
+    try {
+      // Destructure and sanitize inputs
+      const { user, newUsername } = req.body;
+      const sanitizedCurrentUsername = sanitizeInput(user);
+      const sanitizedNewUsername = sanitizeInput(newUsername);
 
-    const db = client.db('EreunaDB');
-    const usersCollection = db.collection('Users');
+      // Log username change attempt
+      requestLogger.info({
+        msg: 'Username Change Attempt',
+        currentUsernameLength: sanitizedCurrentUsername.length,
+        newUsernameLength: sanitizedNewUsername.length
+      });
 
-    const userDoc = await usersCollection.findOne({ Username: user });
+      // Check if usernames are the same
+      if (sanitizedCurrentUsername === sanitizedNewUsername) {
+        requestLogger.warn({
+          msg: 'Username Change Rejected',
+          reason: 'Current and new usernames are identical'
+        });
 
-    if (!userDoc) {
-      res.status(404).json({ error: 'user_not_found' });
-      return;
-    }
+        return res.status(400).json({
+          errors: [{
+            field: 'newUsername',
+            message: 'Current username and new username cannot be the same'
+          }]
+        });
+      }
 
-    if (userDoc.Password !== password) {
-      res.status(401).json({ error: 'password_incorrect' });
-      return;
-    }
+      // Connect to MongoDB
+      client = new MongoClient(uri);
+      await client.connect();
 
-    // Delete user document
-    await usersCollection.deleteOne({ Username: user });
+      const db = client.db('EreunaDB');
+      const usersCollection = db.collection('Users');
 
-    // Delete associated documents in other collections
-    const screenersCollection = db.collection('Screeners');
-    await screenersCollection.deleteMany({ UsernameID: user });
+      // Check for existing username (case-insensitive)
+      const existingUser = await usersCollection.findOne({
+        Username: { $regex: new RegExp(`^${sanitizedNewUsername}$`, 'i') }
+      });
 
-    const watchlistsCollection = db.collection('Watchlists');
-    await watchlistsCollection.deleteMany({ UsernameID: user });
+      if (existingUser) {
+        // Log username conflict
+        securityLogger.logSecurityEvent('username_conflict', {
+          attemptedUsername: sanitizedNewUsername,
+          ip: req.ip
+        });
 
-    const notesCollection = db.collection('Notes');
-    await notesCollection.deleteMany({ Username: user });
+        requestLogger.warn({
+          msg: 'Username Change Rejected',
+          reason: 'Username already exists'
+        });
 
-    res.json({ confirm: true });
-  } catch (error) {
-    console.error('Error deleting account:', error);
-    res.status(500).json({ error: 'internal_server_error' });
-  } finally {
-    client.close();
-  }
-});
+        return res.status(400).json({
+          errors: [{
+            field: 'newUsername',
+            message: 'Username already exists'
+          }]
+        });
+      }
 
-app.get('/get-expiration-date', async (req, res) => {
-  const username = req.query.user; // Get the user from query parameters
+      // Update username in Users collection
+      const userUpdateResult = await usersCollection.updateOne(
+        { Username: sanitizedCurrentUsername },
+        { $set: { Username: sanitizedNewUsername } }
+      );
 
-  if (!username) {
-    return res.status(400).json({ error: 'User  parameter is required' });
-  }
+      if (userUpdateResult.modifiedCount === 0) {
+        // Log user not found
+        requestLogger.warn({
+          msg: 'Username Change Failed',
+          reason: 'User not found',
+          username: sanitizedCurrentUsername
+        });
 
-  const client = new MongoClient(uri);
+        return res.status(404).json({
+          errors: [{
+            field: 'user',
+            message: 'User not found'
+          }]
+        });
+      }
 
-  try {
-    await client.connect();
-    const db = client.db('EreunaDB');
-    const usersCollection = db.collection('Users');
+      // Update related collections
+      const collectionsToUpdate = [
+        {
+          name: 'Notes',
+          filter: { Username: sanitizedCurrentUsername },
+          update: { $set: { Username: sanitizedNewUsername } }
+        },
+        {
+          name: 'Screeners',
+          filter: { UsernameID: sanitizedCurrentUsername },
+          update: { $set: { UsernameID: sanitizedNewUsername } }
+        },
+        {
+          name: 'Watchlists',
+          filter: { UsernameID: sanitizedCurrentUsername },
+          update: { $set: { UsernameID: sanitizedNewUsername } }
+        }
+      ];
 
-    // Find the user document based on the Username
-    const userDoc = await usersCollection.findOne({ Username: username });
+      // Perform bulk updates with logging
+      for (const collection of collectionsToUpdate) {
+        try {
+          const result = await db.collection(collection.name).updateMany(
+            collection.filter,
+            collection.update
+          );
 
-    if (!userDoc) {
-      return res.status(404).json({ error: 'User  not found' });
-    }
+          requestLogger.info({
+            msg: `Updated ${collection.name} Collection`,
+            modifiedCount: result.modifiedCount
+          });
+        } catch (updateError) {
+          // Log individual collection update errors
+          requestLogger.error({
+            msg: `Failed to update ${collection.name} Collection`,
+            error: {
+              message: updateError.message,
+              name: updateError.name
+            }
+          });
+        }
+      }
 
-    const today = new Date();
-    const expiresDate = new Date(userDoc.Expires); // Assuming 'Expires' is a date string
+      // Log successful username change with partially obscured username
+      requestLogger.info({
+        msg: 'Username Changed Successfully',
+        usernamePartial: sanitizedCurrentUsername.substring(0, 3) + '...'
+      });
 
-    // Calculate the difference in milliseconds
-    const differenceInTime = expiresDate - today;
+      // Security logging with partial username
+      securityLogger.logSecurityEvent('username_changed', {
+        username: sanitizedCurrentUsername.substring(0, 3) + '...',
+        ip: req.ip
+      });
 
-    // Calculate the difference in days
-    const differenceInDays = Math.ceil(differenceInTime / (1000 * 3600 * 24));
+      // Respond with success
+      res.json({
+        message: 'Username changed successfully',
+        confirm: true
+      });
 
-    // Send back the difference in days
-    res.json({ expirationDays: differenceInDays });
-  } catch (error) {
-    console.error('Error retrieving expiration date:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    await client.close();
-  }
-});
+    } catch (error) {
+      // Comprehensive error logging
+      requestLogger.error({
+        msg: 'Username Change Error',
+        error: {
+          message: error.message,
+          name: error.name,
+          code: error.code
+        },
+        sensitiveData: {
+          currentUsernameLength: req.body.user ? req.body.user.length : 0,
+          newUsernameLength: req.body.newUsername ? req.body.newUsername.length : 0
+        }
+      });
 
-//endpoint to display info results
-app.get('/chart/:identifier', async (req, res) => {
-  try {
-    const identifier = req.params.identifier.toUpperCase();
+      // Security event for unexpected error
+      securityLogger.logSecurityEvent('username_change_failure', {
+        errorMessage: error.message,
+        ip: req.ip
+      });
 
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('AssetInfo');
-
-    // First, try to find by Symbol
-    let assetInfo = await collection.findOne({ Symbol: identifier });
-
-    // If not found by Symbol, try to find by ISIN
-    if (!assetInfo) {
-      const isinAsset = await collection.findOne({ ISIN: identifier });
-
-      // If found by ISIN, get the corresponding Symbol
-      if (isinAsset) {
-        assetInfo = await collection.findOne({ Symbol: isinAsset.Symbol });
+      // Respond with error
+      res.status(500).json({
+        message: 'An error occurred while changing username',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    } finally {
+      // Ensure database client is closed
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          requestLogger.warn({
+            msg: 'MongoDB Client Closure Failed',
+            error: {
+              message: closeError.message,
+              name: closeError.name
+            }
+          });
+        }
       }
     }
+  }
+);
 
-    if (!assetInfo) {
-      res.status(404).json({ message: 'Asset not found' });
-      return;
+app.delete('/account-delete',
+  // Validation middleware
+  validate([
+    validationSchemas.user(),
+    validationSchemas.password()
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method,
+      path: req.path
+    });
+
+    let client;
+    try {
+      // Destructure and sanitize inputs
+      const { user, password } = req.body;
+      const sanitizedUsername = sanitizeInput(user);
+
+      // Log account deletion attempt
+      requestLogger.info({
+        msg: 'Account Deletion Attempt',
+        usernamePartial: obfuscateUsername(sanitizedUsername)
+      });
+
+      // Connect to MongoDB
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const usersCollection = db.collection('Users');
+
+      // Find user document
+      const userDoc = await usersCollection.findOne({ Username: sanitizedUsername });
+
+      if (!userDoc) {
+        // Log user not found
+        requestLogger.warn({
+          msg: 'Account Deletion Failed',
+          reason: 'User not found',
+          usernamePartial: obfuscateUsername(sanitizedUsername)
+        });
+
+        // Security logging for potential unauthorized access attempt
+        securityLogger.logSecurityEvent('account_deletion_attempt', {
+          reason: 'user_not_found',
+          usernamePartial: obfuscateUsername(sanitizedUsername),
+          ip: req.ip
+        });
+
+        return res.status(404).json({
+          errors: [{
+            field: 'user',
+            message: 'User not found'
+          }]
+        });
+      }
+
+      // Verify password (assuming password is hashed)
+      const isPasswordValid = await bcrypt.compare(password, userDoc.Password);
+
+      if (!isPasswordValid) {
+        // Log incorrect password attempt
+        requestLogger.warn({
+          msg: 'Account Deletion Failed',
+          reason: 'Incorrect Password',
+          usernamePartial: obfuscateUsername(sanitizedUsername)
+        });
+
+        // Security logging for potential unauthorized access
+        securityLogger.logSecurityEvent('account_deletion_attempt', {
+          reason: 'password_incorrect',
+          usernamePartial: obfuscateUsername(sanitizedUsername),
+          ip: req.ip
+        });
+
+        return res.status(401).json({
+          errors: [{
+            field: 'password',
+            message: 'Incorrect password'
+          }]
+        });
+      }
+
+      // Collections to clean up
+      const collectionsToClean = [
+        {
+          name: 'Users',
+          filter: { Username: sanitizedUsername },
+          logMessage: 'User Document Deleted'
+        },
+        {
+          name: 'Screeners',
+          filter: { UsernameID: sanitizedUsername },
+          logMessage: 'Screeners Cleaned Up'
+        },
+        {
+          name: 'Watchlists',
+          filter: { UsernameID: sanitizedUsername },
+          logMessage: 'Watchlists Cleaned Up'
+        },
+        {
+          name: 'Notes',
+          filter: { Username: sanitizedUsername },
+          logMessage: 'Notes Cleaned Up'
+        }
+      ];
+
+      // Perform bulk deletions with logging
+      for (const collection of collectionsToClean) {
+        try {
+          const result = await db.collection(collection.name).deleteMany(collection.filter);
+
+          requestLogger.info({
+            msg: collection.logMessage,
+            usernamePartial: obfuscateUsername(sanitizedUsername),
+            deletedCount: result.deletedCount
+          });
+        } catch (deleteError) {
+          // Log individual collection deletion errors
+          requestLogger.error({
+            msg: `Failed to clean up ${collection.name} Collection`,
+            usernamePartial: obfuscateUsername(sanitizedUsername),
+            error: {
+              message: deleteError.message,
+              name: deleteError.name
+            }
+          });
+        }
+      }
+
+      // Log successful account deletion
+      requestLogger.info({
+        msg: 'Account Deleted Successfully',
+        usernamePartial: obfuscateUsername(sanitizedUsername)
+      });
+
+      // Security logging for account deletion
+      securityLogger.logSecurityEvent('account_deleted', {
+        usernamePartial: obfuscateUsername(sanitizedUsername),
+        ip: req.ip
+      });
+
+      // Respond with success
+      res.json({
+        message: 'Account deleted successfully',
+        confirm: true
+      });
+
+    } catch (error) {
+      // Comprehensive error logging
+      requestLogger.error({
+        msg: 'Account Deletion Error',
+        error: {
+          message: error.message,
+          name: error.name,
+          code: error.code
+        },
+        sensitiveData: {
+          usernameLength: req.body.user ? req.body.user.length : 0
+        }
+      });
+
+      // Security event for unexpected error
+      securityLogger.logSecurityEvent('account_deletion_failure', {
+        errorMessage: error.message,
+        ip: req.ip
+      });
+
+      // Respond with error
+      res.status(500).json({
+        message: 'An error occurred while deleting account',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    } finally {
+      // Ensure database client is closed
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          requestLogger.warn({
+            msg: 'MongoDB Client Closure Failed',
+            error: {
+              message: closeError.message,
+              name: closeError.name
+            }
+          });
+        }
+      }
+    }
+  }
+);
+
+// endpoint that retrieves expriation days for users (user section)
+app.get('/get-expiration-date',
+  validate([
+    body('user')
+      .optional() // removing this invalidates the check 
+      .trim()
+      .notEmpty().withMessage('Username is required')
+  ]),
+  async (req, res) => {
+    const username = req.query.user; // Keep original query parameter retrieval
+
+    if (!username) {
+      return res.status(400).json({
+        errors: [{
+          field: 'user',
+          message: 'Username is required'
+        }]
+      });
     }
 
-    res.json(assetInfo);
+    const sanitizedUsername = sanitizeInput(username);
+    let client;
 
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    try {
+      // Log attempt with obfuscated username
+      logger.info({
+        msg: 'Expiration Date Check',
+        usernamePartial: obfuscateUsername(sanitizedUsername)
+      });
+
+      client = new MongoClient(uri);
+      await client.connect();
+      const db = client.db('EreunaDB');
+      const usersCollection = db.collection('Users');
+
+      // Find the user document based on the Username
+      const userDoc = await usersCollection.findOne({ Username: sanitizedUsername });
+
+      if (!userDoc) {
+        // Log user not found
+        logger.warn({
+          msg: 'Expiration Date Check Failed',
+          reason: 'User not found',
+          usernamePartial: obfuscateUsername(sanitizedUsername)
+        });
+
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const today = new Date();
+      const expiresDate = new Date(userDoc.Expires);
+
+      // Calculate the difference in milliseconds
+      const differenceInTime = expiresDate - today;
+
+      // Calculate the difference in days
+      const differenceInDays = Math.ceil(differenceInTime / (1000 * 3600 * 24));
+
+      // Log successful retrieval
+      logger.info({
+        msg: 'Expiration Date Retrieved',
+        usernamePartial: obfuscateUsername(sanitizedUsername),
+        expirationDays: differenceInDays
+      });
+
+      // Send back the difference in days
+      res.json({ expirationDays: differenceInDays });
+    } catch (error) {
+      // Error logging
+      logger.error({
+        msg: 'Expiration Date Retrieval Error',
+        error: error.message,
+        usernamePartial: obfuscateUsername(sanitizedUsername)
+      });
+
+      res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            error: closeError.message
+          });
+        }
+      }
+    }
   }
-});
+);
+
+//endpoint to display info results
+app.get('/chart/:identifier', validate([
+  validationSchemas.identifier()
+]),
+  async (req, res) => {
+    const identifier = req.params.identifier.toUpperCase();
+    let client;
+
+    try {
+      // Log the attempt with obfuscated identifier
+      logger.info({
+        msg: 'Chart Data Retrieval',
+        identifier: identifier
+      });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('AssetInfo');
+
+      // First, try to find by Symbol
+      let assetInfo = await collection.findOne({ Symbol: identifier });
+
+      // If not found by Symbol, try to find by ISIN
+      if (!assetInfo) {
+        const isinAsset = await collection.findOne({ ISIN: identifier });
+
+        // If found by ISIN, get the corresponding Symbol
+        if (isinAsset) {
+          assetInfo = await collection.findOne({ Symbol: isinAsset.Symbol });
+        }
+      }
+
+      if (!assetInfo) {
+        // Log not found scenario
+        logger.warn({
+          msg: 'Chart Data Retrieval Failed',
+          reason: 'Asset not found',
+          identifier: identifier
+        });
+
+        return res.status(404).json({ message: 'Asset not found' });
+      }
+
+      // Log successful retrieval
+      logger.info({
+        msg: 'Chart Data Retrieved Successfully',
+        identifier: identifier
+      });
+
+      res.json(assetInfo);
+    } catch (error) {
+      // Error logging
+      logger.error({
+        msg: 'Chart Data Retrieval Error',
+        error: error.message,
+        identifier: identifier
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            error: closeError.message
+          });
+        }
+      }
+    }
+  }
+);
 
 // endpoint to create new notes 
 app.post('/:symbol/notes', async (req, res) => {
