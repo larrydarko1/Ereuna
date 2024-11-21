@@ -12,9 +12,17 @@ import crypto from 'crypto';
 import helmet from 'helmet';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
-import { validate, validationSchemas, validationResult, validationSets, sanitizeInput } from './validationUtils.js';
-import { logger, httpLogger, metricsHandler as importedMetricsHandler } from './logger.js'
+import { logger, httpLogger, securityLogger, metricsHandler as importedMetricsHandler } from './logger.js'
 import client from 'prom-client';
+import {
+  validate,
+  validationSchemas,
+  validationSets,
+  body,
+  validationResult,
+  validator,
+  sanitizeInput
+} from './validationUtils.js';
 
 dotenv.config();
 const register = new client.Registry();
@@ -280,11 +288,12 @@ app.post('/signup',
     validationSchemas.promoCode()
   ]),
   async (req, res) => {
-    // Log signup attempt
-    logger.info('Signup attempt initiated', {
-      username: req.body.username,
-      subscriptionPlan: req.body.subscriptionPlan,
-      ip: req.ip
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method,
+      path: req.path
     });
 
     let client;
@@ -304,6 +313,14 @@ app.post('/signup',
       const sanitizedPromoCode = promoCode ? sanitizeInput(promoCode) : null;
       const parsedSubscriptionPlan = parseInt(subscriptionPlan, 10);
 
+      // Log signup attempt with minimal sensitive information
+      requestLogger.info({
+        msg: 'Signup Attempt',
+        usernameLength: sanitizedUsername.length,
+        subscriptionPlan: parsedSubscriptionPlan,
+        promoCodeProvided: !!sanitizedPromoCode
+      });
+
       // Database connection and user creation
       client = new MongoClient(uri);
       try {
@@ -319,10 +336,15 @@ app.post('/signup',
         });
 
         if (existingUser) {
-          // Log username conflict
-          logger.warn('Signup attempt with existing username', {
-            username: sanitizedUsername,
+          // Security event logging for username conflict
+          securityLogger.logSecurityEvent('username_conflict', {
+            attemptedUsername: sanitizedUsername,
             ip: req.ip
+          });
+
+          requestLogger.warn({
+            msg: 'Username Conflict',
+            reason: 'Username already exists'
           });
 
           return res.status(400).json({
@@ -349,10 +371,9 @@ app.post('/signup',
               break;
             default:
               // Log invalid subscription plan
-              logger.warn('Invalid subscription plan attempt', {
-                username: sanitizedUsername,
-                subscriptionPlan: parsedSubscriptionPlan,
-                ip: req.ip
+              requestLogger.warn({
+                msg: 'Invalid Subscription Plan',
+                attemptedPlan: parsedSubscriptionPlan
               });
 
               return res.status(400).json({
@@ -363,9 +384,12 @@ app.post('/signup',
               });
           }
         } catch (dateError) {
-          logger.error('Error calculating subscription expiration', {
-            error: dateError.message,
-            username: sanitizedUsername
+          requestLogger.error({
+            msg: 'Subscription Expiration Calculation Error',
+            error: {
+              message: dateError.message,
+              name: dateError.name
+            }
           });
           throw dateError;
         }
@@ -381,18 +405,16 @@ app.post('/signup',
             promoCodeValidated = sanitizedPromoCode;
 
             // Log promo code usage
-            logger.info('Promo code applied', {
-              username: sanitizedUsername,
-              promoCode: promoCodeValidated,
+            requestLogger.info({
+              msg: 'Promo Code Applied',
               originalAmount: amount * 2,
               discountedAmount: amount
             });
           } else {
             // Log invalid promo code attempt
-            logger.warn('Invalid promo code attempt', {
-              username: sanitizedUsername,
-              promoCode: sanitizedPromoCode,
-              ip: req.ip
+            requestLogger.warn({
+              msg: 'Invalid Promo Code',
+              providedPromoCode: sanitizedPromoCode
             });
           }
         }
@@ -422,10 +444,13 @@ app.post('/signup',
 
         // Validate payment method
         if (!paymentMethodId) {
-          // Log missing payment method
-          logger.warn('Signup attempt without payment method', {
-            username: sanitizedUsername,
-            ip: req.ip
+          // Security event for missing payment method
+          securityLogger.logSecurityEvent('missing_payment_method', {
+            username: sanitizedUsername
+          });
+
+          requestLogger.warn({
+            msg: 'Signup Attempt Without Payment Method'
           });
 
           return res.status(400).json({
@@ -452,19 +477,26 @@ app.post('/signup',
           });
         } catch (paymentError) {
           // Log payment intent creation failure
-          logger.error('Stripe payment intent creation failed', {
-            username: sanitizedUsername,
-            error: paymentError.message,
-            ip: req.ip
+          requestLogger.error({
+            msg: 'Stripe Payment Intent Creation Failed',
+            error: {
+              message: paymentError.message,
+              name: paymentError.name
+            }
           });
+
+          // Security event for payment failure
+          securityLogger.logSecurityEvent('payment_intent_creation_failed', {
+            username: sanitizedUsername
+          });
+
           throw paymentError;
         }
 
         // Handle payment states
         if (paymentIntent.status === 'requires_action') {
-          // Log payment requires additional action
-          logger.info('Payment requires additional action', {
-            username: sanitizedUsername,
+          requestLogger.info({
+            msg: 'Payment Requires Additional Action',
             paymentIntentId: paymentIntent.id
           });
 
@@ -481,10 +513,12 @@ app.post('/signup',
           try {
             userResult = await usersCollection.insertOne(newUser);
           } catch (insertError) {
-            // Log user insertion failure
-            logger.error('Failed to insert new user', {
-              username: sanitizedUsername,
-              error: insertError.message
+            requestLogger.error({
+              msg: 'User Insertion Failed',
+              error: {
+                message: insertError.message,
+                name: insertError.name
+              }
             });
             throw insertError;
           }
@@ -505,20 +539,29 @@ app.post('/signup',
             try {
               receiptResult = await receiptsCollection.insertOne(receiptDocument);
             } catch (receiptError) {
-              // Log receipt insertion failure
-              logger.error('Failed to create receipt', {
-                username: sanitizedUsername,
-                error: receiptError.message
+              requestLogger.error({
+                msg: 'Receipt Insertion Failed',
+                error: {
+                  message: receiptError.message,
+                  name: receiptError.name
+                }
               });
               throw receiptError;
             }
 
             if (receiptResult.insertedId) {
               // Log successful signup
-              logger.info('User signup completed successfully', {
-                username: sanitizedUsername,
+              requestLogger.info({
+                msg: 'User Signup Completed Successfully',
+                userId: userResult.insertedId.toString(),
                 subscriptionPlan: parsedSubscriptionPlan,
                 paymentMethod: 'Credit Card'
+              });
+
+              // Security logging for successful signup
+              securityLogger.logAuthAttempt(sanitizedUsername, true, {
+                method: 'signup',
+                subscriptionPlan: parsedSubscriptionPlan
               });
 
               return res.status(201).json({
@@ -529,8 +572,16 @@ app.post('/signup',
               // Rollback user creation if receipt fails
               await usersCollection.deleteOne({ _id: userResult.insertedId });
 
-              // Log rollback due to receipt insertion failure
-              logger.error('Rolled back user creation due to receipt insertion failure', {
+              // Log rollback event
+              requestLogger.error({
+                msg: 'User Creation Rolled Back',
+                reason: 'Receipt Insertion Failed',
+                userId: userResult.insertedId.toString()
+              });
+
+              // Security event for signup failure
+              securityLogger.logSecurityEvent('signup_rollback', {
+                reason: 'Receipt insertion failed',
                 username: sanitizedUsername
               });
 
@@ -540,7 +591,14 @@ app.post('/signup',
             }
           } else {
             // Log user insertion failure
-            logger.error('Failed to create user document', {
+            requestLogger.error({
+              msg: 'User Document Creation Failed',
+              reason: 'No inserted ID returned'
+            });
+
+            // Security event for signup failure
+            securityLogger.logSecurityEvent('signup_failure', {
+              reason: 'User document creation failed',
               username: sanitizedUsername
             });
 
@@ -550,10 +608,15 @@ app.post('/signup',
           }
         } else {
           // Log payment failure
-          logger.warn('Payment failed', {
+          requestLogger.warn({
+            msg: 'Payment Failed',
+            paymentStatus: paymentIntent.status
+          });
+
+          // Security event for payment failure
+          securityLogger.logSecurityEvent('payment_failed', {
             username: sanitizedUsername,
-            paymentStatus: paymentIntent.status,
-            ip: req.ip
+            paymentStatus: paymentIntent.status
           });
 
           // Payment failed
@@ -564,11 +627,23 @@ app.post('/signup',
         }
 
       } catch (error) {
-        // Log signup process error
-        logger.error('Signup process error', {
-          username: sanitizedUsername,
-          error: error.message,
-          stack: error.stack,
+        // Comprehensive error logging
+        requestLogger.error({
+          msg: 'Signup Process Error',
+          error: {
+            message: error.message,
+            name: error.name,
+            code: error.code
+          },
+          sensitiveData: {
+            usernameLength: sanitizedUsername.length,
+            subscriptionPlan: parsedSubscriptionPlan
+          }
+        });
+
+        // Security event for failed signup
+        securityLogger.logSecurityEvent('signup_failure', {
+          reason: error.message,
           ip: req.ip
         });
 
@@ -581,23 +656,40 @@ app.post('/signup',
           try {
             await client.close();
           } catch (closeError) {
-            logger.warn('Error closing MongoDB client', {
-              error: closeError.message
+            requestLogger.warn({
+              msg: 'MongoDB Client Closure Failed',
+              error: {
+                message: closeError.message,
+                name: closeError.name
+              }
             });
           }
         }
       }
-    } catch (error) {
-      // Log unexpected validation or processing error
-      logger.error('Unexpected signup error', {
-        error: error.message,
-        stack: error.stack,
-        requestBody: JSON.stringify(req.body)
+    } catch (unexpectedError) {
+      // Catch any unexpected errors outside the main flow
+      requestLogger.error({
+        msg: 'Unexpected Signup Error',
+        error: {
+          message: unexpectedError.message,
+          name: unexpectedError.name,
+          code: unexpectedError.code
+        },
+        sensitiveData: {
+          usernameProvided: !!req.body.username,
+          usernameLength: req.body.username ? req.body.username.length : 0
+        }
+      });
+
+      // Security event for unexpected error
+      securityLogger.logSecurityEvent('unexpected_signup_error', {
+        errorMessage: unexpectedError.message,
+        ip: req.ip
       });
 
       return res.status(500).json({
         message: 'Internal Server Error',
-        error: process.env.NODE_ENV === 'development' ? error.message : 'Unexpected error occurred'
+        error: process.env.NODE_ENV === 'development' ? unexpectedError.message : 'Unexpected error occurred'
       });
     }
   }
