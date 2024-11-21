@@ -672,25 +672,98 @@ app.post('/signup',
 );
 
 // Endpoint for verifying the token
-app.get('/verify', async (req, res) => {
-  try {
-    // Retrieve the token from the Authorization header
-    const token = req.headers['authorization']?.split(' ')[1]; // Assuming Bearer token format
+app.get('/verify', (req, res) => {
+  // Extract token from Authorization header
+  const authHeader = req.headers['authorization'];
 
-    if (token) {
-      jwt.verify(token, config.secretKey, (err, decoded) => {
-        if (err) {
-          return res.status(401).json({ message: 'Invalid token' });
-        } else {
-          return res.status(200).json({ user: decoded.user });
+  // Log the verification attempt
+  logger.info('Token verification attempt', {
+    ip: req.ip,
+    timestamp: new Date().toISOString()
+  });
+
+  // Validate Authorization header format
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    logger.warn('Invalid Authorization header format', {
+      ip: req.ip,
+      headerProvided: !!authHeader
+    });
+
+    return res.status(401).json({
+      message: 'Invalid authorization format',
+      status: 'error'
+    });
+  }
+
+  // Extract token (safely)
+  const token = authHeader.split(' ')[1];
+
+  // Validate token existence
+  if (!token) {
+    logger.warn('No token provided', {
+      ip: req.ip
+    });
+
+    return res.status(401).json({
+      message: 'No authentication token',
+      status: 'error'
+    });
+  }
+
+  try {
+    // Verify token
+    jwt.verify(token, config.secretKey, (err, decoded) => {
+      if (err) {
+        // Log different types of token verification errors
+        if (err.name === 'TokenExpiredError') {
+          logger.warn('Expired token verification attempt', {
+            ip: req.ip,
+            error: err.message
+          });
+
+          return res.status(401).json({
+            message: 'Token expired',
+            status: 'error'
+          });
         }
+
+        logger.error('Token verification failed', {
+          ip: req.ip,
+          error: err.message
+        });
+
+        return res.status(401).json({
+          message: 'Invalid token',
+          status: 'error'
+        });
+      }
+
+      // Successful verification
+      logger.info('Token successfully verified', {
+        ip: req.ip,
+        userId: decoded.user?.id || 'Unknown'
       });
-    } else {
-      res.status(401).json({ message: 'Not authenticated' });
-    }
+
+      // Optional: You might want to strip sensitive information
+      const { password, ...safeUserData } = decoded.user || {};
+
+      return res.status(200).json({
+        user: safeUserData,
+        status: 'success'
+      });
+    });
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    // Catch any unexpected errors
+    logger.error('Unexpected error in token verification', {
+      ip: req.ip,
+      error: error.message,
+      stack: error.stack
+    });
+
+    res.status(500).json({
+      message: 'Internal Server Error',
+      status: 'error'
+    });
   }
 });
 
@@ -701,13 +774,34 @@ app.post('/login',
     validationSchemas.password()
   ]),
   async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method,
+      path: req.path
+    });
+
     try {
       const { username, password } = req.body;
+
+      // Validate input fields are not empty
+      if (!username || !password) {
+        requestLogger.warn('Login attempt with missing fields', {
+          usernameProvided: !!username,
+          passwordProvided: !!password
+        });
+
+        return res.status(400).json({
+          message: 'Please fill both username and password fields'
+        });
+      }
 
       // Additional sanitization
       const sanitizedUsername = sanitizeInput(username);
 
       const client = new MongoClient(uri);
+
       try {
         await client.connect();
         const db = client.db('EreunaDB');
@@ -718,12 +812,21 @@ app.post('/login',
           Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
         });
 
+        // Log login attempt
+        requestLogger.info('Login attempt', {
+          username: sanitizedUsername,
+          userFound: !!user
+        });
+
         if (!user) {
+          // Log security event for non-existent username
+          securityLogger.logSecurityEvent('Login attempt with non-existent username', {
+            username: sanitizedUsername,
+            ip: req.ip
+          });
+
           return res.status(401).json({
-            errors: [{
-              field: 'username',
-              message: 'Username doesn\'t exist'
-            }]
+            message: 'Username doesn\'t exist'
           });
         }
 
@@ -731,11 +834,14 @@ app.post('/login',
         const passwordMatch = await bcrypt.compare(password, user.Password);
 
         if (!passwordMatch) {
+          // Log security event for incorrect password
+          securityLogger.logSecurityEvent('Login attempt with incorrect password', {
+            username: sanitizedUsername,
+            ip: req.ip
+          });
+
           return res.status(401).json({
-            errors: [{
-              field: 'password',
-              message: 'Password is incorrect'
-            }]
+            message: 'Password is incorrect'
           });
         }
 
@@ -745,16 +851,17 @@ app.post('/login',
 
         // Check subscription status
         if (today > expiresDate) {
+          requestLogger.warn('Login attempt with expired subscription', {
+            username: sanitizedUsername
+          });
+
           // Subscription is expired
           await usersCollection.updateOne(
             { Username: user.Username },
             { $set: { Paid: false } }
           );
           return res.status(402).json({
-            errors: [{
-              field: 'subscription',
-              message: 'Subscription is expired'
-            }]
+            message: 'Subscription is expired'
           });
         }
 
@@ -768,6 +875,11 @@ app.post('/login',
         const tokenExpiration = '30d';
         const token = jwt.sign({ user: user.Username }, config.secretKey, { expiresIn: tokenExpiration });
 
+        // Log successful login
+        requestLogger.info('Successful login', {
+          username: sanitizedUsername
+        });
+
         // Return a success response with the token
         return res.status(200).json({
           message: 'Logged in successfully',
@@ -775,16 +887,26 @@ app.post('/login',
         });
 
       } catch (error) {
-        console.error('Login database error:', error);
+        // Log database errors
+        requestLogger.error('Login database error', {
+          error: error.message,
+          stack: error.stack
+        });
+
         return res.status(500).json({
-          message: 'Internal Server Error',
+          message: 'Database Error',
           error: error.message
         });
       } finally {
-        client.close();
+        await client.close();
       }
     } catch (error) {
-      console.error('Login process error:', error);
+      // Log any unexpected errors in the main try block
+      requestLogger.error('Unexpected login process error', {
+        error: error.message,
+        stack: error.stack
+      });
+
       return res.status(500).json({
         message: 'Internal Server Error',
         error: error.message

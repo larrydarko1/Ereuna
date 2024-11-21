@@ -40,7 +40,6 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import store from '../store/store';
 
 const router = useRouter();
 
@@ -57,11 +56,13 @@ async function login() {
   const username = usernameInput.value.trim();
   const password = passwordInput.value.trim();
 
+  // Reset all error states
   usernameError.value = false;
   passwordError.value = false;
   fieldsError.value = false;
   welcomePopup.value = false;
 
+  // Check for empty fields first
   if (!username || !password) {
     fieldsError.value = true;
     return;
@@ -79,25 +80,43 @@ async function login() {
       })
     });
 
+    // Log the full response for debugging
+    console.log('Response status:', response.status);
+    
+    const responseBody = await response.json();
+    
+    // Log the response body for debugging
+    console.log('Response body:', responseBody);
+
     if (response.ok) {
-      const responseBody = await response.json();
       const token = responseBody.token;
-      // receive token (no vuex?)
       localStorage.setItem('token', token);
       router.push({ name: 'Charts' });
     } else {
-      const responseBody = await response.json();
-      if (response.status === 402) {
-        // Handle subscription expired error
-        router.push({ path: '/renew-subscription' });
-      } else if (responseBody.message === 'Username doesn\'t exist') {
+      // Use exact string matching
+      if (responseBody.message === 'Username doesn\'t exist') {
+        console.log('Setting username error to true');
         usernameError.value = true;
       } else if (responseBody.message === 'Password is incorrect') {
+        console.log('Setting password error to true');
         passwordError.value = true;
+      } else if (responseBody.message === 'Subscription is expired') {
+        router.push({ path: '/renew-subscription' });
+      } else if (responseBody.message === 'Please fill both username and password fields') {
+        fieldsError.value = true;
+      } else {
+        console.error('Unexpected error:', responseBody);
       }
+
+      // Force a re-render or log current state
+      console.log('Current error states:', {
+        usernameError: usernameError.value,
+        passwordError: passwordError.value,
+        fieldsError: fieldsError.value
+      });
     }
   } catch (error) {
-    console.error(error);
+    console.error('Login error:', error);
   }
 }
 
