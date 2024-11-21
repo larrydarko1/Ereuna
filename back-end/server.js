@@ -12,7 +12,7 @@ import crypto from 'crypto';
 import helmet from 'helmet';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
-import { logger, httpLogger, securityLogger, metricsHandler as importedMetricsHandler } from './logger.js'
+import { logger, httpLogger, securityLogger, metricsHandler as importedMetricsHandler } from './logger.js';
 import client from 'prom-client';
 import {
   validate,
@@ -60,54 +60,28 @@ register.registerMetric(activeRequests);
 
 // Middleware for tracking metrics
 function prometheusMiddleware(req, res, next) {
-  // Track active requests
-  const labels = {
-    method: req.method,
-    route: req.path
-  };
-
+  const labels = { method: req.method, route: req.path };
   activeRequests.inc(labels);
-
-  // Start timer for request duration
   const end = httpRequestDurationMicroseconds.startTimer();
 
-  // Modify response end to track metrics
   const oldEnd = res.end;
   res.end = function (...args) {
-    // Stop timer and record duration
-    end({
-      method: req.method,
-      route: req.path,
-      code: res.statusCode
-    });
-
-    // Track total requests
-    totalRequests.inc({
-      method: req.method,
-      route: req.path,
-      code: res.statusCode
-    });
-
-    // Decrease active requests
+    end({ method: req.method, route: req.path, code: res.statusCode });
+    totalRequests.inc({ method: req.method, route: req.path, code: res.statusCode });
     activeRequests.dec(labels);
-
-    // Call original end method
     oldEnd.apply(res, args);
   };
 
   next();
 }
 
+// Metrics endpoint
 function prometheusMetricsHandler(req, res) {
   res.set('Content-Type', register.contentType);
-  register.metrics().then(
-    metrics => res.send(metrics)
-  ).catch(
-    error => res.status(500).send(error)
-  );
+  register.metrics().then(metrics => res.send(metrics)).catch(error => res.status(500).send(error));
 }
 
-// Define origins directly
+// CORS and Rate Limiting
 const allowedOrigins = [
   'http://localhost:8080',
   'https://localhost:8080',
@@ -117,33 +91,30 @@ const allowedOrigins = [
   'https://www.ereuna.co'
 ];
 
-// Add this before your other middleware
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 1000, // Limit each IP to 1000 requests per `window` (here, per minute)
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  max: 1000, // Limit each IP to 1000 requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
   message: {
     error: 'Too many requests, please try again later',
     status: 429 // Too Many Requests
   }
 });
 
-// Update Stripe import
+// Initialize Stripe
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 const port = process.env.PORT || 5500;
 const uri = process.env.MONGODB_URI;
-// Apply Prometheus middleware BEFORE other middlewares
+
+// Consolidated middleware
 app.use(prometheusMiddleware);
-
-// Metrics endpoint
-app.get('/metrics', prometheusMetricsHandler);
-
-// middleware
 app.use(limiter);
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.static('front-end'));
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   crossOriginEmbedderPolicy: false,
@@ -153,17 +124,11 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", ...allowedOrigins.map(origin =>
-        origin.replace(/^https?:\/\//, '')
-      )]
+      connectSrc: ["'self'", ...allowedOrigins.map(origin => origin.replace(/^https?:\/\//, ''))]
     }
   },
-  referrerPolicy: {
-    policy: 'strict-origin-when-cross-origin'
-  }
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
-app.use(express.urlencoded({ extended: false }));
-app.use(express.static('front-end'));
 
 const corsOptions = {
   origin: allowedOrigins,
@@ -171,13 +136,11 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
   origin: function (origin, callback) {
-    // If no origin (like server-to-server requests), allow
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      // Log unauthorized access attempts
       logger.warn('Unauthorized CORS request', {
         origin: origin,
         timestamp: new Date().toISOString()
@@ -188,25 +151,41 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
+// Brute Force Protection Middleware
+const bruteForceProtection = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many login attempts, please try again later',
+  handler: (req, res) => {
+    securityLogger.warn('Potential brute force attack', {
+      ip: req.ip,
+      path: req.path
+    });
+
+    res.status(429).json({
+      status: 'error',
+      message: 'Too many requests, please try again later'
+    });
+  }
+});
+
+// Apply CORS and Brute Force Protection
 app.use(cors(corsOptions));
+app.use('/login', bruteForceProtection);
+app.use('/signup', bruteForceProtection);
 
-// Create a CORS middleware with detailed logging
-const corsMiddleware = cors(corsOptions);
-
+// Logging and Request Tracking Middleware
 app.use((req, res, next) => {
-  // Log incoming request details
   const start = Date.now();
 
-  logger.info('CORS check', {
+  logger.info('Incoming Request', {
     origin: req.get('origin'),
     method: req.method,
     path: req.path,
     ip: req.ip
   });
 
-  // Modify response end to log response time
-  const oldEnd = res.end;
-  res.end = function (...args) {
+  res.on('finish', () => {
     const duration = Date.now() - start;
 
     logger.info('Request Completed', {
@@ -215,16 +194,17 @@ app.use((req, res, next) => {
       status: res.statusCode,
       duration: `${duration}ms`
     });
+  });
 
-    oldEnd.apply(res, args);
-  };
-
-  // Apply CORS middleware
-  corsMiddleware(req, res, next);
+  next();
 });
 
-// CORS Error Handler
+// Metrics Endpoint
+app.get('/metrics', prometheusMetricsHandler);
+
+// Error Handling Middleware
 app.use((err, req, res, next) => {
+  // CORS Error Handler
   if (err.name === 'CorsError') {
     logger.error('CORS Error', {
       origin: req.get('origin'),
@@ -238,7 +218,19 @@ app.use((err, req, res, next) => {
       message: 'Origin not allowed'
     });
   }
-  next(err);
+
+  // Generic Error Handler
+  logger.logError(err, {
+    method: req.method,
+    path: req.path,
+    body: req.body,
+    query: req.query
+  });
+
+  res.status(500).json({
+    message: 'Internal Server Error',
+    error: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred'
+  });
 });
 
 // SSL/TLS Certificate options
@@ -248,22 +240,6 @@ try {
     key: fs.readFileSync(path.join(process.cwd(), 'localhost-key.pem')),
     cert: fs.readFileSync(path.join(process.cwd(), 'localhost.pem'))
   };
-
-  app.use(httpLogger);
-
-  app.use((err, req, res, next) => {
-    logger.logError(err, {
-      method: req.method,
-      path: req.path,
-      body: req.body,
-      query: req.query
-    });
-
-    res.status(500).json({
-      message: 'Internal Server Error',
-      error: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred'
-    });
-  });
 
   // Use HTTPS server
   https.createServer(options, app).listen(port, () => {
