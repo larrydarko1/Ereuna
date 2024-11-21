@@ -8,6 +8,12 @@ const validationSchemas = {
         .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
         .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
 
+    Username: (fieldName = 'Username') => body(fieldName)
+        .trim()
+        .notEmpty().withMessage('Username is required')
+        .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+        .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
+
     newUsername: (fieldName = 'newUsername') => body(fieldName)
         .trim()
         .notEmpty().withMessage('new Username is required')
@@ -66,6 +72,28 @@ const validationSchemas = {
         .isLength({ min: 3, max: 12 }).withMessage('Identifier must be between 3 and 12 characters')
         .matches(/^[A-Z0-9]+$/).withMessage('Identifier must be uppercase alphanumeric'),
 
+    symbol: (fieldName = 'symbol') => param(fieldName)
+        .trim()
+        .notEmpty().withMessage('Symbol is required')
+        .isLength({ min: 1, max: 12 }).withMessage('Symbol must be between 1 and 12 characters')
+        .matches(/^[A-Z0-9]+$/).withMessage('Symbol must be uppercase alphanumeric'),
+
+    // Note Validation
+    note: () => body('note')
+        .trim()
+        .notEmpty().withMessage('Note is required')
+        .isLength({ min: 1, max: 350 }).withMessage('Note must be between 1 and 350 characters'),
+
+    noteId: () => param('noteId').trim()
+        .notEmpty().withMessage('Note ID is required')
+        .isMongoId().withMessage('Invalid Note ID'),
+
+    userQuery: (fieldName = 'user') => query(fieldName)
+        .trim()
+        .notEmpty().withMessage('Username is required')
+        .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+        .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
+
     // Email Validation
     email: () => body('email')
         .trim()
@@ -88,6 +116,19 @@ const validationSchemas = {
     id: (fieldName = 'id') => body(fieldName)
         .isInt({ min: 1 }).withMessage('Invalid ID')
         .toInt(),
+
+    // Add to the existing validationSchemas
+    symbolParam: (fieldName = 'symbol') => param(fieldName)
+        .trim()
+        .notEmpty().withMessage('Symbol is required')
+        .isLength({ min: 1, max: 12 }).withMessage('Symbol must be between 1 and 12 characters')
+        .matches(/^[A-Z0-9]+$/).withMessage('Symbol must be uppercase alphanumeric'),
+
+    userParam: (fieldName = 'user') => param(fieldName)
+        .trim()
+        .notEmpty().withMessage('Username is required')
+        .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+        .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
 
     // Address Validation
     address: () => [
@@ -141,7 +182,19 @@ const validationSets = {
     // Recovery Validation
     recovery: [
         validationSchemas.recoveryKey()
-    ]
+    ],
+
+    // Notes Search Validation
+    notesSearch: [
+        validationSchemas.userParam('user'),
+        validationSchemas.symbolParam('symbol')
+    ],
+
+    notesDeletion: [
+        validationSchemas.symbolParam('symbol'),
+        validationSchemas.noteId(),
+        validationSchemas.userQuery()
+    ],
 };
 
 export {
