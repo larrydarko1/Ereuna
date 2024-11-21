@@ -2402,124 +2402,260 @@ app.get('/chart/:identifier', validate([
 );
 
 // endpoint to create new notes 
-app.post('/:symbol/notes', async (req, res) => {
-  try {
+app.post('/:symbol/notes',
+  validate([
+    validationSchemas.symbol('symbol'),
+    validationSchemas.note('note'),
+    validationSchemas.Username('Username'),
+  ]),
+  async (req, res) => {
     const ticker = req.params.symbol.toUpperCase();
     const { note, Username } = req.body;
 
-    // Validate character limit
-    if (note.length > 350) {
-      return res.status(400).json({ message: 'Note exceeds 350 character limit' });
-    }
+    // Sanitize inputs
+    const sanitizedNote = sanitizeInput(note);
+    const sanitizedUsername = sanitizeInput(Username);
 
-    const currentDate = new Date();
+    let client;
 
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Notes');
-
-    // Check number of existing notes for the user and symbol
-    const existingNotesCount = await collection.countDocuments({
-      Symbol: ticker,
-      Username: Username
-    });
-
-    // Check if user has reached the note limit
-    if (existingNotesCount >= 10) {
-      await client.close();
-      return res.status(400).json({
-        message: 'Maximum note limit (25) reached for this symbol'
+    try {
+      // Log note creation attempt
+      logger.info({
+        msg: 'Note Creation Attempt',
+        symbol: ticker,
+        usernamePartial: obfuscateUsername(sanitizedUsername),
+        noteLength: sanitizedNote.length
       });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Notes');
+
+      // Check number of existing notes for the user and symbol
+      const existingNotesCount = await collection.countDocuments({
+        Symbol: ticker,
+        Username: sanitizedUsername
+      });
+
+      // Check if user has reached the note limit
+      if (existingNotesCount >= 10) {
+        logger.warn({
+          msg: 'Note Creation Failed',
+          reason: 'Maximum note limit reached',
+          symbol: ticker,
+          usernamePartial: obfuscateUsername(sanitizedUsername)
+        });
+
+        return res.status(400).json({
+          message: 'Maximum note limit (10) reached for this symbol'
+        });
+      }
+
+      // Create a new note object using sanitized inputs
+      const currentDate = new Date();
+      const newNote = {
+        Symbol: ticker,
+        Message: sanitizedNote,
+        Username: sanitizedUsername,
+        Date: currentDate,
+      };
+
+      // Insert the new note object into the MongoDB collection
+      const result = await collection.insertOne(newNote);
+
+      if (!result.insertedId) {
+        logger.error({
+          msg: 'Note Insertion Failed',
+          symbol: ticker,
+          usernamePartial: obfuscateUsername(sanitizedUsername)
+        });
+
+        return res.status(500).json({ message: 'Failed to insert note' });
+      }
+
+      // Log successful note creation
+      logger.info({
+        msg: 'Note Created Successfully',
+        symbol: ticker,
+        usernamePartial: obfuscateUsername(sanitizedUsername),
+        noteId: result.insertedId
+      });
+
+      res.status(201).json({
+        message: 'Note inserted successfully',
+        note: newNote
+      });
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: 'Note Creation Error',
+        error: error.message,
+        symbol: ticker,
+        usernamePartial: sanitizedUsername ? obfuscateUsername(sanitizedUsername) : 'Unknown'
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            error: closeError.message
+          });
+        }
+      }
     }
-
-    // Create a new note object
-    const newNote = {
-      Symbol: ticker,
-      Message: note,
-      Username: Username,
-      Date: currentDate,
-    };
-
-    // Insert the new note object into the MongoDB collection
-    const result = await collection.insertOne(newNote);
-
-    if (!result.insertedId) {
-      await client.close();
-      return res.status(404).json({ message: 'Failed to insert note' });
-    }
-
-    await client.close();
-    res.status(201).json({
-      message: 'Note inserted successfully',
-      note: newNote
-    });
-
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint to search notes 
-app.get('/:user/:symbol/notes', async (req, res) => {
-  try {
+app.get('/:user/:symbol/notes', validate(validationSets.notesSearch),
+  async (req, res) => {
     const ticker = req.params.symbol.toUpperCase();
     const Username = req.params.user;
 
-    const client = new MongoClient(uri);
-    await client.connect();
+    // Light sanitization
+    const sanitizedTicker = sanitizeInput(ticker);
+    const sanitizedUsername = sanitizeInput(Username);
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Notes');
+    let client;
 
-    // Find all notes for the given symbol and Username
-    const notes = await collection.find({ Symbol: ticker, Username: Username }).toArray();
+    try {
+      // Log note search attempt
+      logger.info({
+        msg: 'Note Search Attempt',
+        symbol: sanitizedTicker,
+        usernamePartial: obfuscateUsername(sanitizedUsername)
+      });
 
-    if (!notes) {
-      res.status(404).json({ message: 'No notes found' });
-      return;
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Notes');
+
+      // Find all notes for the given symbol and Username
+      const notes = await collection.find({
+        Symbol: sanitizedTicker,
+        Username: sanitizedUsername
+      }).toArray();
+
+      if (!notes || notes.length === 0) {
+        logger.warn({
+          msg: 'No Notes Found',
+          symbol: sanitizedTicker,
+          usernamePartial: obfuscateUsername(sanitizedUsername)
+        });
+
+        return res.status(404).json({ message: 'No notes found' });
+      }
+
+      // Log successful note retrieval
+      logger.info({
+        msg: 'Notes Retrieved Successfully',
+        symbol: sanitizedTicker,
+        usernamePartial: obfuscateUsername(sanitizedUsername),
+        noteCount: notes.length
+      });
+
+      res.status(200).json(notes);
+
+      client.close();
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: 'Note Search Error',
+        error: error.message,
+        symbol: sanitizedTicker,
+        usernamePartial: Username ? obfuscateUsername(Username) : 'Unknown'
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
-
-    res.status(200).json(notes);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
+  });
 
 // endpoint to delete a note
-app.delete('/:symbol/notes/:noteId', async (req, res) => {
-  try {
+app.delete('/:symbol/notes/:noteId', validate(validationSets.notesDeletion),
+  async (req, res) => {
     const ticker = req.params.symbol.toUpperCase();
     const noteId = req.params.noteId;
     const Username = req.query.user;
 
-    const client = new MongoClient(uri);
-    await client.connect();
+    let client;
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Notes');
+    try {
+      // Log note deletion attempt
+      logger.info({
+        msg: 'Note Deletion Attempt',
+        symbol: ticker,
+        usernamePartial: obfuscateUsername(Username)
+      });
 
-    // Find and delete the note with the given id, symbol, and Username
-    const result = await collection.findOneAndDelete({ _id: new ObjectId(noteId), Symbol: ticker, Username: Username });
+      client = new MongoClient(uri);
+      await client.connect();
 
-    if (!result.value) {
-      res.status(404).json({ message: 'Note not found' });
-      return;
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Notes');
+
+      // Find and delete the note with the given id, symbol, and Username
+      const result = await collection.findOneAndDelete({
+        _id: new ObjectId(noteId),
+        Symbol: ticker,
+        Username: Username
+      });
+
+      if (!result.value) {
+        logger.warn({
+          msg: 'Note Not Found',
+          symbol: ticker,
+          usernamePartial: obfuscateUsername(Username),
+          noteId: noteId
+        });
+
+        return res.status(404).json({ message: 'Note not found' });
+      }
+
+      // Log successful note deletion
+      logger.info({
+        msg: 'Note Deleted Successfully',
+        symbol: ticker,
+        usernamePartial: obfuscateUsername(Username),
+        noteId: noteId
+      });
+
+      res.status(200).json({ message: 'Note deleted successfully' });
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: 'Note Deletion Error',
+        error: error.message,
+        symbol: ticker,
+        usernamePartial: Username ? obfuscateUsername(Username) : 'Unknown',
+        noteId: noteId
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      if (client) {
+        await client.close();
+      }
     }
-
-    res.status(200).json({ message: 'Note deleted successfully' });
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 //this endpoint retrieves OHCL Data for the charts 
 app.get('/:ticker/data', async (req, res) => {
