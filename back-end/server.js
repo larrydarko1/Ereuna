@@ -2050,7 +2050,6 @@ app.patch('/change-username',
 );
 
 app.delete('/account-delete',
-  // Validation middleware
   validate([
     validationSchemas.user(),
     validationSchemas.password()
@@ -3637,127 +3636,432 @@ app.get('/:ticker/data12',
 );
 
 // Sends earnings date 
-app.get('/:ticker/earningsdate', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+// Sends earnings date 
+app.get('/:ticker/earningsdate',
+  validate([
+    validationSchemas.chartData('ticker')
+  ]),
+  async (req, res) => {
+    try {
+      // Sanitize and validate ticker
+      const ticker = sanitizeInput(req.params.ticker).toUpperCase();
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('AssetInfo');
+      const client = new MongoClient(uri);
 
-    const Data = await collection.find({ Symbol: ticker }).toArray();
+      try {
+        await client.connect();
 
-    const formattedData = Data.flatMap(item => {
-      const quarterlyIncomeArray = item.quarterlyIncome.map(quarterly => {
-        const date = new Date(quarterly.fiscalDateEnding);
-        return {
-          time: {
-            year: date.getFullYear(),
-            month: date.getMonth() + 1,
-            day: date.getDate(),
-          },
-        };
+        const db = client.db('EreunaDB');
+        const collection = db.collection('AssetInfo');
+
+        // Find data with logging
+        const Data = await collection.find({ Symbol: ticker }).toArray();
+
+        // Log if no data found
+        if (Data.length === 0) {
+          logger.warn('No earnings data found', {
+            ticker: ticker
+          });
+          return res.status(404).json({
+            message: 'No earnings data found for this ticker'
+          });
+        }
+
+        // Process and format earnings dates
+        const formattedData = Data.flatMap(item => {
+          // Safely handle quarterlyIncome in case it's undefined
+          if (!item.quarterlyIncome || !Array.isArray(item.quarterlyIncome)) {
+            logger.warn('Invalid quarterly income data', {
+              ticker: ticker,
+              itemId: item._id
+            });
+            return [];
+          }
+
+          return item.quarterlyIncome.map(quarterly => {
+            try {
+              const date = new Date(quarterly.fiscalDateEnding);
+
+              // Validate date
+              if (isNaN(date.getTime())) {
+                logger.warn('Invalid date in earnings data', {
+                  ticker: ticker,
+                  originalDate: quarterly.fiscalDateEnding
+                });
+                return null;
+              }
+
+              return {
+                time: {
+                  year: date.getFullYear(),
+                  month: date.getMonth() + 1,
+                  day: date.getDate(),
+                },
+              };
+            } catch (dateError) {
+              logger.error('Error processing date', {
+                ticker: ticker,
+                error: dateError.message
+              });
+              return null;
+            }
+          }).filter(entry => entry !== null); // Remove invalid entries
+        });
+
+        // Log successful data retrieval
+        logger.info('Earnings dates retrieved successfully', {
+          ticker: ticker,
+          dataCount: formattedData.length
+        });
+
+        // Send formatted data
+        res.status(200).json(formattedData);
+
+      } catch (dbError) {
+        // Log database-specific errors
+        logger.error('Database error retrieving earnings dates', {
+          ticker: ticker,
+          error: dbError.message,
+          stack: dbError.stack
+        });
+
+        // Differentiate between different types of database errors
+        if (dbError.name === 'MongoError' || dbError.name === 'MongoNetworkError') {
+          return res.status(503).json({
+            message: 'Database service unavailable',
+            error: 'Unable to connect to the database'
+          });
+        }
+
+        return res.status(500).json({
+          message: 'Internal Server Error',
+          error: 'Failed to retrieve earnings dates'
+        });
+
+      } finally {
+        // Ensure database connection is always closed
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.error('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
+
+    } catch (unexpectedError) {
+      // Catch any unexpected errors in the main try block
+      logger.error('Unexpected error in earnings date retrieval', {
+        error: unexpectedError.message,
+        stack: unexpectedError.stack
       });
-      return quarterlyIncomeArray;
-    });
 
-    res.send(formattedData);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: 'An unexpected error occurred'
+      });
+    }
   }
-});
+);
 
 // Sends splits date 
-app.get('/:ticker/splitsdate', async (req, res) => {
-  try {
-    const ticker = req.params.ticker.toUpperCase();
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:ticker/splitsdate',
+  validate([
+    validationSchemas.chartData('ticker')
+  ]),
+  async (req, res) => {
+    try {
+      // Sanitize and validate ticker
+      const ticker = sanitizeInput(req.params.ticker).toUpperCase();
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('AssetInfo');
+      const client = new MongoClient(uri);
 
-    const Data = await collection.find({ Symbol: ticker }).toArray();
+      try {
+        await client.connect();
 
-    const formattedData = Data.flatMap(item => {
-      const quarterlySplitsArray = item.splits.map(i => {
-        const date = new Date(i.effective_date);
-        return {
-          time: {
-            year: date.getFullYear(),
-            month: date.getMonth() + 1,
-            day: date.getDate(),
-          },
-        };
+        const db = client.db('EreunaDB');
+        const collection = db.collection('AssetInfo');
+
+        // Find data with logging
+        const Data = await collection.find({ Symbol: ticker }).toArray();
+
+        // Log if no data found
+        if (Data.length === 0) {
+          logger.warn('No splits data found', {
+            ticker: ticker
+          });
+          return res.status(404).json({
+            message: 'No splits data found for this ticker'
+          });
+        }
+
+        // Process and format splits dates
+        const formattedData = Data.flatMap(item => {
+          // Safely handle splits in case it's undefined
+          if (!item.splits || !Array.isArray(item.splits)) {
+            logger.warn('Invalid splits data', {
+              ticker: ticker,
+              itemId: item._id
+            });
+            return [];
+          }
+
+          return item.splits.map(split => {
+            try {
+              const date = new Date(split.effective_date);
+
+              // Validate date
+              if (isNaN(date.getTime())) {
+                logger.warn('Invalid date in splits data', {
+                  ticker: ticker,
+                  originalDate: split.effective_date
+                });
+                return null;
+              }
+
+              return {
+                time: {
+                  year: date.getFullYear(),
+                  month: date.getMonth() + 1,
+                  day: date.getDate(),
+                },
+                // Optionally add more split details if needed
+                details: {
+                  ratio: split.ratio || null,
+                  type: split.type || 'unknown'
+                }
+              };
+            } catch (dateError) {
+              logger.error('Error processing split date', {
+                ticker: ticker,
+                error: dateError.message
+              });
+              return null;
+            }
+          }).filter(entry => entry !== null); // Remove invalid entries
+        });
+
+        // Log successful data retrieval
+        logger.info('Splits dates retrieved successfully', {
+          ticker: ticker,
+          dataCount: formattedData.length
+        });
+
+        // Send formatted data
+        res.status(200).json(formattedData);
+
+      } catch (dbError) {
+        // Log database-specific errors
+        logger.error('Database error retrieving splits dates', {
+          ticker: ticker,
+          error: dbError.message,
+          stack: dbError.stack
+        });
+
+        // Differentiate between different types of database errors
+        if (dbError.name === 'MongoError' || dbError.name === 'MongoNetworkError') {
+          return res.status(503).json({
+            message: 'Database service unavailable',
+            error: 'Unable to connect to the database'
+          });
+        }
+
+        return res.status(500).json({
+          message: 'Internal Server Error',
+          error: 'Failed to retrieve splits dates'
+        });
+
+      } finally {
+        // Ensure database connection is always closed
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.error('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
+
+    } catch (unexpectedError) {
+      // Catch any unexpected errors in the main try block
+      logger.error('Unexpected error in splits date retrieval', {
+        error: unexpectedError.message,
+        stack: unexpectedError.stack
       });
-      return quarterlySplitsArray;
-    });
 
-    res.send(formattedData);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: 'An unexpected error occurred'
+      });
+    }
   }
-});
+);
 
 // endpoint that retrieves watchlists (names)
-app.get('/:user/watchlists', async (req, res) => {
-  try {
-    const user = req.params.user;
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:user/watchlists',
+  validate([
+    validationSchemas.userParam('user')
+  ]),
+  async (req, res) => {
+    try {
+      // Sanitize user parameter
+      const user = sanitizeInput(req.params.user);
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Watchlists');
+      const client = new MongoClient(uri);
 
-    const userWatchlists = await collection.find({ UsernameID: user }).toArray();
+      try {
+        await client.connect();
 
-    if (userWatchlists.length === 0) {
-      res.status(404).json({ message: 'User not found or no watchlists found' });
-      return;
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Watchlists');
+
+        // Find user watchlists with logging
+        const userWatchlists = await collection.find({ UsernameID: user }).toArray();
+
+        // Log if no watchlists found
+        if (userWatchlists.length === 0) {
+          logger.warn('No watchlists found', {
+            user: obfuscateUsername(user)
+          });
+
+          return res.status(404).json({
+            message: 'User not found or no watchlists found'
+          });
+        }
+
+        // Log successful retrieval
+        logger.info('Watchlists retrieved successfully', {
+          user: obfuscateUsername(user),
+          watchlistCount: userWatchlists.length
+        });
+
+        // Send watchlists with additional security
+        res.status(200).json(userWatchlists.map(watchlist => ({
+          ...watchlist,
+          // Optionally remove any sensitive fields
+          _id: undefined // Remove MongoDB internal ID if needed
+        })));
+
+      } catch (dbError) {
+        // Log database-specific errors
+        logger.error('Database error retrieving watchlists', {
+          user: obfuscateUsername(user),
+          error: dbError.message,
+          stack: dbError.stack
+        });
+
+        // Differentiate between different types of database errors
+        if (dbError.name === 'MongoError' || dbError.name === 'MongoNetworkError') {
+          return res.status(503).json({
+            message: 'Database service unavailable',
+            error: 'Unable to connect to the database'
+          });
+        }
+
+        return res.status(500).json({
+          message: 'Internal Server Error',
+          error: 'Failed to retrieve watchlists'
+        });
+
+      } finally {
+        // Ensure database connection is always closed
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.error('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
+
+    } catch (unexpectedError) {
+      // Catch any unexpected errors in the main try block
+      logger.error('Unexpected error in watchlists retrieval', {
+        error: unexpectedError.message,
+        stack: unexpectedError.stack
+      });
+
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: 'An unexpected error occurred'
+      });
     }
-
-    res.send(userWatchlists);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint that retrieves content of watchlists based on the selected name 
-app.get('/:user/watchlists/:list', async (req, res) => {
-  try {
-    const user = req.params.user;
-    const list = req.params.list;
-    const client = new MongoClient(uri);
-    await client.connect();
+app.get('/:user/watchlists/:list',
+  validate([
+    validationSchemas.userParam('user'),
+    ...validationSchemas.watchlistName()
+  ]),
+  async (req, res) => {
+    try {
+      const user = sanitizeInput(req.params.user);
+      const list = sanitizeInput(req.params.list);
+      const client = new MongoClient(uri);
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Watchlists');
+      try {
+        await client.connect();
 
-    const Watchlists = await collection.findOne({ UsernameID: user, Name: list });
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Watchlists');
 
-    if (!Watchlists) {
-      res.status(404).json({ message: 'User  not found or no watchlists found' });
-      return;
+        const Watchlists = await collection.findOne({ UsernameID: user, Name: list });
+
+        if (!Watchlists) {
+          logger.warn('Watchlist not found', {
+            user: obfuscateUsername(user),
+            list: list
+          });
+
+          return res.status(404).json({
+            message: 'Watchlist not found'
+          });
+        }
+
+        logger.info('Watchlist retrieved successfully', {
+          user: obfuscateUsername(user),
+          list: list,
+          itemCount: Watchlists.List.length
+        });
+
+        res.status(200).json(Watchlists.List);
+
+      } catch (dbError) {
+        logger.error('Database error retrieving watchlist', {
+          user: obfuscateUsername(user),
+          list: list,
+          error: dbError.message
+        });
+
+        return res.status(500).json({
+          message: 'Internal Server Error',
+          error: 'Failed to retrieve watchlist'
+        });
+
+      } finally {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.error('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
+    } catch (unexpectedError) {
+      logger.error('Unexpected error in watchlist retrieval', {
+        error: unexpectedError.message,
+        stack: unexpectedError.stack
+      });
+
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: 'An unexpected error occurred'
+      });
     }
-
-    res.send(Watchlists.List);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // 
 app.get('/:symbol/quotes', async (req, res) => {

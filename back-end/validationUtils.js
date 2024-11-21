@@ -142,6 +142,16 @@ const validationSchemas = {
         body('city').trim().notEmpty().withMessage('City is required'),
         body('country').trim().notEmpty().withMessage('Country is required'),
         body('postalCode').trim().matches(/^[A-Z0-9\s-]+$/i).withMessage('Invalid postal code')
+    ],
+
+    // In validationUtils.js
+    watchlistName: () => [
+        param('list')
+            .trim()
+            .isLength({ min: 1, max: 20 })
+            .withMessage('Watchlist name must be between 1 and 20 characters')
+            .matches(/^[a-zA-Z0-9\s_-]+$/)
+            .withMessage('Watchlist name can only contain letters, numbers, spaces, underscores, and hyphens')
     ]
 };
 
