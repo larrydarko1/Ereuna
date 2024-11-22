@@ -144,15 +144,38 @@ const validationSchemas = {
         body('postalCode').trim().matches(/^[A-Z0-9\s-]+$/i).withMessage('Invalid postal code')
     ],
 
-    // In validationUtils.js
-    watchlistName: () => [
+    watchlistName: () =>
         param('list')
             .trim()
             .isLength({ min: 1, max: 20 })
             .withMessage('Watchlist name must be between 1 and 20 characters')
             .matches(/^[a-zA-Z0-9\s_-]+$/)
-            .withMessage('Watchlist name can only contain letters, numbers, spaces, underscores, and hyphens')
-    ]
+            .withMessage('Watchlist name can only contain letters, numbers, spaces, underscores, and hyphens'),
+
+
+    screenerName: () =>
+        param('list')
+            .trim()
+            .isLength({ min: 1, max: 20 })
+            .withMessage('Watchlist name must be between 1 and 20 characters')
+            .matches(/^[a-zA-Z0-9\s_-]+$/)
+            .withMessage('Watchlist name can only contain letters, numbers, spaces, underscores, and hyphens'),
+
+    oldname: () =>
+        body('oldname')
+            .trim()
+            .isLength({ min: 1, max: 20 })
+            .withMessage('Old name must be between 1 and 20 characters')
+            .matches(/^[a-zA-Z0-9\s_-]+$/)
+            .withMessage(' name can only contain letters, numbers, spaces, underscores, and hyphens'),
+
+    newname: () =>
+        body('newname')
+            .trim()
+            .isLength({ min: 1, max: 20 })
+            .withMessage('New name must be between 1 and 20 characters')
+            .matches(/^[a-zA-Z0-9\s_-]+$/)
+            .withMessage('name can only contain letters, numbers, spaces, underscores, and hyphens')
 };
 
 // Validation Middleware
