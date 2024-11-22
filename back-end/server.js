@@ -5197,52 +5197,23 @@ app.patch('/screener/price', validate([
   validationSchemas.maxPrice()
 ]),
   async (req, res) => {
+    let minPrice, maxPrice, screenerName, Username;
+
     try {
-      // Log the entire request body for debugging
-      logger.info('Incoming Price Update Request', {
-        body: req.body,
-        headers: req.headers
-      });
+      // Sanitize inputs
+      minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
 
-      // Sanitize inputs with additional error handling
-      let minPrice, maxPrice, screenerName, Username;
-
-      try {
-        // Use toString() to ensure we're working with a string before sanitization
-        minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
-        maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
-        screenerName = sanitizeInput(req.body.screenerName || '');
-        Username = sanitizeInput(req.body.user || '');
-      } catch (sanitizeError) {
-        logger.error('Sanitization Error', {
-          error: sanitizeError.message,
-          body: req.body
-        });
-        return res.status(400).json({ message: 'Invalid input format' });
-      }
-
-      // Log sanitized inputs
-      logger.info('Sanitized Inputs', {
-        Username,
-        screenerName,
-        minPrice,
-        maxPrice
-      });
-
-      // Extensive input validation
+      // Validate inputs
       if (!screenerName) {
-        logger.warn('Missing screener name');
         return res.status(400).json({ message: 'Screener name is required' });
       }
-
       if (!Username) {
-        logger.warn('Missing username');
         return res.status(400).json({ message: 'Username is required' });
       }
-
-      // Check if both minPrice and maxPrice are empty
       if (isNaN(minPrice) && isNaN(maxPrice)) {
-        logger.warn('Both min price and max price cannot be empty');
         return res.status(400).json({ message: 'Both min price and max price cannot be empty' });
       }
 
@@ -5255,12 +5226,10 @@ app.patch('/screener/price', validate([
         const collection = db.collection('Screeners');
         const ohlcCollection = db.collection('OHCLVData');
 
-        // If minPrice is NaN, set it to 0
         if (isNaN(minPrice)) {
           minPrice = 0.000001;
         }
 
-        // If maxPrice is NaN, find the highest 'close' value for the most recent day
         if (isNaN(maxPrice)) {
           const recentDate = await ohlcCollection.find({})
             .sort({ timestamp: -1 })
@@ -5270,7 +5239,6 @@ app.patch('/screener/price', validate([
 
           if (recentDate.length > 0) {
             const mostRecentTimestamp = recentDate[0].timestamp;
-
             const closeValues = await ohlcCollection.find({
               timestamp: {
                 $gte: new Date(mostRecentTimestamp.setHours(0, 0, 0, 0)),
@@ -5286,67 +5254,36 @@ app.patch('/screener/price', validate([
           }
         }
 
-        // Validate the updated minPrice and maxPrice
         if (minPrice >= maxPrice) {
-          logger.warn('Min price cannot be higher than or equal to max price', {
-            minPrice,
-            maxPrice
-          });
           return res.status(400).json({ message: 'Min price cannot be higher than or equal to max price' });
         }
 
-        // Construct filter with case-insensitive matching
         const filter = {
           UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
           Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
         };
 
-        // Log the exact filter being used
-        logger.info('Screener Lookup Filter', { filter });
-
-        const updateDoc = { $set: { Price: [minPrice, maxPrice] } };
-        const options = { returnOriginal: false };
-
-        // Find the screener first to confirm its existence
         const existingScreener = await collection.findOne(filter);
-
         if (!existingScreener) {
-          logger.warn('Screener not found', {
-            Username,
-            screenerName,
-            filter
-          });
           return res.status(404).json({
             message: 'Screener not found',
             details: 'No matching screener exists for the given user and name'
           });
         }
 
-        // Proceed with update
+        const updateDoc = { $set: { Price: [minPrice, maxPrice] } };
         const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
 
         if (!result) {
-          logger.warn('Failed to update screener, document not found', {
-            Username,
-            screenerName,
-            filter
-          });
           return res.status(404).json({
             message: 'Screener not found',
             details: 'No matching screener exists for the given user and name'
-          });
-        } else {
-          logger.info('Document updated successfully', {
-            Username,
-            screenerName,
-            minPrice,
-            maxPrice
           });
         }
 
         res.json({
           message: 'Price range updated successfully',
-          updatedScreener: result.value // This should contain the updated document
+          updatedScreener: result.value
         });
 
       } catch (dbError) {
@@ -5372,10 +5309,9 @@ app.patch('/screener/price', validate([
         }
       }
     } catch (error) {
-      logger.error('Unexpected Error in price update', {
-        error: error.message,
-        stack: error.stack,
-        body: req.body
+      logger.error('Price Update Error', {
+        message: error.message,
+        stack: error.stack
       });
       res.status(500).json({
         message: 'Internal Server Error',
@@ -5383,6 +5319,7 @@ app.patch('/screener/price', validate([
       });
     }
   });
+
 
 // endpoint that updates screener document with market cap parameters 
 app.patch('/screener/marketcap', async (req, res) => {
