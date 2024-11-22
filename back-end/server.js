@@ -5322,236 +5322,484 @@ app.patch('/screener/price', validate([
 
 
 // endpoint that updates screener document with market cap parameters 
-app.patch('/screener/marketcap', async (req, res) => {
-  let client;
-  try {
-    let minPrice = parseFloat(req.body.minPrice) * 1000;
-    let maxPrice = parseFloat(req.body.maxPrice) * 1000;
-    const Username = req.body.user;
-    const screenerName = req.body.screenerName;
+app.patch('/screener/marketcap',
+  validate([
+    validationSchemas.user(),
+    validationSchemas.screenerNameBody(),
+    validationSchemas.minPrice(),
+    validationSchemas.maxPrice()
+  ]),
+  async (req, res) => {
+    let client;
+    try {
+      // Sanitize inputs
+      const minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) * 1000 : NaN;
+      const maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) * 1000 : NaN;
+      const Username = sanitizeInput(req.body.user || '');
+      const screenerName = sanitizeInput(req.body.screenerName || '');
 
-    client = new MongoClient(uri);
-    await client.connect();
-    const db = client.db('EreunaDB');
-
-    // Check if both minPrice and maxPrice are empty
-    if (isNaN(minPrice) && isNaN(maxPrice)) {
-      res.status(400).json({ message: 'Both min price and max price cannot be empty' });
-      return;
-    }
-
-    // If minPrice is empty, find the lowest MarketCapitalization
-    if (isNaN(minPrice) && !isNaN(maxPrice)) {
-      const assetInfoCollection = db.collection('AssetInfo');
-      const lowestMarketCapDoc = await assetInfoCollection.find({})
-        .sort({ MarketCapitalization: 1 }) // Sort by MarketCapitalization ascending
-        .limit(1) // Get the lowest value
-        .project({ MarketCapitalization: 1 }) // Only return the MarketCapitalization field
-        .toArray();
-
-      if (lowestMarketCapDoc.length > 0) {
-        minPrice = lowestMarketCapDoc[0].MarketCapitalization; // Set minPrice to the lowest MarketCapitalization
-      } else {
-        res.status(404).json({ message: 'No assets found to determine minimum price' });
-        return;
+      // Additional validation
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
       }
-    }
 
-    // If maxPrice is empty, find the highest MarketCapitalization
-    if (isNaN(maxPrice) && !isNaN(minPrice)) {
-      const assetInfoCollection = db.collection('AssetInfo');
-      const highestMarketCapDoc = await assetInfoCollection.find({})
-        .sort({ MarketCapitalization: -1 }) // Sort by MarketCapitalization descending
-        .limit(1) // Get the highest value
-        .project({ MarketCapitalization: 1 }) // Only return the MarketCapitalization field
-        .toArray();
-
-      if (highestMarketCapDoc.length > 0) {
-        maxPrice = highestMarketCapDoc[0].MarketCapitalization; // Set maxPrice to the highest MarketCapitalization
-      } else {
-        res.status(404).json({ message: 'No assets found to determine maximum price' });
-        return;
+      if (isNaN(minPrice) && isNaN(maxPrice)) {
+        return res.status(400).json({ message: 'Both min market cap and max market cap cannot be empty' });
       }
-    }
 
-    // Ensure minPrice is less than maxPrice
-    if (minPrice >= maxPrice) {
-      res.status(400).json({ message: 'Min price cannot be higher than or equal to max price' });
-      return;
-    }
+      client = new MongoClient(uri);
+      await client.connect();
+      const db = client.db('EreunaDB');
+      const assetInfoCollection = db.collection('AssetInfo');
+      const collection = db.collection('Screeners');
 
-    const filter = { UsernameID: Username, Name: screenerName };
-    const collection = db.collection('Screeners');
+      // If minPrice is empty, find the lowest MarketCapitalization
+      let finalMinPrice = minPrice;
+      if (isNaN(finalMinPrice)) {
+        const lowestMarketCapDoc = await assetInfoCollection.find({
+          MarketCapitalization: { $ne: null, $ne: undefined, $gt: 0 }
+        })
+          .sort({ MarketCapitalization: 1 })
+          .limit(1)
+          .project({ MarketCapitalization: 1 })
+          .toArray();
 
-    const updateDoc = { $set: { MarketCap: [minPrice, maxPrice] } };
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
+        if (lowestMarketCapDoc.length > 0) {
+          finalMinPrice = lowestMarketCapDoc[0].MarketCapitalization;
+        } else {
+          return res.status(404).json({ message: 'No assets found to determine minimum market cap' });
+        }
+      }
 
-    if (!result.value) {
-      console.log('Document not found');
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    } else {
-      console.log('Document updated');
-    }
+      // If maxPrice is empty, find the highest MarketCapitalization
+      let finalMaxPrice = maxPrice;
+      if (isNaN(finalMaxPrice)) {
+        const highestMarketCapDoc = await assetInfoCollection.find({
+          MarketCapitalization: { $ne: null, $ne: undefined, $gt: 0 }
+        })
+          .sort({ MarketCapitalization: -1 })
+          .limit(1)
+          .project({ MarketCapitalization: 1 })
+          .toArray();
 
-    res.json({ message: 'MarketCap range updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      await client.close(); // Ensure client is closed if it was initialized
+        if (highestMarketCapDoc.length > 0) {
+          finalMaxPrice = highestMarketCapDoc[0].MarketCapitalization;
+        } else {
+          return res.status(404).json({ message: 'No assets found to determine maximum market cap' });
+        }
+      }
+
+      // Ensure minPrice is less than maxPrice
+      if (finalMinPrice >= finalMaxPrice) {
+        return res.status(400).json({ message: 'Min market cap cannot be higher than or equal to max market cap' });
+      }
+
+      // Find and update the screener
+      const filter = {
+        UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+        Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+      };
+
+      const existingScreener = await collection.findOne(filter);
+      if (!existingScreener) {
+        return res.status(404).json({
+          message: 'Screener not found',
+          details: 'No matching screener exists for the given user and name'
+        });
+      }
+
+      const updateDoc = { $set: { MarketCap: [finalMinPrice, finalMaxPrice] } };
+      const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+      if (!result) {
+        return res.status(404).json({
+          message: 'Screener not found',
+          details: 'Unable to update screener'
+        });
+      }
+
+      // Log successful update
+      logger.info('Market Cap Range Updated', {
+        username: obfuscateUsername(Username),
+        screenerName: screenerName,
+        minMarketCap: finalMinPrice,
+        maxMarketCap: finalMaxPrice
+      });
+
+      res.json({
+        message: 'Market Cap range updated successfully',
+        updatedScreener: {
+          minMarketCap: finalMinPrice,
+          maxMarketCap: finalMaxPrice
+        }
+      });
+
+    } catch (error) {
+      // Log the error with sensitive information redacted
+      logger.error('Market Cap Update Error', {
+        message: error.message,
+        stack: error.stack,
+        username: obfuscateUsername(req.body.user)
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred'
+      });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
     }
   }
-});
+);
 
 // endpoint that updates screener document with ipo date parameters 
-app.patch('/screener/ipo-date', async (req, res) => {
-  try {
-    let minPrice = new Date(req.body.minPrice); // Parse as Date object
-    let maxPrice = new Date(req.body.maxPrice); // Parse as Date object
-    const Username = req.body.user;
-    const screenerName = req.body.screenerName;
+app.patch('/screener/ipo-date',
+  validate([
+    validationSchemas.user(),
+    validationSchemas.screenerNameBody(),
+    // Custom validation for dates
+    body('minPrice')
+      .optional()
+      .custom((value) => {
+        // If value is provided, ensure it's a valid date
+        if (value) {
+          const date = new Date(value);
+          if (isNaN(date.getTime())) {
+            throw new Error('Invalid minimum date');
+          }
+        }
+        return true;
+      }),
+    body('maxPrice')
+      .optional()
+      .custom((value) => {
+        // If value is provided, ensure it's a valid date
+        if (value) {
+          const date = new Date(value);
+          if (isNaN(date.getTime())) {
+            throw new Error('Invalid maximum date');
+          }
+        }
+        return true;
+      })
+  ]),
+  async (req, res) => {
+    let client;
+    try {
+      // Sanitize inputs
+      const rawMinPrice = sanitizeInput(req.body.minPrice || '');
+      const rawMaxPrice = sanitizeInput(req.body.maxPrice || '');
+      const Username = sanitizeInput(req.body.user || '');
+      const screenerName = sanitizeInput(req.body.screenerName || '');
 
-    // Check if both minPrice and maxPrice are invalid dates
-    if (isNaN(minPrice.getTime()) && isNaN(maxPrice.getTime())) {
-      res.status(400).json({ message: 'At least one of minPrice or maxPrice must be provided' });
-      return;
+      // Parse dates
+      const minPrice = rawMinPrice ? new Date(rawMinPrice) : new Date('invalid');
+      const maxPrice = rawMaxPrice ? new Date(rawMaxPrice) : new Date('invalid');
+
+      // Additional validation
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+
+      // Check if both dates are invalid
+      if (isNaN(minPrice.getTime()) && isNaN(maxPrice.getTime())) {
+        return res.status(400).json({ message: 'At least one of min or max IPO date must be provided' });
+      }
+
+      client = new MongoClient(uri);
+      await client.connect();
+      const db = client.db('EreunaDB');
+      const assetInfoCollection = db.collection('AssetInfo');
+      const collection = db.collection('Screeners');
+
+      // If minPrice is empty, find the oldest IPO date
+      let finalMinPrice = minPrice;
+      if (isNaN(finalMinPrice.getTime())) {
+        const oldestIpoDoc = await assetInfoCollection.find({
+          IPO: { $ne: null, $ne: undefined }
+        })
+          .sort({ IPO: 1 })
+          .limit(1)
+          .project({ IPO: 1 })
+          .toArray();
+
+        if (oldestIpoDoc.length > 0) {
+          finalMinPrice = new Date(oldestIpoDoc[0].IPO);
+        } else {
+          return res.status(404).json({ message: 'No IPO dates found to determine minimum date' });
+        }
+      }
+
+      // If maxPrice is empty, set to current date
+      let finalMaxPrice = maxPrice;
+      if (isNaN(finalMaxPrice.getTime())) {
+        finalMaxPrice = new Date(); // Current date
+      }
+
+      // Ensure minPrice is less than maxPrice
+      if (finalMinPrice >= finalMaxPrice) {
+        return res.status(400).json({ message: 'Minimum IPO date cannot be later than or equal to maximum IPO date' });
+      }
+
+      // Find and update the screener
+      const filter = {
+        UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+        Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+      };
+
+      const existingScreener = await collection.findOne(filter);
+      if (!existingScreener) {
+        return res.status(404).json({
+          message: 'Screener not found',
+          details: 'No matching screener exists for the given user and name'
+        });
+      }
+
+      const updateDoc = { $set: { IPO: [finalMinPrice, finalMaxPrice] } };
+      const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+      if (!result) {
+        return res.status(404).json({
+          message: 'Screener not found',
+          details: 'Unable to update screener'
+        });
+      }
+
+      // Log successful update
+      logger.info('IPO Date Range Updated', {
+        username: obfuscateUsername(Username),
+        screenerName: screenerName,
+        minIpoDate: finalMinPrice.toISOString(),
+        maxIpoDate: finalMaxPrice.toISOString()
+      });
+
+      res.json({
+        message: 'IPO date range updated successfully',
+        updatedScreener: {
+          minIpoDate: finalMinPrice.toISOString(),
+          maxIpoDate: finalMaxPrice.toISOString()
+        }
+      });
+
+    } catch (error) {
+      // Log the error with sensitive information redacted
+      logger.error('IPO Date Update Error', {
+        message: error.message,
+        stack: error.stack,
+        username: obfuscateUsername(req.body.user)
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred'
+      });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
     }
+  }
+);
 
-    // If minPrice is provided but maxPrice is not, set maxPrice to today's date
-    if (!isNaN(minPrice.getTime()) && isNaN(maxPrice.getTime())) {
-      maxPrice = new Date(); // Set to current date
-    }
+// endpoint that handles adding symbol to hidden list for user 
+app.patch('/screener/:user/hidden/:symbol',
+  validate([
+    validationSchemas.userParam('user'),
+    validationSchemas.symbolParam('symbol')
+  ]),
+  async (req, res) => {
+    let client;
+    try {
+      // Sanitize inputs
+      const symbol = sanitizeInput(req.params.symbol).toUpperCase();
+      const Username = sanitizeInput(req.params.user);
 
-    // If maxPrice is provided but minPrice is not, find the oldest IPO date in the AssetInfo collection
-    if (isNaN(minPrice.getTime()) && !isNaN(maxPrice.getTime())) {
-      const client = new MongoClient(uri);
+      client = new MongoClient(uri);
       await client.connect();
 
       const db = client.db('EreunaDB');
+      const usersCollection = db.collection('Users');
       const assetInfoCollection = db.collection('AssetInfo');
 
-      const oldestIpoDate = await assetInfoCollection.find().sort({ IPO: 1 }).limit(1).toArray();
-      if (oldestIpoDate.length > 0) {
-        minPrice = new Date(oldestIpoDate[0].IPO); // Ensure it's a Date object
-      } else {
-        res.status(404).json({ message: 'No IPO dates found in AssetInfo collection' });
-        return;
+      // Verify symbol exists in AssetInfo collection
+      const assetExists = await assetInfoCollection.findOne({ Symbol: symbol });
+      if (!assetExists) {
+        return res.status(404).json({
+          message: 'Symbol not found',
+          symbol: symbol
+        });
       }
 
-      client.close();
+      // Find the user
+      const userDoc = await usersCollection.findOne({ Username: Username });
+      if (!userDoc) {
+        return res.status(404).json({
+          message: 'User not found',
+          username: obfuscateUsername(Username)
+        });
+      }
+
+      // Check if symbol is already in hidden list
+      if (userDoc.Hidden && userDoc.Hidden.includes(symbol)) {
+        return res.status(409).json({
+          message: 'Symbol already in hidden list',
+          symbol: symbol
+        });
+      }
+
+      // Update hidden list
+      const filter = { Username: Username };
+      const updateDoc = { $addToSet: { Hidden: symbol } };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+
+      // Log successful update
+      logger.info('Symbol Added to Hidden List', {
+        username: obfuscateUsername(Username),
+        symbol: symbol
+      });
+
+      res.json({
+        message: 'Hidden List updated successfully',
+        symbol: symbol
+      });
+
+    } catch (error) {
+      // Log the error with sensitive information redacted
+      logger.error('Hidden List Update Error', {
+        message: error.message,
+        stack: error.stack,
+        username: obfuscateUsername(req.params.user),
+        symbol: req.params.symbol
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred'
+      });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
     }
-
-    // Validate minPrice and maxPrice
-    if (minPrice >= maxPrice) {
-      res.status(400).json({ message: 'Min price cannot be higher than or equal to max price' });
-      return;
-    }
-
-    // Update the screener document
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const screenerCollection = db.collection('Screeners');
-
-    const filter = { UsernameID: Username, Name: screenerName };
-    const updateDoc = { $set: { IPO: [minPrice, maxPrice] } };
-    const options = { returnOriginal: false };
-    const result = await screenerCollection.findOneAndUpdate(filter, updateDoc, options);
-
-    if (!result.value) {
-      console.log('Document not found');
-    } else {
-      console.log('Document updated');
-    }
-
-    if (result.modifiedCount === 0) {
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    }
-
-    client.close();
-    res.json({ message: 'ipo range updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
-
-// endpoint that handles adding symbol to hidden list for user 
-app.patch('/screener/:user/hidden/:symbol', async (req, res) => {
-  try {
-    const symbol = req.params.symbol;
-    const Username = req.params.user;
-
-    if (!symbol) {
-      res.status(400).json({ message: 'Please provide a symbol' });
-      return;
-    }
-
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Users');
-
-    const filter = { Username: Username };
-    const updateDoc = { $addToSet: { Hidden: symbol } };
-    const result = await collection.updateOne(filter, updateDoc);
-
-    console.log('Document updated');
-    client.close();
-    res.json({ message: 'Hidden List updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
+);
 
 // endpoint that fetches hidden list for user 
-app.get('/screener/results/:user/hidden', async (req, res) => {
-  const username = req.params.user;
-  try {
-    const client = new MongoClient(uri);
+app.get('/screener/results/:user/hidden',
+  validate([
+    validationSchemas.userParam('user')
+  ]),
+  async (req, res) => {
+    let client;
     try {
+      // Sanitize input
+      const username = sanitizeInput(req.params.user);
+
+      client = new MongoClient(uri);
       await client.connect();
       const db = client.db('EreunaDB');
       const collection = db.collection('Users');
+
+      // Find user document with only Hidden field
       const userDoc = await collection.findOne({ Username: username }, {
         projection: {
           Hidden: 1,
           _id: 0
         }
       });
-      if (userDoc) {
-        res.send(userDoc.Hidden);
-      } else {
-        res.status(404).json({ message: 'User not found' });
+
+      // Check if user exists
+      if (!userDoc) {
+        logger.warn('Hidden List Fetch - User Not Found', {
+          username: obfuscateUsername(username)
+        });
+        return res.status(404).json({
+          message: 'User not found',
+          username: obfuscateUsername(username)
+        });
       }
+
+      // Check if Hidden list exists and is not empty
+      if (!userDoc.Hidden || userDoc.Hidden.length === 0) {
+        logger.info('Hidden List Fetch - Empty List', {
+          username: obfuscateUsername(username)
+        });
+        return res.json([]);
+      }
+
+      // Log successful retrieval
+      logger.info('Hidden List Retrieved', {
+        username: obfuscateUsername(username),
+        hiddenCount: userDoc.Hidden.length
+      });
+
+      // Send hidden list
+      res.json(userDoc.Hidden);
+
     } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ message: 'Internal Server Error' });
+      // Log the error with sensitive information redacted
+      logger.error('Hidden List Retrieval Error', {
+        message: error.message,
+        stack: error.stack,
+        username: obfuscateUsername(req.params.user)
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred'
+      });
     } finally {
-      client.close();
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
     }
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint that retrieves all screeners' names for user 
-app.get('/screener/:user/names', async (req, res) => {
-  const username = req.params.user;
-  try {
-    const client = new MongoClient(uri);
+app.get('/screener/:user/names',
+  validate([
+    validationSchemas.userParam('user')
+  ]),
+  async (req, res) => {
+    let client;
     try {
+      // Sanitize username input
+      const username = sanitizeInput(req.params.user);
+
+      client = new MongoClient(uri);
       await client.connect();
+
       const db = client.db('EreunaDB');
       const collection = db.collection('Screeners');
+
+      // Find screeners for the user with specific projection
       const userDocs = await collection.find({ UsernameID: username }, {
         projection: {
           Name: 1,
@@ -5560,41 +5808,91 @@ app.get('/screener/:user/names', async (req, res) => {
         }
       }).toArray();
 
+      // Log the retrieval attempt
+      logger.info('Screener Names Retrieval', {
+        username: obfuscateUsername(username),
+        screenerCount: userDocs.length
+      });
+
+      // Check if any screeners were found
       if (userDocs.length > 0) {
         // Send the array of objects with Name and Include properties
-        res.send(userDocs);
+        res.status(200).json(userDocs);
       } else {
-        res.status(404).json({ message: 'Screeners not found' });
+        // Log when no screeners are found
+        logger.warn('No Screeners Found', {
+          username: obfuscateUsername(username)
+        });
+
+        res.status(404).json({
+          message: 'No screeners found for the user',
+          username: obfuscateUsername(username)
+        });
       }
     } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ message: 'Internal Server Error' });
+      // Log any unexpected errors
+      logger.error('Screener Names Retrieval Error', {
+        message: error.message,
+        stack: error.stack,
+        username: obfuscateUsername(req.params.user)
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred'
+      });
     } finally {
-      client.close();
+      // Ensure client is closed
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
     }
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint that sends hidden list of user in results 
-app.get('/:user/screener/results/hidden', async (req, res) => {
-  const user = req.params.user;
-  try {
-    const client = new MongoClient(uri);
+app.get('/:user/screener/results/hidden',
+  validate([
+    validationSchemas.userParam('user')
+  ]),
+  async (req, res) => {
+    let client;
     try {
+      // Sanitize input
+      const user = sanitizeInput(req.params.user);
+
+      client = new MongoClient(uri);
       await client.connect();
       const db = client.db('EreunaDB');
 
       // Find the user document and extract the 'Hidden' array
       const usersCollection = db.collection('Users');
       const userDoc = await usersCollection.findOne({ Username: user });
+
       if (!userDoc) {
-        res.status(404).json({ message: 'User not found' });
-        return;
+        logger.warn('Hidden Results - User Not Found', {
+          username: obfuscateUsername(user)
+        });
+        return res.status(404).json({
+          message: 'User not found',
+          username: obfuscateUsername(user)
+        });
       }
-      const hiddenSymbols = userDoc.Hidden;
+
+      // Check if hidden symbols exist
+      const hiddenSymbols = userDoc.Hidden || [];
+      if (hiddenSymbols.length === 0) {
+        logger.info('Hidden Results - No Hidden Symbols', {
+          username: obfuscateUsername(user)
+        });
+        return res.json([]);
+      }
 
       // Filter the AssetInfo collection to only include symbols in the 'Hidden' array
       const assetInfoCollection = db.collection('AssetInfo');
@@ -5621,253 +5919,573 @@ app.get('/:user/screener/results/hidden', async (req, res) => {
         }
       }).toArray();
 
-      res.send(filteredAssets);
+      // Log successful retrieval
+      logger.info('Hidden Results Retrieved', {
+        username: obfuscateUsername(user),
+        hiddenCount: filteredAssets.length
+      });
+
+      res.json(filteredAssets);
+
     } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ message: 'Internal Server Error' });
+      // Log the error with sensitive information redacted
+      logger.error('Hidden Results Retrieval Error', {
+        message: error.message,
+        stack: error.stack,
+        username: obfuscateUsername(req.params.user)
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred'
+      });
     } finally {
-      client.close();
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
     }
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint that removes ticker from hidden list 
-app.patch('/screener/:user/show/:symbol', async (req, res) => {
-  try {
-    const symbol = req.params.symbol;
-    const Username = req.params.user;
+app.patch('/screener/:user/show/:symbol',
+  validate([
+    validationSchemas.userParam('user'),
+    validationSchemas.symbolParam('symbol')
+  ]),
+  async (req, res) => {
+    let client;
+    try {
+      // Sanitize inputs
+      const username = sanitizeInput(req.params.user);
+      const symbol = sanitizeInput(req.params.symbol);
 
-    if (!symbol) {
-      res.status(400).json({ message: 'Please provide a symbol' });
-      return;
+      // Validate symbol
+      if (!symbol) {
+        logger.warn('Show Symbol - Missing Symbol', {
+          username: obfuscateUsername(username)
+        });
+        return res.status(400).json({
+          message: 'Please provide a valid symbol',
+          username: obfuscateUsername(username)
+        });
+      }
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Users');
+
+      // Find user to ensure they exist and the symbol is in their hidden list
+      const userDoc = await collection.findOne({
+        Username: username,
+        Hidden: { $in: [symbol] }
+      });
+
+      if (!userDoc) {
+        logger.warn('Show Symbol - User Not Found or Symbol Not Hidden', {
+          username: obfuscateUsername(username),
+          symbol: symbol
+        });
+        return res.status(404).json({
+          message: 'User not found or symbol not in hidden list',
+          username: obfuscateUsername(username),
+          symbol: symbol
+        });
+      }
+
+      // Remove symbol from hidden list
+      const filter = { Username: username };
+      const updateDoc = { $pull: { Hidden: symbol } };
+      const result = await collection.updateOne(filter, updateDoc);
+
+      // Log successful update
+      logger.info('Hidden Symbol Removed', {
+        username: obfuscateUsername(username),
+        symbol: symbol,
+        modifiedCount: result.modifiedCount
+      });
+
+      // Check if update was successful
+      if (result.modifiedCount === 0) {
+        return res.status(500).json({
+          message: 'Failed to update hidden list',
+          username: obfuscateUsername(username),
+          symbol: symbol
+        });
+      }
+
+      res.status(200).json({
+        message: 'Hidden List updated successfully',
+        username: obfuscateUsername(username),
+        symbol: symbol
+      });
+
+    } catch (error) {
+      // Log the error with sensitive information redacted
+      logger.error('Remove Hidden Symbol Error', {
+        message: error.message,
+        stack: error.stack,
+        username: obfuscateUsername(req.params.user),
+        symbol: sanitizeInput(req.params.symbol)
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred'
+      });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
     }
-
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Users');
-
-    const filter = { Username: Username };
-    const updateDoc = { $pull: { Hidden: symbol } };
-    const result = await collection.updateOne(filter, updateDoc);
-
-    console.log('Document updated');
-    client.close();
-    res.json({ message: 'Hidden List updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint that retrieves all available sectors for user (for screener)
 app.get('/screener/sectors', async (req, res) => {
+  let client;
   try {
-    const client = new MongoClient(uri);
-    try {
-      await client.connect();
-      const db = client.db('EreunaDB');
-      const assetInfoCollection = db.collection('AssetInfo');
-      const sectors = await assetInfoCollection.distinct('Sector');
-      const uniqueSectors = sectors.filter(sector => sector !== null && sector !== undefined);
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const assetInfoCollection = db.collection('AssetInfo');
 
-      res.send(uniqueSectors);
-    } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ message: 'Internal Server Error' });
-    } finally {
-      client.close();
-    }
+    // Retrieve distinct sectors
+    const sectors = await assetInfoCollection.distinct('Sector');
+
+    // Basic type and null/undefined filtering
+    const uniqueSectors = sectors
+      .filter(sector =>
+        typeof sector === 'string' &&
+        sector.trim() !== '' &&
+        sector !== null &&
+        sector !== undefined
+      )
+      .slice(0, 50); // Optional: limit to 50 sectors to prevent potential DoS
+
+    logger.info({
+      totalSectors: uniqueSectors.length,
+      sectors: uniqueSectors
+    }, 'Sectors Retrieved');
+
+    res.status(200).json(uniqueSectors);
+
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    logger.error({ error }, 'Error retrieving sectors');
+    res.status(500).json({
+      message: 'Internal Server Error'
+    });
+  } finally {
+    if (client) {
+      try {
+        await client.close();
+      } catch (closeError) {
+        logger.warn({ closeError }, 'Error closing database connection');
+      }
+    }
   }
 });
 
 // endpoint that updates screener document with sector params 
-app.patch('/screener/sectors', async (req, res) => {
-  try {
-    const sectors = req.body.sectors;
-    const Username = req.body.user;
-    const screenerName = req.body.screenerName;
+app.patch('/screener/sectors',
+  validate([
+    validationSchemas.user(), // Validate username
+    validationSchemas.screenerNameBody(), // Validate screener name
+    body('sectors')
+      .isArray().withMessage('Sectors must be an array')
+      .custom((value) => {
+        // Ensure each sector is a non-empty string that can include & character
+        if (!value.every(sector =>
+          typeof sector === 'string' &&
+          sector.trim().length > 0 &&
+          sector.trim().length <= 50 &&
+          /^[a-zA-Z0-9&\s_-]+$/.test(sector) // Allowing letters, numbers, &, spaces, underscores, and hyphens
+        )) {
+          throw new Error('Each sector must be a non-empty string with max 50 characters and can include &');
+        }
+        return true;
+      })
+  ]),
+  async (req, res) => {
+    let client;
+    try {
+      const sectors = req.body.sectors;
+      const Username = req.body.user;
+      const screenerName = req.body.screenerName;
 
-    if (!sectors || sectors.length === 0) {
-      res.status(400).json({ message: 'Please provide at least one sector' });
-      return;
+      // Sanitize sectors (trim and remove duplicates)
+      const sanitizedSectors = [...new Set(
+        sectors.map(sector => {
+          // Use sanitizeInput but ensure we don't escape & characters
+          return sanitizeInput(sector).replace(/&amp;/g, '&'); // Replace &amp; back to &
+        })
+      )];
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Screeners');
+
+      const filter = {
+        UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+        Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+      };
+
+      const updateDoc = { $set: { Sectors: sanitizedSectors } };
+      const options = { returnOriginal: false };
+
+      const result = await collection.findOneAndUpdate(filter, updateDoc, options);
+
+      if (!result.value) {
+        logger.warn('Screener not found', {
+          username: obfuscateUsername(Username),
+          screenerName
+        });
+        return res.status(404).json({ message: 'Screener not found' });
+      }
+
+      logger.info('Sectors updated successfully', {
+        username: obfuscateUsername(Username),
+        screenerName,
+        sectorsCount: sanitizedSectors.length
+      });
+
+      res.json({
+        message: 'Sectors updated successfully',
+        sectors: sanitizedSectors
+      });
+
+    } catch (error) {
+      logger.error({
+        error,
+        username: obfuscateUsername(req.body.user)
+      }, 'Error updating screener sectors');
+
+      res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({ closeError }, 'Error closing database connection');
+        }
+      }
     }
-
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-
-    const filter = { UsernameID: Username, Name: screenerName };
-    const collection = db.collection('Screeners');
-
-    const updateDoc = { $set: { Sectors: sectors } };
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-
-    if (!result.value) {
-      console.log('Document not found');
-    } else {
-      console.log('Document updated');
-    }
-
-    if (result.modifiedCount === 0) {
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    }
-
-    client.close();
-    res.json({ message: 'Sectors updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint that retrieves all available exchanges for user (screener)
 app.get('/screener/exchange', async (req, res) => {
+  let client;
   try {
-    const client = new MongoClient(uri);
-    try {
-      await client.connect();
-      const db = client.db('EreunaDB');
-      const assetInfoCollection = db.collection('AssetInfo');
-      const Exchange = await assetInfoCollection.distinct('Exchange');
-      const uniqueExchange = Exchange.filter(Exchange => Exchange !== null && Exchange !== undefined);
 
-      res.send(uniqueExchange);
-    } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ message: 'Internal Server Error' });
-    } finally {
-      client.close();
-    }
+    client = new MongoClient(uri);
+    await client.connect();
+
+    const db = client.db('EreunaDB');
+    const assetInfoCollection = db.collection('AssetInfo');
+
+    // Retrieve distinct exchanges
+    const exchanges = await assetInfoCollection.distinct('Exchange');
+
+    // Basic type and null/undefined filtering 
+    const uniqueExchanges = exchanges
+      .filter(exchange =>
+        typeof exchange === 'string' &&
+        exchange.trim() !== '' &&
+        exchange !== null &&
+        exchange !== undefined
+      )
+      .slice(0, 10); // Optional: limit to 10 exchanges to prevent potential DoS 
+
+    logger.info({
+      totalExchanges: uniqueExchanges.length,
+      exchanges: uniqueExchanges
+    }, 'Exchanges Retrieved');
+
+    res.status(200).json(uniqueExchanges);
+
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    // Log the error with more detailed information
+    logger.error({ error }, 'Error retrieving exchanges');
+
+    res.status(500).json({
+      message: 'Internal Server Error'
+    });
+  } finally {
+    if (client) {
+      try {
+        await client.close();
+      } catch (closeError) {
+        logger.warn({ closeError }, 'Error closing database connection');
+      }
+    }
   }
 });
 
 // endpoint that updates screener document with exchange params 
-app.patch('/screener/exchange', async (req, res) => {
-  try {
-    const exchanges = req.body.exchanges;
-    const Username = req.body.user;
-    const screenerName = req.body.screenerName;
+app.patch('/screener/exchange',
+  validate([
+    validationSchemas.user(),
+    validationSchemas.screenerNameBody(),
+    body('exchanges')
+      .isArray().withMessage('Exchanges must be an array')
+      .custom((value) => {
+        if (!value.every(exchange =>
+          typeof exchange === 'string' &&
+          exchange.trim().length > 0 &&
+          exchange.trim().length <= 10
+        )) {
+          throw new Error('Each exchange must be a non-empty string with max 10 characters');
+        }
+        return true;
+      })
+  ]),
+  async (req, res) => {
+    let client;
+    try {
+      const exchanges = req.body.exchanges;
+      const Username = req.body.user;
+      const screenerName = req.body.screenerName;
 
-    if (!exchanges || exchanges.length === 0) {
-      res.status(400).json({ message: 'Please provide at least one exchange' });
-      return;
+      const sanitizedExchanges = [...new Set(
+        exchanges.map(exchange => sanitizeInput(exchange))
+      )];
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Screeners');
+
+      // Comprehensive debugging of user's screeners
+      const allUserScreeners = await collection.find({
+        UsernameID: Username
+      }).toArray();
+
+      logger.debug('All User Screeners', {
+        count: allUserScreeners.length,
+        screenerNames: allUserScreeners.map(s => s.Name)
+      });
+
+      const filter = {
+        UsernameID: Username,
+        Name: screenerName
+      };
+
+      logger.debug('Update Filter', filter);
+
+      // Use updateOne with comprehensive logging
+      const updateResult = await collection.updateOne(filter, {
+        $set: { Exchanges: sanitizedExchanges }
+      });
+
+      logger.debug('Update Operation Result', {
+        matchedCount: updateResult.matchedCount,
+        modifiedCount: updateResult.modifiedCount
+      });
+
+      if (updateResult.matchedCount === 0) {
+        return res.status(404).json({
+          message: 'Screener not found',
+          details: {
+            username: obfuscateUsername(Username),
+            screenerName,
+            availableScreeners: allUserScreeners.map(s => s.Name)
+          }
+        });
+      }
+
+      logger.info('Exchanges updated successfully', {
+        username: obfuscateUsername(Username),
+        screenerName,
+        exchangesCount: sanitizedExchanges.length
+      });
+
+      res.json({
+        message: 'Exchanges updated successfully',
+        exchanges: sanitizedExchanges
+      });
+
+    } catch (error) {
+      logger.error({
+        error,
+        username: obfuscateUsername(req.body.user)
+      }, 'Error updating screener exchanges');
+
+      res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({ closeError }, 'Error closing database connection');
+        }
+      }
     }
-
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-
-    const filter = { UsernameID: Username, Name: screenerName };
-    const collection = db.collection('Screeners');
-
-    const updateDoc = { $set: { Exchanges: exchanges } };
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-
-    if (!result.value) {
-      console.log('Document not found');
-    } else {
-      console.log('Document updated');
-    }
-
-    if (result.modifiedCount === 0) {
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    }
-
-    client.close();
-    res.json({ message: 'exchanges updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint that retrieves all available countries for user (screener)
-app.get('/screener/country', async (req, res) => {
-  try {
-    const client = new MongoClient(uri);
+app.get('/screener/country',
+  async (req, res) => {
+    let client;
     try {
+      client = new MongoClient(uri);
       await client.connect();
+
       const db = client.db('EreunaDB');
       const assetInfoCollection = db.collection('AssetInfo');
 
-      // Use the `distinct` method to get an array of unique Sector values
+      // Use the `distinct` method to get an array of unique Country values
       const Country = await assetInfoCollection.distinct('Country');
 
       // Remove any null or undefined values from the array
-      const uniqueCountry = Country.filter(Country => Country !== null && Country !== undefined);
+      const uniqueCountry = Country.filter(country => country !== null && country !== undefined);
 
-      res.send(uniqueCountry);
+      logger.info('Countries retrieved successfully', {
+        count: uniqueCountry.length
+      });
+
+      res.json(uniqueCountry);
+
     } catch (error) {
-      console.error('Error:', error);
+      logger.error({
+        error,
+        endpoint: req.path
+      }, 'Error retrieving  countries');
+
       res.status(500).json({ message: 'Internal Server Error' });
+
     } finally {
-      client.close();
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({ closeError }, 'Error closing database connection');
+        }
+      }
     }
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint that updates screener document with country params 
-app.patch('/screener/country', async (req, res) => {
-  try {
-    const countries = req.body.countries;
-    const Username = req.body.user;
-    const screenerName = req.body.screenerName;
+app.patch('/screener/country',
+  validate([
+    validationSchemas.user(),
+    validationSchemas.screenerNameBody(),
+    body('countries')
+      .isArray().withMessage('Countries must be an array')
+      .custom((value) => {
+        if (!value.every(country =>
+          typeof country === 'string' &&
+          country.trim().length > 0 &&
+          country.trim().length <= 50
+        )) {
+          throw new Error('Each country must be a non-empty string with max 50 characters');
+        }
+        return true;
+      })
+  ]),
+  async (req, res) => {
+    let client;
+    try {
+      const countries = req.body.countries;
+      const Username = req.body.user;
+      const screenerName = req.body.screenerName;
 
-    if (!countries || countries.length === 0) {
-      res.status(400).json({ message: 'Please provide at least one country' });
-      return;
+      const sanitizedCountries = [...new Set(
+        countries.map(country => sanitizeInput(country))
+      )];
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Screeners');
+
+      // Comprehensive debugging of user's screeners
+      const allUserScreeners = await collection.find({
+        UsernameID: Username
+      }).toArray();
+
+      logger.debug('All User Screeners', {
+        count: allUserScreeners.length,
+        screenerNames: allUserScreeners.map(s => s.Name)
+      });
+
+      const filter = {
+        UsernameID: Username,
+        Name: screenerName
+      };
+
+      logger.debug('Update Filter', filter);
+
+      // Use updateOne with comprehensive logging
+      const updateResult = await collection.updateOne(filter, {
+        $set: { Countries: sanitizedCountries }
+      });
+
+      logger.debug('Update Operation Result', {
+        matchedCount: updateResult.matchedCount,
+        modifiedCount: updateResult.modifiedCount
+      });
+
+      if (updateResult.matchedCount === 0) {
+        return res.status(404).json({
+          message: 'Screener not found',
+          details: {
+            username: obfuscateUsername(Username),
+            screenerName,
+            availableScreeners: allUserScreeners.map(s => s.Name)
+          }
+        });
+      }
+
+      logger.info('Countries updated successfully', {
+        username: obfuscateUsername(Username),
+        screenerName,
+        countriesCount: sanitizedCountries.length
+      });
+
+      res.json({
+        message: 'Countries updated successfully',
+        countries: sanitizedCountries
+      });
+
+    } catch (error) {
+      logger.error({
+        error,
+        username: obfuscateUsername(req.body.user)
+      }, 'Error updating screener countries');
+
+      res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({ closeError }, 'Error closing database connection');
+        }
+      }
     }
-
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-
-    const filter = { UsernameID: Username, Name: screenerName };
-    const collection = db.collection('Screeners');
-
-    const updateDoc = { $set: { Countries: countries } };
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-
-    if (!result.value) {
-      console.log('Document not found');
-    } else {
-      console.log('Document updated');
-    }
-
-    if (result.modifiedCount === 0) {
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    }
-
-    client.close();
-    res.json({ message: 'countries updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint that updates screener document with PE parameters 
 app.patch('/screener/pe', async (req, res) => {
