@@ -1971,7 +1971,6 @@ async function SetPrice() {
   try {
     const leftPrice = parseFloat(document.getElementById('left-p').value)
     const rightPrice = parseFloat(document.getElementById('right-p').value)
-    console.log('Min: ', leftPrice, 'Max: ', rightPrice)
     user = user;
 
     if (leftPrice >= rightPrice) {

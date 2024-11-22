@@ -20,11 +20,6 @@ const validationSchemas = {
         .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
         .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
 
-    user: (fieldName = 'user') => body(fieldName)
-        .trim()
-        .notEmpty().withMessage('Username is required')
-        .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
-        .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
     // Password validation
     password: () => body('password')
         .trim()
@@ -175,7 +170,50 @@ const validationSchemas = {
             .isLength({ min: 1, max: 20 })
             .withMessage('New name must be between 1 and 20 characters')
             .matches(/^[a-zA-Z0-9\s_-]+$/)
-            .withMessage('name can only contain letters, numbers, spaces, underscores, and hyphens')
+            .withMessage('name can only contain letters, numbers, spaces, underscores, and hyphens'),
+
+    screenerNameBody: () =>
+        body('screenerName')
+            .trim()
+            .isLength({ min: 1, max: 20 })
+            .withMessage('Screener name must be between 1 and 20 characters')
+            .matches(/^[a-zA-Z0-9\s_-]+$/)
+            .withMessage('Screener name can only contain letters, numbers, spaces, underscores, and hyphens'),
+
+    user: () => body('user')
+        .trim()
+        .notEmpty().withMessage('Username is required')
+        .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+        .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
+
+    minPrice: () =>
+        body('minPrice')
+            .optional({ nullable: true }) // Allow null values
+            .isLength({ max: 30 })         // Ensure the length does not exceed 30 characters
+            .withMessage('Min price must not exceed 30 characters')
+            .custom((value) => {
+                // If value is null or empty, return true (valid)
+                // This allows the endpoint logic to set it to 0
+                if (value === null || value === '') return true;
+
+                // Ensure it's a valid float if provided
+                return !isNaN(parseFloat(value));
+            })
+            .withMessage('Min price must be a valid number'),
+
+    maxPrice: () =>
+        body('maxPrice')
+            .optional({ nullable: true }) // Allow null values
+            .isLength({ max: 30 })         // Ensure the length does not exceed 30 characters
+            .withMessage('Max price must not exceed 30 characters')
+            .custom((value) => {
+                // If value is null or empty, return true (valid)
+                if (value === null || value === '') return true;
+
+                // Ensure it's a valid float if provided
+                return !isNaN(parseFloat(value));
+            })
+            .withMessage('Max price must be a valid number'),
 };
 
 // Validation Middleware
@@ -184,16 +222,17 @@ const validate = (validations) => {
         await Promise.all(validations.map(validation => validation.run(req)));
 
         const errors = validationResult(req);
-        if (errors.isEmpty()) {
-            return next();
+        if (!errors.isEmpty()) {
+            // Log the errors for debugging
+            console.error('Validation Errors:', errors.array());
+            return res.status(400).json({
+                errors: errors.array().map(error => ({
+                    field: error.param,
+                    message: error.msg
+                }))
+            });
         }
-
-        return res.status(400).json({
-            errors: errors.array().map(error => ({
-                field: error.path,
-                message: error.msg
-            }))
-        });
+        next();
     };
 };
 

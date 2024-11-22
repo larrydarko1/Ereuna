@@ -5190,87 +5190,199 @@ app.get('/:user/screener/results/all',
   });
 
 // endpoint that updates screener document with price parameters 
-app.patch('/screener/price', async (req, res) => {
-  try {
-    let minPrice = parseFloat(req.body.minPrice);
-    let maxPrice = parseFloat(req.body.maxPrice);
-    const screenerName = req.body.screenerName;
-    const Username = req.body.user;
+app.patch('/screener/price', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    try {
+      // Log the entire request body for debugging
+      logger.info('Incoming Price Update Request', {
+        body: req.body,
+        headers: req.headers
+      });
 
-    // Check if both minPrice and maxPrice are empty
-    if (isNaN(minPrice) && isNaN(maxPrice)) {
-      res.status(400).json({ message: 'Both min price and max price cannot be empty' });
-      return;
-    }
+      // Sanitize inputs with additional error handling
+      let minPrice, maxPrice, screenerName, Username;
 
-    const client = new MongoClient(uri);
-    await client.connect();
+      try {
+        // Use toString() to ensure we're working with a string before sanitization
+        minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+        maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+        screenerName = sanitizeInput(req.body.screenerName || '');
+        Username = sanitizeInput(req.body.user || '');
+      } catch (sanitizeError) {
+        logger.error('Sanitization Error', {
+          error: sanitizeError.message,
+          body: req.body
+        });
+        return res.status(400).json({ message: 'Invalid input format' });
+      }
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Screeners');
-    const ohlcCollection = db.collection('OHCLVData');
+      // Log sanitized inputs
+      logger.info('Sanitized Inputs', {
+        Username,
+        screenerName,
+        minPrice,
+        maxPrice
+      });
 
-    // If minPrice is NaN, set it to 0
-    if (isNaN(minPrice)) {
-      minPrice = 0;
-    }
+      // Extensive input validation
+      if (!screenerName) {
+        logger.warn('Missing screener name');
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
 
-    // If maxPrice is NaN, find the highest 'close' value for the most recent day
-    if (isNaN(maxPrice)) {
-      // Step 1: Find the most recent timestamp
-      const recentDate = await ohlcCollection.find({})
-        .sort({ timestamp: -1 }) // Sort by timestamp descending
-        .limit(1) // Get the most recent date
-        .project({ timestamp: 1 }) // Only return the timestamp
-        .toArray();
+      if (!Username) {
+        logger.warn('Missing username');
+        return res.status(400).json({ message: 'Username is required' });
+      }
 
-      if (recentDate.length > 0) {
-        const mostRecentTimestamp = recentDate[0].timestamp;
+      // Check if both minPrice and maxPrice are empty
+      if (isNaN(minPrice) && isNaN(maxPrice)) {
+        logger.warn('Both min price and max price cannot be empty');
+        return res.status(400).json({ message: 'Both min price and max price cannot be empty' });
+      }
 
-        // Step 2: Extract all 'close' values for the most recent day
-        const closeValues = await ohlcCollection.find({
-          timestamp: {
-            $gte: new Date(mostRecentTimestamp.setHours(0, 0, 0, 0)), // Start of the day
-            $lt: new Date(mostRecentTimestamp.setHours(23, 59, 59, 999)) // End of the day
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const ohlcCollection = db.collection('OHCLVData');
+
+        // If minPrice is NaN, set it to 0
+        if (isNaN(minPrice)) {
+          minPrice = 0.000001;
+        }
+
+        // If maxPrice is NaN, find the highest 'close' value for the most recent day
+        if (isNaN(maxPrice)) {
+          const recentDate = await ohlcCollection.find({})
+            .sort({ timestamp: -1 })
+            .limit(1)
+            .project({ timestamp: 1 })
+            .toArray();
+
+          if (recentDate.length > 0) {
+            const mostRecentTimestamp = recentDate[0].timestamp;
+
+            const closeValues = await ohlcCollection.find({
+              timestamp: {
+                $gte: new Date(mostRecentTimestamp.setHours(0, 0, 0, 0)),
+                $lt: new Date(mostRecentTimestamp.setHours(23, 59, 59, 999))
+              }
+            }).project({ close: 1 }).toArray();
+
+            if (closeValues.length > 0) {
+              const sortedCloseValues = closeValues.map(doc => doc.close).sort((a, b) => b - a);
+              maxPrice = sortedCloseValues[0];
+              maxPrice = Math.ceil(maxPrice * 100) / 100;
+            }
           }
-        }).project({ close: 1 }).toArray();
+        }
 
-        // Step 3: Sort close values and set maxPrice
-        if (closeValues.length > 0) {
-          const sortedCloseValues = closeValues.map(doc => doc.close).sort((a, b) => b - a); // Sort in descending order
-          maxPrice = sortedCloseValues[0]; // Set maxPrice to the highest close value
+        // Validate the updated minPrice and maxPrice
+        if (minPrice >= maxPrice) {
+          logger.warn('Min price cannot be higher than or equal to max price', {
+            minPrice,
+            maxPrice
+          });
+          return res.status(400).json({ message: 'Min price cannot be higher than or equal to max price' });
+        }
 
-          // Round up maxPrice to 2 decimal places
-          maxPrice = Math.ceil(maxPrice * 100) / 100; // Rounding up to two decimal places
+        // Construct filter with case-insensitive matching
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        // Log the exact filter being used
+        logger.info('Screener Lookup Filter', { filter });
+
+        const updateDoc = { $set: { Price: [minPrice, maxPrice] } };
+        const options = { returnOriginal: false };
+
+        // Find the screener first to confirm its existence
+        const existingScreener = await collection.findOne(filter);
+
+        if (!existingScreener) {
+          logger.warn('Screener not found', {
+            Username,
+            screenerName,
+            filter
+          });
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        // Proceed with update
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          logger.warn('Failed to update screener, document not found', {
+            Username,
+            screenerName,
+            filter
+          });
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        } else {
+          logger.info('Document updated successfully', {
+            Username,
+            screenerName,
+            minPrice,
+            maxPrice
+          });
+        }
+
+        res.json({
+          message: 'Price range updated successfully',
+          updatedScreener: result.value // This should contain the updated document
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
         }
       }
+    } catch (error) {
+      logger.error('Unexpected Error in price update', {
+        error: error.message,
+        stack: error.stack,
+        body: req.body
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
     }
-
-    // Validate the updated minPrice and maxPrice
-    if (minPrice >= maxPrice) {
-      res.status(400).json({ message: 'Min price cannot be higher than or equal to max price' });
-      return;
-    }
-
-    const filter = { UsernameID: Username, Name: screenerName };
-    const updateDoc = { $set: { Price: [minPrice, maxPrice] } };
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-
-    if (!result.value) {
-      console.log('Document not found');
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    } else {
-      console.log('Document updated');
-    }
-
-    res.json({ message: 'Price range updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
+  });
 
 // endpoint that updates screener document with market cap parameters 
 app.patch('/screener/marketcap', async (req, res) => {
