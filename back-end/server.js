@@ -7598,27 +7598,32 @@ app.patch('/screener/div-yield', validate([
   });
 
 //endpoint is supposed to update document with growth % 
-app.patch('/screener/fundamental-growth', async (req, res) => {
+app.patch('/screener/fundamental-growth', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody()
+]), async (req, res) => {
   let client;
   try {
-    const screenerName = req.body.screenerName;
-    const Username = req.body.user;
+    // Sanitize inputs
+    const screenerName = sanitizeInput(req.body.screenerName || '');
+    const Username = sanitizeInput(req.body.user || '');
 
+    // Validate inputs
     if (!screenerName) {
-      return res.status(400).json({ message: 'Please provide screener name' });
+      return res.status(400).json({ message: 'Screener name is required' });
+    }
+    if (!Username) {
+      return res.status(400).json({ message: 'Username is required' });
     }
 
     client = new MongoClient(uri);
     await client.connect();
 
     const db = client.db('EreunaDB');
-    const filter = { UsernameID: Username, Name: screenerName };
     const collection = db.collection('Screeners');
     const assetInfoCollection = db.collection('AssetInfo');
 
-    const updateDoc = {
-      $set: {}
-    };
+    const updateDoc = { $set: {} };
 
     const pairs = [
       { min: req.body.minRevYoY, max: req.body.maxRevYoY, attribute: 'RevYoY' },
@@ -7632,81 +7637,168 @@ app.patch('/screener/fundamental-growth', async (req, res) => {
     for (const pair of pairs) {
       const { min, max, attribute } = pair;
 
-      // If both values are empty, do nothing for that pair
+      // Skip if both values are empty
       if (min === null && max === null) {
         continue;
       }
 
+      // Sanitize and parse min and max values
+      const sanitizedMin = min !== null ? parseFloat(sanitizeInput(min.toString())) : null;
+      const sanitizedMax = max !== null ? parseFloat(sanitizeInput(max.toString())) : null;
+
       // If min value is empty and max value is filled
-      if (min === null && max !== null) {
-        const lowestDoc = await assetInfoCollection.find({ [attribute]: { $ne: 'None', $ne: '-' } })
+      if (sanitizedMin === null && sanitizedMax !== null) {
+        const lowestDoc = await assetInfoCollection.find({
+          [attribute]: {
+            $ne: 'None',
+            $ne: '-',
+            $type: 'number'
+          }
+        })
           .sort({ [attribute]: 1 })
           .limit(1)
           .project({ [attribute]: 1 })
           .toArray();
 
         if (lowestDoc.length > 0) {
-          updateDoc.$set[attribute] = [lowestDoc[0][attribute], parseFloat(max) / 100];
+          updateDoc.$set[attribute] = [lowestDoc[0][attribute], sanitizedMax / 100];
         } else {
-          return res.status(404).json({ message: `No assets found to determine minimum ${attribute}` });
+          return res.status(404).json({
+            message: `No assets found to determine minimum ${attribute}`,
+            details: `Unable to find valid ${attribute} values`
+          });
         }
       }
 
       // If max value is empty and min value is filled
-      if (max === null && min !== null) {
-        const highestDoc = await assetInfoCollection.find({ [attribute]: { $ne: 'None', $ne: '-' } })
+      if (sanitizedMax === null && sanitizedMin !== null) {
+        const highestDoc = await assetInfoCollection.find({
+          [attribute]: {
+            $ne: 'None',
+            $ne: '-',
+            $type: 'number'
+          }
+        })
           .sort({ [attribute]: -1 })
           .limit(1)
           .project({ [attribute]: 1 })
           .toArray();
 
         if (highestDoc.length > 0) {
-          updateDoc.$set[attribute] = [parseFloat(min) / 100, highestDoc[0][attribute]];
+          updateDoc.$set[attribute] = [sanitizedMin / 100, highestDoc[0][attribute]];
         } else {
-          return res.status(404).json({ message: `No assets found to determine maximum ${attribute}` });
+          return res.status(404).json({
+            message: `No assets found to determine maximum ${attribute}`,
+            details: `Unable to find valid ${attribute} values`
+          });
         }
       }
 
-      // If both values are provided, divide the min value by 100
-      if (min !== null && max !== null) {
-        updateDoc.$set[attribute] = [parseFloat(min) / 100, parseFloat(max) / 100];
+      // If both values are provided
+      if (sanitizedMin !== null && sanitizedMax !== null) {
+        // Validate min is less than max
+        if (sanitizedMin / 100 >= sanitizedMax / 100) {
+          return res.status(400).json({
+            message: `Invalid ${attribute} range`,
+            details: `Minimum ${attribute} must be less than maximum ${attribute}`
+          });
+        }
+
+        updateDoc.$set[attribute] = [sanitizedMin / 100, sanitizedMax / 100];
       }
     }
 
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
+    // Prepare filter with case-insensitive matching
+    const filter = {
+      UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+      Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+    };
 
-    if (!result.value) {
-      console.log('Document not found');
-      return res.status(404).json({ message: 'Screener not found' });
-    } else {
-      console.log('Document updated');
+    // Verify screener exists before updating
+    const existingScreener = await collection.findOne(filter);
+    if (!existingScreener) {
+      return res.status(404).json({
+        message: 'Screener not found',
+        details: 'No matching screener exists for the given user and name'
+      });
     }
 
-    res.json({ message: 'Document updated successfully' });
+    // Perform update
+    const result = await collection.findOneAndUpdate(
+      filter,
+      updateDoc,
+      { returnOriginal: false }
+    );
+
+    if (!result) {
+      return res.status(404).json({
+        message: 'Screener update failed',
+        details: 'Unable to update screener document'
+      });
+    }
+
+    // Log successful update
+    logger.info('Fundamental Growth Screener Updated', {
+      username: obfuscateUsername(Username),
+      screenerName: screenerName,
+      updatedAttributes: Object.keys(updateDoc.$set)
+    });
+
+    res.json({
+      message: 'Fundamental growth parameters updated successfully',
+      updatedScreener: result.value,
+      updatedAttributes: Object.keys(updateDoc.$set)
+    });
+
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    logger.error('Fundamental Growth Update Error', {
+      message: error.message,
+      stack: error.stack,
+      username: Username,
+      screenerName: screenerName
+    });
+
+    res.status(500).json({
+      message: 'Internal Server Error',
+      error: error.message
+    });
   } finally {
     if (client) {
-      await client.close(); // Ensure client is closed if it was initialized
+      try {
+        await client.close();
+      } catch (closeError) {
+        logger.warn('Error closing database connection', {
+          error: closeError.message
+        });
+      }
     }
   }
-})
+});
 
 // endpoint that updates screener document with volume parameters 
-app.patch('/screener/volume', async (req, res) => {
+app.patch('/screener/volume', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.relativeVolumeOption(),
+  validationSchemas.averageVolumeOption(),
+  ...validationSchemas.volumeValues()
+]), async (req, res) => {
+  let client;
   try {
-    const value1 = req.body.value1 ? Math.max(parseFloat(req.body.value1), 0.1) : null;
-    const value2 = req.body.value2 ? parseFloat(req.body.value2) : null;
-    const value3 = req.body.value3 ? Math.max(parseFloat(req.body.value3), 1) : null;
-    const value4 = req.body.value4 ? parseFloat(req.body.value4) : null;
-    const relVolOption = req.body.relVolOption;
-    const avgVolOption = req.body.avgVolOption;
-    const screenerName = req.body.screenerName;
-    const Username = req.body.user;
+    // Sanitize and parse inputs
+    const value1 = req.body.value1 ? Math.max(parseFloat(sanitizeInput(req.body.value1.toString())), 0.1) : null;
+    const value2 = req.body.value2 ? parseFloat(sanitizeInput(req.body.value2.toString())) : null;
+    const value3 = req.body.value3 ? Math.max(parseFloat(sanitizeInput(req.body.value3.toString())), 1) : null;
+    const value4 = req.body.value4 ? parseFloat(sanitizeInput(req.body.value4.toString())) : null;
+    const relVolOption = sanitizeInput(req.body.relVolOption);
+    const avgVolOption = sanitizeInput(req.body.avgVolOption);
+    const screenerName = sanitizeInput(req.body.screenerName);
+    const Username = sanitizeInput(req.body.user);
 
-    const client = new MongoClient(uri);
+    // Obfuscate username for logging
+    const obfuscatedUsername = obfuscateUsername(Username);
+
+    client = new MongoClient(uri);
     await client.connect();
 
     const db = client.db('EreunaDB');
@@ -7723,6 +7815,7 @@ app.patch('/screener/volume', async (req, res) => {
       return result[0]?.value;
     }
 
+    // Process Relative Volume
     if (relVolOption !== '-') {
       const relVolAttributeName = `RelVolume${relVolOption}`;
       let relVolValues = [value1, value2];
@@ -7739,6 +7832,7 @@ app.patch('/screener/volume', async (req, res) => {
       }
     }
 
+    // Process Average Volume
     if (avgVolOption !== '-') {
       const avgVolAttributeName = `AvgVolume${avgVolOption}`;
       let avgVolValues = [value3, value4];
@@ -7755,144 +7849,365 @@ app.patch('/screener/volume', async (req, res) => {
       }
     }
 
+    // Check if there are any updates to apply
     if (Object.keys(updateDoc).length === 0) {
-      console.log('No updates to apply');
-      res.status(200).json({ message: 'No updates to apply' });
-      return;
+      logger.info('No updates to apply', {
+        user: obfuscatedUsername,
+        screenerName: screenerName
+      });
+      return res.status(200).json({ message: 'No updates to apply' });
     }
 
+    // Perform the update
     const options = { returnOriginal: false };
     const result = await screenersCollection.findOneAndUpdate(filter, { $set: updateDoc }, options);
 
-    if (!result.value) {
-      console.log('Document not found');
-      res.status(404).json({ message: 'Screener not found' });
-      return;
+    // Check if the screener document was found
+    if (!result) {
+      logger.warn('Screener not found', {
+        user: obfuscatedUsername,
+        screenerName: screenerName
+      });
+      return res.status(404).json({ message: 'Screener not found' });
     }
 
-    console.log('Document updated');
-    client.close();
-    res.json({ message: 'document updated successfully' });
+    // Log successful update with minimal sensitive information
+    logger.info('Screener updated successfully', {
+      user: obfuscatedUsername,
+      screenerName: screenerName,
+      updatedFields: Object.keys(updateDoc) // Log only field names, not values
+    });
+
+    res.json({ message: 'Document updated successfully', updatedFields: Object.keys(updateDoc) });
+
   } catch (error) {
-    console.error('Error:', error);
+    // Log error with obfuscated username and minimal details
+    logger.error('Error updating screener', {
+      user: obfuscatedUsername,
+      errorType: error.constructor.name,
+      errorMessage: error.message
+    });
+
     res.status(500).json({ message: 'Internal Server Error' });
+  } finally {
+    if (client) {
+      try {
+        await client.close(); // Ensure client is closed if it was initialized
+      } catch (closeError) {
+        logger.warn('Error closing database connection', {
+          user: obfuscatedUsername,
+          error: closeError.message
+        });
+      }
+    }
   }
 });
 
 // endpoint that updates screener document with RS Score parameters 
-app.patch('/screener/rs-score', async (req, res) => {
+app.patch('/screener/rs-score', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  // Custom validation for RS Score values
+  body('value1')
+    .optional({ nullable: true }) // Allow null values
+    .custom((value) => {
+      // If value is null or empty, return true (valid)
+      if (value === null || value === '') return true;
+
+      // Validate float between 1 and 100
+      const parsedValue = parseFloat(value);
+      return !isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 100;
+    })
+    .withMessage('Value1 must be a float between 1 and 100 or null'),
+
+  body('value2')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+
+      const parsedValue = parseFloat(value);
+      return !isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 100;
+    })
+    .withMessage('Value2 must be a float between 1 and 100 or null'),
+
+  body('value3')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+
+      const parsedValue = parseFloat(value);
+      return !isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 100;
+    })
+    .withMessage('Value3 must be a float between 1 and 100 or null'),
+
+  body('value4')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+
+      const parsedValue = parseFloat(value);
+      return !isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 100;
+    })
+    .withMessage('Value4 must be a float between 1 and 100 or null'),
+
+  body('value5')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+
+      const parsedValue = parseFloat(value);
+      return !isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 100;
+    })
+    .withMessage('Value5 must be a float between 1 and 100 or null'),
+
+  body('value6')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+
+      const parsedValue = parseFloat(value);
+      return !isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 100;
+    })
+    .withMessage('Value6 must be a float between 1 and 100 or null')
+]), async (req, res) => {
+  let client;
   try {
-    const value1 = req.body.value1 ? parseFloat(req.body.value1) : null
-    const value2 = req.body.value2 ? parseFloat(req.body.value2) : null
-    const value3 = req.body.value3 ? parseFloat(req.body.value3) : null
-    const value4 = req.body.value4 ? parseFloat(req.body.value4) : null
-    const value5 = req.body.value5 ? parseFloat(req.body.value5) : null
-    const value6 = req.body.value6 ? parseFloat(req.body.value6) : null
-    const screenerName = req.body.screenerName
-    const Username = req.body.user
+    // Sanitize and parse inputs
+    const value1 = req.body.value1 ? Math.min(Math.max(parseFloat(sanitizeInput(req.body.value1.toString())), 1), 100) : null;
+    const value2 = req.body.value2 ? Math.min(Math.max(parseFloat(sanitizeInput(req.body.value2.toString())), 1), 100) : null;
+    const value3 = req.body.value3 ? Math.min(Math.max(parseFloat(sanitizeInput(req.body.value3.toString())), 1), 100) : null;
+    const value4 = req.body.value4 ? Math.min(Math.max(parseFloat(sanitizeInput(req.body.value4.toString())), 1), 100) : null;
+    const value5 = req.body.value5 ? Math.min(Math.max(parseFloat(sanitizeInput(req.body.value5.toString())), 1), 100) : null;
+    const value6 = req.body.value6 ? Math.min(Math.max(parseFloat(sanitizeInput(req.body.value6.toString())), 1), 100) : null;
 
-    const client = new MongoClient(uri)
-    await client.connect()
+    const screenerName = sanitizeInput(req.body.screenerName);
+    const Username = sanitizeInput(req.body.user);
 
-    const db = client.db('EreunaDB')
+    // Obfuscate username for logging
+    const obfuscatedUsername = obfuscateUsername(Username);
 
-    const filter = { UsernameID: Username, Name: screenerName }
-    const collection = db.collection('Screeners')
+    client = new MongoClient(uri);
+    await client.connect();
 
-    const updateDoc = { $set: {} }
+    const db = client.db('EreunaDB');
+    const collection = db.collection('Screeners');
+
+    const filter = { UsernameID: Username, Name: screenerName };
+    const updateDoc = { $set: {} };
 
     // Define pairs and default values
     const pairs = [
       { key: 'RSScore1M', values: [value1, value2], defaults: [1, 100] },
       { key: 'RSScore4M', values: [value3, value4], defaults: [1, 100] },
       { key: 'RSScore1W', values: [value5, value6], defaults: [1, 100] },
-    ]
+    ];
 
     // Process pairs
     pairs.forEach((pair) => {
-      const values = pair.values
-      const defaults = pair.defaults
+      const values = pair.values;
+      const defaults = pair.defaults;
 
       // Check if at least one value is present
       if (values.some((value) => value !== null)) {
         // Create a new array with default values for missing pairs
-        const newArray = values.map((value, index) => value !== null ? value : defaults[index])
+        const newArray = values.map((value, index) => value !== null ? value : defaults[index]);
 
         // Add the new array to the update document
-        if (!updateDoc.$set[pair.key]) {
-          updateDoc.$set[pair.key] = newArray
-        } else {
-          updateDoc.$set[pair.key].push(...newArray)
-        }
+        updateDoc.$set[pair.key] = newArray;
       }
-    })
+    });
 
     // Check if any updates are present
     if (Object.keys(updateDoc.$set).length === 0) {
-      console.log('No values to update')
-      res.status(400).json({ message: 'No values to update' })
-      return
+      logger.info('No RS Score values to update', {
+        user: obfuscatedUsername,
+        screenerName: screenerName
+      });
+      return res.status(200).json({ message: 'No RS Score values to update' });
     }
 
-    const options = { returnOriginal: false }
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options)
+    const options = { returnOriginal: false };
+    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
 
-    if (!result.value) {
-      console.log('Document not found')
-      res.status(404).json({ message: 'Screener not found' })
-      return
+    // Check if the screener document was found
+    if (!result) {
+      logger.warn('Screener not found for RS Score update', {
+        user: obfuscatedUsername,
+        screenerName: screenerName
+      });
+      return res.status(404).json({ message: 'Screener not found' });
     }
 
-    console.log('Document updated')
-    client.close()
-    res.json({ message: 'document updated successfully' })
+    // Log successful update with minimal sensitive information
+    logger.info('RS Score updated successfully', {
+      user: obfuscatedUsername,
+      screenerName: screenerName,
+      updatedFields: Object.keys(updateDoc.$set)
+    });
+
+    res.json({
+      message: 'RS Score updated successfully',
+      updatedFields: Object.keys(updateDoc.$set)
+    });
+
   } catch (error) {
-    console.error('Error:', error)
-    res.status(500).json({ message: 'Internal Server Error' })
+    // Log error with obfuscated username and minimal details
+    logger.error('Error updating RS Score', {
+      user: obfuscatedUsername,
+      errorType: error.constructor.name,
+      errorMessage: error.message
+    });
+
+    res.status(500).json({ message: 'Internal Server Error' });
+  } finally {
+    if (client) {
+      try {
+        await client.close(); // Ensure client is closed if it was initialized
+      } catch (closeError) {
+        logger.warn('Error closing database connection', {
+          user: obfuscatedUsername,
+          error: closeError.message
+        });
+      }
+    }
   }
-})
+});
 
 // endpoint that updates screener document with price peformance parameters 
-app.patch('/screener/price-performance', async (req, res) => {
+app.patch('/screener/price-performance', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+
+  // Validation for changePerc values
+  body('value1')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+      const parsedValue = parseFloat(value);
+      return !isNaN(parsedValue);
+    })
+    .withMessage('Value1 must be a valid number or null'),
+
+  body('value2')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+      const parsedValue = parseFloat(value);
+      return !isNaN(parsedValue);
+    })
+    .withMessage('Value2 must be a valid number or null'),
+
+  body('value3')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+      const validOptions = ['1D', '1W', '1M', '4M', '6M', '1Y', 'YTD'];
+      return validOptions.includes(value.trim());
+    })
+    .withMessage('Value3 must be a valid time period or null'),
+
+  // Validation for percentage off week high/low
+  body('value4')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+      const parsedValue = parseFloat(value);
+      return !isNaN(parsedValue);
+    })
+    .withMessage('Value4 must be a valid number or null'),
+
+  body('value5')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+      const parsedValue = parseFloat(value);
+      return !isNaN(parsedValue);
+    })
+    .withMessage('Value5 must be a valid number or null'),
+
+  body('value6')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+      const parsedValue = parseFloat(value);
+      return !isNaN(parsedValue);
+    })
+    .withMessage('Value6 must be a valid number or null'),
+
+  body('value7')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+      const parsedValue = parseFloat(value);
+      return !isNaN(parsedValue);
+    })
+    .withMessage('Value7 must be a valid number or null'),
+
+  // Validation for NewHigh and NewLow
+  body('value8')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+      // Allow specific values or return true
+      const allowedValues = ['yes', 'no', 'Yes', 'No'];
+      return allowedValues.includes(value.trim());
+    })
+    .withMessage('Value8 must be "yes" or "no"'),
+
+  body('value9')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+      // Allow specific values or return true
+      const allowedValues = ['yes', 'no', 'Yes', 'No'];
+      return allowedValues.includes(value.trim());
+    })
+    .withMessage('Value9 must be "yes" or "no"'),
+]), async (req, res) => {
+  let client;
   try {
-    const value1 = req.body.value1 ? parseFloat(req.body.value1) : null
-    const value2 = req.body.value2 ? parseFloat(req.body.value2) : null
-    const value3 = req.body.value3 ? req.body.value3.trim() : null
-    const value4 = req.body.value4 ? parseFloat(req.body.value4) : null
-    const value5 = req.body.value5 ? parseFloat(req.body.value5) : null
-    const value6 = req.body.value6 ? parseFloat(req.body.value6) : null
-    const value7 = req.body.value7 ? parseFloat(req.body.value7) : null
-    const value8 = req.body.value8 ? req.body.value8.trim() : null
-    const value9 = req.body.value9 ? req.body.value9.trim() : null
-    const value10 = req.body.value10 ? req.body.value10 : null
-    const value11 = req.body.value11 ? req.body.value11 : null
-    const value12 = req.body.value12 ? req.body.value12 : null
-    const value13 = req.body.value13 ? req.body.value13 : null
-    const screenerName = req.body.screenerName
-    const Username = req.body.user
+    // Sanitize and parse inputs
+    const value1 = req.body.value1 ? parseFloat(sanitizeInput(req.body.value1.toString())) : null;
+    const value2 = req.body.value2 ? parseFloat(sanitizeInput(req.body.value2.toString())) : null;
+    const value3 = req.body.value3 ? sanitizeInput(req.body.value3.trim()) : null;
+    const value4 = req.body.value4 ? parseFloat(sanitizeInput(req.body.value4.toString())) : null;
+    const value5 = req.body.value5 ? parseFloat(sanitizeInput(req.body.value5.toString())) : null;
+    const value6 = req.body.value6 ? parseFloat(sanitizeInput(req.body.value6.toString())) : null;
+    const value7 = req.body.value7 ? parseFloat(sanitizeInput(req.body.value7.toString())) : null;
+    const value8 = req.body.value8 ? sanitizeInput(req.body.value8.trim()) : null;
+    const value9 = req.body.value9 ? sanitizeInput(req.body.value9.trim()) : null;
+    const value10 = req.body.value10 ? sanitizeInput(req.body.value10) : null;
+    const value11 = req.body.value11 ? sanitizeInput(req.body.value11) : null;
+    const value12 = req.body.value12 ? sanitizeInput(req.body.value12) : null;
+    const value13 = req.body.value13 ? sanitizeInput(req.body.value13) : null;
 
-    const client = new MongoClient(uri)
-    await client.connect()
+    const screenerName = sanitizeInput(req.body.screenerName);
+    const Username = sanitizeInput(req.body.user);
 
-    const db = client.db('EreunaDB')
+    // Obfuscate username for logging
+    const obfuscatedUsername = obfuscateUsername(Username);
 
-    const filter = { UsernameID: Username, Name: screenerName }
-    const collection = db.collection('Screeners')
-    const assetInfoCollection = db.collection('AssetInfo')
+    client = new MongoClient(uri);
+    await client.connect();
 
-    const updateDoc = { $set: {} }
+    const db = client.db('EreunaDB');
+    const collection = db.collection('Screeners');
+    const assetInfoCollection = db.collection('AssetInfo');
+
+    const filter = { UsernameID: Username, Name: screenerName };
+    const updateDoc = { $set: {} };
 
     // New logic for changePerc
     if (value1 !== null || value2 !== null) {
-      updateDoc.$set.changePerc = []
+      updateDoc.$set.changePerc = [];
 
       if (value1 === null && value2 !== null) {
-        updateDoc.$set.changePerc.push(0.01)
-        updateDoc.$set.changePerc.push(value2)
+        updateDoc.$set.changePerc.push(0.01);
+        updateDoc.$set.changePerc.push(value2);
       } else if (value1 !== null && value2 === null) {
-        updateDoc.$set.changePerc.push(value1)
+        updateDoc.$set.changePerc.push(value1);
 
-        let attributeToCheck
+        let attributeToCheck;
         switch (value3) {
           case '1D': attributeToCheck = 'todaychange'; break;
           case '1W': attributeToCheck = 'weekchange'; break;
@@ -7916,195 +8231,305 @@ app.patch('/screener/price-performance', async (req, res) => {
               value: { $max: { $toDouble: `$${attributeToCheck}` } }
             }
           }
-        ]).toArray()
+        ]).toArray();
 
-        updateDoc.$set.changePerc.push(maxValue[0]?.value || value1)
+        updateDoc.$set.changePerc.push(maxValue[0]?.value || value1);
       } else if (value1 !== null && value2 !== null) {
-        updateDoc.$set.changePerc.push(value1)
-        updateDoc.$set.changePerc.push(value2)
+        updateDoc.$set.changePerc.push(value1);
+        updateDoc.$set.changePerc.push(value2);
       }
 
       if (value3 !== null && value3 !== '') {
-        updateDoc.$set.changePerc.push(value3)
+        updateDoc.$set.changePerc.push(value3);
       }
     }
 
-
     if (value4 !== null || value5 !== null) {
-      updateDoc.$set.PercOffWeekHigh = []
+      updateDoc.$set.PercOffWeekHigh = [];
       if (value4 !== null && value5 === null) {
-        updateDoc.$set.PercOffWeekHigh.push(value4)
+        updateDoc.$set.PercOffWeekHigh.push(value4);
         const maxValue = await assetInfoCollection.aggregate([
           { $group: { _id: null, value: { $max: '$percoff52WeekHigh' } } }
-        ]).toArray()
-        updateDoc.$set.PercOffWeekHigh.push(maxValue[0]?.value)
+        ]).toArray();
+        updateDoc.$set.PercOffWeekHigh.push(maxValue[0]?.value);
       } else if (value4 === null && value5 !== null) {
         const minValue = await assetInfoCollection.aggregate([
           { $group: { _id: null, value: { $min: '$percoff52WeekHigh' } } }
-        ]).toArray()
-        updateDoc.$set.PercOffWeekHigh.push(minValue[0]?.value)
-        updateDoc.$set.PercOffWeekHigh.push(value5)
+        ]).toArray();
+        updateDoc.$set.PercOffWeekHigh.push(minValue[0]?.value);
+        updateDoc.$set.PercOffWeekHigh.push(value5);
       } else {
-        updateDoc.$set.PercOffWeekHigh.push(value4)
-        updateDoc.$set.PercOffWeekHigh.push(value5)
+        updateDoc.$set.PercOffWeekHigh.push(value4);
+        updateDoc.$set.PercOffWeekHigh.push(value5);
       }
     }
 
     // New logic for PercOffWeekLow
     if (value6 !== null || value7 !== null) {
-      updateDoc.$set.PercOffWeekLow = []
+      updateDoc.$set.PercOffWeekLow = [];
       if (value6 !== null && value7 === null) {
-        updateDoc.$set.PercOffWeekLow.push(value6)
+        updateDoc.$set.PercOffWeekLow.push(value6);
         const maxValue = await assetInfoCollection.aggregate([
           { $group: { _id: null, value: { $max: '$percoff52WeekLow' } } }
-        ]).toArray()
-        updateDoc.$set.PercOffWeekLow.push(maxValue[0]?.value)
+        ]).toArray();
+        updateDoc.$set.PercOffWeekLow.push(maxValue[0]?.value);
       } else if (value6 === null && value7 !== null) {
         const minValue = await assetInfoCollection.aggregate([
           { $group: { _id: null, value: { $min: '$percoff52WeekLow' } } }
-        ]).toArray()
-        updateDoc.$set.PercOffWeekLow.push(minValue[0]?.value)
-        updateDoc.$set.PercOffWeekLow.push(value7)
+        ]).toArray();
+        updateDoc.$set.PercOffWeekLow.push(minValue[0]?.value);
+        updateDoc.$set.PercOffWeekLow.push(value7);
       } else {
-        updateDoc.$set.PercOffWeekLow.push(value6)
-        updateDoc.$set.PercOffWeekLow.push(value7)
+        updateDoc.$set.PercOffWeekLow.push(value6);
+        updateDoc.$set.PercOffWeekLow.push(value7);
       }
     }
 
+    // Update NewHigh
     if (value8 !== null && value8 !== 'no') {
-      updateDoc.$set.NewHigh = value8
+      updateDoc.$set.NewHigh = value8;
     }
 
+    // Update NewLow
     if (value9 !== null && value9 !== 'no') {
-      updateDoc.$set.NewLow = value9
+      updateDoc.$set.NewLow = value9;
     }
 
+    // Update Moving Averages
     if (value10 !== null && value10 !== '-') {
-      updateDoc.$set.MA200 = value10
+      updateDoc.$set.MA200 = value10;
     }
 
     if (value11 !== null && value11 !== '-') {
-      updateDoc.$set.MA50 = value11
+      updateDoc.$set.MA50 = value11;
     }
 
     if (value12 !== null && value12 !== '-') {
-      updateDoc.$set.MA20 = value12
+      updateDoc.$set.MA20 = value12;
     }
 
     if (value13 !== null && value13 !== '-') {
-      updateDoc.$set.MA10 = value13
+      updateDoc.$set.MA10 = value13;
     }
 
+    // Check if there are any updates to apply
     if (Object.keys(updateDoc.$set).length === 0) {
-      console.log('No values to update')
-      res.status(400).json({ message: 'No values to update' })
-      return
+      logger.info('No price performance values to update', {
+        user: obfuscatedUsername,
+        screenerName: screenerName
+      });
+      return res.status(200).json({ message: 'No price performance values to update' });
     }
 
-    const options = { returnOriginal: false }
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options)
+    // Perform the update
+    const options = { returnOriginal: false };
+    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
 
-    if (!result.value) {
-      console.log('Document not found')
-      res.status(404).json({ message: 'Screener not found' })
-      return
+    // Check if the screener document was found
+    if (!result) {
+      logger.warn('Screener not found for price performance update', {
+        user: obfuscatedUsername,
+        screenerName: screenerName
+      });
+      return res.status(404).json({ message: 'Screener not found' });
     }
 
-    console.log('Document updated')
-    client.close()
-    res.json({ message: 'document updated successfully' })
+    // Log successful update with minimal sensitive information
+    logger.info('Price performance updated successfully', {
+      user: obfuscatedUsername,
+      screenerName: screenerName,
+      updatedFields: Object.keys(updateDoc.$set)
+    });
+
+    res.json({
+      message: 'Price performance updated successfully',
+      updatedFields: Object.keys(updateDoc.$set)
+    });
+
   } catch (error) {
-    console.error('Error:', error)
-    res.status(500).json({ message: 'Internal Server Error' })
-  }
-})
+    // Log error with obfuscated username and minimal details
+    logger.error('Error updating price performance', {
+      user: obfuscatedUsername,
+      errorType: error.constructor.name,
+      errorMessage: error.message
+    });
 
-app.get('/screener/performance/:ticker', async (req, res) => {
-  try {
-    const symbol = req.params.ticker;
-    const client = new MongoClient(uri);
-    try {
-      await client.connect();
-      const db = client.db('EreunaDB');
-      const assetInfoCollection = db.collection('AssetInfo');
-
-      // Filter by 'Symbol' and retrieve the specified attributes
-      const filter = { Symbol: symbol };
-      const projection = {
-        _id: 0,
-        '1mchange': 1,
-        '1ychange': 1,
-        '4mchange': 1,
-        '6mchange': 1,
-        'todaychange': 1,
-        'weekchange': 1,
-        'ytdchange': 1
-      };
-
-      const performanceData = await assetInfoCollection.findOne(filter, { projection });
-
-      res.send(performanceData);
-    } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ message: 'Internal Server Error' });
-    } finally {
-      client.close();
-    }
-  } catch (error) {
-    console.error('Error:', error);
     res.status(500).json({ message: 'Internal Server Error' });
+  } finally {
+    if (client) {
+      try {
+        await client.close(); // Ensure client is closed if it was initialized
+      } catch (closeError) {
+        logger.warn('Error closing database connection', {
+          user: obfuscatedUsername,
+          error: closeError.message
+        });
+      }
+    }
+  }
+});
+
+// i don't think this endpoint is used at the moment...great fucking mess 
+app.get('/screener/performance/:ticker', [
+  validationSchemas.chartData('ticker')
+], validate([validationSchemas.chartData('ticker')]), async (req, res) => {
+  const obfuscatedUsername = req.user ? obfuscateUsername(req.user.username) : 'unknown';
+  let client;
+
+  try {
+    const symbol = req.params.ticker.toUpperCase();
+
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const assetInfoCollection = db.collection('AssetInfo');
+
+    // Filter by 'Symbol' and retrieve the specified attributes
+    const filter = { Symbol: symbol };
+    const projection = {
+      _id: 0,
+      '1mchange': 1,
+      '1ychange': 1,
+      '4mchange': 1,
+      '6mchange': 1,
+      'todaychange': 1,
+      'weekchange': 1,
+      'ytdchange': 1
+    };
+
+    const performanceData = await assetInfoCollection.findOne(filter, { projection });
+
+    // Handle case when no data is found
+    if (!performanceData) {
+      logger.warn('Performance data not found', {
+        user: obfuscatedUsername,
+        symbol: symbol
+      });
+      return res.status(404).json({ message: `No performance data found for ${symbol}` });
+    }
+
+    // Log successful retrieval
+    logger.info('Performance data retrieved', {
+      user: obfuscatedUsername,
+      symbol: symbol
+    });
+
+    res.json(performanceData);
+
+  } catch (error) {
+    // Log error with obfuscated username
+    logger.error('Error retrieving performance data', {
+      user: obfuscatedUsername,
+      symbol: symbol,
+      errorMessage: error.message,
+      errorStack: error.stack
+    });
+
+    res.status(500).json({ message: 'Internal Server Error' });
+  } finally {
+    if (client) {
+      try {
+        await client.close();
+      } catch (closeError) {
+        logger.warn('Error closing database connection', {
+          user: obfuscatedUsername,
+          errorMessage: closeError.message
+        });
+      }
+    }
   }
 });
 
 // Full Reset screener parameters 
-app.patch('/screener/reset/:user/:name', async (req, res) => {
-  try {
-    const UsernameID = req.params.user;
-    const Name = req.body.Name;
+app.patch('/screener/reset/:user/:name',
+  validate([
+    validationSchemas.userParam('user'), // Validate user parameter
+    validationSchemas.screenerNameParam() // Validate screener name
+  ]),
+  async (req, res) => {
+    const obfuscatedUsername = req.user ? obfuscateUsername(req.user.username) : 'unknown';
+    let client;
 
-    const client = new MongoClient(uri);
-    await client.connect();
+    try {
+      // Sanitize input parameters
+      const UsernameID = sanitizeInput(req.params.user);
+      const Name = sanitizeInput(req.params.name); // Sanitize the name parameter
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Screeners');
+      client = new MongoClient(uri);
+      await client.connect();
 
-    const filter = { UsernameID: UsernameID, Name: Name };
-    console.log('Filter:', filter);
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Screeners');
 
-    const updateDoc = {
-      $set: {
-        UsernameID: UsernameID,
-        Name: Name,
-      },
-      $unset: {}
-    };
+      const filter = { UsernameID: UsernameID, Name: Name };
+      logger.debug('Resetting screener parameters', {
+        user: obfuscatedUsername,
+        screenerName: Name
+      });
 
-    const fields = await collection.findOne(filter, { projection: { _id: 0 } });
-    Object.keys(fields).forEach(field => {
-      if (field !== 'UsernameID' && field !== 'Name') {
-        updateDoc.$unset[field] = '';
+      const updateDoc = {
+        $set: {
+          UsernameID: UsernameID,
+          Name: Name,
+        },
+        $unset: {}
+      };
+
+      // Find existing fields to unset
+      const fields = await collection.findOne(filter, { projection: { _id: 0 } });
+
+      if (!fields) {
+        logger.warn('Screener not found during reset', {
+          user: obfuscatedUsername,
+          screenerName: Name
+        });
+        return res.status(404).json({ message: 'Screener not found' });
       }
-    });
 
-    const options = { returnOriginal: false };
+      Object.keys(fields).forEach(field => {
+        if (field !== 'UsernameID' && field !== 'Name') {
+          updateDoc.$unset[field] = '';
+        }
+      });
 
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-    console.log('Result:', result);
+      const options = { returnDocument: 'after' };
 
-    if (result.value) {
-      console.log('Document updated');
-      res.json({ message: 'document updated successfully' });
-    } else {
-      console.log('Document not found');
-      res.status(404).json({ message: 'Screener not found' });
+      const result = await collection.findOneAndUpdate(filter, updateDoc, options);
+
+      if (result) {
+        logger.info('Screener parameters reset successfully', {
+          user: obfuscatedUsername,
+          screenerName: Name
+        });
+        res.json({ message: 'Screener parameters reset successfully' });
+      } else {
+        logger.warn('Screener update failed', {
+          user: obfuscatedUsername,
+          screenerName: Name
+        });
+        res.status(500).json({ message: 'Failed to reset screener parameters' });
+      }
+    } catch (error) {
+      logger.error('Error resetting screener parameters', {
+        user: obfuscatedUsername,
+        errorMessage: error.message,
+        errorStack: error.stack
+      });
+      res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn('Error closing database connection', {
+            user: obfuscatedUsername,
+            errorMessage: closeError.message
+          });
+        }
+      }
     }
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // Reset Individual screener parameter 
 app.patch('/reset/screener/param', async (req, res) => {
@@ -8467,6 +8892,10 @@ app.get('/screener/:user/results/filtered/:name', async (req, res) => {
 
       if (screenerData.RelVolume6M && screenerData.RelVolume6M[0] !== 0 && screenerData.RelVolume6M[1] !== 0) {
         screenerFilters.RelVolume6M = screenerData.RelVolume6M;
+      }
+
+      if (screenerData.RelVolume1Y && screenerData.RelVolume1Y[0] !== 0 && screenerData.RelVolume1Y[1] !== 0) {
+        screenerFilters.RelVolume1Y = screenerData.RelVolume1Y;
       }
 
       if (screenerData.RSScore1W && screenerData.RSScore1W[0] !== 0 && screenerData.RSScore1W[1] !== 0) {

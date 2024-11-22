@@ -152,9 +152,17 @@ const validationSchemas = {
         param('list')
             .trim()
             .isLength({ min: 1, max: 20 })
-            .withMessage('Watchlist name must be between 1 and 20 characters')
+            .withMessage('screener name must be between 1 and 20 characters')
             .matches(/^[a-zA-Z0-9\s_-]+$/)
-            .withMessage('Watchlist name can only contain letters, numbers, spaces, underscores, and hyphens'),
+            .withMessage('screener name can only contain letters, numbers, spaces, underscores, and hyphens'),
+
+    screenerNameParam: () =>
+        param('name')
+            .trim()
+            .isLength({ min: 1, max: 20 })
+            .withMessage('screener name must be between 1 and 20 characters')
+            .matches(/^[a-zA-Z0-9\s_-]+$/)
+            .withMessage('screener name can only contain letters, numbers, spaces, underscores, and hyphens'),
 
     oldname: () =>
         body('oldname')
@@ -214,6 +222,74 @@ const validationSchemas = {
                 return !isNaN(parseFloat(value));
             })
             .withMessage('Max price must be a valid number'),
+
+    // Volume Values Validation
+    volumeValues: () => [
+        body('value1')
+            .optional({ nullable: true })
+            .custom((value) => {
+                // If value is null or empty, return true (valid)
+                if (value === null || value === '') return true;
+
+                // Ensure it's a valid positive float
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue) && parsedValue >= 0.1;
+            })
+            .withMessage('Value1 must be a valid number greater than or equal to 0.1'),
+
+        body('value2')
+            .optional({ nullable: true })
+            .custom((value) => {
+                // If value is null or empty, return true (valid)
+                if (value === null || value === '') return true;
+
+                // Ensure it's a valid float
+                return !isNaN(parseFloat(value));
+            })
+            .withMessage('Value2 must be a valid number'),
+
+        body('value3')
+            .optional({ nullable: true })
+            .custom((value) => {
+                // If value is null or empty, return true (valid)
+                if (value === null || value === '') return true;
+
+                // Ensure it's a valid number (including 0)
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue) && parsedValue >= 0; // Allow 0 and positive numbers
+            })
+            .withMessage('Value3 must be a valid non-negative number'), // Updated message
+
+        body('value4')
+            .optional({ nullable: true })
+            .custom((value) => {
+                // If value is null or empty, return true (valid)
+                if (value === null || value === '') return true;
+
+                // Ensure it's a valid float
+                return !isNaN(parseFloat(value));
+            })
+            .withMessage('Value4 must be a valid number')
+    ],
+
+    // Relative Volume Option Validation
+    relativeVolumeOption: () => body('relVolOption')
+        .trim()
+        .notEmpty().withMessage('Relative Volume Option is required')
+        .custom((value) => {
+            const validOptions = ['-', '1D', '5D', '1W', '1M', '6M', '1Y'];
+            if (!validOptions.includes(value)) {
+                console.log('Invalid relVolOption:', value);
+                throw new Error('Invalid Relative Volume Option');
+            }
+            return true;
+        }),
+
+    // Average Volume Option Validation
+    averageVolumeOption: () => body('avgVolOption')
+        .trim()
+        .notEmpty().withMessage('Average Volume Option is required')
+        .isIn(['-', '1W', '1M', '6M', '1Y']).withMessage('Invalid Average Volume Option'),
 };
 
 // Validation Middleware
@@ -277,6 +353,14 @@ const validationSets = {
     chartData: [
         validationSchemas.chartData('ticker')
     ],
+
+    volumeScreener: [
+        validationSchemas.user(),
+        validationSchemas.screenerNameBody(),
+        validationSchemas.relativeVolumeOption(),
+        validationSchemas.averageVolumeOption(),
+        ...validationSchemas.volumeValues()
+    ]
 };
 
 export {
