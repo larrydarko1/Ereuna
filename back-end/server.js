@@ -3993,7 +3993,7 @@ app.get('/:user/watchlists',
 app.get('/:user/watchlists/:list',
   validate([
     validationSchemas.userParam('user'),
-    ...validationSchemas.watchlistName()
+    validationSchemas.watchlistName()
   ]),
   async (req, res) => {
     try {
@@ -4466,329 +4466,683 @@ app.patch('/:user/watchlists/:list',
 );
 
 // endpoint that deletes ticker from selected watchlist 
-app.patch('/:user/deleteticker/watchlists/:list/:ticker', async (req, res) => {
-  try {
-    const list = req.params.list;
-    const ticker = req.params.ticker;
-    const user = req.params.user;
-
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Watchlists');
-
-    const filter = { Name: list, UsernameID: user }; // Use the Name from the request body as the filter
-    const update = { $pull: { List: ticker } }; // Remove the ticker from the List array
-
-    const result = await collection.updateOne(filter, update);
-
-    if (result.modifiedCount === 0) {
-      res.status(404).json({ message: 'Watchlist not found' });
-      return;
-    }
-
-    res.send({ message: 'Ticker deleted successfully' }); // Return a success message
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-// endpoint that deletes selected watchlist
-app.delete('/:user/delete/watchlists/:list', async (req, res) => {
-  try {
-    const list = req.params.list;
-    const user = req.params.user;
-
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Watchlists');
-
-    const filter = { Name: list, UsernameID: user }; // Use the Name from the request body as the filter
-
-    const result = await collection.deleteOne(filter);
-
-    if (result.deletedCount === 0) {
-      res.status(404).json({ message: 'Watchlist not found' });
-      return;
-    }
-
-    res.send({ message: 'watchlist deleted successfully' }); // Return a success message
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-// endpoint that creates a new watchlist 
-app.post('/:user/create/watchlists/:list', async (req, res) => {
-  try {
-    const list = req.params.list;
-    const user = req.params.user;
-
-    // Check if the watchlist name exceeds 20 characters
-    if (list.length > 20) {
-      return res.status(400).json({ message: 'Watchlist name cannot exceed 20 characters.' });
-    }
-
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Watchlists');
-
-    // Check how many watchlists the user already has
-    const existingWatchlistsCount = await collection.countDocuments({ UsernameID: user });
-
-    if (existingWatchlistsCount >= 20) {
-      return res.status(400).json({ message: 'User  cannot have more than 25 watchlists.' });
-    }
-
-    const document = { Name: list, UsernameID: user, List: [] };
-
-    const result = await collection.insertOne(document);
-
-    if (result.insertedCount === 1) {
-      res.send({ message: 'Watchlist created successfully' });
-    } else {
-      res.status(500).json({ message: 'Error creating watchlist' });
-    }
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-// endpoint that renames selected watchlist 
-app.patch('/:user/rename/watchlists/:oldname', async (req, res) => {
-  try {
-    const oldname = req.params.oldname;
-    const newname = req.body.newname;
-    const Username = req.params.user;
-
-    if (!newname) {
-      res.status(400).json({ message: 'Please provide a new name' });
-      return;
-    }
-
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Watchlists');
-
-    const filter = { UsernameID: Username, Name: oldname };
-    const updateDoc = { $set: { Name: newname } };
-
-    const result = await collection.updateOne(filter, updateDoc);
-
-    if (result.modifiedCount === 0) {
-      res.status(404).json({ message: 'Watchlist not found' });
-      return;
-    }
-
-    client.close();
-    res.json({ message: 'Watchlist renamed successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-// endpoint that handles creation of new screeners 
-app.post('/:user/create/screener/:list', async (req, res) => {
-  let client;
-  try {
-    const user = req.params.user;
-    const list = req.params.list;
-
-    // Check if screener name is too long
-    if (list.length > 20) {
-      return res.status(400).json({
-        message: 'Screener name cannot be longer than 20 characters'
-      });
-    }
-
-    client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Screeners');
-
-    // Check the number of existing screeners for this user
-    const screenerCount = await collection.countDocuments({ UsernameID: user });
-    if (screenerCount >= 20) {
-      return res.status(400).json({
-        message: 'Maximum number of screeners (20) has been reached'
-      });
-    }
-
-    // Check if a screener with the same name and username already exists
-    const existingScreener = await collection.findOne({ UsernameID: user, Name: list });
-    if (existingScreener) {
-      return res.status(400).json({
-        message: 'Screener with the same name already exists'
-      });
-    }
-
-    // Create a new screener document
-    const screenerDoc = {
-      UsernameID: user,
-      Name: list,
-      Include: true,
-      CreatedAt: new Date(), // Optional: add creation timestamp
-    };
-
-    const result = await collection.insertOne(screenerDoc);
-
-    // Check if insertion was successful
-    if (result.insertedCount === 1 || result.acknowledged) {
-      return res.json({
-        message: 'Screener created successfully',
-        screenerCount: screenerCount + 1
-      });
-    } else {
-      return res.status(500).json({ message: 'Failed to create screener' });
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    // Ensure client is closed if it was opened
-    if (client) {
-      await client.close();
-    }
-  }
-});
-
-// endpoint that renames selected screener
-app.patch('/:user/rename/screener', async (req, res) => {
-  let client;
-  try {
-    console.log('Received request:', req.body);
-    const oldname = req.body.oldname; // Access oldname from the request body
-    const newname = req.body.newname;
-    const Username = req.params.user;
-
-    // Check if new screener name is too long
-    if (newname.length > 20) {
-      return res.status(400).json({
-        message: 'Screener name cannot be longer than 20 characters'
-      });
-    }
-
-    // Check if new name is provided and different from old name
-    if (!newname) {
-      return res.status(400).json({ message: 'Please provide a new name' });
-    }
-
-    if (oldname === newname) {
-      return res.status(400).json({
-        message: 'New name must be different from the current name'
-      });
-    }
-
-    client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Screeners');
-
-    // Check if a screener with the new name already exists
-    const existingScreener = await collection.findOne({
-      UsernameID: Username,
-      Name: newname
+app.patch('/:user/deleteticker/watchlists/:list/:ticker',
+  validate([
+    validationSchemas.userParam('user'),
+    validationSchemas.watchlistName(),
+    validationSchemas.symbolParam('ticker')
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method,
+      path: req.path
     });
 
-    if (existingScreener) {
-      return res.status(400).json({
-        message: 'A screener with this name already exists'
+    try {
+      // Sanitize input parameters
+      const list = sanitizeInput(req.params.list);
+      const ticker = sanitizeInput(req.params.ticker).toUpperCase();
+      const user = sanitizeInput(req.params.user);
+
+      // Log the attempt to delete a ticker
+      requestLogger.info('Delete ticker attempt', {
+        user: obfuscateUsername(user),
+        list,
+        ticker
+      });
+
+      const client = new MongoClient(uri);
+
+      try {
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Watchlists');
+
+        // Verify watchlist exists and belongs to the user
+        const watchlist = await collection.findOne({
+          Name: list,
+          UsernameID: user
+        });
+
+        if (!watchlist) {
+          requestLogger.warn('Watchlist not found', {
+            user: obfuscateUsername(user),
+            list
+          });
+          return res.status(404).json({
+            message: 'Watchlist not found',
+            details: 'The specified watchlist does not exist or you do not have access to it'
+          });
+        }
+
+        // Check if ticker exists in the watchlist
+        if (!watchlist.List || !watchlist.List.includes(ticker)) {
+          requestLogger.warn('Ticker not found in watchlist', {
+            user: obfuscateUsername(user),
+            list,
+            ticker
+          });
+          return res.status(404).json({
+            message: 'Ticker not found in the watchlist'
+          });
+        }
+
+        const filter = { Name: list, UsernameID: user };
+        const update = {
+          $pull: { List: ticker },
+          $set: { lastUpdated: new Date() }
+        };
+
+        const result = await collection.updateOne(filter, update);
+
+        if (result.modifiedCount === 1) {
+          requestLogger.info('Ticker deleted successfully', {
+            user: obfuscateUsername(user),
+            list,
+            ticker
+          });
+
+          res.status(200).json({
+            message: 'Ticker deleted successfully',
+            list,
+            ticker
+          });
+        } else {
+          requestLogger.warn('Failed to delete ticker', {
+            user: obfuscateUsername(user),
+            list,
+            ticker
+          });
+
+          res.status(500).json({
+            message: 'Failed to delete ticker',
+            details: 'An unexpected error occurred while deleting the symbol'
+          });
+        }
+      } catch (dbError) {
+        requestLogger.error('Database error in deleting ticker', {
+          user: obfuscateUsername(user),
+          list,
+          ticker,
+          error: dbError.message
+        });
+
+        res.status(500).json({
+          message: 'Internal Server Error',
+          error: 'Failed to delete ticker from watchlist'
+        });
+      } finally {
+        try {
+          await client.close();
+        } catch (closeError) {
+          requestLogger.error('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
+    } catch (unexpectedError) {
+      requestLogger.error('Unexpected error in deleting ticker', {
+        error: unexpectedError.message,
+        stack: unexpectedError.stack
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: 'An unexpected error occurred'
       });
     }
+  }
+);
 
-    const filter = { UsernameID: Username, Name: oldname };
-    const updateDoc = { $set: { Name: newname } };
+// endpoint that deletes selected watchlist
+app.delete('/:user/delete/watchlists/:list',
+  validate([
+    validationSchemas.userParam('user'),
+    validationSchemas.watchlistName()
+  ]),
+  async (req, res) => {
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method
+    });
 
-    console.log('Updating screener:', filter, updateDoc);
+    try {
+      const list = sanitizeInput(req.params.list);
+      const user = sanitizeInput(req.params.user);
 
-    const result = await collection.updateOne(filter, updateDoc);
+      const client = new MongoClient(uri);
+      await client.connect();
 
-    console.log('Update result:', result);
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Watchlists');
 
-    // Check if any document was modified
-    if (result.modifiedCount === 0) {
-      return res.status(404).json({ message: 'Screener not found' });
-    }
+      const filter = { Name: list, UsernameID: user };
 
-    // Send success response
-    return res.json({ message: 'Screener renamed successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    // Ensure client is closed if it was opened
-    if (client) {
+      const result = await collection.deleteOne(filter);
+
+      if (result.deletedCount === 0) {
+        requestLogger.warn('Attempted to delete a non-existent watchlist', {
+          user: obfuscateUsername(user),
+          list: '[masked]'
+        });
+        return res.status(404).json({ message: 'Watchlist not found' });
+      }
+
+      requestLogger.info('Watchlist deleted successfully', {
+        user: obfuscateUsername(user),
+        list: '[masked]'
+      });
+      res.send({ message: 'Watchlist deleted successfully' });
+
       await client.close();
+    } catch (error) {
+      requestLogger.error('Error deleting watchlist', {
+        error: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  });
+
+// endpoint that creates a new watchlist 
+app.post('/:user/create/watchlists/:list',
+  validate([
+    validationSchemas.userParam('user'),
+    validationSchemas.watchlistName()
+  ]),
+  async (req, res) => {
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method,
+    });
+
+    try {
+      const list = sanitizeInput(req.params.list);
+      const user = sanitizeInput(req.params.user);
+
+      // Log the attempt to create a new watchlist
+      requestLogger.info('Create watchlist attempt', {
+        user: obfuscateUsername(user),
+        list
+      });
+
+      const client = new MongoClient(uri);
+
+      try {
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Watchlists');
+
+        // Check how many watchlists the user already has
+        const existingWatchlistsCount = await collection.countDocuments({ UsernameID: user });
+
+        if (existingWatchlistsCount >= 20) {
+          requestLogger.warn('Watchlist creation limit reached', {
+            user: obfuscateUsername(user),
+            existingWatchlistsCount
+          });
+
+          return res.status(400).json({
+            message: 'Maximum number of watchlists (20) has been reached',
+            details: 'You cannot create more than 20 watchlists'
+          });
+        }
+
+        // Check if a watchlist with the same name already exists
+        const existingWatchlist = await collection.findOne({
+          Name: list,
+          UsernameID: user
+        });
+
+        if (existingWatchlist) {
+          requestLogger.warn('Watchlist with same name already exists', {
+            user: obfuscateUsername(user),
+            list
+          });
+
+          return res.status(409).json({
+            message: 'A watchlist with this name already exists',
+            details: 'Please choose a different name'
+          });
+        }
+
+        const document = {
+          Name: list,
+          UsernameID: user,
+          List: [],
+          createdAt: new Date(),
+          lastUpdated: new Date()
+        };
+
+        const result = await collection.insertOne(document);
+
+        if (result.insertedId) {
+          requestLogger.info('Watchlist created successfully', {
+            user: obfuscateUsername(user),
+            list,
+            watchlistId: result.insertedId
+          });
+
+          res.status(201).json({
+            message: 'Watchlist created successfully',
+            watchlist: {
+              name: list,
+              id: result.insertedId
+            }
+          });
+        } else {
+          requestLogger.warn('Failed to create watchlist', {
+            user: obfuscateUsername(user),
+            list
+          });
+
+          res.status(500).json({
+            message: 'Error creating watchlist',
+            details: 'An unexpected error occurred while creating the watchlist'
+          });
+        }
+      } catch (dbError) {
+        requestLogger.error('Database error in creating watchlist', {
+          user: obfuscateUsername(user),
+          list,
+          error: dbError.message
+        });
+
+        res.status(500).json({
+          message: 'Internal Server Error',
+          error: 'Failed to create watchlist'
+        });
+      } finally {
+        try {
+          await client.close();
+        } catch (closeError) {
+          requestLogger.error('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
+    } catch (unexpectedError) {
+      requestLogger.error('Unexpected error in creating watchlist', {
+        error: unexpectedError.message,
+        stack: unexpectedError.stack
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: 'An unexpected error occurred'
+      });
     }
   }
-});
+);
+
+// endpoint that renames selected watchlist 
+app.patch('/:user/rename/watchlists/:oldname',
+  validate([
+    validationSchemas.userParam('user'),
+    validationSchemas.newname()
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method
+    });
+
+    try {
+      const oldname = sanitizeInput(req.params.oldname);
+      const newname = sanitizeInput(req.body.newname);
+      const Username = sanitizeInput(req.params.user);
+
+      if (!newname) {
+        requestLogger.warn('Attempt to rename watchlist with empty name', {
+          user: obfuscateUsername(Username),
+          oldname: '[masked]'
+        });
+        return res.status(400).json({ message: 'Please provide a new name' });
+      }
+
+      const client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Watchlists');
+
+      const filter = { UsernameID: Username, Name: oldname };
+      const updateDoc = { $set: { Name: newname } };
+
+      const result = await collection.updateOne(filter, updateDoc);
+
+      if (result.modifiedCount === 0) {
+        requestLogger.warn('Watchlist not found for renaming', {
+          user: obfuscateUsername(Username),
+          oldname: '[masked]',
+          newname: '[masked]'
+        });
+        return res.status(404).json({ message: 'Watchlist not found' });
+      }
+
+      requestLogger.info('Watchlist renamed successfully', {
+        user: obfuscateUsername(Username),
+        oldname: '[masked]',
+        newname: '[masked]'
+      });
+
+      client.close();
+      res.json({ message: 'Watchlist renamed successfully' });
+    } catch (error) {
+      requestLogger.error('Error renaming watchlist', {
+        error: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  });
+
+// endpoint that handles creation of new screeners 
+app.post('/:user/create/screener/:list',
+  validate([
+    validationSchemas.userParam('user'),
+    validationSchemas.screenerName()
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method
+    });
+
+    let client;
+    try {
+      const user = sanitizeInput(req.params.user);
+      const list = sanitizeInput(req.params.list);
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Screeners');
+
+      // Check the number of existing screeners for this user
+      const screenerCount = await collection.countDocuments({ UsernameID: user });
+      if (screenerCount >= 20) {
+        requestLogger.warn('Attempt to create screener beyond limit', {
+          user: obfuscateUsername(user),
+          screenerCount: screenerCount
+        });
+        return res.status(400).json({
+          message: 'Maximum number of screeners (20) has been reached'
+        });
+      }
+
+      // Check if a screener with the same name and username already exists
+      const existingScreener = await collection.findOne({ UsernameID: user, Name: list });
+      if (existingScreener) {
+        requestLogger.warn('Attempt to create duplicate screener', {
+          user: obfuscateUsername(user),
+          screenerName: '[masked]'
+        });
+        return res.status(400).json({
+          message: 'Screener with the same name already exists'
+        });
+      }
+
+      // Create a new screener document
+      const screenerDoc = {
+        UsernameID: user,
+        Name: list,
+        Include: true,
+        CreatedAt: new Date(),
+      };
+
+      const result = await collection.insertOne(screenerDoc);
+
+      // Check if insertion was successful
+      if (result.insertedCount === 1 || result.acknowledged) {
+        requestLogger.info('Screener created successfully', {
+          user: obfuscateUsername(user),
+          screenerName: '[masked]',
+          screenerCount: screenerCount + 1
+        });
+        return res.json({
+          message: 'Screener created successfully',
+          screenerCount: screenerCount + 1
+        });
+      } else {
+        requestLogger.error('Failed to create screener', {
+          user: obfuscateUsername(user),
+          screenerName: '[masked]'
+        });
+        return res.status(500).json({ message: 'Failed to create screener' });
+      }
+    } catch (error) {
+      requestLogger.error('Error creating screener', {
+        error: error.message,
+        stack: error.stack
+      });
+      return res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      // Ensure client is closed if it was opened
+      if (client) {
+        await client.close();
+      }
+    }
+  });
+
+// endpoint that renames selected screener
+app.patch('/:user/rename/screener',
+  validate([
+    validationSchemas.userParam('user'),
+    validationSchemas.oldname(),
+    validationSchemas.newname()
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method
+    });
+
+    let client;
+    try {
+      const oldname = sanitizeInput(req.body.oldname);
+      const newname = sanitizeInput(req.body.newname);
+      const Username = sanitizeInput(req.params.user);
+
+      // Check if new name is provided and different from old name
+      if (!newname) {
+        requestLogger.warn('Attempt to rename screener with empty name', {
+          user: obfuscateUsername(Username),
+          oldname: '[masked]'
+        });
+        return res.status(400).json({ message: 'Please provide a new name' });
+      }
+
+      if (oldname === newname) {
+        requestLogger.warn('Attempt to rename screener with same name', {
+          user: obfuscateUsername(Username),
+          screenerName: '[masked]'
+        });
+        return res.status(400).json({
+          message: 'New name must be different from the current name'
+        });
+      }
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Screeners');
+
+      // Check if a screener with the new name already exists
+      const existingScreener = await collection.findOne({
+        UsernameID: Username,
+        Name: newname
+      });
+
+      if (existingScreener) {
+        requestLogger.warn('Attempt to create duplicate screener name', {
+          user: obfuscateUsername(Username),
+          screenerName: '[masked]'
+        });
+        return res.status(400).json({
+          message: 'A screener with this name already exists'
+        });
+      }
+
+      const filter = { UsernameID: Username, Name: oldname };
+      const updateDoc = { $set: { Name: newname } };
+
+      requestLogger.debug('Updating screener', {
+        user: obfuscateUsername(Username),
+        filter: '[masked]',
+        update: '[masked]'
+      });
+
+      const result = await collection.updateOne(filter, updateDoc);
+
+      // Check if any document was modified
+      if (result.modifiedCount === 0) {
+        requestLogger.warn('Screener not found for renaming', {
+          user: obfuscateUsername(Username),
+          oldname: '[masked]'
+        });
+        return res.status(404).json({ message: 'Screener not found' });
+      }
+
+      // Log successful rename
+      requestLogger.info('Screener renamed successfully', {
+        user: obfuscateUsername(Username),
+        oldname: '[masked]',
+        newname: '[masked]'
+      });
+
+      // Send success response
+      return res.json({ message: 'Screener renamed successfully' });
+    } catch (error) {
+      requestLogger.error('Error renaming screener', {
+        error: error.message,
+        stack: error.stack
+      });
+      return res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      // Ensure client is closed if it was opened
+      if (client) {
+        await client.close();
+      }
+    }
+  });
 
 // endpoint that deletes selected screener 
-app.delete('/:user/delete/screener/:list', async (req, res) => {
-  try {
-    const user = req.params.user;
-    const list = req.params.list;
+app.delete('/:user/delete/screener/:list',
+  validate([
+    validationSchemas.userParam('user'),
+    validationSchemas.screenerName()
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method
+    });
 
-    const client = new MongoClient(uri);
-    await client.connect();
+    let client;
+    try {
+      const user = sanitizeInput(req.params.user);
+      const list = sanitizeInput(req.params.list);
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Screeners');
+      client = new MongoClient(uri);
+      await client.connect();
 
-    const filter = { Name: list, UsernameID: user }; // Use the Name from the request body as the filter
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Screeners');
 
-    const result = await collection.deleteOne(filter);
+      const filter = { Name: list, UsernameID: user };
 
-    if (result.deletedCount === 0) {
-      res.status(404).json({ message: 'Screener not found' });
-      return;
+      requestLogger.debug('Attempting to delete screener', {
+        user: obfuscateUsername(user),
+        screenerName: '[masked]'
+      });
+
+      const result = await collection.deleteOne(filter);
+
+      if (result.deletedCount === 0) {
+        requestLogger.warn('Screener not found for deletion', {
+          user: obfuscateUsername(user),
+          screenerName: '[masked]'
+        });
+        return res.status(404).json({ message: 'Screener not found' });
+      }
+
+      requestLogger.info('Screener deleted successfully', {
+        user: obfuscateUsername(user),
+        screenerName: '[masked]'
+      });
+
+      res.json({ message: 'Screener deleted successfully' });
+    } catch (error) {
+      requestLogger.error('Error deleting screener', {
+        error: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      // Ensure client is closed if it was opened
+      if (client) {
+        await client.close();
+      }
     }
-
-    res.send({ message: 'screener deleted successfully' }); // Return a success message
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
+  });
 
 // endpoint that sends unfiltered database data into screener results (minus hidden list for user)
-app.get('/:user/screener/results/all', async (req, res) => {
-  const user = req.params.user;
-  try {
-    const client = new MongoClient(uri);
+app.get('/:user/screener/results/all',
+  validate([
+    validationSchemas.userParam('user')
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method
+    });
+
+    let client;
     try {
+      const user = sanitizeInput(req.params.user);
+
+      client = new MongoClient(uri);
       await client.connect();
+
       const db = client.db('EreunaDB');
 
       // Find the user document and extract the 'Hidden' array
       const usersCollection = db.collection('Users');
       const userDoc = await usersCollection.findOne({ Username: user });
+
       if (!userDoc) {
-        res.status(404).json({ message: 'User not found' });
-        return;
+        requestLogger.warn('User not found', {
+          user: obfuscateUsername(user)
+        });
+        return res.status(404).json({ message: 'User not found' });
       }
-      const hiddenSymbols = userDoc.Hidden;
+
+      const hiddenSymbols = userDoc.Hidden || [];
+
+      requestLogger.debug('Fetching screener results', {
+        user: obfuscateUsername(user),
+        hiddenSymbolsCount: hiddenSymbols.length
+      });
 
       // Filter the AssetInfo collection using the 'Hidden' array
       const assetInfoCollection = db.collection('AssetInfo');
@@ -4815,18 +5169,25 @@ app.get('/:user/screener/results/all', async (req, res) => {
         }
       }).toArray();
 
-      res.send(filteredAssets);
+      requestLogger.info('Screener results fetched successfully', {
+        user: obfuscateUsername(user),
+        assetsCount: filteredAssets.length
+      });
+
+      res.json(filteredAssets);
     } catch (error) {
-      console.error('Error:', error);
+      requestLogger.error('Error fetching screener results', {
+        error: error.message,
+        stack: error.stack
+      });
       res.status(500).json({ message: 'Internal Server Error' });
     } finally {
-      client.close();
+      // Ensure client is closed if it was opened
+      if (client) {
+        await client.close();
+      }
     }
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
+  });
 
 // endpoint that updates screener document with price parameters 
 app.patch('/screener/price', async (req, res) => {
