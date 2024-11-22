@@ -6488,615 +6488,1114 @@ app.patch('/screener/country',
 );
 
 // endpoint that updates screener document with PE parameters 
-app.patch('/screener/pe', async (req, res) => {
-  let client; // Declare client here
-  try {
-    let minPrice = parseFloat(req.body.minPrice);
-    let maxPrice = parseFloat(req.body.maxPrice);
-    const screenerName = req.body.screenerName;
-    const Username = req.body.user;
+app.patch('/screener/pe', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minPrice, maxPrice, screenerName, Username;
 
-    // Check if both minPrice and maxPrice are empty
-    if (isNaN(minPrice) && isNaN(maxPrice)) {
-      res.status(400).json({ message: 'Both min price and max price cannot be empty' });
-      return;
-    }
+    try {
+      // Sanitize inputs
+      minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
 
-    // Set default minPrice to 1 if it is not provided or is less than 1
-    if (isNaN(minPrice) || minPrice < 1) {
-      minPrice = 1;
-    }
-
-    client = new MongoClient(uri);
-    await client.connect();
-    const db = client.db('EreunaDB');
-
-    // If maxPrice is empty, find the highest PERatio excluding 'None'
-    if (isNaN(maxPrice)) {
-      const assetInfoCollection = db.collection('AssetInfo');
-      const highestPERatioDoc = await assetInfoCollection.find({
-        PERatio: { $ne: 'None' } // Exclude 'None' values
-      })
-        .sort({ PERatio: -1 }) // Sort by PERatio descending
-        .limit(1) // Get the highest value
-        .project({ PERatio: 1 }) // Only return the PERatio field
-        .toArray();
-
-      if (highestPERatioDoc.length > 0) {
-        maxPrice = highestPERatioDoc[0].PERatio; // Set maxPrice to the highest PERatio
-      } else {
-        res.status(404).json({ message: 'No assets found to determine maximum PE' });
-        return;
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
       }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minPrice) && isNaN(maxPrice)) {
+        return res.status(400).json({ message: 'Both min PE and max PE cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        if (isNaN(minPrice)) {
+          minPrice = 1; // Minimum PE ratio typically starts at 1
+        }
+
+        if (isNaN(maxPrice)) {
+          const highestPERatioDoc = await assetInfoCollection.find({
+            PERatio: { $ne: 'None', $ne: null, $ne: undefined },
+            PERatio: { $gt: 0 } // Ensure positive PE ratio
+          })
+            .sort({ PERatio: -1 })
+            .limit(1)
+            .project({ PERatio: 1 })
+            .toArray();
+
+          if (highestPERatioDoc.length > 0) {
+            maxPrice = highestPERatioDoc[0].PERatio;
+            // Optional: Round to 2 decimal places if needed
+            maxPrice = Math.ceil(maxPrice * 100) / 100;
+          } else {
+            return res.status(404).json({
+              message: 'No assets found to determine maximum PE ratio',
+              details: 'Unable to find a valid PE ratio in the database'
+            });
+          }
+        }
+
+        if (minPrice >= maxPrice) {
+          return res.status(400).json({ message: 'Min PE cannot be higher than or equal to max PE' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { PE: [minPrice, maxPrice] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        res.json({
+          message: 'PE range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('PE Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
     }
-
-    // Ensure minPrice is less than maxPrice
-    if (minPrice >= maxPrice) {
-      res.status(400).json({ message: 'Min cannot be higher than or equal to max' });
-      return;
-    }
-
-    const filter = { UsernameID: Username, Name: screenerName };
-    const collection = db.collection('Screeners');
-
-    const updateDoc = { $set: { PE: [minPrice, maxPrice] } };
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-
-    if (!result.value) {
-      console.log('Document not found');
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    } else {
-      console.log('Document updated');
-    }
-
-    res.json({ message: 'document updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      await client.close(); // Ensure client is closed if it was initialized
-    }
-  }
-})
+  });
 
 // endpoint that updates screener document with Forward PE parameters 
-app.patch('/screener/forward-pe', async (req, res) => {
-  let client; // Declare client here
-  let db; // Declare db here
-  try {
-    // Initialize the MongoDB client
-    client = new MongoClient(uri);
-    await client.connect();
-    db = client.db('EreunaDB'); // Initialize db here
+app.patch('/screener/forward-pe', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minPrice, maxPrice, screenerName, Username;
 
-    let minPrice = parseFloat(req.body.minPrice);
-    let maxPrice = parseFloat(req.body.maxPrice);
-    const screenerName = req.body.screenerName;
-    const Username = req.body.user;
+    try {
+      // Sanitize inputs
+      minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
 
-    // Check if both minPrice and maxPrice are empty
-    if (isNaN(minPrice) && isNaN(maxPrice)) {
-      return res.status(400).json({ message: 'Both minPrice and maxPrice cannot be empty' });
-    }
-
-    // If maxPrice is filled and minPrice is empty, set minPrice to 1
-    if (isNaN(minPrice) && !isNaN(maxPrice)) {
-      minPrice = 1; // Set default minPrice to 1
-    }
-
-    // If minPrice is filled and maxPrice is empty, find the highest ForwardPE
-    if (!isNaN(minPrice) && isNaN(maxPrice)) {
-      const assetInfoCollection = db.collection('AssetInfo');
-
-      const highestForwardPEDoc = await assetInfoCollection.find({ ForwardPE: { $gte: 0 } }) // Filter to exclude negative ForwardPE
-        .sort({ ForwardPE: -1 }) // Sort by ForwardPE descending
-        .limit(1) // Get the highest value
-        .project({ ForwardPE: 1 }) // Only return the ForwardPE field
-        .toArray();
-
-      if (highestForwardPEDoc.length > 0) {
-        maxPrice = highestForwardPEDoc[0].ForwardPE; // Set maxPrice to the highest ForwardPE
-      } else {
-        return res.status(404).json({ message: 'No assets found to determine maximum ForwardPE' });
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
       }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minPrice) && isNaN(maxPrice)) {
+        return res.status(400).json({ message: 'Both min Forward PE and max Forward PE cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minPrice to 1 if it is not provided or is less than 1
+        if (isNaN(minPrice) || minPrice < 1) {
+          minPrice = 1; // Minimum Forward PE typically starts at 1
+        }
+
+        // If maxPrice is empty, find the highest Forward PE
+        if (isNaN(maxPrice)) {
+          const highestForwardPEDoc = await assetInfoCollection.find({
+            ForwardPE: { $gte: 0 } // Filter to exclude negative ForwardPE
+          })
+            .sort({ ForwardPE: -1 }) // Sort by ForwardPE descending
+            .limit(1) // Get the highest value
+            .project({ ForwardPE: 1 }) // Only return the ForwardPE field
+            .toArray();
+
+          if (highestForwardPEDoc.length > 0) {
+            maxPrice = highestForwardPEDoc[0].ForwardPE; // Set maxPrice to the highest ForwardPE
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum Forward PE' });
+          }
+        }
+
+        // Ensure minPrice is less than maxPrice
+        if (minPrice >= maxPrice) {
+          return res.status(400).json({ message: 'Min Forward PE cannot be higher than or equal to max Forward PE' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { ForwardPE: [minPrice, maxPrice] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        // Log successful update
+        logger.info('Forward PE Range Updated', {
+          username: obfuscateUsername(Username),
+          screenerName: screenerName,
+          minForwardPE: minPrice,
+          maxForwardPE: maxPrice
+        });
+
+        res.json({
+          message: 'Forward PE range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Forward PE Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
     }
-
-    // Ensure minPrice is less than maxPrice
-    if (minPrice >= maxPrice) {
-      return res.status(400).json({ message: 'Min cannot be higher than or equal to max' });
-    }
-
-    const filter = { UsernameID: Username, Name: screenerName };
-    const collection = db.collection('Screeners');
-
-    const updateDoc = { $set: { ForwardPE: [minPrice, maxPrice] } };
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-
-    if (!result.value) {
-      console.log('Document not found');
-      return res.status(404).json({ message: 'Screener not found' });
-    } else {
-      console.log('Document updated');
-    }
-
-    res.json({ message: 'document updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      await client.close(); // Ensure client is closed if it was initialized
-    }
-  }
-});
+  });
 
 // endpoint that updates screener document with PEG parameters 
-app.patch('/screener/peg', async (req, res) => {
-  let client;
-  try {
-    let minPrice = parseFloat(req.body.minPrice);
-    let maxPrice = parseFloat(req.body.maxPrice);
-    const screenerName = req.body.screenerName;
-    const Username = req.body.user;
+app.patch('/screener/peg', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minPrice, maxPrice, screenerName, Username;
 
-    client = new MongoClient(uri);
-    await client.connect();
-    const db = client.db('EreunaDB');
+    try {
+      // Sanitize inputs
+      minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
 
-    // Check if both minPrice and maxPrice are empty
-    if (isNaN(minPrice) && isNaN(maxPrice)) {
-      res.status(400).json({ message: 'Both min price and max price cannot be empty' });
-      return;
-    }
-
-    // If minPrice is empty, find the lowest PEGRatio
-    if (isNaN(minPrice) && !isNaN(maxPrice)) {
-      minPrice = 1; // Set default minPrice to 1
-    }
-
-    // If maxPrice is empty, find the highest PEGRatio excluding 'None'
-    if (isNaN(maxPrice) && !isNaN(minPrice)) {
-      const assetInfoCollection = db.collection('AssetInfo');
-      const highestPERDoc = await assetInfoCollection.find({ PEGRatio: { $ne: 'None' } }) // Exclude 'None'
-        .sort({ PEGRatio: -1 }) // Sort by PEGRatio descending
-        .limit(1) // Get the highest value
-        .project({ PEGRatio: 1 }) // Only return the PEGRatio field
-        .toArray();
-
-      if (highestPERDoc.length > 0) {
-        maxPrice = highestPERDoc[0].PEGRatio; // Set maxPrice to the highest PEGRatio
-      } else {
-        res.status(404).json({ message: 'No assets found to determine maximum price' });
-        return;
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
       }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minPrice) && isNaN(maxPrice)) {
+        return res.status(400).json({ message: 'Both min PEG and max PEG cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minPrice to 1 if it is not provided
+        if (isNaN(minPrice) && !isNaN(maxPrice)) {
+          minPrice = 1; // Minimum PEG typically starts at 1
+        }
+
+        // If maxPrice is empty, find the highest PEGRatio excluding 'None'
+        if (isNaN(maxPrice) && !isNaN(minPrice)) {
+          const highestPERDoc = await assetInfoCollection.find({ PEGRatio: { $ne: 'None' } }) // Exclude 'None'
+            .sort({ PEGRatio: -1 }) // Sort by PEGRatio descending
+            .limit(1) // Get the highest value
+            .project({ PEGRatio: 1 }) // Only return the PEGRatio field
+            .toArray();
+
+          if (highestPERDoc.length > 0) {
+            maxPrice = highestPERDoc[0].PEGRatio; // Set maxPrice to the highest PEGRatio
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum PEG' });
+          }
+        }
+
+        // Ensure minPrice is less than maxPrice
+        if (minPrice >= maxPrice) {
+          return res.status(400).json({ message: 'Min PEG cannot be higher than or equal to max PEG' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { PEG: [minPrice, maxPrice] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        // Log successful update
+        logger.info('PEG Range Updated', {
+          username: obfuscateUsername(Username),
+          screenerName: screenerName,
+          minPEG: minPrice,
+          maxPEG: maxPrice
+        });
+
+        res.json({
+          message: 'PEG range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('PEG Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
     }
-
-    // Ensure minPrice is less than maxPrice
-    if (minPrice >= maxPrice) {
-      res.status(400).json({ message: 'Min price cannot be higher than or equal to max price' });
-      return;
-    }
-
-    const filter = { UsernameID: Username, Name: screenerName };
-    const collection = db.collection('Screeners');
-
-    const updateDoc = { $set: { PEG: [minPrice, maxPrice] } };
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-
-    if (!result.value) {
-      console.log('Document not found');
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    } else {
-      console.log('Document updated');
-    }
-
-    res.json({ message: 'PEG range updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      await client.close(); // Ensure client is closed if it was initialized
-    }
-  }
-})
+  });
 
 // endpoint that updates screener document with PEG parameters 
-app.patch('/screener/eps', async (req, res) => {
-  let client;
-  try {
-    let minPrice = parseFloat(req.body.minPrice);
-    let maxPrice = parseFloat(req.body.maxPrice);
-    const screenerName = req.body.screenerName;
-    const Username = req.body.user;
+app.patch('/screener/eps', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minPrice, maxPrice, screenerName, Username;
 
-    client = new MongoClient(uri);
-    await client.connect();
-    const db = client.db('EreunaDB');
+    try {
+      // Sanitize inputs
+      minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
 
-    // Check if both minPrice and maxPrice are empty
-    if (isNaN(minPrice) && isNaN(maxPrice)) {
-      res.status(400).json({ message: 'Both min price and max price cannot be empty' });
-      return;
-    }
-
-    // If minPrice is empty, set default minPrice to 1
-    if (isNaN(minPrice) && !isNaN(maxPrice)) {
-      minPrice = 1; // Set default minPrice to 1
-    }
-
-    // If maxPrice is empty, find the highest EPS excluding 'None'
-    if (isNaN(maxPrice) && !isNaN(minPrice)) {
-      const assetInfoCollection = db.collection('AssetInfo');
-      const highestEPSDoc = await assetInfoCollection.find({ EPS: { $ne: 'None' } }) // Exclude 'None'
-        .sort({ EPS: -1 }) // Sort by EPS descending
-        .limit(1) // Get the highest value
-        .project({ EPS: 1 }) // Only return the EPS field
-        .toArray();
-
-      if (highestEPSDoc.length > 0) {
-        maxPrice = highestEPSDoc[0].EPS; // Set maxPrice to the highest EPS
-      } else {
-        res.status(404).json({ message: 'No assets found to determine maximum price' });
-        return;
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
       }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minPrice) && isNaN(maxPrice)) {
+        return res.status(400).json({ message: 'Both min EPS and max EPS cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minPrice to 1 if it is not provided
+        if (isNaN(minPrice) && !isNaN(maxPrice)) {
+          minPrice = 1; // Minimum EPS typically starts at 1
+        }
+
+        // If maxPrice is empty, find the highest EPS excluding 'None'
+        if (isNaN(maxPrice) && !isNaN(minPrice)) {
+          const highestEPSDoc = await assetInfoCollection.find({
+            EPS: {
+              $ne: 'None',
+              $type: 'number' // Ensure it's a numeric value
+            }
+          })
+            .sort({ EPS: -1 }) // Sort by EPS descending
+            .limit(1) // Get the highest value
+            .project({ EPS: 1 }) // Only return the EPS field
+            .toArray();
+
+          if (highestEPSDoc.length > 0) {
+            maxPrice = highestEPSDoc[0].EPS; // Set maxPrice to the highest EPS
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum EPS' });
+          }
+        }
+
+        // Ensure minPrice is less than maxPrice
+        if (minPrice >= maxPrice) {
+          return res.status(400).json({ message: 'Min EPS cannot be higher than or equal to max EPS' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { EPS: [minPrice, maxPrice] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        // Log successful update
+        logger.info('EPS Range Updated', {
+          username: obfuscateUsername(Username),
+          screenerName: screenerName,
+          minEPS: minPrice,
+          maxEPS: maxPrice
+        });
+
+        res.json({
+          message: 'EPS range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('EPS Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
     }
-
-    // Ensure minPrice is less than maxPrice
-    if (minPrice >= maxPrice) {
-      res.status(400).json({ message: 'Min price cannot be higher than or equal to max price' });
-      return;
-    }
-
-    const filter = { UsernameID: Username, Name: screenerName };
-    const collection = db.collection('Screeners');
-
-    const updateDoc = { $set: { EPS: [minPrice, maxPrice] } };
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-
-    if (!result.value) {
-      console.log('Document not found');
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    } else {
-      console.log('Document updated');
-    }
-
-    res.json({ message: 'EPS range updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      await client.close(); // Ensure client is closed if it was initialized
-    }
-  }
-});
+  });
 
 // endpoint that updates screener document with PS Ratio parameters 
-app.patch('/screener/ps-ratio', async (req, res) => {
-  let client;
-  try {
-    let minPrice = parseFloat(req.body.minPrice);
-    let maxPrice = parseFloat(req.body.maxPrice);
-    const screenerName = req.body.screenerName;
-    const Username = req.body.user;
+app.patch('/screener/ps-ratio', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minPrice, maxPrice, screenerName, Username;
 
-    client = new MongoClient(uri);
-    await client.connect();
-    const db = client.db('EreunaDB');
+    try {
+      // Sanitize inputs
+      minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
 
-    // Check if both minPrice and maxPrice are empty
-    if (isNaN(minPrice) && isNaN(maxPrice)) {
-      res.status(400).json({ message: 'Both min price and max price cannot be empty' });
-      return;
-    }
-
-    // If minPrice is empty, set default minPrice to 1
-    if (isNaN(minPrice) && !isNaN(maxPrice)) {
-      minPrice = 1; // Set default minPrice to 1
-    }
-
-    // If maxPrice is empty, find the highest PriceToSalesRatioTTM excluding 'None' and '-'
-    if (isNaN(maxPrice) && !isNaN(minPrice)) {
-      const assetInfoCollection = db.collection('AssetInfo');
-      const highestPSRatioDoc = await assetInfoCollection.find({
-        PriceToSalesRatioTTM: { $ne: 'None', $ne: '-' } // Exclude 'None' and '-'
-      })
-        .sort({ PriceToSalesRatioTTM: -1 }) // Sort by PriceToSalesRatioTTM descending
-        .limit(1) // Get the highest value
-        .project({ PriceToSalesRatioTTM: 1 }) // Only return the PriceToSalesRatioTTM field
-        .toArray();
-
-      if (highestPSRatioDoc.length > 0) {
-        maxPrice = highestPSRatioDoc[0].PriceToSalesRatioTTM; // Set maxPrice to the highest PriceToSalesRatioTTM
-      } else {
-        res.status(404).json({ message: 'No assets found to determine maximum price' });
-        return;
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
       }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minPrice) && isNaN(maxPrice)) {
+        return res.status(400).json({ message: 'Both min PS Ratio and max PS Ratio cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minPrice to 1 if it is not provided
+        if (isNaN(minPrice) && !isNaN(maxPrice)) {
+          minPrice = 1; // Minimum PS Ratio typically starts at 1
+        }
+
+        // If maxPrice is empty, find the highest PriceToSalesRatioTTM excluding 'None' and '-'
+        if (isNaN(maxPrice) && !isNaN(minPrice)) {
+          const highestPSRatioDoc = await assetInfoCollection.find({
+            PriceToSalesRatioTTM: {
+              $ne: 'None',
+              $ne: '-',
+              $type: 'number' // Ensure it's a numeric value
+            }
+          })
+            .sort({ PriceToSalesRatioTTM: -1 }) // Sort by PriceToSalesRatioTTM descending
+            .limit(1) // Get the highest value
+            .project({ PriceToSalesRatioTTM: 1 }) // Only return the PriceToSalesRatioTTM field
+            .toArray();
+
+          if (highestPSRatioDoc.length > 0) {
+            maxPrice = highestPSRatioDoc[0].PriceToSalesRatioTTM; // Set maxPrice to the highest PriceToSalesRatioTTM
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum PS Ratio' });
+          }
+        }
+
+        // Ensure minPrice is less than maxPrice
+        if (minPrice >= maxPrice) {
+          return res.status(400).json({ message: 'Min PS Ratio cannot be higher than or equal to max PS Ratio' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { PS: [minPrice, maxPrice] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        // Log successful update
+        logger.info('PS Ratio Range Updated', {
+          username: obfuscateUsername(Username),
+          screenerName: screenerName,
+          minPSRatio: minPrice,
+          maxPSRatio: maxPrice
+        });
+
+        res.json({
+          message: 'Price to Sales Ratio range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('PS Ratio Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
     }
-
-    // Ensure minPrice is less than maxPrice
-    if (minPrice >= maxPrice) {
-      res.status(400).json({ message: 'Min price cannot be higher than or equal to max price' });
-      return;
-    }
-
-    const filter = { UsernameID: Username, Name: screenerName };
-    const collection = db.collection('Screeners');
-
-    const updateDoc = { $set: { PS: [minPrice, maxPrice] } };
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-
-    if (!result.value) {
-      console.log('Document not found');
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    } else {
-      console.log('Document updated');
-    }
-
-    res.json({ message: 'Price to Sales Ratio range updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      await client.close(); // Ensure client is closed if it was initialized
-    }
-  }
-});
+  });
 
 // endpoint that updates screener document with PB Ratio parameters 
-app.patch('/screener/pb-ratio', async (req, res) => {
-  let client;
-  try {
-    let minPrice = parseFloat(req.body.minPrice);
-    let maxPrice = parseFloat(req.body.maxPrice);
-    const screenerName = req.body.screenerName;
-    const Username = req.body.user;
+app.patch('/screener/pb-ratio', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minPrice, maxPrice, screenerName, Username;
 
-    client = new MongoClient(uri);
-    await client.connect();
-    const db = client.db('EreunaDB');
+    try {
+      // Sanitize inputs
+      minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
 
-    // Check if both minPrice and maxPrice are empty
-    if (isNaN(minPrice) && isNaN(maxPrice)) {
-      res.status(400).json({ message: 'Both min price and max price cannot be empty' });
-      return;
-    }
-
-    // If minPrice is empty, set default minPrice to 1
-    if (isNaN(minPrice) && !isNaN(maxPrice)) {
-      minPrice = 1; // Set default minPrice to 1
-    }
-
-    // If maxPrice is empty, find the highest PriceToBookRatio excluding 'None' and '-'
-    if (isNaN(maxPrice) && !isNaN(minPrice)) {
-      const assetInfoCollection = db.collection('AssetInfo');
-      const highestPBRatioDoc = await assetInfoCollection.find({
-        PriceToBookRatio: { $ne: 'None', $ne: '-' } // Exclude 'None' and '-'
-      })
-        .sort({ PriceToBookRatio: -1 }) // Sort by PriceToBookRatio descending
-        .limit(1) // Get the highest value
-        .project({ PriceToBookRatio: 1 }) // Only return the PriceToBookRatio field
-        .toArray();
-
-      if (highestPBRatioDoc.length > 0) {
-        maxPrice = highestPBRatioDoc[0].PriceToBookRatio; // Set maxPrice to the highest PriceToBookRatio
-      } else {
-        res.status(404).json({ message: 'No assets found to determine maximum price' });
-        return;
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
       }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minPrice) && isNaN(maxPrice)) {
+        return res.status(400).json({ message: 'Both min PB Ratio and max PB Ratio cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minPrice to 1 if it is not provided
+        if (isNaN(minPrice) && !isNaN(maxPrice)) {
+          minPrice = 1; // Minimum PB Ratio typically starts at 1
+        }
+
+        // If maxPrice is empty, find the highest PriceToBookRatio excluding 'None' and '-'
+        if (isNaN(maxPrice) && !isNaN(minPrice)) {
+          const highestPBRatioDoc = await assetInfoCollection.find({
+            PriceToBookRatio: {
+              $ne: 'None',
+              $ne: '-',
+              $type: 'number' // Ensure it's a numeric value
+            }
+          })
+            .sort({ PriceToBookRatio: -1 }) // Sort by PriceToBookRatio descending
+            .limit(1) // Get the highest value
+            .project({ PriceToBookRatio: 1 }) // Only return the PriceToBookRatio field
+            .toArray();
+
+          if (highestPBRatioDoc.length > 0) {
+            maxPrice = highestPBRatioDoc[0].PriceToBookRatio; // Set maxPrice to the highest PriceToBookRatio
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum PB Ratio' });
+          }
+        }
+
+        // Ensure minPrice is less than maxPrice
+        if (minPrice >= maxPrice) {
+          return res.status(400).json({ message: 'Min PB Ratio cannot be higher than or equal to max PB Ratio' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { PB: [minPrice, maxPrice] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        // Log successful update
+        logger.info('PB Ratio Range Updated', {
+          username: obfuscateUsername(Username),
+          screenerName: screenerName,
+          minPBRatio: minPrice,
+          maxPBRatio: maxPrice
+        });
+
+        res.json({
+          message: 'Price to Book Ratio range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('PB Ratio Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
     }
-
-    // Ensure minPrice is less than maxPrice
-    if (minPrice >= maxPrice) {
-      res.status(400).json({ message: 'Min price cannot be higher than or equal to max price' });
-      return;
-    }
-
-    const filter = { UsernameID: Username, Name: screenerName };
-    const collection = db.collection('Screeners');
-
-    const updateDoc = { $set: { PB: [minPrice, maxPrice] } };
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-
-    // Check if result is null
-    if (!result || !result.value) {
-      console.log('Document not found');
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    } else {
-      console.log('Document updated');
-    }
-
-    res.json({ message: 'Price to Book Ratio range updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      await client.close(); // Ensure client is closed if it was initialized
-    }
-  }
-});
+  });
 
 // endpoint that updates screener document with Beta parameters 
-app.patch('/screener/beta', async (req, res) => {
-  let client;
-  try {
-    let minPrice = parseFloat(req.body.minPrice);
-    let maxPrice = parseFloat(req.body.maxPrice);
-    const screenerName = req.body.screenerName;
-    const Username = req.body.user;
+app.patch('/screener/beta', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minPrice, maxPrice, screenerName, Username;
 
-    client = new MongoClient(uri);
-    await client.connect();
-    const db = client.db('EreunaDB');
+    try {
+      // Sanitize inputs
+      minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
 
-    // Check if both minPrice and maxPrice are empty
-    if (isNaN(minPrice) && isNaN(maxPrice)) {
-      res.status(400).json({ message: 'Both min price and max price cannot be empty' });
-      return;
-    }
-
-    // If minPrice is empty, find the lowest Beta excluding 'None' and '-'
-    if (isNaN(minPrice) && !isNaN(maxPrice)) {
-      const assetInfoCollection = db.collection('AssetInfo');
-      const lowestBetaDoc = await assetInfoCollection.find({
-        Beta: { $ne: 'None', $ne: '-' } // Exclude 'None' and '-'
-      })
-        .sort({ Beta: 1 }) // Sort by Beta ascending
-        .limit(1) // Get the lowest value
-        .project({ Beta: 1 }) // Only return the Beta field
-        .toArray();
-
-      if (lowestBetaDoc.length > 0) {
-        minPrice = lowestBetaDoc[0].Beta; // Set minPrice to the lowest Beta
-      } else {
-        res.status(404).json({ message: 'No assets found to determine minimum price' });
-        return;
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
       }
-    }
-
-    // If maxPrice is empty, find the highest Beta excluding 'None' and '-'
-    if (isNaN(maxPrice) && !isNaN(minPrice)) {
-      const assetInfoCollection = db.collection('AssetInfo');
-      const highestBetaDoc = await assetInfoCollection.find({
-        Beta: { $ne: 'None' } // Exclude 'None' and '-'
-      })
-        .sort({ Beta: -1 }) // Sort by Beta descending
-        .limit(1) // Get the highest value
-        .project({ Beta: 1 }) // Only return the Beta field
-        .toArray();
-
-      if (highestBetaDoc.length > 0) {
-        maxPrice = highestBetaDoc[0].Beta; // Set maxPrice to the highest Beta
-      } else {
-        res.status(404).json({ message: 'No assets found to determine maximum price' });
-        return;
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
       }
+      if (isNaN(minPrice) && isNaN(maxPrice)) {
+        return res.status(400).json({ message: 'Both min Beta and max Beta cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // If minPrice is empty, find the lowest Beta excluding 'None' and '-'
+        if (isNaN(minPrice) && !isNaN(maxPrice)) {
+          const lowestBetaDoc = await assetInfoCollection.find({
+            Beta: {
+              $ne: 'None',
+              $ne: '-',
+              $type: 'number' // Ensure it's a numeric value
+            }
+          })
+            .sort({ Beta: 1 }) // Sort by Beta ascending
+            .limit(1) // Get the lowest value
+            .project({ Beta: 1 }) // Only return the Beta field
+            .toArray();
+
+          if (lowestBetaDoc.length > 0) {
+            minPrice = lowestBetaDoc[0].Beta; // Set minPrice to the lowest Beta
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine minimum Beta' });
+          }
+        }
+
+        // If maxPrice is empty, find the highest Beta excluding 'None' and '-'
+        if (isNaN(maxPrice) && !isNaN(minPrice)) {
+          const highestBetaDoc = await assetInfoCollection.find({
+            Beta: {
+              $ne: 'None',
+              $ne: '-',
+              $type: 'number' // Ensure it's a numeric value
+            }
+          })
+            .sort({ Beta: -1 }) // Sort by Beta descending
+            .limit(1) // Get the highest value
+            .project({ Beta: 1 }) // Only return the Beta field
+            .toArray();
+
+          if (highestBetaDoc.length > 0) {
+            maxPrice = highestBetaDoc[0].Beta; // Set maxPrice to the highest Beta
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum Beta' });
+          }
+        }
+
+        // Ensure minPrice is less than maxPrice
+        if (minPrice >= maxPrice) {
+          return res.status(400).json({ message: 'Min Beta cannot be higher than or equal to max Beta' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { Beta: [minPrice, maxPrice] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        // Log successful update
+        logger.info('Beta Range Updated', {
+          username: obfuscateUsername(Username),
+          screenerName: screenerName,
+          minBeta: minPrice,
+          maxBeta: maxPrice
+        });
+
+        res.json({
+          message: 'Beta range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Beta Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
     }
-
-    // Ensure minPrice is less than maxPrice
-    if (minPrice >= maxPrice) {
-      res.status(400).json({ message: 'Min price cannot be higher than or equal to max price' });
-      return;
-    }
-
-    const filter = { UsernameID: Username, Name: screenerName };
-    const collection = db.collection('Screeners');
-
-    const updateDoc = { $set: { Beta: [minPrice, maxPrice] } };
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-
-    // Check if result is null
-    if (!result || !result.value) {
-      console.log('Document not found');
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    } else {
-      console.log('Document updated');
-    }
-
-    res.json({ message: 'Beta range updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      await client.close(); // Ensure client is closed if it was initialized
-    }
-  }
-});
+  });
 
 // endpoint that updates screener document with dividend yield parameters 
-app.patch('/screener/div-yield', async (req, res) => {
-  let client;
-  try {
-    const minPrice = parseFloat(req.body.minPrice) / 100;
-    const maxPrice = parseFloat(req.body.maxPrice) / 100;
-    const screenerName = req.body.screenerName;
-    const Username = req.body.user;
+app.patch('/screener/div-yield', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minPrice, maxPrice, screenerName, Username;
 
-    client = new MongoClient(uri);
-    await client.connect();
-    const db = client.db('EreunaDB');
+    try {
+      // Sanitize and convert inputs (dividing by 100 to convert percentage)
+      minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) / 100 : NaN;
+      maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) / 100 : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
 
-    // Check if both minPrice and maxPrice are empty
-    if (isNaN(minPrice) && isNaN(maxPrice)) {
-      res.status(400).json({ message: 'Min and Max prices cannot both be empty' });
-      return;
-    }
-
-    // Set minPrice to 0.001 if it is empty
-    let effectiveMinPrice = isNaN(minPrice) ? 0.001 : minPrice;
-
-    // Initialize effectiveMaxPrice
-    let effectiveMaxPrice = maxPrice;
-
-    // If maxPrice is empty, find the highest DividendYield from AssetInfo collection
-    if (isNaN(maxPrice)) {
-      const assetInfoCollection = db.collection('AssetInfo');
-      const highestDividendYieldDoc = await assetInfoCollection.find({
-        DividendYield: { $ne: 'None', $ne: '-', $exists: true, $type: 'number' } // Exclude 'None', '-' and non-numeric values
-      })
-        .sort({ DividendYield: -1 }) // Sort by DividendYield descending
-        .limit(1) // Get the highest value
-        .project({ DividendYield: 1 }) // Only return the DividendYield field
-        .toArray();
-
-      if (highestDividendYieldDoc.length > 0) {
-        effectiveMaxPrice = highestDividendYieldDoc[0].DividendYield; // Set maxPrice to the highest DividendYield
-      } else {
-        res.status(404).json({ message: 'No assets found to determine maximum price' });
-        return;
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
       }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minPrice) && isNaN(maxPrice)) {
+        return res.status(400).json({ message: 'Both min and max Dividend Yield cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set a minimum dividend yield of 0.1% (0.001) if not provided
+        let effectiveMinPrice = isNaN(minPrice) ? 0.001 : minPrice;
+
+        // If maxPrice is empty, find the highest DividendYield
+        let effectiveMaxPrice = maxPrice;
+        if (isNaN(maxPrice)) {
+          const highestDividendYieldDoc = await assetInfoCollection.find({
+            DividendYield: {
+              $ne: 'None',
+              $ne: '-',
+              $exists: true,
+              $type: 'number' // Ensure it's a numeric value
+            }
+          })
+            .sort({ DividendYield: -1 }) // Sort by DividendYield descending
+            .limit(1) // Get the highest value
+            .project({ DividendYield: 1 }) // Only return the DividendYield field
+            .toArray();
+
+          if (highestDividendYieldDoc.length > 0) {
+            effectiveMaxPrice = highestDividendYieldDoc[0].DividendYield; // Set maxPrice to the highest DividendYield
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum Dividend Yield' });
+          }
+        }
+
+        // Validate the effective min and max prices
+        if (effectiveMinPrice >= effectiveMaxPrice) {
+          return res.status(400).json({
+            message: 'Minimum Dividend Yield cannot be higher than or equal to maximum Dividend Yield',
+            details: {
+              minDividendYield: effectiveMinPrice,
+              maxDividendYield: effectiveMaxPrice
+            }
+          });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { DivYield: [effectiveMinPrice, effectiveMaxPrice] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        // Log successful update
+        logger.info('Dividend Yield Range Updated', {
+          username: obfuscateUsername(Username),
+          screenerName: screenerName,
+          minDividendYield: effectiveMinPrice * 100 + '%',
+          maxDividendYield: effectiveMaxPrice * 100 + '%'
+        });
+
+        res.json({
+          message: 'Dividend Yield range updated successfully',
+          updatedScreener: result.value,
+          details: {
+            minDividendYield: effectiveMinPrice * 100 + '%',
+            maxDividendYield: effectiveMaxPrice * 100 + '%'
+          }
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Dividend Yield Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
     }
-
-    // Validate the effective min and max prices
-    if (effectiveMinPrice >= effectiveMaxPrice) {
-      res.status(400).json({ message: 'Min cannot be higher than or equal to max' });
-      return;
-    }
-
-    const filter = { UsernameID: Username, Name: screenerName };
-    const collection = db.collection('Screeners');
-
-    const updateDoc = { $set: { DivYield: [effectiveMinPrice, effectiveMaxPrice] } };
-    const options = { returnOriginal: false };
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-
-    // Check if result is null
-    if (!result || !result.value) {
-      console.log('Document not found');
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    } else {
-      console.log('Document updated');
-    }
-
-    res.json({ message: 'Document updated successfully' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      await client.close(); // Ensure client is closed if it was initialized
-    }
-  }
-});
+  });
 
 //endpoint is supposed to update document with growth % 
 app.patch('/screener/fundamental-growth', async (req, res) => {
