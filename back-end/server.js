@@ -21,6 +21,7 @@ import {
   body,
   validationResult,
   validator,
+  param,
   sanitizeInput
 } from './validationUtils.js';
 
@@ -8532,155 +8533,253 @@ app.patch('/screener/reset/:user/:name',
 );
 
 // Reset Individual screener parameter 
-app.patch('/reset/screener/param', async (req, res) => {
-  try {
-    const UsernameID = req.body.user;
-    const Name = req.body.Name;
-    const value = req.body.stringValue;
+app.patch('/reset/screener/param',
+  validate([
+    validationSchemas.user(), // Validate user
+    body('Name') // Change from screenerName to Name
+      .trim()
+      .isLength({ min: 1, max: 20 })
+      .withMessage('Screener name must be between 1 and 20 characters')
+      .matches(/^[a-zA-Z0-9\s_-]+$/)
+      .withMessage('Screener name can only contain letters, numbers, spaces, underscores, and hyphens'), // Validate screener name
+    body('stringValue')
+      .trim()
+      .isIn([
+        'price', 'marketCap', 'IPO', 'Sector', 'Exchange', 'Country',
+        'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta',
+        'DivYield', 'FundGrowth', 'PricePerformance', 'RSscore', 'Volume'
+      ])
+      .withMessage('Invalid parameter to reset')
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      user: obfuscateUsername(req.body.user),
+      method: req.method,
+      path: req.path
+    });
 
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Screeners');
-
-    const filter = { UsernameID: UsernameID, Name: Name };
-
-    const updateDoc = {
-      $unset: {}
-    };
-
-    switch (value) {
-      case 'price':
-        updateDoc.$unset.Price = '';
-        break;
-      case 'marketCap':
-        updateDoc.$unset.MarketCap = '';
-        break;
-      case 'IPO':
-        updateDoc.$unset.IPO = '';
-        break;
-      case 'Sector':
-        updateDoc.$unset.Sectors = '';
-        break;
-      case 'Exchange':
-        updateDoc.$unset.Exchanges = '';
-        break;
-      case 'Country':
-        updateDoc.$unset.Countries = '';
-        break;
-      case 'PE':
-        updateDoc.$unset.PE = '';
-        break;
-      case 'ForwardPE':
-        updateDoc.$unset.ForwardPE = '';
-        break;
-      case 'PEG':
-        updateDoc.$unset.PEG = '';
-        break;
-      case 'EPS':
-        updateDoc.$unset.EPS = '';
-        break;
-      case 'PS':
-        updateDoc.$unset.PS = '';
-        break;
-      case 'PB':
-        updateDoc.$unset.PB = '';
-        break;
-      case 'Beta':
-        updateDoc.$unset.Beta = '';
-        break;
-      case 'DivYield':
-        updateDoc.$unset.DivYield = '';
-        break;
-      case 'FundGrowth':
-        updateDoc.$unset.EPSQoQ = '';
-        updateDoc.$unset.EPSYoY = '';
-        updateDoc.$unset.EarningsQoQ = '';
-        updateDoc.$unset.EarningsYoY = '';
-        updateDoc.$unset.RevQoQ = '';
-        updateDoc.$unset.RevYoY = '';
-        break;
-      case 'PricePerformance':
-        updateDoc.$unset.MA10 = '';
-        updateDoc.$unset.MA20 = '';
-        updateDoc.$unset.MA50 = '';
-        updateDoc.$unset.MA200 = '';
-        updateDoc.$unset.NewHigh = '';
-        updateDoc.$unset.NewLow = '';
-        updateDoc.$unset.PercOffWeekHigh = '';
-        updateDoc.$unset.PercOffWeekLow = '';
-        updateDoc.$unset.changePerc = '';
-        break;
-      case 'RSscore':
-        updateDoc.$unset.RSScore1M = '';
-        updateDoc.$unset.RSScore4M = '';
-        updateDoc.$unset.RSScore1W = '';
-        break;
-      case 'Volume':
-        updateDoc.$unset.AvgVolume1W = '';
-        updateDoc.$unset.RelVolume1W = '';
-        updateDoc.$unset.AvgVolume1M = '';
-        updateDoc.$unset.RelVolume1M = '';
-        updateDoc.$unset.AvgVolume6M = '';
-        updateDoc.$unset.RelVolume6M = '';
-        updateDoc.$unset.AvgVolume1Y = '';
-        updateDoc.$unset.RelVolume1Y = '';
-        break;
-      default:
-        console.log(`Unknown value: ${value}`);
-        res.status(400).json({ message: `Unknown value: ${value}` });
-        return;
-    }
-
-    const options = { returnOriginal: false };
-
-    const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-    console.log('Result:', result); // Log the result of the update operation
-
-    if (result.value) { // Check if a document was found and updated
-      console.log('Document updated');
-      res.json({ message: 'document updated successfully' });
-    } else {
-      console.log('Document not found');
-      res.status(404).json({ message: 'Screener not found' });
-    }
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-// retrieves params from individual screener document 
-app.get('/screener/datavalues/:user/:name', async (req, res) => {
-  const usernameID = req.params.user;
-  const name = req.params.name;
-
-  try {
-    const client = new MongoClient(uri);
+    let client;
     try {
-      await client.connect();
-      const db = client.db('EreunaDB');
-      const assetInfoCollection = db.collection('Screeners');
+      // Sanitize inputs
+      const UsernameID = sanitizeInput(req.body.user);
+      const Name = sanitizeInput(req.body.Name);
+      const value = sanitizeInput(req.body.stringValue);
 
-      const query = { UsernameID: usernameID, Name: name };
-      const projection = {
-        Price: 1, MarketCap: 1, Sectors: 1, Exchanges: 1, Countries: 1, PE: 1,
-        ForwardPE: 1, PEG: 1, EPS: 1, PS: 1, PB: 1, Beta: 1, DivYield: 1, EPSQoQ: 1, EPSYoY: 1,
-        EarningsQoQ: 1, EarningsYoY: 1, RevQoQ: 1, RevYoY: 1, AvgVolume1W: 1, AvgVolume1M: 1,
-        AvgVolume6M: 1, AvgVolume1Y: 1, RelVolume1W: 1, RelVolume1M: 1, RelVolume6M: 1, RelVolume1Y: 1,
-        RSScore1W: 1, RSScore1M: 1, RSScore4M: 1, MA10: 1, MA20: 1, MA50: 1, MA200: 1, NewHigh: 1, NewLow: 1, PercOffWeekHigh: 1,
-        PercOffWeekLow: 1, changePerc: 1, IPO: 1,
+      // Log the reset parameter attempt
+      requestLogger.info('Attempting to reset screener parameter', {
+        parameter: value,
+        username: obfuscateUsername(UsernameID),
+        screenerName: Name
+      });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Screeners');
+
+      const filter = { UsernameID: UsernameID, Name: Name };
+
+      const updateDoc = {
+        $unset: {}
       };
 
-      const cursor = assetInfoCollection.find(query, { projection: projection });
-      const result = await cursor.toArray();
+      switch (value) {
+        case 'price':
+          updateDoc.$unset.Price = '';
+          break;
+        case 'marketCap':
+          updateDoc.$unset.MarketCap = '';
+          break;
+        case 'IPO':
+          updateDoc.$unset.IPO = '';
+          break;
+        case 'Sector':
+          updateDoc.$unset.Sectors = '';
+          break;
+        case 'Exchange':
+          updateDoc.$unset.Exchanges = '';
+          break;
+        case 'Country':
+          updateDoc.$unset.Countries = '';
+          break;
+        case 'PE':
+          updateDoc.$unset.PE = '';
+          break;
+        case 'ForwardPE':
+          updateDoc.$unset.ForwardPE = '';
+          break;
+        case 'PEG':
+          updateDoc.$unset.PEG = '';
+          break;
+        case 'EPS':
+          updateDoc.$unset.EPS = '';
+          break;
+        case 'PS':
+          updateDoc.$unset.PS = '';
+          break;
+        case 'PB':
+          updateDoc.$unset.PB = '';
+          break;
+        case 'Beta':
+          updateDoc.$unset.Beta = '';
+          break;
+        case 'DivYield':
+          updateDoc.$unset.DivYield = '';
+          break;
+        case 'FundGrowth':
+          updateDoc.$unset.EPSQoQ = '';
+          updateDoc.$unset.EPSYoY = '';
+          updateDoc.$unset.EarningsQoQ = '';
+          updateDoc.$unset.EarningsYoY = '';
+          updateDoc.$unset.RevQoQ = '';
+          updateDoc.$unset.RevYoY = '';
+          break;
+        case 'PricePerformance':
+          updateDoc.$unset.MA10 = '';
+          updateDoc.$unset.MA20 = '';
+          updateDoc.$unset.MA50 = '';
+          updateDoc.$unset.MA200 = '';
+          updateDoc.$unset.NewHigh = '';
+          updateDoc.$unset.NewLow = '';
+          updateDoc.$unset.PercOffWeekHigh = '';
+          updateDoc.$unset.PercOffWeekLow = '';
+          updateDoc.$unset.changePerc = '';
+          break;
+        case 'RSscore':
+          updateDoc.$unset.RSScore1M = '';
+          updateDoc.$unset.RSScore4M = '';
+          updateDoc.$unset.RSScore1W = '';
+          break;
+        case 'Volume':
+          updateDoc.$unset.AvgVolume1W = '';
+          updateDoc.$unset.RelVolume1W = '';
+          updateDoc.$unset.AvgVolume1M = '';
+          updateDoc.$unset.RelVolume1M = '';
+          updateDoc.$unset.AvgVolume6M = '';
+          updateDoc.$unset.RelVolume6M = '';
+          updateDoc.$unset.AvgVolume1Y = '';
+          updateDoc.$unset.RelVolume1Y = '';
+          break;
+        default:
+          // Log unknown value attempt
+          requestLogger.warn('Attempted to reset with unknown parameter', {
+            parameter: value,
+            username: obfuscateUsername(UsernameID),
+            screenerName: Name
+          });
 
-      if (result.length === 0) {
-        res.status(404).send({ message: 'No document found' });
+          return res.status(400).json({
+            message: `Unknown reset parameter: ${value}`
+          });
+      }
+
+      const options = { returnOriginal: false };
+
+      const result = await collection.findOneAndUpdate(filter, updateDoc, options);
+
+      if (result) { // Check if the document was found and updated
+        // Log successful reset
+        requestLogger.info('Screener parameter reset successfully', {
+          parameter: value,
+          username: obfuscateUsername(UsernameID),
+          screenerName: Name
+        });
+
+        res.json({
+          message: 'Parameter reset successfully',
+          resetParameter: value
+        });
       } else {
+        // Log when no document is found
+        requestLogger.warn('No screener found for reset', {
+          username: obfuscateUsername(UsernameID),
+          screenerName: Name
+        });
+
+        res.status(404).json({
+          message: 'Screener not found',
+          details: 'Unable to reset parameter'
+        });
+      }
+
+    } catch (error) {
+      // Log any unexpected errors
+      requestLogger.error('Error resetting screener parameter', {
+        errorMessage: error.message,
+        errorName: error.name,
+        username: obfuscateUsername(req.body.user),
+        screenerName: sanitizeInput(req.body.Name)
+      });
+
+      // Security event logging
+      securityLogger.logSecurityEvent('screener_parameter_reset_failed', {
+        username: obfuscateUsername(req.body.user),
+        errorType: error.constructor.name
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred'
+      });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          requestLogger.warn('Error closing database connection', {
+            errorMessage: closeError.message
+          });
+        }
+      }
+    }
+  });
+
+// retrieves params from individual screener document 
+app.get('/screener/datavalues/:user/:name',
+  validate([
+    validationSchemas.userParam('user'),
+    validationSchemas.screenerNameParam()
+  ]),
+  async (req, res) => {
+    const usernameID = req.params.user;
+    const name = req.params.name;
+
+    try {
+      const client = new MongoClient(uri);
+      try {
+        await client.connect();
+        const db = client.db('EreunaDB');
+        const assetInfoCollection = db.collection('Screeners');
+
+        const query = { UsernameID: usernameID, Name: name };
+        const projection = {
+          Price: 1, MarketCap: 1, Sectors: 1, Exchanges: 1, Countries: 1, PE: 1,
+          ForwardPE: 1, PEG: 1, EPS: 1, PS: 1, PB: 1, Beta: 1, DivYield: 1, EPSQoQ: 1, EPSYoY: 1,
+          EarningsQoQ: 1, EarningsYoY: 1, RevQoQ: 1, RevYoY: 1, AvgVolume1W: 1, AvgVolume1M: 1,
+          AvgVolume6M: 1, AvgVolume1Y: 1, RelVolume1W: 1, RelVolume1M: 1, RelVolume6M: 1, RelVolume1Y: 1,
+          RSScore1W: 1, RSScore1M: 1, RSScore4M: 1, MA10: 1, MA20: 1, MA50: 1, MA200: 1, NewHigh: 1, NewLow: 1, PercOffWeekHigh: 1,
+          PercOffWeekLow: 1, changePerc: 1, IPO: 1,
+        };
+
+        const cursor = assetInfoCollection.find(query, { projection: projection });
+        const result = await cursor.toArray();
+
+        if (result.length === 0) {
+          // Log the not found scenario
+          logger.warn('Screener data not found', {
+            usernameID: obfuscateUsername(usernameID),
+            screenerName: name
+          });
+
+          return res.status(404).json({
+            message: 'No document found',
+            details: 'Screener data could not be retrieved'
+          });
+        }
+
         const document = result[0];
         const response = {
           Price: document.Price,
@@ -8726,32 +8825,74 @@ app.get('/screener/datavalues/:user/:name', async (req, res) => {
           changePerc: document.changePerc,
           IPO: document.IPO,
         };
-        res.send(response);
+
+        // Log successful data retrieval
+        logger.info('Screener data retrieved successfully', {
+          usernameID: obfuscateUsername(usernameID),
+          screenerName: name
+        });
+
+        res.json(response);
+      } finally {
+        await client.close();
       }
-    } finally {
-      await client.close();
+    } catch (err) {
+      // Log the error
+      logger.error('Error retrieving screener data', {
+        errorMessage: err.message,
+        usernameID: obfuscateUsername(usernameID),
+        screenerName: name
+      });
+
+      // Security event logging
+      securityLogger.logSecurityEvent('screener_data_retrieval_failed', {
+        username: obfuscateUsername(usernameID),
+        errorType: err.constructor.name
+      });
+
+      res.status(500).json({
+        message: 'Error connecting to database',
+        details: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred'
+      });
     }
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({ message: 'Error connecting to database' });
   }
-});
+);
 
 // endpoint that sends filtered results for screener
-app.get('/screener/:user/results/filtered/:name', async (req, res) => {
-  const user = req.params.user;
-  try {
-    const client = new MongoClient(uri);
+app.get('/screener/:user/results/filtered/:name',
+  validate([
+    param('user')
+      .trim()
+      .notEmpty().withMessage('Username is required')
+      .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+      .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
+
+    param('name')
+      .trim()
+      .notEmpty().withMessage('Screener name is required')
+      .isLength({ min: 1, max: 20 }).withMessage('Screener name must be between 1 and 20 characters')
+      .matches(/^[a-zA-Z0-9\s_\-+()]+$/).withMessage('Screener name can only contain letters, numbers, spaces, underscores, hyphens, plus, and parentheses')
+  ]),
+  async (req, res) => {
+    const user = sanitizeInput(req.params.user); // Sanitize user input
+    const screenerName = sanitizeInput(req.params.name); // Sanitize screener name input
+
     try {
+      const client = new MongoClient(uri);
       await client.connect();
       const db = client.db('EreunaDB');
-      const screenerName = req.params.name;
+
+      // Log the request details
+      logger.info('Screener results request', {
+        user: obfuscateUsername(user), // Obfuscate username for logging
+        screenerName: screenerName
+      });
 
       const usersCollection = db.collection('Users');
       const userDoc = await usersCollection.findOne({ Username: user });
       if (!userDoc) {
-        res.status(404).json({ message: 'User not found' });
-        return;
+        logger.warn('User  not found', { user: obfuscateUsername(user) });
+        return res.status(404).json({ message: 'User  not found' });
       }
 
       const hiddenSymbols = userDoc.Hidden;
@@ -8759,8 +8900,8 @@ app.get('/screener/:user/results/filtered/:name', async (req, res) => {
       const screenersCollection = db.collection('Screeners');
       const screenerData = await screenersCollection.findOne({ UsernameID: user, Name: screenerName });
       if (!screenerData) {
-        res.status(404).json({ message: 'Screener data not found' });
-        return;
+        logger.warn('Screener data not found', { user: obfuscateUsername(user), screenerName: screenerName });
+        return res.status(404).json({ message: 'Screener data not found' });
       }
 
       // Extract filters from screenerData
@@ -9349,18 +9490,23 @@ app.get('/screener/:user/results/filtered/:name', async (req, res) => {
         _id: 0
       }).toArray();
 
+      logger.info('Filtered assets retrieved successfully', {
+        user: obfuscateUsername(user),
+        screenerName: screenerName,
+        assetCount: filteredAssets.length
+      });
+
       res.send(filteredAssets);
     } catch (error) {
-      console.error('Error:', error);
+      logger.error('Error fetching screener results', {
+        user: obfuscateUsername(user),
+        screenerName: screenerName,
+        error: error.message
+      });
       res.status(500).json({ message: 'Internal Server Error' });
-    } finally {
-      client.close();
     }
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
-});
+);
 
 // endpoint that sends summary for selected screener 
 app.get('/screener/summary/:usernameID/:name', async (req, res) => {

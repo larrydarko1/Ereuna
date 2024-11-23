@@ -370,5 +370,6 @@ export {
     body,
     validationResult,
     validator,
-    sanitizeInput
+    sanitizeInput,
+    param
 };
