@@ -9509,969 +9509,1557 @@ app.get('/screener/:user/results/filtered/:name',
 );
 
 // endpoint that sends summary for selected screener 
-app.get('/screener/summary/:usernameID/:name', async (req, res) => {
-  try {
-    const { usernameID, name } = req.params;
-    const client = new MongoClient(uri);
+app.get('/screener/summary/:usernameID/:name',
+  validate([
+    validationSchemas.userParam2(),
+    validationSchemas.screenerNameParam()
+  ]),
+  async (req, res) => {
+    const startTime = Date.now();
+    const requestId = crypto.randomBytes(16).toString('hex');
+
     try {
+      // Sanitize input parameters
+      const usernameID = sanitizeInput(req.params.usernameID);
+      const name = sanitizeInput(req.params.name);
+
+      // Log the incoming request
+      logger.info({
+        msg: 'Screener Summary Request',
+        requestId: requestId,
+        usernameID: obfuscateUsername(usernameID),
+        screenerName: name,
+        ip: req.ip
+      });
+
+      const client = new MongoClient(uri);
+
+      try {
+        await client.connect();
+        const db = client.db('EreunaDB');
+        const assetInfoCollection = db.collection('Screeners');
+        const filter = { UsernameID: usernameID, Name: name };
+
+        // Log database query
+        logger.debug({
+          msg: 'Executing Database Query',
+          requestId: requestId,
+          collection: 'Screeners',
+          filter: {
+            UsernameID: obfuscateUsername(usernameID),
+            Name: name
+          }
+        });
+
+        const performanceData = await assetInfoCollection.findOne(filter);
+
+        if (!performanceData) {
+          // Log not found scenario
+          logger.warn({
+            msg: 'Screener Summary Not Found',
+            requestId: requestId,
+            usernameID: obfuscateUsername(usernameID),
+            screenerName: name
+          });
+
+          return res.status(404).json({
+            message: 'Document not found',
+            requestId: requestId
+          });
+        }
+
+        // Maintain original attributes list and filtering logic
+        const attributes = [
+          'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta', 'DivYield',
+          'EPSQoQ', 'EPSYoY', 'EarningsQoQ', 'EarningsYoY', 'RevQoQ', 'RevYoY', 'changePerc', 'PercOffWeekHigh', 'PercOffWeekLow',
+          'NewHigh', 'NewLow', 'MA10', 'MA20', 'MA50', 'MA200', 'RSScore1W', 'RSScore1M', 'RSScore4M', 'RSScore1W', 'AvgVolume1W', 'RelVolume1W',
+          'AvgVolume1M', 'RelVolume1M', 'AvgVolume6M', 'RelVolume6M', 'AvgVolume1Y', 'RelVolume1Y', '1mchange', '1ychange', '4mchange',
+          '6mchange', 'todaychange', 'weekchange', 'ytdchange', 'IPO',
+        ];
+
+        const filteredData = attributes.reduce((acc, attribute) => {
+          if (Object.prototype.hasOwnProperty.call(performanceData, attribute)) {
+            acc[attribute] = performanceData[attribute];
+          }
+          return acc;
+        }, {});
+
+        // Log successful retrieval
+        logger.info({
+          msg: 'Screener Summary Retrieved',
+          requestId: requestId,
+          usernameID: obfuscateUsername(usernameID),
+          screenerName: name,
+          dataPoints: Object.keys(filteredData).length,
+          retrievalTime: Date.now() - startTime + 'ms'
+        });
+
+        // Send response exactly as in original implementation
+        res.send(filteredData);
+      } catch (error) {
+        // Log database errors
+        logger.error({
+          msg: 'Database Error',
+          requestId: requestId,
+          error: error.message,
+          stack: error.stack
+        });
+
+        // Security logging
+        securityLogger.logSecurityEvent('database_error', {
+          usernameID: obfuscateUsername(usernameID),
+          screenerName: name,
+          error: error.message
+        });
+
+        res.status(500).json({ message: 'Internal Server Error' });
+      } finally {
+        await client.close();
+      }
+    } catch (error) {
+      // Catch-all error handler
+      logger.error({
+        msg: 'Unexpected Error in Screener Summary',
+        requestId: requestId,
+        error: error.message,
+        stack: error.stack
+      });
+
+      res.status(500).json({ message: 'Unexpected Error' });
+    }
+  }
+);
+
+// endpoint that sends combined screener results and removes duplicate values 
+app.get('/screener/:usernameID/all',
+  validate([
+    param('usernameID')
+      .trim()
+      .notEmpty().withMessage('Username is required')
+      .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+      .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores')
+  ]),
+  async (req, res) => {
+    const startTime = Date.now();
+    const requestId = crypto.randomBytes(16).toString('hex');
+    let client;
+
+    try {
+      // Sanitize input
+      const usernameId = sanitizeInput(req.params.usernameID);
+
+      // Log the request
+      logger.info({
+        msg: 'Combined Screener Results Request',
+        requestId: requestId,
+        usernameID: obfuscateUsername(usernameId),
+        ip: req.ip
+      });
+
+      client = new MongoClient(uri);
       await client.connect();
       const db = client.db('EreunaDB');
-      const assetInfoCollection = db.collection('Screeners');
-      const filter = { UsernameID: usernameID, Name: name };
+      const screenersCollection = db.collection('Screeners');
 
-      const performanceData = await assetInfoCollection.findOne(filter);
+      const screeners = await screenersCollection.find({ UsernameID: usernameId, Include: true }).toArray();
+      const screenerNames = screeners.map(screener => screener.Name);
 
-      if (!performanceData) {
-        res.status(404).json({ message: 'Document not found' });
+      // Log screeners found
+      logger.info({
+        msg: 'Screeners Retrieved',
+        requestId: requestId,
+        screenerCount: screenerNames.length
+      });
+
+      const usersCollection = db.collection('Users');
+      const userDoc = await usersCollection.findOne({ Username: usernameId });
+
+      if (!userDoc) {
+        logger.warn({
+          msg: 'User Not Found',
+          requestId: requestId,
+          usernameID: obfuscateUsername(usernameId)
+        });
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const tickerScreenerMap = new Map();
+      const filteredAssetsArray = [];
+
+      for (const screenerName of screenerNames) {
+        try {
+          const assetInfoCollection = db.collection('AssetInfo');
+          const query = { Symbol: { $nin: userDoc.Hidden } };
+          const aggregation = [];
+
+          const screenerData = await screenersCollection.findOne({ UsernameID: usernameId, Name: screenerName, Include: true });
+          if (!screenerData) {
+            logger.warn({
+              msg: 'Screener Data Not Found',
+              requestId: requestId,
+              screenerName: screenerName
+            });
+            continue;
+          }
+
+          // Extract filters from screenerData
+          const screenerFilters = {};
+
+          if (screenerData.Price && screenerData.Price[0] !== 0 && screenerData.Price[1] !== 0) {
+            screenerFilters.Price = screenerData.Price;
+          }
+
+          if (screenerData.MarketCap && screenerData.MarketCap[0] !== 0 && screenerData.MarketCap[1] !== 0) {
+            screenerFilters.MarketCap = screenerData.MarketCap;
+          }
+
+          if (screenerData.IPO && screenerData.IPO[0] !== 0 && screenerData.IPO[1] !== 0) {
+            screenerFilters.IPO = screenerData.IPO;
+          }
+
+          if (screenerData.Sectors && screenerData.Sectors.length > 0) {
+            screenerFilters.sectors = screenerData.Sectors;
+          }
+
+          if (screenerData.Exchanges && screenerData.Exchanges.length > 0) {
+            screenerFilters.exchanges = screenerData.Exchanges;
+          }
+
+          if (screenerData.Countries && screenerData.Countries.length > 0) {
+            screenerFilters.countries = screenerData.Countries;
+          }
+
+          if (screenerData.NewHigh && screenerData.NewHigh.length > 0) {
+            screenerFilters.NewHigh = screenerData.NewHigh;
+          }
+
+          if (screenerData.NewLow && screenerData.NewLow.length > 0) {
+            screenerFilters.NewLow = screenerData.NewLow;
+          }
+
+          if (screenerData.MA200 && screenerData.MA200.length > 0) {
+            screenerFilters.MA200 = screenerData.MA200;
+          }
+
+          if (screenerData.MA50 && screenerData.MA50.length > 0) {
+            screenerFilters.MA50 = screenerData.MA50;
+          }
+
+          if (screenerData.MA20 && screenerData.MA20.length > 0) {
+            screenerFilters.MA20 = screenerData.MA20;
+          }
+
+          if (screenerData.MA10 && screenerData.MA10.length > 0) {
+            screenerFilters.MA10 = screenerData.MA10;
+          }
+
+          if (screenerData.PE && screenerData.PE[0] !== 0 && screenerData.PE[1] !== 0) {
+            screenerFilters.PE = screenerData.PE;
+          }
+
+          if (screenerData.ForwardPE && screenerData.ForwardPE[0] !== 0 && screenerData.ForwardPE[1] !== 0) {
+            screenerFilters.ForwardPE = screenerData.ForwardPE;
+          }
+
+          if (screenerData.PEG && screenerData.PEG[0] !== 0 && screenerData.PEG[1] !== 0) {
+            screenerFilters.PEG = screenerData.PEG;
+          }
+
+          if (screenerData.EPS && screenerData.EPS[0] !== 0 && screenerData.EPS[1] !== 0) {
+            screenerFilters.EPS = screenerData.EPS;
+          }
+
+          if (screenerData.PS && screenerData.PS[0] !== 0 && screenerData.PS[1] !== 0) {
+            screenerFilters.PS = screenerData.PS;
+          }
+
+          if (screenerData.PB && screenerData.PB[0] !== 0 && screenerData.PB[1] !== 0) {
+            screenerFilters.PB = screenerData.PB;
+          }
+
+          if (screenerData.Beta && screenerData.Beta[0] !== 0 && screenerData.Beta[1] !== 0) {
+            screenerFilters.Beta = screenerData.Beta;
+          }
+
+          if (screenerData.DivYield && screenerData.DivYield[0] !== 0 && screenerData.DivYield[1] !== 0) {
+            screenerFilters.DivYield = screenerData.DivYield;
+          }
+
+          if (screenerData.EPSQoQ && screenerData.EPSQoQ[0] !== 0 && screenerData.EPSQoQ[1] !== 0) {
+            screenerFilters.EPSQoQ = screenerData.EPSQoQ;
+          }
+
+          if (screenerData.EPSYoY && screenerData.EPSYoY[0] !== 0 && screenerData.EPSYoY[1] !== 0) {
+            screenerFilters.EPSYoY = screenerData.EPSYoY;
+          }
+
+          if (screenerData.EarningsQoQ && screenerData.EarningsQoQ[0] !== 0 && screenerData.EarningsQoQ[1] !== 0) {
+            screenerFilters.EarningsQoQ = screenerData.EarningsQoQ;
+          }
+
+          if (screenerData.EarningsYoY && screenerData.EarningsYoY[0] !== 0 && screenerData.EarningsYoY[1] !== 0) {
+            screenerFilters.EarningsYoY = screenerData.EarningsYoY;
+          }
+
+          if (screenerData.RevQoQ && screenerData.RevQoQ[0] !== 0 && screenerData.RevQoQ[1] !== 0) {
+            screenerFilters.RevQoQ = screenerData.RevQoQ;
+          }
+
+          if (screenerData.RevYoY && screenerData.RevYoY[0] !== 0 && screenerData.RevYoY[1] !== 0) {
+            screenerFilters.RevYoY = screenerData.RevYoY;
+          }
+
+          if (screenerData.AvgVolume1W && screenerData.AvgVolume1W[0] !== 0 && screenerData.AvgVolume1W[1] !== 0) {
+            screenerFilters.AvgVolume1W = screenerData.AvgVolume1W;
+          }
+
+          if (screenerData.AvgVolume1M && screenerData.AvgVolume1M[0] !== 0 && screenerData.AvgVolume1M[1] !== 0) {
+            screenerFilters.AvgVolume1M = screenerData.AvgVolume1M;
+          }
+
+          if (screenerData.AvgVolume6M && screenerData.AvgVolume6M[0] !== 0 && screenerData.AvgVolume6M[1] !== 0) {
+            screenerFilters.AvgVolume6M = screenerData.AvgVolume6M;
+          }
+
+          if (screenerData.AvgVolume1Y && screenerData.AvgVolume1Y[0] !== 0 && screenerData.AvgVolume1Y[1] !== 0) {
+            screenerFilters.AvgVolume1Y = screenerData.AvgVolume1Y;
+          }
+
+          if (screenerData.RelVolume1W && screenerData.RelVolume1W[0] !== 0 && screenerData.RelVolume1W[1] !== 0) {
+            screenerFilters.RelVolume1W = screenerData.RelVolume1W;
+          }
+
+          if (screenerData.RelVolume1M && screenerData.RelVolume1M[0] !== 0 && screenerData.RelVolume1M[1] !== 0) {
+            screenerFilters.RelVolume1M = screenerData.RelVolume1M;
+          }
+
+          if (screenerData.RelVolume6M && screenerData.RelVolume6M[0] !== 0 && screenerData.RelVolume6M[1] !== 0) {
+            screenerFilters.RelVolume6M = screenerData.RelVolume6M;
+          }
+
+          if (screenerData.RSScore1W && screenerData.RSScore1W[0] !== 0 && screenerData.RSScore1W[1] !== 0) {
+            screenerFilters.RSScore1W = screenerData.RSScore1W;
+          }
+
+          if (screenerData.RSScore1M && screenerData.RSScore1M[0] !== 0 && screenerData.RSScore1M[1] !== 0) {
+            screenerFilters.RSScore1M = screenerData.RSScore1M;
+          }
+
+          if (screenerData.RSScore4M && screenerData.RSScore4M[0] !== 0 && screenerData.RSScore4M[1] !== 0) {
+            screenerFilters.RSScore4M = screenerData.RSScore4M;
+          }
+
+          if (screenerData.PercOffWeekHigh && screenerData.PercOffWeekHigh[0] !== 0 && screenerData.PercOffWeekHigh[1] !== 0) {
+            screenerFilters.PercOffWeekHigh = screenerData.PercOffWeekHigh;
+          }
+
+          if (screenerData.PercOffWeekLow && screenerData.PercOffWeekLow[0] !== 0 && screenerData.PercOffWeekLow[1] !== 0) {
+            screenerFilters.PercOffWeekLow = screenerData.PercOffWeekLow;
+          }
+
+          if (screenerData.changePerc &&
+            screenerData.changePerc[0] !== 0 &&
+            screenerData.changePerc[1] !== 0) {
+            screenerFilters.changePerc = screenerData.changePerc;
+            if (screenerData.changePerc[2] && screenerData.changePerc[2].length > 0) {
+              screenerFilters.changePerc[2] = screenerData.changePerc[2];
+            }
+          }
+
+          Object.keys(screenerFilters).forEach((key) => {
+            switch (key) {
+              case 'Price':
+                query.$expr = {
+                  $and: [
+                    { $gt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[0]] },
+                    { $lt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[1]] }
+                  ]
+                };
+                break;
+              case 'MarketCap':
+                query.MarketCapitalization = {
+                  $gt: screenerFilters.MarketCap[0],
+                  $lt: screenerFilters.MarketCap[1]
+                };
+                break;
+              case 'IPO':
+                query.IPO = {
+                  $gt: screenerFilters.IPO[0],
+                  $lt: screenerFilters.IPO[1]
+                };
+                break;
+              case 'sectors':
+                query.Sector = { $in: screenerFilters.sectors };
+                break;
+              case 'exchanges':
+                query.Exchange = { $in: screenerFilters.exchanges };
+                break;
+              case 'countries':
+                query.Country = { $in: screenerFilters.countries };
+                break;
+              case 'PE':
+                query.PERatio = {
+                  $gt: screenerFilters.PE[0],
+                  $lt: screenerFilters.PE[1]
+                };
+                break;
+              case 'ForwardPE':
+                query.ForwardPE = {
+                  $gt: screenerFilters.ForwardPE[0],
+                  $lt: screenerFilters.ForwardPE[1]
+                };
+                break;
+              case 'PEG':
+                query.PEGRatio = {
+                  $gt: screenerFilters.PEG[0],
+                  $lt: screenerFilters.PEG[1]
+                };
+                break;
+              case 'EPS':
+                query.EPS = {
+                  $gt: screenerFilters.EPS[0],
+                  $lt: screenerFilters.EPS[1]
+                };
+                break;
+              case 'PS':
+                query.PriceToSalesRatioTTM = {
+                  $gt: screenerFilters.PS[0],
+                  $lt: screenerFilters.PS[1]
+                };
+                break;
+              case 'PB':
+                query.PriceToBookRatio = {
+                  $gt: screenerFilters.PB[0],
+                  $lt: screenerFilters.PB[1]
+                };
+                break;
+              case 'Beta':
+                query.Beta = {
+                  $gt: screenerFilters.Beta[0],
+                  $lt: screenerFilters.Beta[1]
+                };
+                break;
+              case 'DivYield':
+                query.DividendYield = {
+                  $gt: screenerFilters.DivYield[0],
+                  $lt: screenerFilters.DivYield[1]
+                };
+                break;
+              case 'EPSQoQ':
+                query.EPSQoQ = {
+                  $gt: screenerFilters.EPSQoQ[0],
+                  $lt: screenerFilters.EPSQoQ[1]
+                };
+                break;
+              case 'EPSYoY':
+                query.EPSYoY = {
+                  $gt: screenerFilters.EPSYoY[0],
+                  $lt: screenerFilters.EPSYoY[1]
+                };
+                break;
+              case 'EarningsQoQ':
+                query.EarningsQoQ = {
+                  $gt: screenerFilters.EarningsQoQ[0],
+                  $lt: screenerFilters.EarningsQoQ[1]
+                };
+                break;
+              case 'EarningsYoY':
+                query.EarningsYoY = {
+                  $gt: screenerFilters.EarningsYoY[0],
+                  $lt: screenerFilters.EarningsYoY[1]
+                };
+                break;
+              case 'RevQoQ':
+                query.RevenueQoQ = {
+                  $gt: screenerFilters.RevQoQ[0],
+                  $lt: screenerFilters.RevQoQ[1]
+                };
+                break;
+              case 'RevYoY':
+                query.RevenueYoY = {
+                  $gt: screenerFilters.RevYoY[0],
+                  $lt: screenerFilters.RevYoY[1]
+                };
+                break;
+              case 'AvgVolume1W':
+                query.AvgVolume1W = {
+                  $gt: screenerFilters.AvgVolume1W[0],
+                  $lt: screenerFilters.AvgVolume1W[1]
+                };
+                break;
+              case 'AvgVolume1M':
+                query.AvgVolume1M = {
+                  $gt: screenerFilters.AvgVolume1M[0],
+                  $lt: screenerFilters.AvgVolume1M[1]
+                };
+                break;
+              case 'AvgVolume6M':
+                query.AvgVolume6M = {
+                  $gt: screenerFilters.AvgVolume6M[0],
+                  $lt: screenerFilters.AvgVolume6M[1]
+                };
+                break;
+              case 'AvgVolume1Y':
+                query.AvgVolume1Y = {
+                  $gt: screenerFilters.AvgVolume1Y[0],
+                  $lt: screenerFilters.AvgVolume1Y[1]
+                };
+                break;
+              case 'RelVolume1W':
+                query.RelVolume1W = {
+                  $gt: screenerFilters.RelVolume1W[0],
+                  $lt: screenerFilters.RelVolume1W[1]
+                };
+                break;
+              case 'RelVolume1M':
+                query.RelVolume1M = {
+                  $gt: screenerFilters.RelVolume1M[0],
+                  $lt: screenerFilters.RelVolume1M[1]
+                };
+                break;
+              case 'RelVolume6M':
+                query.RelVolume6M = {
+                  $gt: screenerFilters.RelVolume6M[0],
+                  $lt: screenerFilters.RelVolume6M[1]
+                };
+                break;
+              case 'RelVolume1Y':
+                query.RelVolume1Y = {
+                  $gt: screenerFilters.RelVolume1Y[0],
+                  $lt: screenerFilters.RelVolume1Y[1]
+                };
+                break;
+              case 'RSScore1W':
+                query.RSScore1W = {
+                  $gt: screenerFilters.RSScore1W[0],
+                  $lt: screenerFilters.RSScore1W[1]
+                };
+                break;
+              case 'RSScore1M':
+                query.RSScore1M = {
+                  $gt: screenerFilters.RSScore1M[0],
+                  $lt: screenerFilters.RSScore1M[1]
+                };
+                break;
+              case 'RSScore4M':
+                query.RSScore4M = {
+                  $gt: screenerFilters.RSScore4M[0],
+                  $lt: screenerFilters.RSScore4M[1]
+                };
+                break;
+              case 'changePerc':
+                switch (screenerFilters.changePerc[2]) {
+                  case '1D':
+                    query.todaychange = {
+                      $gt: screenerFilters.changePerc[0] / 100,
+                      $lt: screenerFilters.changePerc[1] / 100
+                    };
+                    break;
+                  case '1W':
+                    query.weekchange = {
+                      $gt: screenerFilters.changePerc[0] / 100,
+                      $lt: screenerFilters.changePerc[1] / 100
+                    };
+                    break;
+                  case '1M':
+                    query['1mchange'] = {
+                      $gt: screenerFilters.changePerc[0] / 100,
+                      $lt: screenerFilters.changePerc[1] / 100
+                    };
+                    break;
+                  case '4M':
+                    query['4mchange'] = {
+                      $gt: screenerFilters.changePerc[0] / 100,
+                      $lt: screenerFilters.changePerc[1] / 100
+                    };
+                    break;
+                  case '6M':
+                    query['6mchange'] = {
+                      $gt: screenerFilters.changePerc[0] / 100,
+                      $lt: screenerFilters.changePerc[1] / 100
+                    };
+                    break;
+                  case '1Y':
+                    query['1ychange'] = {
+                      $gt: screenerFilters.changePerc[0] / 100,
+                      $lt: screenerFilters.changePerc[1] / 100
+                    };
+                    break;
+                  case 'YTD':
+                    query.ytdchange = {
+                      $gt: screenerFilters.changePerc[0] / 100,
+                      $lt: screenerFilters.changePerc[1] / 100
+                    };
+                    break;
+                }
+                break;
+              case 'PercOffWeekHigh':
+                query.percoff52WeekHigh = {
+                  $gt: -screenerFilters.PercOffWeekHigh[0] / 100,
+                  $lt: -screenerFilters.PercOffWeekHigh[1] / 100
+                };
+                break;
+              case 'PercOffWeekLow':
+                query.percoff52WeekLow = {
+                  $gt: screenerFilters.PercOffWeekLow[0] / 100,
+                  $lt: screenerFilters.PercOffWeekLow[1] / 100
+                };
+                break;
+              case 'NewHigh':
+                if (screenerFilters.NewHigh === 'yes') {
+                  query.$expr = {
+                    $gt: [
+                      { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
+                      "$AlltimeHigh"
+                    ]
+                  };
+                }
+                break;
+              case 'NewLow':
+                if (screenerFilters.NewLow === 'yes') {
+                  query.$expr = {
+                    $lt: [
+                      { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
+                      "$AlltimeLow"
+                    ]
+                  };
+                }
+                break;
+              case 'MA200':
+                if (screenerFilters.MA200 === 'abv50') {
+                  query.$expr = {
+                    $gt: ["$MA200", "$MA50"]
+                  };
+                } else if (screenerFilters.MA200 === 'abv20') {
+                  query.$expr = {
+                    $gt: ["$MA200", "$MA20"]
+                  };
+                } else if (screenerFilters.MA200 === 'abv10') {
+                  query.$expr = {
+                    $gt: ["$MA200", "$MA10"]
+                  };
+                } else if (screenerFilters.MA200 === 'blw50') {
+                  query.$expr = {
+                    $lt: ["$MA200", "$MA50"]
+                  };
+                } else if (screenerFilters.MA200 === 'blw20') {
+                  query.$expr = {
+                    $lt: ["$MA200", "$MA20"]
+                  };
+                } else if (screenerFilters.MA200 === 'blw10') {
+                  query.$expr = {
+                    $lt: ["$MA200", "$MA10"]
+                  };
+                }
+                break;
+              case 'MA50':
+                if (screenerFilters.MA50 === 'abv200') {
+                  query.$expr = {
+                    $gt: ["$MA50", "$MA200"]
+                  };
+                } else if (screenerFilters.MA50 === 'abv20') {
+                  query.$expr = {
+                    $gt: ["$MA50", "$MA20"]
+                  };
+                } else if (screenerFilters.MA50 === 'abv10') {
+                  query.$expr = {
+                    $gt: ["$MA50", "$MA10"]
+                  };
+                } else if (screenerFilters.MA50 === 'blw200') {
+                  query.$expr = {
+                    $lt: ["$MA50", "$MA200"]
+                  };
+                } else if (screenerFilters.MA50 === 'blw20') {
+                  query.$expr = {
+                    $lt: ["$MA50", "$MA20"]
+                  };
+                } else if (screenerFilters.MA50 === 'blw10') {
+                  query.$expr = {
+                    $lt: ["$MA50", "$MA10"]
+                  };
+                }
+                break;
+              case 'MA20':
+                if (screenerFilters.MA20 === 'abv200') {
+                  query.$expr = {
+                    $gt: ["$MA20", "$MA200"]
+                  };
+                } else if (screenerFilters.MA50 === 'abv50') {
+                  query.$expr = {
+                    $gt: ["$MA20", "$MA50"]
+                  };
+                } else if (screenerFilters.MA50 === 'abv10') {
+                  query.$expr = {
+                    $gt: ["$MA20", "$MA10"]
+                  };
+                } else if (screenerFilters.MA50 === 'blw200') {
+                  query.$expr = {
+                    $lt: ["$MA20", "$MA200"]
+                  };
+                } else if (screenerFilters.MA50 === 'blw50') {
+                  query.$expr = {
+                    $lt: ["$MA20", "$MA50"]
+                  };
+                } else if (screenerFilters.MA50 === 'blw10') {
+                  query.$expr = {
+                    $lt: ["$MA20", "$MA10"]
+                  };
+                }
+                break;
+              case 'MA10':
+                if (screenerFilters.MA10 === 'abv200') {
+                  query.$expr = {
+                    $gt: ["$MA10", "$MA200"]
+                  };
+                } else if (screenerFilters.MA50 === 'abv50') {
+                  query.$expr = {
+                    $gt: ["$MA10", "$MA50"]
+                  };
+                } else if (screenerFilters.MA50 === 'abv20') {
+                  query.$expr = {
+                    $gt: ["$MA10", "$MA20"]
+                  };
+                } else if (screenerFilters.MA50 === 'blw200') {
+                  query.$expr = {
+                    $lt: ["$MA10", "$MA200"]
+                  };
+                } else if (screenerFilters.MA50 === 'blw50') {
+                  query.$expr = {
+                    $lt: ["$MA10", "$MA50"]
+                  };
+                } else if (screenerFilters.MA50 === 'blw20') {
+                  query.$expr = {
+                    $lt: ["$MA10", "$MA20"]
+                  };
+                }
+                break;
+              default:
+                break;
+            }
+          });
+
+          aggregation.push({ $match: query });
+          aggregation.push({
+            $addFields: {
+              Close: {
+                $arrayElemAt: [
+                  {
+                    $map: {
+                      input: { $objectToArray: "$TimeSeries" },
+                      as: "item",
+                      in: { $getField: { field: "4. close", input: "$$item.v" } }
+                    }
+                  },
+                  0
+                ]
+              }
+            }
+          });
+
+          const filteredAssets = await assetInfoCollection.aggregate(aggregation).project({
+            Symbol: 1,
+            Name: 1,
+            ISIN: 1,
+            MarketCapitalization: 1,
+            Close: 1,
+            PERatio: 1,
+            PEGRatio: 1,
+            DividendYield: 1,
+            EPS: 1,
+            Beta: 1,
+            RSScore1W: 1,
+            RSScore1M: 1,
+            RSScore4M: 1,
+            todaychange: 1,
+            _id: 0
+          }).toArray();
+
+          filteredAssets.forEach(asset => {
+            const key = asset.Symbol;
+            if (!tickerScreenerMap.has(key)) {
+              tickerScreenerMap.set(key, []);
+            }
+            tickerScreenerMap.get(key).push(screenerName);
+          });
+
+          filteredAssetsArray.push(...filteredAssets);
+        } catch (error) {
+          logger.error({
+            msg: 'Error Processing Screener',
+            requestId: requestId,
+            screenerName: screenerName,
+            error: error.message
+          });
+          // Continue to next screener instead of stopping entire process
+          continue;
+        }
+      }
+
+      // Existing deduplication logic remains unchanged
+      const uniqueFilteredAssetsArray = Array.from(new Set(filteredAssetsArray.map(a => JSON.stringify(a)))).map(a => JSON.parse(a));
+
+      // Add screener information to the unique assets
+      const finalResults = uniqueFilteredAssetsArray.map(asset => {
+        const screenerNames = tickerScreenerMap.get(asset.Symbol) || [];
+        return {
+          ...asset,
+          screenerNames: screenerNames,
+          isDuplicate: screenerNames.length > 1
+        };
+      });
+
+      // Log results
+      logger.info({
+        msg: 'Combined Screener Results Retrieved',
+        requestId: requestId,
+        totalAssets: finalResults.length,
+        processingTime: Date.now() - startTime + 'ms'
+      });
+
+      res.send(finalResults);
+
+    } catch (error) {
+      // Comprehensive error logging
+      logger.error({
+        msg: 'Unexpected Error in Combined Screener Results',
+        requestId: requestId,
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+
+      res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            error: closeError.message
+          });
+        }
+      }
+    }
+  }
+);
+
+// endpoint that updates the watchlist oder after sortable.js is used 
+app.patch('/watchlists/update-order/:Username/:Name',
+  validate([
+    param('Username')
+      .trim()
+      .notEmpty().withMessage('Username is required')
+      .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+      .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
+
+    param('Name')
+      .trim()
+      .notEmpty().withMessage('Watchlist name is required')
+      .isLength({ min: 1, max: 50 }).withMessage('Watchlist name must be between 1 and 50 characters')
+      .matches(/^[a-zA-Z0-9\s_\-+()]+$/).withMessage('Watchlist name can only contain letters, numbers, spaces, underscores, hyphens, plus signs, and parentheses'),
+
+    body('newListOrder')
+      .isArray().withMessage('New list order must be an array')
+      .custom((value) => {
+        if (!value.every(item => typeof item === 'string' && item.length <= 12)) {
+          throw new Error('Each list item must be a string with max 12 characters');
+        }
+        return true;
+      })
+  ]),
+  async (req, res) => {
+    const requestId = crypto.randomBytes(16).toString('hex');
+    let client;
+
+    try {
+      // Sanitize inputs
+      const user = sanitizeInput(req.body.user);
+      const Name = sanitizeInput(req.params.Name);
+      const newListOrder = req.body.newListOrder.map(item => sanitizeInput(item));
+
+      // Log the request
+      logger.info({
+        msg: 'Watchlist Order Update Request',
+        requestId: requestId,
+        user: obfuscateUsername(user),
+        watchlistName: Name,
+        listOrderLength: newListOrder.length,
+        ip: req.ip
+      });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Watchlists');
+
+      const filter = { UsernameID: user, Name: Name };
+      const update = { $set: { List: newListOrder } };
+
+      const result = await collection.updateOne(filter, update, { upsert: true });
+
+      if (result.upsertedCount === 1) {
+        logger.info({
+          msg: 'Watchlist Document Created',
+          requestId: requestId,
+          user: obfuscateUsername(user),
+          watchlistName: Name
+        });
+      } else if (result.modifiedCount === 1) {
+        logger.info({
+          msg: 'Watchlist Order Updated',
+          requestId: requestId,
+          user: obfuscateUsername(user),
+          watchlistName: Name
+        });
+      } else {
+        logger.warn({
+          msg: 'No Matching Watchlist Found',
+          requestId: requestId,
+          user: obfuscateUsername(user),
+          watchlistName: Name
+        });
+        return res.status(404).json({ message: 'Watchlist not found' });
+      }
+
+      res.send({
+        message: 'Watchlist order updated successfully',
+        requestId: requestId
+      });
+
+    } catch (error) {
+      // Comprehensive error logging
+      logger.error({
+        msg: 'Error Updating Watchlist Order',
+        requestId: requestId,
+        user: req.body.user ? obfuscateUsername(req.body.user) : 'Unknown',
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        requestId: requestId
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            requestId: requestId,
+            error: closeError.message
+          });
+        }
+      }
+    }
+  }
+);
+
+// endpoint that should add/remove tickers with inputs 
+app.patch('/watchlist/addticker/:isAdding',
+  validate([
+    param('isAdding')
+      .isIn(['true', 'false']).withMessage('isAdding must be true or false'),
+
+    body('watchlistName')
+      .trim()
+      .notEmpty().withMessage('Watchlist name is required')
+      .isLength({ min: 1, max: 50 }).withMessage('Watchlist name must be between 1 and 50 characters')
+      .matches(/^[a-zA-Z0-9\s_\-+()]+$/).withMessage('Watchlist name can only contain letters, numbers, spaces, underscores, hyphens, plus signs, and parentheses'),
+
+    body('symbol')
+      .trim()
+      .notEmpty().withMessage('Symbol is required')
+      .isLength({ min: 1, max: 12 }).withMessage('Symbol must be between 1 and 12 characters')
+      .matches(/^[A-Z0-9.]+$/).withMessage('Symbol can only contain uppercase letters, numbers, and dots'),
+
+    body('user')
+      .trim()
+      .notEmpty().withMessage('Username is required')
+      .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+      .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores')
+  ]),
+  async (req, res) => {
+    const requestId = crypto.randomBytes(16).toString('hex');
+    let client;
+
+    try {
+      // Sanitize inputs
+      const isAdding = req.params.isAdding === 'true';
+      const watchlistName = sanitizeInput(req.body.watchlistName);
+      const symbol = sanitizeInput(req.body.symbol);
+      const user = sanitizeInput(req.body.user);
+
+      // Log the request
+      logger.info({
+        msg: 'Watchlist Ticker Update Request',
+        requestId: requestId,
+        user: obfuscateUsername(user),
+        watchlistName: watchlistName,
+        symbol: symbol,
+        isAdding: isAdding,
+        ip: req.ip
+      });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Watchlists');
+
+      let result;
+      if (isAdding) {
+        // Add the symbol to the List array if it doesn't exist
+        result = await collection.updateOne(
+          { Name: watchlistName, UsernameID: user },
+          { $addToSet: { List: symbol } }
+        );
+      } else {
+        // Remove the symbol from the List array
+        result = await collection.updateOne(
+          { Name: watchlistName },
+          { $pull: { List: symbol } }
+        );
+      }
+
+      if (result.matchedCount === 0) {
+        logger.warn({
+          msg: 'Watchlist Not Found',
+          requestId: requestId,
+          user: obfuscateUsername(user),
+          watchlistName: watchlistName
+        });
+        return res.status(404).json({ message: 'Watchlist not found' });
+      }
+
+      if (result.modifiedCount === 0) {
+        logger.info({
+          msg: 'No Modification Needed',
+          requestId: requestId,
+          user: obfuscateUsername(user),
+          watchlistName: watchlistName,
+          symbol: symbol,
+          isAdding: isAdding
+        });
+        return res.status(200).json({
+          message: isAdding
+            ? 'Symbol already in watchlist'
+            : 'Symbol not in watchlist'
+        });
+      }
+
+      // Log successful update
+      logger.info({
+        msg: 'Watchlist Ticker Updated',
+        requestId: requestId,
+        user: obfuscateUsername(user),
+        watchlistName: watchlistName,
+        symbol: symbol,
+        action: isAdding ? 'added' : 'removed'
+      });
+
+      res.status(200).json({
+        message: isAdding
+          ? 'Ticker added successfully'
+          : 'Ticker removed successfully',
+        requestId: requestId
+      });
+
+    } catch (error) {
+      // Comprehensive error logging
+      logger.error({
+        msg: 'Error Updating Watchlist Ticker',
+        requestId: requestId,
+        user: req.body.user ? obfuscateUsername(req.body.user) : 'Unknown',
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        requestId: requestId
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            requestId: requestId,
+            error: closeError.message
+          });
+        }
+      }
+    }
+  }
+);
+
+// endpoint that toggles value for screener, to include or exclude from combined list
+app.patch('/:user/toggle/screener/:list',
+  validate([
+    param('user')
+      .trim()
+      .notEmpty().withMessage('Username is required')
+      .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+      .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
+
+    param('list')
+      .trim()
+      .notEmpty().withMessage('Screener name is required')
+      .isLength({ min: 1, max: 50 }).withMessage('Screener name must be between 1 and 50 characters')
+      .matches(/^[a-zA-Z0-9\s_\-+()]+$/).withMessage('Screener name can only contain letters, numbers, spaces, underscores, hyphens, plus signs, and parentheses')
+  ]),
+  async (req, res) => {
+    const requestId = crypto.randomBytes(16).toString('hex');
+    let client;
+
+    try {
+      // Sanitize inputs
+      const user = sanitizeInput(req.params.user);
+      const list = sanitizeInput(req.params.list);
+
+      // Log the request
+      logger.info({
+        msg: 'Screener Toggle Request',
+        requestId: requestId,
+        user: obfuscateUsername(user),
+        screenerName: list,
+        ip: req.ip
+      });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Screeners');
+
+      // Find the screener document
+      const filter = { Name: list, UsernameID: user };
+      const screener = await collection.findOne(filter);
+
+      if (!screener) {
+        logger.warn({
+          msg: 'Screener Not Found',
+          requestId: requestId,
+          user: obfuscateUsername(user),
+          screenerName: list
+        });
+        return res.status(404).json({ message: 'Screener not found' });
+      }
+
+      // Toggle the Include attribute
+      const updatedIncludeValue = !screener.Include; // Switch the boolean value
+
+      // Update the document in the database
+      const updateResult = await collection.updateOne(filter, {
+        $set: { Include: updatedIncludeValue }
+      });
+
+      if (updateResult.modifiedCount === 0) {
+        logger.error({
+          msg: 'Failed to Update Screener',
+          requestId: requestId,
+          user: obfuscateUsername(user),
+          screenerName: list
+        });
+        return res.status(500).json({ message: 'Failed to update screener' });
+      }
+
+      // Log successful update
+      logger.info({
+        msg: 'Screener Toggled Successfully',
+        requestId: requestId,
+        user: obfuscateUsername(user),
+        screenerName: list,
+        newIncludeValue: updatedIncludeValue
+      });
+
+      res.send({
+        message: 'Screener updated successfully',
+        Include: updatedIncludeValue,
+        requestId: requestId
+      });
+
+    } catch (error) {
+      // Comprehensive error logging
+      logger.error({
+        msg: 'Error Toggling Screener',
+        requestId: requestId,
+        user: req.params.user ? obfuscateUsername(req.params.user) : 'Unknown',
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        requestId: requestId
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            requestId: requestId,
+            error: closeError.message
+          });
+        }
+      }
+    }
+  }
+);
+
+// endpoint that retrieves watchlists for a specific user
+app.get('/:user/full-watchlists',
+  validate([
+    param('user')
+      .trim()
+      .notEmpty().withMessage('Username is required')
+      .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+      .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores')
+  ]),
+  async (req, res) => {
+    const requestId = crypto.randomBytes(16).toString('hex');
+    let client;
+
+    try {
+      const user = sanitizeInput(req.params.user);
+
+      // Log the request
+      logger.info({
+        msg: 'Retrieve Full Watchlists Request',
+        requestId: requestId,
+        user: obfuscateUsername(user),
+        ip: req.ip
+      });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Watchlists');
+
+      // Find all watchlists for the given user
+      const userWatchlists = await collection.find({ UsernameID: user }, { projection: { _id: 0, Name: 1, List: 1 } }).toArray();
+
+      if (userWatchlists.length === 0) {
+        // Log no watchlists found
+        logger.warn({
+          msg: 'No Watchlists Found',
+          requestId: requestId,
+          user: obfuscateUsername(user)
+        });
+
+        res.status(404).json({ message: 'No watchlists found for the user' });
         return;
       }
 
-      const attributes = [
-        'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta', 'DivYield',
-        'EPSQoQ', 'EPSYoY', 'EarningsQoQ', 'EarningsYoY', 'RevQoQ', 'RevYoY', 'changePerc', 'PercOffWeekHigh', 'PercOffWeekLow',
-        'NewHigh', 'NewLow', 'MA10', 'MA20', 'MA50', 'MA200', 'RSScore1W', 'RSScore1M', 'RSScore4M', 'RSScore1W', 'AvgVolume1W', 'RelVolume1W',
-        'AvgVolume1M', 'RelVolume1M', 'AvgVolume6M', 'RelVolume6M', 'AvgVolume1Y', 'RelVolume1Y', '1mchange', '1ychange', '4mchange',
-        '6mchange', 'todaychange', 'weekchange', 'ytdchange', 'IPO',
-      ];
+      // Log successful retrieval
+      logger.info({
+        msg: 'Watchlists Retrieved Successfully',
+        requestId: requestId,
+        user: obfuscateUsername(user),
+        watchlistCount: userWatchlists.length
+      });
 
-      const filteredData = attributes.reduce((acc, attribute) => {
-        if (Object.prototype.hasOwnProperty.call(performanceData, attribute)) {
-          acc[attribute] = performanceData[attribute];
-        }
-        return acc;
-      }, {});
+      res.send(userWatchlists);
 
-      res.send(filteredData);
     } catch (error) {
-      console.error('Error:', error);
+      // Log error
+      logger.error({
+        msg: 'Error Retrieving Watchlists',
+        requestId: requestId,
+        user: req.params.user ? obfuscateUsername(req.params.user) : 'Unknown',
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+
       res.status(500).json({ message: 'Internal Server Error' });
     } finally {
-      client.close();
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-// endpoint that sends combined screener results and removes duplicate values 
-app.get('/screener/:usernameID/all', async (req, res) => {
-  let client;
-  try {
-    client = new MongoClient(uri);
-    await client.connect();
-    const db = client.db('EreunaDB');
-    const screenersCollection = db.collection('Screeners');
-    const usernameId = req.params.usernameID;
-
-    const screeners = await screenersCollection.find({ UsernameID: usernameId, Include: true }).toArray();
-    const screenerNames = screeners.map(screener => screener.Name); // list of names 
-
-    const usersCollection = db.collection('Users');
-    const userDoc = await usersCollection.findOne({ Username: usernameId });
-
-    const tickerScreenerMap = new Map();
-    const filteredAssetsArray = [];
-
-    for (const screenerName of screenerNames) {
-      try {
-        const assetInfoCollection = db.collection('AssetInfo');
-        const query = { Symbol: { $nin: userDoc.Hidden } };
-        const aggregation = [];
-
-        const screenerData = await screenersCollection.findOne({ UsernameID: usernameId, Name: screenerName, Include: true });
-        if (!screenerData) {
-          throw new Error('Screener data not found');
+      // Ensure client is closed
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            error: closeError.message
+          });
         }
-
-        // Extract filters from screenerData
-        const screenerFilters = {};
-
-        if (screenerData.Price && screenerData.Price[0] !== 0 && screenerData.Price[1] !== 0) {
-          screenerFilters.Price = screenerData.Price;
-        }
-
-        if (screenerData.MarketCap && screenerData.MarketCap[0] !== 0 && screenerData.MarketCap[1] !== 0) {
-          screenerFilters.MarketCap = screenerData.MarketCap;
-        }
-
-        if (screenerData.IPO && screenerData.IPO[0] !== 0 && screenerData.IPO[1] !== 0) {
-          screenerFilters.IPO = screenerData.IPO;
-        }
-
-        if (screenerData.Sectors && screenerData.Sectors.length > 0) {
-          screenerFilters.sectors = screenerData.Sectors;
-        }
-
-        if (screenerData.Exchanges && screenerData.Exchanges.length > 0) {
-          screenerFilters.exchanges = screenerData.Exchanges;
-        }
-
-        if (screenerData.Countries && screenerData.Countries.length > 0) {
-          screenerFilters.countries = screenerData.Countries;
-        }
-
-        if (screenerData.NewHigh && screenerData.NewHigh.length > 0) {
-          screenerFilters.NewHigh = screenerData.NewHigh;
-        }
-
-        if (screenerData.NewLow && screenerData.NewLow.length > 0) {
-          screenerFilters.NewLow = screenerData.NewLow;
-        }
-
-        if (screenerData.MA200 && screenerData.MA200.length > 0) {
-          screenerFilters.MA200 = screenerData.MA200;
-        }
-
-        if (screenerData.MA50 && screenerData.MA50.length > 0) {
-          screenerFilters.MA50 = screenerData.MA50;
-        }
-
-        if (screenerData.MA20 && screenerData.MA20.length > 0) {
-          screenerFilters.MA20 = screenerData.MA20;
-        }
-
-        if (screenerData.MA10 && screenerData.MA10.length > 0) {
-          screenerFilters.MA10 = screenerData.MA10;
-        }
-
-        if (screenerData.PE && screenerData.PE[0] !== 0 && screenerData.PE[1] !== 0) {
-          screenerFilters.PE = screenerData.PE;
-        }
-
-        if (screenerData.ForwardPE && screenerData.ForwardPE[0] !== 0 && screenerData.ForwardPE[1] !== 0) {
-          screenerFilters.ForwardPE = screenerData.ForwardPE;
-        }
-
-        if (screenerData.PEG && screenerData.PEG[0] !== 0 && screenerData.PEG[1] !== 0) {
-          screenerFilters.PEG = screenerData.PEG;
-        }
-
-        if (screenerData.EPS && screenerData.EPS[0] !== 0 && screenerData.EPS[1] !== 0) {
-          screenerFilters.EPS = screenerData.EPS;
-        }
-
-        if (screenerData.PS && screenerData.PS[0] !== 0 && screenerData.PS[1] !== 0) {
-          screenerFilters.PS = screenerData.PS;
-        }
-
-        if (screenerData.PB && screenerData.PB[0] !== 0 && screenerData.PB[1] !== 0) {
-          screenerFilters.PB = screenerData.PB;
-        }
-
-        if (screenerData.Beta && screenerData.Beta[0] !== 0 && screenerData.Beta[1] !== 0) {
-          screenerFilters.Beta = screenerData.Beta;
-        }
-
-        if (screenerData.DivYield && screenerData.DivYield[0] !== 0 && screenerData.DivYield[1] !== 0) {
-          screenerFilters.DivYield = screenerData.DivYield;
-        }
-
-        if (screenerData.EPSQoQ && screenerData.EPSQoQ[0] !== 0 && screenerData.EPSQoQ[1] !== 0) {
-          screenerFilters.EPSQoQ = screenerData.EPSQoQ;
-        }
-
-        if (screenerData.EPSYoY && screenerData.EPSYoY[0] !== 0 && screenerData.EPSYoY[1] !== 0) {
-          screenerFilters.EPSYoY = screenerData.EPSYoY;
-        }
-
-        if (screenerData.EarningsQoQ && screenerData.EarningsQoQ[0] !== 0 && screenerData.EarningsQoQ[1] !== 0) {
-          screenerFilters.EarningsQoQ = screenerData.EarningsQoQ;
-        }
-
-        if (screenerData.EarningsYoY && screenerData.EarningsYoY[0] !== 0 && screenerData.EarningsYoY[1] !== 0) {
-          screenerFilters.EarningsYoY = screenerData.EarningsYoY;
-        }
-
-        if (screenerData.RevQoQ && screenerData.RevQoQ[0] !== 0 && screenerData.RevQoQ[1] !== 0) {
-          screenerFilters.RevQoQ = screenerData.RevQoQ;
-        }
-
-        if (screenerData.RevYoY && screenerData.RevYoY[0] !== 0 && screenerData.RevYoY[1] !== 0) {
-          screenerFilters.RevYoY = screenerData.RevYoY;
-        }
-
-        if (screenerData.AvgVolume1W && screenerData.AvgVolume1W[0] !== 0 && screenerData.AvgVolume1W[1] !== 0) {
-          screenerFilters.AvgVolume1W = screenerData.AvgVolume1W;
-        }
-
-        if (screenerData.AvgVolume1M && screenerData.AvgVolume1M[0] !== 0 && screenerData.AvgVolume1M[1] !== 0) {
-          screenerFilters.AvgVolume1M = screenerData.AvgVolume1M;
-        }
-
-        if (screenerData.AvgVolume6M && screenerData.AvgVolume6M[0] !== 0 && screenerData.AvgVolume6M[1] !== 0) {
-          screenerFilters.AvgVolume6M = screenerData.AvgVolume6M;
-        }
-
-        if (screenerData.AvgVolume1Y && screenerData.AvgVolume1Y[0] !== 0 && screenerData.AvgVolume1Y[1] !== 0) {
-          screenerFilters.AvgVolume1Y = screenerData.AvgVolume1Y;
-        }
-
-        if (screenerData.RelVolume1W && screenerData.RelVolume1W[0] !== 0 && screenerData.RelVolume1W[1] !== 0) {
-          screenerFilters.RelVolume1W = screenerData.RelVolume1W;
-        }
-
-        if (screenerData.RelVolume1M && screenerData.RelVolume1M[0] !== 0 && screenerData.RelVolume1M[1] !== 0) {
-          screenerFilters.RelVolume1M = screenerData.RelVolume1M;
-        }
-
-        if (screenerData.RelVolume6M && screenerData.RelVolume6M[0] !== 0 && screenerData.RelVolume6M[1] !== 0) {
-          screenerFilters.RelVolume6M = screenerData.RelVolume6M;
-        }
-
-        if (screenerData.RSScore1W && screenerData.RSScore1W[0] !== 0 && screenerData.RSScore1W[1] !== 0) {
-          screenerFilters.RSScore1W = screenerData.RSScore1W;
-        }
-
-        if (screenerData.RSScore1M && screenerData.RSScore1M[0] !== 0 && screenerData.RSScore1M[1] !== 0) {
-          screenerFilters.RSScore1M = screenerData.RSScore1M;
-        }
-
-        if (screenerData.RSScore4M && screenerData.RSScore4M[0] !== 0 && screenerData.RSScore4M[1] !== 0) {
-          screenerFilters.RSScore4M = screenerData.RSScore4M;
-        }
-
-        if (screenerData.PercOffWeekHigh && screenerData.PercOffWeekHigh[0] !== 0 && screenerData.PercOffWeekHigh[1] !== 0) {
-          screenerFilters.PercOffWeekHigh = screenerData.PercOffWeekHigh;
-        }
-
-        if (screenerData.PercOffWeekLow && screenerData.PercOffWeekLow[0] !== 0 && screenerData.PercOffWeekLow[1] !== 0) {
-          screenerFilters.PercOffWeekLow = screenerData.PercOffWeekLow;
-        }
-
-        if (screenerData.changePerc &&
-          screenerData.changePerc[0] !== 0 &&
-          screenerData.changePerc[1] !== 0) {
-          screenerFilters.changePerc = screenerData.changePerc;
-          if (screenerData.changePerc[2] && screenerData.changePerc[2].length > 0) {
-            screenerFilters.changePerc[2] = screenerData.changePerc[2];
-          }
-        }
-
-        Object.keys(screenerFilters).forEach((key) => {
-          switch (key) {
-            case 'Price':
-              query.$expr = {
-                $and: [
-                  { $gt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[0]] },
-                  { $lt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[1]] }
-                ]
-              };
-              break;
-            case 'MarketCap':
-              query.MarketCapitalization = {
-                $gt: screenerFilters.MarketCap[0],
-                $lt: screenerFilters.MarketCap[1]
-              };
-              break;
-            case 'IPO':
-              query.IPO = {
-                $gt: screenerFilters.IPO[0],
-                $lt: screenerFilters.IPO[1]
-              };
-              break;
-            case 'sectors':
-              query.Sector = { $in: screenerFilters.sectors };
-              break;
-            case 'exchanges':
-              query.Exchange = { $in: screenerFilters.exchanges };
-              break;
-            case 'countries':
-              query.Country = { $in: screenerFilters.countries };
-              break;
-            case 'PE':
-              query.PERatio = {
-                $gt: screenerFilters.PE[0],
-                $lt: screenerFilters.PE[1]
-              };
-              break;
-            case 'ForwardPE':
-              query.ForwardPE = {
-                $gt: screenerFilters.ForwardPE[0],
-                $lt: screenerFilters.ForwardPE[1]
-              };
-              break;
-            case 'PEG':
-              query.PEGRatio = {
-                $gt: screenerFilters.PEG[0],
-                $lt: screenerFilters.PEG[1]
-              };
-              break;
-            case 'EPS':
-              query.EPS = {
-                $gt: screenerFilters.EPS[0],
-                $lt: screenerFilters.EPS[1]
-              };
-              break;
-            case 'PS':
-              query.PriceToSalesRatioTTM = {
-                $gt: screenerFilters.PS[0],
-                $lt: screenerFilters.PS[1]
-              };
-              break;
-            case 'PB':
-              query.PriceToBookRatio = {
-                $gt: screenerFilters.PB[0],
-                $lt: screenerFilters.PB[1]
-              };
-              break;
-            case 'Beta':
-              query.Beta = {
-                $gt: screenerFilters.Beta[0],
-                $lt: screenerFilters.Beta[1]
-              };
-              break;
-            case 'DivYield':
-              query.DividendYield = {
-                $gt: screenerFilters.DivYield[0],
-                $lt: screenerFilters.DivYield[1]
-              };
-              break;
-            case 'EPSQoQ':
-              query.EPSQoQ = {
-                $gt: screenerFilters.EPSQoQ[0],
-                $lt: screenerFilters.EPSQoQ[1]
-              };
-              break;
-            case 'EPSYoY':
-              query.EPSYoY = {
-                $gt: screenerFilters.EPSYoY[0],
-                $lt: screenerFilters.EPSYoY[1]
-              };
-              break;
-            case 'EarningsQoQ':
-              query.EarningsQoQ = {
-                $gt: screenerFilters.EarningsQoQ[0],
-                $lt: screenerFilters.EarningsQoQ[1]
-              };
-              break;
-            case 'EarningsYoY':
-              query.EarningsYoY = {
-                $gt: screenerFilters.EarningsYoY[0],
-                $lt: screenerFilters.EarningsYoY[1]
-              };
-              break;
-            case 'RevQoQ':
-              query.RevenueQoQ = {
-                $gt: screenerFilters.RevQoQ[0],
-                $lt: screenerFilters.RevQoQ[1]
-              };
-              break;
-            case 'RevYoY':
-              query.RevenueYoY = {
-                $gt: screenerFilters.RevYoY[0],
-                $lt: screenerFilters.RevYoY[1]
-              };
-              break;
-            case 'AvgVolume1W':
-              query.AvgVolume1W = {
-                $gt: screenerFilters.AvgVolume1W[0],
-                $lt: screenerFilters.AvgVolume1W[1]
-              };
-              break;
-            case 'AvgVolume1M':
-              query.AvgVolume1M = {
-                $gt: screenerFilters.AvgVolume1M[0],
-                $lt: screenerFilters.AvgVolume1M[1]
-              };
-              break;
-            case 'AvgVolume6M':
-              query.AvgVolume6M = {
-                $gt: screenerFilters.AvgVolume6M[0],
-                $lt: screenerFilters.AvgVolume6M[1]
-              };
-              break;
-            case 'AvgVolume1Y':
-              query.AvgVolume1Y = {
-                $gt: screenerFilters.AvgVolume1Y[0],
-                $lt: screenerFilters.AvgVolume1Y[1]
-              };
-              break;
-            case 'RelVolume1W':
-              query.RelVolume1W = {
-                $gt: screenerFilters.RelVolume1W[0],
-                $lt: screenerFilters.RelVolume1W[1]
-              };
-              break;
-            case 'RelVolume1M':
-              query.RelVolume1M = {
-                $gt: screenerFilters.RelVolume1M[0],
-                $lt: screenerFilters.RelVolume1M[1]
-              };
-              break;
-            case 'RelVolume6M':
-              query.RelVolume6M = {
-                $gt: screenerFilters.RelVolume6M[0],
-                $lt: screenerFilters.RelVolume6M[1]
-              };
-              break;
-            case 'RelVolume1Y':
-              query.RelVolume1Y = {
-                $gt: screenerFilters.RelVolume1Y[0],
-                $lt: screenerFilters.RelVolume1Y[1]
-              };
-              break;
-            case 'RSScore1W':
-              query.RSScore1W = {
-                $gt: screenerFilters.RSScore1W[0],
-                $lt: screenerFilters.RSScore1W[1]
-              };
-              break;
-            case 'RSScore1M':
-              query.RSScore1M = {
-                $gt: screenerFilters.RSScore1M[0],
-                $lt: screenerFilters.RSScore1M[1]
-              };
-              break;
-            case 'RSScore4M':
-              query.RSScore4M = {
-                $gt: screenerFilters.RSScore4M[0],
-                $lt: screenerFilters.RSScore4M[1]
-              };
-              break;
-            case 'changePerc':
-              switch (screenerFilters.changePerc[2]) {
-                case '1D':
-                  query.todaychange = {
-                    $gt: screenerFilters.changePerc[0] / 100,
-                    $lt: screenerFilters.changePerc[1] / 100
-                  };
-                  break;
-                case '1W':
-                  query.weekchange = {
-                    $gt: screenerFilters.changePerc[0] / 100,
-                    $lt: screenerFilters.changePerc[1] / 100
-                  };
-                  break;
-                case '1M':
-                  query['1mchange'] = {
-                    $gt: screenerFilters.changePerc[0] / 100,
-                    $lt: screenerFilters.changePerc[1] / 100
-                  };
-                  break;
-                case '4M':
-                  query['4mchange'] = {
-                    $gt: screenerFilters.changePerc[0] / 100,
-                    $lt: screenerFilters.changePerc[1] / 100
-                  };
-                  break;
-                case '6M':
-                  query['6mchange'] = {
-                    $gt: screenerFilters.changePerc[0] / 100,
-                    $lt: screenerFilters.changePerc[1] / 100
-                  };
-                  break;
-                case '1Y':
-                  query['1ychange'] = {
-                    $gt: screenerFilters.changePerc[0] / 100,
-                    $lt: screenerFilters.changePerc[1] / 100
-                  };
-                  break;
-                case 'YTD':
-                  query.ytdchange = {
-                    $gt: screenerFilters.changePerc[0] / 100,
-                    $lt: screenerFilters.changePerc[1] / 100
-                  };
-                  break;
-              }
-              break;
-            case 'PercOffWeekHigh':
-              query.percoff52WeekHigh = {
-                $gt: -screenerFilters.PercOffWeekHigh[0] / 100,
-                $lt: -screenerFilters.PercOffWeekHigh[1] / 100
-              };
-              break;
-            case 'PercOffWeekLow':
-              query.percoff52WeekLow = {
-                $gt: screenerFilters.PercOffWeekLow[0] / 100,
-                $lt: screenerFilters.PercOffWeekLow[1] / 100
-              };
-              break;
-            case 'NewHigh':
-              if (screenerFilters.NewHigh === 'yes') {
-                query.$expr = {
-                  $gt: [
-                    { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
-                    "$AlltimeHigh"
-                  ]
-                };
-              }
-              break;
-            case 'NewLow':
-              if (screenerFilters.NewLow === 'yes') {
-                query.$expr = {
-                  $lt: [
-                    { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
-                    "$AlltimeLow"
-                  ]
-                };
-              }
-              break;
-            case 'MA200':
-              if (screenerFilters.MA200 === 'abv50') {
-                query.$expr = {
-                  $gt: ["$MA200", "$MA50"]
-                };
-              } else if (screenerFilters.MA200 === 'abv20') {
-                query.$expr = {
-                  $gt: ["$MA200", "$MA20"]
-                };
-              } else if (screenerFilters.MA200 === 'abv10') {
-                query.$expr = {
-                  $gt: ["$MA200", "$MA10"]
-                };
-              } else if (screenerFilters.MA200 === 'blw50') {
-                query.$expr = {
-                  $lt: ["$MA200", "$MA50"]
-                };
-              } else if (screenerFilters.MA200 === 'blw20') {
-                query.$expr = {
-                  $lt: ["$MA200", "$MA20"]
-                };
-              } else if (screenerFilters.MA200 === 'blw10') {
-                query.$expr = {
-                  $lt: ["$MA200", "$MA10"]
-                };
-              }
-              break;
-            case 'MA50':
-              if (screenerFilters.MA50 === 'abv200') {
-                query.$expr = {
-                  $gt: ["$MA50", "$MA200"]
-                };
-              } else if (screenerFilters.MA50 === 'abv20') {
-                query.$expr = {
-                  $gt: ["$MA50", "$MA20"]
-                };
-              } else if (screenerFilters.MA50 === 'abv10') {
-                query.$expr = {
-                  $gt: ["$MA50", "$MA10"]
-                };
-              } else if (screenerFilters.MA50 === 'blw200') {
-                query.$expr = {
-                  $lt: ["$MA50", "$MA200"]
-                };
-              } else if (screenerFilters.MA50 === 'blw20') {
-                query.$expr = {
-                  $lt: ["$MA50", "$MA20"]
-                };
-              } else if (screenerFilters.MA50 === 'blw10') {
-                query.$expr = {
-                  $lt: ["$MA50", "$MA10"]
-                };
-              }
-              break;
-            case 'MA20':
-              if (screenerFilters.MA20 === 'abv200') {
-                query.$expr = {
-                  $gt: ["$MA20", "$MA200"]
-                };
-              } else if (screenerFilters.MA50 === 'abv50') {
-                query.$expr = {
-                  $gt: ["$MA20", "$MA50"]
-                };
-              } else if (screenerFilters.MA50 === 'abv10') {
-                query.$expr = {
-                  $gt: ["$MA20", "$MA10"]
-                };
-              } else if (screenerFilters.MA50 === 'blw200') {
-                query.$expr = {
-                  $lt: ["$MA20", "$MA200"]
-                };
-              } else if (screenerFilters.MA50 === 'blw50') {
-                query.$expr = {
-                  $lt: ["$MA20", "$MA50"]
-                };
-              } else if (screenerFilters.MA50 === 'blw10') {
-                query.$expr = {
-                  $lt: ["$MA20", "$MA10"]
-                };
-              }
-              break;
-            case 'MA10':
-              if (screenerFilters.MA10 === 'abv200') {
-                query.$expr = {
-                  $gt: ["$MA10", "$MA200"]
-                };
-              } else if (screenerFilters.MA50 === 'abv50') {
-                query.$expr = {
-                  $gt: ["$MA10", "$MA50"]
-                };
-              } else if (screenerFilters.MA50 === 'abv20') {
-                query.$expr = {
-                  $gt: ["$MA10", "$MA20"]
-                };
-              } else if (screenerFilters.MA50 === 'blw200') {
-                query.$expr = {
-                  $lt: ["$MA10", "$MA200"]
-                };
-              } else if (screenerFilters.MA50 === 'blw50') {
-                query.$expr = {
-                  $lt: ["$MA10", "$MA50"]
-                };
-              } else if (screenerFilters.MA50 === 'blw20') {
-                query.$expr = {
-                  $lt: ["$MA10", "$MA20"]
-                };
-              }
-              break;
-            default:
-              break;
-          }
-        });
-
-        aggregation.push({ $match: query });
-        aggregation.push({
-          $addFields: {
-            Close: {
-              $arrayElemAt: [
-                {
-                  $map: {
-                    input: { $objectToArray: "$TimeSeries" },
-                    as: "item",
-                    in: { $getField: { field: "4. close", input: "$$item.v" } }
-                  }
-                },
-                0
-              ]
-            }
-          }
-        });
-
-        const filteredAssets = await assetInfoCollection.aggregate(aggregation).project({
-          Symbol: 1,
-          Name: 1,
-          ISIN: 1,
-          MarketCapitalization: 1,
-          Close: 1,
-          PERatio: 1,
-          PEGRatio: 1,
-          DividendYield: 1,
-          EPS: 1,
-          Beta: 1,
-          RSScore1W: 1,
-          RSScore1M: 1,
-          RSScore4M: 1,
-          todaychange: 1,
-          _id: 0
-        }).toArray();
-
-        filteredAssets.forEach(asset => {
-          const key = asset.Symbol;
-          if (!tickerScreenerMap.has(key)) {
-            tickerScreenerMap.set(key, []);
-          }
-          tickerScreenerMap.get(key).push(screenerName);
-        });
-
-        filteredAssetsArray.push(...filteredAssets);
-      } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Internal Server Error' });
       }
     }
-
-    const uniqueFilteredAssetsArray = Array.from(new Set(filteredAssetsArray.map(a => JSON.stringify(a)))).map(a => JSON.parse(a));
-
-    // Add screener information to the unique assets
-    const finalResults = uniqueFilteredAssetsArray.map(asset => {
-      const screenerNames = tickerScreenerMap.get(asset.Symbol) || [];
-      return {
-        ...asset,
-        screenerNames: screenerNames,
-        isDuplicate: screenerNames.length > 1
-      };
-    });
-
-    res.send(finalResults);
-
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      client.close();
-    }
   }
-});
-
-app.patch('/watchlists/update-order/:Username/:Name', async (req, res) => {
-  try {
-    const { user, Name, newListOrder } = req.body;
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Watchlists');
-
-    const filter = { UsernameID: user, Name: Name };
-    const update = { $set: { List: newListOrder } };
-
-    const result = await collection.updateOne(filter, update, { upsert: true });
-
-    if (result.upsertedCount === 1) {
-      console.log('Document created');
-    } else if (result.modifiedCount === 1) {
-      console.log('Document updated');
-    } else {
-      console.log('No documents found that match the filter');
-      res.status(404).json({ message: 'Watchlist not found' });
-      return;
-    }
-
-    res.send({ message: 'Watchlist order updated successfully' });
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-app.patch('/watchlist/addticker/:isAdding', async (req, res) => {
-  let client;
-  try {
-    const isAdding = req.params.isAdding === 'true';
-    const { watchlistName, symbol, user } = req.body;
-
-    client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Watchlists');
-
-    let result;
-    if (isAdding) {
-      // Add the symbol to the List array if it doesn't exist
-      result = await collection.updateOne(
-        { Name: watchlistName, UsernameID: user },
-        { $addToSet: { List: symbol } }
-      );
-    } else {
-      // Remove the symbol from the List array
-      result = await collection.updateOne(
-        { Name: watchlistName },
-        { $pull: { List: symbol } }
-      );
-    }
-
-    if (result.matchedCount === 0) {
-      res.status(404).json({ message: 'Watchlist not found' });
-      return;
-    }
-
-    if (result.modifiedCount === 0) {
-      res.status(200).json({ message: isAdding ? 'Symbol already in watchlist' : 'Symbol not in watchlist' });
-      return;
-    }
-
-    res.status(200).json({
-      message: isAdding ? 'Ticker added successfully' : 'Ticker removed successfully'
-    });
-
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      await client.close();
-    }
-  }
-});
-
-app.get('/data/highlow', async (req, res) => {
-  try {
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('HighLowIndicator');
-
-    const data = await collection.find().sort({ timestamp: 1 }).toArray();
-
-    const result = data.map((doc) => ({
-      time: doc.timestamp.toISOString().slice(0, 10),
-      value: doc.NetHighLow,
-    }));
-
-    res.send(result);
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-// endpoint that toggles value for screener, to include or exclude from combined list
-app.patch('/:user/toggle/screener/:list', async (req, res) => {
-  try {
-    const user = req.params.user;
-    const list = req.params.list;
-
-    const client = new MongoClient(uri);
-    await client.connect();
-
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Screeners');
-
-    // Find the screener document
-    const filter = { Name: list, UsernameID: user };
-    const screener = await collection.findOne(filter);
-
-    if (!screener) {
-      res.status(404).json({ message: 'Screener not found' });
-      return;
-    }
-
-    // Toggle the Include attribute
-    const updatedIncludeValue = !screener.Include; // Switch the boolean value
-
-    // Update the document in the database
-    const updateResult = await collection.updateOne(filter, {
-      $set: { Include: updatedIncludeValue }
-    });
-
-    if (updateResult.modifiedCount === 0) {
-      res.status(500).json({ message: 'Failed to update screener' });
-      return;
-    }
-
-    res.send({ message: 'Screener updated successfully', Include: updatedIncludeValue });
-
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-// endpoint that retrieves watchlists for a specific user
-app.get('/:user/full-watchlists', async (req, res) => {
-  try {
-    const user = req.params.user; // Get the user from the request parameters
-    const client = new MongoClient(uri); // Create a new MongoClient
-    await client.connect(); // Connect to the MongoDB server
-
-    const db = client.db('EreunaDB'); // Access the EreunaDB database
-    const collection = db.collection('Watchlists'); // Access the Watchlists collection
-
-    // Find all watchlists for the given user
-    const userWatchlists = await collection.find({ UsernameID: user }, { projection: { _id: 0, Name: 1, List: 1 } }).toArray();
-
-    if (userWatchlists.length === 0) {
-      res.status(404).json({ message: 'No watchlists found for the user' });
-      return;
-    }
-
-    res.send(userWatchlists); // Send the found watchlists back to the client
-
-    client.close(); // Close the database connection
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' }); // Handle any errors
-  }
-});
+);
 
 // Maintenance status GET endpoint
 app.get('/maintenance-status', async (req, res) => {
-  const client = new MongoClient(uri);
+  const requestId = crypto.randomBytes(16).toString('hex');
+  let client;
+
   try {
+    // Log the request
+    logger.info({
+      msg: 'Maintenance Status Request',
+      requestId: requestId,
+      ip: req.ip
+    });
+
+    client = new MongoClient(uri);
     await client.connect();
+
     const db = client.db('EreunaDB');
     const systemSettings = db.collection('systemSettings');
 
     const status = await systemSettings.findOne({ name: 'EreunaApp' });
+
+    // Log successful retrieval
+    logger.info({
+      msg: 'Maintenance Status Retrieved',
+      requestId: requestId,
+      maintenanceMode: status ? status.maintenance : false
+    });
+
     return res.json({ maintenance: status ? status.maintenance : false });
   } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ message: 'Internal Server Error' });
+    // Log error
+    logger.error({
+      msg: 'Error Retrieving Maintenance Status',
+      requestId: requestId,
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+
+    return res.status(500).json({
+      message: 'Internal Server Error',
+      requestId: requestId
+    });
   } finally {
-    client.close();
+    // Ensure client is closed
+    if (client) {
+      try {
+        await client.close();
+      } catch (closeError) {
+        logger.warn({
+          msg: 'Database Client Closure Failed',
+          requestId: requestId,
+          error: closeError.message
+        });
+      }
+    }
   }
 });
 
 // Maintenance status POST endpoint
-app.post('/maintenance-status', async (req, res) => {
-  const client = new MongoClient(uri);
-  try {
-    const { maintenance } = req.body;
+app.post('/maintenance-status',
+  validate([
+    body('maintenance')
+      .custom((value) => {
+        // Sanitize the input first
+        const sanitizedValue = sanitizeInput(value.toString());
 
-    await client.connect();
-    const db = client.db('EreunaDB');
-    const systemSettings = db.collection('systemSettings');
+        // Convert to boolean after sanitization
+        const booleanValue = sanitizedValue.toLowerCase() === 'true';
 
-    await systemSettings.updateOne(
-      { name: 'EreunaApp' },
-      {
-        $set: {
-          maintenance: maintenance,
-          lastUpdated: new Date()
+        return typeof booleanValue === 'boolean';
+      }).withMessage('Maintenance status must be a valid boolean')
+  ]),
+  async (req, res) => {
+    const requestId = crypto.randomBytes(16).toString('hex');
+    let client;
+
+    try {
+      // Sanitize the maintenance value
+      const maintenance = sanitizeInput(req.body.maintenance.toString()).toLowerCase() === 'true';
+
+      // Log the request
+      logger.info({
+        msg: 'Maintenance Status Update Request',
+        requestId: requestId,
+        maintenanceMode: maintenance,
+        ip: req.ip
+      });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const systemSettings = db.collection('systemSettings');
+
+      await systemSettings.updateOne(
+        { name: 'EreunaApp' },
+        {
+          $set: {
+            maintenance: maintenance,
+            lastUpdated: new Date()
+          }
+        }
+      );
+
+      // Log successful update
+      logger.info({
+        msg: 'Maintenance Status Updated Successfully',
+        requestId: requestId,
+        maintenanceMode: maintenance
+      });
+
+      return res.json({
+        success: true,
+        requestId: requestId
+      });
+    } catch (error) {
+      // Log error
+      logger.error({
+        msg: 'Error Updating Maintenance Status',
+        requestId: requestId,
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        requestId: requestId
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            requestId: requestId,
+            error: closeError.message
+          });
         }
       }
-    );
-
-    return res.json({ success: true });
-  } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    client.close();
+    }
   }
-});
+);
 
 // retrieves receipts for the user 
-app.get('/get-receipts/:user', async (req, res) => {
-  let client;
-  try {
-    const user = req.params.user;
-    console.log('Looking for user:', user);
+app.get('/get-receipts/:user',
+  validate([
+    param('user')
+      .trim()
+      .notEmpty().withMessage('Username is required')
+      .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+      .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores')
+  ]),
+  async (req, res) => {
+    const requestId = crypto.randomBytes(16).toString('hex');
+    let client;
 
-    client = new MongoClient(uri);
-    await client.connect();
+    try {
+      // Sanitize the username parameter
+      const user = sanitizeInput(req.params.user);
 
-    const db = client.db('EreunaDB');
-    const usersCollection = db.collection('Users');
+      // Log the request
+      logger.info({
+        msg: 'Retrieve Receipts Request',
+        requestId: requestId,
+        username: obfuscateUsername(user),
+        ip: req.ip
+      });
 
-    // Use a case-insensitive query with regex
-    const userDoc = await usersCollection.findOne({
-      Username: { $regex: new RegExp(`^${user}$`, 'i') }
-    });
+      client = new MongoClient(uri);
+      await client.connect();
 
-    console.log('Found user document:', userDoc);
+      const db = client.db('EreunaDB');
+      const usersCollection = db.collection('Users');
 
-    if (!userDoc) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+      // Use a case-insensitive query with regex
+      const userDoc = await usersCollection.findOne({
+        Username: { $regex: new RegExp(`^${user}$`, 'i') }
+      });
 
-    // Let's also log the _id we're going to use
-    console.log('User _id:', userDoc._id);
+      // Log user lookup
+      if (!userDoc) {
+        logger.warn({
+          msg: 'User Not Found',
+          requestId: requestId,
+          username: obfuscateUsername(user)
+        });
 
-    // Connect to the Receipts collection
-    const receiptsCollection = db.collection('Receipts');
+        return res.status(404).json({
+          error: 'User not found',
+          requestId: requestId
+        });
+      }
 
-    // Find receipts and log the query we're using
-    const query = { UserID: userDoc._id };
-    console.log('Receipt query:', query);
+      // Connect to the Receipts collection
+      const receiptsCollection = db.collection('Receipts');
 
-    const userReceipts = await receiptsCollection.find(query).toArray();
-    console.log('Found receipts:', userReceipts);
+      // Find receipts
+      const query = { UserID: userDoc._id };
 
-    res.json({ receipts: userReceipts });
+      const userReceipts = await receiptsCollection.find(query).toArray();
 
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  } finally {
-    if (client) {
-      await client.close();
+      // Log successful receipt retrieval
+      logger.info({
+        msg: 'Receipts Retrieved Successfully',
+        requestId: requestId,
+        username: obfuscateUsername(user),
+        receiptCount: userReceipts.length
+      });
+
+      res.json({
+        receipts: userReceipts,
+        requestId: requestId
+      });
+
+    } catch (error) {
+      // Log detailed error
+      logger.error({
+        msg: 'Error Retrieving Receipts',
+        requestId: requestId,
+        username: obfuscateUsername(req.params.user),
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+
+      res.status(500).json({
+        error: 'Internal server error',
+        requestId: requestId
+      });
+
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            requestId: requestId,
+            error: closeError.message
+          });
+        }
+      }
     }
   }
-});
+);
 
+//endpoint that retrieves exchanges for each symbol (related to assigning pictures correctly)
 app.get('/symbols-exchanges', async (req, res) => {
+  const requestId = crypto.randomBytes(16).toString('hex');
   let client;
+
   try {
+    // Log the request
+    logger.info({
+      msg: 'Retrieve Symbols and Exchanges Request',
+      requestId: requestId,
+      ip: req.ip
+    });
+
     client = new MongoClient(uri);
     await client.connect();
 
@@ -10491,97 +11079,253 @@ app.get('/symbols-exchanges', async (req, res) => {
     ).toArray();
 
     if (documents.length === 0) {
-      res.status(404).json({ message: 'No documents found' });
-      return;
+      logger.warn({
+        msg: 'No Symbols and Exchanges Found',
+        requestId: requestId
+      });
+
+      return res.status(404).json({ message: 'No documents found' });
     }
 
-    res.send(documents);
+    // Log successful retrieval
+    logger.info({
+      msg: 'Symbols and Exchanges Retrieved Successfully',
+      requestId: requestId,
+      documentCount: documents.length
+    });
+
+    res.json(documents);
 
   } catch (error) {
-    console.error('Error:', error);
+    // Log detailed error
+    logger.error({
+      msg: 'Error Retrieving Symbols and Exchanges',
+      requestId: requestId,
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+
     res.status(500).json({ message: 'Internal Server Error' });
   } finally {
     if (client) {
-      await client.close();
+      try {
+        await client.close();
+      } catch (closeError) {
+        logger.warn({
+          msg: 'Database Client Closure Failed',
+          requestId: requestId,
+          error: closeError.message
+        });
+      }
     }
   }
 });
 
 // endpoint that retrieves default symbol for user
-app.get('/:user/default-symbol', async (req, res) => {
-  let client;
-  try {
-    const username = req.params.user;
+app.get('/:user/default-symbol',
+  validate([
+    param('user')
+      .trim()
+      .notEmpty().withMessage('Username is required')
+      .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+      .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores')
+  ]),
+  async (req, res) => {
+    const requestId = crypto.randomBytes(16).toString('hex');
+    let client;
 
-    client = new MongoClient(uri);
-    await client.connect();
+    try {
+      // Sanitize input
+      const username = sanitizeInput(req.params.user);
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Users');
+      // Log the request
+      logger.info({
+        msg: 'Retrieve Default Symbol Request',
+        requestId: requestId,
+        username: obfuscateUsername(username),
+        ip: req.ip
+      });
 
-    const userDoc = await collection.findOne(
-      { Username: username },
-      { projection: { defaultSymbol: 1, _id: 0 } }
-    );
+      client = new MongoClient(uri);
+      await client.connect();
 
-    if (!userDoc) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Users');
 
-    res.json({ defaultSymbol: userDoc.defaultSymbol });
+      const userDoc = await collection.findOne(
+        { Username: username },
+        { projection: { defaultSymbol: 1, _id: 0 } }
+      );
 
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      await client.close();
+      if (!userDoc) {
+        logger.warn({
+          msg: 'User  Not Found',
+          requestId: requestId,
+          username: obfuscateUsername(username)
+        });
+
+        return res.status(404).json({ message: 'User  not found' });
+      }
+
+      // Log successful retrieval
+      logger.info({
+        msg: 'Default Symbol Retrieved Successfully',
+        requestId: requestId,
+        username: obfuscateUsername(username)
+      });
+
+      res.json({ defaultSymbol: userDoc.defaultSymbol });
+
+    } catch (error) {
+      // Log detailed error
+      logger.error({
+        msg: 'Error Retrieving Default Symbol',
+        requestId: requestId,
+        username: obfuscateUsername(req.params.user),
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+
+      res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            requestId: requestId,
+            error: closeError.message
+          });
+        }
+      }
     }
   }
-});
+);
 
 // endpoint that updates default symbol for user
-app.patch('/:user/update-default-symbol', async (req, res) => {
-  let client;
-  try {
-    const username = req.params.user;
-    const { defaultSymbol } = req.body;
+app.patch('/:user/update-default-symbol',
+  validate([
+    // Validate user parameter
+    param('user')
+      .trim()
+      .notEmpty().withMessage('Username is required')
+      .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+      .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
 
-    if (!defaultSymbol) {
-      res.status(400).json({ message: 'Default symbol is required' });
-      return;
-    }
+    // Validate default symbol in body
+    body('defaultSymbol')
+      .trim()
+      .notEmpty().withMessage('Default symbol is required')
+      .isLength({ min: 1, max: 10 }).withMessage('Symbol must be between 1 and 10 characters')
+      .matches(/^[A-Za-z0-9.]+$/).withMessage('Symbol can only contain letters, numbers, and periods')
+  ]),
+  async (req, res) => {
+    const requestId = crypto.randomBytes(16).toString('hex');
+    let client;
 
-    client = new MongoClient(uri);
-    await client.connect();
+    try {
+      // Run validation
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        logger.warn({
+          msg: 'Validation Failed',
+          requestId: requestId,
+          errors: errors.array(),
+          username: obfuscateUsername(req.params.user)
+        });
+        return res.status(400).json({ errors: errors.array() });
+      }
 
-    const db = client.db('EreunaDB');
-    const collection = db.collection('Users');
+      // Sanitize inputs
+      const username = sanitizeInput(req.params.user);
+      const defaultSymbol = sanitizeInput(req.body.defaultSymbol).toUpperCase();
 
-    const result = await collection.updateOne(
-      { Username: username },
-      { $set: { defaultSymbol: defaultSymbol.toUpperCase() } }
-    );
+      // Log the request
+      logger.info({
+        msg: 'Update Default Symbol Request',
+        requestId: requestId,
+        username: obfuscateUsername(username),
+        ip: req.ip
+      });
 
-    if (result.matchedCount === 0) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
+      client = new MongoClient(uri);
+      await client.connect();
 
-    if (result.modifiedCount === 0) {
-      res.status(400).json({ message: 'No changes made' });
-      return;
-    }
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Users');
+      const assetInfoCollection = db.collection('AssetInfo');
 
-    res.json({ message: 'Default symbol updated successfully' });
+      // Verify symbol exists in AssetInfo
+      const symbolExists = await assetInfoCollection.findOne({ Symbol: defaultSymbol });
+      if (!symbolExists) {
+        logger.warn({
+          msg: 'Symbol Not Found in Asset Info',
+          requestId: requestId,
+          username: obfuscateUsername(username),
+          symbol: defaultSymbol
+        });
+        return res.status(404).json({ message: 'Symbol not found' });
+      }
 
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  } finally {
-    if (client) {
-      await client.close();
+      const result = await collection.updateOne(
+        { Username: username },
+        { $set: { defaultSymbol: defaultSymbol } }
+      );
+
+      if (result.matchedCount === 0) {
+        logger.warn({
+          msg: 'User Not Found During Symbol Update',
+          requestId: requestId,
+          username: obfuscateUsername(username)
+        });
+
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      if (result.modifiedCount === 0) {
+        logger.warn({
+          msg: 'No Changes Made to Default Symbol',
+          requestId: requestId,
+          username: obfuscateUsername(username)
+        });
+
+        return res.status(400).json({ message: 'No changes made' });
+      }
+
+      // Log successful update
+      logger.info({
+        msg: 'Default Symbol Updated Successfully',
+        requestId: requestId,
+        username: obfuscateUsername(username),
+        newSymbol: defaultSymbol
+      });
+
+      res.json({ message: 'Default symbol updated successfully' });
+
+    } catch (error) {
+      // Log detailed error
+      logger.error({
+        msg: 'Error Updating Default Symbol',
+        requestId: requestId,
+        username: obfuscateUsername(req.params.user),
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+
+      res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            requestId: requestId,
+            error: closeError.message
+          });
+        }
+      }
     }
   }
-});
+);

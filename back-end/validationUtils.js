@@ -131,6 +131,12 @@ const validationSchemas = {
         .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
         .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
 
+    userParam2: (fieldName = 'usernameID') => param(fieldName)
+        .trim()
+        .notEmpty().withMessage('Username is required')
+        .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+        .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
+
     // Address Validation
     address: () => [
         body('street').trim().notEmpty().withMessage('Street is required'),
@@ -159,10 +165,10 @@ const validationSchemas = {
     screenerNameParam: () =>
         param('name')
             .trim()
-            .isLength({ min: 1, max: 20 })
-            .withMessage('screener name must be between 1 and 20 characters')
-            .matches(/^[a-zA-Z0-9\s_-]+$/)
-            .withMessage('screener name can only contain letters, numbers, spaces, underscores, and hyphens'),
+            .isLength({ min: 1, max: 40 }) // Increased max length
+            .withMessage('screener name must be between 1 and 50 characters')
+            .matches(/^[a-zA-Z0-9\s_\-+()]+$/) // Added + and () to allowed characters
+            .withMessage('screener name can only contain letters, numbers, spaces, underscores, hyphens, plus signs, and parentheses'),
 
     oldname: () =>
         body('oldname')
