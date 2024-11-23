@@ -64,7 +64,7 @@ const validationSchemas = {
     identifier: () => param('identifier')
         .trim()
         .notEmpty().withMessage('Identifier is required')
-        .isLength({ min: 3, max: 12 }).withMessage('Identifier must be between 3 and 12 characters')
+        .isLength({ min: 1, max: 12 }).withMessage('Identifier must be between 1 and 12 characters')
         .matches(/^[A-Z0-9]+$/).withMessage('Identifier must be uppercase alphanumeric'),
 
     symbol: (fieldName = 'symbol') => param(fieldName)
