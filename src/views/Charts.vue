@@ -307,13 +307,6 @@
 >
   <img :src="chartTypeIcon" alt="Chart Type" class="chart-type-icon">
 </button>
-<button 
-  class="navbtng" 
-  v-b-tooltip.hover 
-  title="Measure Percentage" 
-  @click="">
-  <img src='@/assets/icons/ruler.png' alt="Ruler" class="chart-type-icon">
-</button>
     </div>
     <div id="legend3"></div>
     <div id="legend4">
@@ -1298,7 +1291,7 @@ async function fetchData7() {
     }
     
     const newData7 = await response.json();
-    data6.value = newData7;
+    data7.value = newData7;
   } catch (error) {
     if (error.name === 'AbortError') {
       console.log('fetchData7 aborted');
