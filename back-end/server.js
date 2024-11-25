@@ -1,7 +1,6 @@
 import express from 'express';
 import fs from 'fs';
 import cors from 'cors';
-import https from 'https';
 import { MongoClient, ObjectId } from 'mongodb';
 import bcrypt from 'bcrypt';
 import config from './config.js';
@@ -85,9 +84,7 @@ function prometheusMetricsHandler(req, res) {
 // CORS and Rate Limiting
 const allowedOrigins = [
   'http://localhost:8080',
-  'https://localhost:8080',
   'http://frontend:8080',
-  'https://frontend:8080',
   'https://ereuna.co',
   'https://www.ereuna.co'
 ];
