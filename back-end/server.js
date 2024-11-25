@@ -9182,13 +9182,13 @@ app.get('/screener/:user/results/filtered/:name',
             };
             break;
           case 'RevQoQ':
-            query.RevenueQoQ = {
+            query.RevQoQ = {
               $gt: screenerFilters.RevQoQ[0],
               $lt: screenerFilters.RevQoQ[1]
             };
             break;
           case 'RevYoY':
-            query.RevenueYoY = {
+            query.RevYoY = {
               $gt: screenerFilters.RevYoY[0],
               $lt: screenerFilters.RevYoY[1]
             };
