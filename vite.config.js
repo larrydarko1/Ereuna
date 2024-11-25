@@ -13,16 +13,12 @@ export default defineConfig({
     })
   ],
   server: {
-    https: {
-      key: fs.readFileSync(path.resolve(__dirname, 'localhost-key.pem')),
-      cert: fs.readFileSync(path.resolve(__dirname, 'localhost.pem'))
-    },
     port: 8080,
     proxy: {
       '/api': {
-        target: 'https://localhost:5500',
+        target: 'http://localhost:5500',
         changeOrigin: true,
-        secure: false,
+        secure: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
