@@ -9308,7 +9308,7 @@ app.get('/screener/:user/results/filtered/:name',
           case 'PercOffWeekHigh':
             query.percoff52WeekHigh = {
               $gt: -screenerFilters.PercOffWeekHigh[0] / 100,
-              $lt: -screenerFilters.PercOffWeekHigh[1] / 100
+              $lt: 0.0001
             };
             break;
           case 'PercOffWeekLow':

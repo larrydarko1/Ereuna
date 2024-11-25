@@ -626,7 +626,7 @@ async function searchTicker(providedSymbol) {
     const searchbar = document.getElementById('searchbar');
     let symbol;
     {
-      symbol = (providedSymbol || defaultSymbol).toUpperCase();
+      symbol = (searchbar.value || defaultSymbol).toUpperCase(); 
       response = await fetch(`/api/chart/${symbol}`); 
 
       if (response.status === 404) {
