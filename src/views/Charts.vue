@@ -575,7 +575,6 @@ async function updateUserDefaultSymbol(symbol) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ defaultSymbol: symbol })
     });
-
     if (!response.ok) throw new Error('Failed to update default symbol');
   } catch (error) {
     console.error('Error updating user default symbol:', error);
@@ -620,14 +619,14 @@ const showSalesButton = computed(() => {
   return (assetInfo?.quarterlyIncome?.length || 0) > 4;
 });
 
-async function searchTicker() {
+async function searchTicker(providedSymbol) {
   let response; 
   try {
     isChartLoading.value = true;
     const searchbar = document.getElementById('searchbar');
     let symbol;
     {
-      symbol = (searchbar.value || defaultSymbol).toUpperCase(); 
+      symbol = (providedSymbol || defaultSymbol).toUpperCase();
       response = await fetch(`/api/chart/${symbol}`); 
 
       if (response.status === 404) {
@@ -1057,26 +1056,27 @@ async function showTicker() {
 
 async function fetchEarningsDate() {
   abortController.value = new AbortController();
-  let symbol = document.getElementById('searchbar');
-  if (!symbol) {
-    console.log('Searchbar not found, aborting fetchEarningsDate');
-    return;
-  }
-  let ticker = symbol.value || defaultSymbol;
   try {
+    // Always use the current defaultSymbol or selectedItem
+    let ticker = (defaultSymbol || selectedItem).toUpperCase();
+    
     const response = await fetch(`/api/${ticker}/earningsdate`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newEARNDates = await response.json();
     const ipoDate = data.value[0].time; // extract IPO date from the first document in the data list
     const ipoDateObject = new Date(ipoDate); // convert ipoDate to a date object
+    
     const filteredEARNDates = newEARNDates.filter((date) => {
       const dateObject = new Date(`${date.time.year}-${date.time.month}-${date.time.day}`); // convert date to a date object
       return dateObject >= ipoDateObject;
     });
+    
     EARNdates.value = filteredEARNDates.map((date) => {
       return {
         time: date.time,
@@ -1094,19 +1094,18 @@ async function fetchEarningsDate() {
 
 async function fetchSplitsDate() {
   abortController.value = new AbortController();
-  let symbol = document.getElementById('searchbar');
-  if (!symbol) {
-    console.log('Searchbar not found, aborting fetchSplitsDate');
-    return;
-  }
-  let ticker = symbol.value || defaultSymbol;
   try {
+    // Always use the current defaultSymbol or selectedItem
+    let ticker = (defaultSymbol || selectedItem).toUpperCase();
+    
     const response = await fetch(`/api/${ticker}/splitsdate`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newSPLITDates = await response.json();
     SPLITdates.value = newSPLITDates;
 
@@ -1136,19 +1135,18 @@ const SPLITdates = ref([]); // Splits Data - just date
 
 async function fetchData() {
   abortController.value = new AbortController();
-  let searchbar = document.getElementById('searchbar');
-  if (!searchbar) {
-    console.log('Searchbar not found, aborting fetchData');
-    return;
-  }
   try {
-    let symbol = searchbar.value || defaultSymbol;
+    // Always use the current defaultSymbol or selectedItem
+    let symbol = (defaultSymbol || selectedItem).toUpperCase();
+    
     const response = await fetch(`/api/${symbol}/data`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData = await response.json();
     data.value = newData;
   } catch (error) {
@@ -1162,19 +1160,18 @@ async function fetchData() {
 
 async function fetchData2() {
   abortController.value = new AbortController();
-  let symbol = document.getElementById('searchbar');
-  if (!symbol) {
-    console.log('Searchbar not found, aborting fetchData2');
-    return;
-  }
-  let ticker = symbol.value || defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data2`, {
+    // Always use the current defaultSymbol or selectedItem
+    let symbol = (defaultSymbol || selectedItem).toUpperCase();
+    
+    const response = await fetch(`/api/${symbol}/data2`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData2 = await response.json();
     data2.value = newData2;
   } catch (error) {
@@ -1188,22 +1185,20 @@ async function fetchData2() {
 
 async function fetchData3() {
   abortController.value = new AbortController();
-  let symbol = document.getElementById('searchbar');
-  if (!symbol) {
-    console.log('Searchbar not found, aborting fetchData3');
-    return;
-  }
-  let ticker = symbol.value || defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data3`, {
+    // Always use the current defaultSymbol or selectedItem
+    let symbol = (defaultSymbol || selectedItem).toUpperCase();
+    
+    const response = await fetch(`/api/${symbol}/data3`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData3 = await response.json();
     data3.value = newData3;
-
   } catch (error) {
     if (error.name === 'AbortError') {
       console.log('fetchData3 aborted');
@@ -1215,22 +1210,20 @@ async function fetchData3() {
 
 async function fetchData4() {
   abortController.value = new AbortController();
-  let symbol = document.getElementById('searchbar');
-  if (!symbol) {
-    console.log('Searchbar not found, aborting fetchData4');
-    return;
-  }
-  let ticker = symbol.value || defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data4`, {
+    // Always use the current defaultSymbol or selectedItem
+    let symbol = (defaultSymbol || selectedItem).toUpperCase();
+    
+    const response = await fetch(`/api/${symbol}/data4`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData4 = await response.json();
     data4.value = newData4;
-
   } catch (error) {
     if (error.name === 'AbortError') {
       console.log('fetchData4 aborted');
@@ -1242,22 +1235,20 @@ async function fetchData4() {
 
 async function fetchData5() {
   abortController.value = new AbortController();
-  let symbol = document.getElementById('searchbar');
-  if (!symbol) {
-    console.log('Searchbar not found, aborting fetchData5');
-    return;
-  }
-  let ticker = symbol.value || defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data5`, {
+    // Always use the current defaultSymbol or selectedItem
+    let symbol = (defaultSymbol || selectedItem).toUpperCase();
+    
+    const response = await fetch(`/api/${symbol}/data5`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData5 = await response.json();
     data5.value = newData5;
-
   } catch (error) {
     if (error.name === 'AbortError') {
       console.log('fetchData5 aborted');
@@ -1269,22 +1260,20 @@ async function fetchData5() {
 
 async function fetchData6() {
   abortController.value = new AbortController();
-  let symbol = document.getElementById('searchbar');
-  if (!symbol) {
-    console.log('Searchbar not found, aborting fetchData6');
-    return;
-  }
-  let ticker = symbol.value || defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data6`, {
+    // Always use the current defaultSymbol or selectedItem
+    let symbol = (defaultSymbol || selectedItem).toUpperCase();
+    
+    const response = await fetch(`/api/${symbol}/data6`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData6 = await response.json();
     data6.value = newData6;
-
   } catch (error) {
     if (error.name === 'AbortError') {
       console.log('fetchData6 aborted');
@@ -1296,22 +1285,20 @@ async function fetchData6() {
 
 async function fetchData7() {
   abortController.value = new AbortController();
-  let symbol = document.getElementById('searchbar');
-  if (!symbol) {
-    console.log('Searchbar not found, aborting fetchData7');
-    return;
-  }
-  let ticker = symbol.value || defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data7`, {
+    // Always use the current defaultSymbol or selectedItem
+    let symbol = (defaultSymbol || selectedItem).toUpperCase();
+    
+    const response = await fetch(`/api/${symbol}/data7`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData7 = await response.json();
-    data7.value = newData7;
-
+    data6.value = newData7;
   } catch (error) {
     if (error.name === 'AbortError') {
       console.log('fetchData7 aborted');
@@ -1323,22 +1310,20 @@ async function fetchData7() {
 
 async function fetchData8() {
   abortController.value = new AbortController();
-  let symbol = document.getElementById('searchbar');
-  if (!symbol) {
-    console.log('Searchbar not found, aborting fetchData8');
-    return;
-  }
-  let ticker = symbol.value || defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data8`, {
+    // Always use the current defaultSymbol or selectedItem
+    let symbol = (defaultSymbol || selectedItem).toUpperCase();
+    
+    const response = await fetch(`/api/${symbol}/data8`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData8 = await response.json();
     data8.value = newData8;
-
   } catch (error) {
     if (error.name === 'AbortError') {
       console.log('fetchData8 aborted');
@@ -1350,22 +1335,20 @@ async function fetchData8() {
 
 async function fetchData9() {
   abortController.value = new AbortController();
-  let symbol = document.getElementById('searchbar');
-  if (!symbol) {
-    console.log('Searchbar not found, aborting fetchData3');
-    return;
-  }
-  let ticker = symbol.value || defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data9`, {
+    // Always use the current defaultSymbol or selectedItem
+    let symbol = (defaultSymbol || selectedItem).toUpperCase();
+    
+    const response = await fetch(`/api/${symbol}/data9`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData9 = await response.json();
-    data3.value = newData9;
-
+    data9.value = newData9;
   } catch (error) {
     if (error.name === 'AbortError') {
       console.log('fetchData9 aborted');
@@ -1377,25 +1360,23 @@ async function fetchData9() {
 
 async function fetchData10() {
   abortController.value = new AbortController();
-  let symbol = document.getElementById('searchbar');
-  if (!symbol) {
-    console.log('Searchbar not found, aborting fetchData4');
-    return;
-  }
-  let ticker = symbol.value || defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data10`, {
+    // Always use the current defaultSymbol or selectedItem
+    let symbol = (defaultSymbol || selectedItem).toUpperCase();
+    
+    const response = await fetch(`/api/${symbol}/data10`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData10 = await response.json();
     data10.value = newData10;
-
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData4 aborted');
+      console.log('fetchData10 aborted');
       return;
     }
     console.error('Error fetching data:', error);
@@ -1404,25 +1385,23 @@ async function fetchData10() {
 
 async function fetchData11() {
   abortController.value = new AbortController();
-  let symbol = document.getElementById('searchbar');
-  if (!symbol) {
-    console.log('Searchbar not found, aborting fetchData5');
-    return;
-  }
-  let ticker = symbol.value || defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data11`, {
+    // Always use the current defaultSymbol or selectedItem
+    let symbol = (defaultSymbol || selectedItem).toUpperCase();
+    
+    const response = await fetch(`/api/${symbol}/data11`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData11 = await response.json();
     data11.value = newData11;
-
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData5 aborted');
+      console.log('fetchData11 aborted');
       return;
     }
     console.error('Error fetching data:', error);
@@ -1431,30 +1410,29 @@ async function fetchData11() {
 
 async function fetchData12() {
   abortController.value = new AbortController();
-  let symbol = document.getElementById('searchbar');
-  if (!symbol) {
-    console.log('Searchbar not found, aborting fetchData6');
-    return;
-  }
-  let ticker = symbol.value || defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data12`, {
+    // Always use the current defaultSymbol or selectedItem
+    let symbol = (defaultSymbol || selectedItem).toUpperCase();
+    
+    const response = await fetch(`/api/${symbol}/data12`, {
       signal: abortController.value.signal
     });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData12 = await response.json();
     data12.value = newData12;
-
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData6 aborted');
+      console.log('fetchData12 aborted');
       return;
     }
     console.error('Error fetching data:', error);
   }
 }
+
 
 let chartView = ref('D')
 let useAlternateData = false;
@@ -2308,8 +2286,6 @@ async function deleteTicker(item) {
     ticker: ticker
   };
 
-  console.log(patchData);
-
   try {
     const response = await fetch(`/api/${user}/deleteticker/watchlists/${patchData.watchlist}/${patchData.ticker}`, { 
       method: 'PATCH',
@@ -2320,7 +2296,6 @@ async function deleteTicker(item) {
     });
 
     const data = await response.json();
-    console.log(data);
   } catch (error) {
     console.error(error);
   }
@@ -2382,13 +2357,12 @@ async function addWatchlist() {
 
       const data = await patchResponse.json();
       await fetchItemData(symbol);
-      // You can update the UI or perform any other necessary actions here
+      await filterWatchlist();
     }
   } catch (err) {
     console.log(err);
   } 
 
-  await filterWatchlist();
   await getWatchlists();
   await getFullWatchlists(user);
 }
@@ -2457,7 +2431,7 @@ async function selectRow(item) {
     const searchbar = document.getElementById('searchbar');
     if (searchbar) {
       searchbar.value = item;
-      await searchTicker();
+      await searchTicker(item);
       isChartLoading.value = false;
     } else {
       console.error('Searchbar element not found');
