@@ -3,7 +3,9 @@ FROM node:20
 WORKDIR /app
 
 # Copy the entire project
-COPY . .
+COPY back-end ./back-end
+COPY .env ./.env
+COPY package.json ./package.json
 
 # Install dependencies
 RUN npm install
