@@ -2052,7 +2052,7 @@ async function filterWatchlist(watch) {
 
 const ImagePaths = ref([]);
 
-// Async function to fetch symbols and exchanges
+// Async function to fetch symbols and exchanges and fills ImagePaths 
 async function fetchSymbolsAndExchanges() {
   try {
     const response = await fetch('/api/symbols-exchanges');
@@ -2063,43 +2063,35 @@ async function fetchSymbolsAndExchanges() {
     
     const data = await response.json();
     
-    // Dynamically import all SVG files from the exchanges directories
-    const importedImages = import.meta.glob('/src/assets/images/*/*.svg');
-    
     // Map the data to the required format for ImagePaths
-    ImagePaths.value = data.map(item => {
-      const imagePath = Object.keys(importedImages).find(path => 
-        path.includes(`/${item.Exchange}/${item.Symbol}.svg`)
-      );
-      
-      return {
-        symbol: item.Symbol,
-        exchange: item.Exchange,
-        path: imagePath ? imagePath : '/src/assets/images/Blank.svg'
-      };
-    });
+    ImagePaths.value = data.map(item => ({
+      symbol: item.Symbol,
+      exchange: item.Exchange,
+    }));
   } catch (error) {
     console.error('Error fetching symbols and exchanges:', error);
   }
 }
 
-// Call the function when component is mounted
-onMounted(() => {
-  fetchSymbolsAndExchanges();
-});
-
 // Helper function to get image path based on symbol
 function getImagePath(item) {
-  // If item is an object, use its Symbol
-  const symbol = typeof item === 'object' ? item.Symbol : item;
-  
-  const imageObject = ImagePaths.value.find(image => image.symbol === symbol);
+  // Find the matching object in ImagePaths
+  const matchedImageObject = ImagePaths.value.find(image => 
+    image.symbol === item
+  );
 
-  if (imageObject) {
-    return imageObject.path;
+  // If a matching object is found
+  if (matchedImageObject) {
+    console.log('Symbol:', matchedImageObject.symbol);
+    console.log('Exchange:', matchedImageObject.exchange);
+
+    let finalUrl =  new URL(`/src/assets/images/${matchedImageObject.exchange}/${matchedImageObject.symbol}.svg`, import.meta.url).href;
+    console.log(finalUrl);
+    return finalUrl;
   }
-  
-  return '/src/assets/images/Blank.svg'; // Default to Blank.svg
+
+  // If no matching object is found, return the path to Blank.svg
+  return new URL('/src/assets/images/Blank.svg', import.meta.url).href;
 }
 
 async function getQuote(item) {
