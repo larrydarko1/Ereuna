@@ -2080,18 +2080,11 @@ function getImagePath(item) {
     image.symbol === item
   );
 
-  // If a matching object is found
+  // If a matching object is found and the symbol exists
   if (matchedImageObject) {
-    console.log('Symbol:', matchedImageObject.symbol);
-    console.log('Exchange:', matchedImageObject.exchange);
-
-    let finalUrl =  new URL(`/src/assets/images/${matchedImageObject.exchange}/${matchedImageObject.symbol}.svg`, import.meta.url).href;
-    console.log(finalUrl);
+    let finalUrl = new URL(`/src/assets/images/${matchedImageObject.exchange}/${matchedImageObject.symbol}.svg`, import.meta.url).href;
     return finalUrl;
   }
-
-  // If no matching object is found, return the path to Blank.svg
-  return new URL('/src/assets/images/Blank.svg', import.meta.url).href;
 }
 
 async function getQuote(item) {
