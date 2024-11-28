@@ -83,8 +83,8 @@ function prometheusMetricsHandler(req, res) {
 
 // CORS and Rate Limiting
 const allowedOrigins = [
-  'http://localhost:8080',
-  'http://frontend:8080',
+  'http://localhost:80',
+  'http://frontend:80',
   'https://ereuna.co',
   'https://www.ereuna.co'
 ];
@@ -168,7 +168,7 @@ const bruteForceProtection = rateLimit({
 });
 
 // Apply CORS and Brute Force Protection
-app.use(cors(corsOptions));
+app.use(cors());
 app.use('/login', bruteForceProtection);
 app.use('/signup', bruteForceProtection);
 
