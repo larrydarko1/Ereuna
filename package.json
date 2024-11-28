@@ -10,10 +10,7 @@
     "backend": "nodemon back-end/server.js",
     "dbstart": "brew services start mongodb-community@7.0",
     "dbstop": "brew services stop mongodb-community@7.0",
-    "docker:build": "docker-compose build",
-    "docker:up": "docker-compose up",
-    "docker:down": "docker-compose down",
-    "docker:start": "docker-compose up -d",
+    "docker": "docker-compose up --build",
     "dbup": "mongodump --db=EreunaDB --out=mongodb-init/dump"
   },
   "dependencies": {
