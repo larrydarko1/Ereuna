@@ -9,7 +9,6 @@
           placeholder="Enter your recovery key"
         />
         <button @click="validateRecoveryKey">Recover Account</button>
-        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
       </div>
   
       <div class="container" v-if="isKeyValidated">
@@ -23,7 +22,7 @@
     </div>
     <div class="message-container">
       <p v-if="successMessage" class="success">{{ successMessage }}</p>
-      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+              <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
     </div>
   </template>
   
@@ -109,15 +108,16 @@ const changePassword = async () => {
   </script>
   
   <style scoped>
-  .recovery-container {
-    display: flex;
+.recovery-container {
+  display: flex;
   flex-direction: column;
   position: absolute;
+  left: 50%; /* Center horizontally */
+  top: 50%; /* Center vertically */
+  transform: translate(-50%, -50%); /* Adjust for centering */
   align-items: center;
   justify-content: center;
-  left: 44%;
-  top: 30%;
-  }
+}
 
   .container{
     display: flex;
@@ -170,7 +170,14 @@ button:hover {
 }
 
 .message-container{
- text-align: center;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  left: 50%; /* Center horizontally */
+  bottom: 25%; /* Center vertically */
+  transform: translate(-50%, -50%); /* Adjust for centering */
+  align-items: center;
+  justify-content: center;
 }
 
   </style>

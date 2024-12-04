@@ -34,7 +34,7 @@
   <div v-if="welcomePopup" class="welcome-popup">
     <h3>{{ welcomeMessage }}</h3>
   </div>
-  <h3 class="releaseNote"> V1.0.1 </h3>
+  <h3 class="releaseNote"> V1.0.1 // ALPHA TEST </h3>
 </template>
 
 <script setup>
@@ -158,10 +158,11 @@ function togglePasswordVisibility() {
   display: flex;
   flex-direction: column;
   position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%); /* Center the form */
   align-items: center;
   justify-content: center;
-  left: 44%;
-  top: 30%;
 }
 
 .signbtn {
@@ -271,11 +272,12 @@ function togglePasswordVisibility() {
   text-decoration: underline; /* Adds underline on hover */
 }
 
-.releaseNote{
+.releaseNote {
   color: whitesmoke;
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-
+  position: fixed; /* Change to fixed positioning */
+  bottom: 0; /* Stick to the bottom */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Adjust for centering */
+  text-align: center; /* Center text */
 }
 </style>
