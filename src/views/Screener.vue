@@ -1211,19 +1211,15 @@ async function fetchSymbolsAndExchanges() {
     
     const data = await response.json();
     
-    // Dynamically import all SVG files from the exchanges directories
-    const importedImages = import.meta.glob('/src/assets/images/*/*.svg');
-    
     // Map the data to the required format for ImagePaths
     ImagePaths.value = data.map(item => {
-      const imagePath = Object.keys(importedImages).find(path => 
-        path.includes(`/${item.Exchange}/${item.Symbol}.svg`)
-      );
+      // Construct the image path using the URL constructor
+      const imagePath = new URL(`/src/assets/images/${item.Exchange}/${item.Symbol}.svg`, import.meta.url).href;
       
       return {
         symbol: item.Symbol,
         exchange: item.Exchange,
-        path: imagePath ? imagePath : '/src/assets/images/Blank.svg'
+        path: imagePath
       };
     });
   } catch (error) {
@@ -1241,7 +1237,7 @@ function getImagePath(item) {
     return imageObject.path;
   }
   
-  return '/src/assets/images/Blank.svg'; // Default to Blank.svg
+  return new URL('/src/assets/images/Blank.svg', import.meta.url).href; // Default to Blank.svg
 }
 
 // Call the function when component is mounted

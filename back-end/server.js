@@ -3634,7 +3634,6 @@ app.get('/:ticker/data12',
 );
 
 // Sends earnings date 
-// Sends earnings date 
 app.get('/:ticker/earningsdate',
   validate([
     validationSchemas.chartData('ticker')
