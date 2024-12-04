@@ -2255,9 +2255,22 @@ async function DeleteWatchlist(watch) {
 }
 
 async function deleteTicker(item) {
-  const selectedWatchlistName = this.selectedWatchlist.Name;
-  const ticker = item;
-  user = user;
+  user = user; // Ensure user is defined
+
+  const realwatchlist = document.getElementById('realwatchlist');
+  let selectedWatchlistName;
+
+  // Get the selected watchlist name from the DOM
+  const selectedWatchlistElement = realwatchlist.querySelector('div.selected');
+  if (selectedWatchlistElement) {
+    selectedWatchlistName = selectedWatchlistElement.textContent.split(' (')[0]; // Split to get only the name
+  } else {
+    // Handle the case where no watchlist is selected
+    alert('No watchlist selected');
+    return;
+  }
+
+  const ticker = item; // The ticker to delete
 
   const patchData = {
     watchlist: selectedWatchlistName,
@@ -2273,10 +2286,19 @@ async function deleteTicker(item) {
       body: JSON.stringify(patchData)
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Error deleting ticker: ${response.status} - ${errorText}`);
+      throw new Error(`Failed to delete ticker: ${response.status}`);
+    }
+
     const data = await response.json();
+    console.log('Ticker deleted successfully:', data);
   } catch (error) {
-    console.error(error);
+    console.error('Error in deleteTicker function:', error);
   }
+
+  // Refresh the watchlists after deletion
   await getWatchlists();
   await filterWatchlist();
   await getFullWatchlists(user);
