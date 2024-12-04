@@ -479,9 +479,7 @@ function initializeSortable() {
 
 async function fetchItemData(item) {
   await Promise.all([
-    getQuote(item),
-    getChange(item),
-    getPercentChange(item),
+    getData(item),
     getImagePath(item)
   ]);
 }
@@ -2087,45 +2085,21 @@ function getImagePath(item) {
   }
 }
 
-async function getQuote(item) {
+async function getData(item) {
   try {
-    const response = await fetch(`/api/${item}/quotes`);
+    const response = await fetch(`/api/${item}/data-values`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    const closeValue = parseFloat(data.close).toFixed(2); // Extract the float value from the object
-    quotes[item] = closeValue; // Store the float value in the reactive object
-  } catch (error) {
-    console.error('Error fetching quote:', error);
-  }
-}
 
-async function getChange(item) {
-  try {
-    const response = await fetch(`/api/${item}/changes`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    const diffValue = parseFloat(data.closeDiff); // Extract the float value from the object
-    changes[item] = diffValue; // Store the float value in the reactive object
-  } catch (error) {
-    console.error('Error fetching quote:', error);
-  }
-}
+    // Assign the values to the reactive objects
+    quotes[item] = parseFloat(data.close).toFixed(2);
+    changes[item] = parseFloat(data.closeDiff);
+    perc[item] = parseFloat(data.percentChange);
 
-async function getPercentChange(item) {
-  try {
-    const response = await fetch(`/api/${item}/percchanges`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    const percValue = parseFloat(data.percChange); // Extract the float value from the object
-    perc[item] = percValue; // Store the float value in the reactive object
   } catch (error) {
-    console.error('Error fetching quote:', error);
+    console.error('Error fetching data:', error);
   }
 }
 
