@@ -117,9 +117,11 @@
   >
     {{ showPswauth ? 'Hide' : 'Show' }}
   </button>
-  <p v-if="keyError" class="error-text">{{ keyErrorMessage }}</p>
-  <p v-if="keySuccess" class="success-text">{{ keySuccessMessage }}</p>
 </div>
+<div style="display: flex; justify-content: center; ">
+     <p v-if="keyError" class="error-text">{{ keyErrorMessage }}</p>
+  <p v-if="keySuccess" class="success-text">{{ keySuccessMessage }}</p>
+  </div>
 <br>
 <div>
   <button class="userbtn" @click="GenerateNewKey()">Generate New Key</button>
