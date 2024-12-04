@@ -91,7 +91,7 @@ const allowedOrigins = [
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 2000, // Limit each IP to 2000 requests per window
+  max: 1000, // Limit each IP to 1000 requests per window
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -4061,7 +4061,7 @@ app.get('/:user/watchlists/:list',
 );
 
 // 
-app.get('/:symbol/quotes',
+app.get('/:symbol/data-values',
   validate([
     validationSchemas.symbolParam('symbol')
   ]),
@@ -4076,248 +4076,54 @@ app.get('/:symbol/quotes',
         const db = client.db('EreunaDB');
         const collection = db.collection('OHCLVData');
 
+        // Fetch the latest two documents for changes and percentage calculations
         const documents = await collection.find({ tickerID: symbol })
           .sort({ timestamp: -1 })
-          .limit(1)
+          .limit(2)
           .toArray();
 
         if (documents.length > 0) {
-          logger.info('Quote retrieved successfully', {
-            symbol: symbol,
-            price: documents[0].close
-          });
+          const latest = documents[0];
+          const responseData = {
+            close: latest.close,
+            timestamp: latest.timestamp,
+          };
 
-          res.status(200).json({
-            close: documents[0].close,
-            timestamp: documents[0].timestamp
-          });
+          if (documents.length > 1) {
+            const previous = documents[1];
+            const closeDiff = latest.close - previous.close;
+            const percentChange = ((closeDiff / previous.close) * 100).toFixed(2);
+
+            responseData.closeDiff = closeDiff.toFixed(2);
+            responseData.percentChange = `${percentChange}%`;
+            responseData.latestClose = latest.close;
+            responseData.previousClose = previous.close;
+            responseData.timestamp.previous = previous.timestamp;
+          } else {
+            responseData.closeDiff = 0;
+            responseData.percentChange = '0%';
+            responseData.message = 'Insufficient historical data for comparison';
+          }
+
+          logger.info('Data retrieved successfully', { symbol: symbol });
+          res.status(200).json(responseData);
         } else {
-          logger.warn('No quotes found for symbol', { symbol: symbol });
-
-          res.status(404).json({
-            message: 'No quotes found for the given symbol'
-          });
+          logger.warn('No data found for symbol', { symbol: symbol });
+          res.status(404).json({ message: 'No data found for the given symbol' });
         }
       } catch (dbError) {
-        logger.error('Database error retrieving quote', {
-          symbol: symbol,
-          error: dbError.message
-        });
-
-        res.status(500).json({
-          message: 'Internal Server Error',
-          error: 'Failed to retrieve quote'
-        });
+        logger.error('Database error retrieving data', { symbol: symbol, error: dbError.message });
+        res.status(500).json({ message: 'Internal Server Error', error: 'Failed to retrieve data' });
       } finally {
         try {
           await client.close();
         } catch (closeError) {
-          logger.error('Error closing database connection', {
-            error: closeError.message
-          });
+          logger.error('Error closing database connection', { error: closeError.message });
         }
       }
     } catch (unexpectedError) {
-      logger.error('Unexpected error in quote retrieval', {
-        error: unexpectedError.message,
-        stack: unexpectedError.stack
-      });
-
-      res.status(500).json({
-        message: 'Internal Server Error',
-        error: 'An unexpected error occurred'
-      });
-    }
-  }
-);
-
-// endpoint that calculates and sends difference in price for watchlist
-app.get('/:symbol/changes',
-  validate([
-    validationSchemas.symbolParam('symbol')
-  ]),
-  async (req, res) => {
-    try {
-      const symbol = sanitizeInput(req.params.symbol);
-      const client = new MongoClient(uri);
-
-      try {
-        await client.connect();
-
-        const db = client.db('EreunaDB');
-        const collection = db.collection('OHCLVData');
-
-        const documents = await collection.find({ tickerID: symbol })
-          .sort({ timestamp: -1 })
-          .limit(2)
-          .toArray();
-
-        if (documents.length > 1) {
-          const [latest, previous] = documents;
-          const closeDiff = latest.close - previous.close;
-          const percentChange = ((closeDiff / previous.close) * 100).toFixed(2);
-
-          logger.info('Price change calculated', {
-            symbol: symbol,
-            closeDiff: closeDiff.toFixed(2),
-            percentChange: percentChange
-          });
-
-          res.status(200).json({
-            closeDiff: closeDiff.toFixed(2),
-            percentChange: `${percentChange}%`,
-            latestClose: latest.close,
-            previousClose: previous.close,
-            timestamp: {
-              latest: latest.timestamp,
-              previous: previous.timestamp
-            }
-          });
-        } else if (documents.length === 1) {
-          logger.warn('Insufficient data for price change calculation', {
-            symbol: symbol,
-            availableDocuments: documents.length
-          });
-
-          res.status(200).json({
-            closeDiff: 0,
-            percentChange: '0%',
-            latestClose: documents[0].close,
-            message: 'Insufficient historical data for comparison'
-          });
-        } else {
-          logger.warn('No quotes found for symbol', { symbol: symbol });
-
-          res.status(404).json({
-            message: 'No quotes found for the given symbol'
-          });
-        }
-      } catch (dbError) {
-        logger.error('Database error retrieving price changes', {
-          symbol: symbol,
-          error: dbError.message
-        });
-
-        res.status(500).json({
-          message: 'Internal Server Error',
-          error: 'Failed to retrieve price changes'
-        });
-      } finally {
-        try {
-          await client.close();
-        } catch (closeError) {
-          logger.error('Error closing database connection', {
-            error: closeError.message
-          });
-        }
-      }
-    } catch (unexpectedError) {
-      logger.error('Unexpected error in price change calculation', {
-        error: unexpectedError.message,
-        stack: unexpectedError.stack
-      });
-
-      res.status(500).json({
-        message: 'Internal Server Error',
-        error: 'An unexpected error occurred'
-      });
-    }
-  }
-);
-
-// endpoint that calculates perc change of symbols 
-app.get('/:symbol/percchanges',
-  validate([
-    validationSchemas.symbolParam('symbol')
-  ]),
-  async (req, res) => {
-    try {
-      const symbol = sanitizeInput(req.params.symbol);
-      const client = new MongoClient(uri);
-
-      try {
-        await client.connect();
-
-        const db = client.db('EreunaDB');
-        const collection = db.collection('OHCLVData');
-
-        const documents = await collection.find({ tickerID: symbol })
-          .sort({ timestamp: -1 })
-          .limit(2)
-          .toArray();
-
-        if (documents.length > 1) {
-          const [latest, previous] = documents;
-          const closeDiff = latest.close - previous.close;
-          const percChange = (closeDiff / previous.close) * 100;
-          const direction = percChange >= 0 ? 'positive' : 'negative';
-
-          logger.info('Percentage change calculated', {
-            symbol: symbol,
-            percChange: percChange.toFixed(2),
-            direction: direction
-          });
-
-          res.status(200).json({
-            percChange: percChange.toFixed(2),
-            formattedPercChange: `${percChange.toFixed(2)}%`,
-            direction: direction,
-            latestClose: latest.close,
-            previousClose: previous.close,
-            timestamp: {
-              latest: latest.timestamp,
-              previous: previous.timestamp
-            }
-          });
-        } else if (documents.length === 1) {
-          logger.warn('Insufficient data for percentage change calculation', {
-            symbol: symbol,
-            availableDocuments: documents.length
-          });
-
-          res.status(200).json({
-            percChange: 0,
-            formattedPercChange: '0%',
-            direction: 'neutral',
-            latestClose: documents[0].close,
-            message: 'Insufficient historical data for comparison'
-          });
-        } else {
-          logger.warn('No quotes found for symbol', { symbol: symbol });
-
-          res.status(404).json({
-            message: 'No quotes found for the given symbol'
-          });
-        }
-      } catch (dbError) {
-        logger.error('Database error retrieving percentage changes', {
-          symbol: symbol,
-          error: dbError.message
-        });
-
-        res.status(500).json({
-          message: 'Internal Server Error',
-          error: 'Failed to retrieve percentage changes'
-        });
-      } finally {
-        try {
-          await client.close();
-        } catch (closeError) {
-          logger.error('Error closing database connection', {
-            error: closeError.message
-          });
-        }
-      }
-    } catch (unexpectedError) {
-      logger.error('Unexpected error in percentage change calculation', {
-        error: unexpectedError.message,
-        stack: unexpectedError.stack
-      });
-
-      res.status(500).json({
-        message: 'Internal Server Error',
-        error: 'An unexpected error occurred'
-      });
+      logger.error('Unexpected error in data retrieval', { error: unexpectedError.message, stack: unexpectedError.stack });
+      res.status(500).json({ message: 'Internal Server Error', error: 'An unexpected error occurred' });
     }
   }
 );
