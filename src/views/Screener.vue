@@ -1039,10 +1039,17 @@ import { computed, onMounted, ref, watch, nextTick, reactive } from 'vue';
 import { createChart, ColorType } from 'lightweight-charts';
 import LoadingOverlay from 'vue-loading-overlay';
 import { useStore } from 'vuex';
+import NotificationPopup from '@/components/NotificationPopup.vue';
 
 //user import - user session 
 const store = useStore();
 let user = store.getters.getUser;
+
+// for popup notifications
+const notification = ref(null);
+const showNotification = () => {
+  notification.value.show('This is a custom notification message!');
+};
 
 function getWatchlistIcon(ticker, item) {
   return isAssetInWatchlist(ticker.Name, item) 
@@ -1991,7 +1998,6 @@ async function SetPrice() {
     }
 
     const data = await response.json()
-    console.log('Response data:', data)
 
     if (data.message === 'Price range updated successfully') {
       await fetchScreenerResults(selectedScreener.value); 
@@ -2009,7 +2015,6 @@ async function SetMarketCap() {
   try {
     const leftPrice = parseFloat(document.getElementById('left-mc').value);
     const rightPrice = parseFloat(document.getElementById('right-mc').value);
-    console.log('Min: ', leftPrice, 'Max: ', rightPrice);
     user = user;
 
     if (leftPrice >= rightPrice) {
@@ -2034,7 +2039,6 @@ async function SetMarketCap() {
     }
 
     const data = await response.json();
-    console.log('Response data:', data);
 
     if (data.message === 'market cap updated successfully') {
       try {
@@ -2056,7 +2060,6 @@ async function SetIpoDate() {
   try {
     const leftPrice = document.getElementById('left-ipo').value;
     const rightPrice = document.getElementById('right-ipo').value;
-    console.log('Min: ', leftPrice, 'Max: ', rightPrice);
     user = user;
 
     const response = await fetch('/api/screener/ipo-date', {
@@ -2077,7 +2080,6 @@ async function SetIpoDate() {
     }
 
     const data = await response.json();
-    console.log('Response data:', data);
 
     if (data.message === 'ipo updated successfully') {
       try {
@@ -2117,7 +2119,6 @@ async function hideStock(asset) {
     }
 
     const data = await response.json();
-    console.log('Response data:', data);
 
     if (data.message === 'Hidden List updated successfully') {
       console.log('Stock hidden successfully');
@@ -2205,7 +2206,6 @@ async function ShowStock(asset) {
   try {
     const symbol = asset.Symbol;
     user = user;
-    console.log('Symbol:', asset.Symbol)
     const url = `/api/screener/${user}/show/${symbol}`;
 
     if (!symbol) {
@@ -2224,10 +2224,8 @@ async function ShowStock(asset) {
     }
 
     const data = await response.json();
-    console.log('Response data:', data);
 
     if (data.message === 'Hidden List updated successfully') {
-      console.log('Stock removed successfully');
     } else {
       throw new Error('Error showing stock');
     }
@@ -2300,7 +2298,6 @@ async function SetSector() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    console.log(data);
     await fetchScreenerResults(selectedScreener.value); // Update the list after setting the sector
   } catch (error) {
     console.error(error);
@@ -2330,7 +2327,6 @@ async function SetExchange() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    console.log(data);
     await fetchScreenerResults(selectedScreener.value); // Update the list after setting the exchange
   } catch (error) {
     console.error(error);
@@ -2360,7 +2356,6 @@ async function SetCountry() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    console.log(data);
     await fetchScreenerResults(selectedScreener.value); // Update the list after setting the country
   } catch (error) {
     console.error(error);
@@ -2375,7 +2370,7 @@ async function CreateScreener() {
 
     // Optional: Client-side validation before sending request
     if (ScreenerName.length > 20) {
-      alert('Screener name cannot be longer than 20 characters');
+      notification.value.show('Screener name cannot be longer than 20 characters');
       return;
     }
 
@@ -2388,7 +2383,6 @@ async function CreateScreener() {
 
     // Check if the request was successful
     if (response.ok) {
-      console.log(responseData.message);
       await GetScreeners();
       await GetCompoundedResults();
       showCreateScreener.value = false;
@@ -2397,7 +2391,6 @@ async function CreateScreener() {
     }
   } catch (error) {
     console.error('Error creating screener:', error);
-    alert('An error occurred while creating the screener');
   }
 }
 
@@ -2409,13 +2402,13 @@ async function UpdateScreener() {
 
     // Check if the new screener name is too long
     if (ScreenerName.length > 20) {
-      alert('Screener name cannot be longer than 20 characters');
+      notification.value.show('Screener name cannot be longer than 20 characters');
       return;
     }
 
     // Optional: Check if the new name is different from the old name
     if (ScreenerName === oldname) {
-      alert('New screener name must be different from the current name');
+      notification.value.show('New screener name must be different from the current name');
       return;
     }
 
@@ -2429,18 +2422,14 @@ async function UpdateScreener() {
 
     // Check if the request was successful
     if (response.ok) {
-      console.log('Screener renamed successfully!');
       selectedScreener.value = ScreenerName;
       await GetScreeners();
       await GetCompoundedResults();
       showRenameScreener.value = false;
     } else {
-      // Handle error messages from the server
-      alert(responseData.message);
     }
   } catch (error) {
     console.error('Error renaming screener:', error);
-    alert('An error occurred while renaming the screener');
   }
 }
 
@@ -2459,7 +2448,6 @@ async function DeleteScreener(screenerName) {
   try {
     const response = await fetch(apiUrl, requestOptions);
     const data = await response.json();
-    console.log(data);
   } catch (error) {
     console.error(error);
   }
@@ -3271,7 +3259,6 @@ async function Reset(value) {
       
     }
     await fetchScreenerResults(selectedScreener.value);
-    console.log('Value reset successfully');
   } catch (error) {
     console.error('Error resetting value:', error);
     await fetchScreenerResults(selectedScreener.value);
@@ -3419,9 +3406,6 @@ onMounted(() => {
 async function addtoWatchlist(ticker, symbol, $event) {
   const isChecked = $event.target.checked;
   user = user;
-
-  // Your existing logic here
-  console.log(`Updating watchlist: ${ticker.Name}, Symbol: ${symbol}, Checked: ${isChecked}`);
   const isAdding = isChecked;
 
   try {
@@ -3442,7 +3426,6 @@ async function addtoWatchlist(ticker, symbol, $event) {
     }
 
     const result = await response.json()
-    console.log(`Symbol ${symbol} ${isAdding ? 'added to' : 'removed from'} watchlist ${ticker.Name}`)
 
   } catch (error) {
     console.error('Error updating watchlist:', error)
@@ -3479,10 +3462,7 @@ getFullWatchlists(user);
 
 
 const isAssetInWatchlist = (ticker, symbol) => {
-  // Find the watchlist with matching Name
   const watchlist = FullWatchlists.value.find(w => w.Name === ticker);
-  
-  // If watchlist exists, check if symbol is in its List
   if (watchlist) {
     return watchlist.List.includes(symbol);
   }
@@ -3491,11 +3471,10 @@ const isAssetInWatchlist = (ticker, symbol) => {
 };
 
 async function ExcludeScreener(screener) {
-  // Assuming user is defined elsewhere in your context
   user = user; 
-  const apiUrl = `/api/${user}/toggle/screener/${screener}`; // Assuming screener has a Name property
+  const apiUrl = `/api/${user}/toggle/screener/${screener}`; 
   const requestOptions = {
-    method: 'PATCH', // Use PATCH to update the Include status
+    method: 'PATCH', 
     headers: {
       'Content-Type': 'application/json'
     },

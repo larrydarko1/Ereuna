@@ -138,15 +138,87 @@
 
   <div v-if="showTerms" class="modal" @click.self="closeTermsModal">
     <h2 style="color: whitesmoke;">Terms of Service</h2>
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet nulla auctor, vestibulum magna sed, convallis ex.</p>
-    <button @click="closeTermsModal">Close</button>
-  </div>
+    <div class="modal-content">
+        <p>These Terms of Service ("Terms") govern your access to and use of our web application ("Service"). By subscribing to or using our Service, you agree to these Terms. If you do not agree, please do not use our Service.</p>
 
-  <div v-if="showPrivacy" class="modal" @click.self="closePrivacyModal">
+        <p><strong>1. Acceptance of Terms</strong></p>
+        <p>By creating an account and using our Service, you confirm that you are at least 18 years old or have the consent of a parent or guardian. You agree to comply with all applicable laws and regulations.</p>
+
+        <p><strong>2. Subscription and Payment</strong></p>
+        <p><strong>Subscription Plans:</strong> Our Service is offered on a monthly subscription basis. You can choose from various subscription plans, which will be detailed on our website.</p>
+        <p><strong>Payment:</strong> By subscribing, you authorize us to charge your payment method for the subscription fee on a recurring monthly basis. All fees are non-refundable.</p>
+        <p><strong>Trial Periods:</strong> If applicable, we may offer a trial period for new users. At the end of the trial period, your subscription will automatically convert to a paid subscription unless you cancel before the trial ends.</p>
+
+        <p><strong>3. Account Responsibilities</strong></p>
+        <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use of your account or any other breach of security.</p>
+
+        <p><strong>4. User Conduct</strong></p>
+        <p>You agree not to use the Service for any unlawful or prohibited purpose. You will not:</p>
+        <ul>
+            <li>Violate any applicable laws or regulations.</li>
+            <li>Transmit any harmful or malicious code.</li>
+            <li>Attempt to gain unauthorized access to our systems or networks.</li>
+            <li>Use the Service to harass, abuse, or harm others.</li>
+        </ul>
+
+        <p><strong>5. Termination</strong></p>
+        <p>We reserve the right to suspend or terminate your access to the Service at our discretion, without notice, for conduct that we believe violates these Terms or is harmful to other users or our business.</p>
+
+        <p><strong>6. Intellectual Property</strong></p>
+        <p>All content, features, and functionality of the Service, including but not limited to text, graphics, logos, and software, are the exclusive property of [Your Company Name] and are protected by copyright, trademark, and other intellectual property laws.</p>
+
+        <p><strong>7. Limitation of Liability</strong></p>
+        <p>To the fullest extent permitted by law, [Your Company Name] shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service, even if we have been advised of the possibility of such damages.</p>
+
+        <p><strong>8. Changes to Terms</strong></p>
+        <p>We may update these Terms from time to time. We will notify you of any changes by posting the new Terms on our website. Your continued use of the Service after any changes constitutes your acceptance of the new Terms.</p>
+
+        <p><strong>9. Governing Law</strong></p>
+        <p>These Terms shall be governed by and construed in accordance with the laws of [Your Jurisdiction], without regard to its conflict of law principles.</p>
+
+        <p><strong>10. Contact Us</strong></p>
+        <p>If you have any questions or concerns about these Terms, please contact us at: <a href="mailto:support@ereuna.co">support@ereuna.co</a></p>
+    </div>
+    <button class="divbtn"  @click="closeTermsModal">Close</button>
+</div>
+
+<div v-if="showPrivacy" class="modal" @click.self="closePrivacyModal">
     <h2 style="color: whitesmoke;">Privacy Policy</h2>
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet nulla auctor, vestibulum magna sed, convallis ex.</p>
-    <button @click="closePrivacyModal">Close</button>
-  </div>
+    <div class="modal-content">
+        <p>Privacy Policy for Account Registration</p>
+        <p>We are committed to protecting your privacy. This Privacy Policy outlines how we collect, use, and safeguard your personal information when you register for an account with us.</p>
+
+        <p><strong>1. Information We Collect</strong></p>
+        <p>When you register for an account, we may collect the following types of information:</p>
+        <ul>
+            <li><strong>Personal Information:</strong> This may include your name, email address, phone number, and any other information you provide during the registration process.</li>
+            <li><strong>Account Information:</strong> This includes your username, password, and any preferences you set for your account.</li>
+            <li><strong>Usage Data:</strong> We may collect information about how you use our services, including your interactions with our website and applications.</li>
+        </ul>
+
+        <p><strong>2. How We Use Your Information</strong></p>
+        <p>We may use the information we collect for various purposes, including:</p>
+        <ul>
+            <li>To create and manage your account.</li>
+            <li>To communicate with you regarding your account and our services.</li>
+            <li>To improve our services and enhance user experience.</li>
+            <li>To comply with legal obligations and protect our rights.</li>
+        </ul>
+
+        <p><strong>3. Data Security</strong></p>
+        <p>We take the security of your personal information seriously. We implement appropriate technical and organizational measures to protect your data from unauthorized access, loss, or misuse. However, please be aware that no method of transmission over the internet or electronic storage is 100% secure.</p>
+
+        <p><strong>4. Sharing Your Information</strong></p>
+        <p>We do not sell, trade, or otherwise transfer your personal information to outside parties without your consent, except as required by law or to protect our rights. We may share your information with trusted third-party service providers who assist us in operating our website and conducting our business, provided they agree to keep your information confidential.</p>
+
+        <p><strong>5. Your Rights</strong></p>
+        <p>You have the right to access, correct, or delete your personal information at any time. If you wish to exercise these rights, please contact us using the information provided below.</p>
+
+        <p><strong>6. Changes to This Privacy Policy</strong></p>
+        <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on our website. We encourage you to review this Privacy Policy periodically for any updates.</p>
+    </div>
+    <button class="divbtn" @click="closePrivacyModal">Close</button>
+</div>
   </div>
 </div>
 </template>
@@ -609,6 +681,20 @@ a:hover{
 
 .input-error {
   border-color: red !important;
+}
+
+.modal-content {
+    max-height: 400px; /* Adjust height as needed */
+    overflow-y: auto; /* Enable vertical scrolling */
+    font-size: 14px; /* Adjust font size as needed */
+    color: whitesmoke; /* Ensure text color is readable */
+}
+
+.divbtn {
+  cursor: pointer;
+  background-color: #8c8dfe;
+  border:none;
+  color: whitesmoke;
 }
 
 </style>
