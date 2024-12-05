@@ -221,13 +221,14 @@
 </div>
   </div>
 </div>
+<NotificationPopup ref="notification" />
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import axios from 'axios';
 import { useRouter } from 'vue-router';
-import { loadStripe } from '@stripe/stripe-js'; // Add this import
+import { loadStripe } from '@stripe/stripe-js'; 
+import NotificationPopup from '@/components/NotificationPopup.vue';
 
 const showTerms = ref(false);
 const showPrivacy = ref(false);
@@ -246,6 +247,12 @@ const card = ref(null);
 const processing = ref(false);
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
+
+// for popup notifications
+const notification = ref(null);
+const showNotification = () => {
+  notification.value.show('This is a custom notification message!');
+};
 
 onMounted(async () => {
   // Load Stripe.js
@@ -387,36 +394,48 @@ async function SignUp() {
       payload.promoCode = PromoCode.value.trim();
     }
 
-    const response = await axios.post('/api/signup', payload);
+    const response = await fetch('/api/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
 
-    if (response.data.requiresAction) {
-      const { error } = await stripe.value.handleCardAction(response.data.clientSecret);
-      if (error) {
-        throw new Error(error.message);
+    const responseData = await response.json(); // Parse the response as JSON
+
+    if (response.ok) {
+      if (responseData.requiresAction) {
+        const { error } = await stripe.value.handleCardAction(responseData.clientSecret);
+        if (error) {
+          throw new Error(error.message);
+        }
+        notification.value.show('Payment successful!');
+        router.push('/login');
+      } else if (responseData.message === "User  created successfully") {
+        // Download the raw authentication key
+        const authKey = responseData.rawAuthKey;
+        const blob = new Blob([authKey], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ereuna_authentication_key.txt'; 
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+        notification.value.show('Signup successful! Your authentication key has been downloaded.');
+        router.push('/login');
+      } else {
+        throw new Error('Unexpected response from server');
       }
-      alert('Payment successful!');
-      router.push('/login');
-    } else if (response.data.message === "User created successfully") {
-      // Download the raw authentication key
-      const authKey = response.data.rawAuthKey;
-      const blob = new Blob([authKey], { type: 'text/plain' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'ereuna_authentication_key.txt'; 
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-
-      alert('Signup successful! Your authentication key has been downloaded.');
-      router.push('/login');
     } else {
-      throw new Error('Unexpected response from server');
+      throw new Error(responseData.message || 'Unexpected response from server');
     }
   } catch (error) {
     console.error('Error during signup:', error);
-    alert(error.message || 'An error occurred during signup. Please try again.');
+    notification.value.show('An error occurred during signup. Please try again.');
   } finally {
     processing.value = false;
   }
