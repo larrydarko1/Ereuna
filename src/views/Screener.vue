@@ -1048,6 +1048,7 @@
       </div>
       </div>
     </div>
+    <NotificationPopup ref="notification" />
     <Footer />
   </body>
 </template>

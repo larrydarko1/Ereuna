@@ -1,28 +1,29 @@
-import axios from 'axios';
+const fetchInstance = async (url, options = {}) => {
+    const token = localStorage.getItem('token');
 
-const axiosInstance = axios.create({
-    baseURL: 'http://localhost:5500/api', // your backend API URL
-});
-
-axiosInstance.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('token');
-        console.log('Token:', token);
-        if (token) {
-            config.headers = {
-                ...config.headers,
-                Authorization: `Bearer ${token}`,
-            };
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+    // Set the Authorization header if the token exists
+    if (token) {
+        options.headers = {
+            ...options.headers,
+            Authorization: `Bearer ${token}`,
+        };
     }
-);
+
+    // Make the fetch request
+    const response = await fetch(url, options);
+
+    // Check if the response is ok (status in the range 200-299)
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Network response was not ok');
+    }
+
+    // Return the parsed JSON response
+    return response.json();
+};
 
 export default {
     install(app) {
-        app.config.globalProperties.$axios = axiosInstance;
+        app.config.globalProperties.$fetch = fetchInstance;
     },
 };

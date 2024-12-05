@@ -28,7 +28,6 @@
   
   <script setup>
   import { ref } from 'vue';
-  import axios from 'axios';
   import { useRouter } from 'vue-router';
   
   const recoveryKey = ref('');
@@ -42,20 +41,27 @@
   try {
     const key = recoveryKey.value; // Use a different variable name to avoid confusion
 
-    const response = await axios.post('/api/recover', { recoveryKey: key });
+    const response = await fetch('/api/recover', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ recoveryKey: key }),
+    });
 
-    if (response.status === 200) {
+    if (response.ok) {
       isKeyValidated.value = true;
       successMessage.value = 'Recovery key validated. Please enter a new password.';
       errorMessage.value = '';
-    } 
+    } else {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Invalid recovery key');
+    }
   } catch (error) {
     console.error('Validation Error:', error);
     
-    if (error.response) {
-      errorMessage.value = error.response.data.message || 'Invalid recovery key';
-    } else if (error.request) {
-      errorMessage.value = 'No response from server';
+    if (error.message) {
+      errorMessage.value = error.message;
     } else {
       errorMessage.value = 'Error setting up the request';
     }
@@ -67,13 +73,20 @@
   
 const changePassword = async () => {
   try {
-    const response = await axios.patch('/api/change-password2', {
-      recoveryKey: recoveryKey.value,
-      newPassword: newPassword.value,
+    const response = await fetch('/api/change-password2', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        recoveryKey: recoveryKey.value,
+        newPassword: newPassword.value,
+      }),
     });
 
-    if (response.status === 200) {
-      successMessage.value = response.data.message; // Use the message from the response
+    if (response.ok) {
+      const data = await response.json(); // Parse the response as JSON
+      successMessage.value = data.message; // Use the message from the response
       errorMessage.value = '';
 
       // Wait 3 seconds before redirecting
@@ -86,16 +99,17 @@ const changePassword = async () => {
       newPassword.value = '';
       isKeyValidated.value = false;
     } else {
-      errorMessage.value = response.data.message || 'Failed to change password.';
+      const errorData = await response.json(); // Parse the error response as JSON
+      errorMessage.value = errorData.message || 'Failed to change password.';
       successMessage.value = '';
     }
   } catch (error) {
-    if (error.response) {
-      errorMessage.value = error.response.data.message || 'An error occurred. Please try again.';
-    } else if (error.request) {
-      errorMessage.value = 'No response from server. Please check your connection.';
-    } else {
+    console.error('Change Password Error:', error);
+    
+    if (error.message) {
       errorMessage.value = error.message || 'An unexpected error occurred.';
+    } else {
+      errorMessage.value = 'An error occurred. Please try again.';
     }
     successMessage.value = ''; // Clear success message on error
   }
