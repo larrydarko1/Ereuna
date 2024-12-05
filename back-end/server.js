@@ -12,7 +12,6 @@ import helmet from 'helmet';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
 import { logger, obfuscateUsername, httpLogger, securityLogger, metricsHandler as importedMetricsHandler } from './logger.js';
-import client from 'prom-client';
 import {
   validate,
   validationSchemas,
@@ -25,61 +24,6 @@ import {
 } from './validationUtils.js';
 
 dotenv.config();
-const register = new client.Registry();
-
-// Optional: Add default system metrics
-client.collectDefaultMetrics({
-  register,
-  prefix: 'nodejs_', // Optional prefix for metrics
-});
-
-// Create custom metrics
-const httpRequestDurationMicroseconds = new client.Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'Duration of HTTP requests in seconds',
-  labelNames: ['method', 'route', 'code'],
-  buckets: [0.1, 0.3, 0.5, 1, 1.5, 2, 5]
-});
-
-const totalRequests = new client.Counter({
-  name: 'http_total_requests',
-  help: 'Total number of HTTP requests',
-  labelNames: ['method', 'route', 'code']
-});
-
-const activeRequests = new client.Gauge({
-  name: 'http_active_requests',
-  help: 'Number of active requests',
-  labelNames: ['method', 'route']
-});
-
-// Register metrics
-register.registerMetric(httpRequestDurationMicroseconds);
-register.registerMetric(totalRequests);
-register.registerMetric(activeRequests);
-
-// Middleware for tracking metrics
-function prometheusMiddleware(req, res, next) {
-  const labels = { method: req.method, route: req.path };
-  activeRequests.inc(labels);
-  const end = httpRequestDurationMicroseconds.startTimer();
-
-  const oldEnd = res.end;
-  res.end = function (...args) {
-    end({ method: req.method, route: req.path, code: res.statusCode });
-    totalRequests.inc({ method: req.method, route: req.path, code: res.statusCode });
-    activeRequests.dec(labels);
-    oldEnd.apply(res, args);
-  };
-
-  next();
-}
-
-// Metrics endpoint
-function prometheusMetricsHandler(req, res) {
-  res.set('Content-Type', register.contentType);
-  register.metrics().then(metrics => res.send(metrics)).catch(error => res.status(500).send(error));
-}
 
 // CORS and Rate Limiting
 const allowedOrigins = [
@@ -108,7 +52,6 @@ const port = process.env.PORT || 5500;
 const uri = process.env.MONGODB_URI;
 
 // Consolidated middleware
-app.use(prometheusMiddleware);
 app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -170,7 +113,6 @@ const bruteForceProtection = rateLimit({
 // Apply CORS and Brute Force Protection
 app.use(cors());
 app.use('/login', bruteForceProtection);
-app.use('/signup', bruteForceProtection);
 
 // Conditional Logging Middleware
 app.use((req, res, next) => {
@@ -209,9 +151,6 @@ app.use((req, res, next) => {
 
   next();
 });
-
-// Metrics Endpoint
-app.get('/metrics', prometheusMetricsHandler);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
