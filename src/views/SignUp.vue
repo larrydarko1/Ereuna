@@ -127,8 +127,15 @@
       <a href="#" @click.prevent="showTermsModal">Terms of Service</a> and 
       <a href="#" @click.prevent="showPrivacyModal">Privacy Policy</a>.
     </p>
-    <input v-model="agreeToTerms" type="checkbox" id="terms-checkbox" required>
-    <label for="terms-checkbox">I agree</label>
+    <div 
+  class="custom-checkbox" 
+  :class="{ checked: agreeToTerms }"
+  @click="agreeToTerms = !agreeToTerms"
+style="justify-content: center;" >
+  <input type="checkbox" v-model="agreeToTerms" id="terms-checkbox" required style="display: none;">
+  <span class="checkmark"></span>
+  <label for="terms-checkbox">I agree</label>
+</div>
     <br>
     <button @click="SignUp" :disabled="!isFormValid">Create User</button>
     <br>
@@ -146,8 +153,7 @@
 
         <p><strong>2. Subscription and Payment</strong></p>
         <p><strong>Subscription Plans:</strong> Our Service is offered on a monthly subscription basis. You can choose from various subscription plans, which will be detailed on our website.</p>
-        <p><strong>Payment:</strong> By subscribing, you authorize us to charge your payment method for the subscription fee on a recurring monthly basis. All fees are non-refundable.</p>
-        <p><strong>Trial Periods:</strong> If applicable, we may offer a trial period for new users. At the end of the trial period, your subscription will automatically convert to a paid subscription unless you cancel before the trial ends.</p>
+        <p><strong>Payment:</strong> By subscribing, you agree to manually recharge your account as needed for continued access to the Service. We do not charge your payment method automatically; you have the flexibility to add funds to your account at your discretion.</p>
 
         <p><strong>3. Account Responsibilities</strong></p>
         <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use of your account or any other breach of security.</p>
@@ -158,25 +164,18 @@
             <li>Violate any applicable laws or regulations.</li>
             <li>Transmit any harmful or malicious code.</li>
             <li>Attempt to gain unauthorized access to our systems or networks.</li>
-            <li>Use the Service to harass, abuse, or harm others.</li>
         </ul>
 
         <p><strong>5. Termination</strong></p>
         <p>We reserve the right to suspend or terminate your access to the Service at our discretion, without notice, for conduct that we believe violates these Terms or is harmful to other users or our business.</p>
 
-        <p><strong>6. Intellectual Property</strong></p>
-        <p>All content, features, and functionality of the Service, including but not limited to text, graphics, logos, and software, are the exclusive property of [Your Company Name] and are protected by copyright, trademark, and other intellectual property laws.</p>
+        <p><strong>6. Limitation of Liability</strong></p>
+        <p>To the fullest extent permitted by law, we shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service, even if we have been advised of the possibility of such damages.</p>
 
-        <p><strong>7. Limitation of Liability</strong></p>
-        <p>To the fullest extent permitted by law, [Your Company Name] shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service, even if we have been advised of the possibility of such damages.</p>
-
-        <p><strong>8. Changes to Terms</strong></p>
+        <p><strong>7. Changes to Terms</strong></p>
         <p>We may update these Terms from time to time. We will notify you of any changes by posting the new Terms on our website. Your continued use of the Service after any changes constitutes your acceptance of the new Terms.</p>
 
-        <p><strong>9. Governing Law</strong></p>
-        <p>These Terms shall be governed by and construed in accordance with the laws of [Your Jurisdiction], without regard to its conflict of law principles.</p>
-
-        <p><strong>10. Contact Us</strong></p>
+        <p><strong>8. Contact Us</strong></p>
         <p>If you have any questions or concerns about these Terms, please contact us at: <a href="mailto:support@ereuna.co">support@ereuna.co</a></p>
     </div>
     <button class="divbtn"  @click="closeTermsModal">Close</button>
@@ -212,7 +211,7 @@
         <p>We do not sell, trade, or otherwise transfer your personal information to outside parties without your consent, except as required by law or to protect our rights. We may share your information with trusted third-party service providers who assist us in operating our website and conducting our business, provided they agree to keep your information confidential.</p>
 
         <p><strong>5. Your Rights</strong></p>
-        <p>You have the right to access, correct, or delete your personal information at any time. If you wish to exercise these rights, please contact us using the information provided below.</p>
+        <p>You have the right to access, correct, or delete your personal information at any time.</p>
 
         <p><strong>6. Changes to This Privacy Policy</strong></p>
         <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on our website. We encourage you to review this Privacy Policy periodically for any updates.</p>
@@ -359,7 +358,7 @@ const isFormValid = computed(() => {
 
 async function SignUp() {
   if (!isFormValid.value) {
-    alert('Please fill in all required fields and agree to the terms.');
+    notification.value.show('Please fill in all required fields and agree to the terms.');
     return;
   }
 
@@ -714,6 +713,28 @@ a:hover{
   background-color: #8c8dfe;
   border:none;
   color: whitesmoke;
+}
+
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.checkmark {
+  width: 8px; /* Smaller width */
+  height: 8px; /* Smaller height */
+  background-color: whitesmoke;
+  border-radius: 50%; /* Make it circular */
+  margin-right: 5px;
+  display: inline-block;
+  transition: background-color 0.3s, border-color 0.3s; /* Add transition for border color */
+}
+
+.custom-checkbox.checked .checkmark {
+  background-color: #8c8dfe; /* Change to your desired color */
+  border-color: #8c8dfe; /* Change to your desired border color */
 }
 
 </style>
