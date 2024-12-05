@@ -4,19 +4,19 @@
     <div id="main">
       <div id="filters">
         <div id="screener-select" class="select-container">
-    <p class="selected-value" @click.stop="">{{ selectedScreener ? selectedScreener : 'Choose a Screener...' }}</p>
-    <div class="dropdown-container">
-      <div v-for="(screener, index) in ScreenersName" :key="index" :class="{'selected': selectedScreener === screener.Name}" @click="selectScreener(screener.Name)">
-        <button class="icondlt2" @click.stop="ExcludeScreener(screener.Name)" v-b-tooltip.hover title="Toggle This Screener's Inclusion">
-          <img class="img2" :src="getScreenerImage(screener)" alt="toggle screener">
-        </button>
-        {{ screener.Name }}
-        <button class="icondlt" @click.stop="DeleteScreener(screener.Name)" v-b-tooltip.hover title="Delete This Screener">
-          <img class="img2" src="@/assets/icons/delete.png" alt="delete screener">
-        </button>
-      </div>
+  <p class="selected-value" @click.stop="">{{ selectedScreener ? selectedScreener : (ScreenersName.length > 0 ? 'Choose a Screener...' : 'No screeners available.') }}</p>
+  <div class="dropdown-container" v-if="ScreenersName.length > 0">
+    <div v-for="(screener, index) in ScreenersName" :key="index" :class="{'selected': selectedScreener === screener.Name}" @click="selectScreener(screener.Name)">
+      <button class="icondlt2" @click.stop="ExcludeScreener(screener.Name)" v-b-tooltip.hover title="Toggle This Screener's Inclusion">
+        <img class="img2" :src="getScreenerImage(screener)" alt="toggle screener">
+      </button>
+      {{ screener.Name }}
+      <button class="icondlt" @click.stop="DeleteScreener(screener.Name)" v-b-tooltip.hover title="Delete This Screener">
+        <img class="img2" src="@/assets/icons/delete.png" alt="delete screener">
+      </button>
     </div>
   </div>
+</div>
         <div :class="[showPriceInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Price</p>
@@ -4707,6 +4707,12 @@ Header th {
 
 .custom-checkbox.checked {
   color: white; /* Change text color when checked */
+}
+
+.select-container__no-screeners {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
 }
 
 </style>
