@@ -568,6 +568,11 @@ onMounted(() => {
   });
 });
 
+onMounted( async () => {
+  await getWatchlists(),
+  await filterWatchlist()
+});
+
 // retirves and updates the default symbol for the user 
 let defaultSymbol = localStorage.getItem('defaultSymbol');
 let selectedItem = defaultSymbol;
