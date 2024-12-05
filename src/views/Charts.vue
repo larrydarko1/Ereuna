@@ -173,26 +173,37 @@
     <div class="eps-cell" style="flex: 0 0 10%;">QoQ</div>
     <div class="eps-cell" style="flex: 0 0 10%;">YoY</div>
 </div>
-  <div class="eps-body">
-    <div v-for="(earnings, index) in displayedEPSItems" :key="earnings.fiscalDateEnding" class="eps-row">
-      <div class="eps-cell" style="flex: 0 0 20%;">{{ formatDate(earnings.fiscalDateEnding) }}</div>
-      <div class="eps-cell" style="flex: 0 0 40%;">{{ earnings.reportedEPS }}</div>
-      <div class="eps-cell" style="flex: 0 0 20%;"
-           :class="calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) > 0 ? 'positive' : 'negative'">
-        {{ calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) }}%
-      </div>
-      <div class="eps-cell" style="flex: 0 0 10%;">
-        <img v-if="getQoQClass(calculateQoQ1(earnings.reportedEPS)) === 'green'" src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-        <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-      </div>
-      <div class="eps-cell" style="flex: 0 0 10%;">
-        <img v-if="getYoYClass(calculateYoY1(earnings.reportedEPS)) === 'green'" src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-        <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-      </div>
+<div class="eps-body">
+  <div v-for="(earnings, index) in displayedEPSItems" :key="earnings.fiscalDateEnding" class="eps-row">
+    <div class="eps-cell" style="flex: 0 0 20%;">{{ formatDate(earnings.fiscalDateEnding) }}</div>
+    <div class="eps-cell" style="flex: 0 0 40%;">{{ earnings.reportedEPS }}</div>
+    
+    <div class="eps-cell" style="flex: 0 0 20%;" v-if="showAllEPS && index === displayedEPSItems.length - 1">
+      <!-- Leave this cell blank for the last item when showing all -->
+    </div>
+    <div class="eps-cell" style="flex: 0 0 20%;" v-else :class="calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) > 0 ? 'positive' : 'negative'">
+      {{ calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) }}%
+    </div>
+    
+    <div class="eps-cell" style="flex: 0 0 10%;" v-if="showAllEPS && index === displayedEPSItems.length - 1">
+      <!-- Leave this cell blank for the last item when showing all -->
+    </div>
+    <div class="eps-cell" style="flex: 0 0 10%;" v-else>
+      <img v-if="getQoQClass(calculateQoQ1(earnings.reportedEPS)) === 'green'" src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+      <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+    </div>
+    
+    <div class="eps-cell" style="flex: 0 0 10%;" v-if="showAllEPS && index === displayedEPSItems.length - 1">
+      <!-- Leave this cell blank for the last item when showing all -->
+    </div>
+    <div class="eps-cell" style="flex: 0 0 10%;" v-else>
+      <img v-if="getYoYClass(calculateYoY1(earnings.reportedEPS)) === 'green'" src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+      <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
     </div>
   </div>
 </div>
-<div v-else class="no-data">No EPS data available</div>
+</div>
+<div v-if="displayedEPSItems.length === 0" class="no-data">No EPS data available</div>
 <button 
     v-if="showEPSButton" 
     @click="showAllEPS = !showAllEPS" 
@@ -208,34 +219,44 @@
     <div class="earn-cell" style="flex: 0 0 10%;">YoY</div>
   </div>
   <div class="earn-body">
-    <div v-for="quarterlyReport in displayedEarningsItems" :key="quarterlyReport.fiscalDateEnding" class="earn-row">
-      <div class="earn-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
-      <div class="earn-cell" style="flex: 0 0 40%;">{{ parseInt(quarterlyReport.netIncome).toLocaleString() }}</div>
-      <div class="earn-cell" style="flex: 0 0 20%;"
-           :class="calculateNet(quarterlyReport.netIncome) > 0 ? 'positive' : 'negative'">
-        {{ calculateNet(quarterlyReport.netIncome) }}%
-      </div>
-      <div class="earn-cell" style="flex: 0 0 10%;">
-        <img v-if="getQoQClass(calculateQoQ2(quarterlyReport.netIncome)) === 'green'" 
-             src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-        <img v-else 
-             src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-      </div>
-      <div class="earn-cell" style="flex: 0 0 10%;">
-        <img v-if="getYoYClass(calculateYoY2(quarterlyReport.netIncome)) === 'green'" 
-             src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-        <img v-else 
-             src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-      </div>
+  <div v-for="quarterlyReport in displayedEarningsItems" :key="quarterlyReport.fiscalDateEnding" class="earn-row">
+    <div class="earn-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
+    <div class="earn-cell" style="flex: 0 0 40%;">{{ parseInt(quarterlyReport.netIncome).toLocaleString() }}</div>
+    
+    <div class="earn-cell" style="flex: 0 0 20%;" v-if="showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1]">
+      <!-- Leave this cell blank for the last item when showing all -->
+    </div>
+    <div class="earn-cell" style="flex: 0 0 20%;" v-else :class="calculateNet(quarterlyReport.netIncome) > 0 ? 'positive' : 'negative'">
+      {{ calculateNet(quarterlyReport.netIncome) }}%
+    </div>
+    
+    <div class="earn-cell" style="flex: 0 0 10%;" v-if="showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1]">
+      <!-- Leave this cell blank for the last item when showing all -->
+    </div>
+    <div class="earn-cell" style="flex: 0 0 10%;" v-else>
+      <img v-if="getQoQClass(calculateQoQ2(quarterlyReport.netIncome)) === 'green'" 
+           src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+      <img v-else 
+           src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+    </div>
+    
+    <div class="earn-cell" style="flex: 0 0 10%;" v-if="showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1]">
+      <!-- Leave this cell blank for the last item when showing all -->
+    </div>
+    <div class="earn-cell" style="flex: 0 0 10%;" v-else>
+      <img v-if="getYoYClass(calculateYoY2(quarterlyReport.netIncome)) === 'green'" 
+           src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+      <img v-else 
+           src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
     </div>
   </div>
 </div>
-<div v-else class="no-data">No earnings data available</div>
+</div>
+<div v-if="displayedEarningsItems.length === 0" class="no-data">No earnings data available</div>
 <button 
     v-if="showEarningsButton" 
     @click="showAllEarnings = !showAllEarnings" 
-    class="toggle-btn"
->
+    class="toggle-btn">
     {{ showAllEarnings ? 'Show Less' : 'Show All' }}
 </button>
 <div v-if="displayedSalesItems.length > 0" id="Salestable">
@@ -247,34 +268,44 @@
     <div class="sales-cell" style="flex: 0 0 10%;">YoY</div>
   </div>
   <div class="sales-body">
-    <div v-for="quarterlyReport in displayedSalesItems" :key="quarterlyReport.fiscalDateEnding" class="sales-row">
-      <div class="sales-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
-      <div class="sales-cell" style="flex: 0 0 40%;">{{ parseInt(quarterlyReport.totalRevenue).toLocaleString() }}</div>
-      <div class="sales-cell" style="flex: 0 0 20%;"
-           :class="calculateRev(quarterlyReport.totalRevenue) > 0 ? 'positive' : 'negative'">
-        {{ calculateRev(quarterlyReport.totalRevenue) }}%
-      </div>
-      <div class="sales-cell" style="flex: 0 0 10%;">
-        <img v-if="getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'" 
-             src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-        <img v-else 
-             src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-      </div>
-      <div class="sales-cell" style="flex: 0 0 10%;">
-        <img v-if="getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'" 
-             src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-        <img v-else 
-             src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-      </div>
+  <div v-for="quarterlyReport in displayedSalesItems" :key="quarterlyReport.fiscalDateEnding" class="sales-row">
+    <div class="sales-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
+    <div class="sales-cell" style="flex: 0 0 40%;">{{ parseInt(quarterlyReport.totalRevenue).toLocaleString() }}</div>
+    
+    <div class="sales-cell" style="flex: 0 0 20%;" v-if="showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1]">
+      <!-- Leave this cell blank for the last item when showing all -->
+    </div>
+    <div class="sales-cell" style="flex: 0 0 20%;" v-else :class="calculateRev(quarterlyReport.totalRevenue) > 0 ? 'positive' : 'negative'">
+      {{ calculateRev(quarterlyReport.totalRevenue) }}%
+    </div>
+    
+    <div class="sales-cell" style="flex: 0 0 10%;" v-if="showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1]">
+      <!-- Leave this cell blank for the last item when showing all -->
+    </div>
+    <div class="sales-cell" style="flex: 0 0 10%;" v-else>
+      <img v-if="getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'" 
+           src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+      <img v-else 
+           src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+    </div>
+    
+    <div class="sales-cell" style="flex: 0 0 10%;" v-if="showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1]">
+      <!-- Leave this cell blank for the last item when showing all -->
+    </div>
+    <div class="sales-cell" style="flex: 0 0 10%;" v-else>
+      <img v-if="getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'" 
+           src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+      <img v-else 
+           src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
     </div>
   </div>
 </div>
-<div v-else class="no-data">No sales data available</div>
+</div>
+<div v-if="displayedSalesItems.length === 0" class="no-data">No sales data available</div>
 <button 
     v-if="showSalesButton" 
     @click="showAllSales = !showAllSales" 
-    class="toggle-btn"
->
+    class="toggle-btn">
     {{ showAllSales ? 'Show Less' : 'Show All' }}
 </button>
         <h3 class="title">Notes Container</h3>
@@ -310,6 +341,7 @@
     </div>
     <div id="legend3"></div>
     <div id="legend4">
+      <img class="chart-img" :src="getImagePath(assetInfo.Symbol)" alt="">
       <p class="ticker" >{{assetInfo.Symbol}} </p> <p class="name" > - {{assetInfo.Name}}</p>
     </div>
     <div id="chartdiv"></div>
@@ -431,6 +463,7 @@
   <div class="results"></div>
       </div>
     </div>
+    <NotificationPopup ref="notification" />
     <Footer />
   </body>
 </template>
@@ -439,32 +472,39 @@
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
-import { reactive, onMounted, onUnmounted, ref, watch, computed, nextTick } from 'vue';
+import { reactive, onMounted, ref, watch, computed, nextTick } from 'vue';
 import { createChart, ColorType, CrosshairMode} from 'lightweight-charts';
 import LoadingOverlay from 'vue-loading-overlay';
 import Sortable from 'sortablejs';
 import { useStore } from 'vuex';
 import barsIcon from '@/assets/icons/bars.png';
 import candlesIcon from '@/assets/icons/candles.png';
+import NotificationPopup from '@/components/NotificationPopup.vue';
 
+// access user from store 
 const store = useStore();
 let user = store.getters.getUser;
-const abortController = ref(new AbortController());
 
-onUnmounted(() => {
-  abortController.value.abort();
-  // Cancel any other ongoing operations, timers, etc.
-});
-
+// status for loading bars 
 const isLoading2 = ref(true);
 const isLoading3 = ref(true);
-const sortable = ref(null);
+let isChartLoading = ref(false);
 
+// for popup notifications
+const notification = ref(null);
+const showNotification = () => {
+  notification.value.show('This is a custom notification message!');
+};
+
+// shows icons for toggle watchlist (the thing that adds / removes dropdown menu, the damn checkboxes)
 function getWatchlistIcon(ticker, item) {
   return isAssetInWatchlist(ticker.Name, item) 
     ? new URL('@/assets/icons/checked.png', import.meta.url).href
     : new URL('@/assets/icons/unchecked.png', import.meta.url).href;
 }
+
+// activates sorting of watchlist elements / drag and drop 
+const sortable = ref(null);
 
 function initializeSortable() {
   if (sortable.value) {
@@ -477,6 +517,7 @@ function initializeSortable() {
   }
 }
 
+// fetches initial item data (elements of watchlists)
 async function fetchItemData(item) {
   await Promise.all([
     getData(item),
@@ -484,28 +525,24 @@ async function fetchItemData(item) {
   ]);
 }
 
+// function that initializes all components inside watchlist page when you first login 
 async function initializeComponent() {
   try {
     isLoading2.value = true;
     isLoading3.value = true;
-
-    // Force a render cycle to ensure loading state is displayed
     await nextTick();
 
-    // Wrap all initialization operations in Promise.all
     await Promise.all([
       getWatchlists(),
       filterWatchlist(),
-      fetchSymbolsAndExchanges() // This populates ImagePaths
+      fetchSymbolsAndExchanges() 
     ]);
 
-    // After filterWatchlist has populated watchlist2.tickers, fetch data for each item
     if (watchlist2.tickers && watchlist2.tickers.length > 0) {
       await Promise.all(watchlist2.tickers.map(fetchItemData));
     }
 
     await nextTick();
-    
     await Promise.all([
     await searchTicker(),
     await searchNotes()
@@ -531,16 +568,14 @@ onMounted(() => {
   });
 });
 
+// retirves and updates the default symbol for the user 
 let defaultSymbol = localStorage.getItem('defaultSymbol');
 let selectedItem = defaultSymbol;
-let isChartLoading = ref(false);
 
 const searchQuery = ref('');
-
 const toUpperCase = () => {
   searchQuery.value = searchQuery.value.toUpperCase();
 };
-
 
 async function fetchUserDefaultSymbol() {
   try {
@@ -552,7 +587,6 @@ async function fetchUserDefaultSymbol() {
     const data = await response.json();
     return data.defaultSymbol;
   } catch (error) {
-    console.error('Error fetching user default symbol:', error);
     return null;
   }
 }
@@ -566,17 +600,15 @@ async function updateUserDefaultSymbol(symbol) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ defaultSymbol: symbol })
     });
-    if (!response.ok) throw new Error('Failed to update default symbol');
   } catch (error) {
-    console.error('Error updating user default symbol:', error);
   }
 }
 
+// related to summary tables 
 const showAllEPS = ref(false);
 const showAllEarnings = ref(false);
 const showAllSales = ref(false);
 
-// Computed properties with error handling
 const displayedEPSItems = computed(() => {
   const earnings = assetInfo?.quarterlyEarnings || [];
   if (earnings.length === 0) return [];
@@ -610,6 +642,7 @@ const showSalesButton = computed(() => {
   return (assetInfo?.quarterlyIncome?.length || 0) > 4;
 });
 
+// function that searches for tickers
 async function searchTicker(providedSymbol) {
   let response; 
   try {
@@ -621,7 +654,7 @@ async function searchTicker(providedSymbol) {
       response = await fetch(`/api/chart/${symbol}`); 
 
       if (response.status === 404) {
-        alert('Ticker not found');
+        notification.value.show('Ticker not Found');
         isChartLoading.value = false;
         return;
       }
@@ -668,7 +701,6 @@ async function searchTicker(providedSymbol) {
       assetInfo.IPO = data.IPO;
     }
   } catch (err) {
-    console.log(err);
     isChartLoading.value = false;
   } finally {
     if (response && response.status !== 404) {
@@ -906,6 +938,7 @@ function calculateRev(totalRevenue) {
   return percentageChange.toFixed(2);
 }
 
+// related to notes 
 const BeautifulNotes = ref([]);
 const loading = ref(false);
 const error = ref(null);
@@ -919,7 +952,6 @@ async function searchNotes() {
     const data = await response.json();
     BeautifulNotes.value = data;
   } catch (err) {
-    error.value = err;
   } finally {
     loading.value = false;
   }
@@ -931,7 +963,7 @@ async function sendNote() {
 
   // Check character limit
   if (note.length > 350) {
-    error.value = 'Note exceeds 350 character limit';
+    notification.value.show('Note exceeds 350 character limit');
     return;
   }
 
@@ -950,14 +982,11 @@ async function sendNote() {
         showCreateNote.value = false;
         await searchNotes(symbol);
       } else {
-        // Display the error message from the server
-        error.value = responseData.message || 'Failed to create note';
+        notification.value.show('Failed to create note');
       }
     } catch (err) {
-      error.value = err.message;
     }
   } else {
-    console.log('No message to send');
   }
 }
 
@@ -973,17 +1002,11 @@ async function removeNote(_id, note) {
     if (response.ok) {
       BeautifulNotes.value = BeautifulNotes.value.filter((n) => n._id !== noteId);
     } else {
-      error.value = response.statusText;
     }
   } catch (err) {
-    error.value = err;
   }
   await searchNotes();
 }
-
-onMounted(async () => {
-  await searchNotes();
-});
 
 async function showTicker() {
   try {
@@ -1046,21 +1069,16 @@ async function showTicker() {
 }
 
 async function fetchEarningsDate() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let ticker = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${ticker}/earningsdate`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${ticker}/earningsdate`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const newEARNDates = await response.json();
-    const ipoDate = data.value[0].time; // extract IPO date from the first document in the data list
+    const ipoDate = data.value[0].time; // extract IPO date from the first document in the data list 
     const ipoDateObject = new Date(ipoDate); // convert ipoDate to a date object
     
     const filteredEARNDates = newEARNDates.filter((date) => {
@@ -1076,22 +1094,15 @@ async function fetchEarningsDate() {
 
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchEarningsDate aborted');
       return;
     }
-    console.error('Error fetching earnings date:', error);
   }
 }
 
 async function fetchSplitsDate() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let ticker = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${ticker}/splitsdate`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${ticker}/splitsdate`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1102,10 +1113,8 @@ async function fetchSplitsDate() {
 
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchSplitsDate aborted');
       return;
     }
-    console.error('Error fetching splits date:', error);
   }
 }
 
@@ -1125,39 +1134,26 @@ const EARNdates = ref([]); // Earnings Data - just date
 const SPLITdates = ref([]); // Splits Data - just date
 
 async function fetchData() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${symbol}/data`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${symbol}/data`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
     const newData = await response.json();
     data.value = newData;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData aborted');
       return;
     }
-    console.error('Error fetching data:', error);
   }
 }
 
 async function fetchData2() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${symbol}/data2`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${symbol}/data2`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1167,22 +1163,15 @@ async function fetchData2() {
     data2.value = newData2;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData2 aborted');
       return;
     }
-    console.error('Error fetching data:', error);
   }
 }
 
 async function fetchData3() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${symbol}/data3`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${symbol}/data3`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1192,22 +1181,15 @@ async function fetchData3() {
     data3.value = newData3;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData3 aborted');
       return;
     }
-    console.error('Error fetching data:', error);
   }
 }
 
 async function fetchData4() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${symbol}/data4`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${symbol}/data4`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1217,22 +1199,15 @@ async function fetchData4() {
     data4.value = newData4;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData4 aborted');
       return;
     }
-    console.error('Error fetching data:', error);
   }
 }
 
 async function fetchData5() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${symbol}/data5`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${symbol}/data5`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1242,22 +1217,15 @@ async function fetchData5() {
     data5.value = newData5;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData5 aborted');
       return;
     }
-    console.error('Error fetching data:', error);
   }
 }
 
 async function fetchData6() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${symbol}/data6`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${symbol}/data6`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1267,22 +1235,15 @@ async function fetchData6() {
     data6.value = newData6;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData6 aborted');
       return;
     }
-    console.error('Error fetching data:', error);
   }
 }
 
 async function fetchData7() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${symbol}/data7`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${symbol}/data7`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1292,22 +1253,15 @@ async function fetchData7() {
     data7.value = newData7;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData7 aborted');
       return;
     }
-    console.error('Error fetching data:', error);
   }
 }
 
 async function fetchData8() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${symbol}/data8`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${symbol}/data8`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1317,22 +1271,15 @@ async function fetchData8() {
     data8.value = newData8;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData8 aborted');
       return;
     }
-    console.error('Error fetching data:', error);
   }
 }
 
 async function fetchData9() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${symbol}/data9`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${symbol}/data9`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1342,22 +1289,15 @@ async function fetchData9() {
     data9.value = newData9;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData9 aborted');
       return;
     }
-    console.error('Error fetching data:', error);
   }
 }
 
 async function fetchData10() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${symbol}/data10`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${symbol}/data10`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1367,22 +1307,15 @@ async function fetchData10() {
     data10.value = newData10;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData10 aborted');
       return;
     }
-    console.error('Error fetching data:', error);
   }
 }
 
 async function fetchData11() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${symbol}/data11`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${symbol}/data11`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1392,22 +1325,15 @@ async function fetchData11() {
     data11.value = newData11;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData11 aborted');
       return;
     }
-    console.error('Error fetching data:', error);
   }
 }
 
 async function fetchData12() {
-  abortController.value = new AbortController();
   try {
-    // Always use the current defaultSymbol or selectedItem
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    
-    const response = await fetch(`/api/${symbol}/data12`, {
-      signal: abortController.value.signal
-    });
+    const response = await fetch(`/api/${symbol}/data12`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1417,13 +1343,10 @@ async function fetchData12() {
     data12.value = newData12;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('fetchData12 aborted');
       return;
     }
-    console.error('Error fetching data:', error);
   }
 }
-
 
 let chartView = ref('D')
 let useAlternateData = false;
@@ -1444,19 +1367,14 @@ const toggleChartType = () => {
 onMounted(async () => {
   try {
     isInitializing.value = true;
-    // Clear localStorage on mount to prevent using old data
     localStorage.removeItem('defaultSymbol');
     
-    // Get user's default symbol
     selectedItem = await fetchUserDefaultSymbol();
     if (selectedItem) {
       defaultSymbol = selectedItem;
       localStorage.setItem('defaultSymbol', selectedItem);
     }
-
-    // Initialize with the fetched symbol
     await showTicker();
-
     await nextTick()
 const chartDiv = document.getElementById('chartdiv');
   const chart = createChart(chartDiv, {
@@ -1937,7 +1855,6 @@ function updateLegend3(data) {
 });
 
   } catch (error) {
-    console.error('Initialization error:', error);
   } finally {
     isInitializing.value = false;
   }
@@ -1963,9 +1880,9 @@ async function toggleChartView() {
 
 const watchlist = reactive([]); // dynamic list containing watchlist names for every user 
 const watchlist2 = reactive([]); // dynamic list containing content of watchlists
-const quotes = reactive({});
-const changes = reactive ({});
-const perc = reactive({});
+const quotes = reactive({}); // dynamic list containing quotes for elements of watchlist
+const changes = reactive ({}); // dynamic list containing price changes for elements of watchlist
+const perc = reactive({}); // dynamic list containing % changes for elements of watchlist
 const selectedWatchlist = ref(JSON.parse(localStorage.getItem('selectedWatchlist')) || null);
 
 function updateSelectedWatchlist(watch) {
@@ -1982,7 +1899,6 @@ async function getWatchlists() {
   try {
     user = store.getters.getUser;
     if (!user) {
-      console.error('User not found');
       return;
     }
     try {
@@ -2007,19 +1923,11 @@ async function getWatchlists() {
         }
       }
     } catch (error) {
-      console.error('Error fetching watchlists:', error);
       watchlist.tickers = [];
     }
   } catch (error) {
-    console.error('Error getting user:', error);
   }
 }
-
-onMounted (async() => {
-await getWatchlists();
-await filterWatchlist(); 
-})
-
 
 // generates the current watchlist tickers 
 async function filterWatchlist(watch) {
@@ -2029,9 +1937,6 @@ async function filterWatchlist(watch) {
   
   try {
     const response = await fetch(`/api/${user}/watchlists/${selectedWatchlist.value.Name}`);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
     const data = await response.json();
     watchlist2.tickers = data;
     isLoading2.value = true;
@@ -2044,7 +1949,6 @@ async function filterWatchlist(watch) {
     });
   } catch (error) {
     isLoading2.value = false;
-    console.error('Error fetching watchlists:', error);
   }
 }
 
@@ -2067,7 +1971,6 @@ async function fetchSymbolsAndExchanges() {
       exchange: item.Exchange,
     }));
   } catch (error) {
-    console.error('Error fetching symbols and exchanges:', error);
   }
 }
 
@@ -2099,7 +2002,6 @@ async function getData(item) {
     perc[item] = parseFloat(data.percentChange);
 
   } catch (error) {
-    console.error('Error fetching data:', error);
   }
 }
 
@@ -2110,13 +2012,13 @@ async function CreateWatchlist() {
 
   // Check for existing watchlist
   if (existingWatchlists.includes(watchlistName)) {
-    alert("Watchlist already exists");
+    notification.value.show('Watchlist already exists');
     return;
   }
 
   // Check for length
   if (watchlistName.length > 20) {
-    alert("Watchlist name cannot exceed 20 characters.");
+    notification.value.show('Watchlist name cannot exceed 20 characters.');
     return;
   }
 
@@ -2128,14 +2030,10 @@ async function CreateWatchlist() {
 
     // Check if the request was successful
     if (response.ok) {
-      console.log('Watchlist created successfully!');
-      // You can also update your component's state here
     } else {
       const errorData = await response.json();
-      console.error('Error creating watchlist:', errorData);
     }
   } catch (error) {
-    console.error('Error creating watchlist:', error);
   }
   showCreateWatchlist.value = false;
   await getWatchlists();
@@ -2154,19 +2052,18 @@ async function UpdateWatchlist() {
 
   // Check if watchlist already exists
   if (existingWatchlists.includes(watchlistName)) {
-    alert("Watchlist already exists")
+    notification.value.show('Watchlist already exists');
     return
   }
 
   // Check if watchlist name is empty
   if (!watchlistName) {
-    console.error('Please enter a new name');
     return;
   }
 
   // Check if watchlist name exceeds 20 characters
   if (watchlistName.length > 20) {
-    alert("Watchlist name cannot exceed 20 characters.");
+    notification.value.show('Watchlist name cannot exceed 20 characters.');
     return;
   }
 
@@ -2179,15 +2076,10 @@ async function UpdateWatchlist() {
 
     // Check if the request was successful
     if (response.ok) {
-      console.log('Watchlist renamed successfully!');
-      // You can also update your component's state here
     } else {
       const errorData = await response.json();
-      alert(errorData.message); // Show the error message from the server
-      console.error('Error renaming watchlist:', errorData);
     }
   } catch (error) {
-    console.error('Error renaming watchlist:', error);
   }
   
   showRenameWatchlist.value = false;
@@ -2219,10 +2111,7 @@ async function DeleteWatchlist(watch) {
     const response = await fetch(apiUrl, requestOptions);
     const data = await response.json();
 
-    // Handle the response
-    console.log(data);
   } catch (error) {
-    console.error(error);
   }
   await getWatchlists();
   await filterWatchlist();
@@ -2239,8 +2128,6 @@ async function deleteTicker(item) {
   if (selectedWatchlistElement) {
     selectedWatchlistName = selectedWatchlistElement.textContent.split(' (')[0]; // Split to get only the name
   } else {
-    // Handle the case where no watchlist is selected
-    alert('No watchlist selected');
     return;
   }
 
@@ -2262,12 +2149,10 @@ async function deleteTicker(item) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Error deleting ticker: ${response.status} - ${errorText}`);
       throw new Error(`Failed to delete ticker: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('Ticker deleted successfully:', data);
   } catch (error) {
     console.error('Error in deleteTicker function:', error);
   }
@@ -2294,14 +2179,12 @@ async function addWatchlist() {
       if (selectedWatchlistElement) {
         selectedWatchlistName = selectedWatchlistElement.textContent.split(' (')[0]; // Split to get only the name
       } else {
-        // Handle the case where no watchlist is selected
-        alert('No watchlist selected');
+        notification.value.show('No watchlist selected');
         return;
       }
 
       // Check if the symbol already exists in the watchlist
       if (watchlist2.includes(symbol)) {
-        alert('Ticker already exists in the watchlist');
         return;
       }
 
@@ -2309,14 +2192,13 @@ async function addWatchlist() {
       const response = await fetch(`/api/chart/${symbol}`);
       if (response.status === 404) {
         // Ticker not found
-        alert('Ticker not found');
+        notification.value.show('Ticker not found');
         return;
       }
 
       const assetData = await response.json();
       if (!assetData.Symbol) {
-        // Invalid data, symbol doesn't exist
-        alert('Invalid data, symbol doesn\'t exist');
+        notification.value.show('Invalid data, symbol doesn\'t exist');
         return;
       }
 
@@ -2334,7 +2216,6 @@ async function addWatchlist() {
       await filterWatchlist();
     }
   } catch (err) {
-    console.log(err);
   } 
 
   await getWatchlists();
@@ -2488,9 +2369,7 @@ function logElement() {
 
   if (symbolElement) {
     const symbolValue = symbolElement.textContent;
-    console.log(symbolValue);
   } else {
-    console.error('No element with class "btsymbol" found in row', autoplayIndex);
   }
 
   autoplayIndex++;
@@ -2501,7 +2380,6 @@ function logElement() {
 async function UpdateWatchlistOrder() {
   try {
     if (!sortable.value) {
-      console.error('Sortable element not found');
       return;
     }
 
@@ -2516,8 +2394,6 @@ async function UpdateWatchlistOrder() {
       newListOrder,
     };
 
-    console.log('Request body:', requestBody);
-
     const response = await fetch(`/api/watchlists/update-order/${user}/${selectedOption}`, {
       method: 'PATCH',
       headers: {
@@ -2529,12 +2405,9 @@ async function UpdateWatchlistOrder() {
     if (!response.ok) {
       throw new Error(`Error updating watchlist order: ${response.status}`);
     }
-
-    console.log('Watchlist order updated successfully!');
     await filterWatchlist(); // Refresh the watchlists after updating order
 
   } catch (error) {
-    console.error('Error updating watchlist order:', error);
   }
 }
 
@@ -3559,6 +3432,13 @@ font-weight: bold;
 
 .dropdown-item img {
   margin-right: 10px;
+}
+
+.chart-img{
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 5px;
 }
 
 </style>

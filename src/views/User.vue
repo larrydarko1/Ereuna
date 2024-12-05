@@ -149,7 +149,11 @@
     {{ showPswDelete ? 'Hide' : 'Show' }}
   </button>
 </div>
-         <p>by clicking on Delete Account you acknowledge the fact that we cannot recover your data blablabla</p>
+         <p>By proceeding with the deletion of your account, you acknowledge and understand that this action is irreversible. Once your account is deleted, you will permanently lose access to your account and all associated data, including but not limited to personal information, settings, and any content you have created or stored.
+
+Please be aware that we will not be able to recover any data or restore your account after it has been deleted. If you have any doubts or wish to retain your data, we strongly encourage you to reconsider before proceeding with the deletion.
+
+Thank you for your understanding.</p>
          <br>
          <button class="userbtn" @click="deleteAccount()">Delete Account</button>
       </div>

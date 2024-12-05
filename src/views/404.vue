@@ -41,7 +41,7 @@
   }
   
   a:hover {
-    color: #733adc;
+    color: #8c8dfe;
   }
 
   .inner-logo{

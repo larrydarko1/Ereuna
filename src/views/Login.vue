@@ -79,14 +79,8 @@ async function login() {
         password,
       })
     });
-
-    // Log the full response for debugging
-    console.log('Response status:', response.status);
     
     const responseBody = await response.json();
-    
-    // Log the response body for debugging
-    console.log('Response body:', responseBody);
 
     if (response.ok) {
       const token = responseBody.token;
@@ -95,28 +89,17 @@ async function login() {
     } else {
       // Use exact string matching
       if (responseBody.message === 'Username doesn\'t exist') {
-        console.log('Setting username error to true');
         usernameError.value = true;
       } else if (responseBody.message === 'Password is incorrect') {
-        console.log('Setting password error to true');
         passwordError.value = true;
       } else if (responseBody.message === 'Subscription is expired') {
         router.push({ path: '/renew-subscription' });
       } else if (responseBody.message === 'Please fill both username and password fields') {
         fieldsError.value = true;
       } else {
-        console.error('Unexpected error:', responseBody);
       }
-
-      // Force a re-render or log current state
-      console.log('Current error states:', {
-        usernameError: usernameError.value,
-        passwordError: passwordError.value,
-        fieldsError: fieldsError.value
-      });
     }
   } catch (error) {
-    console.error('Login error:', error);
   }
 }
 
