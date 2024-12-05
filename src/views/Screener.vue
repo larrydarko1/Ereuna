@@ -87,30 +87,37 @@
           </div>
         </div>
         <div :class="[ShowSector ? 'param-s2-expanded' : 'param-s2']">
-          <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Sector</p>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="ShowSector">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none" v-if="ShowSector">
-            <div class="row2">
-              <div class="check" v-for="(sector, index) in Sectors" :key="index">
-                <input type="checkbox" :id="`sector-${index}`" :value="sector">
-                <label :for="`sector-${index}`">{{ sector }}</label>
-              </div>
-            </div>
-            <div class="row">
-              <button class="btns2" style="float:right" @click="SetSector()">
-                <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
-              </button>
-              <button class="btns2r"style="float:right" @click="Reset('Sector')">
-                <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
-              </button>
-            </div>
+    <div class="row">
+      <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Sector</p>
+      <label style="float:right" class="switch">
+        <input type="checkbox" v-model="ShowSector">
+        <span class="slider round"></span>
+      </label>
+    </div>
+    <div style="border: none" v-if="ShowSector">
+      <div class="row2">
+        <div class="check" v-for="(sector, index) in Sectors" :key="index">
+          <div 
+            :id="`sector-${index}`" 
+            class="custom-checkbox" 
+            :class="{ checked: selectedSectors[index] }" 
+            @click="toggleSector(index)"
+          >
+            <span class="checkmark"></span>
+            {{ sector }}
           </div>
         </div>
+      </div>
+      <div class="row">
+        <button class="btns2" style="float:right" @click="SetSector">
+          <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+        </button>
+        <button class="btns2r" style="float:right" @click="Reset('Sector')">
+          <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+        </button>
+      </div>
+    </div>
+  </div>
         <div :class="[ShowExchange ? 'param-s3-expanded' : 'param-s3']">
           <div class="row">
             <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Exchange</p>
@@ -1843,6 +1850,7 @@ const hideList = ref([]); // stores hidden list of users
 const ScreenersName = ref([]); // stores all user's screeners
 const currentList = ref([]); // Initialize currentList as an empty array
 const Sectors = ref([]); // hosts all available sectors 
+const selectedSectors = ref([]);
 const Exchanges = ref([]); // hosts all available exchanges 
 const Country = ref([]); // hosts all available countries 
 const screenerSummary = ref([]); // stores all params for a screener, summary bottom right below charts 
@@ -2243,14 +2251,19 @@ async function ShowStock(asset) {
 // generates options for checkboxes for sectors
 async function GetSectors() {
   try {
-    const response = await fetch('/api/screener/sectors')
-    const data = await response.json()
-    Sectors.value = data
+    const response = await fetch('/api/screener/sectors');
+    const data = await response.json();
+    Sectors.value = data;
+    selectedSectors.value = new Array(data.length).fill(false); // Initialize selection state
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error:', error);
   }
 }
 GetSectors();
+
+const toggleSector = (index) => {
+  selectedSectors.value[index] = !selectedSectors.value[index]; // Toggle the selected state
+};
 
 // generates options for checkboxes for exchanges 
 async function GetExchanges() {
@@ -2278,29 +2291,25 @@ GetCountry();
 
 // sends sectors data to update screener
 async function SetSector() {
-  const selectedSectors = [];
-  user = user;
-  this.Sectors.forEach((sector, index) => {
-    const checkbox = document.getElementById(`sector-${index}`);
-    if (checkbox.checked) {
-      selectedSectors.push(sector);
-    }
-  });
+  const selected = Sectors.value.filter((_, index) => selectedSectors.value[index]); // Get selected sectors
+
   try {
     const response = await fetch('/api/screener/sectors', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ sectors: selectedSectors, screenerName: selectedScreener.value, user: user })
+      body: JSON.stringify({ sectors: selected, screenerName: selectedScreener.value, user: user })
     });
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+
     const data = await response.json();
     await fetchScreenerResults(selectedScreener.value); // Update the list after setting the sector
   } catch (error) {
-    console.error(error);
+    console.error('Error in SetSector:', error);
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -4649,6 +4658,36 @@ Header th {
 .imgbtn{
   width: 15px;
   height: 15px;
+}
+
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.custom-checkbox.checked {
+  color: white; /* Change text color when checked */
+}
+
+.checkmark {
+  width: 8px; /* Smaller width */
+  height: 8px; /* Smaller height */
+  background-color: whitesmoke;
+  border-radius: 50%; /* Make it circular */
+  margin-right: 5px;
+  display: inline-block;
+  transition: background-color 0.3s, border-color 0.3s; /* Add transition for border color */
+}
+
+.custom-checkbox.checked .checkmark {
+  background-color: #8c8dfe; /* Change to your desired color */
+  border-color: #8c8dfe; /* Change to your desired border color */
+}
+
+.custom-checkbox.checked {
+  color: white; /* Change text color when checked */
 }
 
 </style>
