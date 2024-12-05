@@ -118,56 +118,70 @@
       </div>
     </div>
   </div>
-        <div :class="[ShowExchange ? 'param-s3-expanded' : 'param-s3']">
-          <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Exchange</p>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="ShowExchange">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none" v-if="ShowExchange">
-            <div class="row2">
-              <div class="check" v-for="(exchange, index) in Exchanges" :key="index">
-                <input type="checkbox" :id="`exchange-${index}`" :value="exchange">
-                <label :for="`sector-${index}`">{{ exchange }}</label>
-              </div>
-            </div>
-            <div class="row">
-              <button class="btns3" style="float:right" @click="SetExchange()">
-                <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
-              </button>
-              <button class="btns3r"style="float:right" @click="Reset('Exchange')">
-                <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
-              </button>
-            </div>
+  <div :class="[ShowExchange ? 'param-s3-expanded' : 'param-s3']">
+    <div class="row">
+      <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Exchange</p>
+      <label style="float:right" class="switch">
+        <input type="checkbox" v-model="ShowExchange">
+        <span class="slider round"></span>
+      </label>
+    </div>
+    <div style="border: none" v-if="ShowExchange">
+      <div class="row2">
+        <div class="check" v-for="(exchange, index) in Exchanges" :key="index">
+          <div 
+            :id="`exchange-${index}`" 
+            class="custom-checkbox" 
+            :class="{ checked: selectedExchanges[index] }" 
+            @click="toggleExchange(index)"
+          >
+            <span class="checkmark"></span>
+            {{ exchange }}
           </div>
         </div>
-        <div :class="[ShowCountry ? 'param-s3-expanded' : 'param-s3']">
-          <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Country</p>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="ShowCountry">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none" v-if="ShowCountry">
-            <div class="row2">
-              <div class="check" v-for="(country, index) in Country" :key="index">
-                <input type="checkbox" :id="`country-${index}`" :value="country">
-                <label :for="`sector-${index}`">{{ country }}</label>
-              </div>
-            </div>
-            <div class="row">
-              <button class="btns3" style="float:right" @click="SetCountry()">
-                <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
-              </button>
-              <button class="btns3r"style="float:right" @click="Reset('Country')">
-                <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
-              </button>
-            </div>
+      </div>
+      <div class="row">
+        <button class="btns3" style="float:right" @click="SetExchange">
+          <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+        </button>
+        <button class="btns3r" style="float:right" @click="Reset('Exchange')">
+          <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+        </button>
+      </div>
+    </div>
+  </div>
+  <div :class="[ShowCountry ? 'param-s3-expanded' : 'param-s3']">
+    <div class="row">
+      <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Country</p>
+      <label style="float:right" class="switch">
+        <input type="checkbox" v-model="ShowCountry">
+        <span class="slider round"></span>
+      </label>
+    </div>
+    <div style="border: none" v-if="ShowCountry">
+      <div class="row2">
+        <div class="check" v-for="(country, index) in Country" :key="index">
+          <div 
+            :id="`country-${index}`" 
+            class="custom-checkbox" 
+            :class="{ checked: selectedCountries[index] }" 
+            @click="toggleCountry(index)"
+          >
+            <span class="checkmark"></span>
+            {{ country }}
           </div>
         </div>
+      </div>
+      <div class="row">
+        <button class="btns3" style="float:right" @click="SetCountry">
+          <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+        </button>
+        <button class="btns3r" style="float:right" @click="Reset('Country')">
+          <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+        </button>
+      </div>
+    </div>
+  </div>
         <div :class="[showPEInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">PE Ratio</p>
@@ -1852,7 +1866,9 @@ const currentList = ref([]); // Initialize currentList as an empty array
 const Sectors = ref([]); // hosts all available sectors 
 const selectedSectors = ref([]);
 const Exchanges = ref([]); // hosts all available exchanges 
+const selectedExchanges = ref([]);
 const Country = ref([]); // hosts all available countries 
+const selectedCountries = ref([]);
 const screenerSummary = ref([]); // stores all params for a screener, summary bottom right below charts 
 
 //related to lists / toggle
@@ -2268,26 +2284,36 @@ const toggleSector = (index) => {
 // generates options for checkboxes for exchanges 
 async function GetExchanges() {
   try {
-    const response = await fetch('/api/screener/exchange')
-    const data = await response.json()
-    Exchanges.value = data
+    const response = await fetch('/api/screener/exchange');
+    const data = await response.json();
+    Exchanges.value = data;
+    selectedExchanges.value = new Array(data.length).fill(false); // Initialize selection state
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error:', error);
   }
 }
 GetExchanges();
 
+const toggleExchange = (index) => {
+  selectedExchanges.value[index] = !selectedExchanges.value[index]; // Toggle the selected state
+};
+
 // generates options for checkboxes for country 
 async function GetCountry() {
   try {
-    const response = await fetch('/api/screener/country')
-    const data = await response.json()
-    Country.value = data
+    const response = await fetch('/api/screener/country');
+    const data = await response.json();
+    Country.value = data;
+    selectedCountries.value = new Array(data.length).fill(false); // Initialize selection state
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error:', error);
   }
 }
 GetCountry();
+
+const toggleCountry = (index) => {
+  selectedCountries.value[index] = !selectedCountries.value[index]; // Toggle the selected state
+};
 
 // sends sectors data to update screener
 async function SetSector() {
@@ -2316,58 +2342,50 @@ async function SetSector() {
 
 // sends exchanges data to update screener
 async function SetExchange() {
-  const selectedExchanges = [];
-  user = user;
-  this.Exchanges.forEach((exchange, index) => {
-    const checkbox = document.getElementById(`exchange-${index}`);
-    if (checkbox.checked) {
-      selectedExchanges.push(exchange);
-    }
-  });
+  const selected = Exchanges.value.filter((_, index) => selectedExchanges.value[index]); // Get selected exchanges
+
   try {
     const response = await fetch('/api/screener/exchange', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ exchanges: selectedExchanges, screenerName: selectedScreener.value, user: user })
+      body: JSON.stringify({ exchanges: selected, screenerName: selectedScreener.value, user: user })
     });
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+
     const data = await response.json();
     await fetchScreenerResults(selectedScreener.value); // Update the list after setting the exchange
   } catch (error) {
-    console.error(error);
+    console.error('Error in SetExchange:', error);
     await fetchScreenerResults(selectedScreener.value);
   }
 }
 
 // sends country data to update screener
 async function SetCountry() {
-  const selectedCountries = [];
-  user = user;
-  this.Country.forEach((country, index) => {
-    const checkbox = document.getElementById(`country-${index}`);
-    if (checkbox.checked) {
-      selectedCountries.push(country);
-    }
-  });
+  const selected = Country.value.filter((_, index) => selectedCountries.value[index]); // Get selected countries
+
   try {
     const response = await fetch('/api/screener/country', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ countries: selectedCountries, screenerName: selectedScreener.value, user: user })
+      body: JSON.stringify({ countries: selected, screenerName: selectedScreener.value, user: user })
     });
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+
     const data = await response.json();
     await fetchScreenerResults(selectedScreener.value); // Update the list after setting the country
   } catch (error) {
-    console.error(error);
+    console.error('Error in SetCountry:', error);
     await fetchScreenerResults(selectedScreener.value);
   }
 }
