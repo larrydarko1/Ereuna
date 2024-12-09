@@ -54,6 +54,9 @@
 </div>
 <div v-else style="border:none" >
 <div class="summary-container">
+  <div class="summary-row2">
+    <div class="description">{{ assetInfo.Description }}</div>
+  </div>
   <div class="summary-row">
     <div class="category">Asset Type</div>
     <div class="response">{{ assetInfo.AssetType }}</div>
@@ -111,6 +114,10 @@
   <div class="summary-row">
     <div class="category">Country</div>
     <div class="response">{{ assetInfo.Country }}</div>
+  </div>
+  <div class="summary-row">
+    <div class="category">Address</div>
+    <div class="response">{{ assetInfo.Address }}</div>
   </div>
   <div class="summary-row">
     <div class="category">Dividend Date</div>
@@ -622,14 +629,14 @@ const displayedEPSItems = computed(() => {
 });
 
 const displayedEarningsItems = computed(() => {
-  const income = assetInfo?.quarterlyIncome || [];
+  const income = assetInfo?.quarterlyFinancials || [];
   if (income.length === 0) return [];
   if (income.length <= 4) return income;
   return showAllEarnings.value ? income : income.slice(0, 4);
 });
 
 const displayedSalesItems = computed(() => {
-  const income = assetInfo?.quarterlyIncome || [];
+  const income = assetInfo?.quarterlyFinancials || [];
   if (income.length === 0) return [];
   if (income.length <= 4) return income;
   return showAllSales.value ? income : income.slice(0, 4);
@@ -640,11 +647,11 @@ const showEPSButton = computed(() => {
 });
 
 const showEarningsButton = computed(() => {
-  return (assetInfo?.quarterlyIncome?.length || 0) > 4;
+  return (assetInfo?.quarterlyFinancials?.length || 0) > 4;
 });
 
 const showSalesButton = computed(() => {
-  return (assetInfo?.quarterlyIncome?.length || 0) > 4;
+  return (assetInfo?.quarterlyFinancials?.length || 0) > 4;
 });
 
 // function that searches for tickers
@@ -698,12 +705,13 @@ async function searchTicker(providedSymbol) {
       assetInfo.WeekLow = data.WeekLow;
       assetInfo.quarterlyEarnings = data.quarterlyEarnings;
       assetInfo.annualEarnings = data.annualEarnings;
-      assetInfo.quarterlyIncome = data.quarterlyIncome;
-      assetInfo.annualIncome = data.annualIncome;
+      assetInfo.quarterlyFinancials = data.quarterlyFinancials;
+      assetInfo.annualFinancials = data.annualFinancials;
       assetInfo.RSScore1W = data.RSScore1W;
       assetInfo.RSScore1M = data.RSScore1M;
       assetInfo.RSScore4M = data.RSScore4M;
       assetInfo.IPO = data.IPO;
+      assetInfo.Description = data.Description;
     }
   } catch (err) {
     isChartLoading.value = false;
@@ -754,13 +762,14 @@ const assetInfo = reactive({
   DividendDate: '',
   quarterlyEarnings: [],
   annualEarnings: [],
-  quarterlyIncome: [],
-  annualIncome: [],
+  quarterlyFinancials: [],
+  annualFinancials: [],
   Symbol: '',
   RSScore1W: '',
   RSScore1M: '',
   RSScore4M: '',
   IPO: '',
+  Description: '',
 });
 
 //takes date strings inside database and converts them into actual date, in italian format
@@ -831,7 +840,7 @@ function getYoYClass(percentageChange) {
 
 function calculateQoQ2(netIncome) {
   if (!netIncome) return null;
-  const quarterlyIncome = assetInfo.quarterlyIncome;
+  const quarterlyIncome = assetInfo.quarterlyFinancials;
   if (!quarterlyIncome) return null;
   const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
   if (index === -1) return null;
@@ -850,7 +859,7 @@ function calculateQoQ2(netIncome) {
 
 function calculateYoY2(netIncome) {
   if (!netIncome) return null;
-  const quarterlyIncome = assetInfo.quarterlyIncome;
+  const quarterlyIncome = assetInfo.quarterlyFinancials;
   if (!quarterlyIncome) return null;
   const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
   if (index === -1) return null;
@@ -869,7 +878,7 @@ function calculateYoY2(netIncome) {
 
 function calculateQoQ3(totalRevenue) {
   if (!totalRevenue) return null;
-  const quarterlyIncome = assetInfo.quarterlyIncome;
+  const quarterlyIncome = assetInfo.quarterlyFinancials;
   if (!quarterlyIncome) return null;
   const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
   if (index === -1) return null;
@@ -888,7 +897,7 @@ function calculateQoQ3(totalRevenue) {
 
 function calculateYoY3(totalRevenue) {
   if (!totalRevenue) return null;
-  const quarterlyIncome = assetInfo.quarterlyIncome;
+  const quarterlyIncome = assetInfo.quarterlyFinancials;
   if (!quarterlyIncome) return null;
   const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
   if (index === -1) return null;
@@ -907,7 +916,7 @@ function calculateYoY3(totalRevenue) {
 
 function calculateNet(netIncome) {
   if (!netIncome) return null;
-  const quarterlyIncome = assetInfo.quarterlyIncome;
+  const quarterlyIncome = assetInfo.quarterlyFinancials;
   if (!quarterlyIncome) return null;
   const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
   if (index === -1) return null;
@@ -926,7 +935,7 @@ function calculateNet(netIncome) {
 
 function calculateRev(totalRevenue) {
   if (!totalRevenue) return null;
-  const quarterlyIncome = assetInfo.quarterlyIncome;
+  const quarterlyIncome = assetInfo.quarterlyFinancials;
   if (!quarterlyIncome) return null;
   const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
   if (index === -1) return null;
@@ -1031,6 +1040,7 @@ async function showTicker() {
       assetInfo.Country = data.Country;
       assetInfo.AssetType = data.AssetType;
       assetInfo.Address = data.Address;
+      assetInfo.Description = data.Description
       assetInfo.Currency = data.Currency;
       assetInfo.Beta = data.Beta;
       assetInfo.BookValue = data.BookValue;
@@ -1047,8 +1057,8 @@ async function showTicker() {
       assetInfo.WeekLow = data.WeekLow;
       assetInfo.quarterlyEarnings = data.quarterlyEarnings;
       assetInfo.annualEarnings = data.annualEarnings;
-      assetInfo.quarterlyIncome = data.quarterlyIncome;
-      assetInfo.annualIncome = data.annualIncome;
+      assetInfo.quarterlyFinancials = data.quarterlyFinancials;
+      assetInfo.annualFinancials = data.annualFinancials;
       assetInfo.RSScore1W = data.RSScore1W;
       assetInfo.RSScore1M = data.RSScore1M;
       assetInfo.RSScore4M = data.RSScore4M;
@@ -2687,6 +2697,12 @@ td {
   border: none;
 }
 
+.description{
+  border: none;
+  text-align: center;
+  font-weight: bold;
+}
+
 .response {
   text-align: right;
   border: none;
@@ -3320,7 +3336,7 @@ font-weight: bold;
   border: solid 1px red !important; /* Use !important to ensure it takes precedence */
 }
 
-.summary-container , #EPStable{
+.summary-container{
   display: flex;
   flex-direction: column;
   color: #b3b3b3;
@@ -3329,15 +3345,28 @@ font-weight: bold;
 
 .summary-row {
   display: flex;
-  height: 20px;
+  height: fit-content;
   padding-left: 5px;
   padding-right: 5px;
-  padding-top: 1px;
-  padding-bottom: 1px;
+  padding-top: 5px;
+  padding-bottom: 5px;
   border-bottom:solid 1px #2a2a38;
   align-items: center;
   justify-content: center;
   background-color: #3f3e56;
+}
+
+.summary-row2 {
+  display: flex;
+  height: fit-content;
+  padding-left: 5px;
+  padding-right: 5px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  border-bottom:solid 1px #2a2a38;
+  align-items: center;
+  justify-content: center;
+  background-color: #292838;
 }
 
 .summary-row:last-child {
