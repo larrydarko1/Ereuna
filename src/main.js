@@ -33,7 +33,7 @@ router.beforeEach(async (to, from, next) => {
     // Only check authentication if NOT in maintenance mode
     const token = localStorage.getItem('token');
 
-    if (!token && (to.name !== 'Login' && to.name !== 'SignUp' && to.name !== 'PaymentRenew' && to.name !== 'Recovery')) {
+    if (!token && (to.name !== 'Login' && to.name !== 'SignUp' && to.name !== 'PaymentRenew' && to.name !== 'Recovery' && to.name !== 'Home')) {
         await caches.keys().then(cacheNames => {
             cacheNames.forEach(cacheName => caches.delete(cacheName));
         });

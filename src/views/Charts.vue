@@ -54,9 +54,6 @@
 </div>
 <div v-else style="border:none" >
 <div class="summary-container">
-  <div class="summary-row2">
-    <div class="description">{{ assetInfo.Description }}</div>
-  </div>
   <div class="summary-row">
     <div class="category">Asset Type</div>
     <div class="response">{{ assetInfo.AssetType }}</div>
@@ -171,6 +168,16 @@
       {{ (assetInfo.TrailingPE != null && !isNaN(assetInfo.TrailingPE)) ? parseFloat(assetInfo.TrailingPE) : '-' }}
     </div>
   </div>
+  <div class="summary-row2">
+    <div :class="['description', { 'expanded': showAllDescription }]" :style="{ height: showAllDescription ? 'auto' : minHeight }">
+      {{ assetInfo.Description }}
+    </div>
+  </div>
+  <button 
+      @click="showAllDescription = !showAllDescription" 
+      class="toggle-btn">
+      {{ showAllDescription ? 'Show Less' : 'Show All' }}
+    </button>
 </div>
 <div v-if="displayedEPSItems.length > 0" id="EPStable">
   <div class="eps-header">
@@ -185,23 +192,24 @@
     <div class="eps-cell" style="flex: 0 0 20%;">{{ formatDate(earnings.fiscalDateEnding) }}</div>
     <div class="eps-cell" style="flex: 0 0 40%;">{{ earnings.reportedEPS }}</div>
     
-    <div class="eps-cell" style="flex: 0 0 20%;" v-if="showAllEPS && index === displayedEPSItems.length - 1">
-      <!-- Leave this cell blank for the last item when showing all -->
+    <!-- Change here: Check if there are fewer than 4 items -->
+    <div class="eps-cell" style="flex: 0 0 20%;" v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
+      <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
     </div>
     <div class="eps-cell" style="flex: 0 0 20%;" v-else :class="calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) > 0 ? 'positive' : 'negative'">
       {{ calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) }}%
     </div>
     
-    <div class="eps-cell" style="flex: 0 0 10%;" v-if="showAllEPS && index === displayedEPSItems.length - 1">
-      <!-- Leave this cell blank for the last item when showing all -->
+    <div class="eps-cell" style="flex: 0 0 10%;" v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
+      <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
     </div>
     <div class="eps-cell" style="flex: 0 0 10%;" v-else>
       <img v-if="getQoQClass(calculateQoQ1(earnings.reportedEPS)) === 'green'" src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
       <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
     </div>
     
-    <div class="eps-cell" style="flex: 0 0 10%;" v-if="showAllEPS && index === displayedEPSItems.length - 1">
-      <!-- Leave this cell blank for the last item when showing all -->
+    <div class="eps-cell" style="flex: 0 0 10%;" v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
+      <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
     </div>
     <div class="eps-cell" style="flex: 0 0 10%;" v-else>
       <img v-if="getYoYClass(calculateYoY1(earnings.reportedEPS)) === 'green'" src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
@@ -226,19 +234,20 @@
     <div class="earn-cell" style="flex: 0 0 10%;">YoY</div>
   </div>
   <div class="earn-body">
-  <div v-for="quarterlyReport in displayedEarningsItems" :key="quarterlyReport.fiscalDateEnding" class="earn-row">
+  <div v-for="(quarterlyReport, index) in displayedEarningsItems" :key="quarterlyReport.fiscalDateEnding" class="earn-row">
     <div class="earn-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
     <div class="earn-cell" style="flex: 0 0 40%;">{{ parseInt(quarterlyReport.netIncome).toLocaleString() }}</div>
     
-    <div class="earn-cell" style="flex: 0 0 20%;" v-if="showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1]">
-      <!-- Leave this cell blank for the last item when showing all -->
+    <!-- Change here: Check if there are fewer than 4 items -->
+    <div class="earn-cell" style="flex: 0 0 20%;" v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
+      <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
     </div>
     <div class="earn-cell" style="flex: 0 0 20%;" v-else :class="calculateNet(quarterlyReport.netIncome) > 0 ? 'positive' : 'negative'">
       {{ calculateNet(quarterlyReport.netIncome) }}%
     </div>
     
-    <div class="earn-cell" style="flex: 0 0 10%;" v-if="showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1]">
-      <!-- Leave this cell blank for the last item when showing all -->
+    <div class="earn-cell" style="flex: 0 0 10%;" v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
+      <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
     </div>
     <div class="earn-cell" style="flex: 0 0 10%;" v-else>
       <img v-if="getQoQClass(calculateQoQ2(quarterlyReport.netIncome)) === 'green'" 
@@ -247,8 +256,8 @@
            src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
     </div>
     
-    <div class="earn-cell" style="flex: 0 0 10%;" v-if="showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1]">
-      <!-- Leave this cell blank for the last item when showing all -->
+    <div class="earn-cell" style="flex: 0 0 10%;" v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
+      <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
     </div>
     <div class="earn-cell" style="flex: 0 0 10%;" v-else>
       <img v-if="getYoYClass(calculateYoY2(quarterlyReport.netIncome)) === 'green'" 
@@ -275,38 +284,39 @@
     <div class="sales-cell" style="flex: 0 0 10%;">YoY</div>
   </div>
   <div class="sales-body">
-  <div v-for="quarterlyReport in displayedSalesItems" :key="quarterlyReport.fiscalDateEnding" class="sales-row">
-    <div class="sales-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
-    <div class="sales-cell" style="flex: 0 0 40%;">{{ parseInt(quarterlyReport.totalRevenue).toLocaleString() }}</div>
-    
-    <div class="sales-cell" style="flex: 0 0 20%;" v-if="showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1]">
-      <!-- Leave this cell blank for the last item when showing all -->
-    </div>
-    <div class="sales-cell" style="flex: 0 0 20%;" v-else :class="calculateRev(quarterlyReport.totalRevenue) > 0 ? 'positive' : 'negative'">
-      {{ calculateRev(quarterlyReport.totalRevenue) }}%
-    </div>
-    
-    <div class="sales-cell" style="flex: 0 0 10%;" v-if="showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1]">
-      <!-- Leave this cell blank for the last item when showing all -->
-    </div>
-    <div class="sales-cell" style="flex: 0 0 10%;" v-else>
-      <img v-if="getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'" 
-           src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-      <img v-else 
-           src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-    </div>
-    
-    <div class="sales-cell" style="flex: 0 0 10%;" v-if="showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1]">
-      <!-- Leave this cell blank for the last item when showing all -->
-    </div>
-    <div class="sales-cell" style="flex: 0 0 10%;" v-else>
-      <img v-if="getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'" 
-           src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-      <img v-else 
-           src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+    <div v-for="(quarterlyReport, index) in displayedSalesItems" :key="quarterlyReport.fiscalDateEnding" class="sales-row">
+      <div class="sales-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
+      <div class="sales-cell" style="flex: 0 0 40%;">{{ parseInt(quarterlyReport.totalRevenue).toLocaleString() }}</div>
+      
+      <!-- Change here: Check if there are fewer than 4 items -->
+      <div class="sales-cell" style="flex: 0 0 20%;" v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
+        <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
+      </div>
+      <div class="sales-cell" style="flex: 0 0 20%;" v-else :class="calculateRev(quarterlyReport.totalRevenue) > 0 ? 'positive' : 'negative'">
+        {{ calculateRev(quarterlyReport.totalRevenue) }}%
+      </div>
+      
+      <div class="sales-cell" style="flex: 0 0 10%;" v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
+        <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
+      </div>
+      <div class="sales-cell" style="flex: 0 0 10%;" v-else>
+        <img v-if="getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'" 
+             src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+        <img v-else 
+             src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+      </div>
+      
+      <div class="sales-cell" style="flex: 0 0 10%;" v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
+        <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
+      </div>
+      <div class="sales-cell" style="flex: 0 0 10%;" v-else>
+        <img v-if="getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'" 
+             src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+        <img v-else 
+             src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+      </div>
     </div>
   </div>
-</div>
 </div>
 <div v-if="displayedSalesItems.length === 0" class="no-data">No sales data available</div>
 <button 
@@ -350,6 +360,10 @@
     <div id="legend4">
       <img class="chart-img" :src="getImagePath(assetInfo.Symbol)" alt="">
       <p class="ticker" >{{assetInfo.Symbol}} </p> <p class="name" > - {{assetInfo.Name}}</p>
+      <div v-if="isInHiddenList(selectedItem)" class="hidden-message">
+        <img class="chart-img2" src="@/assets/icons/hide.png" alt="">
+        <p>This Asset Is In Your Hidden List</p>
+      </div>
     </div>
     <div id="chartdiv"></div>
     <div class="loading-container" v-if="isChartLoading">
@@ -467,7 +481,7 @@
       </div>
     </div>
   </div>
-  <div class="results"></div>
+  <div class="results2"></div>
       </div>
     </div>
     <NotificationPopup ref="notification" />
@@ -552,7 +566,8 @@ async function initializeComponent() {
     await nextTick();
     await Promise.all([
     await searchTicker(),
-    await searchNotes()
+    await searchNotes(),
+    await fetchHiddenList()
   ]);
 
     isLoading2.value = false;
@@ -620,6 +635,8 @@ async function updateUserDefaultSymbol(symbol) {
 const showAllEPS = ref(false);
 const showAllEarnings = ref(false);
 const showAllSales = ref(false);
+const showAllDescription = ref(false);
+const minHeight = '50px';
 
 const displayedEPSItems = computed(() => {
   const earnings = assetInfo?.quarterlyEarnings || [];
@@ -2515,6 +2532,30 @@ const updateCharacterCount = () => {
 
 const watchlistName = ref('');
 
+const hiddenList = ref([]);
+
+async function fetchHiddenList() {
+  user=user
+  try {
+    const response = await fetch(`/api/${user}/hidden`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    hiddenList.value = data.Hidden; // Assuming the response structure is { Hidden: [...] }
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+  }
+}
+
+const isInHiddenList = (item) => {
+  return hiddenList.value.includes(item);
+};
+
 </script>
 
 <style scoped>
@@ -2697,10 +2738,18 @@ td {
   border: none;
 }
 
-.description{
+.description {
   border: none;
   text-align: center;
   font-weight: bold;
+  overflow: hidden; /* Hide overflow when not expanded */
+  transition: height 0.3s ease; /* Smooth transition for height */
+  /* Set a fixed height when not expanded */
+  height: 50px; /* This should match your minHeight */
+}
+
+.description.expanded {
+  height: auto; /* Allow full height when expanded */
 }
 
 .response {
@@ -3065,6 +3114,16 @@ font-weight: bold;
   text-align: center;
   align-items: center;
   padding: 10px;
+  height: 50px;
+  border:none;
+}
+
+.results2 {
+  background-color: #2c2b3e;
+  color: whitesmoke;
+  text-align: center;
+  align-items: center;
+  padding: 100px;
   height: 50px;
   border:none;
 }
@@ -3473,6 +3532,19 @@ font-weight: bold;
   height: 20px;
   border-radius: 50%;
   margin-right: 5px;
+}
+
+.chart-img2{
+  width: 15px;
+  margin-right: 5px;
+}
+
+.hidden-message {
+  display: flex; /* Use flexbox for alignment */
+  align-items: center; /* Center items vertically */
+  justify-content: center; 
+  margin-left: 10px;
+  opacity: 0.60;
 }
 
 </style>
