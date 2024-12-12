@@ -112,7 +112,7 @@ const bruteForceProtection = rateLimit({
 
 // Apply CORS and Brute Force Protection
 app.use(cors());
-app.use('/login', bruteForceProtection);
+app.use('/login', bruteForceProtection); //this works, let's manipulate rate limiting on all these other endpoints except the resource intensive ones
 
 // Conditional Logging Middleware
 app.use((req, res, next) => {
@@ -11048,6 +11048,88 @@ app.patch('/:user/update-default-symbol',
       // Log detailed error
       logger.error({
         msg: 'Error Updating Default Symbol',
+        requestId: requestId,
+        username: obfuscateUsername(req.params.user),
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+
+      res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            requestId: requestId,
+            error: closeError.message
+          });
+        }
+      }
+    }
+  }
+);
+
+// Endpoint that retrieves the 'Hidden' list for a user
+app.get('/:user/hidden',
+  validate([
+    param('user')
+      .trim()
+      .notEmpty().withMessage('Username is required')
+      .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+      .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores')
+  ]),
+  async (req, res) => {
+    const requestId = crypto.randomBytes(16).toString('hex');
+    let client;
+
+    try {
+      // Sanitize input
+      const username = sanitizeInput(req.params.user);
+
+      // Log the request
+      logger.info({
+        msg: 'Retrieve Hidden List Request',
+        requestId: requestId,
+        username: obfuscateUsername(username),
+        ip: req.ip
+      });
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Users');
+
+      const userDoc = await collection.findOne(
+        { Username: username },
+        { projection: { Hidden: 1, _id: 0 } }
+      );
+
+      if (!userDoc) {
+        logger.warn({
+          msg: 'User  Not Found',
+          requestId: requestId,
+          username: obfuscateUsername(username)
+        });
+
+        return res.status(404).json({ message: 'User  not found' });
+      }
+
+      // Log successful retrieval
+      logger.info({
+        msg: 'Hidden List Retrieved Successfully',
+        requestId: requestId,
+        username: obfuscateUsername(username)
+      });
+
+      res.json({ Hidden: userDoc.Hidden });
+
+    } catch (error) {
+      // Log detailed error
+      logger.error({
+        msg: 'Error Retrieving Hidden List',
         requestId: requestId,
         username: obfuscateUsername(req.params.user),
         error: error.message,
