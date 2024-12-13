@@ -701,7 +701,7 @@
   alt="Toggle Watchlist"
 />
                       </div>
-                      <span class="checkmark"></span>
+                      <span></span>
                       {{ ticker.Name }}
                     </label>
                   </div>
@@ -792,7 +792,7 @@
   alt="Toggle Watchlist"
 />
                       </div>
-                      <span class="checkmark"></span>
+                      <span></span>
                       {{ ticker.Name }}
                     </label>
                   </div>
@@ -883,7 +883,7 @@
   alt="Toggle Watchlist"
 />
                       </div>
-                      <span class="checkmark"></span>
+                      <span></span>
                       {{ ticker.Name }}
                     </label>
                   </div>
@@ -974,7 +974,7 @@
   alt="Toggle Watchlist"
 />
                       </div>
-                      <span class="checkmark"></span>
+                      <span></span>
                       {{ ticker.Name }}
                     </label>
                   </div>
@@ -1367,10 +1367,23 @@ async function fetchData() {
   try {
     let symbol = defaultSymbol;
     const response = await fetch(`/api/${symbol}/data`);
+    
+    if (!response.ok) {
+      data.value = null; // Explicitly set to null if response is not ok
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const newData = await response.json();
-    data.value = newData; // Update the data variable with the new data
+    
+    // Check if newData is undefined, null, or empty
+    if (!newData || newData.length === 0) {
+      data.value = null;
+    } else {
+      data.value = newData;
+    }
   } catch (err) {
-    console.log(err);
+    data.value = null; // Set to null in case of any error
+    console.error('Error fetching data:', err);
   }
 }
 
@@ -1378,14 +1391,23 @@ async function fetchData2() {
   let ticker = defaultSymbol;
   try {
     const response = await fetch(`/api/${ticker}/data2`);
+    
     if (!response.ok) {
+      data2.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData2 = await response.json();
-    data2.value = newData2; // Update the data2 variable with the new data
-
+    
+    // Check if newData2 is undefined, null, or empty
+    if (!newData2 || newData2.length === 0) {
+      data2.value = null;
+    } else {
+      data2.value = newData2;
+    }
   } catch (error) {
-    console.error('Error fetching data:', error);
+    data2.value = null; // Set to null in case of any error
+    console.error('Error fetching data2:', error);
   }
 }
 
@@ -1393,14 +1415,23 @@ async function fetchData3() {
   let ticker = defaultSymbol;
   try {
     const response = await fetch(`/api/${ticker}/data3`);
+    
     if (!response.ok) {
+      data3.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData3 = await response.json();
-    data3.value = newData3;
-
+    
+    // Check if newData3 is undefined, null, or empty
+    if (!newData3 || newData3.length === 0) {
+      data3.value = null;
+    } else {
+      data3.value = newData3;
+    }
   } catch (error) {
-    console.error('Error fetching data:', error);
+    data3.value = null; // Set to null in case of any error
+    console.error('Error fetching data3:', error);
   }
 }
 
@@ -1408,14 +1439,23 @@ async function fetchData4() {
   let ticker = defaultSymbol;
   try {
     const response = await fetch(`/api/${ticker}/data4`);
+    
     if (!response.ok) {
+      data4.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData4 = await response.json();
-    data4.value = newData4;
-
+    
+    // Check if newData4 is undefined, null, or empty
+    if (!newData4 || newData4.length === 0) {
+      data4.value = null;
+    } else {
+      data4.value = newData4;
+    }
   } catch (error) {
-    console.error('Error fetching data:', error);
+    data4.value = null; // Set to null in case of any error
+    console.error('Error fetching data4:', error);
   }
 }
 
@@ -1423,29 +1463,48 @@ async function fetchData5() {
   let ticker = defaultSymbol;
   try {
     const response = await fetch(`/api/${ticker}/data5`);
+    
     if (!response.ok) {
+      data5.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData5 = await response.json();
-    data5.value = newData5;
-
+    
+    // Check if newData5 is undefined, null, or empty
+    if (!newData5 || newData5.length === 0) {
+      data5.value = null;
+    } else {
+      data5.value = newData5;
+    }
   } catch (error) {
-    console.error('Error fetching data:', error);
+    data5.value = null; // Set to null in case of any error
+    console.error('Error fetching data5:', error);
   }
 }
 
+// Apply the same pattern to fetchData6, fetchData7, fetchData8, fetchData9, fetchData10, fetchData11, and fetchData12
 async function fetchData6() {
   let ticker = defaultSymbol;
   try {
     const response = await fetch(`/api/${ticker}/data6`);
+    
     if (!response.ok) {
+      data6.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData6 = await response.json();
-    data6.value = newData6;
-
+    
+    // Check if newData6 is undefined, null, or empty
+    if (!newData6 || newData6.length === 0) {
+      data6.value = null;
+    } else {
+      data6.value = newData6;
+    }
   } catch (error) {
-    console.error('Error fetching data:', error);
+    data6.value = null; // Set to null in case of any error
+    console.error('Error fetching data6:', error);
   }
 }
 
@@ -1453,14 +1512,23 @@ async function fetchData7() {
   let ticker = defaultSymbol;
   try {
     const response = await fetch(`/api/${ticker}/data7`);
+    
     if (!response.ok) {
+      data7.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData7 = await response.json();
-    data7.value = newData7;
-
+    
+    // Check if newData7 is undefined, null, or empty
+    if (!newData7 || newData7.length === 0) {
+      data7.value = null;
+    } else {
+      data7.value = newData7;
+    }
   } catch (error) {
-    console.error('Error fetching data:', error);
+    data7.value = null; // Set to null in case of any error
+    console.error('Error fetching data7:', error);
   }
 }
 
@@ -1468,14 +1536,23 @@ async function fetchData8() {
   let ticker = defaultSymbol;
   try {
     const response = await fetch(`/api/${ticker}/data8`);
+    
     if (!response.ok) {
+      data8.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData8 = await response.json();
-    data8.value = newData8;
-
+    
+    // Check if newData8 is undefined, null, or empty
+    if (!newData8 || newData8.length === 0) {
+      data8.value = null;
+    } else {
+      data8.value = newData8;
+    }
   } catch (error) {
-    console.error('Error fetching data:', error);
+    data8.value = null; // Set to null in case of any error
+    console.error('Error fetching data8:', error);
   }
 }
 
@@ -1483,14 +1560,23 @@ async function fetchData9() {
   let ticker = defaultSymbol;
   try {
     const response = await fetch(`/api/${ticker}/data9`);
+    
     if (!response.ok) {
+      data9.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData9 = await response.json();
-    data9.value = newData9;
-
+    
+    // Check if newData9 is undefined, null, or empty
+    if (!newData9 || newData9.length === 0) {
+      data9.value = null;
+    } else {
+      data9.value = newData9;
+    }
   } catch (error) {
-    console.error('Error fetching data:', error);
+    data9.value = null; // Set to null in case of any error
+    console.error('Error fetching data9:', error);
   }
 }
 
@@ -1498,14 +1584,23 @@ async function fetchData10() {
   let ticker = defaultSymbol;
   try {
     const response = await fetch(`/api/${ticker}/data10`);
+    
     if (!response.ok) {
+      data10.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData10 = await response.json();
-    data10.value = newData10;
-
+    
+    // Check if newData10 is undefined, null, or empty
+    if (!newData10 || newData10.length === 0) {
+      data10.value = null;
+    } else {
+      data10.value = newData10;
+    }
   } catch (error) {
-    console.error('Error fetching data:', error);
+    data10.value = null; // Set to null in case of any error
+    console.error('Error fetching data10:', error);
   }
 }
 
@@ -1513,14 +1608,23 @@ async function fetchData11() {
   let ticker = defaultSymbol;
   try {
     const response = await fetch(`/api/${ticker}/data11`);
+    
     if (!response.ok) {
+      data11.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData11 = await response.json();
-    data11.value = newData11;
-
+    
+    // Check if newData11 is undefined, null, or empty
+    if (!newData11 || newData11.length === 0) {
+      data11.value = null;
+    } else {
+      data11.value = newData11;
+    }
   } catch (error) {
-    console.error('Error fetching data:', error);
+    data11.value = null; // Set to null in case of any error
+    console.error('Error fetching data11:', error);
   }
 }
 
@@ -1528,14 +1632,23 @@ async function fetchData12() {
   let ticker = defaultSymbol;
   try {
     const response = await fetch(`/api/${ticker}/data12`);
+    
     if (!response.ok) {
+      data12.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    
     const newData12 = await response.json();
-    data12.value = newData12;
-
+    
+    // Check if newData12 is undefined, null, or empty
+    if (!newData12 || newData12.length === 0) {
+      data12.value = null;
+    } else {
+      data12.value = newData12;
+    }
   } catch (error) {
-    console.error('Error fetching data:', error);
+    data12.value = null; // Set to null in case of any error
+    console.error('Error fetching data12:', error);
   }
 }
 
@@ -1647,20 +1760,36 @@ onMounted(async () => {
   });
 
   watch(data3, (newData3) => {
+  if (newData3 === null) {
+    MaSeries1.setData([]); // Clear the series data when null
+  } else {
     MaSeries1.setData(newData3);
-  });
+  }
+});
 
-  watch(data4, (newData4) => {
+watch(data4, (newData4) => {
+  if (newData4 === null) {
+    MaSeries2.setData([]); // Clear the series data when null
+  } else {
     MaSeries2.setData(newData4);
-  });
+  }
+});
 
-  watch(data5, (newData5) => {
+watch(data5, (newData5) => {
+  if (newData5 === null) {
+    MaSeries3.setData([]); // Clear the series data when null
+  } else {
     MaSeries3.setData(newData5);
-  });
+  }
+});
 
-  watch(data6, (newData6) => {
+watch(data6, (newData6) => {
+  if (newData6 === null) {
+    MaSeries4.setData([]); // Clear the series data when null
+  } else {
     MaSeries4.setData(newData6);
-  });
+  }
+});
 
   watch(data2, (newData2) => {
     const relativeVolumeData = newData2.map((dataPoint, index) => {
@@ -1805,20 +1934,36 @@ onMounted(async () => {
   });
 
   watch(data9, (newData9) => {
+  if (newData9 === null) {
+    MaSeries1.setData([]); // Clear the series data when null
+  } else {
     MaSeries1.setData(newData9);
-  });
+  }
+});
 
-  watch(data10, (newData10) => {
+watch(data10, (newData10) => {
+  if (newData10 === null) {
+    MaSeries2.setData([]); // Clear the series data when null
+  } else {
     MaSeries2.setData(newData10);
-  });
+  }
+});
 
-  watch(data11, (newData11) => {
+watch(data11, (newData11) => {
+  if (newData11 === null) {
+    MaSeries3.setData([]); // Clear the series data when null
+  } else {
     MaSeries3.setData(newData11);
-  });
+  }
+});
 
-  watch(data12, (newData12) => {
+watch(data12, (newData12) => {
+  if (newData12 === null) {
+    MaSeries4.setData([]); // Clear the series data when null
+  } else {
     MaSeries4.setData(newData12);
-  });
+  }
+});
 
   watch(data8, (newData8) => {
     const relativeVolumeData = newData8.map((dataPoint, index) => {
