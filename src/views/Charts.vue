@@ -1206,15 +1206,24 @@ async function fetchData3() {
     const response = await fetch(`/api/${symbol}/data3`);
     
     if (!response.ok) {
+      data3.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const newData3 = await response.json();
-    data3.value = newData3;
+    
+    // Check if newData3 is undefined, null, or empty
+    if (!newData3 || newData3.length === 0) {
+      data3.value = null;
+    } else {
+      data3.value = newData3;
+    }
   } catch (error) {
     if (error.name === 'AbortError') {
       return;
     }
+    data3.value = null; // Set to null in case of any other error
+    console.error('Error fetching data3:', error);
   }
 }
 
@@ -1224,15 +1233,24 @@ async function fetchData4() {
     const response = await fetch(`/api/${symbol}/data4`);
     
     if (!response.ok) {
+      data4.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const newData4 = await response.json();
-    data4.value = newData4;
+    
+    // Check if newData4 is undefined, null, or empty
+    if (!newData4 || newData4.length === 0) {
+      data4.value = null;
+    } else {
+      data4.value = newData4;
+    }
   } catch (error) {
     if (error.name === 'AbortError') {
       return;
     }
+    data4.value = null; // Set to null in case of any other error
+    console.error('Error fetching data4:', error);
   }
 }
 
@@ -1242,15 +1260,24 @@ async function fetchData5() {
     const response = await fetch(`/api/${symbol}/data5`);
     
     if (!response.ok) {
+      data5.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const newData5 = await response.json();
-    data5.value = newData5;
+    
+    // Check if newData5 is undefined, null, or empty
+    if (!newData5 || newData5.length === 0) {
+      data5.value = null;
+    } else {
+      data5.value = newData5;
+    }
   } catch (error) {
     if (error.name === 'AbortError') {
       return;
     }
+    data5.value = null; // Set to null in case of any other error
+    console.error('Error fetching data5:', error);
   }
 }
 
@@ -1260,15 +1287,24 @@ async function fetchData6() {
     const response = await fetch(`/api/${symbol}/data6`);
     
     if (!response.ok) {
+      data6.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const newData6 = await response.json();
-    data6.value = newData6;
+    
+    // Check if newData6 is undefined, null, or empty
+    if (!newData6 || newData6.length === 0) {
+      data6.value = null;
+    } else {
+      data6.value = newData6;
+    }
   } catch (error) {
     if (error.name === 'AbortError') {
       return;
     }
+    data6.value = null; // Set to null in case of any other error
+    console.error('Error fetching data6:', error);
   }
 }
 
@@ -1314,15 +1350,24 @@ async function fetchData9() {
     const response = await fetch(`/api/${symbol}/data9`);
     
     if (!response.ok) {
+      data9.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const newData9 = await response.json();
-    data9.value = newData9;
+    
+    // Check if newData9 is undefined, null, or empty
+    if (!newData9 || newData9.length === 0) {
+      data9.value = null;
+    } else {
+      data9.value = newData9;
+    }
   } catch (error) {
     if (error.name === 'AbortError') {
       return;
     }
+    data9.value = null; // Set to null in case of any other error
+    console.error('Error fetching data9:', error);
   }
 }
 
@@ -1332,15 +1377,24 @@ async function fetchData10() {
     const response = await fetch(`/api/${symbol}/data10`);
     
     if (!response.ok) {
+      data10.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const newData10 = await response.json();
-    data10.value = newData10;
+    
+    // Check if newData10 is undefined, null, or empty
+    if (!newData10 || newData10.length === 0) {
+      data10.value = null;
+    } else {
+      data10.value = newData10;
+    }
   } catch (error) {
     if (error.name === 'AbortError') {
       return;
     }
+    data10.value = null; // Set to null in case of any other error
+    console.error('Error fetching data10:', error);
   }
 }
 
@@ -1350,15 +1404,24 @@ async function fetchData11() {
     const response = await fetch(`/api/${symbol}/data11`);
     
     if (!response.ok) {
+      data11.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const newData11 = await response.json();
-    data11.value = newData11;
+    
+    // Check if newData11 is undefined, null, or empty
+    if (!newData11 || newData11.length === 0) {
+      data11.value = null;
+    } else {
+      data11.value = newData11;
+    }
   } catch (error) {
     if (error.name === 'AbortError') {
       return;
     }
+    data11.value = null; // Set to null in case of any other error
+    console.error('Error fetching data11:', error);
   }
 }
 
@@ -1368,15 +1431,24 @@ async function fetchData12() {
     const response = await fetch(`/api/${symbol}/data12`);
     
     if (!response.ok) {
+      data12.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const newData12 = await response.json();
-    data12.value = newData12;
+    
+    // Check if newData12 is undefined, null, or empty
+    if (!newData12 || newData12.length === 0) {
+      data12.value = null;
+    } else {
+      data12.value = newData12;
+    }
   } catch (error) {
     if (error.name === 'AbortError') {
       return;
     }
+    data12.value = null; // Set to null in case of any other error
+    console.error('Error fetching data12:', error);
   }
 }
 
@@ -1592,49 +1664,65 @@ watch(data7, (newData7) => {
   });
 
   watch(data3, (newData3) => {
-  if (!useAlternateData) {
+  if (newData3 === null) {
+    MaSeries1.setData([]); // Clear the series data
+  } else if (!useAlternateData) {
     MaSeries1.setData(newData3);
   }
 });
 
 watch(data4, (newData4) => {
-  if (!useAlternateData) {
+  if (newData4 === null) {
+    MaSeries2.setData([]); // Clear the series data
+  } else if (!useAlternateData) {
     MaSeries2.setData(newData4);
   }
 });
 
 watch(data5, (newData5) => {
-  if (!useAlternateData) {
+  if (newData5 === null) {
+    MaSeries3.setData([]); // Clear the series data
+  } else if (!useAlternateData) {
     MaSeries3.setData(newData5);
   }
 });
 
 watch(data6, (newData6) => {
-  if (!useAlternateData) {
+  if (newData6 === null) {
+    MaSeries4.setData([]); // Clear the series data
+  } else if (!useAlternateData) {
     MaSeries4.setData(newData6);
   }
 });
 
 watch(data9, (newData9) => {
-  if (useAlternateData) {
+  if (newData9 === null) {
+    MaSeries1.setData([]); // Clear the series data
+  } else if (useAlternateData) {
     MaSeries1.setData(newData9);
   }
 });
 
 watch(data10, (newData10) => {
-  if (useAlternateData) {
+  if (newData10 === null) {
+    MaSeries2.setData([]); // Clear the series data
+  } else if (useAlternateData) {
     MaSeries2.setData(newData10);
   }
 });
 
 watch(data11, (newData11) => {
-  if (useAlternateData) {
+  if (newData11 === null) {
+    MaSeries3.setData([]); // Clear the series data
+  } else if (useAlternateData) {
     MaSeries3.setData(newData11);
   }
 });
 
 watch(data12, (newData12) => {
-  if (useAlternateData) {
+  if (newData12 === null) {
+    MaSeries4.setData([]); // Clear the series data
+  } else if (useAlternateData) {
     MaSeries4.setData(newData12);
   }
 });
