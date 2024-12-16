@@ -4112,6 +4112,14 @@ app.patch('/:user/watchlists/:list',
           });
         }
 
+        // Check if watchlist has reached maximum number of symbols (100)
+        if (watchlist.List && watchlist.List.length >= 100) {
+          return res.status(400).json({
+            message: 'Limit reached, cannot add more than 100 symbols per watchlist',
+            details: 'Maximum of 100 symbols per watchlist'
+          });
+        }
+
         // Check if symbol already exists in the watchlist
         if (watchlist.List && watchlist.List.includes(sanitizedSymbol)) {
           return res.status(409).json({
@@ -10243,6 +10251,30 @@ app.patch('/watchlist/addticker/:isAdding',
 
       const db = client.db('EreunaDB');
       const collection = db.collection('Watchlists');
+
+      // Verify watchlist exists and belongs to the user
+      const watchlist = await collection.findOne({
+        Name: watchlistName,
+        UsernameID: user
+      });
+
+      if (!watchlist) {
+        logger.warn({
+          msg: 'Watchlist Not Found',
+          requestId: requestId,
+          user: obfuscateUsername(user),
+          watchlistName: watchlistName
+        });
+        return res.status(404).json({ message: 'Watchlist not found' });
+      }
+
+      // Check symbol limit when adding
+      if (isAdding && watchlist.List && watchlist.List.length >= 100) {
+        return res.status(400).json({
+          message: 'Limit reached, cannot add more than 100 symbol per watchlist',
+          details: 'Maximum of 100 symbols per watchlist'
+        });
+      }
 
       let result;
       if (isAdding) {

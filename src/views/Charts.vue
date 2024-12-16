@@ -2331,6 +2331,13 @@ async function addWatchlist() {
         body: JSON.stringify(patchData)
       });
 
+        // Check for 400 response from the PATCH request
+        if (patchResponse.status === 400) {
+        const errorResponse = await patchResponse.json();
+        notification.value.show(errorResponse.message || 'Limit reached, cannot add more than 100 symbols per watchlist');
+        return;
+      }
+
       const data = await patchResponse.json();
       await fetchItemData(symbol);
       await filterWatchlist();
@@ -2561,6 +2568,13 @@ async function addtoWatchlist(ticker, symbol, $event) {
         user: user
       }),
     })
+
+     // Check for 400 response from the server
+    if (response.status === 400) {
+      const errorResponse = await response.json();
+      notification.value.show(errorResponse.message || 'Limit reached, cannot add more than 100 symbols per watchlist');
+      return; // Exit the function if there's a 400 error
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
