@@ -270,6 +270,9 @@ async function LogOut() {
     try {
         localStorage.clear();
         router.push({ name: 'Login' });
+        setTimeout(function() {
+                location.reload();
+            }, 100);
     } catch (error) {
         console.error('Error logging out:', error);
     }
