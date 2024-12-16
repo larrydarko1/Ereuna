@@ -4,16 +4,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useStore } from 'vuex';
-
-const store = useStore();
-const user = store.getters.getUser;
 
 const number = ref(0); // Replace this with your actual number variable
-
-onMounted(async () => {
-  await store.dispatch('fetchUser');
-});
 
 const numberClass = computed(() => {
   return number.value > 0 ? 'positive' : 'negative';

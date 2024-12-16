@@ -65,26 +65,6 @@ const store = createStore({
                 commit('setUser ', { user: null });
             }
         },
-        async login({ commit }, credentials) {
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(credentials),
-                });
-                const tokenResponse = await response.json();
-
-                if (response.ok) {
-                    localStorage.setItem('token', tokenResponse.token);
-                    commit('setUser ', { user: tokenResponse.user });
-                } else {
-                    localStorage.removeItem('token');
-                    commit('setUser ', { user: null });
-                }
-            } catch (error) {
-                console.error('Error during login:', error);
-            }
-        },
     },
 });
 
