@@ -269,7 +269,6 @@ const router = useRouter();
 async function LogOut() {
     try {
         localStorage.clear();
-        store.commit('setUser ', null); // Clear the user state in Vuex
         router.push({ name: 'Login' });
     } catch (error) {
         console.error('Error logging out:', error);
