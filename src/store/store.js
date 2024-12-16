@@ -6,12 +6,6 @@ const store = createStore({
         token: null,
     },
     mutations: {
-        setUser(state, payload) {
-            state.user = payload.user;
-        },
-        setToken(state, token) {
-            state.token = token;
-        },
     },
     getters: {
         getUser(state) {
@@ -36,35 +30,6 @@ const store = createStore({
         },
     },
     actions: {
-        async fetchUser({ commit }) {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                commit('setUser ', { user: null });
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/verify', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`, // Send the token in the Authorization header
-                    },
-                });
-                const tokenResponse = await response.json();
-
-                if (response.ok) {
-                    // If the token is valid, update the user
-                    commit('setUser ', { user: tokenResponse.user });
-                } else {
-                    // If the token is invalid, remove it
-                    localStorage.removeItem('token');
-                    commit('setUser ', { user: null });
-                }
-            } catch (error) {
-                console.error('Error fetching user:', error);
-                commit('setUser ', { user: null });
-            }
-        },
     },
 });
 

@@ -497,10 +497,10 @@ import { reactive, onMounted, ref, watch, computed, nextTick } from 'vue';
 import { createChart, ColorType, CrosshairMode} from 'lightweight-charts';
 import LoadingOverlay from 'vue-loading-overlay';
 import Sortable from 'sortablejs';
-import { useStore } from 'vuex';
 import barsIcon from '@/assets/icons/bars.png';
 import candlesIcon from '@/assets/icons/candles.png';
 import NotificationPopup from '@/components/NotificationPopup.vue';
+import { useStore } from 'vuex';
 
 // access user from store 
 const store = useStore();
