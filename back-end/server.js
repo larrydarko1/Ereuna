@@ -169,14 +169,6 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // Generic Error Handler
-  logger.logError(err, {
-    method: req.method,
-    path: req.path,
-    body: req.body,
-    query: req.query
-  });
-
   res.status(500).json({
     message: 'Internal Server Error',
     error: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred'
