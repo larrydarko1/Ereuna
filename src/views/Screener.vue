@@ -1069,8 +1069,8 @@ let user = store.getters.getUser;
 
 // for popup notifications
 const notification = ref(null);
-const showNotification = () => {
-  notification.value.show('This is a custom notification message!');
+const showNotification = (message) => {
+  notification.value.show(message);
 };
 
 function getWatchlistIcon(ticker, item) {
@@ -3593,6 +3593,12 @@ async function addtoWatchlist(ticker, symbol, $event) {
         user: user
       }),
     })
+
+    if (response.status === 400) {
+      const errorResponse = await response.json();
+      showNotification(errorResponse.message || 'An error occurred while updating the watchlist.');
+      return; // Exit the function if there's a 400 error
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
