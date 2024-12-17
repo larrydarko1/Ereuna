@@ -34,14 +34,27 @@
   <div v-if="welcomePopup" class="welcome-popup">
     <h3>{{ welcomeMessage }}</h3>
   </div>
+  <div class="donation">
+    <a :href="donationLink" target="_blank" rel="noreferrer noopener">
+      <img class="donationimg" src="https://nowpayments.io/images/embeds/donation-button-black.svg" alt="Crypto donation button by NOWPayments">
+    </a>
+  </div>
   <h3 class="releaseNote"> V1.0.1 // ALPHA TEST </h3>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+
+const donationLink = ref('');
+
+onMounted(async () => {
+  const response = await fetch('/api/donation-link');
+  const data = await response.json();
+  donationLink.value = data.donationLink;
+});
 
 const usernameError = ref(false);
 const passwordError = ref(false);
@@ -262,5 +275,15 @@ function togglePasswordVisibility() {
   left: 50%; /* Center horizontally */
   transform: translateX(-50%); /* Adjust for centering */
   text-align: center; /* Center text */
+}
+
+.donation{
+  position: fixed;
+  bottom: 2%;
+  right: 1%;
+}
+
+.donationimg{
+height: 70px;
 }
 </style>

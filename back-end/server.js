@@ -11164,3 +11164,10 @@ app.get('/:user/hidden',
     }
   }
 );
+
+//for crypto donations 
+app.get('/donation-link', (req, res) => {
+  const apiKey = process.env.NOWPAYMENTS_API_KEY; // Use your server-side environment variable
+  const donationLink = `https://nowpayments.io/donation?api_key=${apiKey}`;
+  res.json({ donationLink });
+});
