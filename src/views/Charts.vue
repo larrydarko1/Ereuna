@@ -2664,6 +2664,7 @@ const isInHiddenList = (item) => {
 #main {
   display: flex;
   height: 100vh;
+  min-width: 1000px;
 }
 
 #sidebar-left {
@@ -2672,6 +2673,7 @@ const isInHiddenList = (item) => {
   background-color: #2c2b3e;
   overflow-y: scroll;
   overflow-x: hidden;
+  min-width: 300px;
 }
 
 #chart-container {
@@ -2709,6 +2711,7 @@ h1 {
   flex-direction: column;
   background-color: #2c2b3e;
   overflow-y: scroll;
+  min-width: 100px;
 }
 
 #searchtable {

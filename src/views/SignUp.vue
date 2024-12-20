@@ -1,5 +1,5 @@
 <template>
-    <div class="main" style="padding: 75px;">
+    <div class="main">
    <div class="logo-container">
   <img class="logo" src="@/assets/icons/owl.png" alt="">
 </div>
@@ -27,12 +27,16 @@
       required
     >
     <button 
-      type="button" 
-      class="toggle-password" 
-      @click="showPassword = !showPassword"
-    >
-      {{ showPassword ? 'hide' : 'show' }}
-    </button>
+  type="button" 
+  class="toggle-password" 
+  @click="showPassword = !showPassword"
+>
+  <img 
+    :src="showPassword ? hideIcon : showIcon" 
+    alt="Toggle Password Visibility" 
+    class="toggle-icon"
+  >
+</button>
   </div></div>
    <div style="margin: 3px"> <h3>Confirm your password:</h3> 
     <div class="password-container">
@@ -45,10 +49,14 @@
     >
     <button 
       type="button" 
-      class="toggle-password" 
+      class="toggle-password2" 
       @click="showConfirmPassword = !showConfirmPassword"
     >
-      {{ showConfirmPassword ? 'hide' : 'show' }}
+    <img 
+    :src="showConfirmPassword ? hideIcon : showIcon" 
+    alt="Toggle Password Visibility" 
+    class="toggle-icon"
+  >
     </button>
   </div>
   </div>
@@ -131,13 +139,13 @@
   class="custom-checkbox" 
   :class="{ checked: agreeToTerms }"
   @click="agreeToTerms = !agreeToTerms"
-style="justify-content: center;" >
+  style="justify-content: center;" >
   <input type="checkbox" v-model="agreeToTerms" id="terms-checkbox" required style="display: none;">
   <span class="checkmark"></span>
-  <label for="terms-checkbox">I agree</label>
+  <label for="terms-checkbox" class="label-text">I agree</label>
 </div>
     <br>
-    <button @click="SignUp" :disabled="!isFormValid">Create User</button>
+    <button class="userbtn" @click="SignUp" :disabled="!isFormValid">Create User</button>
     <br>
     <br>
     <p>Security Notice: A unique Recovery Key will be automatically downloaded upon successful registration. This key is essential for account recovery, so store it securely. If lost, you can generate a new key in your Account Settings. </p>
@@ -228,6 +236,8 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { loadStripe } from '@stripe/stripe-js'; 
 import NotificationPopup from '@/components/NotificationPopup.vue';
+import hideIcon from '@/assets/icons/hideb.png';
+import showIcon from '@/assets/icons/showb.png';
 
 const showTerms = ref(false);
 const showPrivacy = ref(false);
@@ -446,6 +456,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.main {
+  min-width: 800px; /* Set a minimum width that works for your design */
+  padding: 75px; /* Keep your existing padding */
+  box-sizing: border-box; /* Ensure padding is included in the width */
+}
+
 h3{
     color: whitesmoke;
     text-align: center;
@@ -479,18 +495,22 @@ p{
     margin-right: 10px;
 }
 
-.square{
+.square {
     align-items: center;
     display: inline-flex;
     flex-direction: row;
-    border: 2px solid #8c8dfe;
-    border-radius: 5px;
-    padding: 5px;
+    border: none;
+    background-color: #2c2b3e;
+    border-radius: 10px; /* Slightly curved border */
+    padding: 10px;
     margin: 5px;
     padding-right: 15px;
     opacity: 0.80;
     width: 100px;
     justify-content: center;
+    color: #f5f5f5;
+    position: relative; /* Position relative for pseudo-element */
+    overflow: hidden; /* Hide overflow */
 }
 
 .square:hover{
@@ -585,9 +605,10 @@ a:hover{
 
 .sub-option {
   align-items: center;
+  background-color: #2c2b3e;
   display: inline-flex;
   flex-direction: column;
-  border: 2px solid #8c8dfe;
+  border: none;
   border-radius: 5px;
   padding: 10px;
   margin: 5px;
@@ -597,13 +618,15 @@ a:hover{
   position: relative; 
   overflow: hidden;
   justify-content: center;
+  color: #f5f5f5;
 }
 
 .sub-option-disabled {
   align-items: center;
   display: inline-flex;
   flex-direction: column;
-  border: 2px solid #8c8dfe;
+  background-color: #2c2b3e;
+  border: none;
   border-radius: 5px;
   padding: 10px;
   margin: 5px;
@@ -613,6 +636,7 @@ a:hover{
   height: 70px;
   overflow: hidden;
   justify-content: center;
+  color: #f5f5f5;
 }
 
 .sub-option:hover {
@@ -620,14 +644,23 @@ a:hover{
   cursor: pointer;
 }
 
-.sub-option.selected {
-  background-color: #8c8dfe;
-  color: #f5f5f5b8;
+.selected {
+    border:none;
+    background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9);
+    animation: border-animation 5s linear infinite; /* Animation */
+    background-size: 300% 300%; /* Allow for smooth animation */
 }
 
-.selected {
-  background-color: #8c8dfe;
-  color: #f5f5f5b8;
+@keyframes border-animation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .coming-soon-banner {
@@ -687,14 +720,26 @@ a:hover{
 
 .toggle-password {
   position: absolute;
-  right: -1%;
-  top: 50%;
+  right: -2%;
+  top: 55%;
   transform: translateY(-50%);
   border: none;
   background: transparent;
   cursor: pointer;
   color: black;
-  opacity: 0.60;
+  opacity: 0.40;
+}
+
+.toggle-password2 {
+  position: absolute;
+  right: 2.5%;
+  top: 55%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: black;
+  opacity: 0.40;
 }
 
 .input-error {
@@ -735,6 +780,67 @@ a:hover{
 .custom-checkbox.checked .checkmark {
   background-color: #8c8dfe; /* Change to your desired color */
   border-color: #8c8dfe; /* Change to your desired border color */
+}
+
+.label-text {
+  opacity: 0.7; /* Initial opacity */
+  transition: opacity 0.3s; /* Smooth transition for opacity */
+}
+
+.custom-checkbox.checked .label-text {
+  opacity: 1; /* Full opacity when checked */
+}
+
+.userbtn {
+    background-color: transparent;
+    border: solid 2px #8c8dfe; /* Border color */
+    color: #f5f5f5; /* Text color */
+    padding: 10px 20px; /* Increased padding for a better size */
+    margin-top: 5px;
+    border-radius: 5px; /* Rounded corners */
+    font-size: 12px; /* Font size */
+    font-weight: 500; /* Slightly bolder text */
+    text-align: center; /* Center text */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+    cursor: pointer; /* Pointer cursor on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.userbtn:hover {
+    background-color: #8c8dfe; /* Background color on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+}
+
+.form-input {
+  padding: 6px 7.5px; /* Reduced padding for a smaller size */
+  border: 1px solid #ccc; /* Light border */
+  border-radius: 3px; /* Slightly smaller rounded corners */
+  background-color: #f9f9f9; /* Light background color */
+  font-size: 8px; /* Reduced font size for a smaller appearance */
+  color: #333; /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
+}
+
+.form-input:focus {
+  border-color: #8c8dfe; /* Change border color on focus */
+  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
+  outline: none; /* Remove default outline */
+}
+
+.form-input::placeholder {
+  color: #aaa; /* Placeholder text color */
+  opacity: 0.8; /* Slightly transparent placeholder */
+}
+
+.form-input:disabled {
+  background-color: #e9ecef; /* Light gray background for disabled state */
+  color: #6c757d; /* Darker gray text for disabled state */
+  cursor: not-allowed; /* Change cursor to indicate disabled state */
+}
+
+.toggle-icon {
+  width: 15px; /* Adjust the size as needed */
+  cursor: pointer; /* Change cursor to pointer on hover */
 }
 
 </style>

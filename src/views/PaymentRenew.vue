@@ -1,4 +1,5 @@
 <template>
+  <div class="main">
     <br>
     <br>
     <div class="logo-container">
@@ -72,6 +73,7 @@
     <button class="userbtn" @click="Renew()">Renew Subscription</button>
     </div>
         </div>
+      </div>
 </template>
 
 <script setup>
@@ -547,31 +549,10 @@ const Download = async (receipt) => {
 </script>
 
 <style scoped>
-#main {
-  display: flex;
-  flex-direction: row;
-  height: 100vh; 
-  overflow: hidden;
-  width: 100% ;
-}
 
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  width: 20%;
-  padding: 20px;
-  background-color: #2c2b3e;
-  overflow-y: auto; 
-}
-
-.content {
-  display: flex;
-  flex-direction: column;
-  width: 80%;
-  background-color: #1b1a26;
-  padding: 20px;
-  text-align: center;
-  overflow-y: auto; 
+.main {
+  min-width: 1200px; /* Set a minimum width that works for your design */
+  box-sizing: border-box; /* Ensure padding is included in the width */
 }
 
 h1 {
@@ -713,7 +694,8 @@ color: #b3b3b3;
     align-items: center;
     display: inline-flex;
     flex-direction: row;
-    border: 2px solid #8c8dfe; /* Set border width */
+    border: none;
+    background-color: #2c2b3e;
     border-radius: 10px; /* Slightly curved border */
     padding: 10px;
     margin: 5px;
@@ -722,13 +704,12 @@ color: #b3b3b3;
     width: 100px;
     justify-content: center;
     color: #f5f5f5;
-    background: transparent;
     position: relative; /* Position relative for pseudo-element */
     overflow: hidden; /* Hide overflow */
 }
 
 .selected {
-    border-radius: 10px; /* Match the border-radius of .square */
+    border:none;
     background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9);
     animation: border-animation 5s linear infinite; /* Animation */
     background-size: 300% 300%; /* Allow for smooth animation */
@@ -749,7 +730,6 @@ color: #b3b3b3;
 .square:hover {
     opacity: 1;
     cursor: pointer;
-    background: #8c8dfe;
 }
 
 .modal {
@@ -774,9 +754,10 @@ color: #b3b3b3;
 
 .sub-option {
   align-items: center;
+  background-color: #2c2b3e;
   display: inline-flex;
   flex-direction: column;
-  border: 2px solid #8c8dfe;
+  border: none;
   border-radius: 5px;
   padding: 10px;
   margin: 5px;
@@ -793,7 +774,8 @@ color: #b3b3b3;
   align-items: center;
   display: inline-flex;
   flex-direction: column;
-  border: 2px solid #8c8dfe;
+  background-color: #2c2b3e;
+  border: none;
   border-radius: 5px;
   padding: 10px;
   margin: 5px;

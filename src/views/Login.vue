@@ -170,11 +170,14 @@ function togglePasswordVisibility() {
   padding: 5px;
   margin: 5px;
   width: 100%;
+  cursor: pointer; /* Pointer cursor on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
 }
 
 .signbtn:hover {
-  cursor: pointer;
-  background-color: #8c8dfe;
+  background-color: #8c8dfe; /* Background color on hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }
 
 .toggle-password {
