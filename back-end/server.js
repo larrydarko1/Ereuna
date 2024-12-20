@@ -194,412 +194,220 @@ app.post('/signup',
     validationSchemas.promoCode()
   ]),
   async (req, res) => {
-    // Create a child logger with request-specific context
-    const requestLogger = logger.child({
-      requestId: crypto.randomBytes(16).toString('hex'),
-      ip: req.ip,
-      method: req.method,
-      path: req.path
-    });
-
+    const requestLogger = createRequestLogger(req);
     let client;
-    try {
-      // Destructure and validate inputs
-      const {
-        username,
-        password,
-        subscriptionPlan,
-        paymentMethodId,
-        return_url,
-        promoCode
-      } = req.body;
 
-      // Additional type and format checks
+    try {
+      const { username, password, subscriptionPlan, paymentMethodId, return_url, promoCode } = req.body;
       const sanitizedUsername = sanitizeInput(username);
       const sanitizedPromoCode = promoCode ? sanitizeInput(promoCode) : null;
       const parsedSubscriptionPlan = parseInt(subscriptionPlan, 10);
 
-      // Log signup attempt with minimal sensitive information
-      requestLogger.info({
-        msg: 'Signup Attempt',
-        usernameLength: sanitizedUsername.length,
-        subscriptionPlan: parsedSubscriptionPlan,
-        promoCodeProvided: !!sanitizedPromoCode
-      });
+      logSignupAttempt(requestLogger, sanitizedUsername, parsedSubscriptionPlan, sanitizedPromoCode);
 
-      // Database connection and user creation
       client = new MongoClient(uri);
-      try {
-        await client.connect();
-        const db = client.db('EreunaDB');
-        const usersCollection = db.collection('Users');
-        const receiptsCollection = db.collection('Receipts');
-        const agentsCollection = db.collection('Agents');
+      await client.connect();
+      const db = client.db('EreunaDB');
+      const usersCollection = db.collection('Users');
+      const agentsCollection = db.collection('Agents');
 
-        // Check for existing username (case-insensitive)
-        const existingUser = await usersCollection.findOne({
-          Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
-        });
-
-        if (existingUser) {
-          // Security event logging for username conflict
-          securityLogger.logSecurityEvent('username_conflict', {
-            attemptedUsername: sanitizedUsername,
-            ip: req.ip
-          });
-
-          requestLogger.warn({
-            msg: 'Username Conflict',
-            reason: 'Username already exists'
-          });
-
-          return res.status(400).json({
-            errors: [{
-              field: 'username',
-              message: 'Username already exists'
-            }]
-          });
-        }
-
-        // Calculate expiration date and amount
-        const today = new Date();
-        let expirationDate;
-        let amount;
-        try {
-          switch (parsedSubscriptionPlan) {
-            case 1: // 1 month
-              expirationDate = new Date(today.setMonth(today.getMonth() + 1));
-              amount = 599; // Amount in cents
-              break;
-            case 2: // 4 months
-              expirationDate = new Date(today.setMonth(today.getMonth() + 4));
-              amount = 2399; // Amount in cents
-              break;
-            default:
-              // Log invalid subscription plan
-              requestLogger.warn({
-                msg: 'Invalid Subscription Plan',
-                attemptedPlan: parsedSubscriptionPlan
-              });
-
-              return res.status(400).json({
-                errors: [{
-                  field: 'subscriptionPlan',
-                  message: 'Invalid subscription plan'
-                }]
-              });
-          }
-        } catch (dateError) {
-          requestLogger.error({
-            msg: 'Subscription Expiration Calculation Error',
-            error: {
-              message: dateError.message,
-              name: dateError.name
-            }
-          });
-          throw dateError;
-        }
-
-        // Check promo code
-        let promoCodeValidated = 'None';
-        if (sanitizedPromoCode) {
-          const promoCodeDoc = await agentsCollection.findOne({ CODE: sanitizedPromoCode });
-
-          if (promoCodeDoc) {
-            // Apply 50% discount
-            amount = Math.round(amount / 2);
-            promoCodeValidated = sanitizedPromoCode;
-
-            // Log promo code usage
-            requestLogger.info({
-              msg: 'Promo Code Applied',
-              originalAmount: amount * 2,
-              discountedAmount: amount
-            });
-          } else {
-            // Log invalid promo code attempt
-            requestLogger.warn({
-              msg: 'Invalid Promo Code',
-              providedPromoCode: sanitizedPromoCode
-            });
-          }
-        }
-
-        // Hash the password
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-        // Generate authentication key
-        const rawAuthKey = crypto.randomBytes(64).toString('hex');
-
-        // Create new user document
-        const newUser = {
-          Username: sanitizedUsername,
-          Password: hashedPassword,
-          Expires: expirationDate,
-          Paid: false,
-          PaymentMethod: 'Credit Card',
-          SubscriptionPlan: parsedSubscriptionPlan,
-          Hidden: [],
-          Created: new Date(),
-          defaultSymbol: 'NVDA',
-          PROMOCODE: promoCodeValidated,
-          AuthKey: rawAuthKey,
-          HashedAuthKey: await bcrypt.hash(rawAuthKey, saltRounds)
-        };
-
-        // Validate payment method
-        if (!paymentMethodId) {
-          // Security event for missing payment method
-          securityLogger.logSecurityEvent('missing_payment_method', {
-            username: sanitizedUsername
-          });
-
-          requestLogger.warn({
-            msg: 'Signup Attempt Without Payment Method'
-          });
-
-          return res.status(400).json({
-            errors: [{
-              field: 'paymentMethodId',
-              message: 'Payment method ID is required'
-            }]
-          });
-        }
-
-        // Create Stripe payment intent
-        let paymentIntent;
-        try {
-          paymentIntent = await stripe.paymentIntents.create({
-            amount: amount,
-            currency: 'eur',
-            payment_method: paymentMethodId,
-            confirm: true,
-            return_url: return_url,
-            automatic_payment_methods: {
-              enabled: true,
-              allow_redirects: 'always'
-            }
-          });
-        } catch (paymentError) {
-          // Log payment intent creation failure
-          requestLogger.error({
-            msg: 'Stripe Payment Intent Creation Failed',
-            error: {
-              message: paymentError.message,
-              name: paymentError.name
-            }
-          });
-
-          // Security event for payment failure
-          securityLogger.logSecurityEvent('payment_intent_creation_failed', {
-            username: sanitizedUsername
-          });
-
-          throw paymentError;
-        }
-
-        // Handle payment states
-        if (paymentIntent.status === 'requires_action') {
-          requestLogger.info({
-            msg: 'Payment Requires Additional Action',
-            paymentIntentId: paymentIntent.id
-          });
-
-          return res.json({
-            requiresAction: true,
-            clientSecret: paymentIntent.client_secret
-          });
-        } else if (paymentIntent.status === 'succeeded') {
-          // Set user as paid
-          newUser.Paid = true;
-
-          // Insert user
-          let userResult;
-          try {
-            userResult = await usersCollection.insertOne(newUser);
-          } catch (insertError) {
-            requestLogger.error({
-              msg: 'User Insertion Failed',
-              error: {
-                message: insertError.message,
-                name: insertError.name
-              }
-            });
-            throw insertError;
-          }
-
-          if (userResult.insertedId) {
-            // Create receipt
-            const receiptDocument = {
-              UserID: userResult.insertedId,
-              Amount: amount,
-              Date: newUser.Created,
-              Method: 'Credit Card',
-              Subscription: parsedSubscriptionPlan,
-              PROMOCODE: promoCodeValidated
-            };
-
-            // Insert receipt
-            let receiptResult;
-            try {
-              receiptResult = await receiptsCollection.insertOne(receiptDocument);
-            } catch (receiptError) {
-              requestLogger.error({
-                msg: 'Receipt Insertion Failed',
-                error: {
-                  message: receiptError.message,
-                  name: receiptError.name
-                }
-              });
-              throw receiptError;
-            }
-
-            if (receiptResult.insertedId) {
-              // Log successful signup
-              requestLogger.info({
-                msg: 'User Signup Completed Successfully',
-                userId: userResult.insertedId.toString(),
-                subscriptionPlan: parsedSubscriptionPlan,
-                paymentMethod: 'Credit Card'
-              });
-
-              // Security logging for successful signup
-              securityLogger.logAuthAttempt(sanitizedUsername, true, {
-                method: 'signup',
-                subscriptionPlan: parsedSubscriptionPlan
-              });
-
-              return res.status(201).json({
-                message: 'User created successfully',
-                rawAuthKey
-              });
-            } else {
-              // Rollback user creation if receipt fails
-              await usersCollection.deleteOne({ _id: userResult.insertedId });
-
-              // Log rollback event
-              requestLogger.error({
-                msg: 'User Creation Rolled Back',
-                reason: 'Receipt Insertion Failed',
-                userId: userResult.insertedId.toString()
-              });
-
-              // Security event for signup failure
-              securityLogger.logSecurityEvent('signup_rollback', {
-                reason: 'Receipt insertion failed',
-                username: sanitizedUsername
-              });
-
-              return res.status(500).json({
-                message: 'Failed to create receipt'
-              });
-            }
-          } else {
-            // Log user insertion failure
-            requestLogger.error({
-              msg: 'User Document Creation Failed',
-              reason: 'No inserted ID returned'
-            });
-
-            // Security event for signup failure
-            securityLogger.logSecurityEvent('signup_failure', {
-              reason: 'User document creation failed',
-              username: sanitizedUsername
-            });
-
-            return res.status(500).json({
-              message: 'Failed to create user'
-            });
-          }
-        } else {
-          // Log payment failure
-          requestLogger.warn({
-            msg: 'Payment Failed',
-            paymentStatus: paymentIntent.status
-          });
-
-          // Security event for payment failure
-          securityLogger.logSecurityEvent('payment_failed', {
-            username: sanitizedUsername,
-            paymentStatus: paymentIntent.status
-          });
-
-          // Payment failed
-          return res.status(400).json({
-            message: 'Payment failed',
-            status: paymentIntent.status
-          });
-        }
-
-      } catch (error) {
-        // Comprehensive error logging
-        requestLogger.error({
-          msg: 'Signup Process Error',
-          error: {
-            message: error.message,
-            name: error.name,
-            code: error.code
-          },
-          sensitiveData: {
-            usernameLength: sanitizedUsername.length,
-            subscriptionPlan: parsedSubscriptionPlan
-          }
-        });
-
-        // Security event for failed signup
-        securityLogger.logSecurityEvent('signup_failure', {
-          reason: error.message,
-          ip: req.ip
-        });
-
-        return res.status(500).json({
-          message: 'An error occurred during signup',
-          error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-        });
-      } finally {
-        if (client) {
-          try {
-            await client.close();
-          } catch (closeError) {
-            requestLogger.warn({
-              msg: 'MongoDB Client Closure Failed',
-              error: {
-                message: closeError.message,
-                name: closeError.name
-              }
-            });
-          }
-        }
+      if (await isUsernameTaken(usersCollection, sanitizedUsername, requestLogger)) {
+        return res.status(400).json({ errors: [{ field: 'username', message: 'Username already exists' }] });
       }
-    } catch (unexpectedError) {
-      // Catch any unexpected errors outside the main flow
-      requestLogger.error({
-        msg: 'Unexpected Signup Error',
-        error: {
-          message: unexpectedError.message,
-          name: unexpectedError.name,
-          code: unexpectedError.code
-        },
-        sensitiveData: {
-          usernameProvided: !!req.body.username,
-          usernameLength: req.body.username ? req.body.username.length : 0
-        }
-      });
 
-      // Security event for unexpected error
-      securityLogger.logSecurityEvent('unexpected_signup_error', {
-        errorMessage: unexpectedError.message,
-        ip: req.ip
-      });
+      const { amount, expirationDate } = calculateSubscription(parsedSubscriptionPlan, requestLogger);
+      if (!amount) return res.status(400).json({ errors: [{ field: 'subscriptionPlan', message: 'Invalid subscription plan' }] });
 
-      return res.status(500).json({
-        message: 'Internal Server Error',
-        error: process.env.NODE_ENV === 'development' ? unexpectedError.message : 'Unexpected error occurred'
-      });
+      const promoCodeValidated = await validatePromoCode(agentsCollection, sanitizedPromoCode, amount, requestLogger);
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const rawAuthKey = crypto.randomBytes(64).toString('hex');
+
+      if (!paymentMethodId) {
+        logMissingPaymentMethod(sanitizedUsername, requestLogger);
+        return res.status(400).json({ errors: [{ field: 'paymentMethodId', message: 'Payment method ID is required' }] });
+      }
+
+      const paymentIntent = await createPaymentIntent(amount, paymentMethodId, return_url, requestLogger);
+      if (!paymentIntent) return res.status(400).json({ message: 'Payment failed' });
+
+      if (paymentIntent.status === 'requires_action') {
+        return res.json({ requiresAction: true, clientSecret: paymentIntent.client_secret });
+      }
+
+      const newUser = await createUser(usersCollection, sanitizedUsername, hashedPassword, expirationDate, parsedSubscriptionPlan, promoCodeValidated, rawAuthKey, requestLogger);
+      if (!newUser) return res.status(500).json({ message: 'Failed to create user' });
+
+      await createReceipt(db.collection('Receipts'), newUser.insertedId, amount, parsedSubscriptionPlan, promoCodeValidated, requestLogger);
+      logSuccessfulSignup(requestLogger, newUser.insertedId, parsedSubscriptionPlan);
+
+      return res.status(201).json({ message: 'User  created successfully', rawAuthKey });
+
+    } catch (error) {
+      handleError(error, requestLogger, req);
+      return res.status(500).json({ message: 'An error occurred during signup', error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error' });
+    } finally {
+      if (client) await client.close();
     }
   }
 );
+
+// Helper functions
+function createRequestLogger(req) {
+  return logger.child({
+    requestId: crypto.randomBytes(16).toString('hex'),
+    ip: req.ip,
+    method: req.method,
+    path: req.path
+  });
+}
+
+function logSignupAttempt(logger, username, subscriptionPlan, promoCode) {
+  logger.info({
+    msg: 'Signup Attempt',
+    usernameLength: username.length,
+    subscriptionPlan,
+    promoCodeProvided: !!promoCode
+  });
+}
+
+async function isUsernameTaken(collection, username, logger) {
+  const existingUser = await collection.findOne({ Username: { $regex: new RegExp(`^${username}$`, 'i') } });
+  if (existingUser) {
+    logger.warn({ msg: 'Username Conflict', reason: 'Username already exists' });
+    return true;
+  }
+  return false;
+}
+
+function calculateSubscription(plan, logger) {
+  const today = new Date();
+  let expirationDate, amount;
+
+  switch (plan) {
+    case 1:
+      expirationDate = new Date(today.setMonth(today.getMonth() + 1));
+      amount = 599;
+      break;
+    case 2:
+      expirationDate = new Date(today.setMonth(today.getMonth() + 4));
+      amount = 2399;
+      break;
+    default:
+      logger.warn({ msg: 'Invalid Subscription Plan', attemptedPlan: plan });
+      return { amount: null, expirationDate: null };
+  }
+  return { amount, expirationDate };
+}
+
+async function validatePromoCode(collection, promoCode, amount, logger) {
+  if (!promoCode) return 'None';
+
+  const promoCodeDoc = await collection.findOne({ CODE: promoCode });
+  if (promoCodeDoc) {
+    const discountedAmount = Math.round(amount / 2);
+    logger.info({
+      msg: 'Promo Code Applied',
+      originalAmount: amount,
+      discountedAmount
+    });
+    return promoCode; // Return the validated promo code
+  } else {
+    logger.warn({ msg: 'Invalid Promo Code', providedPromoCode: promoCode });
+    return 'None'; // Return 'None' if promo code is invalid
+  }
+}
+
+function logMissingPaymentMethod(username, logger) {
+  logger.warn({ msg: 'Signup Attempt Without Payment Method' });
+  securityLogger.logSecurityEvent('missing_payment_method', { username });
+}
+
+async function createPaymentIntent(amount, paymentMethodId, return_url, logger) {
+  try {
+    return await stripe.paymentIntents.create({
+      amount,
+      currency: 'eur',
+      payment_method: paymentMethodId,
+      confirm: true,
+      return_url,
+      automatic_payment_methods: { enabled: true, allow_redirects: 'always' }
+    });
+  } catch (paymentError) {
+    logger.error({
+      msg: 'Stripe Payment Intent Creation Failed',
+      error: { message: paymentError.message, name: paymentError.name }
+    });
+    securityLogger.logSecurityEvent('payment_intent_creation_failed', { username });
+    return null; // Return null on failure
+  }
+}
+
+async function createUser(collection, username, hashedPassword, expirationDate, subscriptionPlan, promoCode, rawAuthKey, logger) {
+  const newUser = {
+    Username: username,
+    Password: hashedPassword,
+    Expires: expirationDate,
+    Paid: false,
+    PaymentMethod: 'Credit Card',
+    SubscriptionPlan: subscriptionPlan,
+    Hidden: [],
+    Created: new Date(),
+    defaultSymbol: 'NVDA',
+    PROMOCODE: promoCode,
+    AuthKey: rawAuthKey,
+    HashedAuthKey: await bcrypt.hash(rawAuthKey, 10)
+  };
+
+  try {
+    return await collection.insertOne(newUser);
+  } catch (insertError) {
+    logger.error({
+      msg: 'User  Insertion Failed',
+      error: { message: insertError.message, name: insertError.name }
+    });
+    return null; // Return null on failure
+  }
+}
+
+async function createReceipt(collection, userId, amount, subscriptionPlan, promoCode, logger) {
+  const receiptDocument = {
+    UserID: userId,
+    Amount: amount,
+    Date: new Date(),
+    Method: 'Credit Card',
+    Subscription: subscriptionPlan,
+    PROMOCODE: promoCode
+  };
+
+  try {
+    return await collection.insertOne(receiptDocument);
+  } catch (receiptError) {
+    logger.error({
+      msg: 'Receipt Insertion Failed',
+      error: { message: receiptError.message, name: receiptError.name }
+    });
+    throw new Error('Receipt insertion failed'); // Throw error to handle in main flow
+  }
+}
+
+function logSuccessfulSignup(logger, userId, subscriptionPlan) {
+  logger.info({
+    msg: 'User  Signup Completed Successfully',
+    userId: userId.toString(),
+    subscriptionPlan,
+    paymentMethod: 'Credit Card'
+  });
+  securityLogger.logAuthAttempt(userId, true, { method: 'signup', subscriptionPlan });
+}
+
+function handleError(error, logger, req) {
+  logger.error({
+    msg: 'Signup Process Error',
+    error: { message: error.message, name: error.name, code: error.code },
+    sensitiveData: { usernameLength: req.body.username ? req.body.username.length : 0 }
+  });
+  securityLogger.logSecurityEvent('signup_failure', { reason: error.message, ip: req.ip });
+}
 
 // Endpoint for verifying the token
 app.get('/verify', (req, res) => {

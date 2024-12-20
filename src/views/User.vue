@@ -733,6 +733,7 @@ const Download = async (receipt) => {
   height: 100vh; 
   overflow: hidden;
   width: 100% ;
+  min-width: 1250px;
 }
 
 .sidebar {
@@ -767,18 +768,25 @@ h2 {
 
 .settingsbtn {
   background-color: transparent;
-  color: whitesmoke;
-  width: fit-content;
-  padding: 10px;
-  border: solid 2px #8c8dfe;
-  margin-top: 5px;
-  font-size: 12px;
+    border: solid 2px #8c8dfe; /* Border color */
+    color: #f5f5f5; /* Text color */
+    padding: 10px 20px; /* Increased padding for a better size */
+    margin-top: 15px;
+    border-radius: 5px; /* Rounded corners */
+    font-size: 12px; /* Font size */
+    font-weight: 500; /* Slightly bolder text */
+    text-align: center; /* Center text */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+    cursor: pointer; /* Pointer cursor on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
 }
 
 .settingsbtn:hover {
-  background-color: #8c8dfe;
-  cursor: pointer;
+  background-color: #8c8dfe; /* Background color on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }
+
+
 
 .menu{
   margin-top: 5px;
@@ -842,16 +850,23 @@ p{
 }
 
 .userbtn {
-  background-color: transparent;
-  border: solid 2px #8c8dfe;
-  color: #f5f5f5;
-  padding: 5px;
-  margin-top: 5px;
+    background-color: transparent;
+    border: solid 2px #8c8dfe; /* Border color */
+    color: #f5f5f5; /* Text color */
+    padding: 5px 10px; /* Increased padding for a better size */
+    margin: 5px;
+    border-radius: 5px; /* Rounded corners */
+    font-size: 12px; /* Font size */
+    font-weight: 500; /* Slightly bolder text */
+    text-align: center; /* Center text */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+    cursor: pointer; /* Pointer cursor on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
 }
 
 .userbtn:hover {
-  background-color: #999afe;
-  cursor: pointer;
+    background-color: #8c8dfe; /* Background color on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }
 
 .userinput{
