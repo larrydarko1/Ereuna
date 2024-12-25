@@ -94,15 +94,15 @@
   class="sub-option-disabled" 
 >
   <div class="coming-soon-banner">Available Soon</div>
-  <h3 class="plan">6 Months</h3>
-  <p class="price">35.99€ + VAT</p>
+  <h3 style="cursor: default;" class="plan">6 Months</h3>
+  <p style="cursor: default;" class="price">35.99€ + VAT</p>
 </div>
 <div 
   class="sub-option-disabled" 
 >
   <div class="coming-soon-banner">Available Soon</div>
-  <h3 class="plan">1 Year</h3>
-  <p class="price">71.99€ + VAT</p>
+  <h3 style="cursor: default;" class="plan">1 Year</h3>
+  <p style="cursor: default;" class="price">71.99€ + VAT</p>
 </div>
 </div>
     <h1>Select a payment method</h1>
@@ -186,7 +186,7 @@
         <p><strong>8. Contact Us</strong></p>
         <p>If you have any questions or concerns about these Terms, please contact us at: <a href="mailto:support@ereuna.co">support@ereuna.co</a></p>
     </div>
-    <button class="divbtn"  @click="closeTermsModal">Close</button>
+    <button @click="closeTermsModal"><img style="width: 10px;" src="@/assets/icons/close.png" alt=""></button>
 </div>
 
 <div v-if="showPrivacy" class="modal" @click.self="closePrivacyModal">
@@ -224,7 +224,7 @@
         <p><strong>6. Changes to This Privacy Policy</strong></p>
         <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on our website. We encourage you to review this Privacy Policy periodically for any updates.</p>
     </div>
-    <button class="divbtn" @click="closePrivacyModal">Close</button>
+    <button @click="closePrivacyModal"><img style="width: 10px;" src="@/assets/icons/close.png" alt=""></button>
 </div>
   </div>
 </div>
@@ -500,7 +500,6 @@ p{
     display: inline-flex;
     flex-direction: row;
     border: none;
-    background-color: #2c2b3e;
     border-radius: 10px; /* Slightly curved border */
     padding: 10px;
     margin: 5px;
@@ -511,6 +510,24 @@ p{
     color: #f5f5f5;
     position: relative; /* Position relative for pseudo-element */
     overflow: hidden; /* Hide overflow */
+}
+
+.square::before {
+    content: '';
+    position: absolute; /* Position it absolutely */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1; /* Place it behind the content */
+    border-radius: 10px; /* Match the border radius of the parent */
+    background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
+    padding: 2px; /* Space for the border effect */
+    -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+    -webkit-mask-composite: source-out; /* For masking */
+    animation: border-animation 5s linear infinite; /* Add animation */
+    mask-composite: exclude; /* For masking */
+    background-size: 300% 300%; 
 }
 
 .square:hover{
@@ -594,18 +611,24 @@ a:hover{
   transform: translate(-50%, -50%);
   background-color: #2c2b3e;
   padding: 20px;
-  border: none;
+  border-radius: 15px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   z-index: 1000;
+  opacity: 0.95;
 }
 
 .modal button {
   margin-top: 10px;
+  position: absolute;
+  top: 0;
+  right:5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 .sub-option {
   align-items: center;
-  background-color: #2c2b3e;
   display: inline-flex;
   flex-direction: column;
   border: none;
@@ -619,24 +642,59 @@ a:hover{
   overflow: hidden;
   justify-content: center;
   color: #f5f5f5;
+}
+
+.sub-option::before {
+  content: '';
+  position: absolute; /* Position it absolutely */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1; /* Place it behind the content */
+  border-radius: 5px; /* Match the border radius of the parent */
+  background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
+  padding: 2px; /* Space for the border effect */
+  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+  -webkit-mask-composite: source-out; /* For masking */
+  mask-composite: exclude; /* For masking */
+  animation: border-animation 5s linear infinite;
+  background-size: 300% 300%; 
 }
 
 .sub-option-disabled {
   align-items: center;
   display: inline-flex;
   flex-direction: column;
-  background-color: #2c2b3e;
   border: none;
-  border-radius: 5px;
-  padding: 10px;
+  border-radius: 5px; /* Rounded corners */
+  padding: 10px; /* Inner padding */
   margin: 5px;
   opacity: 0.80;
   width: 120px;
-  position: relative; 
+  position: relative; /* Position relative for the pseudo-element */
   height: 70px;
-  overflow: hidden;
+  overflow: hidden; /* Ensure the pseudo-element doesn't overflow */
   justify-content: center;
   color: #f5f5f5;
+}
+
+.sub-option-disabled::before {
+  content: '';
+  position: absolute; /* Position it absolutely */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1; /* Place it behind the content */
+  border-radius: 5px; /* Match the border radius of the parent */
+  background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
+  padding: 2px; /* Space for the border effect */
+  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+  -webkit-mask-composite: source-out; /* For masking */
+  animation: border-animation 5s linear infinite;
+  mask-composite: exclude; /* For masking */
+  background-size: 300% 300%; 
 }
 
 .sub-option:hover {

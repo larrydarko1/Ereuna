@@ -123,27 +123,6 @@ app.use('/password-change', bruteForceProtection);
 app.use('/change-password2', bruteForceProtection);
 app.use('/change-username', bruteForceProtection);
 app.use('/account-delete', bruteForceProtection);
-app.use('/screener/price', bruteForceProtection);
-app.use('/screener/marketcap', bruteForceProtection);
-app.use('/screener/ipo-date', bruteForceProtection);
-app.use('/screener/sectors', bruteForceProtection);
-app.use('/screener/exchange', bruteForceProtection);
-app.use('/screener/country', bruteForceProtection);
-app.use('/screener/pe', bruteForceProtection);
-app.use('/screener/forward-pe', bruteForceProtection);
-app.use('/screener/peg', bruteForceProtection);
-app.use('/screener/eps', bruteForceProtection);
-app.use('/screener/ps-ratio', bruteForceProtection);
-app.use('/screener/pb-ratio', bruteForceProtection);
-app.use('/screener/beta', bruteForceProtection);
-app.use('/screener/div-yield', bruteForceProtection);
-app.use('/screener/fundamental-growth', bruteForceProtection);
-app.use('/screener/volume', bruteForceProtection);
-app.use('/screener/rs-score', bruteForceProtection);
-app.use('/screener/price-performance', bruteForceProtection);
-app.use('/reset/screener/param', bruteForceProtection);
-
-
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
