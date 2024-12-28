@@ -34,12 +34,11 @@
   <div v-if="welcomePopup" class="welcome-popup">
     <h3>{{ welcomeMessage }}</h3>
   </div>
-  <div class="donation">
-    <a :href="donationLink" target="_blank" rel="noreferrer noopener">
-      <img class="donationimg" src="https://nowpayments.io/images/embeds/donation-button-black.svg" alt="Crypto donation button by NOWPayments">
+  <div class="releaseNote" style="display: flex; flex-direction: row; align-items: center;">
+  <h3> V1.0.1 // ALPHA TEST  - </h3> <a style="margin-left: 5px; color: whitesmoke;" :href="donationLink" target="_blank" rel="noreferrer noopener">
+      Donate Crypto
     </a>
   </div>
-  <h3 class="releaseNote"> V1.0.1 // ALPHA TEST </h3>
 </template>
 
 <script setup>
@@ -171,8 +170,8 @@ function togglePasswordVisibility() {
   margin: 5px;
   width: 100%;
   cursor: pointer; /* Pointer cursor on hover */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    transition: all 0.3s ease; /* Smooth transition for hover effects */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
 }
 
 .signbtn:hover {

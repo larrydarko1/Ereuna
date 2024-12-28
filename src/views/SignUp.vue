@@ -5,7 +5,7 @@
 </div>
     <h1>Create a New User</h1>
     <div class="signup-form" style="display: flex; flex-direction: row; justify-content: center; align-items: center;">
-      <div style="margin: 3px"><h3>Type a Username:</h3>
+      <div style="margin: 3px 15px;"><h3>Type a Username:</h3>
         <input 
   v-model="username" 
   class="form-input" 
@@ -15,7 +15,7 @@
   maxlength="25" 
   required
 ></div>
-    <div style="margin: 3px"> <h3>Type a Password:</h3>
+    <div style="margin: 3px 15px;"> <h3>Type a Password:</h3>
       <div class="password-container">
     <input 
       v-model="password" 
@@ -38,7 +38,7 @@
   >
 </button>
   </div></div>
-   <div style="margin: 3px"> <h3>Confirm your password:</h3> 
+   <div style="margin: 3px 15px;"> <h3>Confirm your password:</h3> 
     <div class="password-container">
     <input 
       v-model="confirmPassword" 
@@ -60,7 +60,7 @@
     </button>
   </div>
   </div>
-  <div style="margin: 3px"> <h3>Promo Code (optional)</h3> 
+  <div style="margin: 3px 15px;"> <h3>Promo Code (optional):</h3> 
     <div class="code-container">
     <input 
       v-model="PromoCode" 
@@ -485,7 +485,7 @@ p{
     align-items: center;
     align-self: center;
     padding: 10px;
-    margin: 10px;
+    margin: 15px;
     border: none;
 }
 
@@ -850,18 +850,17 @@ a:hover{
 }
 
 .userbtn {
-    background-color: transparent;
-    border: solid 2px #8c8dfe; /* Border color */
-    color: #f5f5f5; /* Text color */
-    padding: 10px 20px; /* Increased padding for a better size */
-    margin-top: 5px;
-    border-radius: 5px; /* Rounded corners */
-    font-size: 12px; /* Font size */
-    font-weight: 500; /* Slightly bolder text */
-    text-align: center; /* Center text */
-    transition: all 0.3s ease; /* Smooth transition for hover effects */
-    cursor: pointer; /* Pointer cursor on hover */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  background-color: transparent;
+  color: whitesmoke;
+  border-radius: 10px;
+  outline: none;
+  border: solid 2px #8c8dfe;
+  padding: 5px;
+  margin: 5px;
+  width: 100px;
+  cursor: pointer; /* Pointer cursor on hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
 }
 
 .userbtn:hover {
@@ -871,9 +870,8 @@ a:hover{
 
 .form-input {
   padding: 6px 7.5px; /* Reduced padding for a smaller size */
-  border: 1px solid #ccc; /* Light border */
-  border-radius: 3px; /* Slightly smaller rounded corners */
-  background-color: #f9f9f9; /* Light background color */
+  border: solid 1px #171728;
+  border-radius: 25px; 
   font-size: 8px; /* Reduced font size for a smaller appearance */
   color: #333; /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
