@@ -1,7 +1,6 @@
 <template>
   <div class="login-form" @keydown.enter="login()">
     <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/owl.png" alt="">
-
     <div class="input-with-icon">
       <input class="form-input" placeholder="Username" type="username">
       <img class="icon" src="@/assets/icons/username.png" alt="">
@@ -35,9 +34,13 @@
     <h3>{{ welcomeMessage }}</h3>
   </div>
   <div class="releaseNote" style="display: flex; flex-direction: row; align-items: center;">
-  <h3> V1.0.1 // ALPHA TEST  - </h3> <a style="margin-left: 5px; color: whitesmoke;" :href="donationLink" target="_blank" rel="noreferrer noopener">
-      Donate Crypto
-    </a>
+  <h3> V1.0.1 // ALPHA TEST  - </h3> 
+  </div>
+  <div class="releaseNote2" style="display: flex; flex-direction: row; align-items: center;">
+    <h3>Crypto Donations</h3> 
+  </div>
+  <div class="releaseNote3" style="align-items: center; min-width: 1000px;">
+    <h3 style="font-size: 9px;">BTC: 326ZBjc3NcF2tShrXzZzgZSpnoVtXHA4KB  //  ETH: 0x150b03B3904D877e2399F6302c5Db5f332170304  // XMR: 449bkU2MvFh1oiRZGYT72BAfF6uj3kPa1TJfBmPT1agNYFyrifsSW1reEGjrwgG9UujoV4EEEB14PMpDkVGinc3QGFwfVcw</h3> 
   </div>
 </template>
 
@@ -46,14 +49,6 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-
-const donationLink = ref('');
-
-onMounted(async () => {
-  const response = await fetch('/api/donation-link');
-  const data = await response.json();
-  donationLink.value = data.donationLink;
-});
 
 const usernameError = ref(false);
 const passwordError = ref(false);
@@ -271,21 +266,30 @@ function togglePasswordVisibility() {
 }
 
 .releaseNote {
-  color: whitesmoke;
+  color: #7c78aa;
   position: fixed; /* Change to fixed positioning */
-  bottom: 0; /* Stick to the bottom */
+  bottom: 25px; /* Stick to the bottom */
   left: 50%; /* Center horizontally */
   transform: translateX(-50%); /* Adjust for centering */
   text-align: center; /* Center text */
 }
 
-.donation{
-  position: fixed;
-  bottom: 2%;
-  right: 1%;
+.releaseNote2 {
+  color: #7c78aa;
+  position: fixed; /* Change to fixed positioning */
+  bottom:12px; /* Stick to the bottom */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Adjust for centering */
+  text-align: center; /* Center text */
 }
 
-.donationimg{
-height: 70px;
+.releaseNote3 {
+  color: #7c78aa;
+  position: fixed; /* Change to fixed positioning */
+  bottom:0px; /* Stick to the bottom */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Adjust for centering */
+  text-align: center; /* Center text */
 }
+
 </style>

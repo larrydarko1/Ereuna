@@ -236,8 +236,8 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { loadStripe } from '@stripe/stripe-js'; 
 import NotificationPopup from '@/components/NotificationPopup.vue';
-import hideIcon from '@/assets/icons/hideb.png';
-import showIcon from '@/assets/icons/showb.png';
+import hideIcon from '@/assets/icons/hide.png';
+import showIcon from '@/assets/icons/show.png';
 
 const showTerms = ref(false);
 const showPrivacy = ref(false);
@@ -871,9 +871,10 @@ a:hover{
 .form-input {
   padding: 6px 7.5px; /* Reduced padding for a smaller size */
   border: solid 1px #171728;
+  background-color:#2c2b3e;
   border-radius: 25px; 
   font-size: 8px; /* Reduced font size for a smaller appearance */
-  color: #333; /* Dark text color */
+  color: whitesmoke; /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
 }
 
