@@ -2,7 +2,7 @@ import express from 'express';
 import fs from 'fs';
 import cors from 'cors';
 import { MongoClient, ObjectId } from 'mongodb';
-import bcrypt from 'bcrypt';
+import argon2 from 'argon2';
 import config from './config.js';
 import jwt from 'jsonwebtoken';
 import Stripe from 'stripe';
@@ -35,7 +35,7 @@ const allowedOrigins = [
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 10000, // Limit each IP to 1000 requests per window
+  max: 50000, // Limit each IP to 1000 requests per window
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -198,7 +198,7 @@ app.post('/signup',
       if (!amount) return res.status(400).json({ errors: [{ field: 'subscriptionPlan', message: 'Invalid subscription plan' }] });
 
       const promoCodeValidated = await validatePromoCode(agentsCollection, sanitizedPromoCode, amount, requestLogger);
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await argon2.hash(password);
       const rawAuthKey = crypto.randomBytes(64).toString('hex');
 
       if (!paymentMethodId) {
@@ -333,15 +333,14 @@ async function createUser(collection, username, hashedPassword, expirationDate, 
     Created: new Date(),
     defaultSymbol: 'NVDA',
     PROMOCODE: promoCode,
-    AuthKey: rawAuthKey,
-    HashedAuthKey: await bcrypt.hash(rawAuthKey, 10)
+    HashedAuthKey: await argon2.hash(rawAuthKey)
   };
 
   try {
     return await collection.insertOne(newUser);
   } catch (insertError) {
     logger.error({
-      msg: 'User  Insertion Failed',
+      msg: 'User Insertion Failed',
       error: { message: insertError.message, name: insertError.name }
     });
     return null; // Return null on failure
@@ -488,7 +487,8 @@ app.get('/verify', (req, res) => {
 app.post('/login',
   validate([
     validationSchemas.username(),
-    validationSchemas.password()
+    validationSchemas.password(),
+    validationSchemas.rememberMe()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -500,7 +500,7 @@ app.post('/login',
     });
 
     try {
-      const { username, password } = req.body;
+      const { username, password, rememberMe } = req.body;
 
       // Validate input fields are not empty
       if (!username || !password) {
@@ -548,7 +548,7 @@ app.post('/login',
         }
 
         // Compare the provided password with the stored hash
-        const passwordMatch = await bcrypt.compare(password, user.Password);
+        const passwordMatch = await argon2.verify(user.Password, password);
 
         if (!passwordMatch) {
           // Log security event for incorrect password
@@ -589,7 +589,12 @@ app.post('/login',
         );
 
         // Generate a JWT token
-        const tokenExpiration = '30d';
+        let tokenExpiration;
+        if (rememberMe === 'true') {
+          tokenExpiration = '30d';
+        } else {
+          tokenExpiration = '1h'; // Temporary session
+        }
         const token = jwt.sign({ user: user.Username }, config.secretKey, { expiresIn: tokenExpiration });
 
         // Log successful login
@@ -674,7 +679,7 @@ app.post('/recover',
         const matchedUser = await Promise.all(users.map(async user => {
           try {
             // Compare the input recoveryKey with the stored hashed AuthKey
-            const isMatch = await bcrypt.compare(sanitizedRecoveryKey, user.HashedAuthKey);
+            const isMatch = await argon2.verify(user.HashedAuthKey, sanitizedRecoveryKey);
             return isMatch ? user : null;
           } catch (compareError) {
             // Log comparison errors without exposing sensitive details
@@ -769,7 +774,6 @@ app.patch('/generate-key',
     validationSchemas.password()
   ]),
   async (req, res) => {
-    // Create a child logger with request-specific context
     const requestLogger = logger.child({
       requestId: crypto.randomBytes(16).toString('hex'),
       ip: req.ip,
@@ -784,7 +788,7 @@ app.patch('/generate-key',
       // Sanitize and validate input
       const sanitizedUsername = sanitizeInput(user);
 
-      // Log key generation attempt with minimal sensitive information
+      // Log key generation attempt
       requestLogger.info({
         msg: 'Authentication Key Generation Attempt',
         usernameLength: sanitizedUsername.length
@@ -810,13 +814,13 @@ app.patch('/generate-key',
         return res.status(404).json({
           errors: [{
             field: 'user',
-            message: 'User not found'
+            message: 'User  not found'
           }]
         });
       }
 
-      // Verify password
-      const isPasswordCorrect = await bcrypt.compare(password, userDoc.Password);
+      // Verify password using Argon2
+      const isPasswordCorrect = await argon2.verify(userDoc.Password, password);
 
       if (!isPasswordCorrect) {
         // Log security event for incorrect password
@@ -857,11 +861,18 @@ app.patch('/generate-key',
       // Generate a new raw key
       const rawAuthKey = crypto.randomBytes(64).toString('hex');
 
-      // Prepare the update document
+      // Hash the raw key using Argon2
+      const hashedAuthKey = await argon2.hash(rawAuthKey, {
+        type: argon2.argon2id, // Use Argon2id for better security
+        memoryCost: 65536, // Adjust memory cost as needed
+        timeCost: 3, // Adjust time cost as needed
+        parallelism: 1 // Adjust parallelism as needed
+      });
+
+      // Prepare the update document (only store the hashed key)
       const updateDoc = {
         $set: {
-          AuthKey: rawAuthKey,       // Store the raw key
-          HashedAuthKey: await bcrypt.hash(rawAuthKey, 10), // Store a hashed version
+          HashedAuthKey: hashedAuthKey, // Store only the hashed key
           LastKeyGenerationTime: new Date() // Track key generation time
         }
       };
@@ -895,10 +906,12 @@ app.patch('/generate-key',
         username: userDoc.Username.substring(0, 3) + '...'
       });
 
-      // Return response without raw key in production
+      // Return the raw key to the browser for download
+      // Ensure the raw key is not logged or stored in the database
       return res.json({
         confirm: true,
-        message: 'Key generated successfully'
+        message: 'Key generated successfully',
+        rawAuthKey: rawAuthKey // Return the raw key for download
       });
 
     } catch (error) {
@@ -921,203 +934,6 @@ app.patch('/generate-key',
       return res.status(500).json({
         message: 'Internal Server Error',
         error: process.env.NODE_ENV === 'development' ? error.message : 'Unable to generate authentication key'
-      });
-    } finally {
-      if (client) {
-        try {
-          await client.close();
-        } catch (closeError) {
-          requestLogger.warn({
-            msg: 'MongoDB Client Closure Failed',
-            error: {
-              message: closeError.message,
-              name: closeError.name
-            }
-          });
-        }
-      }
-    }
-  }
-);
-
-// endpoint to download recovery key
-app.post('/download-key',
-  validate([
-    validationSchemas.user(),
-    validationSchemas.password()
-  ]),
-  async (req, res) => {
-    // Create a child logger with request-specific context
-    const requestLogger = logger.child({
-      requestId: crypto.randomBytes(16).toString('hex'),
-      ip: req.ip,
-      method: req.method,
-      path: req.path
-    });
-
-    let client;
-    try {
-      const { user, password } = req.body;
-
-      // Additional sanitization
-      const sanitizedUsername = sanitizeInput(user);
-
-      // Log download key attempt with minimal sensitive information
-      requestLogger.info({
-        msg: 'Download Key Generation Attempt',
-        usernameLength: sanitizedUsername.length
-      });
-
-      client = new MongoClient(uri);
-      await client.connect();
-
-      const db = client.db('EreunaDB');
-      const usersCollection = db.collection('Users');
-      const downloadTokensCollection = db.collection('DownloadTokens');
-
-      // Find user with case-insensitive username
-      const userDoc = await usersCollection.findOne({
-        Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
-      });
-
-      if (!userDoc) {
-        // Log security event for non-existent user
-        securityLogger.logSecurityEvent('Download Key Attempt for Non-Existent User', {
-          attemptedUsername: sanitizedUsername,
-          ip: req.ip
-        });
-
-        return res.status(404).json({
-          message: 'User not found'
-        });
-      }
-
-      // Verify password
-      const isPasswordCorrect = await bcrypt.compare(password, userDoc.Password);
-      if (!isPasswordCorrect) {
-        // Log security event for incorrect password
-        securityLogger.logSecurityEvent('Download Key Attempt with Incorrect Password', {
-          username: userDoc.Username,
-          ip: req.ip
-        });
-
-        return res.status(401).json({
-          message: 'Incorrect password'
-        });
-      }
-
-      // Check subscription status
-      const today = new Date();
-      const expiresDate = new Date(userDoc.Expires);
-
-      if (today > expiresDate || !userDoc.Paid) {
-        // Log subscription status issue
-        requestLogger.warn({
-          msg: 'Download Key Attempt with Expired/Inactive Subscription',
-          username: userDoc.Username,
-          subscriptionExpired: today > expiresDate,
-          paid: userDoc.Paid
-        });
-
-        return res.status(402).json({
-          message: 'Subscription is expired or inactive'
-        });
-      }
-
-      // Verify AuthKey exists
-      if (!userDoc.AuthKey) {
-        // Log missing recovery key
-        requestLogger.warn({
-          msg: 'Download Key Attempt with Missing Recovery Key',
-          username: userDoc.Username
-        });
-
-        return res.status(404).json({
-          message: 'Recovery key not found'
-        });
-      }
-
-      // Clean up existing tokens for this user
-      const cleanupResult = await downloadTokensCollection.deleteMany({
-        username: userDoc.Username,
-        expiresAt: { $lt: new Date() }
-      });
-
-      // Log token cleanup
-      requestLogger.info({
-        msg: 'Expired Download Tokens Cleaned Up',
-        username: userDoc.Username,
-        deletedTokens: cleanupResult.deletedCount
-      });
-
-      // Check if user already has an active download token
-      const existingActiveToken = await downloadTokensCollection.findOne({
-        username: userDoc.Username,
-        expiresAt: { $gt: new Date() }
-      });
-
-      if (existingActiveToken) {
-        // Log existing active token
-        requestLogger.warn({
-          msg: 'Download Key Generation Blocked - Active Token Exists',
-          username: userDoc.Username
-        });
-
-        return res.status(429).json({
-          message: 'An active download token already exists'
-        });
-      }
-
-      // Generate a one-time download token
-      const downloadToken = crypto.randomBytes(32).toString('hex');
-      const tokenExpiry = new Date(Date.now() + (15 * 60 * 1000)); // 15 minutes
-
-      // Store token with expiry
-      const tokenInsertResult = await downloadTokensCollection.insertOne({
-        token: downloadToken,
-        username: userDoc.Username,
-        expiresAt: tokenExpiry,
-        createdAt: new Date()
-      });
-
-      // Log successful token generation
-      requestLogger.info({
-        msg: 'Downloaded Recovery Token Successfully',
-        username: userDoc.Username.substring(0, 3) + '...',
-        tokenId: tokenInsertResult.insertedId
-      });
-
-      // Security logging for token generation
-      securityLogger.logSecurityEvent('Downloaded Recovery key', {
-        username: userDoc.Username.substring(0, 3) + '...'
-      });
-
-      // Return token
-      return res.json({
-        token: downloadToken,
-        expiryTime: tokenExpiry.getTime()
-      });
-
-    } catch (error) {
-      // Comprehensive error logging
-      requestLogger.error({
-        msg: 'Unexpected Error in Download Key Generation',
-        error: {
-          message: error.message,
-          name: error.name,
-          stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        }
-      });
-
-      // Security logging for unexpected errors
-      securityLogger.logSecurityEvent('Download Key Generation Unexpected Error', {
-        ip: req.ip,
-        errorType: error.name
-      });
-
-      return res.status(500).json({
-        message: 'Internal Server Error',
-        error: process.env.NODE_ENV === 'development' ? error.message : 'Unable to generate download key'
       });
     } finally {
       if (client) {
@@ -1293,12 +1109,12 @@ app.patch('/password-change',
         });
 
         return res.status(404).json({
-          message: 'User not found'
+          message: 'User  not found'
         });
       }
 
-      // Compare the provided old password with the stored hashed password
-      const isOldPasswordCorrect = await bcrypt.compare(oldPassword, userDoc.Password);
+      // Compare the provided old password with the stored hashed password using Argon2
+      const isOldPasswordCorrect = await argon2.verify(userDoc.Password, oldPassword);
 
       if (!isOldPasswordCorrect) {
         // Log security event for incorrect current password
@@ -1313,7 +1129,7 @@ app.patch('/password-change',
       }
 
       // Check if new password is different from the old password
-      const isNewPasswordSameAsOld = await bcrypt.compare(newPassword, userDoc.Password);
+      const isNewPasswordSameAsOld = await argon2.verify(userDoc.Password, newPassword);
       if (isNewPasswordSameAsOld) {
         requestLogger.warn({
           msg: 'Password Change Attempt with Same Password',
@@ -1325,9 +1141,13 @@ app.patch('/password-change',
         });
       }
 
-      // Hash the new password
-      const saltRounds = 10;
-      const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+      // Hash the new password using Argon2
+      const hashedNewPassword = await argon2.hash(newPassword, {
+        type: argon2.argon2id, // Use Argon2id for better security
+        memoryCost: 65536, // Adjust memory cost as needed
+        timeCost: 3, // Adjust time cost as needed
+        parallelism: 1 // Adjust parallelism as needed
+      });
 
       const updateDoc = {
         $set: {
@@ -1347,7 +1167,6 @@ app.patch('/password-change',
           msg: 'Failed to Update Password',
           username: userDoc.Username
         });
-
         return res.status(500).json({
           message: 'Failed to update password'
         });
@@ -1452,10 +1271,10 @@ app.patch('/change-password2',
         // Find all users to validate the recovery key
         const users = await usersCollection.find({}).toArray();
 
-        // Check if the recovery key matches any user's AuthKey
+        // Check if the recovery key matches any user's AuthKey using Argon2
         const matchedUser = await Promise.all(users.map(async user => {
           try {
-            const isMatch = await bcrypt.compare(sanitizedRecoveryKey, user.HashedAuthKey);
+            const isMatch = await argon2.verify(user.HashedAuthKey, sanitizedRecoveryKey);
             return isMatch ? user : null;
           } catch (compareError) {
             requestLogger.warn({
@@ -1478,9 +1297,13 @@ app.patch('/change-password2',
           });
         }
 
-        // Hash the new password
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(sanitizedNewPassword, saltRounds);
+        // Hash the new password using Argon2
+        const hashedPassword = await argon2.hash(sanitizedNewPassword, {
+          type: argon2.argon2id, // Use Argon2id for better security
+          memoryCost: 65536, // Adjust memory cost as needed
+          timeCost: 3, // Adjust time cost as needed
+          parallelism: 1 // Adjust parallelism as needed
+        });
 
         // Update the user's password
         const updateResult = await usersCollection.updateOne(
@@ -1493,7 +1316,6 @@ app.patch('/change-password2',
         );
 
         if (updateResult.modifiedCount === 1) {
-
           // Log successful password change with partially obscured username
           securityLogger.logSecurityEvent('Password Changed Successfully', {
             username: matchedUser.Username.substring(0, 3) + '...'
@@ -1813,7 +1635,7 @@ app.delete('/account-delete',
       }
 
       // Verify password (assuming password is hashed)
-      const isPasswordValid = await bcrypt.compare(password, userDoc.Password);
+      const isPasswordValid = await argon2.verify(userDoc.Password, password);
 
       if (!isPasswordValid) {
         // Log incorrect password attempt

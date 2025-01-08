@@ -16,6 +16,7 @@
   "dependencies": {
     "@nowpaymentsio/nowpayments-api-js": "^1.0.5",
     "@stripe/stripe-js": "^5.0.0",
+    "argon2": "^0.41.1",
     "assert": "^2.1.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
