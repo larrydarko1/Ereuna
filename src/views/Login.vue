@@ -12,6 +12,15 @@
       {{ passwordFieldType === 'password' ? 'Show' : 'Hide' }}
     </button>
   </div>
+  <div 
+  class="custom-checkbox" 
+  :class="{ checked: rememberMe }"
+  @click="rememberMe = !rememberMe"
+  style="justify-content: right;">
+  <input type="checkbox" v-model="rememberMe" id="remember-me-checkbox" required style="display: none;">
+  <span class="checkmark"></span>
+  <label for="remember-me-checkbox" class="label-text">Remember Me</label>
+</div>
     <button class="signbtn" @click="login()">Login</button>
     <br>
     <p class="text">Don't have an account? <router-link to="/signup" class="text">Sign Up</router-link></p>
@@ -54,6 +63,7 @@ const usernameError = ref(false);
 const passwordError = ref(false);
 const fieldsError = ref(false);
 const welcomePopup = ref(false);
+const rememberMe = ref(false);
 const welcomeMessage = ref('');
 
 async function login() {
@@ -84,6 +94,7 @@ async function login() {
       body: JSON.stringify({
         username,
         password,
+        rememberMe: rememberMe.value 
       })
     });
     
@@ -290,6 +301,40 @@ function togglePasswordVisibility() {
   left: 50%; /* Center horizontally */
   transform: translateX(-50%); /* Adjust for centering */
   text-align: center; /* Center text */
+}
+
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 5px;
+  margin-left: 120px;
+}
+
+.checkmark {
+  width: 8px; /* Smaller width */
+  height: 8px; /* Smaller height */
+  background-color: whitesmoke;
+  border-radius: 50%; /* Make it circular */
+  margin-right: 5px;
+  display: inline-block;
+  transition: background-color 0.3s, border-color 0.3s; /* Add transition for border color */
+}
+
+.custom-checkbox.checked .checkmark {
+  background-color: #8c8dfe; /* Change to your desired color */
+  border-color: #8c8dfe; /* Change to your desired border color */
+}
+
+.label-text {
+  opacity: 0.7; /* Initial opacity */
+  transition: opacity 0.3s; /* Smooth transition for opacity */
+  color: whitesmoke;
+}
+
+.custom-checkbox.checked .label-text {
+  opacity: 1; /* Full opacity when checked */
+  color: whitesmoke;
 }
 
 </style>

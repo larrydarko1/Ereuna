@@ -125,7 +125,6 @@
 <br>
 <div>
   <button class="userbtn" @click="GenerateNewKey()">Generate New Key</button>
-<button class="userbtn" @click="DownloadAuth()">Download Key</button>
 </div>
 
       </div>
@@ -449,54 +448,11 @@ const keySuccessMessage = ref('');
 const Pswauth = ref('');
 
 async function GenerateNewKey() {
+  // Reset states
   keyError.value = false;
   keyErrorMessage.value = '';
   keySuccess.value = false;
   keySuccessMessage.value = '';
-
-  if (!Pswauth.value.trim()) {
-    keyError.value = true;
-    keyErrorMessage.value = 'Please enter your password';
-    return;
-  }
-
-  try {
-    const response = await fetch('/api/generate-key', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        user: user, // Use .value since user is a ref
-        password: Pswauth.value // Send the password
-      }),
-    });
-
-    const data = await response.json();
-    
-    if (response.ok) {
-      if (data.confirm) {
-        keySuccess.value = true;
-        keySuccessMessage.value = 'New key generated successfully!';
-        Pswauth.value = '';
-      } else {
-        keyError.value = true;
-        keyErrorMessage.value = 'An unexpected error occurred';
-      }
-    } else {
-      keyError.value = true;
-      keyErrorMessage.value = data.message || 'An error occurred';
-    }
-  } catch (error) {
-    console.error('Error generating new key:', error);
-    keyError.value = true;
-    keyErrorMessage.value = 'Network error. Please try again.';
-  }
-}
-
-// Frontend function
-async function DownloadAuth() {
-  // Reset previous states
-  keyError.value = false;
-  keyErrorMessage.value = '';
 
   // Validate password input
   if (!Pswauth.value.trim()) {
@@ -506,51 +462,55 @@ async function DownloadAuth() {
   }
 
   try {
-    const response = await fetch('/api/download-key', {
-      method: 'POST',
+    // Call the generate-key endpoint
+    const response = await fetch('/api/generate-key', {
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        user: user,
-        password: Pswauth.value
+        user: user, // Use .value if user is a ref
+        password: Pswauth.value // Send the password
       }),
     });
 
     const data = await response.json();
 
     if (response.ok) {
-      // Use the token to request actual key download
-      const downloadResponse = await fetch(`/api/retrieve-key?token=${data.token}`, {
-        method: 'GET'
-      });
+      if (data.confirm) {
+        // Key generation successful
+        keySuccess.value = true;
+        keySuccessMessage.value = 'New key generated successfully!';
 
-      const keyData = await downloadResponse.json();
-
-      if (downloadResponse.ok) {
-        // Create and trigger file download
-        const blob = new Blob([keyData.key], { type: 'text/plain' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = `${user}_recovery_key.txt`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
+        // Trigger download of the raw key
+        const rawAuthKey = data.rawAuthKey; // Raw key returned from the endpoint
+        if (rawAuthKey) {
+          // Create and trigger file download
+          const blob = new Blob([rawAuthKey], { type: 'text/plain' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = `${user}_recovery_key.txt`; // Use the username for the filename
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+        }
 
         // Clear password
         Pswauth.value = '';
       } else {
-        throw new Error(keyData.message || 'Download failed');
+        // Handle unexpected response
+        keyError.value = true;
+        keyErrorMessage.value = 'An unexpected error occurred';
       }
     } else {
-      // Handle authentication errors
+      // Handle API errors
       keyError.value = true;
-      keyErrorMessage.value = data.message || 'Authentication failed';
+      keyErrorMessage.value = data.message || 'An error occurred';
     }
   } catch (error) {
-    console.error('Key download error:', error);
+    console.error('Error generating new key:', error);
     keyError.value = true;
-    keyErrorMessage.value = error.message || 'An unexpected error occurred';
+    keyErrorMessage.value = 'Network error. Please try again.';
   }
 }
 
