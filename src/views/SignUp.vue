@@ -148,7 +148,7 @@
     <button class="userbtn" @click="SignUp" :disabled="!isFormValid">Create User</button>
     <br>
     <br>
-    <p>Security Notice: A unique Recovery Key will be automatically downloaded upon successful registration. This key is essential for account recovery, so store it securely. If lost, you can generate a new key in your Account Settings. </p>
+    <p>Security Notice: A unique Recovery Key will be automatically downloaded upon successful registration. This key is essential for password recovery, so store it securely. If lost, you can generate a new key in your Account Settings. </p>
   </div>
 
   <div v-if="showTerms" class="modal" @click.self="closeTermsModal">
@@ -422,13 +422,13 @@ async function SignUp() {
         notification.value.show('Payment successful!');
         router.push('/login');
       } else if (responseData.message === "User  created successfully") {
-        // Download the raw authentication key
+        // Download the raw recovery key
         const authKey = responseData.rawAuthKey;
         const blob = new Blob([authKey], { type: 'text/plain' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'ereuna_authentication_key.txt'; 
+        a.download = 'ereuna_recovery_key.txt'; 
         document.body.appendChild(a);
         a.click();
         a.remove();
