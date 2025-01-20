@@ -591,7 +591,7 @@ app.post('/login',
         // Generate a JWT token
         let tokenExpiration;
         if (rememberMe === 'true') {
-          tokenExpiration = '30d';
+          tokenExpiration = '7d';
         } else {
           tokenExpiration = '1h'; // Temporary session
         }

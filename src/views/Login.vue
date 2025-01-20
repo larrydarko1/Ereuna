@@ -277,7 +277,7 @@ function togglePasswordVisibility() {
 }
 
 .releaseNote {
-  color: #7c78aa;
+  color: whitesmoke;
   position: fixed; /* Change to fixed positioning */
   bottom: 25px; /* Stick to the bottom */
   left: 50%; /* Center horizontally */
@@ -286,7 +286,7 @@ function togglePasswordVisibility() {
 }
 
 .releaseNote2 {
-  color: #7c78aa;
+  color: whitesmoke;
   position: fixed; /* Change to fixed positioning */
   bottom:12px; /* Stick to the bottom */
   left: 50%; /* Center horizontally */
@@ -295,7 +295,7 @@ function togglePasswordVisibility() {
 }
 
 .releaseNote3 {
-  color: #7c78aa;
+  color: whitesmoke;
   position: fixed; /* Change to fixed positioning */
   bottom:0px; /* Stick to the bottom */
   left: 50%; /* Center horizontally */
