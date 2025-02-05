@@ -16,14 +16,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
-    expose:
-      - "5500"
+    ports:
+      - "5500:5500"
     depends_on:
       - mongodb
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
     networks:
       - ereuna-network-internal
+      - ereuna-network
     restart: unless-stopped
 
   mongodb:
