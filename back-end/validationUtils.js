@@ -39,6 +39,11 @@ const validationSchemas = {
         .notEmpty().withMessage('new Password is required')
         .isLength({ min: 5, max: 40 }).withMessage('Password must be between 5 and 40 characters'),
 
+    apiKey: () => body('apiKey')
+        .trim()
+        .notEmpty().withMessage('API Key is required')
+        .matches(/^[a-zA-Z0-9]+$/).withMessage('API Key should only contain letters and numbers'),
+
     // Subscription Plan Validation
     subscriptionPlan: () => body('subscriptionPlan')
         .isInt({ min: 1, max: 2 }).withMessage('Invalid subscription plan')

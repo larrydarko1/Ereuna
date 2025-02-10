@@ -3,14 +3,22 @@
     <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/owl.png" alt="">
     <div class="input-with-icon">
       <input class="form-input" placeholder="Username" type="username">
-      <img class="icon" src="@/assets/icons/username.png" alt="">
+      <img class="icon" src="@/assets/icons/username2.png" alt="">
     </div>
     <div class="input-with-icon">
-    <input class="form-input" placeholder="Password" :type="passwordFieldType">
-    <img class="icon" src="@/assets/icons/password.png" alt="">
-    <button class="toggle-password" @click="togglePasswordVisibility">
-      {{ passwordFieldType === 'password' ? 'Show' : 'Hide' }}
-    </button>
+    <input class="form-input" placeholder="Password" :type="showPassword ? 'text' : 'password'" >
+    <img class="icon" src="@/assets/icons/password2.png" alt="">
+    <button 
+  type="button" 
+  class="toggle-password" 
+  @click="showPassword = !showPassword"
+>
+  <img 
+    :src="showPassword ? hideIcon : showIcon" 
+    alt="Toggle Password Visibility" 
+    class="toggle-icon"
+  >
+</button>
   </div>
   <div 
   class="custom-checkbox" 
@@ -56,15 +64,19 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import hideIcon from '@/assets/icons/hide.png';
+import showIcon from '@/assets/icons/show.png';
 
 const router = useRouter();
-
+const apiKey = import.meta.env.VITE_EREUNA_KEY; // Access the API key
+console.log(apiKey);
 const usernameError = ref(false);
 const passwordError = ref(false);
 const fieldsError = ref(false);
 const welcomePopup = ref(false);
 const rememberMe = ref(false);
 const welcomeMessage = ref('');
+const showPassword = ref(false);
 
 async function login() {
   const usernameInput = document.querySelector('input[placeholder="Username"]');
@@ -94,7 +106,8 @@ async function login() {
       body: JSON.stringify({
         username,
         password,
-        rememberMe: rememberMe.value 
+        rememberMe: rememberMe.value,
+        apiKey // Include the API key in the payload
       })
     });
     
@@ -120,13 +133,6 @@ async function login() {
   } catch (error) {
   }
 }
-
-const passwordFieldType = ref('password');
-
-function togglePasswordVisibility() {
-  passwordFieldType.value = passwordFieldType.value === 'password' ? 'text' : 'password';
-}
-
 </script>
 
 <style scoped>
@@ -148,13 +154,17 @@ function togglePasswordVisibility() {
   margin: 7px;
   width: 100%;
   outline: none;
+  color: whitesmoke; /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
   border: solid 1px #171728;
+  background-color:#2c2b3e;
 }
 
 .form-input:focus {
-  border-color: #8c8dfe;
+  border-color: #8c8dfe; /* Change border color on focus */
+  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
+  outline: none; /* Remove default outline */
 }
-
 .login-form {
   display: flex;
   flex-direction: column;
@@ -335,6 +345,11 @@ function togglePasswordVisibility() {
 .custom-checkbox.checked .label-text {
   opacity: 1; /* Full opacity when checked */
   color: whitesmoke;
+}
+
+.toggle-icon {
+  width: 15px; /* Adjust the size as needed */
+  cursor: pointer; /* Change cursor to pointer on hover */
 }
 
 </style>
