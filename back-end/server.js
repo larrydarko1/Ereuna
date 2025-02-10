@@ -28,7 +28,7 @@ dotenv.config();
 
 // CORS and Rate Limiting
 const allowedOrigins = [
-  'http://localhost:80',
+  'http://localhost',
   'http://frontend:80',
   'https://ereuna.co',
   'https://www.ereuna.co'
@@ -73,10 +73,7 @@ app.use(helmet({
 }));
 
 const corsOptions = {
-  origin: allowedOrigins,
   methods: ['GET', 'POST', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true,
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
 
@@ -112,18 +109,17 @@ const bruteForceProtection = rateLimit({
 });
 
 // Apply CORS and Brute Force Protection (max 10 requests per minute)
-app.use(cors(corsOptions));
-app.use('/login', bruteForceProtection);  //this works, let's manipulate rate limiting on all these other endpoints except the resource intensive ones
-app.use('/signup', bruteForceProtection);
-app.use('/verify', bruteForceProtection);
-app.use('/recover', bruteForceProtection);
-app.use('/generate-key', bruteForceProtection);
-app.use('/download-key', bruteForceProtection);
-app.use('/retrieve-key', bruteForceProtection);
-app.use('/password-change', bruteForceProtection);
-app.use('/change-password2', bruteForceProtection);
-app.use('/change-username', bruteForceProtection);
-app.use('/account-delete', bruteForceProtection);
+app.use('/login', cors(corsOptions), bruteForceProtection);
+app.use('/signup', cors(corsOptions), bruteForceProtection);
+app.use('/verify', cors(corsOptions), bruteForceProtection);
+app.use('/recover', cors(corsOptions), bruteForceProtection);
+app.use('/generate-key', cors(corsOptions), bruteForceProtection);
+app.use('/download-key', cors(corsOptions), bruteForceProtection);
+app.use('/retrieve-key', cors(corsOptions), bruteForceProtection);
+app.use('/password-change', cors(corsOptions), bruteForceProtection);
+app.use('/change-password2', cors(corsOptions), bruteForceProtection);
+app.use('/change-username', cors(corsOptions), bruteForceProtection);
+app.use('/account-delete', cors(corsOptions), bruteForceProtection);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
