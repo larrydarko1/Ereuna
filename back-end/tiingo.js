@@ -1,136 +1,38 @@
-const express = require('express');
-const fetch = require('node-fetch');
-require('dotenv').config();
+import fetch from 'node-fetch';
+import dotenv from 'dotenv';
+import { MongoClient } from 'mongodb';
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+dotenv.config();
 
 // Set your API key here
 const API_KEY = process.env.API_KEY;
-const ticker = 'AAPL';
+const mongoURI = process.env.MONGODB_URI; // MongoDB connection string from environment variables
 
-// Define routes for each functionality
-app.get('/summary', async (req, res) => {
+async function getSummary(req, res) {
+    const ticker = 'AAPL'; // Hardcoded ticker value
     const url = `https://api.tiingo.com/tiingo/daily/${ticker}?token=${API_KEY}`;
+    
     try {
         const response = await fetch(url);
         const data = await response.json();
+
+        // Log the fetched data for review
+        console.log('Fetched Data:', data);
+
+        // Connect to MongoDB
+        const client = new MongoClient(mongoURI);
+        await client.connect();
+        const database = client.db('your_database_name'); // Replace with your database name
+        const collection = database.collection('your_collection_name'); // Replace with your collection name
+
+        // Insert the fetched data into the database
+        await collection.insertOne(data);
+
         res.json(data);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.json({ error: error.message });
     }
-});
+}
 
-app.get('/prices', async (req, res) => {
-    const url = `https://api.tiingo.com/tiingo/daily/${ticker}/prices?token=${API_KEY}`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/historical', async (req, res) => {
-    const url = `https://api.tiingo.com/tiingo/daily/${ticker}/prices?token=${API_KEY}&startDate=2012-01-01&endDate=2016-01-01`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/news', async (req, res) => {
-    const url = `https://api.tiingo.com/tiingo/news?token=${API_KEY}&tickers=${ticker}`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/fundamentals', async (req, res) => {
-    const url = `https://api.tiingo.com/tiingo/fundamentals/${ticker}/statements?token=${API_KEY}`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/daily-ratios', async (req, res) => {
-    const url = `https://api.tiingo.com/tiingo/fundamentals/${ticker}/daily?token=${API_KEY}`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/dividends', async (req, res) => {
-    const url = `https://api.tiingo.com/tiingo/corporate-actions/${ticker}/distributions?token=${API_KEY}`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/yield', async (req, res) => {
-    const url = `https://api.tiingo.com/tiingo/corporate-actions/${ticker}/distribution-yield?token=${API_KEY}`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/splits', async (req, res) => {
-    const url = `https://api.tiingo.com/tiingo/corporate-actions/${ticker}/splits?token=${API_KEY}`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/future-dividends', async (req, res) => {
-    const url = `https://api.tiingo.com/tiingo/corporate-actions/distributions?token=${API_KEY}`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/future-splits', async (req, res) => {
-    const url = `https://api.tiingo.com/tiingo/corporate-actions/cvs/splits?token=${API_KEY}&startExDate=2024-12-31`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+// Export the function for use in the server
+export { getSummary };

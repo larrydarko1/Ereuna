@@ -22,6 +22,7 @@ import {
   param,
   sanitizeInput
 } from './validationUtils.js';
+import './scheduler.js'; // Import the scheduler to start the cron job
 
 dotenv.config();
 
@@ -111,7 +112,7 @@ const bruteForceProtection = rateLimit({
 });
 
 // Apply CORS and Brute Force Protection (max 10 requests per minute)
-app.use(cors());
+app.use(cors(corsOptions));
 app.use('/login', bruteForceProtection);  //this works, let's manipulate rate limiting on all these other endpoints except the resource intensive ones
 app.use('/signup', bruteForceProtection);
 app.use('/verify', bruteForceProtection);
