@@ -485,7 +485,8 @@ app.post('/login',
   validate([
     validationSchemas.username(),
     validationSchemas.password(),
-    validationSchemas.rememberMe()
+    validationSchemas.rememberMe(),
+    validationSchemas.apiKey()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -497,8 +498,19 @@ app.post('/login',
     });
 
     try {
-      const { username, password, rememberMe } = req.body;
+      const { username, password, rememberMe, apiKey } = req.body;
 
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        requestLogger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Validate input fields are not empty
       if (!username || !password) {
         requestLogger.warn('Login attempt with missing fields', {
