@@ -1,7 +1,7 @@
 <template>
   <div class="landing-page">
     <!-- Navbar -->
-    <div class="navbar">
+    <div class="navbar" style="min-width: 900px;">
   <img class="icon" src="@/assets/icons/owl.png" alt="Owl Icon">
   <div class="nav-links">
     <div class="navbtn" @click="scrollToSection('about')">About</div>
@@ -23,10 +23,12 @@
     Your browser does not support the video tag.
   </video>
   <div class="hero-text" style="text-align: center;">
-    <h1 class="hero-title">Unlock Smarter Investing with Ereuna</h1>
+    <h1 class="hero-title">
+    Unlock Smarter Investing with <span class="hero-title" style="color: #8c8dfe;">Ereuna</span>
+</h1>
     <p class="hero-subtitle">Get the insights you need to succeed in the market without breaking the bank. Our platform offers essential features and data for mid-to-long term investors, all at a fraction of the cost of traditional solutions.</p>
     <br>
-    <p style="color: #D3D3D3;"> 5.99€ / Month - No Commitment, Cancel Anytime</p>
+    <p style="color: #8c8dfe;"> 5.99€ / Month <span style="color: whitesmoke;">- No Commitment, Cancel Anytime</span></p>
   </div>
   </div>
 
@@ -34,9 +36,10 @@
      <br>
     <div class="content-section3" id="about">
       <h2 style="text-align: center; font-size: 20px; color: whitesmoke;">ABOUT</h2>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla vel justo nec nisi tincidunt tincidunt.
-        Vivamus euismod, nisi nec tincidunt tincidunt, nisi nisl tincidunt nisi, nec tincidunt nisi nisl nec nisi.
+      <p class="text">
+        As a seasoned trader with years of experience, I created this stock screener as a personal tool to streamline my own investment research and decision-making process. Initially designed to meet my own needs, I soon realized that the platform had the potential to benefit others who, like me, were looking for a reliable and affordable solution.</p>
+<p class="text">
+Rather than keeping it exclusive to my own use, I decided to commercialize the platform, making it accessible to fellow traders and investors at a fraction of the cost of similar tools on the market. As a solo developer, I'm committed to providing a high-quality product that is both effective and affordable.
       </p>
     </div>
 
@@ -45,9 +48,7 @@
       <h2 style="text-align: center; font-size: 20px; color: whitesmoke;">PARTNERS</h2>
       <br>
       <div style="display: flex; justify-content: center; align-items: center; gap: 70px;">
-    <img class="logo" src="@/assets/images/logos/intrinio.png" alt="">
-    <img class="logo" src="@/assets/images/logos/tradingview.png" alt="">
-    <img class="logo" src="@/assets/images/logos/intrinio.png" alt="">
+    <img class="logo" src="@/assets/images/logos/tiingo.png" alt="">
     <img class="logo" src="@/assets/images/logos/tradingview.png" alt="">
 </div>
        
@@ -58,10 +59,10 @@
       <h2 style="text-align: center; font-size: 20px; color: whitesmoke;">FEATURES</h2>
       <div class="feature-cards">
         <div class="feature-card">
-          <h3 class="feature">Privacy Focused</h3>
-          <p>• GDPR Compliant: Our platform is fully compliant with the European Union's General Data Protection Regulation (GDPR), ensuring that we meet the highest standards for data protection and user privacy.</p>
-          <p>• Minimal Data Collection: We respect your right to anonymity and do not ask for personal information by default, such as full name, address, email, or phone number. This approach minimizes the amount of data we collect and reduces the risk of data breaches.</p>
-          <p>• Bare Minimum Data Storage: We only store the minimal amount of data necessary to provide our services and do not log any information beyond what is necessary to maintain the security and functionality of our platform, reducing the risk of data exposure and protecting your sensitive information.</p>
+          <h3 class="feature">Data, Simplified</h3>
+          <p>• Personalized Stock Universe: Our platform allows you to customize your stock universe by hiding or showing irrelevant stocks, tailoring the data to your individual investment needs and preferences.</p>
+          <p>• Turbocharged Stock Screening: Our advanced data aggregation tools enable you to combine multiple screeners and remove duplicates and hidden stocks, significantly speeding up your research process and saving you time.</p>
+          <p>• One-Click Multi-Screener Analysis: Say goodbye to tedious manual screening and hello to streamlined analysis. Our platform allows you to run multiple screeners simultaneously, providing a comprehensive view of your desired stocks in a single click.</p>
         </div>
         <div class="feature-card">
           <h3 class="feature">Unbeatable Pricing</h3>
@@ -70,10 +71,10 @@
           <p>• No Frills, Just Results: We're committed to providing the essential features and data you need to succeed, without the unnecessary bells and whistles that drive up costs. This approach enables us to deliver exceptional value to our users.</p>
         </div>
         <div class="feature-card">
-          <h3 class="feature">Data, Simplified</h3>
-          <p>• Personalized Stock Universe: Our platform allows you to customize your stock universe by hiding or showing irrelevant stocks, tailoring the data to your individual investment needs and preferences.</p>
-          <p>• Turbocharged Stock Screening: Our advanced data aggregation tools enable you to combine multiple screeners and remove duplicates and hidden stocks, significantly speeding up your research process and saving you time.</p>
-          <p>• One-Click Multi-Screener Analysis: Say goodbye to tedious manual screening and hello to streamlined analysis. Our platform allows you to run multiple screeners simultaneously, providing a comprehensive view of your desired stocks in a single click.</p>
+          <h3 class="feature">Privacy Focused</h3>
+          <p>• GDPR Compliant: Our platform is fully compliant with the European Union's General Data Protection Regulation (GDPR), ensuring that we meet the highest standards for data protection and user privacy.</p>
+          <p>• Minimal Data Collection: We respect your right to anonymity and do not ask for personal information by default, such as full name, address, email, or phone number. This approach minimizes the amount of data we collect and reduces the risk of data breaches.</p>
+          <p>• Bare Minimum Data Storage: We only store the minimal amount of data necessary to provide our services and do not log any information beyond what is necessary to maintain the security and functionality of our platform, reducing the risk of data exposure and protecting your sensitive information.</p>
         </div>
       </div>
     </div>
@@ -389,14 +390,14 @@ function closePrivacyModal() {
   z-index: 1;
   color: #D3D3D3;
   text-align: center;
-  font-size: 45px;
+  font-size: 50px;
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Add a subtle text shadow */
 }
 
 .hero-subtitle {
   max-width: 500px; /* Adjust the width to create a reverse pyramid effect */
   margin: 0 auto; /* Center the subtitle */
-  font-size: 15px;
+  font-size: 17px;
   color: #D3D3D3;
   text-align: center;
 }
@@ -533,7 +534,7 @@ a:hover{
 .navbtn3 {
   border: none; /* Remove default border */
   border-radius: 25px; /* Rounded corners */
-  background-color: #1d1c29; /* Button background color */
+  background-color: transparent; /* Button background color */
   color: whitesmoke; /* Text color */
   padding: 10px 20px; /* Padding for better spacing */
   font-size: 16px; /* Font size */
@@ -693,4 +694,10 @@ a:hover{
     color: whitesmoke; /* Ensure text color is readable */
 }
   
+.text{
+  font-size: 14px;
+  padding: 0 100px;
+  text-align: center;
+}
+
   </style>
