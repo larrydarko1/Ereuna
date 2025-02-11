@@ -75,8 +75,6 @@ app.use(helmet({
 const corsOptions = {
   methods: ['GET', 'POST', 'DELETE', 'PATCH'],
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -481,12 +479,12 @@ app.get('/verify', (req, res) => {
 });
 
 // Endpoint for user login
-app.post('/login',
+app.post('/login/:apiKey',
   validate([
     validationSchemas.username(),
     validationSchemas.password(),
     validationSchemas.rememberMe(),
-    validationSchemas.apiKey()
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -498,7 +496,8 @@ app.post('/login',
     });
 
     try {
-      const { username, password, rememberMe, apiKey } = req.body;
+      const { username, password, rememberMe } = req.body;
+      const apiKey = req.params.apiKey;
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -1870,12 +1869,26 @@ app.get('/get-expiration-date',
 );
 
 //endpoint to display info results
-app.get('/chart/:identifier', validate([
-  validationSchemas.identifier()
+app.get('/chart/:identifier/:apiKey', validate([
+  validationSchemas.identifier(),
+  validationSchemas.apiKeyParam()
 ]),
   async (req, res) => {
     const identifier = req.params.identifier.toUpperCase();
+    const apiKey = req.params.apiKey;
     let client;
+
+    const sanitizedKey = sanitizeInput(apiKey);
+
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
+    
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
+    }
 
     try {
       // Log the attempt with obfuscated identifier

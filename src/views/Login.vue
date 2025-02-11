@@ -68,8 +68,7 @@ import hideIcon from '@/assets/icons/hide.png';
 import showIcon from '@/assets/icons/show.png';
 
 const router = useRouter();
-const apiKey = import.meta.env.VITE_EREUNA_KEY; // Access the API key
-console.log(apiKey);
+const apiKey = import.meta.env.VITE_EREUNA_KEY;
 const usernameError = ref(false);
 const passwordError = ref(false);
 const fieldsError = ref(false);
@@ -98,7 +97,7 @@ async function login() {
   }
 
   try {
-    const response = await fetch('/api/login', {
+    const response = await fetch(`/api/login/${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -107,13 +106,13 @@ async function login() {
         username,
         password,
         rememberMe: rememberMe.value,
-        apiKey // Include the API key in the payload
       })
     });
     
     const responseBody = await response.json();
 
     if (response.ok) {
+      //add welcome message here
       const token = responseBody.token;
       localStorage.setItem('token', token);
       router.push({ name: 'Charts' });
