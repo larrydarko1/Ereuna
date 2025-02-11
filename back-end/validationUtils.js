@@ -75,6 +75,12 @@ const validationSchemas = {
         .isLength({ min: 1, max: 12 }).withMessage('Identifier must be between 1 and 12 characters')
         .matches(/^[A-Z0-9]+$/).withMessage('Identifier must be uppercase alphanumeric'),
 
+    apiKeyParam: () => param('apiKey')
+        .trim()
+        .notEmpty().withMessage('API Key is required')
+        .matches(/^[a-zA-Z0-9]+$/).withMessage('API Key should only contain letters and numbers'),
+
+
     symbol: (fieldName = 'symbol') => param(fieldName)
         .trim()
         .notEmpty().withMessage('Symbol is required')

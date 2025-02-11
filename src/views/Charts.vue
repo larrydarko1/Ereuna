@@ -505,6 +505,7 @@ import { useStore } from 'vuex';
 // access user from store 
 const store = useStore();
 let user = store.getters.getUser;
+const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 // status for loading bars 
 const isLoading2 = ref(true);
@@ -608,7 +609,7 @@ async function fetchUserDefaultSymbol() {
   try {
     if (!user) return null;
 
-    const response = await fetch(`/api/${user}/default-symbol`);
+    const response = await fetch(`/api/${user}/default-symbol/${apiKey}`);
     if (!response.ok) throw new Error('Failed to fetch default symbol');
 
     const data = await response.json();
@@ -622,7 +623,7 @@ async function updateUserDefaultSymbol(symbol) {
   try {
     if (!user) return;
 
-    const response = await fetch(`/api/${user}/update-default-symbol`, {
+    const response = await fetch(`/api/${user}/update-default-symbol/${apiKey}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ defaultSymbol: symbol })
@@ -680,7 +681,7 @@ async function searchTicker(providedSymbol) {
     let symbol;
     {
       symbol = (searchbar.value || defaultSymbol).toUpperCase(); 
-      response = await fetch(`/api/chart/${symbol}`); 
+      response = await fetch(`/api/chart/${symbol}/${apiKey}`); 
 
       if (response.status === 404) {
         notification.value.show('Ticker not Found');
@@ -979,7 +980,7 @@ async function searchNotes() {
     const Username = user;
     const searchbar = document.getElementById('searchbar');
     const symbol = searchbar.value || defaultSymbol;
-    const response = await fetch(`/api/${Username}/${symbol}/notes`);
+    const response = await fetch(`/api/${Username}/${symbol}/notes/${apiKey}`);
     const data = await response.json();
     BeautifulNotes.value = data;
   } catch (err) {
@@ -1000,7 +1001,7 @@ async function sendNote() {
 
   if (note.trim() !== '') {
     try {
-      const response = await fetch(`/api/${symbol}/notes`, {
+      const response = await fetch(`/api/${symbol}/notes/${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ note, Username: user }), 
@@ -1027,7 +1028,7 @@ async function removeNote(_id, note) {
   const noteId = _id;
 
   try {
-    const response = await fetch(`/api/${symbol}/notes/${noteId}?user=${Username}`, {
+    const response = await fetch(`/api/${symbol}/notes/${noteId}?user=${Username}/${apiKey}`, {
       method: 'DELETE',
     });
     if (response.ok) {
@@ -1044,7 +1045,7 @@ async function showTicker() {
     let symbol;
     {
       symbol = defaultSymbol;
-      const response = await fetch(`/api/chart/${symbol}`);
+      const response = await fetch(`/api/chart/${symbol}/${apiKey}`);
       const data = await response.json();
 
       assetInfo.Name = data.Name;
@@ -1103,7 +1104,7 @@ async function showTicker() {
 async function fetchEarningsDate() {
   try {
     let ticker = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${ticker}/earningsdate`);
+    const response = await fetch(`/api/${ticker}/earningsdate/${apiKey}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1134,7 +1135,7 @@ async function fetchEarningsDate() {
 async function fetchSplitsDate() {
   try {
     let ticker = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${ticker}/splitsdate`);
+    const response = await fetch(`/api/${ticker}/splitsdate/${apiKey}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1168,7 +1169,7 @@ const SPLITdates = ref([]); // Splits Data - just date
 async function fetchData() {
   try {
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data`);
+    const response = await fetch(`/api/${symbol}/data/${apiKey}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1185,7 +1186,7 @@ async function fetchData() {
 async function fetchData2() {
   try {
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data2`);
+    const response = await fetch(`/api/${symbol}/data2/${apiKey}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1203,7 +1204,7 @@ async function fetchData2() {
 async function fetchData3() {
   try {
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data3`);
+    const response = await fetch(`/api/${symbol}/data3/${apiKey}`);
     
     if (!response.ok) {
       data3.value = null; // Explicitly set to null if response is not ok
@@ -1230,7 +1231,7 @@ async function fetchData3() {
 async function fetchData4() {
   try {
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data4`);
+    const response = await fetch(`/api/${symbol}/data4/${apiKey}`);
     
     if (!response.ok) {
       data4.value = null; // Explicitly set to null if response is not ok
@@ -1257,7 +1258,7 @@ async function fetchData4() {
 async function fetchData5() {
   try {
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data5`);
+    const response = await fetch(`/api/${symbol}/data5/${apiKey}`);
     
     if (!response.ok) {
       data5.value = null; // Explicitly set to null if response is not ok
@@ -1284,7 +1285,7 @@ async function fetchData5() {
 async function fetchData6() {
   try {
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data6`);
+    const response = await fetch(`/api/${symbol}/data6/${apiKey}`);
     
     if (!response.ok) {
       data6.value = null; // Explicitly set to null if response is not ok
@@ -1311,7 +1312,7 @@ async function fetchData6() {
 async function fetchData7() {
   try {
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data7`);
+    const response = await fetch(`/api/${symbol}/data7/${apiKey}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1329,7 +1330,7 @@ async function fetchData7() {
 async function fetchData8() {
   try {
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data8`);
+    const response = await fetch(`/api/${symbol}/data8/${apiKey}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1347,7 +1348,7 @@ async function fetchData8() {
 async function fetchData9() {
   try {
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data9`);
+    const response = await fetch(`/api/${symbol}/data9/${apiKey}`);
     
     if (!response.ok) {
       data9.value = null; // Explicitly set to null if response is not ok
@@ -1374,7 +1375,7 @@ async function fetchData9() {
 async function fetchData10() {
   try {
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data10`);
+    const response = await fetch(`/api/${symbol}/data10/${apiKey}`);
     
     if (!response.ok) {
       data10.value = null; // Explicitly set to null if response is not ok
@@ -1401,7 +1402,7 @@ async function fetchData10() {
 async function fetchData11() {
   try {
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data11`);
+    const response = await fetch(`/api/${symbol}/data11/${apiKey}`);
     
     if (!response.ok) {
       data11.value = null; // Explicitly set to null if response is not ok
@@ -1428,7 +1429,7 @@ async function fetchData11() {
 async function fetchData12() {
   try {
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data12`);
+    const response = await fetch(`/api/${symbol}/data12/${apiKey}`);
     
     if (!response.ok) {
       data12.value = null; // Explicitly set to null if response is not ok
@@ -2022,7 +2023,7 @@ async function getWatchlists() {
       return;
     }
     try {
-      const response = await fetch(`/api/${user}/watchlists`);
+      const response = await fetch(`/api/${user}/watchlists/${apiKey}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -2056,7 +2057,7 @@ async function filterWatchlist(watch) {
   }
   
   try {
-    const response = await fetch(`/api/${user}/watchlists/${selectedWatchlist.value.Name}`);
+    const response = await fetch(`/api/${user}/watchlists/${selectedWatchlist.value.Name}/${apiKey}`);
     const data = await response.json();
     watchlist2.tickers = data;
     isLoading2.value = true;
@@ -2077,7 +2078,7 @@ const ImagePaths = ref([]);
 // Async function to fetch symbols and exchanges and fills ImagePaths 
 async function fetchSymbolsAndExchanges() {
   try {
-    const response = await fetch('/api/symbols-exchanges');
+    const response = await fetch(`/api/symbols-exchanges/${apiKey}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -2110,7 +2111,7 @@ function getImagePath(item) {
 
 async function getData(item) {
   try {
-    const response = await fetch(`/api/${item}/data-values`);
+    const response = await fetch(`/api/${item}/data-values/${apiKey}`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -2143,7 +2144,7 @@ async function CreateWatchlist() {
   }
 
   try {
-    const response = await fetch(`/api/${user}/create/watchlists/${watchlistName}`, {
+    const response = await fetch(`/api/${user}/create/watchlists/${watchlistName}/${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
@@ -2188,7 +2189,7 @@ async function UpdateWatchlist() {
   }
 
   try {
-    const response = await fetch(`/api/${user}/rename/watchlists/${selectedWatchlist.value.Name}`, {
+    const response = await fetch(`/api/${user}/rename/watchlists/${selectedWatchlist.value.Name}/${apiKey}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ newname: watchlistName })
@@ -2217,7 +2218,7 @@ async function DeleteWatchlist(watch) {
   const currentWatchlistName = watch.Name;
 
   // Set up the API request
-  const apiUrl = `/api/${user}/delete/watchlists/${currentWatchlistName}`; 
+  const apiUrl = `/api/${user}/delete/watchlists/${currentWatchlistName}/${apiKey}`; 
   const requestOptions = {
     method: 'DELETE',
     headers: {
@@ -2259,7 +2260,7 @@ async function deleteTicker(item) {
   };
 
   try {
-    const response = await fetch(`/api/${user}/deleteticker/watchlists/${patchData.watchlist}/${patchData.ticker}`, { 
+    const response = await fetch(`/api/${user}/deleteticker/watchlists/${patchData.watchlist}/${patchData.ticker}/${apiKey}`, { 
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'
@@ -2309,7 +2310,7 @@ async function addWatchlist() {
       }
 
       // Check if the symbol is valid by making a request to the API
-      const response = await fetch(`/api/chart/${symbol}`);
+      const response = await fetch(`/api/chart/${symbol}/${apiKey}`);
       if (response.status === 404) {
         // Ticker not found
         notification.value.show('Ticker not found');
@@ -2521,7 +2522,7 @@ async function UpdateWatchlistOrder() {
       newListOrder,
     };
 
-    const response = await fetch(`/api/watchlists/update-order/${user}/${selectedOption}`, {
+    const response = await fetch(`/api/watchlists/update-order/${user}/${selectedOption}/${apiKey}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -2557,7 +2558,7 @@ async function addtoWatchlist(ticker, symbol, $event) {
   user = user;
   const isAdding = isChecked;
   try {
-    const response = await fetch(`/api/watchlist/addticker/${isAdding ? 'true' : 'false'}`, {
+    const response = await fetch(`/api/watchlist/addticker/${isAdding ? 'true' : 'false'}/${apiKey}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -2611,7 +2612,7 @@ const updateCheckbox = (ticker, symbol, $event) => {
 const FullWatchlists = ref([]);
 
 async function getFullWatchlists(user){
-  const response = await fetch(`/api/${user}/full-watchlists`)
+  const response = await fetch(`/api/${user}/full-watchlists/${apiKey}`)
   FullWatchlists.value = await response.json()
 };
 getFullWatchlists(user);
@@ -2639,7 +2640,7 @@ const hiddenList = ref([]);
 async function fetchHiddenList() {
   user=user
   try {
-    const response = await fetch(`/api/${user}/hidden`);
+    const response = await fetch(`/api/${user}/hidden/${apiKey}`);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

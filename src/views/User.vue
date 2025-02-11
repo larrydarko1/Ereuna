@@ -262,6 +262,7 @@ import owlImage from '@/assets/icons/owl3.png';
 
 const store = useStore();
 const user = store.getters.getUser;
+const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 const router = useRouter();
 
@@ -326,7 +327,7 @@ async function changePassword() {
   }
 
   try {
-    const response = await fetch('/api/password-change', {
+    const response = await fetch(`/api/password-change/${apiKey}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ oldPassword: oldPassword.value, newPassword: newPassword.value, user: user }),
@@ -373,7 +374,7 @@ async function changeUsername() {
   }
 
   try {
-    const response = await fetch('/api/change-username', {
+    const response = await fetch(`/api/change-username/${apiKey}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ newUsername: newUsername.value, user: user }),
@@ -418,7 +419,7 @@ async function deleteAccount() {
   }
 
   try {
-    const response = await fetch('/api/account-delete', {
+    const response = await fetch(`/api/account-delete/${apiKey}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user: user, password: PswDelete.value }),
@@ -463,7 +464,7 @@ async function GenerateNewKey() {
 
   try {
     // Call the generate-key endpoint
-    const response = await fetch('/api/generate-key', {
+    const response = await fetch(`/api/generate-key/${apiKey}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -520,7 +521,7 @@ const expirationDays = ref(null);
 // Create a function to get the expiration date
 async function getExpirationDate() {
   try {
-    const response = await fetch(`/api/get-expiration-date?user=${encodeURIComponent(user)}`, {
+    const response = await fetch(`/api/get-expiration-date?user=${encodeURIComponent(user)}/${apiKey}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -564,6 +565,7 @@ function selectPaymentMethod(method) {
 
 onMounted(() => {
   selectOption(1); // Set default subscription option
+  selectPay(4);
 });
 
 // Add this with the other refs at the top of the script
@@ -576,7 +578,7 @@ async function GetReceipts() {
   loading.value = true;
   error.value = null;
   try {
-    const response = await fetch(`/api/get-receipts/${user}`, {
+    const response = await fetch(`/api/get-receipts/${user}/${apiKey}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });

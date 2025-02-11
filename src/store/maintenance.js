@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia';
 
+const apiKey = import.meta.env.VITE_EREUNA_KEY; // Add apiKey
+
 export const useMaintenanceStore = defineStore('maintenance', {
     state: () => ({
         isUnderMaintenance: false
@@ -7,7 +9,7 @@ export const useMaintenanceStore = defineStore('maintenance', {
     actions: {
         async checkMaintenanceStatus() {
             try {
-                const response = await fetch('/api/maintenance-status');
+                const response = await fetch(`/api/maintenance-status/${apiKey}`);
 
                 if (!response.ok) {
                     throw new Error('Network response was not ok');

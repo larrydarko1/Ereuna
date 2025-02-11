@@ -36,12 +36,13 @@
   const errorMessage = ref('');
   const successMessage = ref('');
   const router = useRouter();
+  const apiKey = import.meta.env.VITE_EREUNA_KEY;
   
   const validateRecoveryKey = async () => {
   try {
     const key = recoveryKey.value; // Use a different variable name to avoid confusion
 
-    const response = await fetch('/api/recover', {
+    const response = await fetch(`/api/recover/${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -73,7 +74,7 @@
   
 const changePassword = async () => {
   try {
-    const response = await fetch('/api/change-password2', {
+    const response = await fetch(`/api/change-password2/${apiKey}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -139,13 +140,18 @@ input {
   border-radius: 25px;
   padding: 5px;
   margin: 7px;
-  width: 190%;
+  width: 190%; /* Adjusted width to 100% */
   outline: none;
+  color: whitesmoke; /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
   border: solid 1px #171728;
+  background-color: #2c2b3e; /* Dark background color */
 }
 
 input:focus {
-  border-color: #8c8dfe;
+  border-color: #8c8dfe; /* Change border color on focus */
+  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
+  outline: none; /* Remove default outline */
 }
 
 button {

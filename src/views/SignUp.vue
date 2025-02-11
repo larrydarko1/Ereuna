@@ -239,6 +239,7 @@ import NotificationPopup from '@/components/NotificationPopup.vue';
 import hideIcon from '@/assets/icons/hide.png';
 import showIcon from '@/assets/icons/show.png';
 
+const apiKey = import.meta.env.VITE_EREUNA_KEY;
 const showTerms = ref(false);
 const showPrivacy = ref(false);
 let selectedOption = ref(1);
@@ -396,14 +397,14 @@ async function SignUp() {
       password: password.value,
       subscriptionPlan: selectedOption.value,
       paymentMethodId,
-      return_url: `${window.location.origin}/payment-completion`,
+      return_url: `${window.location.origin}/payment-completion/${apiKey}`,
     };
 
     if (PromoCode.value && PromoCode.value.trim() !== '') {
       payload.promoCode = PromoCode.value.trim();
     }
 
-    const response = await fetch('/api/signup', {
+    const response = await fetch(`/api/signup/${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -452,6 +453,7 @@ async function SignUp() {
 
 onMounted(() => {
   selectOption(1); // Set default subscription option
+  selectPay(4)
 });
 </script>
 
