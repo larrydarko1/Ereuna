@@ -161,17 +161,31 @@ try {
 export default app;
 
 // endpoint that creates users / assuming payment has been successful on client-side 
-app.post('/signup',
+app.post('/signup/:apiKey',
   validate([
     ...validationSets.registration,
     validationSchemas.paymentMethodId(),
-    validationSchemas.promoCode()
+    validationSchemas.promoCode(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     const requestLogger = createRequestLogger(req);
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const { username, password, subscriptionPlan, paymentMethodId, return_url, promoCode } = req.body;
       const sanitizedUsername = sanitizeInput(username);
       const sanitizedPromoCode = promoCode ? sanitizeInput(promoCode) : null;
@@ -383,7 +397,20 @@ function handleError(error, logger, req) {
 }
 
 // Endpoint for verifying the token
-app.get('/verify', (req, res) => {
+app.get('/verify/:apiKey', (req, res) => {
+  const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
   // Extract token from Authorization header
   const authHeader = req.headers['authorization'];
 
@@ -502,7 +529,7 @@ app.post('/login/:apiKey',
       const sanitizedKey = sanitizeInput(apiKey);
 
       if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-        requestLogger.warn('Invalid API key', {
+        logger.warn('Invalid API key', {
           providedApiKey: !!sanitizedKey
         });
       
@@ -646,9 +673,10 @@ app.post('/login/:apiKey',
 );
 
 //endpoint that allows for password reset
-app.post('/recover',
+app.post('/recover/:apiKey',
   validate([
-    validationSchemas.recoveryKey()
+    validationSchemas.recoveryKey(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -660,6 +688,19 @@ app.post('/recover',
     });
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const { recoveryKey } = req.body;
 
       // Validate and sanitize input
@@ -776,10 +817,11 @@ app.post('/recover',
 );
 
 // endpoint that generates a new recovery key upon validation 
-app.patch('/generate-key',
+app.patch('/generate-key/:apiKey',
   validate([
     validationSchemas.user(),
-    validationSchemas.password()
+    validationSchemas.password(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     const requestLogger = logger.child({
@@ -791,6 +833,19 @@ app.patch('/generate-key',
 
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const { user, password } = req.body;
 
       // Sanitize and validate input
@@ -962,7 +1017,7 @@ app.patch('/generate-key',
 );
 
 // Endpoint to actually retrieve the key using the token
-app.get('/retrieve-key', async (req, res) => {
+app.get('/retrieve-key/:apiKey', async (req, res) => {
   // Create a child logger with request-specific context
   const requestLogger = logger.child({
     requestId: crypto.randomBytes(16).toString('hex'),
@@ -973,6 +1028,19 @@ app.get('/retrieve-key', async (req, res) => {
 
   let client;
   try {
+    const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
     const { token } = req.query;
 
     // Check if the token is provided
@@ -1050,11 +1118,12 @@ app.get('/retrieve-key', async (req, res) => {
 });
 
 // endpoint that updates user document with new password
-app.patch('/password-change',
+app.patch('/password-change/:apiKey',
   validate([
     validationSchemas.user(),
     validationSchemas.oldPassword(),
-    validationSchemas.newPassword()
+    validationSchemas.newPassword(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -1087,6 +1156,19 @@ app.patch('/password-change',
 
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const { oldPassword, newPassword, user } = req.body;
 
       // Additional sanitization
@@ -1236,10 +1318,11 @@ app.patch('/password-change',
 );
 
 //endpoint that changes password with recovery method 
-app.patch('/change-password2',
+app.patch('/change-password2/:apiKey',
   validate([
     validationSchemas.recoveryKey(),
-    validationSchemas.newPassword()
+    validationSchemas.newPassword(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -1251,6 +1334,19 @@ app.patch('/change-password2',
     });
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const { recoveryKey, newPassword } = req.body;
 
       // Validate input fields are not empty
@@ -1379,11 +1475,12 @@ app.patch('/change-password2',
 );
 
 // endpoint that updates username for user
-app.patch('/change-username',
+app.patch('/change-username/:apiKey',
   // Validation middleware
   validate([
     validationSchemas.user('user'),
-    validationSchemas.newUsername()
+    validationSchemas.newUsername(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -1396,6 +1493,19 @@ app.patch('/change-username',
 
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Destructure and sanitize inputs
       const { user, newUsername } = req.body;
       const sanitizedCurrentUsername = sanitizeInput(user);
@@ -1583,10 +1693,11 @@ app.patch('/change-username',
   }
 );
 
-app.delete('/account-delete',
+app.delete('/account-delete/:apiKey',
   validate([
     validationSchemas.user(),
-    validationSchemas.password()
+    validationSchemas.password(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -1599,6 +1710,19 @@ app.delete('/account-delete',
 
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Destructure and sanitize inputs
       const { user, password } = req.body;
       const sanitizedUsername = sanitizeInput(user);
@@ -1778,12 +1902,13 @@ app.delete('/account-delete',
 );
 
 // endpoint that retrieves expriation days for users (user section)
-app.get('/get-expiration-date',
+app.get('/get-expiration-date/:apiKey',
   validate([
     body('user')
       .optional() // removing this invalidates the check 
       .trim()
-      .notEmpty().withMessage('Username is required')
+      .notEmpty().withMessage('Username is required'),
+      validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     const username = req.query.user; // Keep original query parameter retrieval
@@ -1801,6 +1926,19 @@ app.get('/get-expiration-date',
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log attempt with obfuscated username
       logger.info({
         msg: 'Expiration Date Check',
@@ -1891,6 +2029,19 @@ app.get('/chart/:identifier/:apiKey', validate([
     }
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log the attempt with obfuscated identifier
       logger.info({
         msg: 'Chart Data Retrieval',
@@ -1962,11 +2113,12 @@ app.get('/chart/:identifier/:apiKey', validate([
 );
 
 // endpoint to create new notes 
-app.post('/:symbol/notes',
+app.post('/:symbol/notes/:apiKey',
   validate([
     validationSchemas.symbol('symbol'),
     validationSchemas.note('note'),
-    validationSchemas.Username('Username'),
+    validationSchemas.Username('Username'),,
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     const ticker = req.params.symbol.toUpperCase();
@@ -1979,6 +2131,19 @@ app.post('/:symbol/notes',
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log note creation attempt
       logger.info({
         msg: 'Note Creation Attempt',
@@ -2077,7 +2242,8 @@ app.post('/:symbol/notes',
 );
 
 // endpoint to search notes 
-app.get('/:user/:symbol/notes', validate(validationSets.notesSearch),
+app.get('/:user/:symbol/notes/:apiKey', validate(validationSets.notesSearch,
+  validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = req.params.symbol.toUpperCase();
     const Username = req.params.user;
@@ -2089,6 +2255,19 @@ app.get('/:user/:symbol/notes', validate(validationSets.notesSearch),
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log note search attempt
       logger.info({
         msg: 'Note Search Attempt',
@@ -2146,7 +2325,8 @@ app.get('/:user/:symbol/notes', validate(validationSets.notesSearch),
   });
 
 // endpoint to delete a note
-app.delete('/:symbol/notes/:noteId', validate(validationSets.notesDeletion),
+app.delete('/:symbol/notes/:noteId/:apiKey', validate(validationSets.notesDeletion,
+  validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = req.params.symbol.toUpperCase();
     const noteId = req.params.noteId;
@@ -2155,6 +2335,19 @@ app.delete('/:symbol/notes/:noteId', validate(validationSets.notesDeletion),
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log note deletion attempt
       logger.info({
         msg: 'Note Deletion Attempt',
@@ -2218,13 +2411,27 @@ app.delete('/:symbol/notes/:noteId', validate(validationSets.notesDeletion),
 );
 
 //this endpoint retrieves OHCL Data for the charts 
-app.get('/:ticker/data',
-  validate(validationSets.chartData),
+app.get('/:ticker/data/:apiKey',
+  validate(validationSets.chartData,
+    validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log the chart data request
       logger.info({
         msg: 'Chart Data Request',
@@ -2289,13 +2496,27 @@ app.get('/:ticker/data',
 );
 
 //this endpoint retrieves volume Data for the charts 
-app.get('/:ticker/data2',
-  validate(validationSets.chartData),
+app.get('/:ticker/data2/:apiKey',
+  validate(validationSets.chartData,
+    validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log the volume data request
       logger.info({
         msg: 'Volume Data Request',
@@ -2357,13 +2578,27 @@ app.get('/:ticker/data2',
 );
 
 //sends data for 10DMA (SMA)
-app.get('/:ticker/data3',
-  validate(validationSets.chartData),
+app.get('/:ticker/data3/:apiKey',
+  validate(validationSets.chartData,
+    validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log the moving average data request
       logger.info({
         msg: '10-Day Moving Average Data Request',
@@ -2443,13 +2678,27 @@ app.get('/:ticker/data3',
 );
 
 //sends data for 20DMA (SMA)
-app.get('/:ticker/data4',
-  validate(validationSets.chartData),
+app.get('/:ticker/data4/:apiKey',
+  validate(validationSets.chartData,
+    validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log the 20-day moving average data request
       logger.info({
         msg: '20-Day Moving Average Data Request',
@@ -2529,13 +2778,27 @@ app.get('/:ticker/data4',
 );
 
 //sends data for 50DMA (SMA)
-app.get('/:ticker/data5',
-  validate(validationSets.chartData),
+app.get('/:ticker/data5/:apiKey',
+  validate(validationSets.chartData,
+    validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log the 50-day moving average data request
       logger.info({
         msg: '50-Day Moving Average Data Request',
@@ -2615,13 +2878,27 @@ app.get('/:ticker/data5',
 );
 
 //sends data for 200DMA (SMA)
-app.get('/:ticker/data6',
-  validate(validationSets.chartData),
+app.get('/:ticker/data6/:apiKey',
+  validate(validationSets.chartData,
+    validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log the 200-day moving average data request
       logger.info({
         msg: '200-Day Moving Average Data Request',
@@ -2701,13 +2978,27 @@ app.get('/:ticker/data6',
 );
 
 //Weekly OHCL Data
-app.get('/:ticker/data7',
-  validate(validationSets.chartData),
+app.get('/:ticker/data7/:apiKey',
+  validate(validationSets.chartData,
+    validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log the weekly OHLC data request
       logger.info({
         msg: 'Weekly OHLC Data Request',
@@ -2772,13 +3063,27 @@ app.get('/:ticker/data7',
 );
 
 // Weekly Volume Data
-app.get('/:ticker/data8',
-  validate(validationSets.chartData),
+app.get('/:ticker/data8/:apiKey',
+  validate(validationSets.chartData,
+    validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log the weekly volume data request
       logger.info({
         msg: 'Weekly Volume Data Request',
@@ -2840,13 +3145,27 @@ app.get('/:ticker/data8',
 );
 
 //sends data for 10DMA (SMA)
-app.get('/:ticker/data9',
-  validate(validationSets.chartData),
+app.get('/:ticker/data9/:apiKey',
+  validate(validationSets.chartData,
+    validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log the 10-day moving average data request
       logger.info({
         msg: '10-Day Moving Average Data Request',
@@ -2926,13 +3245,27 @@ app.get('/:ticker/data9',
 );
 
 //sends data for 20DMA (SMA)
-app.get('/:ticker/data10',
-  validate(validationSets.chartData),
+app.get('/:ticker/data10/:apiKey',
+  validate(validationSets.chartData,
+    validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log the 20-day moving average data request
       logger.info({
         msg: '20-Day Moving Average Data Request',
@@ -3012,13 +3345,27 @@ app.get('/:ticker/data10',
 );
 
 //sends data for 50DMA (SMA)
-app.get('/:ticker/data11',
-  validate(validationSets.chartData),
+app.get('/:ticker/data11/:apiKey',
+  validate(validationSets.chartData,
+    validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log the 50-day moving average data request
       logger.info({
         msg: '50-Day Moving Average Data Request',
@@ -3098,13 +3445,27 @@ app.get('/:ticker/data11',
 );
 
 //sends data for 200DMA (SMA)
-app.get('/:ticker/data12',
-  validate(validationSets.chartData),
+app.get('/:ticker/data12/:apiKey',
+  validate(validationSets.chartData,
+    validationSchemas.apiKeyParam()),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Log the 200-day moving average data request
       logger.info({
         msg: '200-Day Moving Average Data Request',
@@ -3184,12 +3545,26 @@ app.get('/:ticker/data12',
 );
 
 // Sends earnings date 
-app.get('/:ticker/earningsdate',
+app.get('/:ticker/earningsdate/:apiKey',
   validate([
-    validationSchemas.chartData('ticker')
+    validationSchemas.chartData('ticker'),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize and validate ticker
       const ticker = sanitizeInput(req.params.ticker).toUpperCase();
 
@@ -3312,12 +3687,26 @@ app.get('/:ticker/earningsdate',
 );
 
 // Sends splits date 
-app.get('/:ticker/splitsdate',
+app.get('/:ticker/splitsdate/:apiKey',
   validate([
-    validationSchemas.chartData('ticker')
+    validationSchemas.chartData('ticker'),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize and validate ticker
       const ticker = sanitizeInput(req.params.ticker).toUpperCase();
 
@@ -3445,12 +3834,26 @@ app.get('/:ticker/splitsdate',
 );
 
 // endpoint that retrieves watchlists (names)
-app.get('/:user/watchlists',
+app.get('/:user/watchlists/:apiKey',
   validate([
-    validationSchemas.userParam('user')
+    validationSchemas.userParam('user'),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize user parameter
       const user = sanitizeInput(req.params.user);
 
@@ -3537,10 +3940,11 @@ app.get('/:user/watchlists',
 );
 
 // endpoint that retrieves content of watchlists based on the selected name 
-app.get('/:user/watchlists/:list',
+app.get('/:user/watchlists/:list/:apiKey',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.watchlistName()
+    validationSchemas.watchlistName(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     try {
@@ -3549,6 +3953,19 @@ app.get('/:user/watchlists/:list',
       const client = new MongoClient(uri);
 
       try {
+        const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
         await client.connect();
 
         const db = client.db('EreunaDB');
@@ -3611,12 +4028,26 @@ app.get('/:user/watchlists/:list',
 );
 
 // 
-app.get('/:symbol/data-values',
+app.get('/:symbol/data-values/:apiKey',
   validate([
-    validationSchemas.symbolParam('symbol')
+    validationSchemas.symbolParam('symbol'),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const symbol = sanitizeInput(req.params.symbol);
       const client = new MongoClient(uri);
 
@@ -3679,10 +4110,11 @@ app.get('/:symbol/data-values',
 );
 
 // endpoint to add symbol to selected watchlist 
-app.patch('/:user/watchlists/:list',
+app.patch('/:user/watchlists/:list/:apiKey',
   validate([
     validationSchemas.userParam('user'),
     validationSchemas.watchlistName(),
+    validationSchemas.apiKeyParam(),
     body('Name').trim()
       .isLength({ min: 1, max: 20 })
       .withMessage('Watchlist name must be between 1 and 20 characters')
@@ -3696,6 +4128,19 @@ app.patch('/:user/watchlists/:list',
   ]),
   async (req, res) => {
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const list = sanitizeInput(req.params.list);
       const user = sanitizeInput(req.params.user);
       const { Name, symbol } = req.body;
@@ -3827,11 +4272,12 @@ app.patch('/:user/watchlists/:list',
 );
 
 // endpoint that deletes ticker from selected watchlist 
-app.patch('/:user/deleteticker/watchlists/:list/:ticker',
+app.patch('/:user/deleteticker/watchlists/:list/:ticker/:apiKey',
   validate([
     validationSchemas.userParam('user'),
     validationSchemas.watchlistName(),
-    validationSchemas.symbolParam('ticker')
+    validationSchemas.symbolParam('ticker'),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -3843,6 +4289,19 @@ app.patch('/:user/deleteticker/watchlists/:list/:ticker',
     });
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize input parameters
       const list = sanitizeInput(req.params.list);
       const ticker = sanitizeInput(req.params.ticker).toUpperCase();
@@ -3960,10 +4419,11 @@ app.patch('/:user/deleteticker/watchlists/:list/:ticker',
 );
 
 // endpoint that deletes selected watchlist
-app.delete('/:user/delete/watchlists/:list',
+app.delete('/:user/delete/watchlists/:list/:apiKey',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.watchlistName()
+    validationSchemas.watchlistName(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     const requestLogger = logger.child({
@@ -3973,6 +4433,19 @@ app.delete('/:user/delete/watchlists/:list',
     });
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const list = sanitizeInput(req.params.list);
       const user = sanitizeInput(req.params.user);
 
@@ -4011,10 +4484,11 @@ app.delete('/:user/delete/watchlists/:list',
   });
 
 // endpoint that creates a new watchlist 
-app.post('/:user/create/watchlists/:list',
+app.post('/:user/create/watchlists/:list/:apiKey',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.watchlistName()
+    validationSchemas.watchlistName(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     const requestLogger = logger.child({
@@ -4024,6 +4498,19 @@ app.post('/:user/create/watchlists/:list',
     });
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const list = sanitizeInput(req.params.list);
       const user = sanitizeInput(req.params.user);
 
@@ -4144,10 +4631,11 @@ app.post('/:user/create/watchlists/:list',
 );
 
 // endpoint that renames selected watchlist 
-app.patch('/:user/rename/watchlists/:oldname',
+app.patch('/:user/rename/watchlists/:oldname/:apiKey',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.newname()
+    validationSchemas.newname(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -4158,6 +4646,19 @@ app.patch('/:user/rename/watchlists/:oldname',
     });
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const oldname = sanitizeInput(req.params.oldname);
       const newname = sanitizeInput(req.body.newname);
       const Username = sanitizeInput(req.params.user);
@@ -4208,10 +4709,11 @@ app.patch('/:user/rename/watchlists/:oldname',
   });
 
 // endpoint that handles creation of new screeners 
-app.post('/:user/create/screener/:list',
+app.post('/:user/create/screener/:list/:apiKey',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.screenerName()
+    validationSchemas.screenerName(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -4223,6 +4725,19 @@ app.post('/:user/create/screener/:list',
 
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const user = sanitizeInput(req.params.user);
       const list = sanitizeInput(req.params.list);
 
@@ -4299,11 +4814,12 @@ app.post('/:user/create/screener/:list',
   });
 
 // endpoint that renames selected screener
-app.patch('/:user/rename/screener',
+app.patch('/:user/rename/screener/:apiKey',
   validate([
     validationSchemas.userParam('user'),
     validationSchemas.oldname(),
-    validationSchemas.newname()
+    validationSchemas.newname(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -4315,6 +4831,19 @@ app.patch('/:user/rename/screener',
 
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const oldname = sanitizeInput(req.body.oldname);
       const newname = sanitizeInput(req.body.newname);
       const Username = sanitizeInput(req.params.user);
@@ -4404,10 +4933,11 @@ app.patch('/:user/rename/screener',
   });
 
 // endpoint that deletes selected screener 
-app.delete('/:user/delete/screener/:list',
+app.delete('/:user/delete/screener/:list/:apiKey',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.screenerName()
+    validationSchemas.screenerName(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -4419,6 +4949,19 @@ app.delete('/:user/delete/screener/:list',
 
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const user = sanitizeInput(req.params.user);
       const list = sanitizeInput(req.params.list);
 
@@ -4466,9 +5009,10 @@ app.delete('/:user/delete/screener/:list',
   });
 
 // endpoint that sends unfiltered database data into screener results (minus hidden list for user)
-app.get('/:user/screener/results/all',
+app.get('/:user/screener/results/all/:apiKey',
   validate([
-    validationSchemas.userParam('user')
+    validationSchemas.userParam('user'),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -4480,6 +5024,19 @@ app.get('/:user/screener/results/all',
 
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const user = sanitizeInput(req.params.user);
 
       client = new MongoClient(uri);
@@ -4551,16 +5108,30 @@ app.get('/:user/screener/results/all',
   });
 
 // endpoint that updates screener document with price parameters 
-app.patch('/screener/price', validate([
+app.patch('/screener/price/:apiKey', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice()
+  validationSchemas.maxPrice(),
+  validationSchemas.apiKeyParam()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
       maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
@@ -4683,16 +5254,30 @@ app.patch('/screener/price', validate([
 
 
 // endpoint that updates screener document with market cap parameters 
-app.patch('/screener/marketcap',
+app.patch('/screener/marketcap/:apiKey',
   validate([
     validationSchemas.user(),
     validationSchemas.screenerNameBody(),
     validationSchemas.minPrice(),
-    validationSchemas.maxPrice()
+    validationSchemas.maxPrice(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       const minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) * 1000 : NaN;
       const maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) * 1000 : NaN;
@@ -4822,10 +5407,11 @@ app.patch('/screener/marketcap',
 );
 
 // endpoint that updates screener document with ipo date parameters 
-app.patch('/screener/ipo-date',
+app.patch('/screener/ipo-date/:apiKey',
   validate([
     validationSchemas.user(),
     validationSchemas.screenerNameBody(),
+    validationSchemas.apiKeyParam(),
     // Custom validation for dates
     body('minPrice')
       .optional()
@@ -4855,6 +5441,19 @@ app.patch('/screener/ipo-date',
   async (req, res) => {
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       const rawMinPrice = sanitizeInput(req.body.minPrice || '');
       const rawMaxPrice = sanitizeInput(req.body.maxPrice || '');
@@ -4977,14 +5576,28 @@ app.patch('/screener/ipo-date',
 );
 
 // endpoint that handles adding symbol to hidden list for user 
-app.patch('/screener/:user/hidden/:symbol',
+app.patch('/screener/:user/hidden/:symbol/:apiKey',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.symbolParam('symbol')
+    validationSchemas.symbolParam('symbol'),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       const symbol = sanitizeInput(req.params.symbol).toUpperCase();
       const Username = sanitizeInput(req.params.user);
@@ -5066,13 +5679,27 @@ app.patch('/screener/:user/hidden/:symbol',
 );
 
 // endpoint that fetches hidden list for user 
-app.get('/screener/results/:user/hidden',
+app.get('/screener/results/:user/hidden/:apiKey',
   validate([
-    validationSchemas.userParam('user')
+    validationSchemas.userParam('user'),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize input
       const username = sanitizeInput(req.params.user);
 
@@ -5144,13 +5771,27 @@ app.get('/screener/results/:user/hidden',
 );
 
 // endpoint that retrieves all screeners' names for user 
-app.get('/screener/:user/names',
+app.get('/screener/:user/names/:apiKey',
   validate([
-    validationSchemas.userParam('user')
+    validationSchemas.userParam('user'),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize username input
       const username = sanitizeInput(req.params.user);
 
@@ -5218,13 +5859,27 @@ app.get('/screener/:user/names',
 );
 
 // endpoint that sends hidden list of user in results 
-app.get('/:user/screener/results/hidden',
+app.get('/:user/screener/results/hidden/:apiKey',
   validate([
-    validationSchemas.userParam('user')
+    validationSchemas.userParam('user'),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize input
       const user = sanitizeInput(req.params.user);
 
@@ -5315,14 +5970,28 @@ app.get('/:user/screener/results/hidden',
 );
 
 // endpoint that removes ticker from hidden list 
-app.patch('/screener/:user/show/:symbol',
+app.patch('/screener/:user/show/:symbol/:apiKey',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.symbolParam('symbol')
+    validationSchemas.symbolParam('symbol'),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       const username = sanitizeInput(req.params.user);
       const symbol = sanitizeInput(req.params.symbol);
@@ -5417,9 +6086,25 @@ app.patch('/screener/:user/show/:symbol',
 );
 
 // endpoint that retrieves all available sectors for user (for screener)
-app.get('/screener/sectors', async (req, res) => {
+app.get('/screener/sectors/:apiKey', validate([
+  validationSchemas.apiKeyParam()
+]), 
+async (req, res) => {
   let client;
   try {
+    const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
     client = new MongoClient(uri);
     await client.connect();
     const db = client.db('EreunaDB');
@@ -5462,10 +6147,11 @@ app.get('/screener/sectors', async (req, res) => {
 });
 
 // endpoint that updates screener document with sector params 
-app.patch('/screener/sectors',
+app.patch('/screener/sectors/:apiKey',
   validate([
-    validationSchemas.user(), // Validate username
-    validationSchemas.screenerNameBody(), // Validate screener name
+    validationSchemas.user(), 
+    validationSchemas.screenerNameBody(),
+    validationSchemas.apiKeyParam(),
     body('sectors')
       .isArray().withMessage('Sectors must be an array')
       .custom((value) => {
@@ -5484,6 +6170,19 @@ app.patch('/screener/sectors',
   async (req, res) => {
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const sectors = req.body.sectors;
       const Username = req.body.user;
       const screenerName = req.body.screenerName;
@@ -5551,10 +6250,25 @@ app.patch('/screener/sectors',
 );
 
 // endpoint that retrieves all available exchanges for user (screener)
-app.get('/screener/exchange', async (req, res) => {
+app.get('/screener/exchange/:apiKey',validate([
+  validationSchemas.apiKeyParam()
+]),  
+async (req, res) => {
   let client;
   try {
+    const apiKey = req.params.apiKey;
 
+    const sanitizedKey = sanitizeInput(apiKey);
+
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
+    
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
+    }
     client = new MongoClient(uri);
     await client.connect();
 
@@ -5600,10 +6314,11 @@ app.get('/screener/exchange', async (req, res) => {
 });
 
 // endpoint that updates screener document with exchange params 
-app.patch('/screener/exchange',
+app.patch('/screener/exchange/:apiKey',
   validate([
     validationSchemas.user(),
     validationSchemas.screenerNameBody(),
+    validationSchemas.apiKeyParam(),
     body('exchanges')
       .isArray().withMessage('Exchanges must be an array')
       .custom((value) => {
@@ -5620,6 +6335,19 @@ app.patch('/screener/exchange',
   async (req, res) => {
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const exchanges = req.body.exchanges;
       const Username = req.body.user;
       const screenerName = req.body.screenerName;
@@ -5703,10 +6431,25 @@ app.patch('/screener/exchange',
 );
 
 // endpoint that retrieves all available countries for user (screener)
-app.get('/screener/country',
+app.get('/screener/country/:apiKey',validate([
+  validationSchemas.apiKeyParam()
+]),  
   async (req, res) => {
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       client = new MongoClient(uri);
       await client.connect();
 
@@ -5746,10 +6489,11 @@ app.get('/screener/country',
 );
 
 // endpoint that updates screener document with country params 
-app.patch('/screener/country',
+app.patch('/screener/country/:apiKey',
   validate([
     validationSchemas.user(),
     validationSchemas.screenerNameBody(),
+    validationSchemas.apiKeyParam(),
     body('countries')
       .isArray().withMessage('Countries must be an array')
       .custom((value) => {
@@ -5766,6 +6510,19 @@ app.patch('/screener/country',
   async (req, res) => {
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const countries = req.body.countries;
       const Username = req.body.user;
       const screenerName = req.body.screenerName;
@@ -5849,16 +6606,30 @@ app.patch('/screener/country',
 );
 
 // endpoint that updates screener document with PE parameters 
-app.patch('/screener/pe', validate([
+app.patch('/screener/pe/:apiKey', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice()
+  validationSchemas.maxPrice(),
+  validationSchemas.apiKeyParam()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
       maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
@@ -5978,16 +6749,30 @@ app.patch('/screener/pe', validate([
   });
 
 // endpoint that updates screener document with Forward PE parameters 
-app.patch('/screener/forward-pe', validate([
+app.patch('/screener/forward-pe/:apiKey', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice()
+  validationSchemas.maxPrice(),
+  validationSchemas.apiKeyParam()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
       maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
@@ -6112,16 +6897,30 @@ app.patch('/screener/forward-pe', validate([
   });
 
 // endpoint that updates screener document with PEG parameters 
-app.patch('/screener/peg', validate([
+app.patch('/screener/peg/:apiKey', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice()
+  validationSchemas.maxPrice(),
+  validationSchemas.apiKeyParam()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
       maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
@@ -6244,16 +7043,30 @@ app.patch('/screener/peg', validate([
   });
 
 // endpoint that updates screener document with PEG parameters 
-app.patch('/screener/eps', validate([
+app.patch('/screener/eps/:apiKey', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice()
+  validationSchemas.maxPrice(),
+  validationSchemas.apiKeyParam()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
       maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
@@ -6381,16 +7194,30 @@ app.patch('/screener/eps', validate([
   });
 
 // endpoint that updates screener document with PS Ratio parameters 
-app.patch('/screener/ps-ratio', validate([
+app.patch('/screener/ps-ratio/:apiKey', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice()
+  validationSchemas.maxPrice(),
+  validationSchemas.apiKeyParam()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
       maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
@@ -6519,16 +7346,30 @@ app.patch('/screener/ps-ratio', validate([
   });
 
 // endpoint that updates screener document with PB Ratio parameters 
-app.patch('/screener/pb-ratio', validate([
+app.patch('/screener/pb-ratio/:apiKey', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice()
+  validationSchemas.maxPrice(),
+  validationSchemas.apiKeyParam()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
       maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
@@ -6657,16 +7498,30 @@ app.patch('/screener/pb-ratio', validate([
   });
 
 // endpoint that updates screener document with Beta parameters 
-app.patch('/screener/beta', validate([
+app.patch('/screener/beta/:apiKey', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice()
+  validationSchemas.maxPrice(),
+  validationSchemas.apiKeyParam()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
       maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
@@ -6811,16 +7666,30 @@ app.patch('/screener/beta', validate([
   });
 
 // endpoint that updates screener document with dividend yield parameters 
-app.patch('/screener/div-yield', validate([
+app.patch('/screener/div-yield/:apiKey', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice()
+  validationSchemas.maxPrice(),
+  validationSchemas.apiKeyParam()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize and convert inputs (dividing by 100 to convert percentage)
       minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) / 100 : NaN;
       maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) / 100 : NaN;
@@ -6959,12 +7828,26 @@ app.patch('/screener/div-yield', validate([
   });
 
 //endpoint is supposed to update document with growth % 
-app.patch('/screener/fundamental-growth', validate([
+app.patch('/screener/fundamental-growth/:apiKey', validate([
   validationSchemas.user(),
-  validationSchemas.screenerNameBody()
+  validationSchemas.screenerNameBody(),
+  validationSchemas.apiKeyParam(),
 ]), async (req, res) => {
   let client;
   try {
+    const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
     // Sanitize inputs
     const screenerName = sanitizeInput(req.body.screenerName || '');
     const Username = sanitizeInput(req.body.user || '');
@@ -7137,15 +8020,29 @@ app.patch('/screener/fundamental-growth', validate([
 });
 
 // endpoint that updates screener document with volume parameters 
-app.patch('/screener/volume', validate([
+app.patch('/screener/volume/:apiKey', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.relativeVolumeOption(),
-  validationSchemas.averageVolumeOption(),
+  validationSchemas.averageVolumeOption(),,
+  validationSchemas.apiKeyParam(),
   ...validationSchemas.volumeValues()
 ]), async (req, res) => {
   let client;
   try {
+    const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
     // Sanitize and parse inputs
     const value1 = req.body.value1 ? Math.max(parseFloat(sanitizeInput(req.body.value1.toString())), 0.1) : null;
     const value2 = req.body.value2 ? parseFloat(sanitizeInput(req.body.value2.toString())) : null;
@@ -7265,9 +8162,10 @@ app.patch('/screener/volume', validate([
 });
 
 // endpoint that updates screener document with RS Score parameters 
-app.patch('/screener/rs-score', validate([
+app.patch('/screener/rs-score/:apiKey', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
+  validationSchemas.apiKeyParam(),
   // Custom validation for RS Score values
   body('value1')
     .optional({ nullable: true }) // Allow null values
@@ -7333,6 +8231,19 @@ app.patch('/screener/rs-score', validate([
 ]), async (req, res) => {
   let client;
   try {
+    const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
     // Sanitize and parse inputs
     const value1 = req.body.value1 ? Math.min(Math.max(parseFloat(sanitizeInput(req.body.value1.toString())), 1), 100) : null;
     const value2 = req.body.value2 ? Math.min(Math.max(parseFloat(sanitizeInput(req.body.value2.toString())), 1), 100) : null;
@@ -7435,9 +8346,10 @@ app.patch('/screener/rs-score', validate([
 });
 
 // endpoint that updates screener document with price peformance parameters 
-app.patch('/screener/price-performance', validate([
+app.patch('/screener/price-performance/:apiKey', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
+  validationSchemas.apiKeyParam(),
 
   // Validation for changePerc values
   body('value1')
@@ -7527,6 +8439,19 @@ app.patch('/screener/price-performance', validate([
 ]), async (req, res) => {
   let client;
   try {
+    const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
     // Sanitize and parse inputs
     const value1 = req.body.value1 ? parseFloat(sanitizeInput(req.body.value1.toString())) : null;
     const value2 = req.body.value2 ? parseFloat(sanitizeInput(req.body.value2.toString())) : null;
@@ -7731,13 +8656,27 @@ app.patch('/screener/price-performance', validate([
 });
 
 // i don't think this endpoint is used at the moment...great fucking mess 
-app.get('/screener/performance/:ticker', [
+app.get('/screener/performance/:ticker/:apiKey', [
   validationSchemas.chartData('ticker')
-], validate([validationSchemas.chartData('ticker')]), async (req, res) => {
+], validate([validationSchemas.chartData('ticker'),
+  validationSchemas.apiKeyParam()]), async (req, res) => {
   const obfuscatedUsername = req.user ? obfuscateUsername(req.user.username) : 'unknown';
   let client;
 
   try {
+    const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
     const symbol = req.params.ticker.toUpperCase();
 
     client = new MongoClient(uri);
@@ -7802,16 +8741,30 @@ app.get('/screener/performance/:ticker', [
 });
 
 // Full Reset screener parameters 
-app.patch('/screener/reset/:user/:name',
+app.patch('/screener/reset/:user/:name/:apiKey',
   validate([
-    validationSchemas.userParam('user'), // Validate user parameter
-    validationSchemas.screenerNameParam() // Validate screener name
+    validationSchemas.userParam('user'),
+    validationSchemas.screenerNameParam(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     const obfuscatedUsername = req.user ? obfuscateUsername(req.user.username) : 'unknown';
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize input parameters
       const UsernameID = sanitizeInput(req.params.user);
       const Name = sanitizeInput(req.params.name); // Sanitize the name parameter
@@ -7893,10 +8846,11 @@ app.patch('/screener/reset/:user/:name',
 );
 
 // Reset Individual screener parameter 
-app.patch('/reset/screener/param',
+app.patch('/reset/screener/param/:apiKey',
   validate([
-    validationSchemas.user(), // Validate user
-    body('Name') // Change from screenerName to Name
+    validationSchemas.user(),
+    validationSchemas.apiKeyParam(), 
+    body('Name') 
       .trim()
       .isLength({ min: 1, max: 20 })
       .withMessage('Screener name must be between 1 and 20 characters')
@@ -7922,6 +8876,19 @@ app.patch('/reset/screener/param',
 
     let client;
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       const UsernameID = sanitizeInput(req.body.user);
       const Name = sanitizeInput(req.body.Name);
@@ -8098,16 +9065,30 @@ app.patch('/reset/screener/param',
   });
 
 // retrieves params from individual screener document 
-app.get('/screener/datavalues/:user/:name',
+app.get('/screener/datavalues/:user/:name/:apiKey',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.screenerNameParam()
+    validationSchemas.screenerNameParam(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     const usernameID = req.params.user;
     const name = req.params.name;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const client = new MongoClient(uri);
       try {
         await client.connect();
@@ -8219,8 +9200,9 @@ app.get('/screener/datavalues/:user/:name',
 );
 
 // endpoint that sends filtered results for screener
-app.get('/screener/:user/results/filtered/:name',
+app.get('/screener/:user/results/filtered/:name/:apiKey',
   validate([
+    validationSchemas.apiKeyParam(),
     param('user')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -8238,6 +9220,19 @@ app.get('/screener/:user/results/filtered/:name',
     const screenerName = sanitizeInput(req.params.name); // Sanitize screener name input
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const client = new MongoClient(uri);
       await client.connect();
       const db = client.db('EreunaDB');
@@ -8869,16 +9864,30 @@ app.get('/screener/:user/results/filtered/:name',
 );
 
 // endpoint that sends summary for selected screener 
-app.get('/screener/summary/:usernameID/:name',
+app.get('/screener/summary/:usernameID/:name/:apiKey',
   validate([
     validationSchemas.userParam2(),
-    validationSchemas.screenerNameParam()
+    validationSchemas.screenerNameParam(),
+    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     const startTime = Date.now();
     const requestId = crypto.randomBytes(16).toString('hex');
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize input parameters
       const usernameID = sanitizeInput(req.params.usernameID);
       const name = sanitizeInput(req.params.name);
@@ -8991,8 +10000,9 @@ app.get('/screener/summary/:usernameID/:name',
 );
 
 // endpoint that sends combined screener results and removes duplicate values 
-app.get('/screener/:usernameID/all',
+app.get('/screener/:usernameID/all/:apiKey',
   validate([
+    validationSchemas.apiKeyParam(),
     param('usernameID')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -9005,6 +10015,19 @@ app.get('/screener/:usernameID/all',
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize input
       const usernameId = sanitizeInput(req.params.usernameID);
 
@@ -9705,8 +10728,9 @@ app.get('/screener/:usernameID/all',
 );
 
 // endpoint that updates the watchlist oder after sortable.js is used 
-app.patch('/watchlists/update-order/:Username/:Name',
+app.patch('/watchlists/update-order/:Username/:Name/:apiKey',
   validate([
+    validationSchemas.apiKeyParam(),
     param('Username')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -9733,6 +10757,19 @@ app.patch('/watchlists/update-order/:Username/:Name',
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       const user = sanitizeInput(req.body.user);
       const Name = sanitizeInput(req.params.Name);
@@ -9820,8 +10857,9 @@ app.patch('/watchlists/update-order/:Username/:Name',
 );
 
 // endpoint that should add/remove tickers with inputs 
-app.patch('/watchlist/addticker/:isAdding',
+app.patch('/watchlist/addticker/:isAdding/:apiKey',
   validate([
+    validationSchemas.apiKeyParam(),
     param('isAdding')
       .isIn(['true', 'false']).withMessage('isAdding must be true or false'),
 
@@ -9848,6 +10886,19 @@ app.patch('/watchlist/addticker/:isAdding',
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       const isAdding = req.params.isAdding === 'true';
       const watchlistName = sanitizeInput(req.body.watchlistName);
@@ -9985,8 +11036,9 @@ app.patch('/watchlist/addticker/:isAdding',
 );
 
 // endpoint that toggles value for screener, to include or exclude from combined list
-app.patch('/:user/toggle/screener/:list',
+app.patch('/:user/toggle/screener/:list/:apiKey',
   validate([
+    validationSchemas.apiKeyParam(),
     param('user')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -10004,6 +11056,19 @@ app.patch('/:user/toggle/screener/:list',
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize inputs
       const user = sanitizeInput(req.params.user);
       const list = sanitizeInput(req.params.list);
@@ -10102,8 +11167,9 @@ app.patch('/:user/toggle/screener/:list',
 );
 
 // endpoint that retrieves watchlists for a specific user
-app.get('/:user/full-watchlists',
+app.get('/:user/full-watchlists/:apiKey',
   validate([
+    validationSchemas.apiKeyParam(),
     param('user')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -10115,6 +11181,19 @@ app.get('/:user/full-watchlists',
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       const user = sanitizeInput(req.params.user);
 
       // Log the request
@@ -10184,11 +11263,27 @@ app.get('/:user/full-watchlists',
 );
 
 // Maintenance status GET endpoint
-app.get('/maintenance-status', async (req, res) => {
+app.get('/maintenance-status/:apiKey', validate([
+validationSchemas.apiKeyParam()
+]),
+async (req, res) => {
   const requestId = crypto.randomBytes(16).toString('hex');
   let client;
 
   try {
+    const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
     // Log the request
     logger.info({
       msg: 'Maintenance Status Request',
@@ -10242,8 +11337,9 @@ app.get('/maintenance-status', async (req, res) => {
 });
 
 // Maintenance status POST endpoint
-app.post('/maintenance-status',
+app.post('/maintenance-status/:apiKey',
   validate([
+    validationSchemas.apiKeyParam(),
     body('maintenance')
       .custom((value) => {
         // Sanitize the input first
@@ -10260,6 +11356,19 @@ app.post('/maintenance-status',
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize the maintenance value
       const maintenance = sanitizeInput(req.body.maintenance.toString()).toLowerCase() === 'true';
 
@@ -10329,8 +11438,9 @@ app.post('/maintenance-status',
 );
 
 // retrieves receipts for the user 
-app.get('/get-receipts/:user',
+app.get('/get-receipts/:user/:apiKey',
   validate([
+    validationSchemas.apiKeyParam(),
     param('user')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -10342,6 +11452,19 @@ app.get('/get-receipts/:user',
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize the username parameter
       const user = sanitizeInput(req.params.user);
 
@@ -10432,11 +11555,27 @@ app.get('/get-receipts/:user',
 );
 
 //endpoint that retrieves exchanges for each symbol (related to assigning pictures correctly)
-app.get('/symbols-exchanges', async (req, res) => {
+app.get('/symbols-exchanges/:apiKey', validate([
+validationSchemas.apiKeyParam()
+]),
+  async (req, res) => {
   const requestId = crypto.randomBytes(16).toString('hex');
   let client;
 
   try {
+    const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
     // Log the request
     logger.info({
       msg: 'Retrieve Symbols and Exchanges Request',
@@ -10506,8 +11645,9 @@ app.get('/symbols-exchanges', async (req, res) => {
 });
 
 // endpoint that retrieves default symbol for user
-app.get('/:user/default-symbol',
+app.get('/:user/default-symbol/:apiKey',
   validate([
+    validationSchemas.apiKeyParam(),
     param('user')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -10519,6 +11659,19 @@ app.get('/:user/default-symbol',
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize input
       const username = sanitizeInput(req.params.user);
 
@@ -10588,8 +11741,9 @@ app.get('/:user/default-symbol',
 );
 
 // endpoint that updates default symbol for user
-app.patch('/:user/update-default-symbol',
+app.patch('/:user/update-default-symbol/:apiKey',
   validate([
+    validationSchemas.apiKeyParam(),
     // Validate user parameter
     param('user')
       .trim()
@@ -10609,6 +11763,19 @@ app.patch('/:user/update-default-symbol',
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Run validation
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -10715,8 +11882,9 @@ app.patch('/:user/update-default-symbol',
 );
 
 // Endpoint that retrieves the 'Hidden' list for a user
-app.get('/:user/hidden',
+app.get('/:user/hidden/:apiKey',
   validate([
+    validationSchemas.apiKeyParam(),
     param('user')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -10728,6 +11896,19 @@ app.get('/:user/hidden',
     let client;
 
     try {
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
       // Sanitize input
       const username = sanitizeInput(req.params.user);
 
