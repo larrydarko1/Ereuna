@@ -1028,7 +1028,7 @@ async function removeNote(_id, note) {
   const noteId = _id;
 
   try {
-    const response = await fetch(`/api/${symbol}/notes/${noteId}?user=${Username}/${apiKey}`, {
+    const response = await fetch(`/api/${symbol}/notes/${apiKey}/${noteId}?user=${Username}`, {
       method: 'DELETE',
     });
     if (response.ok) {
@@ -2324,7 +2324,7 @@ async function addWatchlist() {
       }
 
       const patchData = { Name: selectedWatchlistName, symbol }; // Use the selected watchlist name
-      const patchResponse = await fetch(`/api/${user}/watchlists/${patchData.Name}`, { // Use the value of the option
+      const patchResponse = await fetch(`/api/${user}/watchlists/${patchData.Name}/${apiKey}`, { // Use the value of the option
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'

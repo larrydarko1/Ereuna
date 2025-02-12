@@ -50,6 +50,8 @@ Rather than keeping it exclusive to my own use, I decided to commercialize the p
       <div style="display: flex; justify-content: center; align-items: center; gap: 70px;">
     <img class="logo" src="@/assets/images/logos/tiingo.png" alt="">
     <img class="logo" src="@/assets/images/logos/tradingview.png" alt="">
+    <img class="logo" src="@/assets/images/logos/nowpayments.svg" alt="">
+    <img class="logo" src="@/assets/images/logos/stripe.png" alt="">
 </div>
        
     </div>

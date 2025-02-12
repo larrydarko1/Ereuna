@@ -521,7 +521,7 @@ const expirationDays = ref(null);
 // Create a function to get the expiration date
 async function getExpirationDate() {
   try {
-    const response = await fetch(`/api/get-expiration-date?user=${encodeURIComponent(user)}/${apiKey}`, {
+    const response = await fetch(`/api/get-expiration-date/${apiKey}/?user=${encodeURIComponent(user)}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });
