@@ -250,12 +250,6 @@ function createRequestLogger(req) {
 }
 
 function logSignupAttempt(logger, username, subscriptionPlan, promoCode) {
-  logger.info({
-    msg: 'Signup Attempt',
-    usernameLength: username.length,
-    subscriptionPlan,
-    promoCodeProvided: !!promoCode
-  });
 }
 
 async function isUsernameTaken(collection, username, logger) {
@@ -293,11 +287,6 @@ async function validatePromoCode(collection, promoCode, amount, logger) {
   const promoCodeDoc = await collection.findOne({ CODE: promoCode });
   if (promoCodeDoc) {
     const discountedAmount = Math.round(amount / 2);
-    logger.info({
-      msg: 'Promo Code Applied',
-      originalAmount: amount,
-      discountedAmount
-    });
     return promoCode; // Return the validated promo code
   } else {
     logger.warn({ msg: 'Invalid Promo Code', providedPromoCode: promoCode });
@@ -378,12 +367,6 @@ async function createReceipt(collection, userId, amount, subscriptionPlan, promo
 }
 
 function logSuccessfulSignup(logger, userId, subscriptionPlan) {
-  logger.info({
-    msg: 'User  Signup Completed Successfully',
-    userId: userId.toString(),
-    subscriptionPlan,
-    paymentMethod: 'Credit Card'
-  });
   securityLogger.logAuthAttempt(userId, true, { method: 'signup', subscriptionPlan });
 }
 
@@ -476,12 +459,6 @@ app.get('/verify/:apiKey', (req, res) => {
         });
       }
 
-      // Successful verification
-      logger.info('Token successfully verified', {
-        ip: req.ip,
-        userId: decoded.user?.id || 'Unknown'
-      });
-
       // Optional: You might want to strip sensitive information
       const { password, ...safeUserData } = decoded.user || {};
 
@@ -564,12 +541,6 @@ app.post('/login/:apiKey',
           Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
         });
 
-        // Log login attempt
-        requestLogger.info('Login attempt', {
-          username: sanitizedUsername,
-          userFound: !!user
-        });
-
         if (!user) {
           // Log security event for non-existent username
           securityLogger.logSecurityEvent('Login attempt with non-existent username', {
@@ -631,11 +602,6 @@ app.post('/login/:apiKey',
           tokenExpiration = '1h'; // Temporary session
         }
         const token = jwt.sign({ user: user.Username }, config.secretKey, { expiresIn: tokenExpiration });
-
-        // Log successful login
-        requestLogger.info('Successful login', {
-          username: sanitizedUsername
-        });
 
         // Return a success response with the token
         return res.status(200).json({
@@ -705,12 +671,6 @@ app.post('/recover/:apiKey',
 
       // Validate and sanitize input
       const sanitizedRecoveryKey = sanitizeInput(recoveryKey);
-
-      // Log recovery attempt with minimal sensitive information
-      requestLogger.info({
-        msg: 'Recovery Key Attempt',
-        recoveryKeyLength: sanitizedRecoveryKey.length
-      });
 
       const client = new MongoClient(uri);
 
@@ -851,12 +811,6 @@ app.patch('/generate-key/:apiKey',
       // Sanitize and validate input
       const sanitizedUsername = sanitizeInput(user);
 
-      // Log key generation attempt
-      requestLogger.info({
-        msg: 'Authentication Key Generation Attempt',
-        usernameLength: sanitizedUsername.length
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -957,12 +911,6 @@ app.patch('/generate-key/:apiKey',
           message: 'Failed to update authentication key'
         });
       }
-
-      // Log successful key generation
-      requestLogger.info({
-        msg: 'Authentication Key Generated Successfully',
-        username: userDoc.Username.substring(0, 3) + '...'
-      });
 
       // Security logging for key generation
       securityLogger.logSecurityEvent('Authentication Key Regenerated', {
@@ -1082,9 +1030,6 @@ app.get('/retrieve-key/:apiKey', async (req, res) => {
     // Delete the token after use
     await db.collection('DownloadTokens').deleteOne({ token });
 
-    // Log successful key retrieval
-    requestLogger.info('Successfully retrieved AuthKey', { username: tokenDoc.username });
-
     // Return the raw AuthKey
     res.json({ key: userDoc.AuthKey });
 
@@ -1174,12 +1119,6 @@ app.patch('/password-change/:apiKey',
       // Additional sanitization
       const sanitizedUsername = sanitizeInput(user);
 
-      // Log password change attempt
-      requestLogger.info({
-        msg: 'Password Change Attempt',
-        usernameLength: sanitizedUsername.length
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -1261,12 +1200,6 @@ app.patch('/password-change/:apiKey',
           message: 'Failed to update password'
         });
       }
-
-      // Log successful password change
-      requestLogger.info({
-        msg: 'Password Changed Successfully',
-        username: userDoc.Username.substring(0, 3) + '...'
-      });
 
       // Security logging for password change
       securityLogger.logSecurityEvent('Password Changed', {
@@ -1420,17 +1353,6 @@ app.patch('/change-password2/:apiKey',
         );
 
         if (updateResult.modifiedCount === 1) {
-          // Log successful password change with partially obscured username
-          securityLogger.logSecurityEvent('Password Changed Successfully', {
-            username: matchedUser.Username.substring(0, 3) + '...'
-          });
-
-          // Log with request logger (can be more detailed for internal tracking)
-          requestLogger.info({
-            msg: 'Password Changed Successfully',
-            usernamePartial: matchedUser.Username.substring(0, 3) + '...'
-          });
-
           return res.status(200).json({
             message: 'Password changed successfully'
           });
@@ -1510,13 +1432,6 @@ app.patch('/change-username/:apiKey',
       const { user, newUsername } = req.body;
       const sanitizedCurrentUsername = sanitizeInput(user);
       const sanitizedNewUsername = sanitizeInput(newUsername);
-
-      // Log username change attempt
-      requestLogger.info({
-        msg: 'Username Change Attempt',
-        currentUsernameLength: sanitizedCurrentUsername.length,
-        newUsernameLength: sanitizedNewUsername.length
-      });
 
       // Check if usernames are the same
       if (sanitizedCurrentUsername === sanitizedNewUsername) {
@@ -1630,12 +1545,6 @@ app.patch('/change-username/:apiKey',
         }
       }
 
-      // Log successful username change with partially obscured username
-      requestLogger.info({
-        msg: 'Username Changed Successfully',
-        usernamePartial: sanitizedCurrentUsername.substring(0, 3) + '...'
-      });
-
       // Security logging with partial username
       securityLogger.logSecurityEvent('username_changed', {
         username: sanitizedCurrentUsername.substring(0, 3) + '...',
@@ -1726,12 +1635,6 @@ app.delete('/account-delete/:apiKey',
       // Destructure and sanitize inputs
       const { user, password } = req.body;
       const sanitizedUsername = sanitizeInput(user);
-
-      // Log account deletion attempt
-      requestLogger.info({
-        msg: 'Account Deletion Attempt',
-        usernamePartial: obfuscateUsername(sanitizedUsername)
-      });
 
       // Connect to MongoDB
       client = new MongoClient(uri);
@@ -1839,12 +1742,6 @@ app.delete('/account-delete/:apiKey',
         }
       }
 
-      // Log successful account deletion
-      requestLogger.info({
-        msg: 'Account Deleted Successfully',
-        usernamePartial: obfuscateUsername(sanitizedUsername)
-      });
-
       // Security logging for account deletion
       securityLogger.logSecurityEvent('account_deleted', {
         usernamePartial: obfuscateUsername(sanitizedUsername),
@@ -1903,12 +1800,11 @@ app.delete('/account-delete/:apiKey',
 
 // endpoint that retrieves expriation days for users (user section)
 app.get('/get-expiration-date/:apiKey',
-  validate([
+  validate([validationSchemas.apiKeyParam(),
     body('user')
       .optional() // removing this invalidates the check 
       .trim()
-      .notEmpty().withMessage('Username is required'),
-      validationSchemas.apiKeyParam()
+      .notEmpty().withMessage('Username is required')
   ]),
   async (req, res) => {
     const username = req.query.user; // Keep original query parameter retrieval
@@ -1939,12 +1835,6 @@ app.get('/get-expiration-date/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log attempt with obfuscated username
-      logger.info({
-        msg: 'Expiration Date Check',
-        usernamePartial: obfuscateUsername(sanitizedUsername)
-      });
-
       client = new MongoClient(uri);
       await client.connect();
       const db = client.db('EreunaDB');
@@ -1972,13 +1862,6 @@ app.get('/get-expiration-date/:apiKey',
 
       // Calculate the difference in days
       const differenceInDays = Math.ceil(differenceInTime / (1000 * 3600 * 24));
-
-      // Log successful retrieval
-      logger.info({
-        msg: 'Expiration Date Retrieved',
-        usernamePartial: obfuscateUsername(sanitizedUsername),
-        expirationDays: differenceInDays
-      });
 
       // Send back the difference in days
       res.json({ expirationDays: differenceInDays });
@@ -2042,12 +1925,6 @@ app.get('/chart/:identifier/:apiKey', validate([
           message: 'Unauthorized API Access'
         });
       }
-      // Log the attempt with obfuscated identifier
-      logger.info({
-        msg: 'Chart Data Retrieval',
-        identifier: identifier
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -2077,12 +1954,6 @@ app.get('/chart/:identifier/:apiKey', validate([
 
         return res.status(404).json({ message: 'Asset not found' });
       }
-
-      // Log successful retrieval
-      logger.info({
-        msg: 'Chart Data Retrieved Successfully',
-        identifier: identifier
-      });
 
       res.json(assetInfo);
     } catch (error) {
@@ -2144,13 +2015,6 @@ app.post('/:symbol/notes/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log note creation attempt
-      logger.info({
-        msg: 'Note Creation Attempt',
-        symbol: ticker,
-        usernamePartial: obfuscateUsername(sanitizedUsername),
-        noteLength: sanitizedNote.length
-      });
 
       client = new MongoClient(uri);
       await client.connect();
@@ -2199,15 +2063,6 @@ app.post('/:symbol/notes/:apiKey',
 
         return res.status(500).json({ message: 'Failed to insert note' });
       }
-
-      // Log successful note creation
-      logger.info({
-        msg: 'Note Created Successfully',
-        symbol: ticker,
-        usernamePartial: obfuscateUsername(sanitizedUsername),
-        noteId: result.insertedId
-      });
-
       res.status(201).json({
         message: 'Note inserted successfully',
         note: newNote
@@ -2268,12 +2123,6 @@ app.get('/:user/:symbol/notes/:apiKey', validate(validationSets.notesSearch,
           message: 'Unauthorized API Access'
         });
       }
-      // Log note search attempt
-      logger.info({
-        msg: 'Note Search Attempt',
-        symbol: sanitizedTicker,
-        usernamePartial: obfuscateUsername(sanitizedUsername)
-      });
 
       client = new MongoClient(uri);
       await client.connect();
@@ -2288,22 +2137,8 @@ app.get('/:user/:symbol/notes/:apiKey', validate(validationSets.notesSearch,
       }).toArray();
 
       if (!notes || notes.length === 0) {
-        logger.warn({
-          msg: 'No Notes Found',
-          symbol: sanitizedTicker,
-          usernamePartial: obfuscateUsername(sanitizedUsername)
-        });
-
         return res.status(404).json({ message: 'No notes found' });
       }
-
-      // Log successful note retrieval
-      logger.info({
-        msg: 'Notes Retrieved Successfully',
-        symbol: sanitizedTicker,
-        usernamePartial: obfuscateUsername(sanitizedUsername),
-        noteCount: notes.length
-      });
 
       res.status(200).json(notes);
 
@@ -2325,19 +2160,14 @@ app.get('/:user/:symbol/notes/:apiKey', validate(validationSets.notesSearch,
   });
 
 // endpoint to delete a note
-app.delete('/:symbol/notes/:noteId/:apiKey', validate(validationSets.notesDeletion,
-  validationSchemas.apiKeyParam()),
+app.delete('/:symbol/notes/:apiKey/:noteId', validate(validationSets.notesDeletion),
   async (req, res) => {
     const ticker = req.params.symbol.toUpperCase();
     const noteId = req.params.noteId;
     const Username = req.query.user;
+    const apiKey = req.params.apiKey;
 
-    let client;
-
-    try {
-      const apiKey = req.params.apiKey;
-
-      const sanitizedKey = sanitizeInput(apiKey);
+    const sanitizedKey = sanitizeInput(apiKey);
 
       if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
         logger.warn('Invalid API key', {
@@ -2348,13 +2178,9 @@ app.delete('/:symbol/notes/:noteId/:apiKey', validate(validationSets.notesDeleti
           message: 'Unauthorized API Access'
         });
       }
-      // Log note deletion attempt
-      logger.info({
-        msg: 'Note Deletion Attempt',
-        symbol: ticker,
-        usernamePartial: obfuscateUsername(Username)
-      });
 
+    let client;
+    try {
       client = new MongoClient(uri);
       await client.connect();
 
@@ -2378,14 +2204,6 @@ app.delete('/:symbol/notes/:noteId/:apiKey', validate(validationSets.notesDeleti
 
         return res.status(404).json({ message: 'Note not found' });
       }
-
-      // Log successful note deletion
-      logger.info({
-        msg: 'Note Deleted Successfully',
-        symbol: ticker,
-        usernamePartial: obfuscateUsername(Username),
-        noteId: noteId
-      });
 
       res.status(200).json({ message: 'Note deleted successfully' });
     } catch (error) {
@@ -2432,11 +2250,6 @@ app.get('/:ticker/data/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log the chart data request
-      logger.info({
-        msg: 'Chart Data Request',
-        ticker: ticker
-      });
 
       client = new MongoClient(uri);
       await client.connect();
@@ -2464,13 +2277,6 @@ app.get('/:ticker/data/:apiKey',
         low: parseFloat(item.low.toString().slice(0, 8)),
         close: parseFloat(item.close.toString().slice(0, 8)),
       }));
-
-      // Log successful data retrieval
-      logger.info({
-        msg: 'Chart Data Retrieved Successfully',
-        ticker: ticker,
-        dataPoints: formattedData.length
-      });
 
       res.json(formattedData);
 
@@ -2517,11 +2323,6 @@ app.get('/:ticker/data2/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log the volume data request
-      logger.info({
-        msg: 'Volume Data Request',
-        ticker: ticker
-      });
 
       client = new MongoClient(uri);
       await client.connect();
@@ -2546,13 +2347,6 @@ app.get('/:ticker/data2/:apiKey',
         time: item.timestamp.toISOString().slice(0, 10),
         value: item.volume,
       }));
-
-      // Log successful data retrieval
-      logger.info({
-        msg: 'Volume Data Retrieved Successfully',
-        ticker: ticker,
-        dataPoints: formattedData.length
-      });
 
       res.json(formattedData);
 
@@ -2599,11 +2393,6 @@ app.get('/:ticker/data3/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log the moving average data request
-      logger.info({
-        msg: '10-Day Moving Average Data Request',
-        ticker: ticker
-      });
 
       client = new MongoClient(uri);
       await client.connect();
@@ -2646,13 +2435,6 @@ app.get('/:ticker/data3/:apiKey',
           value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
         });
       }
-
-      // Log successful data retrieval
-      logger.info({
-        msg: 'Moving Average Data Retrieved Successfully',
-        ticker: ticker,
-        dataPoints: movingAverages.length
-      });
 
       res.json(movingAverages);
 
@@ -2699,12 +2481,6 @@ app.get('/:ticker/data4/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log the 20-day moving average data request
-      logger.info({
-        msg: '20-Day Moving Average Data Request',
-        ticker: ticker
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -2746,13 +2522,6 @@ app.get('/:ticker/data4/:apiKey',
           value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
         });
       }
-
-      // Log successful data retrieval
-      logger.info({
-        msg: '20-Day Moving Average Data Retrieved Successfully',
-        ticker: ticker,
-        dataPoints: movingAverages.length
-      });
 
       res.json(movingAverages);
 
@@ -2799,11 +2568,6 @@ app.get('/:ticker/data5/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log the 50-day moving average data request
-      logger.info({
-        msg: '50-Day Moving Average Data Request',
-        ticker: ticker
-      });
 
       client = new MongoClient(uri);
       await client.connect();
@@ -2846,13 +2610,6 @@ app.get('/:ticker/data5/:apiKey',
           value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
         });
       }
-
-      // Log successful data retrieval
-      logger.info({
-        msg: '50-Day Moving Average Data Retrieved Successfully',
-        ticker: ticker,
-        dataPoints: movingAverages.length
-      });
 
       res.json(movingAverages);
 
@@ -2899,12 +2656,6 @@ app.get('/:ticker/data6/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log the 200-day moving average data request
-      logger.info({
-        msg: '200-Day Moving Average Data Request',
-        ticker: ticker
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -2946,13 +2697,6 @@ app.get('/:ticker/data6/:apiKey',
           value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
         });
       }
-
-      // Log successful data retrieval
-      logger.info({
-        msg: '200-Day Moving Average Data Retrieved Successfully',
-        ticker: ticker,
-        dataPoints: movingAverages.length
-      });
 
       res.json(movingAverages);
 
@@ -2999,12 +2743,6 @@ app.get('/:ticker/data7/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log the weekly OHLC data request
-      logger.info({
-        msg: 'Weekly OHLC Data Request',
-        ticker: ticker
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -3031,14 +2769,6 @@ app.get('/:ticker/data7/:apiKey',
         low: parseFloat(item.low.toString().slice(0, 8)),
         close: parseFloat(item.close.toString().slice(0, 8)),
       }));
-
-      // Log successful data retrieval
-      logger.info({
-        msg: 'Weekly OHLC Data Retrieved Successfully',
-        ticker: ticker,
-        dataPoints: formattedData.length
-      });
-
       res.json(formattedData);
 
     } catch (error) {
@@ -3084,11 +2814,6 @@ app.get('/:ticker/data8/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log the weekly volume data request
-      logger.info({
-        msg: 'Weekly Volume Data Request',
-        ticker: ticker
-      });
 
       client = new MongoClient(uri);
       await client.connect();
@@ -3113,13 +2838,6 @@ app.get('/:ticker/data8/:apiKey',
         time: item.timestamp.toISOString().slice(0, 10),
         value: item.volume,
       }));
-
-      // Log successful data retrieval
-      logger.info({
-        msg: 'Weekly Volume Data Retrieved Successfully',
-        ticker: ticker,
-        dataPoints: formattedData.length
-      });
 
       res.json(formattedData);
 
@@ -3166,12 +2884,6 @@ app.get('/:ticker/data9/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log the 10-day moving average data request
-      logger.info({
-        msg: '10-Day Moving Average Data Request',
-        ticker: ticker
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -3213,13 +2925,6 @@ app.get('/:ticker/data9/:apiKey',
           value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
         });
       }
-
-      // Log successful data retrieval
-      logger.info({
-        msg: '10-Day Moving Average Data Retrieved Successfully',
-        ticker: ticker,
-        dataPoints: movingAverages.length
-      });
 
       res.json(movingAverages);
 
@@ -3266,11 +2971,6 @@ app.get('/:ticker/data10/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log the 20-day moving average data request
-      logger.info({
-        msg: '20-Day Moving Average Data Request',
-        ticker: ticker
-      });
 
       client = new MongoClient(uri);
       await client.connect();
@@ -3313,13 +3013,6 @@ app.get('/:ticker/data10/:apiKey',
           value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
         });
       }
-
-      // Log successful data retrieval
-      logger.info({
-        msg: '20-Day Moving Average Data Retrieved Successfully',
-        ticker: ticker,
-        dataPoints: movingAverages.length
-      });
 
       res.json(movingAverages);
 
@@ -3366,11 +3059,6 @@ app.get('/:ticker/data11/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log the 50-day moving average data request
-      logger.info({
-        msg: '50-Day Moving Average Data Request',
-        ticker: ticker
-      });
 
       client = new MongoClient(uri);
       await client.connect();
@@ -3413,13 +3101,6 @@ app.get('/:ticker/data11/:apiKey',
           value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
         });
       }
-
-      // Log successful data retrieval
-      logger.info({
-        msg: '50-Day Moving Average Data Retrieved Successfully',
-        ticker: ticker,
-        dataPoints: movingAverages.length
-      });
 
       res.json(movingAverages);
 
@@ -3466,11 +3147,6 @@ app.get('/:ticker/data12/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Log the 200-day moving average data request
-      logger.info({
-        msg: '200-Day Moving Average Data Request',
-        ticker: ticker
-      });
 
       client = new MongoClient(uri);
       await client.connect();
@@ -3513,13 +3189,6 @@ app.get('/:ticker/data12/:apiKey',
           value: parseFloat(average.toFixed(2)), // Round to 2 decimal places
         });
       }
-
-      // Log successful data retrieval
-      logger.info({
-        msg: '200-Day Moving Average Data Retrieved Successfully',
-        ticker: ticker,
-        dataPoints: movingAverages.length
-      });
 
       res.json(movingAverages);
 
@@ -3628,12 +3297,6 @@ app.get('/:ticker/earningsdate/:apiKey',
               return null;
             }
           }).filter(entry => entry !== null); // Remove invalid entries
-        });
-
-        // Log successful data retrieval
-        logger.info('Earnings dates retrieved successfully', {
-          ticker: ticker,
-          dataCount: formattedData.length
         });
 
         // Send formatted data
@@ -3777,12 +3440,6 @@ app.get('/:ticker/splitsdate/:apiKey',
           }).filter(entry => entry !== null); // Remove invalid entries
         });
 
-        // Log successful data retrieval
-        logger.info('Splits dates retrieved successfully', {
-          ticker: ticker,
-          dataCount: formattedData.length
-        });
-
         // Send formatted data
         res.status(200).json(formattedData);
 
@@ -3878,13 +3535,6 @@ app.get('/:user/watchlists/:apiKey',
             message: 'User not found or no watchlists found'
           });
         }
-
-        // Log successful retrieval
-        logger.info('Watchlists retrieved successfully', {
-          user: obfuscateUsername(user),
-          watchlistCount: userWatchlists.length
-        });
-
         // Send watchlists with additional security
         res.status(200).json(userWatchlists.map(watchlist => ({
           ...watchlist,
@@ -3984,12 +3634,6 @@ app.get('/:user/watchlists/:list/:apiKey',
           });
         }
 
-        logger.info('Watchlist retrieved successfully', {
-          user: obfuscateUsername(user),
-          list: list,
-          itemCount: Watchlists.List.length
-        });
-
         res.status(200).json(Watchlists.List);
 
       } catch (dbError) {
@@ -4086,7 +3730,6 @@ app.get('/:symbol/data-values/:apiKey',
             responseData.message = 'Insufficient historical data for comparison';
           }
 
-          logger.info('Data retrieved successfully', { symbol: symbol });
           res.status(200).json(responseData);
         } else {
           logger.warn('No data found for symbol', { symbol: symbol });
@@ -4213,11 +3856,6 @@ app.patch('/:user/watchlists/:list/:apiKey',
         );
 
         if (result.modifiedCount === 1) {
-          logger.info('Symbol added to watchlist', {
-            user: user,
-            listName: sanitizedName,
-            symbol: sanitizedSymbol
-          });
 
           res.status(200).json({
             message: 'Ticker added successfully',
@@ -4307,13 +3945,6 @@ app.patch('/:user/deleteticker/watchlists/:list/:ticker/:apiKey',
       const ticker = sanitizeInput(req.params.ticker).toUpperCase();
       const user = sanitizeInput(req.params.user);
 
-      // Log the attempt to delete a ticker
-      requestLogger.info('Delete ticker attempt', {
-        user: obfuscateUsername(user),
-        list,
-        ticker
-      });
-
       const client = new MongoClient(uri);
 
       try {
@@ -4360,11 +3991,6 @@ app.patch('/:user/deleteticker/watchlists/:list/:ticker/:apiKey',
         const result = await collection.updateOne(filter, update);
 
         if (result.modifiedCount === 1) {
-          requestLogger.info('Ticker deleted successfully', {
-            user: obfuscateUsername(user),
-            list,
-            ticker
-          });
 
           res.status(200).json({
             message: 'Ticker deleted successfully',
@@ -4467,10 +4093,6 @@ app.delete('/:user/delete/watchlists/:list/:apiKey',
         return res.status(404).json({ message: 'Watchlist not found' });
       }
 
-      requestLogger.info('Watchlist deleted successfully', {
-        user: obfuscateUsername(user),
-        list: '[masked]'
-      });
       res.send({ message: 'Watchlist deleted successfully' });
 
       await client.close();
@@ -4572,11 +4194,6 @@ app.post('/:user/create/watchlists/:list/:apiKey',
         const result = await collection.insertOne(document);
 
         if (result.insertedId) {
-          requestLogger.info('Watchlist created successfully', {
-            user: obfuscateUsername(user),
-            list,
-            watchlistId: result.insertedId
-          });
 
           res.status(201).json({
             message: 'Watchlist created successfully',
@@ -4691,12 +4308,6 @@ app.patch('/:user/rename/watchlists/:oldname/:apiKey',
         return res.status(404).json({ message: 'Watchlist not found' });
       }
 
-      requestLogger.info('Watchlist renamed successfully', {
-        user: obfuscateUsername(Username),
-        oldname: '[masked]',
-        newname: '[masked]'
-      });
-
       client.close();
       res.json({ message: 'Watchlist renamed successfully' });
     } catch (error) {
@@ -4783,11 +4394,6 @@ app.post('/:user/create/screener/:list/:apiKey',
 
       // Check if insertion was successful
       if (result.insertedCount === 1 || result.acknowledged) {
-        requestLogger.info('Screener created successfully', {
-          user: obfuscateUsername(user),
-          screenerName: '[masked]',
-          screenerCount: screenerCount + 1
-        });
         return res.json({
           message: 'Screener created successfully',
           screenerCount: screenerCount + 1
@@ -4892,12 +4498,6 @@ app.patch('/:user/rename/screener/:apiKey',
       const filter = { UsernameID: Username, Name: oldname };
       const updateDoc = { $set: { Name: newname } };
 
-      requestLogger.debug('Updating screener', {
-        user: obfuscateUsername(Username),
-        filter: '[masked]',
-        update: '[masked]'
-      });
-
       const result = await collection.updateOne(filter, updateDoc);
 
       // Check if any document was modified
@@ -4908,13 +4508,6 @@ app.patch('/:user/rename/screener/:apiKey',
         });
         return res.status(404).json({ message: 'Screener not found' });
       }
-
-      // Log successful rename
-      requestLogger.info('Screener renamed successfully', {
-        user: obfuscateUsername(Username),
-        oldname: '[masked]',
-        newname: '[masked]'
-      });
 
       // Send success response
       return res.json({ message: 'Screener renamed successfully' });
@@ -4973,11 +4566,6 @@ app.delete('/:user/delete/screener/:list/:apiKey',
 
       const filter = { Name: list, UsernameID: user };
 
-      requestLogger.debug('Attempting to delete screener', {
-        user: obfuscateUsername(user),
-        screenerName: '[masked]'
-      });
-
       const result = await collection.deleteOne(filter);
 
       if (result.deletedCount === 0) {
@@ -4987,11 +4575,6 @@ app.delete('/:user/delete/screener/:list/:apiKey',
         });
         return res.status(404).json({ message: 'Screener not found' });
       }
-
-      requestLogger.info('Screener deleted successfully', {
-        user: obfuscateUsername(user),
-        screenerName: '[masked]'
-      });
 
       res.json({ message: 'Screener deleted successfully' });
     } catch (error) {
@@ -5057,11 +4640,6 @@ app.get('/:user/screener/results/all/:apiKey',
 
       const hiddenSymbols = userDoc.Hidden || [];
 
-      requestLogger.debug('Fetching screener results', {
-        user: obfuscateUsername(user),
-        hiddenSymbolsCount: hiddenSymbols.length
-      });
-
       // Filter the AssetInfo collection using the 'Hidden' array
       const assetInfoCollection = db.collection('AssetInfo');
       const filteredAssets = await assetInfoCollection.find({
@@ -5086,11 +4664,6 @@ app.get('/:user/screener/results/all/:apiKey',
           _id: 0
         }
       }).toArray();
-
-      requestLogger.info('Screener results fetched successfully', {
-        user: obfuscateUsername(user),
-        assetsCount: filteredAssets.length
-      });
 
       res.json(filteredAssets);
     } catch (error) {
@@ -5364,14 +4937,6 @@ app.patch('/screener/marketcap/:apiKey',
         });
       }
 
-      // Log successful update
-      logger.info('Market Cap Range Updated', {
-        username: obfuscateUsername(Username),
-        screenerName: screenerName,
-        minMarketCap: finalMinPrice,
-        maxMarketCap: finalMaxPrice
-      });
-
       res.json({
         message: 'Market Cap range updated successfully',
         updatedScreener: {
@@ -5533,14 +5098,6 @@ app.patch('/screener/ipo-date/:apiKey',
         });
       }
 
-      // Log successful update
-      logger.info('IPO Date Range Updated', {
-        username: obfuscateUsername(Username),
-        screenerName: screenerName,
-        minIpoDate: finalMinPrice.toISOString(),
-        maxIpoDate: finalMaxPrice.toISOString()
-      });
-
       res.json({
         message: 'IPO date range updated successfully',
         updatedScreener: {
@@ -5640,12 +5197,6 @@ app.patch('/screener/:user/hidden/:symbol/:apiKey',
       const updateDoc = { $addToSet: { Hidden: symbol } };
       const result = await usersCollection.updateOne(filter, updateDoc);
 
-      // Log successful update
-      logger.info('Symbol Added to Hidden List', {
-        username: obfuscateUsername(Username),
-        symbol: symbol
-      });
-
       res.json({
         message: 'Hidden List updated successfully',
         symbol: symbol
@@ -5729,18 +5280,8 @@ app.get('/screener/results/:user/hidden/:apiKey',
 
       // Check if Hidden list exists and is not empty
       if (!userDoc.Hidden || userDoc.Hidden.length === 0) {
-        logger.info('Hidden List Fetch - Empty List', {
-          username: obfuscateUsername(username)
-        });
         return res.json([]);
       }
-
-      // Log successful retrieval
-      logger.info('Hidden List Retrieved', {
-        username: obfuscateUsername(username),
-        hiddenCount: userDoc.Hidden.length
-      });
-
       // Send hidden list
       res.json(userDoc.Hidden);
 
@@ -5809,12 +5350,6 @@ app.get('/screener/:user/names/:apiKey',
           _id: 0
         }
       }).toArray();
-
-      // Log the retrieval attempt
-      logger.info('Screener Names Retrieval', {
-        username: obfuscateUsername(username),
-        screenerCount: userDocs.length
-      });
 
       // Check if any screeners were found
       if (userDocs.length > 0) {
@@ -5904,9 +5439,6 @@ app.get('/:user/screener/results/hidden/:apiKey',
       // Check if hidden symbols exist
       const hiddenSymbols = userDoc.Hidden || [];
       if (hiddenSymbols.length === 0) {
-        logger.info('Hidden Results - No Hidden Symbols', {
-          username: obfuscateUsername(user)
-        });
         return res.json([]);
       }
 
@@ -5934,12 +5466,6 @@ app.get('/:user/screener/results/hidden/:apiKey',
           _id: 0
         }
       }).toArray();
-
-      // Log successful retrieval
-      logger.info('Hidden Results Retrieved', {
-        username: obfuscateUsername(user),
-        hiddenCount: filteredAssets.length
-      });
 
       res.json(filteredAssets);
 
@@ -6036,13 +5562,6 @@ app.patch('/screener/:user/show/:symbol/:apiKey',
       const updateDoc = { $pull: { Hidden: symbol } };
       const result = await collection.updateOne(filter, updateDoc);
 
-      // Log successful update
-      logger.info('Hidden Symbol Removed', {
-        username: obfuscateUsername(username),
-        symbol: symbol,
-        modifiedCount: result.modifiedCount
-      });
-
       // Check if update was successful
       if (result.modifiedCount === 0) {
         return res.status(500).json({
@@ -6122,11 +5641,6 @@ async (req, res) => {
         sector !== undefined
       )
       .slice(0, 50); // Optional: limit to 50 sectors to prevent potential DoS
-
-    logger.info({
-      totalSectors: uniqueSectors.length,
-      sectors: uniqueSectors
-    }, 'Sectors Retrieved');
 
     res.status(200).json(uniqueSectors);
 
@@ -6218,13 +5732,6 @@ app.patch('/screener/sectors/:apiKey',
         });
         return res.status(404).json({ message: 'Screener not found' });
       }
-
-      logger.info('Sectors updated successfully', {
-        username: obfuscateUsername(Username),
-        screenerName,
-        sectorsCount: sanitizedSectors.length
-      });
-
       res.json({
         message: 'Sectors updated successfully',
         sectors: sanitizedSectors
@@ -6287,11 +5794,6 @@ async (req, res) => {
         exchange !== undefined
       )
       .slice(0, 10); // Optional: limit to 10 exchanges to prevent potential DoS 
-
-    logger.info({
-      totalExchanges: uniqueExchanges.length,
-      exchanges: uniqueExchanges
-    }, 'Exchanges Retrieved');
 
     res.status(200).json(uniqueExchanges);
 
@@ -6399,12 +5901,6 @@ app.patch('/screener/exchange/:apiKey',
           }
         });
       }
-
-      logger.info('Exchanges updated successfully', {
-        username: obfuscateUsername(Username),
-        screenerName,
-        exchangesCount: sanitizedExchanges.length
-      });
 
       res.json({
         message: 'Exchanges updated successfully',
@@ -6574,12 +6070,6 @@ app.patch('/screener/country/:apiKey',
           }
         });
       }
-
-      logger.info('Countries updated successfully', {
-        username: obfuscateUsername(Username),
-        screenerName,
-        countriesCount: sanitizedCountries.length
-      });
 
       res.json({
         message: 'Countries updated successfully',
@@ -6849,14 +6339,6 @@ app.patch('/screener/forward-pe/:apiKey', validate([
           });
         }
 
-        // Log successful update
-        logger.info('Forward PE Range Updated', {
-          username: obfuscateUsername(Username),
-          screenerName: screenerName,
-          minForwardPE: minPrice,
-          maxForwardPE: maxPrice
-        });
-
         res.json({
           message: 'Forward PE range updated successfully',
           updatedScreener: result.value
@@ -6994,14 +6476,6 @@ app.patch('/screener/peg/:apiKey', validate([
             details: 'Unable to update screener'
           });
         }
-
-        // Log successful update
-        logger.info('PEG Range Updated', {
-          username: obfuscateUsername(Username),
-          screenerName: screenerName,
-          minPEG: minPrice,
-          maxPEG: maxPrice
-        });
 
         res.json({
           message: 'PEG range updated successfully',
@@ -7145,14 +6619,6 @@ app.patch('/screener/eps/:apiKey', validate([
             details: 'Unable to update screener'
           });
         }
-
-        // Log successful update
-        logger.info('EPS Range Updated', {
-          username: obfuscateUsername(Username),
-          screenerName: screenerName,
-          minEPS: minPrice,
-          maxEPS: maxPrice
-        });
 
         res.json({
           message: 'EPS range updated successfully',
@@ -7298,14 +6764,6 @@ app.patch('/screener/ps-ratio/:apiKey', validate([
           });
         }
 
-        // Log successful update
-        logger.info('PS Ratio Range Updated', {
-          username: obfuscateUsername(Username),
-          screenerName: screenerName,
-          minPSRatio: minPrice,
-          maxPSRatio: maxPrice
-        });
-
         res.json({
           message: 'Price to Sales Ratio range updated successfully',
           updatedScreener: result.value
@@ -7449,14 +6907,6 @@ app.patch('/screener/pb-ratio/:apiKey', validate([
             details: 'Unable to update screener'
           });
         }
-
-        // Log successful update
-        logger.info('PB Ratio Range Updated', {
-          username: obfuscateUsername(Username),
-          screenerName: screenerName,
-          minPBRatio: minPrice,
-          maxPBRatio: maxPrice
-        });
 
         res.json({
           message: 'Price to Book Ratio range updated successfully',
@@ -7618,14 +7068,6 @@ app.patch('/screener/beta/:apiKey', validate([
           });
         }
 
-        // Log successful update
-        logger.info('Beta Range Updated', {
-          username: obfuscateUsername(Username),
-          screenerName: screenerName,
-          minBeta: minPrice,
-          maxBeta: maxPrice
-        });
-
         res.json({
           message: 'Beta range updated successfully',
           updatedScreener: result.value
@@ -7775,14 +7217,6 @@ app.patch('/screener/div-yield/:apiKey', validate([
             details: 'Unable to update screener'
           });
         }
-
-        // Log successful update
-        logger.info('Dividend Yield Range Updated', {
-          username: obfuscateUsername(Username),
-          screenerName: screenerName,
-          minDividendYield: effectiveMinPrice * 100 + '%',
-          maxDividendYield: effectiveMaxPrice * 100 + '%'
-        });
 
         res.json({
           message: 'Dividend Yield range updated successfully',
@@ -7981,13 +7415,6 @@ app.patch('/screener/fundamental-growth/:apiKey', validate([
       });
     }
 
-    // Log successful update
-    logger.info('Fundamental Growth Screener Updated', {
-      username: obfuscateUsername(Username),
-      screenerName: screenerName,
-      updatedAttributes: Object.keys(updateDoc.$set)
-    });
-
     res.json({
       message: 'Fundamental growth parameters updated successfully',
       updatedScreener: result.value,
@@ -8109,10 +7536,6 @@ app.patch('/screener/volume/:apiKey', validate([
 
     // Check if there are any updates to apply
     if (Object.keys(updateDoc).length === 0) {
-      logger.info('No updates to apply', {
-        user: obfuscatedUsername,
-        screenerName: screenerName
-      });
       return res.status(200).json({ message: 'No updates to apply' });
     }
 
@@ -8128,13 +7551,6 @@ app.patch('/screener/volume/:apiKey', validate([
       });
       return res.status(404).json({ message: 'Screener not found' });
     }
-
-    // Log successful update with minimal sensitive information
-    logger.info('Screener updated successfully', {
-      user: obfuscatedUsername,
-      screenerName: screenerName,
-      updatedFields: Object.keys(updateDoc) // Log only field names, not values
-    });
 
     res.json({ message: 'Document updated successfully', updatedFields: Object.keys(updateDoc) });
 
@@ -8291,10 +7707,6 @@ app.patch('/screener/rs-score/:apiKey', validate([
 
     // Check if any updates are present
     if (Object.keys(updateDoc.$set).length === 0) {
-      logger.info('No RS Score values to update', {
-        user: obfuscatedUsername,
-        screenerName: screenerName
-      });
       return res.status(200).json({ message: 'No RS Score values to update' });
     }
 
@@ -8309,13 +7721,6 @@ app.patch('/screener/rs-score/:apiKey', validate([
       });
       return res.status(404).json({ message: 'Screener not found' });
     }
-
-    // Log successful update with minimal sensitive information
-    logger.info('RS Score updated successfully', {
-      user: obfuscatedUsername,
-      screenerName: screenerName,
-      updatedFields: Object.keys(updateDoc.$set)
-    });
 
     res.json({
       message: 'RS Score updated successfully',
@@ -8600,10 +8005,6 @@ app.patch('/screener/price-performance/:apiKey', validate([
 
     // Check if there are any updates to apply
     if (Object.keys(updateDoc.$set).length === 0) {
-      logger.info('No price performance values to update', {
-        user: obfuscatedUsername,
-        screenerName: screenerName
-      });
       return res.status(200).json({ message: 'No price performance values to update' });
     }
 
@@ -8619,13 +8020,6 @@ app.patch('/screener/price-performance/:apiKey', validate([
       });
       return res.status(404).json({ message: 'Screener not found' });
     }
-
-    // Log successful update with minimal sensitive information
-    logger.info('Price performance updated successfully', {
-      user: obfuscatedUsername,
-      screenerName: screenerName,
-      updatedFields: Object.keys(updateDoc.$set)
-    });
 
     res.json({
       message: 'Price performance updated successfully',
@@ -8707,12 +8101,6 @@ app.get('/screener/performance/:ticker/:apiKey', [
       });
       return res.status(404).json({ message: `No performance data found for ${symbol}` });
     }
-
-    // Log successful retrieval
-    logger.info('Performance data retrieved', {
-      user: obfuscatedUsername,
-      symbol: symbol
-    });
 
     res.json(performanceData);
 
@@ -8811,10 +8199,6 @@ app.patch('/screener/reset/:user/:name/:apiKey',
       const result = await collection.findOneAndUpdate(filter, updateDoc, options);
 
       if (result) {
-        logger.info('Screener parameters reset successfully', {
-          user: obfuscatedUsername,
-          screenerName: Name
-        });
         res.json({ message: 'Screener parameters reset successfully' });
       } else {
         logger.warn('Screener update failed', {
@@ -9008,12 +8392,6 @@ app.patch('/reset/screener/param/:apiKey',
       const result = await collection.findOneAndUpdate(filter, updateDoc, options);
 
       if (result) { // Check if the document was found and updated
-        // Log successful reset
-        requestLogger.info('Screener parameter reset successfully', {
-          parameter: value,
-          username: obfuscateUsername(UsernameID),
-          screenerName: Name
-        });
 
         res.json({
           message: 'Parameter reset successfully',
@@ -9167,12 +8545,6 @@ app.get('/screener/datavalues/:user/:name/:apiKey',
           IPO: document.IPO,
         };
 
-        // Log successful data retrieval
-        logger.info('Screener data retrieved successfully', {
-          usernameID: obfuscateUsername(usernameID),
-          screenerName: name
-        });
-
         res.json(response);
       } finally {
         await client.close();
@@ -9236,12 +8608,6 @@ app.get('/screener/:user/results/filtered/:name/:apiKey',
       const client = new MongoClient(uri);
       await client.connect();
       const db = client.db('EreunaDB');
-
-      // Log the request details
-      logger.info('Screener results request', {
-        user: obfuscateUsername(user), // Obfuscate username for logging
-        screenerName: screenerName
-      });
 
       const usersCollection = db.collection('Users');
       const userDoc = await usersCollection.findOne({ Username: user });
@@ -9845,12 +9211,6 @@ app.get('/screener/:user/results/filtered/:name/:apiKey',
         _id: 0
       }).toArray();
 
-      logger.info('Filtered assets retrieved successfully', {
-        user: obfuscateUsername(user),
-        screenerName: screenerName,
-        assetCount: filteredAssets.length
-      });
-
       res.send(filteredAssets);
     } catch (error) {
       logger.error('Error fetching screener results', {
@@ -9891,15 +9251,6 @@ app.get('/screener/summary/:usernameID/:name/:apiKey',
       // Sanitize input parameters
       const usernameID = sanitizeInput(req.params.usernameID);
       const name = sanitizeInput(req.params.name);
-
-      // Log the incoming request
-      logger.info({
-        msg: 'Screener Summary Request',
-        requestId: requestId,
-        usernameID: obfuscateUsername(usernameID),
-        screenerName: name,
-        ip: req.ip
-      });
 
       const client = new MongoClient(uri);
 
@@ -9952,16 +9303,6 @@ app.get('/screener/summary/:usernameID/:name/:apiKey',
           }
           return acc;
         }, {});
-
-        // Log successful retrieval
-        logger.info({
-          msg: 'Screener Summary Retrieved',
-          requestId: requestId,
-          usernameID: obfuscateUsername(usernameID),
-          screenerName: name,
-          dataPoints: Object.keys(filteredData).length,
-          retrievalTime: Date.now() - startTime + 'ms'
-        });
 
         // Send response exactly as in original implementation
         res.send(filteredData);
@@ -10031,14 +9372,6 @@ app.get('/screener/:usernameID/all/:apiKey',
       // Sanitize input
       const usernameId = sanitizeInput(req.params.usernameID);
 
-      // Log the request
-      logger.info({
-        msg: 'Combined Screener Results Request',
-        requestId: requestId,
-        usernameID: obfuscateUsername(usernameId),
-        ip: req.ip
-      });
-
       client = new MongoClient(uri);
       await client.connect();
       const db = client.db('EreunaDB');
@@ -10046,13 +9379,6 @@ app.get('/screener/:usernameID/all/:apiKey',
 
       const screeners = await screenersCollection.find({ UsernameID: usernameId, Include: true }).toArray();
       const screenerNames = screeners.map(screener => screener.Name);
-
-      // Log screeners found
-      logger.info({
-        msg: 'Screeners Retrieved',
-        requestId: requestId,
-        screenerCount: screenerNames.length
-      });
 
       const usersCollection = db.collection('Users');
       const userDoc = await usersCollection.findOne({ Username: usernameId });
@@ -10691,14 +10017,6 @@ app.get('/screener/:usernameID/all/:apiKey',
         };
       });
 
-      // Log results
-      logger.info({
-        msg: 'Combined Screener Results Retrieved',
-        requestId: requestId,
-        totalAssets: finalResults.length,
-        processingTime: Date.now() - startTime + 'ms'
-      });
-
       res.send(finalResults);
 
     } catch (error) {
@@ -10775,16 +10093,6 @@ app.patch('/watchlists/update-order/:Username/:Name/:apiKey',
       const Name = sanitizeInput(req.params.Name);
       const newListOrder = req.body.newListOrder.map(item => sanitizeInput(item));
 
-      // Log the request
-      logger.info({
-        msg: 'Watchlist Order Update Request',
-        requestId: requestId,
-        user: obfuscateUsername(user),
-        watchlistName: Name,
-        listOrderLength: newListOrder.length,
-        ip: req.ip
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -10797,19 +10105,7 @@ app.patch('/watchlists/update-order/:Username/:Name/:apiKey',
       const result = await collection.updateOne(filter, update, { upsert: true });
 
       if (result.upsertedCount === 1) {
-        logger.info({
-          msg: 'Watchlist Document Created',
-          requestId: requestId,
-          user: obfuscateUsername(user),
-          watchlistName: Name
-        });
       } else if (result.modifiedCount === 1) {
-        logger.info({
-          msg: 'Watchlist Order Updated',
-          requestId: requestId,
-          user: obfuscateUsername(user),
-          watchlistName: Name
-        });
       } else {
         logger.warn({
           msg: 'No Matching Watchlist Found',
@@ -10905,17 +10201,6 @@ app.patch('/watchlist/addticker/:isAdding/:apiKey',
       const symbol = sanitizeInput(req.body.symbol);
       const user = sanitizeInput(req.body.user);
 
-      // Log the request
-      logger.info({
-        msg: 'Watchlist Ticker Update Request',
-        requestId: requestId,
-        user: obfuscateUsername(user),
-        watchlistName: watchlistName,
-        symbol: symbol,
-        isAdding: isAdding,
-        ip: req.ip
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -10972,30 +10257,12 @@ app.patch('/watchlist/addticker/:isAdding/:apiKey',
       }
 
       if (result.modifiedCount === 0) {
-        logger.info({
-          msg: 'No Modification Needed',
-          requestId: requestId,
-          user: obfuscateUsername(user),
-          watchlistName: watchlistName,
-          symbol: symbol,
-          isAdding: isAdding
-        });
         return res.status(200).json({
           message: isAdding
             ? 'Symbol already in watchlist'
             : 'Symbol not in watchlist'
         });
       }
-
-      // Log successful update
-      logger.info({
-        msg: 'Watchlist Ticker Updated',
-        requestId: requestId,
-        user: obfuscateUsername(user),
-        watchlistName: watchlistName,
-        symbol: symbol,
-        action: isAdding ? 'added' : 'removed'
-      });
 
       res.status(200).json({
         message: isAdding
@@ -11073,15 +10340,6 @@ app.patch('/:user/toggle/screener/:list/:apiKey',
       const user = sanitizeInput(req.params.user);
       const list = sanitizeInput(req.params.list);
 
-      // Log the request
-      logger.info({
-        msg: 'Screener Toggle Request',
-        requestId: requestId,
-        user: obfuscateUsername(user),
-        screenerName: list,
-        ip: req.ip
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -11119,15 +10377,6 @@ app.patch('/:user/toggle/screener/:list/:apiKey',
         });
         return res.status(500).json({ message: 'Failed to update screener' });
       }
-
-      // Log successful update
-      logger.info({
-        msg: 'Screener Toggled Successfully',
-        requestId: requestId,
-        user: obfuscateUsername(user),
-        screenerName: list,
-        newIncludeValue: updatedIncludeValue
-      });
 
       res.send({
         message: 'Screener updated successfully',
@@ -11196,14 +10445,6 @@ app.get('/:user/full-watchlists/:apiKey',
       }
       const user = sanitizeInput(req.params.user);
 
-      // Log the request
-      logger.info({
-        msg: 'Retrieve Full Watchlists Request',
-        requestId: requestId,
-        user: obfuscateUsername(user),
-        ip: req.ip
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -11224,14 +10465,6 @@ app.get('/:user/full-watchlists/:apiKey',
         res.status(404).json({ message: 'No watchlists found for the user' });
         return;
       }
-
-      // Log successful retrieval
-      logger.info({
-        msg: 'Watchlists Retrieved Successfully',
-        requestId: requestId,
-        user: obfuscateUsername(user),
-        watchlistCount: userWatchlists.length
-      });
 
       res.send(userWatchlists);
 
@@ -11284,13 +10517,6 @@ async (req, res) => {
           message: 'Unauthorized API Access'
         });
       }
-    // Log the request
-    logger.info({
-      msg: 'Maintenance Status Request',
-      requestId: requestId,
-      ip: req.ip
-    });
-
     client = new MongoClient(uri);
     await client.connect();
 
@@ -11298,13 +10524,6 @@ async (req, res) => {
     const systemSettings = db.collection('systemSettings');
 
     const status = await systemSettings.findOne({ name: 'EreunaApp' });
-
-    // Log successful retrieval
-    logger.info({
-      msg: 'Maintenance Status Retrieved',
-      requestId: requestId,
-      maintenanceMode: status ? status.maintenance : false
-    });
 
     return res.json({ maintenance: status ? status.maintenance : false });
   } catch (error) {
@@ -11372,14 +10591,6 @@ app.post('/maintenance-status/:apiKey',
       // Sanitize the maintenance value
       const maintenance = sanitizeInput(req.body.maintenance.toString()).toLowerCase() === 'true';
 
-      // Log the request
-      logger.info({
-        msg: 'Maintenance Status Update Request',
-        requestId: requestId,
-        maintenanceMode: maintenance,
-        ip: req.ip
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -11395,14 +10606,6 @@ app.post('/maintenance-status/:apiKey',
           }
         }
       );
-
-      // Log successful update
-      logger.info({
-        msg: 'Maintenance Status Updated Successfully',
-        requestId: requestId,
-        maintenanceMode: maintenance
-      });
-
       return res.json({
         success: true,
         requestId: requestId
@@ -11468,14 +10671,6 @@ app.get('/get-receipts/:user/:apiKey',
       // Sanitize the username parameter
       const user = sanitizeInput(req.params.user);
 
-      // Log the request
-      logger.info({
-        msg: 'Retrieve Receipts Request',
-        requestId: requestId,
-        username: obfuscateUsername(user),
-        ip: req.ip
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -11508,14 +10703,6 @@ app.get('/get-receipts/:user/:apiKey',
       const query = { UserID: userDoc._id };
 
       const userReceipts = await receiptsCollection.find(query).toArray();
-
-      // Log successful receipt retrieval
-      logger.info({
-        msg: 'Receipts Retrieved Successfully',
-        requestId: requestId,
-        username: obfuscateUsername(user),
-        receiptCount: userReceipts.length
-      });
 
       res.json({
         receipts: userReceipts,
@@ -11576,13 +10763,6 @@ validationSchemas.apiKeyParam()
           message: 'Unauthorized API Access'
         });
       }
-    // Log the request
-    logger.info({
-      msg: 'Retrieve Symbols and Exchanges Request',
-      requestId: requestId,
-      ip: req.ip
-    });
-
     client = new MongoClient(uri);
     await client.connect();
 
@@ -11609,13 +10789,6 @@ validationSchemas.apiKeyParam()
 
       return res.status(404).json({ message: 'No documents found' });
     }
-
-    // Log successful retrieval
-    logger.info({
-      msg: 'Symbols and Exchanges Retrieved Successfully',
-      requestId: requestId,
-      documentCount: documents.length
-    });
 
     res.json(documents);
 
@@ -11675,14 +10848,6 @@ app.get('/:user/default-symbol/:apiKey',
       // Sanitize input
       const username = sanitizeInput(req.params.user);
 
-      // Log the request
-      logger.info({
-        msg: 'Retrieve Default Symbol Request',
-        requestId: requestId,
-        username: obfuscateUsername(username),
-        ip: req.ip
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -11703,13 +10868,6 @@ app.get('/:user/default-symbol/:apiKey',
 
         return res.status(404).json({ message: 'User  not found' });
       }
-
-      // Log successful retrieval
-      logger.info({
-        msg: 'Default Symbol Retrieved Successfully',
-        requestId: requestId,
-        username: obfuscateUsername(username)
-      });
 
       res.json({ defaultSymbol: userDoc.defaultSymbol });
 
@@ -11792,14 +10950,6 @@ app.patch('/:user/update-default-symbol/:apiKey',
       const username = sanitizeInput(req.params.user);
       const defaultSymbol = sanitizeInput(req.body.defaultSymbol).toUpperCase();
 
-      // Log the request
-      logger.info({
-        msg: 'Update Default Symbol Request',
-        requestId: requestId,
-        username: obfuscateUsername(username),
-        ip: req.ip
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -11843,14 +10993,6 @@ app.patch('/:user/update-default-symbol/:apiKey',
 
         return res.status(400).json({ message: 'No changes made' });
       }
-
-      // Log successful update
-      logger.info({
-        msg: 'Default Symbol Updated Successfully',
-        requestId: requestId,
-        username: obfuscateUsername(username),
-        newSymbol: defaultSymbol
-      });
 
       res.json({ message: 'Default symbol updated successfully' });
 
@@ -11911,15 +11053,6 @@ app.get('/:user/hidden/:apiKey',
       }
       // Sanitize input
       const username = sanitizeInput(req.params.user);
-
-      // Log the request
-      logger.info({
-        msg: 'Retrieve Hidden List Request',
-        requestId: requestId,
-        username: obfuscateUsername(username),
-        ip: req.ip
-      });
-
       client = new MongoClient(uri);
       await client.connect();
 
@@ -11940,13 +11073,6 @@ app.get('/:user/hidden/:apiKey',
 
         return res.status(404).json({ message: 'User  not found' });
       }
-
-      // Log successful retrieval
-      logger.info({
-        msg: 'Hidden List Retrieved Successfully',
-        requestId: requestId,
-        username: obfuscateUsername(username)
-      });
 
       res.json({ Hidden: userDoc.Hidden });
 
