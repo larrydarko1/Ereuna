@@ -109,17 +109,7 @@ const bruteForceProtection = rateLimit({
 });
 
 // Apply CORS and Brute Force Protection (max 10 requests per minute)
-app.use('/login', cors(corsOptions), bruteForceProtection);
-app.use('/signup', cors(corsOptions), bruteForceProtection);
-app.use('/verify', cors(corsOptions), bruteForceProtection);
-app.use('/recover', cors(corsOptions), bruteForceProtection);
-app.use('/generate-key', cors(corsOptions), bruteForceProtection);
-app.use('/download-key', cors(corsOptions), bruteForceProtection);
-app.use('/retrieve-key', cors(corsOptions), bruteForceProtection);
-app.use('/password-change', cors(corsOptions), bruteForceProtection);
-app.use('/change-password2', cors(corsOptions), bruteForceProtection);
-app.use('/change-username', cors(corsOptions), bruteForceProtection);
-app.use('/account-delete', cors(corsOptions), bruteForceProtection);
+app.use(/^\/(login|signup|verify|recover|generate-key|download-key|retrieve-key|password-change|change-password2|change-username|account-delete|verify-mfa|twofa)(\/.*)?$/, cors(corsOptions), bruteForceProtection);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
@@ -247,7 +237,6 @@ function createRequestLogger(req) {
     requestId: crypto.randomBytes(16).toString('hex'),
     ip: req.ip,
     method: req.method,
-    path: req.path
   });
 }
 
