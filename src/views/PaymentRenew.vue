@@ -13,56 +13,63 @@
     <br>
     <div>
       <h2>Select a Subscription Plan</h2>
-      <div class="subscription-form">
-        <div 
-          class="sub-option" 
-          :class="{ selected: selectedOption === 1 }"
-          @click="selectOption(1)"
-        >
-          <h3 class="offer">1 Month</h3>
-          <p class="price">5.99€ + VAT</p>
-        </div>
-        <div 
-          class="sub-option" 
-          :class="{ selected: selectedOption === 2 }"
-          @click="selectOption(2)"
-        >
-          <h3 class="offer">4 Months</h3>
-          <p class="price">23.99€ + VAT</p>
-        </div>
-        <div class="sub-option-disabled">
-          <div class="coming-soon-banner">Available Soon</div>
-          <h3 class="offer">6 Months</h3>
-          <p class="price">35.99€ + VAT</p>
-        </div>
-        <div class="sub-option-disabled">
-          <div class="coming-soon-banner">Available Soon</div>
-          <h3 class="offer">1 Year</h3>
-          <p class="price">71.99€ + VAT</p>
-        </div>
-      </div>
-      <h2>Select a payment method</h2>
-      <div class="payment-form">
-        <div class="pay-option">
-          <div class="square" :class="{ selected: selectedpay === 1 }" @click="selectPaymentMethod('credit-card'), selectPay(1)">
-            <img class="icon" src="@/assets/icons/credit-card.png" alt="credit-card"> 
-            <p>Credit Card</p>
-          </div>
-          <div class="square" :class="{ selected: selectedpay === 2 }" @click="selectPaymentMethod('crypto - Bitcoin'), selectPay(2)">
-            <img class="icon" src="@/assets/icons/bitcoin.png" alt="bitcoin"> 
-            <p>Bitcoin</p>
-          </div>
-          <div class="square" :class="{ selected: selectedpay === 3 }" @click="selectPaymentMethod('crypto - Ethereum'), selectPay(3)">
-            <img class="icon" src="@/assets/icons/ethereum.png" alt="ethereum"> 
-            <p>Ethereum</p>
-          </div>
-          <div class="square" :class="{ selected: selectedpay === 4 }" @click="selectPaymentMethod('crypto - Monero'), selectPay(4)">
-            <img class="icon" src="@/assets/icons/monero.png" alt="monero"> 
-            <p>Monero</p>
-          </div>
-          <div v-if="selectedpay === 1" class="card-element-container">
-            <div id="card-element"></div>
-            <div id="card-errors" role="alert"></div>
+    <div class="subscription-form">
+      <div 
+      class="sub-option" 
+      :class="{ selected: selectedOption === 1 }"
+      @click="selectOption(1)"
+    >
+      <h3 class="plan">1 Month</h3>
+      <p class="price">5.99€ + VAT</p>
+    </div>
+    <div 
+      class="sub-option" 
+      :class="{ selected: selectedOption === 2 }"
+      @click="selectOption(2)"
+    >
+      <h3 class="plan">4 Months</h3>
+      <p class="price">23.99€ + VAT</p>
+    </div>
+    <div 
+  class="sub-option-disabled" 
+>
+  <div class="coming-soon-banner">Available Soon</div>
+  <h3 style="cursor: default;" class="plan">6 Months</h3>
+  <p style="cursor: default;" class="price">35.99€ + VAT</p>
+</div>
+<div 
+  class="sub-option-disabled" 
+>
+  <div class="coming-soon-banner">Available Soon</div>
+  <h3 style="cursor: default;" class="plan">1 Year</h3>
+  <p style="cursor: default;" class="price">71.99€ + VAT</p>
+</div>
+</div>
+    <h2>Select a payment method</h2>
+    <div class="payment-form">
+    <div class="pay-option">
+      <div class="square" :class="{ selected: selectedpay === 1 }" @click="selectPaymentMethod('Credit Card'), selectPay(1)">
+        <img class="icon" src="@/assets/icons/credit-card.png" alt="credit-card"> 
+        <p>Credit Card</p>
+    </div>
+    <div class="square-disabled">
+      <div class="coming-soon-banner2">Available Soon</div>
+    <img class="icon" src="@/assets/icons/bitcoin.png" alt="bitcoin"> 
+    <p>Bitcoin</p>
+</div>
+<div class="square-disabled">
+  <div class="coming-soon-banner2">Available Soon</div>
+    <img class="icon" src="@/assets/icons/ethereum.png" alt="ethereum"> 
+    <p>Ethereum</p>
+</div>
+<div class="square-disabled">
+  <div class="coming-soon-banner2">Available Soon</div>
+    <img class="icon" src="@/assets/icons/monero.png" alt="monero"> 
+    <p>Monero</p>
+</div>
+        <div v-if="selectedpay === 1" class="card-element-container">
+      <div id="card-element"></div>
+      <div id="card-errors" role="alert"></div>
           </div>
         </div>
         <br><br>
@@ -251,7 +258,6 @@ color: #b3b3b3;
     display: inline-flex;
     flex-direction: row;
     border: none;
-    background-color: #2c2b3e;
     border-radius: 10px; /* Slightly curved border */
     padding: 10px;
     margin: 5px;
@@ -262,6 +268,66 @@ color: #b3b3b3;
     color: #f5f5f5;
     position: relative; /* Position relative for pseudo-element */
     overflow: hidden; /* Hide overflow */
+}
+
+.square-disabled {
+    align-items: center;
+    display: inline-flex;
+    flex-direction: row;
+    border: none;
+    border-radius: 10px; /* Slightly curved border */
+    padding: 10px;
+    margin: 5px;
+    padding-right: 15px;
+    opacity: 0.80;
+    width: 100px;
+    justify-content: center;
+    color: #f5f5f5;
+    position: relative; /* Position relative for pseudo-element */
+    overflow: hidden; /* Hide overflow */
+    cursor: default
+}
+
+.square-disabled::before {
+    content: '';
+    position: absolute; /* Position it absolutely */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1; /* Place it behind the content */
+    border-radius: 10px; /* Match the border radius of the parent */
+    background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
+    padding: 2px; /* Space for the border effect */
+    -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+    -webkit-mask-composite: source-out; /* For masking */
+    animation: border-animation 5s linear infinite; /* Add animation */
+    mask-composite: exclude; /* For masking */
+    background-size: 300% 300%; 
+    cursor: default;
+}
+
+.square::before {
+    content: '';
+    position: absolute; /* Position it absolutely */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1; /* Place it behind the content */
+    border-radius: 10px; /* Match the border radius of the parent */
+    background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
+    padding: 2px; /* Space for the border effect */
+    -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+    -webkit-mask-composite: source-out; /* For masking */
+    animation: border-animation 5s linear infinite; /* Add animation */
+    mask-composite: exclude; /* For masking */
+    background-size: 300% 300%; 
+}
+
+.square:hover{
+    opacity: 1;
+    cursor: pointer;
 }
 
 .selected {
@@ -310,7 +376,6 @@ color: #b3b3b3;
 
 .sub-option {
   align-items: center;
-  background-color: #2c2b3e;
   display: inline-flex;
   flex-direction: column;
   border: none;
@@ -326,22 +391,59 @@ color: #b3b3b3;
   color: #f5f5f5;
 }
 
+.sub-option::before {
+  content: '';
+  position: absolute; /* Position it absolutely */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1; /* Place it behind the content */
+  border-radius: 5px; /* Match the border radius of the parent */
+  background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
+  padding: 2px; /* Space for the border effect */
+  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+  -webkit-mask-composite: source-out; /* For masking */
+  mask-composite: exclude; /* For masking */
+  animation: border-animation 5s linear infinite;
+  background-size: 300% 300%; 
+}
+
 .sub-option-disabled {
   align-items: center;
   display: inline-flex;
   flex-direction: column;
-  background-color: #2c2b3e;
   border: none;
-  border-radius: 5px;
-  padding: 10px;
+  border-radius: 5px; /* Rounded corners */
+  padding: 10px; /* Inner padding */
   margin: 5px;
   opacity: 0.80;
   width: 120px;
-  position: relative; 
+  position: relative; /* Position relative for the pseudo-element */
   height: 70px;
-  overflow: hidden;
+  overflow: hidden; /* Ensure the pseudo-element doesn't overflow */
   justify-content: center;
   color: #f5f5f5;
+  cursor: default;
+}
+
+.sub-option-disabled::before {
+  content: '';
+  position: absolute; /* Position it absolutely */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1; /* Place it behind the content */
+  border-radius: 5px; /* Match the border radius of the parent */
+  background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
+  padding: 2px; /* Space for the border effect */
+  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+  -webkit-mask-composite: source-out; /* For masking */
+  animation: border-animation 5s linear infinite;
+  mask-composite: exclude; /* For masking */
+  background-size: 300% 300%; 
+  cursor: default;
 }
 
 .sub-option:hover {
@@ -364,6 +466,24 @@ color: #b3b3b3;
   text-align: center;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   z-index: 1;
+}
+
+.coming-soon-banner2 {
+  position: absolute;
+  top: 20px;          /* Reduced from 20px */
+  right: -35px;       /* Changed from -35px */
+  background-color: #8c8dfe;  /* Your purple color */
+  color: whitesmoke;
+  padding-left: 10px;  /* Reduced padding */
+  padding: 1px;
+  font-size: 12px;    /* You can make this smaller if needed, like 10px */
+  transform: rotate(45deg);
+  transform-origin: center;
+  width: 120px;       /* Reduced from 150px */
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 1;
+  cursor: default;
 }
 
 .card-element-container {
