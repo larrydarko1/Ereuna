@@ -1,4 +1,9 @@
 <template>
+  <div v-if="mfaRequired" class="mfa-popup">
+  <h3>Enter 2FA Code</h3>
+  <input placeholder="MFA Code" type="text" v-model="mfaCode" maxlength="6" style="text-align: center;">
+  <button type="button" class="verify-mfa" @click="verifyMfa">Verify</button>
+</div>
   <div class="login-form" @keydown.enter="login()">
     <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/owl.png" alt="">
     <div class="input-with-icon">
@@ -76,6 +81,10 @@ const welcomePopup = ref(false);
 const rememberMe = ref(false);
 const welcomeMessage = ref('');
 const showPassword = ref(false);
+const mfaError = ref(false);
+const mfaRequired = ref(false);
+const mfaCode = ref('');
+const storedUsername = ref('');
 
 async function login() {
   const usernameInput = document.querySelector('input[placeholder="Username"]');
@@ -84,11 +93,15 @@ async function login() {
   const username = usernameInput.value.trim();
   const password = passwordInput.value.trim();
 
+  // Update the stored username
+  storedUsername.value = username;
+
   // Reset all error states
   usernameError.value = false;
   passwordError.value = false;
   fieldsError.value = false;
   welcomePopup.value = false;
+  mfaError.value = false;
 
   // Check for empty fields first
   if (!username || !password) {
@@ -108,14 +121,19 @@ async function login() {
         rememberMe: rememberMe.value,
       })
     });
-    
+
     const responseBody = await response.json();
 
     if (response.ok) {
-      //add welcome message here
-      const token = responseBody.token;
-      localStorage.setItem('token', token);
-      router.push({ name: 'Charts' });
+      if (responseBody.mfaRequired) {
+        // MFA verification required, display MFA popup
+        mfaRequired.value = true;
+      } else {
+        // MFA verification not required, proceed with login
+        const token = responseBody.token;
+        localStorage.setItem('token', token);
+        router.push({ name: 'Charts' });
+      }
     } else {
       // Use exact string matching
       if (responseBody.message === 'Username doesn\'t exist') {
@@ -127,11 +145,44 @@ async function login() {
       } else if (responseBody.message === 'Please fill both username and password fields') {
         fieldsError.value = true;
       } else {
+        // Log error
       }
     }
   } catch (error) {
+    // Log error
   }
 }
+
+async function verifyMfa() {
+  try {
+    const mfaResponse = await fetch(`/api/verify-mfa/${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: storedUsername.value,
+        mfaCode: mfaCode.value,
+        rememberMe: rememberMe.value
+      })
+    });
+
+    const mfaResponseBody = await mfaResponse.json();
+
+    if (mfaResponse.ok) {
+      // MFA code is valid, proceed with login
+      const token = mfaResponseBody.token;
+      localStorage.setItem('token', token);
+      router.push({ name: 'Charts' });
+    } else {
+      // MFA code is invalid, display error message
+      mfaError.value = true;
+    }
+  } catch (error) {
+    // Log error
+  }
+}
+
 </script>
 
 <style scoped>
@@ -349,6 +400,48 @@ async function login() {
 .toggle-icon {
   width: 15px; /* Adjust the size as needed */
   cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+.mfa-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  background-color: #1d1c29;
+  border: 1px solid #dddddd17;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-radius: 20px;
+  z-index: 1;
+  text-align: center;
+}
+
+.mfa-popup h3 {
+  margin-top: 0;
+  color: #ccc;
+}
+
+.mfa-popup input {
+  width: 90%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+.mfa-popup button {
+  width: 90%;
+  padding: 10px;
+  background-color: #8c8dfe;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.mfa-popup button:hover {
+  background-color: #8c8dfe;
 }
 
 </style>

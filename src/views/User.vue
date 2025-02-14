@@ -10,6 +10,9 @@
       <div class="menu" @click="selectMenu($event, 1)">
         <img src="@/assets/icons/payment.png" alt="Icon" class="icon">Payment / Subscription
       </div>
+      <div class="menu" @click="selectMenu($event, 2)">
+        <img src="@/assets/icons/password2.png" alt="Icon" class="icon">Security / 2FA
+      </div>
       <button class="settingsbtn" @click="LogOut()">Log Out</button>
     </div>
     <div class="content">
@@ -242,10 +245,28 @@ Thank you for your understanding.</p>
   <p style="flex:1; text-align: center;">{{ formatSubscription(receipt.Subscription) }}</p>
   <div style="flex:1;"><button @click="Download(receipt)" class="downloadbtn"> <img src="@/assets/icons/download.png" alt="Download" class="icon3"></button></div>
 </div>
+
   </div>
 </div>
         </div>
       </div>
+      <div v-if="selectedIndex === 2">
+  <div class="twofa-container">
+    <h1 class="twofa-title">Two-Factor Authentication</h1>
+    <p class="twofa-instruction">
+      To enable two-factor authentication, toggle the switch below and scan the generated QR code with your authenticator app.
+    </p>
+    <div class="twofa-toggle">
+      <label>
+        <div class="twofa-toggle-switch" :class="{ 'twofa-toggle-switch-checked': isTwoFaEnabled }" @click="toggleTwoFa()"></div>
+        <span class="twofa-toggle-label">Enable 2FA</span>
+      </label>
+    </div>
+    <div v-if="isTwoFaEnabled">
+  <qrcode-vue v-if="qrCode" :value="qrCode"></qrcode-vue>
+</div>
+  </div>
+</div>
     </div>
   </div>
   <Footer />
@@ -259,6 +280,7 @@ import { useRouter } from 'vue-router';
 import {ref, onMounted} from 'vue';
 import { jsPDF } from "jspdf";
 import owlImage from '@/assets/icons/owl3.png';
+import QrcodeVue from 'qrcode.vue'
 
 const store = useStore();
 const user = store.getters.getUser;
@@ -686,6 +708,36 @@ const Download = async (receipt) => {
   }
 };
 
+const isTwoFaEnabled = ref(false);
+const qrCode = ref('');
+
+async function toggleTwoFa() {
+  const enabled = !isTwoFaEnabled.value;
+  const username = user
+
+  try {
+    const response = await fetch(`/api/twofa/${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, enabled }),
+    });
+
+    const data = await response.json();
+
+    if (data.message === '2FA enabled') {
+      isTwoFaEnabled.value = enabled;
+      qrCode.value = data.qrCode;
+    } else if (data.message === '2FA disabled') {
+      isTwoFaEnabled.value = enabled;
+      qrCode.value = '';
+    } else {
+      console.error('Error toggling 2FA:', data.error);
+    }
+  } catch (error) {
+    console.error('Error toggling 2FA:', error);
+  }
+}
+
 </script>
 
 <style scoped>
@@ -1075,5 +1127,73 @@ p{
   opacity: 0.60;
 }
 
+.twofa-container {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.twofa-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.twofa-instruction {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.twofa-toggle {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.twofa-toggle-switch, .twofa-toggle-label {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.twofa-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  background-color: #ccc;
+  border-radius: 10px;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.twofa-toggle-switch::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background-color: #fff;
+  border-radius: 50%;
+  top: 1px;
+  left: 1px;
+  transition: transform 0.2s;
+}
+
+.twofa-toggle-switch-checked {
+  background-color: #8c8dfe;
+}
+
+.twofa-toggle-switch-checked::before {
+  transform: translateX(20px);
+}
+
+.twofa-toggle-label {
+  font-size: 14px;
+  margin-left: 10px;
+}
 
 </style>
