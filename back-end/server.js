@@ -23,6 +23,8 @@ import {
   sanitizeInput
 } from './validationUtils.js';
 import './scheduler.js'; // Import the scheduler to start the cron job
+import speakeasy from 'speakeasy';
+import qrcode from 'qrcode';
 
 dotenv.config();
 
@@ -331,7 +333,8 @@ async function createUser(collection, username, hashedPassword, expirationDate, 
     Created: new Date(),
     defaultSymbol: 'NVDA',
     PROMOCODE: promoCode,
-    HashedAuthKey: await argon2.hash(rawAuthKey)
+    HashedAuthKey: await argon2.hash(rawAuthKey),
+    MFA: false
   };
 
   try {
@@ -496,7 +499,6 @@ app.post('/login/:apiKey',
       requestId: crypto.randomBytes(16).toString('hex'),
       ip: req.ip,
       method: req.method,
-      path: req.path
     });
 
     try {
@@ -571,6 +573,7 @@ app.post('/login/:apiKey',
         // Extract today's date
         const today = new Date();
         const expiresDate = new Date(user.Expires);
+        const MFA = user.MFA;
 
         // Check subscription status
         if (today > expiresDate) {
@@ -585,6 +588,14 @@ app.post('/login/:apiKey',
           );
           return res.status(402).json({
             message: 'Subscription is expired'
+          });
+        }
+
+        if (MFA === true) {
+          // MFA is enabled, prompt user to verify MFA code
+          return res.status(200).json({
+            message: 'MFA verification required',
+            mfaRequired: true
           });
         }
 
@@ -626,6 +637,229 @@ app.post('/login/:apiKey',
     } catch (error) {
       // Log any unexpected errors in the main try block
       requestLogger.error('Unexpected login process error', {
+        error: error.message,
+        stack: error.stack
+      });
+
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  }
+);
+
+app.post('/verify-mfa/:apiKey',
+  validate([
+    validationSchemas.username(),
+    validationSchemas.mfaCode(),
+    validationSchemas.apiKeyParam(),
+    validationSchemas.rememberMe()
+  ]),
+  async (req, res) => {
+    const { username, mfaCode, rememberMe } = req.body;
+    const apiKey = req.params.apiKey;
+
+    // Validate API key
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
+    }
+
+    // Find the user by username
+    const client = new MongoClient(uri);
+    try {
+      await client.connect();
+      const db = client.db('EreunaDB');
+      const usersCollection = db.collection('Users');
+      const user = await usersCollection.findOne({
+        Username: { $regex: new RegExp(`^${username}$`, 'i') }
+      });
+
+      if (!user) {
+        // Log security event for non-existent username
+        logger.warn('MFA verification attempt with non-existent username', {
+          username,
+          ip: req.ip
+        });
+        return res.status(401).json({
+          message: 'Username doesn\'t exist'
+        });
+      }
+
+      // Verify MFA code
+      const mfaSecret = user.secret;
+      const verified = speakeasy.totp.verify({
+        secret: mfaSecret,
+        encoding: 'base32',
+        token: mfaCode,
+        window: 1 // Optional, allows for a 1-minute window for clock skew
+      });
+
+      if (!verified) {
+        // Log security event for invalid MFA code
+        logger.warn('MFA verification attempt with invalid code', {
+          username,
+          ip: req.ip
+        });
+        return res.status(401).json({
+          message: 'Invalid MFA code'
+        });
+      }
+
+      // MFA code is valid, proceed with login
+      // Generate a JWT token
+      let tokenExpiration;
+      if (req.body.rememberMe === 'true') {
+        tokenExpiration = '7d';
+      } else {
+        tokenExpiration = '1h'; // Temporary session
+      }
+      const token = jwt.sign({ user: user.Username }, config.secretKey, { expiresIn: tokenExpiration });
+
+      // Return a success response with the token
+      return res.status(200).json({
+        message: 'Logged in successfully',
+        token
+      });
+    } catch (error) {
+      // Log database errors
+      logger.error('MFA verification database error', {
+        error: error.message,
+        stack: error.stack
+      });
+      return res.status(500).json({
+        message: 'Database Error',
+        error: error.message
+      });
+    } finally {
+      await client.close();
+    }
+  }
+);
+
+// Endpoint for toggling 2FA
+app.post('/twofa/:apiKey',
+  validate([
+    validationSchemas.username(),
+    validationSchemas.enabled(),
+    validationSchemas.apiKeyParam()
+  ]),
+  async (req, res) => {
+    // Create a child logger with request-specific context
+    const requestLogger = logger.child({
+      requestId: crypto.randomBytes(16).toString('hex'),
+      ip: req.ip,
+      method: req.method,
+    });
+
+    try {
+      const { username, enabled } = req.body;
+      const apiKey = req.params.apiKey;
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+      
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+
+      // Validate input fields are not empty
+      if (!username) {
+        requestLogger.warn('2FA toggle attempt with missing fields', {
+          usernameProvided: !!username
+        });
+
+        return res.status(400).json({
+          message: 'Please fill the username field'
+        });
+      }
+
+      // Additional sanitization
+      const sanitizedUsername = sanitizeInput(username);
+
+      const client = new MongoClient(uri);
+
+      try {
+        await client.connect();
+        const db = client.db('EreunaDB');
+        const usersCollection = db.collection('Users');
+
+        // Find the user by username (case-insensitive)
+        const user = await usersCollection.findOne({
+          Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
+        });
+
+        if (!user) {
+          // Log security event for non-existent username
+          securityLogger.logSecurityEvent('2FA toggle attempt with non-existent username', {
+            username: sanitizedUsername,
+            ip: req.ip
+          });
+
+          return res.status(401).json({
+            message: 'Username doesn\'t exist'
+          });
+        }
+
+        if (enabled) {
+          // Generate 2FA secret and QR code
+          const secret = speakeasy.generateSecret({ length: 20 });
+          const qrCode = speakeasy.otpauthURL({
+            secret: secret.ascii,
+            label: 'Ereuna',
+          });
+        
+          // Update the user's document with the secret and QR code
+          await usersCollection.updateOne(
+            { Username: user.Username },
+            { $set: { MFA: true, secret: secret.base32, qrCode } }
+          );
+        
+          // Return the QR code and secret for the user to enable 2FA
+          return res.status(200).json({
+            message: '2FA enabled',
+            qrCode,
+            secret: secret.ascii
+          });
+        } else {
+          // Remove 2FA associated with the user
+          await usersCollection.updateOne(
+            { Username: user.Username },
+            { $set: { MFA: false, secret: null, qrCode: null } }
+          );
+
+          return res.status(200).json({
+            message: '2FA disabled'
+          });
+        }
+      } catch (error) {
+        // Log database errors
+        requestLogger.error('2FA toggle database error', {
+          error: error.message,
+          stack: error.stack
+        });
+
+        return res.status(500).json({
+          message: 'Database Error',
+          error: error.message
+        });
+      } finally {
+        await client.close();
+      }
+    } catch (error) {
+      // Log any unexpected errors in the main try block
+      requestLogger.error('Unexpected 2FA toggle process error', {
         error: error.message,
         stack: error.stack
       });

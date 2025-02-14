@@ -14,8 +14,17 @@ const validationSchemas = {
         .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
         .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
 
+    enabled: (fieldName = 'enabled') => body(fieldName)
+        .isBoolean().withMessage('Remember me must be a boolean value'),
+
     rememberMe: () => body('rememberMe')
         .isBoolean().withMessage('Remember me must be a boolean value'),
+
+    mfaCode: () => body('mfaCode')
+        .trim()
+        .notEmpty().withMessage('MFA code is required')
+        .isLength({ min: 6, max: 6 }).withMessage('MFA code must be 6 digits')
+        .matches(/^[0-9]+$/).withMessage('MFA code must be a number'),
 
     newUsername: (fieldName = 'newUsername') => body(fieldName)
         .trim()

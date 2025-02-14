@@ -149,6 +149,7 @@
     <br>
     <br>
     <p>Security Notice: A unique Recovery Key will be automatically downloaded upon successful registration. This key is essential for password recovery, so store it securely. If lost, you can generate a new key in your Account Settings. </p>
+  <p> 2-Factor Authentication (2FA) is available as an optional security feature. To activate 2FA, navigate to the 'Security' section within your user session. Note that only authentication app-based 2FA is currently supported, with no SMS or email options available. </p>
   </div>
 
   <div v-if="showTerms" class="modal" @click.self="closeTermsModal">
