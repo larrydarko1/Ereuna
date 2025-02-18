@@ -22,8 +22,8 @@ async function getSummary(req, res) {
         // Connect to MongoDB
         const client = new MongoClient(mongoURI);
         await client.connect();
-        const database = client.db('your_database_name'); // Replace with your database name
-        const collection = database.collection('your_collection_name'); // Replace with your collection name
+        const database = client.db('EreunaDB'); // Replace with your database name
+        const collection = database.collection('AssetInfo'); // Replace with your collection name
 
         // Insert the fetched data into the database
         await collection.insertOne(data);

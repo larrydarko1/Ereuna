@@ -24,7 +24,5 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src') // Add alias for src directory
     }
   },
-  build: {
-    sourcemap: true,
-  },
+  build: {},
 })
