@@ -10,6 +10,9 @@ COPY package.json ./package.json
 # Install dependencies
 RUN npm install
 
+# Set timezone
+ENV TZ=Europe/Berlin
+
 # Expose backend port
 EXPOSE 600
 
