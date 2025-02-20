@@ -6,17 +6,49 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - backend
+      - backend1
+      - backend2
+      - backend3
     networks:
       - ereuna-network-internal
       - ereuna-network
 
-  backend:
+  backend1:
     build:
       context: .
       dockerfile: Dockerfile.backend
     ports:
       - "5500:5500"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
+    networks:
+      - ereuna-network-internal
+      - ereuna-network
+    restart: unless-stopped
+
+  backend2:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "5501:5500"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
+    networks:
+      - ereuna-network-internal
+      - ereuna-network
+    restart: unless-stopped
+
+  backend3:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "5502:5500"
     depends_on:
       - mongodb
     environment:
