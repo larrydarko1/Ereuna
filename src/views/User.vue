@@ -792,7 +792,7 @@ h2 {
     color: #f5f5f5; /* Text color */
     padding: 10px 20px; /* Increased padding for a better size */
     margin-top: 15px;
-    border-radius: 5px; /* Rounded corners */
+    border-radius: 10px; /* Rounded corners */
     font-size: 12px; /* Font size */
     font-weight: 500; /* Slightly bolder text */
     text-align: center; /* Center text */
@@ -877,18 +877,17 @@ p{
 }
 
 .userbtn {
-    background-color: transparent;
-    border: solid 2px #8c8dfe; /* Border color */
-    color: #f5f5f5; /* Text color */
-    padding: 5px 10px; /* Increased padding for a better size */
-    margin: 5px;
-    border-radius: 5px; /* Rounded corners */
-    font-size: 12px; /* Font size */
-    font-weight: 500; /* Slightly bolder text */
-    text-align: center; /* Center text */
-    transition: all 0.3s ease; /* Smooth transition for hover effects */
-    cursor: pointer; /* Pointer cursor on hover */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  background-color: transparent;
+  color: whitesmoke;
+  border-radius: 10px;
+  outline: none;
+  border: solid 2px #8c8dfe;
+  padding: 5px;
+  margin: 5px;
+  width: 150px;
+  cursor: pointer; /* Pointer cursor on hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
 }
 
 .userbtn:hover {
@@ -897,13 +896,21 @@ p{
 }
 
 .userinput{
- outline: none;
- padding: 4px;
- border: solid 1px white;
+  border-radius: 25px;
+  padding: 5px;
+  margin: 7px;
+  width: 150px;
+  outline: none;
+  color: whitesmoke; /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
+  border: solid 1px #171728;
+  background-color:#2c2b3e;
 }
 
 .userinput:focus{
- border-color: #8c8dfe;
+  border-color: #8c8dfe; /* Change border color on focus */
+  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
+  outline: none; /* Remove default outline */
 }
 
 .title{

@@ -22,6 +22,7 @@ footer {
   text-align: center;
   padding: 0px;
   z-index: 1000;
+  min-width: 1400px;
 }
 
 p {

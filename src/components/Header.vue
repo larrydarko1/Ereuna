@@ -18,7 +18,7 @@
     background-color: #0f0f1b;
     border: solid 1px #171728;
     padding: 0px;
-    min-width: 1000px;
+    min-width: 1370px;
   }
   
   .icon {

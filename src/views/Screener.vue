@@ -586,7 +586,7 @@
         </div>
         <div class="results"></div>
       </div>
-      <div id="resultsDiv">
+      <div id="resultsDiv" >
         <div v-if="showCreateScreener" class="CreateScreener">
           <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
           <h3>Create Screener</h3>
@@ -1035,8 +1035,8 @@
       <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="32" />
     </div>
         <div id="dl-chart"></div>
+        <h1 class="title3">SUMMARY</h1>
         <div style="padding-top: 5px; overflow: scroll; border:none" id="summary">
-          <h1 class="title3" style="position: sticky; top:0">SUMMARY</h1>
           <div style="color: whitesmoke; text-align: center; border: none">
   <div v-for="(item, index) in screenerSummary" :key="index">
     <div style="padding: 5px;" v-if="item">
@@ -3698,7 +3698,7 @@ const toUpperCase = () => {
 #filters {
   flex: 0 0 20%;
   flex-direction: column;
-  background-color: #2c2b3e;
+  background-color: #1d1c29;
   overflow-y: scroll;
 }
 
@@ -3719,8 +3719,9 @@ const toUpperCase = () => {
   right: 0;
   width: 30%;
   height: 100vh;
-  background-color: #2c2b3d;
+  background-color: #1d1c29;
   z-index: 1000;
+  max-width: 500px;
 }
 
 #filters {
@@ -4402,6 +4403,7 @@ Header th {
   padding: 5px;
   outline: none;
   border: none;
+  cursor: pointer;
 }
 
 .snavbtnslct{
