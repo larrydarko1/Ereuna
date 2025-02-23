@@ -1,7 +1,7 @@
 <template>
   <div class="landing-page">
     <!-- Navbar -->
-    <div class="navbar" style="min-width: 900px;">
+    <div class="navbar" style="min-width: 1150px;">
   <img class="icon" src="@/assets/icons/owl.png" alt="Owl Icon">
   <div class="nav-links">
     <div class="navbtn" @click="scrollToSection('about')">About</div>
@@ -24,7 +24,7 @@
   </video>
   <div class="hero-text" style="text-align: center;">
     <h1 class="hero-title">
-    Unlock Smarter Investing with <span class="hero-title" style="color: #8c8dfe;">Ereuna</span>
+    Unlock Smarter Investing <br> with <span class="hero-title" style="color: #8c8dfe;">Ereuna</span>
 </h1>
     <p class="hero-subtitle">Get the insights you need to succeed in the market without breaking the bank. Our platform offers essential features and data for mid-to-long term investors, all at a fraction of the cost of traditional solutions.</p>
     <br>
@@ -333,6 +333,7 @@ function closePrivacyModal() {
   background-color: transparent; /* Dark background for content sections */
   margin: 10px 0;
   border-radius: 5px;
+  min-width: 1200px;
 }
 
 .content-section2 {
@@ -340,6 +341,7 @@ function closePrivacyModal() {
   background-color: transparent; 
   margin: 10px 0;
   border-radius: 5px;
+  min-width: 1200px;
 }
 
 .pricing-cards{
@@ -347,15 +349,16 @@ function closePrivacyModal() {
 }
 
 .content-section3 {
-  padding: 40px 20px;
+  padding: 40px 0px;
   background-color: transparent;
   border: 2px solid #8c8dfe; /* Add border style and color */
-  margin: 50px;
+  margin: 20px;
   border-radius: 10px;
   display: flex; /* Enable flexbox */
   align-items: center; /* Center vertically */
   justify-content: center; /* Center horizontally */
   flex-direction: column; /* Stack child elements vertically (optional) */
+  min-width: 1200px;
 }
   
   .icon {
@@ -367,6 +370,7 @@ function closePrivacyModal() {
   .hero-section {
     color: white;
     height: 650px;
+    min-width: 1200px;
   }
 
   .hero-video {
@@ -378,10 +382,11 @@ function closePrivacyModal() {
   object-fit: cover;
   opacity: 0.20;
   z-index: -1;
+  min-width: 1200px;
 }
 
 .hero-text {
-  position: absolute;
+  position: relative;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -413,6 +418,7 @@ function closePrivacyModal() {
   flex-direction: row;
   align-items: center;
   justify-content: space-between; /* Add this line */
+  min-width: 1200px;
 }
 
 .footer-links {
@@ -526,6 +532,7 @@ a:hover{
   background-image: linear-gradient(to bottom, #8c8dfe1a, #8c8efe00);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.05);
   margin-top: 40px;
+  min-width: 1200px;
 }
 
 .logo{

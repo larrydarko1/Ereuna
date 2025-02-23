@@ -55,10 +55,6 @@
 <div v-else style="border:none" >
 <div class="summary-container">
   <div class="summary-row">
-    <div class="category">Asset Type</div>
-    <div class="response">{{ assetInfo.AssetType }}</div>
-  </div>
-  <div class="summary-row">
     <div class="category">Exchange</div>
     <div class="response">
       {{ assetInfo.Exchange.charAt(0).toUpperCase() + assetInfo.Exchange.slice(1).toLowerCase() }}
@@ -372,7 +368,10 @@
     <div class="loading-container" v-if="isLoading">
       <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="64" />
     </div>
-    <div id="chartdiv2"></div>
+    <div id="chartdiv2" style="display: flex; align-content: center;">
+  <img src="@/assets/images/logos/tiingo.png" alt="Image" style="height: 15px; margin-right: 10px;">
+  <p style="margin: 0; font-size: 10px;">Financial data provided by Tiingo.com as of 20/2/2025 - some other disclaimer goes here</p>
+</div>
   </div>
       <div id="sidebar-right">
       <div style="position: sticky; top: 0; z-index: 1000;">
@@ -705,7 +704,6 @@ async function searchTicker(providedSymbol) {
       assetInfo.MarketCapitalization = data.MarketCapitalization;
       assetInfo.SharesOutstanding = data.SharesOutstanding;
       assetInfo.Country = data.Country;
-      assetInfo.AssetType = data.AssetType;
       assetInfo.Address = data.Address;
       assetInfo.Currency = data.Currency;
       assetInfo.Beta = data.Beta;
@@ -772,7 +770,6 @@ const assetInfo = reactive({
   WeekHigh: '',
   WeekLow: '',
   Country: '',
-  AssetType: '',
   Address: '',
   Beta: '',
   BookValue: '',
@@ -2665,11 +2662,10 @@ const isInHiddenList = (item) => {
 #main {
   display: flex;
   height: 100vh;
-  min-width: 1000px;
 }
 
 #sidebar-left {
-  flex: 0 0 22%;
+  flex: 1;
   flex-direction: column;
   background-color: #2c2b3e;
   overflow-y: scroll;
@@ -2679,11 +2675,12 @@ const isInHiddenList = (item) => {
 
 #chart-container {
   position: relative;
-  flex: 0 0 60%;
+  flex: 3;
   display: flex;
   height: 100%;
   flex-direction: column;
   background-repeat: no-repeat;
+  max-width: 760px;
 }
 
 #chartdiv {
@@ -2693,7 +2690,10 @@ const isInHiddenList = (item) => {
 
 #chartdiv2 {
   height: 9%;
+  padding: 10px;
   border:none;
+  background-color: #1d1c29;
+  color: whitesmoke;
 }
 
 body {
@@ -2707,18 +2707,11 @@ h1 {
 }
 
 #sidebar-right {
-  flex: 0 0 18%;
   display: flex;
   flex-direction: column;
   background-color: #2c2b3e;
   overflow-y: scroll;
-  min-width: 100px;
-}
-
-#searchtable {
-  display: flex;
-  align-items: center;
-  background-color: #3f3e56;
+  min-width: 300px;
 }
 
 .searchbutton {
@@ -2770,45 +2763,65 @@ h1 {
   cursor: pointer;
 }
 
-.wlbtn2 {
-  flex-shrink: 0;
-  color: #ffffff;
-  background-color: #8c8dfe;
-  border: none;
-  padding: 5px;
-  outline: none;
-  cursor: pointer;
-  height: 22px;
-  width: 22px;
-}
-
-.wlbtn2:hover {
-  cursor: pointer;
-  background-color: #9b9cfc;
-}
-
 #realwatchlist:hover {
   cursor: pointer;
 }
 
+/* div that contains input and button for searching symbols */
+#searchtable {
+  display: flex;
+  align-items: center;
+  background-color: #3f3e56;
+  position: relative;
+}
+
+/* input for searching symbols */
 #searchbar {
-  flex: 1;
-  min-width: 0; 
-  background-color: #e0e0e0;
-  color: rgb(7, 7, 7);
+  border-radius: 25px;
+  padding: 5px 5px 5px 15px;
+  margin: 7px;
+  width: calc(100% - 30px); /* Make space for the button */
   outline: none;
+  color: whitesmoke; /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
   border: solid 1px #171728;
-  padding: 5px;
-  padding-left: 25px;
-  background-image: url('@/assets/icons/icon-search.png');
-  background-size: 15px 15px;
-  background-position: left 5px center;
-  background-repeat: no-repeat;
+  background-color:#2c2b3e;
 }
 
 #searchbar:focus {
-  border-color: #8c8dfe;
+  border-color: #8c8dfe; /* Change border color on focus */
+  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
+  outline: none; /* Remove default outline */
 }
+
+/* button for searching symbols, inside searchbar */
+.wlbtn2 {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  flex-shrink: 0;
+  color: #ffffff;
+  background-color: #8c8dfe;
+  border: none;
+  padding: 0;
+  outline: none;
+  cursor: pointer;
+  height: 22px;
+  width: 22px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.wlbtn2:hover {
+  background-color: #9b9cfc;
+  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
+  outline: none;
+}
+
 
 #notes-container {
   background-color: #22222d;
@@ -3210,7 +3223,7 @@ font-weight: bold;
 .wlist.selected {
   background-color: #1c1a26 !important; 
   border-left-color: #8c8dfe !important;
-  border-left-width: 3px !important;
+  border-left-width: 2px !important;
   color: whitesmoke;
 }
 
@@ -3326,6 +3339,7 @@ font-weight: bold;
   height: 20px; 
 }
 
+/* buttons inside chart, top right */
 .navbtng{
   background-color: transparent;
   color: whitesmoke;
@@ -3333,6 +3347,8 @@ font-weight: bold;
   justify-content: center;
   cursor: pointer;
   border: solid #615f83 1px;
+  border-radius: 25px;
+  padding: 15px;
   opacity: 0.60;
   width: 25px; 
   height: 25px; 
@@ -3344,6 +3360,8 @@ font-weight: bold;
 .navbtng:hover{
   opacity: 1;
 }
+
+/* */
 
 #legend2 {
   position: absolute;

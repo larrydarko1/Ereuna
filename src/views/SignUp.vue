@@ -477,7 +477,7 @@ onMounted(() => {
 
 <style scoped>
 .main {
-  min-width: 800px; /* Set a minimum width that works for your design */
+  min-width: 1200px; /* Set a minimum width that works for your design */
   padding: 75px; /* Keep your existing padding */
   box-sizing: border-box; /* Ensure padding is included in the width */
 }
