@@ -309,9 +309,9 @@ function closePrivacyModal() {
   display: flex;
   justify-content: space-between; /* Push logo to the left and buttons to the right */
   align-items: center;
-  background-color: #1d1c29;
+  background-color: rgba(29, 28, 41, 0.5); /* Reduced opacity for glass effect */
   border-radius: 10px;
-  color: whitesmoke;
+  color: #f5f5f5;
   padding: 10px 20px; /* Add horizontal padding for better spacing */
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   position: fixed;
@@ -319,7 +319,9 @@ function closePrivacyModal() {
   left: 2%;
   right: 2%;
   z-index: 1000;
+  backdrop-filter: blur(10px); /* Blur the background for glass effect */
   opacity: 0.90;
+  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)); /* Add a subtle gradient for depth */
 }
 
 .nav-links {

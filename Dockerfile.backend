@@ -3,7 +3,7 @@ FROM node:20
 WORKDIR /app
 
 # Copy the entire project
-COPY back-end ./back-end
+COPY api ./api
 COPY .env ./.env
 COPY package.json ./package.json
 
@@ -14,4 +14,4 @@ RUN npm install
 EXPOSE 5500
 
 # Start command
-CMD ["node", "back-end/server.js"]
+CMD ["node", "api/server.js"]

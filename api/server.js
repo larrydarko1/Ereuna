@@ -11324,3 +11324,80 @@ app.get('/:user/hidden/:apiKey',
     }
   }
 );
+
+// Endpoint that retrieves the last update date
+app.get('/getlastupdate',
+  async (req, res) => {
+    const requestId = crypto.randomBytes(16).toString('hex');
+    let client;
+
+    // Get the API key from the request header
+    const apiKey = req.header('X-API-KEY');
+
+    // Validate the API key
+    if (!apiKey || apiKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!apiKey,
+      });
+
+      return res.status(401).json({
+        message: 'Unauthorized API Access',
+      });
+    }
+
+    try {
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData');
+
+      const query = {};
+      const options = {
+        sort: { timestamp: -1 },
+        limit: 1
+      };
+      const result = await collection.findOne(query, options);
+
+      if (!result) {
+        logger.warn({
+          msg: 'No documents found',
+          requestId: requestId
+        });
+
+        return res.status(404).json({ message: 'No documents found' });
+      }
+
+      const date = result.timestamp;
+      const formattedDate = date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+      res.json({ date: formattedDate });
+
+    } catch (error) {
+      // Log detailed error
+      logger.error({
+        msg: 'Error Retrieving Last Update',
+        requestId: requestId,
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+
+      res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({
+            msg: 'Database Client Closure Failed',
+            requestId: requestId,
+            error: closeError.message
+          });
+        }
+      }
+    }
+  }
+);

@@ -57,7 +57,7 @@
   <div class="summary-row">
     <div class="category">Exchange</div>
     <div class="response">
-      {{ assetInfo.Exchange.charAt(0).toUpperCase() + assetInfo.Exchange.slice(1).toLowerCase() }}
+      {{ assetInfo.Exchange }}
     </div>
   </div>
   <div class="summary-row">
@@ -105,11 +105,7 @@
     <div class="response">{{ parseInt(assetInfo.SharesOutstanding).toLocaleString() }}</div>
   </div>
   <div class="summary-row">
-    <div class="category">Country</div>
-    <div class="response">{{ assetInfo.Country }}</div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Address</div>
+    <div class="category">Location</div>
     <div class="response">{{ assetInfo.Address }}</div>
   </div>
   <div class="summary-row">
@@ -129,12 +125,6 @@
     </div>
   </div>
   <div class="summary-row">
-    <div class="category">Beta</div>
-    <div class="response">
-      {{ (assetInfo.Beta != null && !isNaN(assetInfo.Beta)) ? parseFloat(assetInfo.Beta) : '-' }}
-    </div>
-  </div>
-  <div class="summary-row">
     <div class="category">Book Value</div>
     <div class="response">
       {{ (assetInfo.BookValue != null && !isNaN(assetInfo.BookValue)) ? parseFloat(assetInfo.BookValue) : '-' }}
@@ -150,18 +140,6 @@
     <div class="category">PE Ratio</div>
     <div class="response">
       {{ (assetInfo.PERatio != null && !isNaN(assetInfo.PERatio)) ? parseFloat(assetInfo.PERatio) : '-' }}
-    </div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Forward PE Ratio</div>
-    <div class="response">
-      {{ (assetInfo.ForwardPE != null && !isNaN(assetInfo.ForwardPE)) ? parseFloat(assetInfo.ForwardPE) : '-' }}
-    </div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Trailing PE Ratio</div>
-    <div class="response">
-      {{ (assetInfo.TrailingPE != null && !isNaN(assetInfo.TrailingPE)) ? parseFloat(assetInfo.TrailingPE) : '-' }}
     </div>
   </div>
   <div class="summary-row2">
@@ -368,9 +346,9 @@
     <div class="loading-container" v-if="isLoading">
       <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="64" />
     </div>
-    <div id="chartdiv2" style="display: flex; align-content: center;">
-  <img src="@/assets/images/logos/tiingo.png" alt="Image" style="height: 15px; margin-right: 10px;">
-  <p style="margin: 0; font-size: 10px;">Financial data provided by Tiingo.com as of 20/2/2025 - some other disclaimer goes here</p>
+    <div id="chartdiv2" style="padding: 15px;">
+      <img src="@/assets/images/logos/tiingo.png" alt="Image" style="height: 15px; margin-right: 10px; margin-bottom: 7px;">
+      <p style="margin: 0; font-size: 10px;">Financial data provided by Tiingo.com as of {{ currentDate }} - All financial data is provided by Tiingo, with the exception of certain calculated metrics such as moving averages and Technical Score, which are derived from Tiingo's data.</p>
 </div>
   </div>
       <div id="sidebar-right">
@@ -392,6 +370,9 @@
     </div>
   </div>
 </div>
+<button class="navbtn" @click="addWatchlist()" v-b-tooltip.hover title="Add ticker to watchlist">
+        <img class="img" src="@/assets/icons/bookmark.png" alt="add to watchlist">
+      </button>
 <div class="wlnav-dropdown">
     <button class="dropdown-toggle wlbtn" v-b-tooltip.hover title="More Options">
       <img class="img" src="@/assets/icons/dots.png" alt="more options">
@@ -399,9 +380,6 @@
     <div class="dropdown-vnav">
       <button class="dropdown-item" @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Watchlist">
         <img class="img" src="@/assets/icons/play.png" alt="autoplay watchlist"> Autoplay
-      </button>
-      <button class="dropdown-item" @click="addWatchlist()" v-b-tooltip.hover title="Add ticker to watchlist">
-        <img class="img" src="@/assets/icons/bookmark.png" alt="add to watchlist"> Add Ticker
       </button>
       <button class="dropdown-item" @click="showCreateNote = true" v-b-tooltip.hover title="Create a Note">
         <img class="img" src="@/assets/icons/note.png" alt=""> Create Note
@@ -2656,6 +2634,29 @@ const isInHiddenList = (item) => {
   return hiddenList.value.includes(item);
 };
 
+const currentDate = ref('');
+
+async function getLastUpdate() {
+  try {
+    const response = await fetch('/api/getlastupdate', {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    currentDate.value = data.date;
+  } catch (error) {
+    console.error('Error fetching last update:', error);
+  }
+}
+
+onMounted(() => {
+  getLastUpdate();
+});
+
 </script>
 
 <style scoped>
@@ -2667,7 +2668,7 @@ const isInHiddenList = (item) => {
 #sidebar-left {
   flex: 1;
   flex-direction: column;
-  background-color: #2c2b3e;
+  background-color: #2c2b3e; 
   overflow-y: scroll;
   overflow-x: hidden;
   min-width: 300px;
@@ -2681,6 +2682,7 @@ const isInHiddenList = (item) => {
   flex-direction: column;
   background-repeat: no-repeat;
   max-width: 760px;
+  max-height: 600px;
 }
 
 #chartdiv {
@@ -2689,10 +2691,9 @@ const isInHiddenList = (item) => {
 }
 
 #chartdiv2 {
-  height: 9%;
   padding: 10px;
   border:none;
-  background-color: #1d1c29;
+  background-color: #282737;
   color: whitesmoke;
 }
 
@@ -2709,27 +2710,15 @@ h1 {
 #sidebar-right {
   display: flex;
   flex-direction: column;
-  background-color: #2c2b3e;
+  background-color: #1d1c29;
   overflow-y: scroll;
   min-width: 300px;
 }
 
-.searchbutton {
-  background-color: transparent;
-  color: #ebebeb;
-  padding: 20px;
-  outline: none;
-  float: right;
-  border: none;
-  opacity: 0.60;
-}
 
-.searchbutton:hover {
-  opacity: 1;
-  cursor: pointer;
-}
 
 #wlnav {
+  border-top: #0f0f1b solid 1px;
   display: flex;
   align-items: center; 
   justify-content: space-between; 
@@ -2832,6 +2821,7 @@ h1 {
   padding-top: 5px;
   margin: 5px;
   border: 1px solid #22222d;
+  border-radius: 5px;
   outline: none;
   resize: none;
 }
@@ -2974,20 +2964,6 @@ td {
   background-color: #121212;
 }
 
-#list {
-  display: flexbox;
-  width: 100%;
-  color: whitesmoke;
-  border-collapse: collapse;
-  border: none;
-  outline: none;
-}
-
-#list td {
-  border-collapse: collapse;
-  border: none;
-}
-
 .btn {
   background-color: transparent;
   border: none;
@@ -3089,36 +3065,12 @@ font-weight: bold;
   cursor: pointer;
 }
 
-.wlist{
-  background-color: #3f3e56;
-  height: 27px;
-  border: solid 1px #171728;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #b3b3b3
-}
-
-.wlist:hover{
-  background-color: #67648b;
-  cursor: pointer;
-}
-
-.wlist .dbtn {
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-}
-
-.wlist:hover .dbtn {
-  opacity: 1;
-}
-
 .RenameWatchlist, .CreateWatchlist {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #3f3e56;
+    background-color: #1d1c29;
     width: 300px;
     height: 150px;
     display: flex;
@@ -3136,7 +3088,7 @@ font-weight: bold;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #3f3e56;
+    background-color: #1d1c29;
     width: 350px;
     height: 200px;
     display: flex;
@@ -3199,6 +3151,7 @@ font-weight: bold;
     border: none;
   }
 
+  /* icons for tables in left column */
  .green {
     background-image: url('@/assets/icons/green.png');
     width: 10px;
@@ -3215,21 +3168,71 @@ font-weight: bold;
   text-align: center;
 }
 
+/* */
 .btnnav{
   display: flex;
   float:inline-end;
 }
 
+/* button for adding tickers to watchlists */
+.navbtn{
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0.80;
+}
+
+.navbtn:hover{
+  opacity: 1;
+}
+
+.wlist{
+  background-color: #3f3e56;
+  height: 27px;
+  border-top: #0f0f1b solid 1px;
+  border-left: #0f0f1b solid 1px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #b3b3b3;
+}
+
+.wlist:hover{
+  cursor: pointer;
+}
+
+.wlist .dbtn {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.wlist:hover .dbtn {
+  opacity: 1;
+}
+
 .wlist.selected {
-  background-color: #1c1a26 !important; 
+  background-image: linear-gradient(to right, #1c1a26, #2c2a3a, #3c3a4a, #4c4a5a, #1c1a26) !important;
+  background-size: 400% 100% !important;
   border-left-color: #8c8dfe !important;
   border-left-width: 2px !important;
   color: whitesmoke;
+  animation: gradient 10s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .results {
-  background-color: #2c2b3e;
-  color: whitesmoke;
+  background-color: #1d1c29;
   text-align: center;
   align-items: center;
   padding: 10px;
@@ -3238,8 +3241,7 @@ font-weight: bold;
 }
 
 .results2 {
-  background-color: #2c2b3e;
-  color: whitesmoke;
+  background-color: #1d1c29;
   text-align: center;
   align-items: center;
   padding: 100px;
@@ -3260,9 +3262,9 @@ font-weight: bold;
   border: none ;
 }
 
+/* watchlist selector dropdow menu */
 .select-container {
   position: relative;
-  background-color: #2c2b3e;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -3278,20 +3280,18 @@ font-weight: bold;
 
 .select-container  .dropdown-container div {
   display: none;
-  background-color: #2c2b3e;
-  border-top: 0.1px solid #151515;
-  border-bottom: 0.1px solid #151515;
+  background-color: #0f0f1b;
+ border: none;
 }
 
 .select-container:hover  .dropdown-container div {
   display: block;
-  background-color: #2c2b3e;
   padding: 5px;
   cursor: pointer;
 }
 
 .select-container .dropdown-container div:hover {
-  background-color: #4c4a66;
+  background-color: #1f1f37;
 }
 
 .icondlt{
@@ -3302,12 +3302,12 @@ font-weight: bold;
   opacity: 0.60;
 }
 
-
 .icondlt:hover{
   cursor: pointer;
   opacity: 1;
 }
 
+/* */ 
 .toggle-btn {
   background-color: #343348;
   border: none;
@@ -3327,16 +3327,6 @@ font-weight: bold;
   text-align: center;
   background-color: #343348;
   color: #f5f5f59d;
-}
-
-.imgbtn{
-  width: 15px;
-  height: 15px;
-}
-
-.chart-type-icon {
-  width: 20px;  
-  height: 20px; 
 }
 
 /* buttons inside chart, top right */
@@ -3361,6 +3351,11 @@ font-weight: bold;
   opacity: 1;
 }
 
+.chart-type-icon {
+  width: 20px;  
+  height: 20px; 
+}
+
 /* */
 
 #legend2 {
@@ -3381,52 +3376,29 @@ font-weight: bold;
   border: none;
 }
 
-.select-container {
-  position: relative;
-  background-color: #2c2b3d;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 24.5px;
-  border-right: solid 1px #3d354a;
-  z-index: 1000;
+/* popup divs section */
+.imgbtn{
+  width: 15px;
+  height: 15px;
 }
 
-.select-container .dropdown-container {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
-}
-
-.select-container .dropdown-container div {
-  display: none;
-  background-color: #2c2b3e;
-  border-top: 0.1px solid #151515;
-  border-bottom: 0.1px solid #151515;
-  z-index: 1000;
-}
-
-.select-container:hover .dropdown-container div {
-  display: block;
-  background-color: #2c2b3e;
-  padding: 5px;
-  cursor: pointer;
-  z-index: 1000;
-}
-
-.select-container .dropdown-container div:hover {
-  background-color: #4c4a66;
-  z-index: 1000;
-}
-
+/* dropdown inside watchlist elements */
 .dropdown-btn {
   background-color: transparent;
   border: none;
   margin: 0;
   padding: 0;
+}
+
+.watchlist-icon {
+  width: 20px; 
+  height: 20px; 
+  margin-right: 8px;  
+}
+
+.checkbox-label {
+  display: flex;         
+  align-items: center;       
 }
 
 .dropdown-menu {
@@ -3440,15 +3412,15 @@ font-weight: bold;
 }
 
 .dropdown-menu > div {
-  background-color: #322f3b;
-  padding: 5px;
+  background-color: #0f0f1b;
+  padding: 1px;
   height: 28px;
   display: flex;
   align-items: center;
 }
 
 .dropdown-menu > div:hover {
-  background-color: #565265;
+  background-color: #1f1f37;
 }
 
 .dropdown-btn:hover + .dropdown-menu, 
@@ -3460,55 +3432,42 @@ font-weight: bold;
   position: relative;
 }
 
-.watchlist-item {
-  padding: 5px;
+/* nav menu dropdown on right */
+.dropdown-vnav{
+  display: none;
+  position: absolute;
+  right: 0;
+  min-width: 180px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  z-index: 10000;
+}
+
+.wlnav-dropdown:hover .dropdown-vnav {
+  display: block;
+}
+
+.dropdown-item {
   display: flex;
   align-items: center;
-  height: 24px;
-  box-sizing: border-box;
-}
-
-.watchlist-item:hover {
-  background-color: #565265;
-}
-
-.watchlist-item input[type="checkbox"] {
-  margin-right: 5px;
-}
-
-/* Remove focus outline */
-.dropdown-btn:focus,
-.watchlist-item input[type="checkbox"]:focus {
-  outline: none;
-}
-
-/* Remove hover border */
-.dropdown-menu > div:hover,
-.watchlist-item:hover {
+  width: 100%;
+  padding: 10px;
+  background-color: #0f0f1b;
   border: none;
-  outline: none;
+  color: white;
+  text-align: left;
+  cursor: pointer;
 }
 
-.iconbtn{
-  width: 15px;
-  height: 15px;
-  opacity: 0.60;
+.dropdown-item:hover {
+  background-color: #1f1f37;
 }
 
-.iconbtn:hover{
-  opacity: 1;
+.dropdown-item img {
+  margin-right: 10px;
 }
 
-.watchlist-icon {
-  width: 20px; 
-  height: 20px; 
-  margin-right: 8px;  
-}
 
-.checkbox-label {
-  display: flex;         
-  align-items: center;       
-}
+/*  */
 
 #notes-container.error {
   border-color: red; 
@@ -3604,51 +3563,6 @@ font-weight: bold;
 .tbl{
   padding-top: 4px;
   padding-bottom: 4px;
-}
-
-.wlnav-dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.dropdown-toggle {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.dropdown-vnav{
-  display: none;
-  position: absolute;
-  right: 0;
-  background-color: #322f3b;
-  min-width: 180px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-  z-index: 10000;
-}
-
-.wlnav-dropdown:hover .dropdown-vnav {
-  display: block;
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 10px;
-  background-color: #322f3b;
-  border: none;
-  color: white;
-  text-align: left;
-  cursor: pointer;
-}
-
-.dropdown-item:hover {
-  background-color: #4a4a4a;
-}
-
-.dropdown-item img {
-  margin-right: 10px;
 }
 
 .chart-img{
