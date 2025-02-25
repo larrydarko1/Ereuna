@@ -22,9 +22,8 @@
             <img src="@/assets/icons/username2.png" alt="Icon" class="icon2">
       Change Username
     </h2>
-        <p>Type new Username</p>
         <div style="display: flex; justify-content: center;">
-  <input class="userinput" type="text" maxlength="25" v-model="newUsername" :class="{ 'error-input': usernameError }" />
+  <input class="userinput" type="text" maxlength="25" placeholder="Type New Username" v-model="newUsername" :class="{ 'error-input': usernameError }" />
 </div>
 <div style="display: flex; justify-content: center;"> 
   <p v-if="usernameError" class="error-text">{{ usernameErrorMessage }}</p>
@@ -40,10 +39,10 @@
       Change Password
     </h2>
   <div style="display: flex; justify-content: center; ">
-  <div style="margin-right: 3px;"><p>Type Old Password</p>
+  <div style="margin-right: 3px;">
     <div style="position: relative;">
   <input 
-    class="userinput"
+    class="userinput" placeholder="Type Old Password"
     :type="showOldPassword ? 'text' : 'password'"
     v-model="oldPassword"
     :class="{ 'error-input': oldPasswordError }"
@@ -57,11 +56,11 @@
   </button>
 </div>
 </div>
-  <div style="margin-right: 3px;" ><p>Type New Password</p>
+  <div style="margin-right: 3px;" >
     <div style="position: relative;">
   <input 
     class="userinput"
-    :type="showNewPassword ? 'text' : 'password'"
+    :type="showNewPassword ? 'text' : 'password'" placeholder="Type New Password"
     v-model="newPassword"
     :class="{ 'error-input': newPasswordError }"
   />
@@ -73,11 +72,11 @@
     {{ showNewPassword ? 'Hide' : 'Show' }}
   </button>
 </div></div>
-    <div style="margin-right: 3px;" ><p>Confirm New Password</p>
+    <div style="margin-right: 3px;" >
       <div style="position: relative;">
   <input 
     class="userinput"
-    :type="showConfirmPassword ? 'text' : 'password'"
+    :type="showConfirmPassword ? 'text' : 'password'" placeholder="Confirm New Password"
     v-model="confirmPassword"
     :class="{ 'error-input': confirmPasswordError }"
   />
@@ -876,6 +875,7 @@ p{
   padding: 4px;
 }
 
+/* buttons for settings */
 .userbtn {
   background-color: transparent;
   color: whitesmoke;
@@ -895,11 +895,12 @@ p{
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }
 
+/* inputs for settings */
 .userinput{
   border-radius: 25px;
-  padding: 5px;
+  padding: 5px 5px 5px 15px;
   margin: 7px;
-  width: 150px;
+  width: 160px;
   outline: none;
   color: whitesmoke; /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */

@@ -27,8 +27,8 @@
           </div>
           <div style="border: none;" v-if="showPriceInputs">
             <div class="row">
-              <input class="left" id="left-p" type="text" placeholder="min">
-              <input class="right" id="right-p" type="text" placeholder="max">
+              <input class="left input" id="left-p" type="text" placeholder="min">
+              <input class="right input" id="right-p" type="text" placeholder="max">
             </div>
             <div class="row" style="flex-direction: row;">
             <button class="btns" style="float:right" @click="SetPrice()">
@@ -50,8 +50,8 @@
           </div>
           <div style="border: none;" v-if="showMarketCapInputs">
             <div class="row">
-              <input class="left" id="left-mc" type="text" placeholder="min">
-              <input class="right" id="right-mc" type="text" placeholder="max">
+              <input class="left input" id="left-mc" type="text" placeholder="min">
+              <input class="right input" id="right-mc" type="text" placeholder="max">
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetMarketCap()">
@@ -73,8 +73,8 @@
           </div>
           <div style="border: none;" v-if="showIPOInputs">
             <div class="row">
-              <input class="left" id="left-ipo" type="date" placeholder="min">
-              <input class="right" id="right-ipo" type="date" placeholder="max">
+              <input class="left input" id="left-ipo" type="date" placeholder="min">
+              <input class="right input" id="right-ipo" type="date" placeholder="max">
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetIpoDate()">
@@ -150,7 +150,7 @@
       </div>
     </div>
   </div>
-  <div :class="[ShowCountry ? 'param-s3-expanded' : 'param-s3']">
+  <div :class="[ShowCountry ? 'param-s9-expanded' : 'param-s9']">
     <div class="row">
       <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Country</p>
       <label style="float:right" class="switch">
@@ -192,37 +192,14 @@
           </div>
           <div style="border: none;" v-if="showPEInputs">
             <div class="row">
-              <input class="left" id="left-pe" type="text" placeholder="min">
-              <input class="right" id="right-pe" type="text" placeholder="max">
+              <input class="left input" id="left-pe" type="text" placeholder="min">
+              <input class="right input" id="right-pe" type="text" placeholder="max">
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetPE()">
                 <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
               </button>
               <button class="btnsr"style="float:right" @click="Reset('PE')">
-                <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showPEForwInputs ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Forward PE</p>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPEForwInputs" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showPEForwInputs">
-            <div class="row">
-              <input class="left" id="left-pef" type="text" placeholder="min">
-              <input class="right" id="right-pef" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetForwardPE()">
-                <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
-              </button>
-              <button class="btnsr"style="float:right" @click="Reset('ForwardPE')">
                 <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
               </button>
             </div>
@@ -238,8 +215,8 @@
           </div>
           <div style="border: none;" v-if="showPEGInputs">
             <div class="row">
-              <input class="left" id="left-peg" type="text" placeholder="min">
-              <input class="right" id="right-peg" type="text" placeholder="max">
+              <input class="left input" id="left-peg" type="text" placeholder="min">
+              <input class="right input" id="right-peg" type="text" placeholder="max">
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetPEG()">
@@ -261,37 +238,14 @@
           </div>
           <div style="border: none;" v-if="showEPSInputs">
             <div class="row">
-              <input class="left" id="left-eps" type="text" placeholder="min">
-              <input class="right" id="right-eps" type="text" placeholder="max">
+              <input class="left input" id="left-eps" type="text" placeholder="min">
+              <input class="right input" id="right-eps" type="text" placeholder="max">
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetEPS()">
                 <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
               </button>
               <button class="btnsr"style="float:right" @click="Reset('EPS')">
-                <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showPSInputs ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">PS Ratio</p>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPSInputs" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showPSInputs">
-            <div class="row">
-              <input class="left" id="left-ps" type="text" placeholder="min">
-              <input class="right" id="right-ps" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetPSRatio()">
-                <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
-              </button>
-              <button class="btnsr"style="float:right" @click="Reset('PS')">
                 <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
               </button>
             </div>
@@ -307,37 +261,14 @@
           </div>
           <div style="border: none;" v-if="showPBInputs">
             <div class="row">
-              <input class="left" id="left-pb" type="text" placeholder="min">
-              <input class="right" id="right-pb" type="text" placeholder="max">
+              <input class="left input" id="left-pb" type="text" placeholder="min">
+              <input class="right input" id="right-pb" type="text" placeholder="max">
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetPBRatio()">
                 <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
               </button>
               <button class="btnsr"style="float:right" @click="Reset('PB')">
-                <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showBetaInputs ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Beta</p>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showBetaInputs" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showBetaInputs">
-            <div class="row">
-              <input class="left" id="left-beta" type="text" placeholder="min">
-              <input class="right" id="right-beta" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetBeta()">
-                <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
-              </button>
-              <button class="btnsr"style="float:right" @click="Reset('Beta')">
                 <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
               </button>
             </div>
@@ -353,8 +284,8 @@
           </div>
           <div style="border: none;" v-if="showDivYieldInputs">
             <div class="row">
-              <input class="left" id="left-divyield" type="text" placeholder="min">
-              <input class="right" id="right-divyield" type="text" placeholder="max">
+              <input class="left input" id="left-divyield" type="text" placeholder="min">
+              <input class="right input" id="right-divyield" type="text" placeholder="max">
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetDivYield()">
@@ -377,23 +308,23 @@
           <div style="border: none;" v-if="showFundYoYQoQ">
             <div class="DataInputs">
             <p>Revenue Growth (YoY)</p>
-            <input id="left-RevYoY" type="text" placeholder="min">
-            <input id="right-RevYoY" type="text" placeholder="max">
+            <input id="left-RevYoY" class="input" type="text" placeholder="min">
+            <input id="right-RevYoY" class="input" type="text" placeholder="max">
               <p>Revenue Growth (QoQ)</p>
-              <input id="left-RevQoQ" type="text" placeholder="min">
-              <input id="right-RevQoQ" type="text" placeholder="max">
+              <input id="left-RevQoQ" class="input" type="text" placeholder="min">
+              <input id="right-RevQoQ" class="input" type="text" placeholder="max">
               <p>Earnings Growth (YoY)</p>
-              <input id="left-EarningsYoY" type="text" placeholder="min">
-              <input id="right-EarningsYoY" type="text" placeholder="max">
+              <input id="left-EarningsYoY" class="input" type="text" placeholder="min">
+              <input id="right-EarningsYoY" class="input" type="text" placeholder="max">
               <p>Earnings Growth (QoQ)</p>
-              <input id="left-EarningsQoQ" type="text" placeholder="min">
-              <input id="right-EarningsQoQ" type="text" placeholder="max">
+              <input id="left-EarningsQoQ" class="input" type="text" placeholder="min">
+              <input id="right-EarningsQoQ" class="input" type="text" placeholder="max">
               <p>EPS Growth (YoY)</p>
-              <input id="left-EPSYoY" type="text" placeholder="min">
-              <input id="right-EPSYoY" type="text" placeholder="max">
+              <input id="left-EPSYoY" class="input" type="text" placeholder="min">
+              <input id="right-EPSYoY" class="input" type="text" placeholder="max">
               <p>EPS Growth (QoQ)</p>
-              <input id="left-EPSQoQ" type="text" placeholder="min">
-              <input id="right-EPSQoQ" type="text" placeholder="max">
+              <input id="left-EPSQoQ" class="input" type="text" placeholder="min">
+              <input id="right-EPSQoQ" class="input" type="text" placeholder="max">
             </div>
             <div class="row">
               <button class="btns5" style="float:right" @click="SetFundamentalGrowth()">
@@ -417,8 +348,8 @@
             <div class="DataInputs11">
             <p style="text-align: center;">Change %</p>
             <div style="display: flex; justify-content: center; align-items: center; border: none;">
-            <input id="changeperc1" type="text" style="width: 70px; margin: 0 5px;" placeholder="Min">
-            <input id="changeperc2" type="text" style="width: 70px; margin: 0 5px;" placeholder="Max">
+            <input class="input" id="changeperc1" type="text" style="width: 70px; margin: 0 5px;" placeholder="Min">
+            <input class="input" id="changeperc2" type="text" style="width: 70px; margin: 0 5px;" placeholder="Max">
             <select name="" id="changepercselect" style="width: 50px;">
               <option value="" style="text-align: center;">-</option>
               <option value="1D" style="text-align: center;">1D</option>
@@ -433,13 +364,13 @@
           <div style="border: none;">
             <p style="text-align: center;">% off 52weekhigh</p>
             <div style="display: flex; justify-content: center; align-items: center; border:none;">
-              <input type="text" id="weekhigh1" style="width: 70px; margin: 0 5px;" placeholder="Min">
-              <input type="text" id="weekhigh2" style="width: 70px; margin: 0 5px;" placeholder="Max">
+              <input class="input" type="text" id="weekhigh1" style="width: 70px; margin: 0 5px;" placeholder="Min">
+              <input class="input" type="text" id="weekhigh2" style="width: 70px; margin: 0 5px;" placeholder="Max">
             </div>
             <p style="text-align: center;">% off 52weeklow</p>
             <div style="display: flex; justify-content: center; align-items: center; border:none;">
-              <input type="text" id="weeklow1" style="width: 70px; margin: 0 5px;" placeholder="Min">
-              <input type="text" id="weeklow2" style="width: 70px; margin: 0 5px;" placeholder="Max">
+              <input class="input" type="text" id="weeklow1" style="width: 70px; margin: 0 5px;" placeholder="Min">
+              <input class="input" type="text" id="weeklow2" style="width: 70px; margin: 0 5px;" placeholder="Max">
             </div>
           </div>
             <div style="display: flex; flex-direction: column; align-items: center; border:none;">
@@ -524,14 +455,14 @@
           <div style="border: none;" v-if="showRSscore">
             <div class="DataInputs10">
             <p>Technical Score (1W)</p>
-            <input type="number" id="RSscore1Winput1" name="input5" min="1" max="100">
-            <input type="number" id="RSscore1Winput2" name="input6" min="1" max="100">
+            <input class="input" type="number" id="RSscore1Winput1" name="input5" min="1" max="100">
+            <input class="input" type="number" id="RSscore1Winput2" name="input6" min="1" max="100">
             <p>Technical Score (1M)</p>
-            <input type="number" id="RSscore1Minput1" name="input1" min="1" max="100">
-            <input type="number" id="RSscore1Minput2" name="input2" min="1" max="100">
+            <input class="input" type="number" id="RSscore1Minput1" name="input1" min="1" max="100">
+            <input class="input" type="number" id="RSscore1Minput2" name="input2" min="1" max="100">
             <p>Technical Score (4M)</p>
-            <input type="number" id="RSscore4Minput1" name="input3" min="1" max="100">
-            <input type="number" id="RSscore4Minput2" name="input4" min="1" max="100">
+            <input class="input" type="number" id="RSscore4Minput1" name="input3" min="1" max="100">
+            <input class="input" type="number" id="RSscore4Minput2" name="input4" min="1" max="100">
             </div>
             <div class="row">
               <button class="btns8" style="float:right" @click="SetRSscore()">
@@ -554,8 +485,8 @@
           <div style="border: none;" v-if="showVolume">
             <div class="DataInputs4">
               <p>Relative Volume</p>
-              <input id="left-relvol" type="text" placeholder="min">
-              <input id="right-relvol" type="text" placeholder="max">
+              <input class="input" id="left-relvol" type="text" placeholder="min">
+              <input class="input" id="right-relvol" type="text" placeholder="max">
               <select name="" id="option-relvol">
                 <option value="-">-</option>
                 <option value="1W">1W</option>
@@ -564,8 +495,8 @@
                 <option value="1Y">1Y</option>
               </select>
               <p>Average Volume (1000s)</p>
-              <input id="left-avgvol" type="text" placeholder="min">
-              <input id="right-avgvol" type="text" placeholder="max">
+              <input class="input" id="left-avgvol" type="text" placeholder="min">
+              <input class="input" id="right-avgvol" type="text" placeholder="max">
               <select name="" id="option-avgvol">
                 <option value="-">-</option>
                 <option value="1W">1W</option>
@@ -662,7 +593,6 @@
             <div style="flex:1;">PEG Ratio</div>
             <div style="flex:1;">Dividend Yield</div>
             <div style="flex:1;">EPS</div>
-            <div style="flex:1;">Beta</div>
           </div>
           <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll1">
             <div 
@@ -728,7 +658,6 @@
               <div style="flex:1;">{{ asset.PEGRatio }}</div>
               <div style="flex:1;">{{ (asset.DividendYield * 100).toFixed(2)}}%</div>
               <div style="flex:1;">{{ asset.EPS }}</div>
-              <div style="flex:1;">{{ asset.Beta }}</div>
             </div>
             <div class="results2"> 
             </div>
@@ -753,7 +682,6 @@
             <div style="flex:1;">PEG Ratio</div>
             <div style="flex:1;">Dividend Yield</div>
             <div style="flex:1;">EPS</div>
-            <div style="flex:1;">Beta</div>
           </div>
           <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll2">
             <div 
@@ -819,7 +747,6 @@
               <div style="flex:1;">{{ asset.PEGRatio }}</div>
               <div style="flex:1;">{{ (asset.DividendYield * 100).toFixed(2)}}%</div>
               <div style="flex:1;">{{ asset.EPS }}</div>
-              <div style="flex:1;">{{ asset.Beta }}</div>
             </div>
             <div class="results2"> 
             </div>
@@ -844,7 +771,6 @@
             <div style="flex:1;">PEG Ratio</div>
             <div style="flex:1;">Dividend Yield</div>
             <div style="flex:1;">EPS</div>
-            <div style="flex:1;">Beta</div>
           </div>
           <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll3">
             <div 
@@ -910,7 +836,6 @@
               <div style="flex:1;">{{ asset.PEGRatio }}</div>
               <div style="flex:1;">{{ (asset.DividendYield * 100).toFixed(2)}}%</div>
               <div style="flex:1;">{{ asset.EPS }}</div>
-              <div style="flex:1;">{{ asset.Beta }}</div>
             </div>
             <div class="results2"> 
             </div>
@@ -935,7 +860,6 @@
             <div style="flex:1;">PEG Ratio</div>
             <div style="flex:1;">Dividend Yield</div>
             <div style="flex:1;">EPS</div>
-            <div style="flex:1;">Beta</div>
           </div>
           <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll4">
             <div 
@@ -1010,7 +934,6 @@
               <div style="flex:1;">{{ asset.PEGRatio }}</div>
               <div style="flex:1;">{{ (asset.DividendYield * 100).toFixed(2)}}%</div>
               <div style="flex:1;">{{ asset.EPS }}</div>
-              <div style="flex:1;">{{ asset.Beta }}</div>
             </div>
             <div class="results2"> 
             </div>
@@ -3449,7 +3372,7 @@ async function SummaryScreener() {
     const screenerSettings = await response.json();
 
     const attributes = [
-      'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta', 'DivYield',
+      'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'ForwardPE', 'PEG', 'EPS', 'PB', 'DivYield',
       'EPSQoQ', 'EPSYoY', 'EarningsQoQ', 'EarningsYoY', 'RevQoQ', 'RevYoY', 'AvgVolume1W', 'AvgVolume1M', 'AvgVolume6M', 'AvgVolume1Y',
       'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W','RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'NewHigh',
       'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO',
@@ -3458,8 +3381,6 @@ async function SummaryScreener() {
     const attributeMapping = {
       'MarketCap': 'Market Cap',
       'PE': 'PE Ratio',
-      'ForwardPE': 'Forward PE',
-      'PS': 'PS Ratio',
       'PB': 'PB Ratio',
       'DivYield': 'Dividend Yield (%)',
       'EPSQoQ': 'EPS Growth QoQ (%)',
@@ -3476,7 +3397,7 @@ async function SummaryScreener() {
       'RelVolume1M': 'Relative Volume (1M)',
       'RelVolume6M': 'Relative Volume (6M)',
       'RelVolume1Y': 'Relative Volume (1Y)',
-      'RSScore1W': 'RSI Score (1W)',
+      'RSScore1W': 'RS Score (1W)',
       'RSScore1M': 'RS Score (1M)',
       'RSScore4M': 'RS Score (4M)',
       'NewHigh': 'New High',
@@ -3758,7 +3679,7 @@ const toUpperCase = () => {
   color: #b3b3b3;
   background-color: #3f3e56;
   border: none;
-  height: 80px;
+  height: 120px;
   position: relative;
 }
 
@@ -3798,7 +3719,7 @@ const toUpperCase = () => {
   color: #b3b3b3;
   background-color: #3f3e56;
   border: none;
-  height: 60px;
+  height: 120px;
   position: relative;
 }
 
@@ -3808,7 +3729,7 @@ const toUpperCase = () => {
   color: #b3b3b3;
   background-color: #3f3e56;
   border: none;
-  height: 350px;
+  height: 500px;
   position: relative;
 }
 
@@ -3818,7 +3739,7 @@ const toUpperCase = () => {
   color: #b3b3b3;
   background-color: #3f3e56;
   border: none;
-  height: 400px;
+  height: 430px;
   position: relative;
 }
 
@@ -3828,7 +3749,7 @@ const toUpperCase = () => {
   color: #b3b3b3;
   background-color: #3f3e56;
   border: none;
-  height: 150px;
+  height: 200px;
   position: relative;
 }
 
@@ -3838,9 +3759,30 @@ const toUpperCase = () => {
   color: #b3b3b3;
   background-color: #3f3e56;
   border: none;
-  height: 200px;
+  height: 450px;
   position: relative;
 }
+
+.param-s9 {
+  margin: 3px;
+  padding: 5px;
+  color: #b3b3b3;
+  background-color: #3f3e56;
+  border: none;
+  height: 20px;
+  position: relative;
+}
+
+.param-s9-expanded {
+  margin: 3px;
+  padding: 5px;
+  color: #b3b3b3;
+  background-color: #3f3e56;
+  border: none;
+  height: 600px;
+  position: relative;
+}
+
 
 .DataInputs{
   position: absolute;
@@ -3954,7 +3896,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 70%;
+  bottom: 0%;
   left: 89%;
 }
 
@@ -3963,7 +3905,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 70%;
+  bottom: 0%;
   left: 80%;
 }
 
@@ -3972,7 +3914,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 86%;
+  bottom: 0%;
   left: 89%;
 }
 
@@ -3981,7 +3923,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 86%;
+  bottom: 0%;
   left: 80%;
 }
 
@@ -3990,7 +3932,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 65%;
+  bottom: 0%;
   left: 89%;
 }
 
@@ -3999,7 +3941,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 65%;
+  bottom: 0%;
   left: 80%;
 }
 
@@ -4008,7 +3950,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 92.5%;
+  bottom: 0%;
   left: 89%;
 }
 
@@ -4017,7 +3959,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 92.5%;
+  bottom: 0%;
   left: 80%;
 }
 
@@ -4026,7 +3968,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 93.5%;
+  bottom: 0%;
   left: 89%;
 }
 
@@ -4035,7 +3977,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 93.5%;
+  bottom: 0%;
   left: 80%;
 }
 
@@ -4044,7 +3986,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 83%;
+  bottom: 0%;
   left: 89%;
 }
 
@@ -4053,7 +3995,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 83%;
+  bottom: 0%;
   left: 80%;
 }
 
@@ -4062,7 +4004,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 88%;
+  bottom: 0%;
   left: 89%;
 }
 
@@ -4071,7 +4013,7 @@ const toUpperCase = () => {
   border: none;
   padding: 5px;
   position: absolute;
-  top: 88%;
+  bottom: 0%;
   left: 80%;
 }
 
@@ -4433,7 +4375,7 @@ Header th {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #3f3e56;
+    background-color: #1d1c29;
     width: 300px;
     height: 150px;
     display: flex;
@@ -4867,6 +4809,24 @@ Header th {
   text-align: center;
   color: #666;
   font-size: 14px;
+}
+
+.input{
+  border-radius: 25px;
+  padding: 5px 5px 5px 15px;
+  margin: 7px;
+  width: 160px;
+  outline: none;
+  color: whitesmoke; /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
+  border: solid 1px #171728;
+  background-color:#2c2b3e;
+}
+
+.input:focus{
+  border-color: #8c8dfe; /* Change border color on focus */
+  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
+  outline: none; /* Remove default outline */
 }
 
 </style>
