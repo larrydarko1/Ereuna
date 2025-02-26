@@ -453,31 +453,11 @@ def update_asset_info_with_time_series():
             print(f"Error updating documents: {e}")
    
 #calculates average volume for 1w, 1m, 6m and 1y
-def calculate_avg_volumes():
+def calculate_volumes():
     ohclv_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
     total_stocks = len(tickers)
-    for i, stock in enumerate(tqdm(tickers, total=total_stocks, desc="Calculating average volumes")):
-        documents = ohclv_collection.find({"tickerID": stock}).sort("timestamp", -1)
-        volumes = [doc["volume"] for doc in documents]
-        avg_volume_1w = int(sum(volumes[-7:]) / 7) if len(volumes) >= 7 else None
-        avg_volume_1m = int(sum(volumes[-30:]) / 30) if len(volumes) >= 30 else None
-        avg_volume_6m = int(sum(volumes[-180:]) / 180) if len(volumes) >= 180 else None
-        avg_volume_1y = int(sum(volumes[-365:]) / 365) if len(volumes) >= 365 else None
-        asset_info_doc = asset_info_collection.find_one({"Symbol": stock})
-        if asset_info_doc:
-            asset_info_doc["AvgVolume1W"] = avg_volume_1w
-            asset_info_doc["AvgVolume1M"] = avg_volume_1m
-            asset_info_doc["AvgVolume6M"] = avg_volume_6m
-            asset_info_doc["AvgVolume1Y"] = avg_volume_1y
-            asset_info_collection.update_one({"Symbol": stock}, {"$set": asset_info_doc})
-
-#calulcates relative volume for 1w, 1m, 6m and 1y
-def calculate_rel_volumes():
-    ohclv_collection = db["OHCLVData"]
-    asset_info_collection = db["AssetInfo"]
-    total_stocks = len(tickers)
-    for i, stock in enumerate(tqdm(tickers, total=total_stocks, desc="Calculating relative volumes")):
+    for i, stock in enumerate(tqdm(tickers, total=total_stocks, desc="Calculating volumes")):
         documents = ohclv_collection.find({"tickerID": stock}).sort("timestamp", -1)
         volumes = [doc["volume"] for doc in documents]
         avg_volume_1w = sum(volumes[-7:]) / 7 if len(volumes) >= 7 else None
@@ -490,6 +470,10 @@ def calculate_rel_volumes():
         rel_volume_1y = round(volumes[-1] / avg_volume_1y, 1) if avg_volume_1y else None
         asset_info_doc = asset_info_collection.find_one({"Symbol": stock})
         if asset_info_doc:
+            asset_info_doc["AvgVolume1W"] = int(avg_volume_1w) if avg_volume_1w else None
+            asset_info_doc["AvgVolume1M"] = int(avg_volume_1m) if avg_volume_1m else None
+            asset_info_doc["AvgVolume6M"] = int(avg_volume_6m) if avg_volume_6m else None
+            asset_info_doc["AvgVolume1Y"] = int(avg_volume_1y) if avg_volume_1y else None
             asset_info_doc["RelVolume1W"] = rel_volume_1w
             asset_info_doc["RelVolume1M"] = rel_volume_1m
             asset_info_doc["RelVolume6M"] = rel_volume_6m
@@ -518,106 +502,56 @@ def calculate_moving_averages():
             asset_info_doc["MA200"] = round(ma_200, 2)
             asset_info_collection.update_one({"Symbol": stock}, {"$set": asset_info_doc})
 
-#calulcates RS Score (1 week)
-def calculate_rs_score1W():
+def calculate_rs_scores():
     ohclv_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
     total_stocks = len(tickers)
-    stock_data = []
+    stock_data_1w = []
+    stock_data_1m = []
+    stock_data_4m = []
     for i, stock in enumerate(tqdm(tickers, total=total_stocks, desc="Calculating percentage changes")):
         documents = list(ohclv_collection.find({"tickerID": stock}).sort("timestamp", -1))
         recent_close = documents[0]["close"] if documents else None
-        historical_close = documents[4]["close"] if len(documents) >= 5 else documents[-1]["close"] if documents else None
-        if historical_close:
-            percentage_change = (recent_close - historical_close) / historical_close * 100
-            stock_data.append({"name": stock, "percentage_change": percentage_change})
-    stock_data.sort(key=lambda x: x["percentage_change"])
-    for i, stock in enumerate(tqdm(stock_data, total=len(stock_data), desc="Calculating RS scores 1W")):
-        rs_score = int((i / len(stock_data)) * 100) + 1
+        historical_close_1w = documents[4]["close"] if len(documents) >= 5 else documents[-1]["close"] if documents else None
+        historical_close_1m = documents[19]["close"] if len(documents) >= 20 else documents[-1]["close"] if documents else None
+        historical_close_4m = documents[79]["close"] if len(documents) >= 80 else documents[-1]["close"] if documents else None
+        if historical_close_1w:
+            percentage_change_1w = (recent_close - historical_close_1w) / historical_close_1w * 100
+            stock_data_1w.append({"name": stock, "percentage_change": percentage_change_1w})
+        if historical_close_1m:
+            percentage_change_1m = (recent_close - historical_close_1m) / historical_close_1m * 100
+            stock_data_1m.append({"name": stock, "percentage_change": percentage_change_1m})
+        if historical_close_4m:
+            percentage_change_4m = (recent_close - historical_close_4m) / historical_close_4m * 100
+            stock_data_4m.append({"name": stock, "percentage_change": percentage_change_4m})
+    stock_data_1w.sort(key=lambda x: x["percentage_change"])
+    stock_data_1m.sort(key=lambda x: x["percentage_change"])
+    stock_data_4m.sort(key=lambda x: x["percentage_change"])
+    for i, stock in enumerate(tqdm(stock_data_1w, total=len(stock_data_1w), desc="Calculating RS scores 1W")):
+        rs_score_1w = int((i / len(stock_data_1w)) * 100) + 1
         asset_info_doc = asset_info_collection.find_one({"Symbol": stock["name"]})
         if asset_info_doc:
-            asset_info_doc["RSScore1W"] = rs_score
-            asset_info_collection.update_one({"Symbol": stock["name"]}, {"$set": asset_info_doc})
-
-#calulcates RS Score (1 month)
-def calculate_rs_score1M():
-    ohclv_collection = db["OHCLVData"]
-    asset_info_collection = db["AssetInfo"]
-    total_stocks = len(tickers)
-    stock_data = []
-    for i, stock in enumerate(tqdm(tickers, total=total_stocks, desc="Calculating percentage changes")):
-        documents = list(ohclv_collection.find({"tickerID": stock}).sort("timestamp", -1))
-        recent_close = documents[0]["close"] if documents else None
-        historical_close = documents[19]["close"] if len(documents) >= 20 else documents[-1]["close"] if documents else None
-        if historical_close:
-            percentage_change = (recent_close - historical_close) / historical_close * 100
-            stock_data.append({"name": stock, "percentage_change": percentage_change})
-
-    stock_data.sort(key=lambda x: x["percentage_change"])
-    for i, stock in enumerate(tqdm(stock_data, total=len(stock_data), desc="Calculating 1 month RS scores")):
-        rs_score = int((i / len(stock_data)) * 100) + 1
+            asset_info_doc["RSScore1W"] = rs_score_1w
+    for i, stock in enumerate(tqdm(stock_data_1m, total=len(stock_data_1m), desc="Calculating RS scores 1M")):
+        rs_score_1m = int((i / len(stock_data_1m)) * 100) + 1
         asset_info_doc = asset_info_collection.find_one({"Symbol": stock["name"]})
         if asset_info_doc:
-            asset_info_doc["RSScore1M"] = rs_score
-            asset_info_collection.update_one({"Symbol": stock["name"]}, {"$set": asset_info_doc})
-
-#calulcates RS Score (4 months)
-def calculate_rs_score4M():
-    ohclv_collection = db["OHCLVData"]
-    asset_info_collection = db["AssetInfo"]
-    total_stocks = len(tickers)
-    stock_data = []
-    for i, stock in enumerate(tqdm(tickers, total=total_stocks, desc="Calculating percentage changes")):
-        documents = list(ohclv_collection.find({"tickerID": stock}).sort("timestamp", -1))
-        recent_close = documents[0]["close"] if documents else None
-        historical_close = documents[79]["close"] if len(documents) >= 80 else documents[-1]["close"] if documents else None
-        if historical_close:
-            percentage_change = (recent_close - historical_close) / historical_close * 100
-            stock_data.append({"name": stock, "percentage_change": percentage_change})
-    stock_data.sort(key=lambda x: x["percentage_change"])
-    for i, stock in enumerate(tqdm(stock_data, total=len(stock_data), desc="Calculating RS scores 4M")):
-        rs_score = int((i / len(stock_data)) * 100) + 1
+            asset_info_doc["RSScore1M"] = rs_score_1m
+    for i, stock in enumerate(tqdm(stock_data_4m, total=len(stock_data_4m), desc="Calculating RS scores 4M")):
+        rs_score_4m = int((i / len(stock_data_4m)) * 100) + 1
         asset_info_doc = asset_info_collection.find_one({"Symbol": stock["name"]})
         if asset_info_doc:
-            asset_info_doc["RSScore4M"] = rs_score
-            asset_info_collection.update_one({"Symbol": stock["name"]}, {"$set": asset_info_doc})
+            asset_info_doc["RSScore4M"] = rs_score_4m
+    for stock in tqdm(tickers, total=total_stocks, desc="Updating asset info"):
+        asset_info_doc = asset_info_collection.find_one({"Symbol": stock})
+        if asset_info_doc:
+            asset_info_collection.update_one({"Symbol": stock}, {"$set": asset_info_doc})
 
-#caluclates percentages from 52 week high and low
-def calculate_perc52wk():
+#calculates both 52wk and all time high/low
+def calculate_alltime_high_low_and_perc52wk():
     ohclv_data_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
-    pbar = tqdm(tickers, desc='Calculating percentages')
-    for i in pbar:
-        ohclv_data_filter = {'tickerID': i}
-        ohclv_data_sort = [('timestamp', -1)] 
-        ohclv_data_doc = ohclv_data_collection.find_one(ohclv_data_filter, sort=ohclv_data_sort)
-        if ohclv_data_doc:
-            close_value = ohclv_data_doc['close']
-            asset_info_filter = {'Symbol': i}
-            asset_info_doc = asset_info_collection.find_one(asset_info_filter)
-            if asset_info_doc:
-                fifty_two_week_high = asset_info_doc['52WeekHigh']
-                fifty_two_week_low = asset_info_doc['52WeekLow']
-                if fifty_two_week_high != 0:
-                    perc_off_52_week_high = ((close_value - fifty_two_week_high) / fifty_two_week_high) 
-                else:
-                    perc_off_52_week_high = 0
-                if fifty_two_week_low != 0:
-                    perc_off_52_week_low = ((close_value - fifty_two_week_low) / fifty_two_week_low) 
-                else:
-                    perc_off_52_week_low = 0
-                asset_info_collection.update_one(asset_info_filter, {
-                    '$set': {
-                        'percoff52WeekHigh': perc_off_52_week_high,
-                        'percoff52WeekLow': perc_off_52_week_low
-                    }
-                })
-  
-#calculates all time highs and lows 
-def calculate_alltime_high_low():
-    ohclv_data_collection = db['OHCLVData']
-    asset_info_collection = db['AssetInfo']
-    pbar = tqdm(tickers, desc='Calculating all-time highs and lows')
+    pbar = tqdm(tickers, desc='Calculating all-time highs, lows, and percentages')
     for i in pbar:
         ohclv_data_filter = {'tickerID': i}
         ohclv_data_docs = ohclv_data_collection.find(ohclv_data_filter)
@@ -634,69 +568,102 @@ def calculate_alltime_high_low():
         if close_values:
             alltime_high = max(close_values)
             alltime_low = min(close_values)
+            recent_close = close_values[0]
         else:
             alltime_high = 0
             alltime_low = 0
+            recent_close = 0
         
         asset_info_filter = {'Symbol': i}
         asset_info_doc = asset_info_collection.find_one(asset_info_filter)
         if asset_info_doc:
+            fifty_two_week_high = asset_info_doc.get('52WeekHigh', 0)
+            fifty_two_week_low = asset_info_doc.get('52WeekLow', 0)
+            if fifty_two_week_high != 0:
+                perc_off_52_week_high = ((recent_close - fifty_two_week_high) / fifty_two_week_high) 
+            else:
+                perc_off_52_week_high = 0
+            if fifty_two_week_low != 0:
+                perc_off_52_week_low = ((recent_close - fifty_two_week_low) / fifty_two_week_low) 
+            else:
+                perc_off_52_week_low = 0
             asset_info_collection.update_one(asset_info_filter, {
                 '$set': {
                     'AlltimeHigh': alltime_high,
-                    'AlltimeLow': alltime_low
+                    'AlltimeLow': alltime_low,
+                    'percoff52WeekHigh': perc_off_52_week_high,
+                    'percoff52WeekLow': perc_off_52_week_low
                 }
             })
  
 #caluclautes percentage changes for today, wk, 1m, 4m, 6m, 1y, and YTD (althought ytd is still a bit weird)
 def calculate_change_perc():
-    ohclv_data = db['OHCLVData']
-    asset_info = db['AssetInfo']
-    today = datetime.today()
-    for i in tqdm(tickers, desc='Adding Percentage changes'):
-        query = {'tickerID': i}
-        documents = ohclv_data.find(query).sort('timestamp')
-        close_values = {}
-        for document in documents:
-            close_values[document['timestamp']] = document['close']
-        documents_count = len(close_values)
-        if documents_count < 2:
-            percentage_changes = {
-                'todaychange': 'N/A',
-                'weekchange': 'N/A',
-                '1mchange': 'N/A',
-                '4mchange': 'N/A',
-                '6mchange': 'N/A',
-                '1ychange': 'N/A',
-                'ytdchange': 'N/A'
-            }
-        else:
-            today_close = close_values.get(sorted(close_values.keys())[-1])
-            yesterday_close = close_values.get(sorted(close_values.keys())[-2]) if documents_count > 1 else 0
-            last_week_close = close_values.get(sorted(close_values.keys())[-6]) if documents_count > 5 else 0
-            first_month_close = close_values.get(sorted(close_values.keys())[-20]) if documents_count > 19 else 0
-            fourth_month_close = close_values.get(sorted(close_values.keys())[-80]) if documents_count > 79 else 0
-            sixth_month_close = close_values.get(sorted(close_values.keys())[-120]) if documents_count > 119 else 0
-            one_year_close = close_values.get(sorted(close_values.keys())[-250]) if documents_count > 249 else 0
-            
-            # Handle the case where there are no keys in close_values that match the condition
-            ytd_keys = [key for key in close_values if key.year == today.year]
-            if ytd_keys:
-                ytd_close = close_values.get(min(ytd_keys))
-                ytd_change = ((today_close - ytd_close) / today_close) if ytd_close != 0 else 'N/A'
+    ohclv_collection = db['OHCLVData']
+    asset_info_collection = db['AssetInfo']
+    updates = []
+
+    print("Calculating Percentage Changes...")
+    for i, stock in enumerate(tickers):
+        try:
+            pipeline = [
+                {'$match': {'tickerID': stock}},
+                {'$sort': {'timestamp': 1}},
+                {'$project': {'_id': 0, 'close': 1, 'timestamp': 1}}
+            ]
+            documents = list(ohclv_collection.aggregate(pipeline))
+
+            if len(documents) < 2:
+                percentage_changes = {
+                    'todaychange': 'N/A',
+                    'weekchange': 'N/A',
+                    '1mchange': 'N/A',
+                    '4mchange': 'N/A',
+                    '6mchange': 'N/A',
+                    '1ychange': 'N/A',
+                    'ytdchange': 'N/A'
+                }
             else:
-                ytd_change = 'N/A'
-            
-            percentage_changes = {
-                'todaychange': ((today_close - yesterday_close) / today_close) if yesterday_close != 0 else 'N/A',
-                'weekchange': ((today_close - last_week_close) / today_close) if last_week_close != 0 else 'N/A',
-                '1mchange': ((today_close - first_month_close) / today_close) if first_month_close != 0 else 'N/A',
-                '4mchange': ((today_close - fourth_month_close) / today_close) if fourth_month_close != 0 else 'N/A',
-                '6mchange': ((today_close - sixth_month_close) / today_close) if sixth_month_close != 0 else 'N/A',
-                '1ychange': ((today_close - one_year_close) / today_close) if one_year_close != 0 else 'N/A',
-                'ytdchange': ytd_change
-            }
-        asset_info.update_one({'Symbol': i}, {'$set': percentage_changes})
+                close_values = {doc['timestamp']: doc['close'] for doc in documents}
+                today_close = close_values.get(sorted(close_values.keys())[-1])
+                yesterday_close = close_values.get(sorted(close_values.keys())[-2]) if len(close_values) > 1 else 0
+                last_week_close = close_values.get(sorted(close_values.keys())[-6]) if len(close_values) > 5 else 0
+                first_month_close = close_values.get(sorted(close_values.keys())[-20]) if len(close_values) > 19 else 0
+                fourth_month_close = close_values.get(sorted(close_values.keys())[-80]) if len(close_values) > 79 else 0
+                sixth_month_close = close_values.get(sorted(close_values.keys())[-120]) if len(close_values) > 119 else 0
+                one_year_close = close_values.get(sorted(close_values.keys())[-250]) if len(close_values) > 249 else 0
+
+                ytd_keys = [key for key in close_values if key.year == datetime.today().year]
+                if ytd_keys:
+                    ytd_close = close_values.get(min(ytd_keys))
+                    ytd_change = ((today_close - ytd_close) / today_close) if ytd_close != 0 else 'N/A'
+                else:
+                    ytd_change = 'N/A'
+
+                percentage_changes = {
+                    'todaychange': ((today_close - yesterday_close) / today_close) if yesterday_close != 0 else 'N/A',
+                    'weekchange': ((today_close - last_week_close) / today_close) if last_week_close != 0 else 'N/A',
+                    '1mchange': ((today_close - first_month_close) / today_close) if first_month_close != 0 else 'N/A',
+                    '4mchange': ((today_close - fourth_month_close) / today_close) if fourth_month_close != 0 else 'N/A',
+                    '6mchange': ((today_close - sixth_month_close) / today_close) if sixth_month_close != 0 else 'N/A',
+                    '1ychange': ((today_close - one_year_close) / today_close) if one_year_close != 0 else 'N/A',
+                    'ytdchange': ytd_change
+                }
+            updates.append(
+                UpdateOne(
+                    {'Symbol': stock},
+                    {'$set': percentage_changes}
+                )
+            )
+            print(f"Processed {i+1} out of {len(tickers)} stocks")
+        except Exception as e:
+            print(f"Error processing {stock}: {e}")
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
         
         
 def calculate_qoq_changes():
@@ -1007,14 +974,11 @@ def Daily():
     functions = [
         ('getPrice', getPrice),
         ('updateDailyRatios', updateDailyRatios),
-        ('update_asset_info_with_time_series', update_asset_info_with_time_series),
-        ('calculate_avg_volumes', calculate_avg_volumes),
-        ('calculate_rel_volumes', calculate_rel_volumes),
+        ('update_timeseries', update_asset_info_with_time_series),
+        ('calculate_volumes', calculate_volumes),
         ('calculate_moving_averages', calculate_moving_averages),
-        ('calculate_rs_score1W', calculate_rs_score1W),
-        ('calculate_rs_score1M', calculate_rs_score1M),
-        ('calculate_rs_score4M', calculate_rs_score4M),
-        ('calculate_alltime_high_low', calculate_alltime_high_low),
+        ('calculate_rs_scores', calculate_rs_scores),
+        ('calculate__high_low', calculate_alltime_high_low_and_perc52wk),
         ('calculate_change_perc', calculate_change_perc),
     ]
 
@@ -1037,6 +1001,5 @@ def Daily():
     print(f'\nTotal execution time: {total_execution_time:.2f} seconds')
 
 Daily()
-
 '''
-
+calculate_change_perc()
