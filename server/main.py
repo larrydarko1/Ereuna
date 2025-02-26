@@ -206,68 +206,86 @@ def getPrice():
 def updateDailyRatios():
     ohclv_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
+    updates = []
 
     for ticker in tickers:
-        # Get the most recent OHCLV document
-        ohclv_doc = ohclv_collection.find_one({'tickerID': ticker}, sort=[('timestamp', -1)])
-        if ohclv_doc:
-            current_price = ohclv_doc['close']
+        try:
+            # Get the most recent OHCLV document
+            pipeline = [
+                {'$match': {'tickerID': ticker}},
+                {'$sort': {'timestamp': -1}},
+                {'$project': {'_id': 0, 'close': 1}}
+            ]
+            ohclv_doc = list(ohclv_collection.aggregate(pipeline))[0]
 
-            # Get the asset info document
-            asset_info_doc = asset_info_collection.find_one({'Symbol': ticker})
-            if asset_info_doc:
-                # Calculate the market capitalization
-                shares_outstanding = asset_info_doc.get('SharesOutstanding', 0)
-                market_cap = current_price * shares_outstanding
+            if ohclv_doc:
+                current_price = ohclv_doc['close']
 
-                # Calculate the price-to-earnings ratio
-                eps = asset_info_doc.get('EPS', 0)
-                if isinstance(eps, str):
-                    eps = float(eps) if eps.replace('.', '', 1).isdigit() else 0
-                pe_ratio = current_price / eps if eps != 0 else 0
-
-               # Calculate the price-to-book ratio
-                quarterly_financials = asset_info_doc.get('quarterlyFinancials', [])
-                if quarterly_financials:
-                    most_recent_financials = quarterly_financials[0]
-                    total_assets = most_recent_financials.get('totalAssets', 0)
-                    total_liabilities = most_recent_financials.get('totalLiabilities', 0)
-                    book_value = total_assets - total_liabilities
+                # Get the asset info document
+                asset_info_doc = asset_info_collection.find_one({'Symbol': ticker})
+                if asset_info_doc:
+                    # Calculate the market capitalization
                     shares_outstanding = asset_info_doc.get('SharesOutstanding', 0)
-                    if shares_outstanding != 0:
-                        book_value_per_share = book_value / shares_outstanding
-                        pb_ratio = current_price / book_value_per_share if book_value_per_share != 0 else 0
+                    market_cap = current_price * shares_outstanding
+
+                    # Calculate the price-to-earnings ratio
+                    eps = asset_info_doc.get('EPS', 0)
+                    if isinstance(eps, str):
+                        eps = float(eps) if eps.replace('.', '', 1).isdigit() else 0
+                    pe_ratio = current_price / eps if eps != 0 else 0
+
+                    # Calculate the price-to-book ratio
+                    quarterly_financials = asset_info_doc.get('quarterlyFinancials', [])
+                    if quarterly_financials:
+                        most_recent_financials = quarterly_financials[0]
+                        total_assets = most_recent_financials.get('totalAssets', 0)
+                        total_liabilities = most_recent_financials.get('totalLiabilities', 0)
+                        book_value = total_assets - total_liabilities
+                        shares_outstanding = asset_info_doc.get('SharesOutstanding', 0)
+                        if shares_outstanding != 0:
+                            book_value_per_share = book_value / shares_outstanding
+                            pb_ratio = current_price / book_value_per_share if book_value_per_share != 0 else 0
+                        else:
+                            pb_ratio = 0
                     else:
                         pb_ratio = 0
-                else:
-                    pb_ratio = 0
 
-                # Calculate the trailing price-to-earnings growth ratio
-                # Since EPSGrowthRate is not available, we can use the EPS growth rate from the last two quarters
-                quarterly_earnings = asset_info_doc.get('quarterlyEarnings', [])
-                if len(quarterly_earnings) >= 2:
-                    most_recent_eps = quarterly_earnings[0].get('reportedEPS', 0)
-                    previous_eps = quarterly_earnings[1].get('reportedEPS', 0)
-                    eps_growth_rate = (most_recent_eps - previous_eps) / previous_eps if previous_eps != 0 else 0
-                    trailing_peg = pe_ratio / eps_growth_rate if eps_growth_rate != 0 else 0
-                else:
-                    trailing_peg = 0
+                    # Calculate the trailing price-to-earnings growth ratio
+                    quarterly_earnings = asset_info_doc.get('quarterlyEarnings', [])
+                    if len(quarterly_earnings) >= 2:
+                        most_recent_eps = quarterly_earnings[0].get('reportedEPS', 0)
+                        previous_eps = quarterly_earnings[1].get('reportedEPS', 0)
+                        eps_growth_rate = (most_recent_eps - previous_eps) / previous_eps if previous_eps != 0 else 0
+                        trailing_peg = pe_ratio / eps_growth_rate if eps_growth_rate != 0 else 0
+                    else:
+                        trailing_peg = 0
 
-                # Update the asset info document
-                asset_info_collection.update_one(
-                    {'Symbol': ticker},
-                    {'$set': {
-                        'MarketCapitalization': market_cap,
-                        'PERatio': pe_ratio,
-                        'PriceToBookRatio': pb_ratio,
-                        'PEGRatio': trailing_peg
-                    }}
-                )
-                print(f"{ticker} Daily Ratios Updated Successfully")
+                    # Update the asset info document
+                    updates.append(
+                        UpdateOne(
+                            {'Symbol': ticker},
+                            {'$set': {
+                                'MarketCapitalization': market_cap,
+                                'PERatio': pe_ratio,
+                                'PriceToBookRatio': pb_ratio,
+                                'PEGRatio': trailing_peg
+                            }}
+                        )
+                    )
+                    print(f"{ticker} Daily Ratios Updated Successfully")
+                else:
+                    print(f"No asset info found for {ticker}")
             else:
-                print(f"No asset info found for {ticker}")
-        else:
-            print(f"No OHCLV data found for {ticker}")
+                print(f"No OHCLV data found for {ticker}")
+        except Exception as e:
+            print(f"Error processing {ticker}: {e}")
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
 
 
 def getDividendYield():
@@ -456,145 +474,301 @@ def update_asset_info_with_time_series():
 def calculate_volumes():
     ohclv_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
-    total_stocks = len(tickers)
-    for i, stock in enumerate(tqdm(tickers, total=total_stocks, desc="Calculating volumes")):
-        documents = ohclv_collection.find({"tickerID": stock}).sort("timestamp", -1)
-        volumes = [doc["volume"] for doc in documents]
-        avg_volume_1w = sum(volumes[-7:]) / 7 if len(volumes) >= 7 else None
-        avg_volume_1m = sum(volumes[-30:]) / 30 if len(volumes) >= 30 else None
-        avg_volume_6m = sum(volumes[-180:]) / 180 if len(volumes) >= 180 else None
-        avg_volume_1y = sum(volumes[-365:]) / 365 if len(volumes) >= 365 else None
-        rel_volume_1w = round(volumes[-1] / avg_volume_1w, 1) if avg_volume_1w else None
-        rel_volume_1m = round(volumes[-1] / avg_volume_1m, 1) if avg_volume_1m else None
-        rel_volume_6m = round(volumes[-1] / avg_volume_6m, 1) if avg_volume_6m else None
-        rel_volume_1y = round(volumes[-1] / avg_volume_1y, 1) if avg_volume_1y else None
-        asset_info_doc = asset_info_collection.find_one({"Symbol": stock})
-        if asset_info_doc:
-            asset_info_doc["AvgVolume1W"] = int(avg_volume_1w) if avg_volume_1w else None
-            asset_info_doc["AvgVolume1M"] = int(avg_volume_1m) if avg_volume_1m else None
-            asset_info_doc["AvgVolume6M"] = int(avg_volume_6m) if avg_volume_6m else None
-            asset_info_doc["AvgVolume1Y"] = int(avg_volume_1y) if avg_volume_1y else None
-            asset_info_doc["RelVolume1W"] = rel_volume_1w
-            asset_info_doc["RelVolume1M"] = rel_volume_1m
-            asset_info_doc["RelVolume6M"] = rel_volume_6m
-            asset_info_doc["RelVolume1Y"] = rel_volume_1y
-            asset_info_collection.update_one({"Symbol": stock}, {"$set": asset_info_doc})
+    updates = []
+
+    print("Calculating Volumes...")
+    for i, stock in enumerate(tickers):
+        try:
+            pipeline = [
+                {'$match': {'tickerID': stock}},
+                {'$sort': {'timestamp': -1}},
+                {'$project': {'_id': 0, 'volume': 1}}
+            ]
+            documents = list(ohclv_collection.aggregate(pipeline))
+
+            volumes = [doc["volume"] for doc in documents]
+            avg_volume_1w = sum(volumes[-7:]) / 7 if len(volumes) >= 7 else None
+            avg_volume_1m = sum(volumes[-30:]) / 30 if len(volumes) >= 30 else None
+            avg_volume_6m = sum(volumes[-180:]) / 180 if len(volumes) >= 180 else None
+            avg_volume_1y = sum(volumes[-365:]) / 365 if len(volumes) >= 365 else None
+            rel_volume_1w = round(volumes[-1] / avg_volume_1w, 1) if avg_volume_1w else None
+            rel_volume_1m = round(volumes[-1] / avg_volume_1m, 1) if avg_volume_1m else None
+            rel_volume_6m = round(volumes[-1] / avg_volume_6m, 1) if avg_volume_6m else None
+            rel_volume_1y = round(volumes[-1] / avg_volume_1y, 1) if avg_volume_1y else None
+
+            updates.append(
+                UpdateOne(
+                    {'Symbol': stock},
+                    {'$set': {
+                        'AvgVolume1W': int(avg_volume_1w) if avg_volume_1w else None,
+                        'AvgVolume1M': int(avg_volume_1m) if avg_volume_1m else None,
+                        'AvgVolume6M': int(avg_volume_6m) if avg_volume_6m else None,
+                        'AvgVolume1Y': int(avg_volume_1y) if avg_volume_1y else None,
+                        'RelVolume1W': rel_volume_1w,
+                        'RelVolume1M': rel_volume_1m,
+                        'RelVolume6M': rel_volume_6m,
+                        'RelVolume1Y': rel_volume_1y
+                    }}
+                )
+            )
+            print(f"Processed {i+1} out of {len(tickers)} stocks")
+        except Exception as e:
+            print(f"Error processing {stock}: {e}")
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
 
 #calculates moving averages (10, 20, 50 and 200DMA)
 def calculate_moving_averages():
     ohclv_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
-    total_stocks = len(tickers)
-    for i, stock in enumerate(tqdm(tickers, total=total_stocks, desc="Calculating moving averages")):
-        documents = ohclv_collection.find({"tickerID": stock}).sort("timestamp", 1)
-        closes = [doc["close"] for doc in documents]
-        ma_10 = sum(closes[-10:]) / 10
-        ma_20 = sum(closes[-20:]) / 20
-        ma_50 = sum(closes[-50:]) / 50
-        ma_100 = sum(closes[-100:]) / 100
-        ma_200 = sum(closes[-200:]) / 200
-        asset_info_doc = asset_info_collection.find_one({"Symbol": stock})
-        if asset_info_doc:
-            asset_info_doc["MA10"] = round(ma_10, 2)
-            asset_info_doc["MA20"] = round(ma_20, 2)
-            asset_info_doc["MA50"] = round(ma_50, 2)
-            asset_info_doc["MA100"] = round(ma_100, 2)
-            asset_info_doc["MA200"] = round(ma_200, 2)
-            asset_info_collection.update_one({"Symbol": stock}, {"$set": asset_info_doc})
+    updates = []
+
+    print("Calculating Moving Averages...")
+    for i, stock in enumerate(tickers):
+        try:
+            pipeline = [
+                {'$match': {'tickerID': stock}},
+                {'$sort': {'timestamp': 1}},
+                {'$project': {'_id': 0, 'close': 1}}
+            ]
+            documents = list(ohclv_collection.aggregate(pipeline))
+
+            closes = [doc["close"] for doc in documents]
+            ma_10 = sum(closes[-10:]) / 10 if len(closes) >= 10 else None
+            ma_20 = sum(closes[-20:]) / 20 if len(closes) >= 20 else None
+            ma_50 = sum(closes[-50:]) / 50 if len(closes) >= 50 else None
+            ma_100 = sum(closes[-100:]) / 100 if len(closes) >= 100 else None
+            ma_200 = sum(closes[-200:]) / 200 if len(closes) >= 200 else None
+
+            updates.append(
+                UpdateOne(
+                    {'Symbol': stock},
+                    {'$set': {
+                        'MA10': round(ma_10, 2) if ma_10 else None,
+                        'MA20': round(ma_20, 2) if ma_20 else None,
+                        'MA50': round(ma_50, 2) if ma_50 else None,
+                        'MA100': round(ma_100, 2) if ma_100 else None,
+                        'MA200': round(ma_200, 2) if ma_200 else None
+                    }}
+                )
+            )
+            print(f"Processed {i+1} out of {len(tickers)} stocks")
+        except Exception as e:
+            print(f"Error processing {stock}: {e}")
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
 
 def calculate_rs_scores():
     ohclv_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
-    total_stocks = len(tickers)
+    updates = []
+
+    print("Calculating Percentage Changes...")
+    for i, stock in enumerate(tickers):
+        try:
+            pipeline = [
+                {'$match': {'tickerID': stock}},
+                {'$sort': {'timestamp': -1}},
+                {'$project': {'_id': 0, 'close': 1}}
+            ]
+            documents = list(ohclv_collection.aggregate(pipeline))
+
+            recent_close = documents[0]["close"] if documents else None
+            historical_close_1w = documents[4]["close"] if len(documents) >= 5 else documents[-1]["close"] if documents else None
+            historical_close_1m = documents[19]["close"] if len(documents) >= 20 else documents[-1]["close"] if documents else None
+            historical_close_4m = documents[79]["close"] if len(documents) >= 80 else documents[-1]["close"] if documents else None
+
+            if historical_close_1w:
+                percentage_change_1w = (recent_close - historical_close_1w) / historical_close_1w * 100
+                updates.append(
+                    UpdateOne(
+                        {'Symbol': stock},
+                        {'$set': {'percentage_change_1w': percentage_change_1w}}
+                    )
+                )
+            if historical_close_1m:
+                percentage_change_1m = (recent_close - historical_close_1m) / historical_close_1m * 100
+                updates.append(
+                    UpdateOne(
+                        {'Symbol': stock},
+                        {'$set': {'percentage_change_1m': percentage_change_1m}}
+                    )
+                )
+            if historical_close_4m:
+                percentage_change_4m = (recent_close - historical_close_4m) / historical_close_4m * 100
+                updates.append(
+                    UpdateOne(
+                        {'Symbol': stock},
+                        {'$set': {'percentage_change_4m': percentage_change_4m}}
+                    )
+                )
+            print(f"Processed {i+1} out of {len(tickers)} stocks")
+        except Exception as e:
+            print(f"Error processing {stock}: {e}")
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
+
+    print("Calculating RS Scores...")
+    pipeline = [
+        {'$match': {}},
+        {'$project': {'_id': 0, 'Symbol': 1, 'percentage_change_1w': 1, 'percentage_change_1m': 1, 'percentage_change_4m': 1}}
+    ]
+    documents = list(asset_info_collection.aggregate(pipeline))
+
     stock_data_1w = []
     stock_data_1m = []
     stock_data_4m = []
-    for i, stock in enumerate(tqdm(tickers, total=total_stocks, desc="Calculating percentage changes")):
-        documents = list(ohclv_collection.find({"tickerID": stock}).sort("timestamp", -1))
-        recent_close = documents[0]["close"] if documents else None
-        historical_close_1w = documents[4]["close"] if len(documents) >= 5 else documents[-1]["close"] if documents else None
-        historical_close_1m = documents[19]["close"] if len(documents) >= 20 else documents[-1]["close"] if documents else None
-        historical_close_4m = documents[79]["close"] if len(documents) >= 80 else documents[-1]["close"] if documents else None
-        if historical_close_1w:
-            percentage_change_1w = (recent_close - historical_close_1w) / historical_close_1w * 100
-            stock_data_1w.append({"name": stock, "percentage_change": percentage_change_1w})
-        if historical_close_1m:
-            percentage_change_1m = (recent_close - historical_close_1m) / historical_close_1m * 100
-            stock_data_1m.append({"name": stock, "percentage_change": percentage_change_1m})
-        if historical_close_4m:
-            percentage_change_4m = (recent_close - historical_close_4m) / historical_close_4m * 100
-            stock_data_4m.append({"name": stock, "percentage_change": percentage_change_4m})
+    for doc in documents:
+        if 'percentage_change_1w' in doc:
+            stock_data_1w.append({'name': doc['Symbol'], 'percentage_change': doc['percentage_change_1w']})
+        if 'percentage_change_1m' in doc:
+            stock_data_1m.append({'name': doc['Symbol'], 'percentage_change': doc['percentage_change_1m']})
+        if 'percentage_change_4m' in doc:
+            stock_data_4m.append({'name': doc['Symbol'], 'percentage_change': doc['percentage_change_4m']})
+
     stock_data_1w.sort(key=lambda x: x["percentage_change"])
     stock_data_1m.sort(key=lambda x: x["percentage_change"])
     stock_data_4m.sort(key=lambda x: x["percentage_change"])
-    for i, stock in enumerate(tqdm(stock_data_1w, total=len(stock_data_1w), desc="Calculating RS scores 1W")):
+
+    updates = []
+    for i, stock in enumerate(stock_data_1w):
         rs_score_1w = int((i / len(stock_data_1w)) * 100) + 1
-        asset_info_doc = asset_info_collection.find_one({"Symbol": stock["name"]})
-        if asset_info_doc:
-            asset_info_doc["RSScore1W"] = rs_score_1w
-    for i, stock in enumerate(tqdm(stock_data_1m, total=len(stock_data_1m), desc="Calculating RS scores 1M")):
+        updates.append(
+            UpdateOne(
+                {'Symbol': stock["name"]},
+                {'$set': {'RSScore1W': rs_score_1w}}
+            )
+        )
+    for i, stock in enumerate(stock_data_1m):
         rs_score_1m = int((i / len(stock_data_1m)) * 100) + 1
-        asset_info_doc = asset_info_collection.find_one({"Symbol": stock["name"]})
-        if asset_info_doc:
-            asset_info_doc["RSScore1M"] = rs_score_1m
-    for i, stock in enumerate(tqdm(stock_data_4m, total=len(stock_data_4m), desc="Calculating RS scores 4M")):
+        updates.append(
+            UpdateOne(
+                {'Symbol': stock["name"]},
+                {'$set': {'RSScore1M': rs_score_1m}}
+            )
+        )
+    for i, stock in enumerate(stock_data_4m):
         rs_score_4m = int((i / len(stock_data_4m)) * 100) + 1
-        asset_info_doc = asset_info_collection.find_one({"Symbol": stock["name"]})
+        updates.append(
+            UpdateOne(
+                {'Symbol': stock["name"]},
+                {'$set': {'RSScore4M': rs_score_4m}}
+            )
+        )
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
+
+    print("Updating Asset Info...")
+    updates = []
+    for stock in tickers:
+        asset_info_doc = asset_info_collection.find_one({'Symbol': stock})
         if asset_info_doc:
-            asset_info_doc["RSScore4M"] = rs_score_4m
-    for stock in tqdm(tickers, total=total_stocks, desc="Updating asset info"):
-        asset_info_doc = asset_info_collection.find_one({"Symbol": stock})
-        if asset_info_doc:
-            asset_info_collection.update_one({"Symbol": stock}, {"$set": asset_info_doc})
+            updates.append(
+                UpdateOne(
+                    {'Symbol': stock},
+                    {'$set': {
+                        'RSScore1W': asset_info_doc.get('RSScore1W'),
+                        'RSScore1M': asset_info_doc.get('RSScore1M'),
+                        'RSScore4M': asset_info_doc.get('RSScore4M')
+                    }}
+                )
+            )
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
 
 #calculates both 52wk and all time high/low
 def calculate_alltime_high_low_and_perc52wk():
     ohclv_data_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
-    pbar = tqdm(tickers, desc='Calculating all-time highs, lows, and percentages')
-    for i in pbar:
-        ohclv_data_filter = {'tickerID': i}
-        ohclv_data_docs = ohclv_data_collection.find(ohclv_data_filter)
-        close_values = []
-        for doc in ohclv_data_docs:
-            close_value = doc['close']
-            try:
-                close_value = float(close_value)
-                close_values.append(close_value)
-            except ValueError:
-                # Handle non-numeric values (e.g., log a warning, skip the value, etc.)
-                print(f"Warning: Non-numeric value '{close_value}' found in 'close' field for ticker {i}")
-        
-        if close_values:
-            alltime_high = max(close_values)
-            alltime_low = min(close_values)
-            recent_close = close_values[0]
-        else:
-            alltime_high = 0
-            alltime_low = 0
-            recent_close = 0
-        
-        asset_info_filter = {'Symbol': i}
-        asset_info_doc = asset_info_collection.find_one(asset_info_filter)
-        if asset_info_doc:
-            fifty_two_week_high = asset_info_doc.get('52WeekHigh', 0)
-            fifty_two_week_low = asset_info_doc.get('52WeekLow', 0)
-            if fifty_two_week_high != 0:
-                perc_off_52_week_high = ((recent_close - fifty_two_week_high) / fifty_two_week_high) 
+    updates = []
+
+    print("Calculating All-Time Highs, Lows, and Percentages...")
+    for i, stock in enumerate(tickers):
+        try:
+            pipeline = [
+                {'$match': {'tickerID': stock}},
+                {'$project': {'_id': 0, 'close': 1}}
+            ]
+            documents = list(ohclv_data_collection.aggregate(pipeline))
+
+            close_values = []
+            for doc in documents:
+                close_value = doc['close']
+                try:
+                    close_value = float(close_value)
+                    close_values.append(close_value)
+                except ValueError:
+                    # Handle non-numeric values (e.g., log a warning, skip the value, etc.)
+                    print(f"Warning: Non-numeric value '{close_value}' found in 'close' field for ticker {stock}")
+
+            if close_values:
+                alltime_high = max(close_values)
+                alltime_low = min(close_values)
+                recent_close = close_values[0]
             else:
-                perc_off_52_week_high = 0
-            if fifty_two_week_low != 0:
-                perc_off_52_week_low = ((recent_close - fifty_two_week_low) / fifty_two_week_low) 
-            else:
-                perc_off_52_week_low = 0
-            asset_info_collection.update_one(asset_info_filter, {
-                '$set': {
-                    'AlltimeHigh': alltime_high,
-                    'AlltimeLow': alltime_low,
-                    'percoff52WeekHigh': perc_off_52_week_high,
-                    'percoff52WeekLow': perc_off_52_week_low
-                }
-            })
+                alltime_high = 0
+                alltime_low = 0
+                recent_close = 0
+
+            asset_info_filter = {'Symbol': stock}
+            asset_info_doc = asset_info_collection.find_one(asset_info_filter)
+            if asset_info_doc:
+                fifty_two_week_high = asset_info_doc.get('52WeekHigh', 0)
+                fifty_two_week_low = asset_info_doc.get('52WeekLow', 0)
+                if fifty_two_week_high != 0:
+                    perc_off_52_week_high = ((recent_close - fifty_two_week_high) / fifty_two_week_high) 
+                else:
+                    perc_off_52_week_high = 0
+                if fifty_two_week_low != 0:
+                    perc_off_52_week_low = ((recent_close - fifty_two_week_low) / fifty_two_week_low) 
+                else:
+                    perc_off_52_week_low = 0
+                updates.append(
+                    UpdateOne(
+                        asset_info_filter,
+                        {'$set': {
+                            'AlltimeHigh': alltime_high,
+                            'AlltimeLow': alltime_low,
+                            'percoff52WeekHigh': perc_off_52_week_high,
+                            'percoff52WeekLow': perc_off_52_week_low
+                        }}
+                    )
+                )
+            print(f"Processed {i+1} out of {len(tickers)} stocks")
+        except Exception as e:
+            print(f"Error processing {stock}: {e}")
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
  
 #caluclautes percentage changes for today, wk, 1m, 4m, 6m, 1y, and YTD (althought ytd is still a bit weird)
 def calculate_change_perc():
@@ -968,7 +1142,7 @@ def getHistoricalPrice():
         else:
             print(f"Error: {response.text}")
 
-'''
+
 #run every day
 def Daily():
     functions = [
@@ -1001,5 +1175,4 @@ def Daily():
     print(f'\nTotal execution time: {total_execution_time:.2f} seconds')
 
 Daily()
-'''
-calculate_change_perc()
+
