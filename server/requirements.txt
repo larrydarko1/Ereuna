@@ -1,0 +1,9 @@
+fastapi
+apscheduler
+python-dotenv
+pymongo
+requests
+pandas
+numpy
+uvicorn
+tqdm
