@@ -11,6 +11,7 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 from bson import ObjectId
+from pymongo import UpdateOne
 
 app = FastAPI()
 
@@ -124,143 +125,149 @@ def getPrice():
     daily_collection = db["OHCLVData"]
     weekly_collection = db["OHCLVData2"]
 
-    for ticker in tickers:
-        now = datetime.now()
-        url = f'https://api.tiingo.com/tiingo/daily/{ticker}/prices?token={api_key}&startDate={now.strftime("%Y-%m-%d")}&endDate={now.strftime("%Y-%m-%d")}'
-        response = requests.get(url)
-        
-        if response.status_code == 200:
-            data = response.json()
-            if len(data) > 0:
-                df = pd.DataFrame(data)
-                df = df.rename(columns={'date': 'timestamp'})
-                df.columns = ['timestamp', 'close', 'high', 'low', 'open', 'volume', 'adjClose', 'adjHigh', 'adjLow', 'adjOpen', 'adjVolume', 'divCash', 'splitFactor']
-                df['tickerID'] = ticker
+    # Fetch all data at once
+    url = f'https://api.tiingo.com/tiingo/daily/prices?token={api_key}'
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+
+        # Filter data based on ticker
+        filtered_data = [doc for doc in data if doc['ticker'].lower() in [ticker.lower() for ticker in tickers]]
+
+        if filtered_data:  # Check if filtered_data is not empty
+            # Process the data in bulk
+            df = pd.DataFrame(filtered_data)
+            df.columns = ['ticker', 'date', 'close', 'high', 'low', 'open', 'volume', 'adjClose', 'adjHigh', 'adjLow', 'adjOpen', 'adjVolume', 'divCash', 'splitFactor']
+
+            # Convert NumPy types to Python native types
+            def convert_numpy_types(doc):
+                return {
+                    k: (int(v) if isinstance(v, np.integer) else 
+                        float(v) if isinstance(v, np.floating) else 
+                        v) for k, v in doc.items()
+                }
+
+            # Convert dataframe to list of dictionaries
+            daily_data_dict = df.to_dict(orient='records')
+            daily_data_dict = [convert_numpy_types(doc) for doc in daily_data_dict]
+
+            # Rename fields
+            for doc in daily_data_dict:
+                doc['tickerID'] = doc.pop('ticker').upper()
+                doc['timestamp'] = datetime.strptime(doc['date'], '%Y-%m-%d')
+
+            # Insert daily documents, preventing duplicates
+            for daily_doc in daily_data_dict:
+                existing_daily_doc = daily_collection.find_one({
+                    'tickerID': daily_doc['tickerID'], 
+                    'timestamp': daily_doc['timestamp']
+                })
                 
-                # Convert NumPy types to Python native types
-                def convert_numpy_types(doc):
-                    return {
-                        k: (int(v) if isinstance(v, np.integer) else 
-                            float(v) if isinstance(v, np.floating) else 
-                            v) for k, v in doc.items()
+                if not existing_daily_doc:
+                    daily_collection.insert_one(daily_doc)
+                    print(f"Inserted daily document for {daily_doc['tickerID']} on {daily_doc['timestamp']}")
+                else:
+                    print(f"Daily document for {daily_doc['tickerID']} on {daily_doc['timestamp']} already exists")
+
+            # Process weekly data from daily data
+            df['timestamp'] = pd.to_datetime(df['date'])
+            weekly_grouped = df.groupby(pd.Grouper(key='timestamp', freq='W-MON'))
+
+            for week_start, week_data in weekly_grouped:
+                if not week_data.empty:
+                    weekly_doc = {
+                        'tickerID': week_data['ticker'].iloc[0].upper(),
+                        'timestamp': week_start.to_pydatetime(),
+                        'open': float(week_data['open'].iloc[0]),
+                        'high': float(week_data['high'].max()),
+                        'low': float(week_data['low'].min()),
+                        'close': float(week_data['close'].iloc[-1]),
+                        'volume': int(week_data['volume'].sum())
                     }
-                
-                # Convert dataframe to list of dictionaries
-                daily_data_dict = df[['tickerID', 'timestamp', 'adjOpen', 'adjHigh', 'adjLow', 'adjClose', 'adjVolume', 'divCash', 'splitFactor']].to_dict(orient='records')
-                daily_data_dict = [convert_numpy_types(doc) for doc in daily_data_dict]
-
-                # Rename fields
-                for doc in daily_data_dict:
-                    doc['open'] = doc.pop('adjOpen')
-                    doc['high'] = doc.pop('adjHigh')
-                    doc['low'] = doc.pop('adjLow')
-                    doc['close'] = doc.pop('adjClose')
-                    doc['volume'] = doc.pop('adjVolume')
-                    doc['timestamp'] = datetime.strptime(doc['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-
-                # Insert daily documents, preventing duplicates
-                for daily_doc in daily_data_dict:
-                    existing_daily_doc = daily_collection.find_one({
-                        'tickerID': daily_doc['tickerID'], 
-                        'timestamp': daily_doc['timestamp']
+                    
+                    # Check if weekly document already exists
+                    existing_weekly_doc = weekly_collection.find_one({
+                        'tickerID': weekly_doc['tickerID'], 
+                        'timestamp': weekly_doc['timestamp']
                     })
                     
-                    if not existing_daily_doc:
-                        daily_collection.insert_one(daily_doc)
-                        
-                # Process weekly data from daily data
-                df['timestamp'] = pd.to_datetime(df['timestamp'])
-                weekly_grouped = df.groupby(pd.Grouper(key='timestamp', freq='W-MON'))
-                
-                for week_start, week_data in weekly_grouped:
-                    if not week_data.empty:
-                        weekly_doc = {
-                            'tickerID': ticker,
-                            'timestamp': week_start.to_pydatetime(),
-                            'open': float(week_data['adjOpen'].iloc[0]),
-                            'high': float(week_data['adjHigh'].max()),
-                            'low': float(week_data['adjLow'].min()),
-                            'close': float(week_data['adjClose'].iloc[-1]),
-                            'volume': int(week_data['adjVolume'].sum())
-                        }
-                        
-                        # Check if weekly document already exists
-                        existing_weekly_doc = weekly_collection.find_one({
-                            'tickerID': ticker, 
-                            'timestamp': weekly_doc['timestamp']
-                        })
-                        
-                        if not existing_weekly_doc:
-                            weekly_collection.insert_one(weekly_doc)
-                print(f"Successfully processed {ticker}")
-            else:
-                print(f"No data found for {ticker}")
+                    if not existing_weekly_doc:
+                        weekly_collection.insert_one(weekly_doc)
+                        print(f"Inserted weekly document for {weekly_doc['tickerID']} on {weekly_doc['timestamp']}")
+                    else:
+                        print(f"Weekly document for {weekly_doc['tickerID']} on {weekly_doc['timestamp']} already exists")
         else:
-            print(f"Error: {response.text}")
-        
-        # Add a wait period of 1 second
-       # time.sleep(1)
+            print("No data found for the specified tickers.")
+    else:
+        print(f"Error: {response.text}")
     
 
 def updateDailyRatios():
+    ohclv_collection = db['OHCLVData']
+    asset_info_collection = db['AssetInfo']
+
     for ticker in tickers:
-        url = f'https://api.tiingo.com/tiingo/fundamentals/{ticker}/daily?token={api_key}'
+        # Get the most recent OHCLV document
+        ohclv_doc = ohclv_collection.find_one({'tickerID': ticker}, sort=[('timestamp', -1)])
+        if ohclv_doc:
+            current_price = ohclv_doc['close']
 
-        try:
-            response = requests.get(url)
-        except requests.exceptions.RequestException as e:
-            print(f"Error making API request for {ticker}: {e}")
-            continue
+            # Get the asset info document
+            asset_info_doc = asset_info_collection.find_one({'Symbol': ticker})
+            if asset_info_doc:
+                # Calculate the market capitalization
+                shares_outstanding = asset_info_doc.get('SharesOutstanding', 0)
+                market_cap = current_price * shares_outstanding
 
-        if response.status_code == 200:
-            try:
-                data = response.json()
-            except ValueError as e:
-                print(f"Error parsing API response for {ticker}: {e}")
-                continue
+                # Calculate the price-to-earnings ratio
+                eps = asset_info_doc.get('EPS', 0)
+                if isinstance(eps, str):
+                    eps = float(eps) if eps.replace('.', '', 1).isdigit() else 0
+                pe_ratio = current_price / eps if eps != 0 else 0
 
-            if data is None or len(data) == 0:
-                print(f"No data found for {ticker}. Skipping...")
-                continue
+               # Calculate the price-to-book ratio
+                quarterly_financials = asset_info_doc.get('quarterlyFinancials', [])
+                if quarterly_financials:
+                    most_recent_financials = quarterly_financials[0]
+                    total_assets = most_recent_financials.get('totalAssets', 0)
+                    total_liabilities = most_recent_financials.get('totalLiabilities', 0)
+                    book_value = total_assets - total_liabilities
+                    shares_outstanding = asset_info_doc.get('SharesOutstanding', 0)
+                    if shares_outstanding != 0:
+                        book_value_per_share = book_value / shares_outstanding
+                        pb_ratio = current_price / book_value_per_share if book_value_per_share != 0 else 0
+                    else:
+                        pb_ratio = 0
+                else:
+                    pb_ratio = 0
 
-            # Get the last object in the list
-            last_data = data[-1]
+                # Calculate the trailing price-to-earnings growth ratio
+                # Since EPSGrowthRate is not available, we can use the EPS growth rate from the last two quarters
+                quarterly_earnings = asset_info_doc.get('quarterlyEarnings', [])
+                if len(quarterly_earnings) >= 2:
+                    most_recent_eps = quarterly_earnings[0].get('reportedEPS', 0)
+                    previous_eps = quarterly_earnings[1].get('reportedEPS', 0)
+                    eps_growth_rate = (most_recent_eps - previous_eps) / previous_eps if previous_eps != 0 else 0
+                    trailing_peg = pe_ratio / eps_growth_rate if eps_growth_rate != 0 else 0
+                else:
+                    trailing_peg = 0
 
-            # Connect to MongoDB
-            collection = db['AssetInfo']
-
-            # Find the document in MongoDB where Symbol matches the ticker
-            result = collection.find_one({'Symbol': ticker})
-            if result:
-                try:
-                    collection.update_one(
-                        {'Symbol': ticker},
-                        {'$set': {
-                            'MarketCapitalization': last_data['marketCap'],
-                            'EV': last_data['enterpriseVal'],
-                            'PERatio': last_data['peRatio'],
-                            'PriceToBookRatio': last_data['pbRatio'],
-                            'PEGRatio': last_data['trailingPEG1Y']
-                        }}
-                    )
-                    print(f"{ticker} Daily Ratios Updated Successfully")
-                except Exception as e:
-                    print(f"Error updating document for {ticker}: {e}")
+                # Update the asset info document
+                asset_info_collection.update_one(
+                    {'Symbol': ticker},
+                    {'$set': {
+                        'MarketCapitalization': market_cap,
+                        'PERatio': pe_ratio,
+                        'PriceToBookRatio': pb_ratio,
+                        'PEGRatio': trailing_peg
+                    }}
+                )
+                print(f"{ticker} Daily Ratios Updated Successfully")
             else:
-                try:
-                    collection.insert_one({
-                        'Symbol': ticker,
-                        'MarketCapitalization': last_data['marketCap'],
-                        'EV': last_data['enterpriseVal'],
-                        'PERatio': last_data['peRatio'],
-                        'PriceToBookRatio': last_data['pbRatio'],
-                        'PEGRatio': last_data['trailingPEG1Y']
-                    })
-                    print(f"New document inserted for {ticker}")
-                except Exception as e:
-                    print(f"Error inserting new document for {ticker}: {e}")
+                print(f"No asset info found for {ticker}")
         else:
-            print(f"API request failed for {ticker} with status code {response.status_code}")
+            print(f"No OHCLV data found for {ticker}")
 
 
 def getDividendYield():
@@ -408,7 +415,10 @@ def getDividends():
 def update_asset_info_with_time_series():
     ohclv_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
-    for stock in tqdm(tickers, desc="Updating Asset Time Series"):
+    updates = []
+
+    print("Updating Asset Time Series...")
+    for i, stock in enumerate(tickers):
         try:
             recent_doc = ohclv_collection.find_one(
                 {'tickerID': stock}, 
@@ -422,22 +432,25 @@ def update_asset_info_with_time_series():
                     '4. close': round(float(recent_doc.get('close', 0)), 2),
                     '5. volume': round(float(recent_doc.get('volume', 0)), 2)
                 }
-                asset_info_doc = asset_info_collection.find_one({'Symbol': stock})
-                
-                if asset_info_doc:
-                    current_date = recent_doc['timestamp'].strftime('%Y-%m-%d')
-                    asset_info_collection.update_one(
+                current_date = recent_doc['timestamp'].strftime('%Y-%m-%d')
+                updates.append(
+                    UpdateOne(
                         {'Symbol': stock},
                         {'$set': {
-                            'TimeSeries': {
-                                current_date: time_series_data
-                            }
+                            f'TimeSeries.{current_date}': time_series_data
                         }}
                     )
-                else:
-                    print(f"No AssetInfo document found for {stock}")
+                )
+            print(f"Processed {i+1} out of {len(tickers)} stocks")
         except Exception as e:
             print(f"Error processing {stock}: {e}")
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
    
 #calculates average volume for 1w, 1m, 6m and 1y
 def calculate_avg_volumes():
@@ -988,6 +1001,7 @@ def getHistoricalPrice():
         else:
             print(f"Error: {response.text}")
 
+'''
 #run every day
 def Daily():
     functions = [
@@ -1023,3 +1037,6 @@ def Daily():
     print(f'\nTotal execution time: {total_execution_time:.2f} seconds')
 
 Daily()
+
+'''
+
