@@ -4,23 +4,15 @@ import time
 import requests
 from dotenv import load_dotenv
 import os
-from pymongo import MongoClient
+from pymongo import MongoClient, UpdateOne
 from bson import ObjectId
 from datetime import datetime
-from tqdm import tqdm  
+from tqdm import tqdm
 import pandas as pd
 import numpy as np
-from bson import ObjectId
-from pymongo import UpdateOne
 
 app = FastAPI()
 
-
-scheduler = BackgroundScheduler()
-#scheduler.add_job(scheduled_task, 'interval', seconds=30)  # Run every 30 seconds
-scheduler.start()
-
-    
 # uvicorn main:app --reload 
 
 load_dotenv()  # Load environment variables from .env file
@@ -1174,5 +1166,7 @@ def Daily():
     
     print(f'\nTotal execution time: {total_execution_time:.2f} seconds')
 
-Daily()
+scheduler = BackgroundScheduler()
+scheduler.add_job(Daily, 'interval', minutes=20) 
+scheduler.start()
 
