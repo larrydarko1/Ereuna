@@ -762,7 +762,7 @@ async function toggleTwoFa() {
   flex-direction: column;
   width: 20%;
   padding: 20px;
-  background-color: #2c2b3e;
+  background-color: $base2;
   overflow-y: auto; 
 }
 
@@ -770,27 +770,27 @@ async function toggleTwoFa() {
   display: flex;
   flex-direction: column;
   width: 80%;
-  background-color: #1b1a26;
+  background-color: $base4;
   padding: 20px;
   text-align: center;
   overflow-y: auto; 
 }
 
 h1 {
-  color: #b3b3b3;
+  color: $accent3;
   font-size: 30px;
   margin-bottom: 0;
 }
 
 h2 {
-  color: rgb(179, 179, 179);
+  color: $text1;
   font-size: 15px;
 }
 
 .settingsbtn {
   background-color: transparent;
-    border: solid 2px #8c8dfe; /* Border color */
-    color: #f5f5f5; /* Text color */
+    border: solid 2px $accent1; /* Border color */
+    color: $text1; /* Text color */
     padding: 10px 20px; /* Increased padding for a better size */
     margin-top: 15px;
     border-radius: 10px; /* Rounded corners */
@@ -803,10 +803,9 @@ h2 {
 }
 
 .settingsbtn:hover {
-  background-color: #8c8dfe; /* Background color on hover */
+  background-color: $accent1; /* Background color on hover */
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }
-
 
 
 .menu{
@@ -814,20 +813,20 @@ h2 {
   display: flex;
   align-items: center;
   width: 100%;
-  background-color: #262435;
+  background-color: rgba($base2, 0.9);
   padding: 10px;
-  color: whitesmoke;
+  color: $text1;
   font-size: 15px;
   cursor: pointer;
 }
 
 .menu:hover{
   cursor: pointer;
-  background-color: #1f1d2b;
+  background-color: $base4;
 }
 
 .menu.selected {
-  background-color: #1b1a26;
+  background-color: $base4;
 }
 
 .icon {
@@ -854,7 +853,7 @@ h2 {
 }
 
 p{
-  color: whitesmoke;
+  color: $text1;
 }
 
 .error-input {
@@ -883,7 +882,7 @@ p{
   color: whitesmoke;
   border-radius: 10px;
   outline: none;
-  border: solid 2px #8c8dfe;
+  border: solid 2px $accent1;
   padding: 5px;
   margin: 5px;
   width: 150px;
@@ -893,7 +892,7 @@ p{
 }
 
 .userbtn:hover {
-    background-color: #8c8dfe; /* Background color on hover */
+    background-color: $accent1; /* Background color on hover */
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }
 
@@ -904,14 +903,14 @@ p{
   margin: 7px;
   width: 160px;
   outline: none;
-  color: whitesmoke; /* Dark text color */
+  color: $base3; /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
-  border: solid 1px #171728;
-  background-color:#2c2b3e;
+  border: solid 1px $base4;
+  background-color:$base2;
 }
 
 .userinput:focus{
-  border-color: #8c8dfe; /* Change border color on focus */
+  border-color: $accent1; /* Change border color on focus */
   box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
   outline: none; /* Remove default outline */
 }
@@ -942,7 +941,7 @@ p{
     opacity: 0.80;
     width: 100px;
     justify-content: center;
-    color: #f5f5f5;
+    color: $text1;
     position: relative; /* Position relative for pseudo-element */
     overflow: hidden; /* Hide overflow */
 }
@@ -956,7 +955,7 @@ p{
     bottom: 0;
     z-index: -1; /* Place it behind the content */
     border-radius: 10px; /* Match the border radius of the parent */
-    background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
+    background: linear-gradient(270deg, $accent1, #4c4d8f, #494bb9); /* Gradient colors */
     padding: 2px; /* Space for the border effect */
     -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
     -webkit-mask-composite: source-out; /* For masking */
@@ -968,7 +967,7 @@ p{
 .square:hover{
     opacity: 1;
     cursor: pointer;
-    background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
+    background: linear-gradient(270deg, $accent1, #4c4d8f, #494bb9); /* Gradient colors */
 }
 
 .square-disabled {
@@ -983,7 +982,7 @@ p{
     opacity: 0.80;
     width: 100px;
     justify-content: center;
-    color: #f5f5f5;
+    color: $text1;
     position: relative; /* Position relative for pseudo-element */
     overflow: hidden; /* Hide overflow */
     cursor: default
@@ -1017,7 +1016,7 @@ p{
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: #2c2b3e;
+  background-color: $base2;
   padding: 20px;
   border: none;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -1042,7 +1041,7 @@ p{
   position: relative; 
   overflow: hidden;
   justify-content: center;
-  color: #f5f5f5;
+  color: $text1;
 }
 
 .sub-option::before {
@@ -1127,8 +1126,8 @@ p{
   position: absolute;
   top: 20px;          /* Reduced from 20px */
   right: -25px;       /* Changed from -35px */
-  background-color: #8c8dfe;  /* Your purple color */
-  color: whitesmoke;
+  background-color: $accent1;  /* Your purple color */
+  color: $text1;
   padding-left: 10px;  /* Reduced padding */
   padding: 1px;
   font-size: 12px;    /* You can make this smaller if needed, like 10px */
@@ -1144,8 +1143,8 @@ p{
   position: absolute;
   top: 20px;          /* Reduced from 20px */
   right: -35px;       /* Changed from -35px */
-  background-color: #8c8dfe;  /* Your purple color */
-  color: whitesmoke;
+  background-color: $accent1;  /* Your purple color */
+  color: $text1;
   padding-left: 10px;  /* Reduced padding */
   padding: 1px;
   font-size: 12px;    /* You can make this smaller if needed, like 10px */
@@ -1159,7 +1158,7 @@ p{
 }
 
 .card-element-container {
-  background-color: #2c2b3e;
+  background-color: $base2;
   padding: 20px;
   border-radius: 4px;
   margin: 20px 0;
@@ -1170,9 +1169,9 @@ p{
 
 #card-element {
   padding: 10px;
-  border: 1px solid #201b28;
+  border: 1px solid $base4;
   border-radius: 4px;
-  background-color: #201b28;
+  background-color: $base4;
 }
 
 #card-errors {
@@ -1183,7 +1182,7 @@ p{
 }
 
 p{
-  color: #f5f5f5;
+  color: $text1;
 }
 
 .price{
@@ -1201,7 +1200,7 @@ p{
 }
 
 .receipt-item {
-  background-color: #262435; 
+  background-color: $base2; 
   padding: 3px;
   display: flex;
   justify-content: space-between;
@@ -1210,7 +1209,7 @@ p{
 }
 
 .receipt-header {
-  background-color: #322f45; 
+  background-color: $base1; 
   padding: 3px;
   display: flex;
   justify-content: space-between;
@@ -1235,40 +1234,40 @@ p{
 
 .password-toggle {
   position: absolute;
-  right: -1%;
+  right: 5%;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
   font-size: 10px;
-  color: black;
+  color: $text1;
   opacity: 0.60;
 }
 
 .password-toggle2 {
   position: absolute;
-  left: 52.5%;
+  right: 42%;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
   font-size: 10px;
-  color: black;
+  color: $text1;
   opacity: 0.60;
 }
 
 .password-toggle3 {
   position: absolute;
-  left: 52.5%;
-  top: 75%;
+  left: 54.5%;
+  top: 68%;
   transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
   font-size: 10px;
-  color: black;
+  color: $text1;
   opacity: 0.60;
 }
 

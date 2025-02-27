@@ -3177,7 +3177,7 @@ font-weight: bold;
 .wlist{
   background-color: $base2;
   height: 27px;
-  border-top: $base4 solid 1px;
+  margin-top: 2px;
   border-left: $base4 solid 1px;
   display: flex;
   align-items: center;
@@ -3199,7 +3199,7 @@ font-weight: bold;
 }
 
 .wlist.selected {
-  background-image: linear-gradient(to right, #1c1a26, #2c2a3a, #3c3a4a, #4c4a5a, #1c1a26) !important;
+  background-image: linear-gradient(to right, rgba($accent1, 0.2), rgba($accent2, 0.2), rgba($accent3, 0.2), rgba($accent2, 0.2), rgba($accent1, 0.2)) !important;
   background-size: 400% 100% !important;
   border-left-color: $accent1 !important;
   border-left-width: 2px !important;
@@ -3279,7 +3279,7 @@ font-weight: bold;
 }
 
 .select-container .dropdown-container div:hover {
-  background-color: $base4;
+  background-color: $accent2;
 }
 
 .icondlt{
@@ -3473,6 +3473,7 @@ font-weight: bold;
   border: none;
 }
 
+/* summary rows main */
 .summary-row {
   display: flex;
   height: fit-content;
@@ -3480,12 +3481,13 @@ font-weight: bold;
   padding-right: 5px;
   padding-top: 5px;
   padding-bottom: 5px;
-  border-bottom:solid 1px #2a2a38;
+  margin-top: 2px;
   align-items: center;
   justify-content: center;
-  background-color: #3f3e56;
+  background-color: $base2;
 }
 
+/* description tab */
 .summary-row2 {
   display: flex;
   height: fit-content;
@@ -3493,10 +3495,9 @@ font-weight: bold;
   padding-right: 5px;
   padding-top: 5px;
   padding-bottom: 5px;
-  border-bottom:solid 1px #2a2a38;
   align-items: center;
   justify-content: center;
-  background-color: #292838;
+  background-color: $base4;
 }
 
 .summary-row:last-child {
@@ -3516,9 +3517,9 @@ font-weight: bold;
 .eps-header, .earn-header, .sales-header{
   display: flex; 
   font-weight: bold; 
-  background-color: #0f0f1b;
+  background-color: $base4;
   text-align: center;
-  color: whitesmoke;
+  color: $text1;
   height: 20px;
   justify-content: center;
   align-items: center;
@@ -3528,17 +3529,17 @@ font-weight: bold;
   display: flex;
   flex-direction: column;
   text-align: center;
-  color: #b3b3b3;
+  color: $text2;
 }
 
 .eps-row, .earn-row, .sales-row {
   display: flex;
   height: 20px;
   text-align: center;
-  border-bottom:solid 1px #2a2a38;
+  margin-bottom: 1px;
   justify-content: center;
   align-items: center;
-  background-color: #3f3e56;
+  background-color: $base2;
   font-weight: bold;
 }
 
