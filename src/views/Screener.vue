@@ -3,7 +3,8 @@
     <Header />
     <div id="main">
       <div id="filters">
-        <div id="screener-select" class="select-container">
+        <div id="screener-select" class="select-container" @mouseover="showDropdown = true" @mouseout="showDropdown = false">
+          <img :src="downIcon" alt="Dropdown Icon" class="dropdown-icon" :class="{ 'dropdown-icon-hover': showDropdown }" />
   <p class="selected-value" @click.stop="">{{ selectedScreener ? selectedScreener : (ScreenersName.length > 0 ? 'Choose a Screener...' : 'No screeners available.') }}</p>
   <div class="dropdown-container" v-if="ScreenersName.length > 0">
     <div v-for="(screener, index) in ScreenersName" :key="index" :class="{'selected': selectedScreener === screener.Name}" @click="selectScreener(screener.Name)">
@@ -12,7 +13,7 @@
       </button>
       {{ screener.Name }}
       <button class="icondlt" @click.stop="DeleteScreener(screener.Name)" v-b-tooltip.hover title="Delete This Screener">
-        <img class="img2" src="@/assets/icons/delete.png" alt="delete screener">
+        <img class="img2" src="@/assets/icons/close.png" alt="delete screener">
       </button>
     </div>
   </div>
@@ -996,6 +997,8 @@ const notification = ref(null);
 const showNotification = (message) => {
   notification.value.show(message);
 };
+
+const showDropdown = ref(false);
 
 function getWatchlistIcon(ticker, item) {
   return isAssetInWatchlist(ticker.Name, item) 
@@ -3595,8 +3598,8 @@ async function ExcludeScreener(screener) {
 
 const getScreenerImage = (screener) => {
   return screener.Include
-    ? new URL('@/assets/icons/exclude.png', import.meta.url).href // Show exclude image if Include is true
-    : new URL('@/assets/icons/include.png', import.meta.url).href; // Show include image if Include is false
+    ? new URL('@/assets/icons/include.png', import.meta.url).href // Show exclude image if Include is true
+    : new URL('@/assets/icons/exclude.png', import.meta.url).href; // Show include image if Include is false
 };
 
 const screenerName = ref('');
@@ -3646,7 +3649,7 @@ const toUpperCase = () => {
 }
 
 #filters {
-  background-color: #2c2b3e;
+  background-color: #1d1c29;
   display: flexbox;
   color: white;
   height: 100%;
@@ -4215,7 +4218,7 @@ input:checked+.slider:before {
   width: 100%;
   outline: none;
   border: none;
-  background-color: #322b3d;
+  background-color: #1d1c29;
   color: whitesmoke;
   text-align: center;
   margin: 0 auto;
@@ -4447,7 +4450,7 @@ Header th {
   }
 
 .results {
-  background-color: #2c2b3e;
+  background-color: #1d1c29;
   color: whitesmoke;
   text-align: center;
   align-items: center;
@@ -4466,7 +4469,7 @@ Header th {
 
 .results2v{
   padding: 20px;
-  background-color: #2c2b3e;
+  background-color: #1d1c29;
 }
 
 .rowint{
@@ -4592,22 +4595,21 @@ Header th {
 
 .select-container .dropdown-container div {
   display: none;
-  background-color: #2c2b3e;
-  border-top: 0.1px solid #151515;
+  background-color: #0f0f1b;
   border-bottom: 0.1px solid #151515;
   z-index: 1000;
 }
 
 .select-container:hover .dropdown-container div {
   display: block;
-  background-color: #2c2b3e;
+  background-color: #0f0f1b;
   padding: 5px;
   cursor: pointer;
   z-index: 1000;
 }
 
 .select-container .dropdown-container div:hover {
-  background-color: #4c4a66;
+  background-color: #1f1f37;
   z-index: 1000;
 }
 
@@ -4627,7 +4629,7 @@ Header th {
 }
 
 .dropdown-menu > div {
-  background-color: #322f3b;
+  background-color: #0f0f1b;
   padding: 5px;
   height: 14px;
   display: flex;
@@ -4635,7 +4637,7 @@ Header th {
 }
 
 .dropdown-menu > div:hover {
-  background-color: #565265;
+  background-color: #1f1f37;
 }
 
 .dropdown-btn:hover + .dropdown-menu, 
@@ -4652,7 +4654,7 @@ Header th {
   position: absolute;
   left: 100%;
   top: 0; 
-  background-color: #322f3b;
+  background-color: #0f0f1b;
   min-width: 150px;
   z-index: 1001;
   align-items: center; 
@@ -4827,6 +4829,26 @@ Header th {
   border-color: #8c8dfe; /* Change border color on focus */
   box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
   outline: none; /* Remove default outline */
+}
+
+.select-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  position: relative;
+}
+
+.dropdown-icon {
+  content: url('@/assets/icons/down.png');
+  width: 10px;
+  position: absolute;
+  left: 0;
+  margin: 3%;
+}
+
+.dropdown-icon-hover {
+  content: url('@/assets/icons/up.png');
+  width: 10px;
 }
 
 </style>

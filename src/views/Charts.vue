@@ -81,8 +81,8 @@
     </div>
   </div>
   <div class="summary-row">
-    <div class="category">Currency</div>
-    <div class="response">{{ assetInfo.Currency }}</div>
+    <div class="category">Reported Currency</div>
+<div class="response">{{ assetInfo.Currency.toUpperCase() }}</div>
   </div>
   <div class="summary-row">
     <div class="category">Technical Score (1W)</div>
@@ -133,14 +133,14 @@
   <div class="summary-row">
     <div class="category">PEG Ratio</div>
     <div class="response">
-      {{ (assetInfo.PEGRatio != null && !isNaN(assetInfo.PEGRatio)) ? parseFloat(assetInfo.PEGRatio) : '-' }}
-    </div>
+  {{ (assetInfo.PEGRatio != null && !isNaN(assetInfo.PEGRatio) && assetInfo.PEGRatio >= 0) ? parseInt(assetInfo.PEGRatio) : '-' }}
+</div>
   </div>
   <div class="summary-row">
     <div class="category">PE Ratio</div>
-    <div class="response">
-      {{ (assetInfo.PERatio != null && !isNaN(assetInfo.PERatio)) ? parseFloat(assetInfo.PERatio) : '-' }}
-    </div>
+<div class="response">
+  {{ (assetInfo.PERatio != null && !isNaN(assetInfo.PERatio) && assetInfo.PERatio >= 0) ? parseInt(assetInfo.PERatio) : '-' }}
+</div>
   </div>
   <div class="summary-row2">
     <div :class="['description', { 'expanded': showAllDescription }]" :style="{ height: showAllDescription ? 'auto' : minHeight }">
@@ -359,19 +359,21 @@
             <button class="wlbtn2" id="searchBtn" @click="searchTicker()" v-b-tooltip.hover title="Search Symbol"><img class="img" src="@/assets/icons/search.png" alt=""></button>
         </div>
         <div id="wlnav">
-          <div id="realwatchlist" class="select-container">
-  <p class="selected-value" @click.stop="">{{ selectedWatchlist ? selectedWatchlist.Name : 'Select a watch' }}</p>
+          <div id="realwatchlist" class="select-container" @mouseover="showDropdown = true" @mouseout="showDropdown = false">
+            <img :src="downIcon" alt="Dropdown Icon" class="dropdown-icon" :class="{ 'dropdown-icon-hover': showDropdown }" />
+  <p style="font-weight: bold;" class="selected-value" @click.stop="">{{ selectedWatchlist ? selectedWatchlist.Name : 'Select a watch' }}</p>
   <div class="dropdown-container">
     <div v-for="watch in watchlist.tickers" :key="watch.Name" :class="{'selected': selectedWatchlist && selectedWatchlist.Name === watch.Name}" @click="filterWatchlist(watch)">
-      {{ watch.Name }} ({{ watch.List.length }})
+      {{ watch.Name }} 
+      <span class="badge">{{ watch.List.length }}</span>
       <button class="icondlt" id="watchlistDelete" @click.stop="DeleteWatchlist(watch)" v-b-tooltip.hover title="Delete Watchlist">
-        <img class="img" src="@/assets/icons/delete.png" alt="delete watchlist">
+        <img class="img" src="@/assets/icons/close.png" alt="delete watchlist">
       </button>
     </div>
   </div>
 </div>
 <button class="navbtn" @click="addWatchlist()" v-b-tooltip.hover title="Add ticker to watchlist">
-        <img class="img" src="@/assets/icons/bookmark.png" alt="add to watchlist">
+        <img class="img" src="@/assets/icons/plus.png" alt="add to watchlist">
       </button>
 <div class="wlnav-dropdown">
     <button class="dropdown-toggle wlbtn" v-b-tooltip.hover title="More Options">
@@ -501,6 +503,8 @@ function getWatchlistIcon(ticker, item) {
     ? new URL('@/assets/icons/checked.png', import.meta.url).href
     : new URL('@/assets/icons/unchecked.png', import.meta.url).href;
 }
+
+const showDropdown = ref(false);
 
 // activates sorting of watchlist elements / drag and drop 
 const sortable = ref(null);
@@ -2219,13 +2223,14 @@ async function deleteTicker(item) {
   const realwatchlist = document.getElementById('realwatchlist');
   let selectedWatchlistName;
 
-  // Get the selected watchlist name from the DOM
-  const selectedWatchlistElement = realwatchlist.querySelector('div.selected');
-  if (selectedWatchlistElement) {
-    selectedWatchlistName = selectedWatchlistElement.textContent.split(' (')[0]; // Split to get only the name
-  } else {
-    return;
-  }
+// Get the selected watchlist name from the DOM
+const selectedWatchlistElement = document.getElementById('realwatchlist').querySelector('div.selected');
+if (selectedWatchlistElement) {
+  const watchlistNameElement = selectedWatchlistElement.querySelector('span.badge').previousSibling;
+  selectedWatchlistName = watchlistNameElement.textContent.trim();
+} else {
+  return;
+}
 
   const ticker = item; // The ticker to delete
 
@@ -2270,10 +2275,11 @@ async function addWatchlist() {
     {
       symbol = searchbar.value.toUpperCase() || defaultSymbol; // Use defaultSymbol if searchbar value is empty
 
-      // Get the selected watchlist name without the length
+ // Get the selected watchlist name without the length
       const selectedWatchlistElement = realwatchlist.querySelector('div.selected');
       if (selectedWatchlistElement) {
-        selectedWatchlistName = selectedWatchlistElement.textContent.split(' (')[0]; // Split to get only the name
+        const watchlistNameElement = selectedWatchlistElement.querySelector('span.badge').previousSibling;
+        selectedWatchlistName = watchlistNameElement.textContent.trim();
       } else {
         notification.value.show('No watchlist selected');
         return;
@@ -2662,7 +2668,8 @@ onMounted(() => {
 <style scoped>
 #main {
   display: flex;
-  height: 100vh;
+  height: 100%;
+  max-height: 760px;
 }
 
 #sidebar-left {
@@ -2681,8 +2688,7 @@ onMounted(() => {
   height: 100%;
   flex-direction: column;
   background-repeat: no-repeat;
-  max-width: 760px;
-  max-height: 600px;
+  max-width: 800px;
 }
 
 #chartdiv {
@@ -2830,21 +2836,13 @@ h1 {
   color: whitesmoke;
 }
 
-table {
-  border: none;
-  display: flexbox;
-  width: 100%;
-  border-collapse: collapse;
-  color: whitesmoke;
-}
-
-td {
-  border: none;
-}
-
 .category {
   text-align: left;
   border: none;
+  font-size: 1.2rem;
+  color: #f5f5f5;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 .description {
@@ -3585,4 +3583,40 @@ font-weight: bold;
   opacity: 0.60;
 }
 
+/* the sphere thingy neat watchlist, counts how many elements are inside it */
+.badge {
+  display: inline-block;
+  padding: 2px 5px;
+  font-weight: bold;
+  color: black;
+  text-align: center;
+  vertical-align: baseline;
+  border-radius: 25px;
+  background-color: #f5f5f5;
+}
+
+/* related to dropdown menu for watchlist */
+.select-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  position: relative;
+}
+
+.dropdown-icon {
+  content: url('@/assets/icons/down.png');
+  width: 10px;
+  position: absolute;
+  left: 0;
+  margin: 3%;
+}
+
+.dropdown-icon-hover {
+  content: url('@/assets/icons/up.png');
+  width: 10px;
+}
+
+#list:focus {
+  outline: none;
+}
 </style>
