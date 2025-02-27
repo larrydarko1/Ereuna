@@ -655,9 +655,9 @@
               <div style="flex:1;">{{ asset.RSScore4M }}</div>
               <div style="flex:1;">{{ asset.ISIN }}</div>
               <div style="flex:1;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
-              <div style="flex:1;">{{ asset.PERatio }}</div>
-              <div style="flex:1;">{{ asset.PEGRatio }}</div>
-              <div style="flex:1;">{{ (asset.DividendYield * 100).toFixed(2)}}%</div>
+              <div style="flex:1;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+              <div style="flex:1;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
+              <div style="flex:1;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
               <div style="flex:1;">{{ asset.EPS }}</div>
             </div>
             <div class="results2"> 
@@ -744,9 +744,9 @@
               <div style="flex:1;">{{ asset.RSScore4M }}</div>
               <div style="flex:1;">{{ asset.ISIN }}</div>
               <div style="flex:1;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
-              <div style="flex:1;">{{ asset.PERatio }}</div>
-              <div style="flex:1;">{{ asset.PEGRatio }}</div>
-              <div style="flex:1;">{{ (asset.DividendYield * 100).toFixed(2)}}%</div>
+              <div style="flex:1;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+              <div style="flex:1;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
+              <div style="flex:1;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
               <div style="flex:1;">{{ asset.EPS }}</div>
             </div>
             <div class="results2"> 
@@ -833,9 +833,9 @@
               <div style="flex:1;">{{ asset.RSScore4M }}</div>
               <div style="flex:1;">{{ asset.ISIN }}</div>
               <div style="flex:1;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
-              <div style="flex:1;">{{ asset.PERatio }}</div>
-              <div style="flex:1;">{{ asset.PEGRatio }}</div>
-              <div style="flex:1;">{{ (asset.DividendYield * 100).toFixed(2)}}%</div>
+              <div style="flex:1;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+              <div style="flex:1;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
+              <div style="flex:1;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
               <div style="flex:1;">{{ asset.EPS }}</div>
             </div>
             <div class="results2"> 
@@ -931,9 +931,9 @@
               <div style="flex:1;">{{ asset.RSScore4M }}</div>
               <div style="flex:1;">{{ asset.ISIN }}</div>
               <div style="flex:1;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
-              <div style="flex:1;">{{ asset.PERatio }}</div>
-              <div style="flex:1;">{{ asset.PEGRatio }}</div>
-              <div style="flex:1;">{{ (asset.DividendYield * 100).toFixed(2)}}%</div>
+              <div style="flex:1;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+              <div style="flex:1;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
+              <div style="flex:1;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
               <div style="flex:1;">{{ asset.EPS }}</div>
             </div>
             <div class="results2"> 
@@ -3624,7 +3624,7 @@ const toUpperCase = () => {
 #filters {
   flex: 0 0 20%;
   flex-direction: column;
-  background-color: #1d1c29;
+  background-color: $base4;
   overflow-y: scroll;
 }
 
@@ -3645,15 +3645,15 @@ const toUpperCase = () => {
   right: 0;
   width: 30%;
   height: 100vh;
-  background-color: #1d1c29;
+  background-color: $base4;
   z-index: 1000;
   max-width: 500px;
 }
 
 #filters {
-  background-color: #1d1c29;
+  background-color: $base4;
   display: flexbox;
-  color: white;
+  color: $text1;
   height: 100%;
   text-align: center;
 }
@@ -3661,8 +3661,8 @@ const toUpperCase = () => {
 .param-s {
   margin: 3px;
   padding: 5px;
-  color: #b3b3b3;
-  background-color: #3f3e56;
+  color: $text2;
+  background-color: $base2;
   border: none;
   height: 80px;
   position: relative;
@@ -3671,8 +3671,8 @@ const toUpperCase = () => {
 .param-s1 {
   margin: 3px;
   padding: 5px;
-  color: #b3b3b3;
-  background-color: #3f3e56;
+  color: $text2;
+  background-color: $base2;
   border: none;
   height: 20px;
   position: relative;
@@ -3681,8 +3681,8 @@ const toUpperCase = () => {
 .param-s1-expanded {
   margin: 3px;
   padding: 5px;
-  color: #b3b3b3;
-  background-color: #3f3e56;
+  color: $text2;
+  background-color: $base2;
   border: none;
   height: 120px;
   position: relative;
@@ -3691,8 +3691,8 @@ const toUpperCase = () => {
 .param-s2 {
   margin: 3px;
   padding: 5px;
-  color: #b3b3b3;
-  background-color: #3f3e56;
+  color: $text2;
+  background-color: $base2;
   border: none;
   height: 20px;
   position: relative;
@@ -3701,8 +3701,8 @@ const toUpperCase = () => {
 .param-s2-expanded {
   margin: 3px;
   padding: 5px;
-  color: #b3b3b3;
-  background-color: #3f3e56;
+  color: $text2;
+  background-color: $base2;
   border: none;
   height: 170px;
   position: relative;
@@ -3711,8 +3711,8 @@ const toUpperCase = () => {
 .param-s3 {
   margin: 3px;
   padding: 5px;
-  color: #b3b3b3;
-  background-color: #3f3e56;
+  color: $text2;
+  background-color: $base2;
   border: none;
   height: 20px;
   position: relative;
@@ -3721,8 +3721,8 @@ const toUpperCase = () => {
 .param-s3-expanded {
   margin: 3px;
   padding: 5px;
-  color: #b3b3b3;
-  background-color: #3f3e56;
+  color: $text2;
+  background-color: $base2;
   border: none;
   height: 120px;
   position: relative;
@@ -3731,8 +3731,8 @@ const toUpperCase = () => {
 .param-s5-expanded {
   margin: 3px;
   padding: 5px;
-  color: #b3b3b3;
-  background-color: #3f3e56;
+  color: $text2;
+  background-color: $base2;
   border: none;
   height: 500px;
   position: relative;
@@ -3741,8 +3741,8 @@ const toUpperCase = () => {
 .param-s6-expanded {
   margin: 3px;
   padding: 5px;
-  color: #b3b3b3;
-  background-color: #3f3e56;
+  color: $text2;
+  background-color: $base2;
   border: none;
   height: 430px;
   position: relative;
@@ -3751,8 +3751,8 @@ const toUpperCase = () => {
 .param-s7-expanded {
   margin: 3px;
   padding: 5px;
-  color: #b3b3b3;
-  background-color: #3f3e56;
+  color: $text2;
+  background-color: $base2;
   border: none;
   height: 200px;
   position: relative;
@@ -3761,8 +3761,8 @@ const toUpperCase = () => {
 .param-s8-expanded {
   margin: 3px;
   padding: 5px;
-  color: #b3b3b3;
-  background-color: #3f3e56;
+  color: $text2;
+  background-color: $base2;
   border: none;
   height: 450px;
   position: relative;
@@ -3771,8 +3771,8 @@ const toUpperCase = () => {
 .param-s9 {
   margin: 3px;
   padding: 5px;
-  color: #b3b3b3;
-  background-color: #3f3e56;
+  color: $text2;
+  background-color: $base2;
   border: none;
   height: 20px;
   position: relative;
@@ -3781,8 +3781,8 @@ const toUpperCase = () => {
 .param-s9-expanded {
   margin: 3px;
   padding: 5px;
-  color: #b3b3b3;
-  background-color: #3f3e56;
+  color: $text2;
+  background-color: $base2;
   border: none;
   height: 600px;
   position: relative;
@@ -3876,7 +3876,7 @@ const toUpperCase = () => {
 }
 
 .param-s button {
-  background-color: #27252e;
+  background-color: $base2;
   border: none;
   color: whitesmoke;
   padding: 5px;
@@ -3886,7 +3886,7 @@ const toUpperCase = () => {
 }
 
 .param-s button:hover {
-  background-color: #8c8dfe;
+  background-color: $accent1;
 }
 
 .param-s1 .row {
@@ -4023,9 +4023,9 @@ const toUpperCase = () => {
 }
 
 .param-s2 button {
-  background-color: #27252e;
+  background-color: $base2;
   border: none;
-  color: whitesmoke;
+  color: $text1;
   padding: 5px;
   position: absolute;
   top: 80%;
@@ -4033,13 +4033,13 @@ const toUpperCase = () => {
 }
 
 .param-s2 button:hover {
-  background-color: #8c8dfe;
+  background-color: $accent1;
 }
 
 .param-s3 button {
-  background-color: #27252e;
+  background-color: $base2;
   border: none;
-  color: whitesmoke;
+  color: $text1;
   padding: 5px;
   position: absolute;
   top: 65%;
@@ -4047,7 +4047,7 @@ const toUpperCase = () => {
 }
 
 .param-s3 button:hover {
-  background-color: #8c8dfe;
+  background-color: $accent1;
 }
 
 .left {
@@ -4132,8 +4132,8 @@ const toUpperCase = () => {
 }
 
 h1 {
-  background-color: #3f3e56;
-  color: #b3b3b3;
+  background-color: $base2;
+  color: $text2;
   text-align: center;
   padding: 3.5px;
   margin: 0;
@@ -4171,12 +4171,12 @@ p {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: rgba($text2, 0.6);
   -webkit-transition: .1s;
   transition: .1s;
   margin: none;
   padding: none;
-  border: solid 1px #171728;
+  border: solid 1px $base4;
 }
 
 .slider:before {
@@ -4186,7 +4186,7 @@ p {
   width: 13px;
   left: 2px;
   bottom: 2.5px;
-  background-color: white;
+  background-color: $text1;
   -webkit-transition: .1s;
   transition: .1s;
   margin: none;
@@ -4194,11 +4194,11 @@ p {
 }
 
 input:checked+.slider {
-  background-color: #8c8dfe;
+  background-color: $accent1;
 }
 
 input:focus+.slider {
-  box-shadow: 0 0 1px #8c8dfe;
+  box-shadow: 0 0 1px $accent1;
 }
 
 input:checked+.slider:before {
@@ -4220,8 +4220,8 @@ input:checked+.slider:before {
   width: 100%;
   outline: none;
   border: none;
-  background-color: #1d1c29;
-  color: whitesmoke;
+  background-color: $base2;
+  color: $text1;
   text-align: center;
   margin: 0 auto;
   display: block;
@@ -4232,8 +4232,8 @@ input:checked+.slider:before {
   width: 100%;
   outline: none;
   border: none;
-  background-color: #3e364b;
-  color: whitesmoke;
+  background-color: $base3;
+  color: $text1;
   text-align: center;
   margin: 0 auto;
   display: block;
@@ -4242,41 +4242,35 @@ input:checked+.slider:before {
 
 .Header,
 Header th {
-  background-color: #0f0f1b;
+  background-color: $base1;
   text-align: center;
-  color: whitesmoke;
+  color: $text1;
   border: none;
 }
 
 .even {
-  background-color: #27252e;
+  background-color: rgba($base2, 0.5);
   text-align: center;
-  color: whitesmoke;
+  color: $text1;
   border: none;
   word-break: break-all;
 }
 
 .odd {
-  background-color: #322f3b;
+  background-color: $base2;
   text-align: center;
-  color: whitesmoke;
+  color: $text1;
   word-break: break-all;
 }
 
 .even:hover,
 .odd:hover {
-  background-color: #8c8efe44;
+  background-color: rgba($accent2, 0.3);
   cursor: pointer;
 }
 
 .selected {
-  background-color: #8c8efe65;
-}
-
-.even td,
-.odd td {
-  border: none;
-  padding: 5px;
+  background-color: rgba($accent2, 0.4);
 }
 
 .RES {
@@ -4324,7 +4318,7 @@ Header th {
   width: 100%;
   border: none;
   position: relative;
-  background-color: #3f3e56;
+  background-color: $base2;
   width: 100vw;
 }
 
@@ -4344,8 +4338,8 @@ Header th {
 }
 
 .snavbtn {
-  background-color: #3f3e56;
-  color: #ebebeb;
+  background-color: $base2;
+  color: $text1;
   opacity: 0.60;
   padding: 5px;
   outline: none;
@@ -4354,8 +4348,8 @@ Header th {
 }
 
 .snavbtnslct{
-  background-color: #37333d;
-  color: #ebebeb;
+  background-color: $base3;
+  color: $text1;
   padding: 5px;
   outline: none;
   border: none;
@@ -4364,7 +4358,7 @@ Header th {
 
 .snavbtn:hover {
   opacity: 1;
-  color: #ebebeb;
+  color: $text1;
 }
 
 .check {
@@ -4380,7 +4374,7 @@ Header th {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #1d1c29;
+    background-color: $base2;
     width: 300px;
     height: 150px;
     display: flex;
@@ -4396,7 +4390,7 @@ Header th {
 .RenameScreener h3,
 .CreateScreener h3 {
   background-color: transparent;
-    color: whitesmoke;
+    color: $text1;
     border: none;
     margin-top: 10px;
 }
@@ -4406,16 +4400,16 @@ Header th {
   margin-bottom: 3px;
     margin-top: 5px;
     text-align: center;
-    background-color: #e0e0e0;
-  color: rgb(7, 7, 7);
+    background-color: $base4;
+  color: $base3;
   padding: 5px;
   outline: none;
-  border: solid 1px #3f3e56;
+  border: solid 1px $base3;
 }
 
 .RenameScreener input:focus,
 .CreateScreener input:focus {
-  border-color: #8c8dfe;
+  border-color: $accent1;
 }
 
 .CreateScreener input.input-error, 
@@ -4452,8 +4446,8 @@ Header th {
   }
 
 .results {
-  background-color: #1d1c29;
-  color: whitesmoke;
+  background-color: $base4;
+  color: $text1;
   text-align: center;
   align-items: center;
   padding: 10px;
@@ -4462,16 +4456,16 @@ Header th {
 }
 
 .results2{
-  background-color: #0f0f1b;
+  background-color: $base1;
   width: 100vw;
-  color: whitesmoke;
+  color: $text1;
   height: 200px;
   border:none;
 }
 
 .results2v{
   padding: 20px;
-  background-color: #1d1c29;
+  background-color: $base4;
 }
 
 .rowint{
@@ -4489,7 +4483,7 @@ Header th {
 }
 
 #summary{
-  background-color: #0f0f1b;
+  background-color: $base1;
   height: 140px;
   border: none;
 }
@@ -4530,7 +4524,7 @@ Header th {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: #2c2b3e;
+  background-color: $base2;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -4550,7 +4544,7 @@ Header th {
 
 .searchDiv button{
  height: 21px;
- background-color: #8c8dfe;
+ background-color: $accent1;
  outline: none;
  border: none;
  border-radius: 25px;
@@ -4560,7 +4554,7 @@ Header th {
 
 .searchDiv button:hover{
  height: 21px;
- background-color: #787afa;
+ background-color: $accent2;
  outline: none;
  border: none;
  cursor: pointer;
@@ -4577,13 +4571,13 @@ Header th {
 
 .select-container {
   position: relative;
-  background-color: #2c2b3d;
+  background-color: $base2;
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
   height: 24.5px;
-  border-right: solid 1px #3d354a;
+  border-right: solid 1px $base1;
   z-index: 1000;
 }
 
@@ -4597,21 +4591,21 @@ Header th {
 
 .select-container .dropdown-container div {
   display: none;
-  background-color: #0f0f1b;
-  border-bottom: 0.1px solid #151515;
+  background-color: $base4;
+  margin-bottom: 0.1px;
   z-index: 1000;
 }
 
 .select-container:hover .dropdown-container div {
   display: block;
-  background-color: #0f0f1b;
+  background-color: $base4;
   padding: 5px;
   cursor: pointer;
   z-index: 1000;
 }
 
 .select-container .dropdown-container div:hover {
-  background-color: #1f1f37;
+  background-color: $accent2;
   z-index: 1000;
 }
 
@@ -4631,7 +4625,7 @@ Header th {
 }
 
 .dropdown-menu > div {
-  background-color: #0f0f1b;
+  background-color: $base4;
   padding: 5px;
   height: 14px;
   display: flex;
@@ -4639,7 +4633,7 @@ Header th {
 }
 
 .dropdown-menu > div:hover {
-  background-color: #1f1f37;
+  background-color: $accent2;
 }
 
 .dropdown-btn:hover + .dropdown-menu, 
@@ -4656,7 +4650,7 @@ Header th {
   position: absolute;
   left: 100%;
   top: 0; 
-  background-color: #0f0f1b;
+  background-color: $base4;
   min-width: 150px;
   z-index: 1001;
   align-items: center; 
@@ -4676,7 +4670,7 @@ Header th {
 }
 
 .watchlist-item:hover {
-  background-color: #565265;
+  background-color: $accent2;
 }
 
 .watchlist-item input[type="checkbox"] {
@@ -4746,7 +4740,7 @@ Header th {
 }
 
 .duplicate-asterisk {
-  color: #8c8dfe; /* Change to your preferred color */
+  color: $accent1; /* Change to your preferred color */
   margin-left: 4px;
   cursor: pointer; /* Indicates to users that it has a tooltip */
   position: relative; /* Positioning context for the tooltip */
@@ -4755,8 +4749,8 @@ Header th {
 .tooltip {
   visibility: hidden; /* Initially hide the tooltip */
   width: 120px; /* Adjust width as necessary */
-  background-color: #3f3e56; /* Background color of the tooltip */
-  color: #fff; /* Text color */
+  background-color: $base1; /* Background color of the tooltip */
+  color: $text1; /* Text color */
   text-align: center; /* Center text */
   border-radius: 5px; /* Rounded corners */
   padding: 5px; /* Padding */
@@ -4787,13 +4781,13 @@ Header th {
 }
 
 .custom-checkbox.checked {
-  color: white; /* Change text color when checked */
+  color: $text1; /* Change text color when checked */
 }
 
 .checkmark {
   width: 8px; /* Smaller width */
   height: 8px; /* Smaller height */
-  background-color: whitesmoke;
+  background-color: $text1;
   border-radius: 50%; /* Make it circular */
   margin-right: 5px;
   display: inline-block;
@@ -4801,17 +4795,17 @@ Header th {
 }
 
 .custom-checkbox.checked .checkmark {
-  background-color: #8c8dfe; /* Change to your desired color */
-  border-color: #8c8dfe; /* Change to your desired border color */
+  background-color: $accent1; /* Change to your desired color */
+  border-color: $accent1; /* Change to your desired border color */
 }
 
 .custom-checkbox.checked {
-  color: white; /* Change text color when checked */
+  color: $text1; /* Change text color when checked */
 }
 
 .select-container__no-screeners {
   text-align: center;
-  color: #666;
+  color: $text2;
   font-size: 14px;
 }
 
@@ -4821,14 +4815,14 @@ Header th {
   margin: 7px;
   width: 160px;
   outline: none;
-  color: whitesmoke; /* Dark text color */
+  color: $text1; /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
-  border: solid 1px #171728;
-  background-color:#2c2b3e;
+  border: solid 1px $base4;
+  background-color:$base1;
 }
 
 .input:focus{
-  border-color: #8c8dfe; /* Change border color on focus */
+  border-color: $accent1; /* Change border color on focus */
   box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
   outline: none; /* Remove default outline */
 }
