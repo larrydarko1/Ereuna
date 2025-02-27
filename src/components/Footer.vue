@@ -1,6 +1,6 @@
 <template>
   <footer>
-    <p>Ereuna Platform / Version 1.0.1 / Copyright &copy; 2024</p>
+    <p>Ereuna Platform / Version 1.0.2 / Copyright &copy; 2025</p>
   </footer>
 </template>
 
@@ -28,7 +28,7 @@ footer {
 p {
   opacity: 0.5;
   color: white;
-  font-size: 6px;
+  font-size: 10px;
   border: none;
 }
 </style>

@@ -1169,4 +1169,3 @@ def Daily():
 scheduler = BackgroundScheduler()
 scheduler.add_job(Daily, 'interval', minutes=20) 
 scheduler.start()
-
