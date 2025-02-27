@@ -475,7 +475,9 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use '../style.scss' as *;
+
 .main {
   min-width: 1200px; /* Set a minimum width that works for your design */
   padding: 75px; /* Keep your existing padding */

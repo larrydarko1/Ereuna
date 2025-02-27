@@ -3612,7 +3612,9 @@ const toUpperCase = () => {
 
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use '../style.scss' as *;
+
 #main {
   position: relative;
   display: flex;

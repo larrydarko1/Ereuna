@@ -13,7 +13,9 @@
   const route = useRoute();
   </script>
   
-  <style scoped>
+  <style lang="scss" scoped>
+@use '../style.scss' as *;
+
   .not-found {
     position: absolute;
     top: 50%;
@@ -26,14 +28,14 @@
   }
   
   h1 {
-    color: whitesmoke;
+    color: $text2;
     border: none;
     font-size: 30px;
   }
   
   a {
     text-decoration: none;
-    color: #d8d8d8;
+    color: $text2;
     font-size: 15px;
     border: none;
     margin-left: 10px;
@@ -41,7 +43,7 @@
   }
   
   a:hover {
-    color: #8c8dfe;
+    color: $accent1;
   }
 
   .inner-logo{

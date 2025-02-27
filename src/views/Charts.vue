@@ -2665,7 +2665,9 @@ onMounted(() => {
 
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use '../style.scss' as *;
+
 #main {
   display: flex;
   height: 100%;
@@ -2675,7 +2677,7 @@ onMounted(() => {
 #sidebar-left {
   flex: 1;
   flex-direction: column;
-  background-color: #2c2b3e; 
+  background-color: $base4; 
   overflow-y: scroll;
   overflow-x: hidden;
   min-width: 300px;
@@ -2699,43 +2701,31 @@ onMounted(() => {
 #chartdiv2 {
   padding: 10px;
   border:none;
-  background-color: #282737;
-  color: whitesmoke;
-}
-
-body {
-  background-color: #0f0f1b;
-}
-
-h1 {
-  border: none;
-  font-size: 20px;
-  opacity: 0.20;
+  background-color: $base2;
+  color: $text2;
 }
 
 #sidebar-right {
   display: flex;
   flex-direction: column;
-  background-color: #1d1c29;
+  background-color: $base4;
   overflow-y: scroll;
   min-width: 300px;
 }
 
-
-
 #wlnav {
-  border-top: #0f0f1b solid 1px;
+  border-top: $base1 solid 1px;
   display: flex;
   align-items: center; 
   justify-content: space-between; 
-  background-color: #3f3e56;
+  background-color: $base2;
 }
 
 #realwatchlist {
   height: 20px; 
   outline: none;
   border: none;
-  color: #ebebeb;
+  color: $text2;
   text-align: center;
   flex-grow: 1; 
   background-color: transparent;
@@ -2743,7 +2733,7 @@ h1 {
 
 .wlbtn {
   flex-shrink: 0;
-  color: #ffffff;
+  color: $text1;
   background-color: transparent;
   border: none;
   padding: 5px;
@@ -2766,7 +2756,7 @@ h1 {
 #searchtable {
   display: flex;
   align-items: center;
-  background-color: #3f3e56;
+  background-color: $base2;
   position: relative;
 }
 
@@ -2777,14 +2767,14 @@ h1 {
   margin: 7px;
   width: calc(100% - 30px); /* Make space for the button */
   outline: none;
-  color: whitesmoke; /* Dark text color */
+  color: $base3; /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
-  border: solid 1px #171728;
-  background-color:#2c2b3e;
+  border: solid 1px $base1;
+  background-color:$base4;
 }
 
 #searchbar:focus {
-  border-color: #8c8dfe; /* Change border color on focus */
+  border-color: $accent1; /* Change border color on focus */
   box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
   outline: none; /* Remove default outline */
 }
@@ -2797,7 +2787,7 @@ h1 {
   transform: translateY(-50%);
   flex-shrink: 0;
   color: #ffffff;
-  background-color: #8c8dfe;
+  background-color: $accent1;
   border: none;
   padding: 0;
   outline: none;
@@ -2812,35 +2802,35 @@ h1 {
 }
 
 .wlbtn2:hover {
-  background-color: #9b9cfc;
+  background-color: $accent2;
   box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
   outline: none;
 }
 
 
 #notes-container {
-  background-color: #22222d;
+  background-color: $base2;
   color: aliceblue;
   width: 300px;
   height: 80px;
   padding-left: 5px;
   padding-top: 5px;
   margin: 5px;
-  border: 1px solid #22222d;
+  border: 1px solid $base1;
   border-radius: 5px;
   outline: none;
   resize: none;
 }
 
 #idSummary {
-  color: whitesmoke;
+  color: $text1;
 }
 
 .category {
   text-align: left;
   border: none;
   font-size: 1.2rem;
-  color: #f5f5f5;
+  color: $text2;
   letter-spacing: 0.01em;
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
@@ -2865,8 +2855,8 @@ h1 {
 }
 
 .title {
-  background-color: #0f0f1b;
-  color: whitesmoke;
+  background-color: $base4;
+  color: $text1;
   text-align: center;
   padding: 3.5px;
   border: none;
@@ -2874,8 +2864,8 @@ h1 {
 }
 
 .note {
-  background-color: #8c8dfe;
-  color: whitesmoke;
+  background-color: $accent1;
+  color: $text2;
   padding: 10px;
   border: none;
   box-sizing: border-box;
@@ -2887,7 +2877,7 @@ h1 {
 .notebtn {
   background-color: transparent;
   border: none;
-  color: whitesmoke;
+  color: $text2;
   cursor: pointer;
   position: absolute; 
   top: 5px;       
@@ -2915,7 +2905,7 @@ h1 {
 }
 
 .note-msg {
-  color: #f2f2f2;
+  color: $text2;
   border: none;
   margin-top: 0;
   padding-top: 0;
@@ -2927,7 +2917,7 @@ h1 {
 }
 
 .note-msg-date {
-  color: #1e1e1e;
+  color: $base2;
   border: none;
   bottom: 11.5px;
   left: 14px;
@@ -2936,30 +2926,30 @@ h1 {
 
 .tbl{
   text-align: center;
-  background-color: #0f0f1b;
+  background-color: $base4;
   border: none;
   color: whitesmoke;
   cursor: pointer;
 }
 
 .tbl:hover {
-  background-color: #23233a;
+  background-color: $base2;
 }
 
 .ntbl{
   text-align: center;
-  background-color: #0f0f1b;
+  background-color: $base4;
   border: none;
-  color: whitesmoke;
+  color: $text2;
 }
 
 #title2 {
-  color: whitesmoke;
+  color: $text2;
   text-align: center;
   padding: 3.5px;
   border: none;
   margin: 0px;
-  background-color: #121212;
+  background-color: $base4;
 }
 
 .btn {
@@ -2999,7 +2989,7 @@ h1 {
   left: 0;
   z-index: 1000;
   background-color: transparent;
-  color: whitesmoke;
+  color: $text2;
   border: none;
   margin-top: 10px;
   margin-left: 12px;
@@ -3011,7 +3001,7 @@ h1 {
   left: 0;
   z-index: 1000;
   background-color: transparent;
-  color: whitesmoke;
+  color: $text2;
   border: none;
   margin-top: 25px;
   margin-left: 12px;
@@ -3027,7 +3017,7 @@ h1 {
   left: 0;
   z-index: 1000;
   background-color: transparent;
-  color: whitesmoke;
+  color: $text2;
   border: none;
   margin-top: 20px;
   margin-left: 12px;
@@ -3039,13 +3029,13 @@ h1 {
 }
 
 .ticker{
-color: whitesmoke;
+color: $text1;
 font-size: 20px;
 font-weight: bold;
 }
 
 .name{
-  color: whitesmoke;
+  color: $text1;
   font-size: 15px;
 font-weight: bold;
 }
@@ -3059,7 +3049,7 @@ font-weight: bold;
 .dbtn {
   background-color: transparent;
   border: none;
-  color: whitesmoke;
+  color: $text2;
   cursor: pointer;
 }
 
@@ -3068,7 +3058,7 @@ font-weight: bold;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #1d1c29;
+    background-color: $base1;
     width: 300px;
     height: 150px;
     display: flex;
@@ -3086,7 +3076,7 @@ font-weight: bold;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #1d1c29;
+    background-color: $base1;
     width: 350px;
     height: 200px;
     display: flex;
@@ -3101,7 +3091,7 @@ font-weight: bold;
 
   .RenameWatchlist h3, .CreateWatchlist h3, .CreateNote h3 {
     background-color: transparent;
-    color: whitesmoke;
+    color: $text1;
     border: none;
     margin-top: 10px;
   }
@@ -3110,15 +3100,15 @@ font-weight: bold;
     margin-bottom: 3px;
     margin-top: 5px;
     text-align: center;
-    background-color: #e0e0e0;
-  color: rgb(7, 7, 7);
+    background-color: $text1;
+  color: $base4;
   padding: 5px;
   outline: none;
-  border: solid 1px #3f3e56;
+  border: solid 1px $base1;
   }
 
   .RenameWatchlist input:focus , .CreateWatchlist input:focus{
-  border-color: #8c8dfe;
+  border-color: $accent1;
 }
   
   .inner {
@@ -3185,14 +3175,14 @@ font-weight: bold;
 }
 
 .wlist{
-  background-color: #3f3e56;
+  background-color: $base2;
   height: 27px;
-  border-top: #0f0f1b solid 1px;
-  border-left: #0f0f1b solid 1px;
+  border-top: $base4 solid 1px;
+  border-left: $base4 solid 1px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #b3b3b3;
+  color: $text1;
 }
 
 .wlist:hover{
@@ -3211,9 +3201,9 @@ font-weight: bold;
 .wlist.selected {
   background-image: linear-gradient(to right, #1c1a26, #2c2a3a, #3c3a4a, #4c4a5a, #1c1a26) !important;
   background-size: 400% 100% !important;
-  border-left-color: #8c8dfe !important;
+  border-left-color: $accent1 !important;
   border-left-width: 2px !important;
-  color: whitesmoke;
+  color: $text1;
   animation: gradient 10s ease infinite;
 }
 
@@ -3230,7 +3220,7 @@ font-weight: bold;
 }
 
 .results {
-  background-color: #1d1c29;
+  background-color: $base4;
   text-align: center;
   align-items: center;
   padding: 10px;
@@ -3239,7 +3229,7 @@ font-weight: bold;
 }
 
 .results2 {
-  background-color: #1d1c29;
+  background-color: $base4;
   text-align: center;
   align-items: center;
   padding: 100px;
@@ -3278,7 +3268,7 @@ font-weight: bold;
 
 .select-container  .dropdown-container div {
   display: none;
-  background-color: #0f0f1b;
+  background-color: $base4;
  border: none;
 }
 
@@ -3289,7 +3279,7 @@ font-weight: bold;
 }
 
 .select-container .dropdown-container div:hover {
-  background-color: #1f1f37;
+  background-color: $base4;
 }
 
 .icondlt{
@@ -3307,34 +3297,34 @@ font-weight: bold;
 
 /* */ 
 .toggle-btn {
-  background-color: #343348;
+  background-color: $base3;
   border: none;
   cursor: pointer;
   width: 100%;
-  color: whitesmoke;
+  color: $text1;
   opacity: 0.60;
 }
 
 .toggle-btn:hover {
-  background-color: #51506e;
+  background-color: $base2;
   opacity: 1;
 }
 
 .no-data {
   padding: 20px;
   text-align: center;
-  background-color: #343348;
-  color: #f5f5f59d;
+  background-color: $base1;
+  color: $text2;
 }
 
 /* buttons inside chart, top right */
 .navbtng{
   background-color: transparent;
-  color: whitesmoke;
+  color: $text1;
   text-align: center;
   justify-content: center;
   cursor: pointer;
-  border: solid #615f83 1px;
+  border: solid $text2 1px;
   border-radius: 25px;
   padding: 15px;
   opacity: 0.60;
@@ -3362,7 +3352,7 @@ font-weight: bold;
   left: 80%;
   z-index: 1000;
   background-color: transparent;
-  color: whitesmoke;
+  color: $text1;
   border: none;
   flex-direction: row;
   display: flex;
@@ -3410,7 +3400,7 @@ font-weight: bold;
 }
 
 .dropdown-menu > div {
-  background-color: #0f0f1b;
+  background-color: $base4;
   padding: 1px;
   height: 28px;
   display: flex;
@@ -3418,7 +3408,7 @@ font-weight: bold;
 }
 
 .dropdown-menu > div:hover {
-  background-color: #1f1f37;
+  background-color: $accent2;
 }
 
 .dropdown-btn:hover + .dropdown-menu, 
@@ -3449,15 +3439,15 @@ font-weight: bold;
   align-items: center;
   width: 100%;
   padding: 10px;
-  background-color: #0f0f1b;
+  background-color: $base4;
   border: none;
-  color: white;
+  color: $text1;
   text-align: left;
   cursor: pointer;
 }
 
 .dropdown-item:hover {
-  background-color: #1f1f37;
+  background-color: $accent2;
 }
 
 .dropdown-item img {
@@ -3479,7 +3469,7 @@ font-weight: bold;
 .summary-container{
   display: flex;
   flex-direction: column;
-  color: #b3b3b3;
+  color: $text2;
   border: none;
 }
 
@@ -3588,11 +3578,11 @@ font-weight: bold;
   display: inline-block;
   padding: 2px 5px;
   font-weight: bold;
-  color: black;
+  color: $base4;
   text-align: center;
   vertical-align: baseline;
   border-radius: 25px;
-  background-color: #f5f5f5;
+  background-color: $text1;
 }
 
 /* related to dropdown menu for watchlist */

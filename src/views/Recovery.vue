@@ -118,7 +118,9 @@ const changePassword = async () => {
 
   </script>
   
-  <style scoped>
+  <style lang="scss" scoped>
+@use '../style.scss' as *;
+
 .recovery-container {
   display: flex;
   flex-direction: column;

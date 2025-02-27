@@ -185,7 +185,9 @@ async function verifyMfa() {
 
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use '../style.scss' as *;
+
 .logo {
   align-items: center;
   justify-content: center;

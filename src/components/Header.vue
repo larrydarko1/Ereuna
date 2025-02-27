@@ -13,10 +13,12 @@
   const route = useRoute();
   </script>
   
-  <style>
+  <style lang="scss">
+@use '../style.scss' as *;
+
   .header {
-    background-color: #0f0f1b;
-    border: solid 1px #171728;
+    background-color: $base1;
+    border: solid 1px $base1;
     padding: 0px;
     min-width: 1370px;
   }

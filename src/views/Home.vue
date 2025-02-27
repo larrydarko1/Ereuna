@@ -298,7 +298,8 @@ function closePrivacyModal() {
 
   </script>
   
-  <style scoped>
+  <style lang="scss" scoped>
+@use '../style.scss' as *;
 
   p {
     color: #D3D3D3;
