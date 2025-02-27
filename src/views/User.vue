@@ -745,7 +745,9 @@ async function toggleTwoFa() {
 
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@use '../style.scss' as *;
+
 #main {
   display: flex;
   flex-direction: row;

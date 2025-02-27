@@ -71,6 +71,7 @@
     "buffer": "^6.0.3",
     "process": "^0.11.10",
     "readable-stream": "^4.5.2",
+    "sass-embedded": "^1.85.1",
     "vite": "^6.1.0",
     "vite-plugin-node-polyfills": "^0.23.0"
   }

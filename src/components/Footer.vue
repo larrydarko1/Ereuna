@@ -11,14 +11,16 @@ export default {
 </script>
 
 
-<style scoped>
+<style lang="scss">
+@use '../style.scss' as *;
+
 footer {
   position: fixed;
   left: 0;
   bottom: 0;
   width: 100%;
-  background-color: #0f0f1b;
-  color: white;
+  background-color: $base1;
+  color: $text1;
   text-align: center;
   padding: 0px;
   z-index: 1000;
@@ -27,7 +29,7 @@ footer {
 
 p {
   opacity: 0.5;
-  color: white;
+  color: $text1;
   font-size: 10px;
   border: none;
 }
