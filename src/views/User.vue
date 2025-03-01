@@ -17,7 +17,8 @@
     </div>
     <div class="content">
       <div v-if="selectedIndex === 0">
-        <div style="margin-bottom: 30px; border-bottom: 3px #262435 solid; padding-bottom: 25px;">
+        <div>
+        <div class="userdiv">
           <h2 style="display: flex; align-items: center; justify-content: center;">
             <img src="@/assets/icons/username2.png" alt="Icon" class="icon2">
       Change Username
@@ -32,8 +33,9 @@
 <br>
 <button class="userbtn" @click="changeUsername()">Change Username</button>
 </div>
+</div>
 <div>
-  <div style="margin-bottom: 30px; border-bottom: 3px #262435 solid; padding-bottom: 25px;">
+  <div class="userdiv">
     <h2 style="display: flex; align-items: center; justify-content: center;">
             <img src="@/assets/icons/password2.png" alt="Icon" class="icon2">
       Change Password
@@ -99,12 +101,11 @@
 </div>
 </div>
 <div>
-  <div style="margin-bottom: 30px; border-bottom: 3px #262435 solid; padding-bottom: 25px;">
+  <div class="userdiv">
     <h2 style="display: flex; align-items: center; justify-content: center;">
             <img src="@/assets/icons/forgot.png" alt="Icon" class="icon2">
      Recovery / Authentication Key
     </h2>
-         <br>
          <div style="position: relative;">
           <p>To generate a new recovery key, type your password</p>
   <input 
@@ -130,7 +131,7 @@
 </div>
 
       </div>
-  <div style="margin-bottom: 30px; border-bottom: 3px #262435 solid; padding-bottom: 25px;">
+      <div class="userdiv">
     <h2 style="display: flex; align-items: center; justify-content: center;">
             <img src="@/assets/icons/delete-account.png" alt="Icon" class="icon2">
       Delete Account
@@ -158,7 +159,7 @@ Thank you for your understanding.</p>
          <br>
          <button class="userbtn" @click="deleteAccount()">Delete Account</button>
       </div>
-    </div>
+</div>
 </div>
       <div v-if="selectedIndex === 1">
         <div style="margin-bottom: 30px; border-bottom: 3px #262435 solid; padding-bottom: 25px;">
@@ -913,7 +914,7 @@ p{
   color: $base3; /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
   border: solid 1px $base4;
-  background-color:$base2;
+  background-color:$base4;
 }
 
 .userinput:focus{
@@ -1352,6 +1353,15 @@ p{
 .qr{
   background-color: $text1;
   padding: 10px;
+}
+
+.userdiv{
+  background-color: $base2;
+  width: 80%;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 0 auto;
+  margin-bottom: 20px;
 }
 
 </style>

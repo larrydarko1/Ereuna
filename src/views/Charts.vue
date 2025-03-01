@@ -363,6 +363,7 @@
             <img :src="downIcon" alt="Dropdown Icon" class="dropdown-icon" :class="{ 'dropdown-icon-hover': showDropdown }" />
   <p style="font-weight: bold;" class="selected-value" @click.stop="">{{ selectedWatchlist ? selectedWatchlist.Name : 'Select a watch' }}</p>
   <div class="dropdown-container">
+    <div class="watchlist-dropdown-menu">
     <div v-for="watch in watchlist.tickers" :key="watch.Name" :class="{'selected': selectedWatchlist && selectedWatchlist.Name === watch.Name}" @click="filterWatchlist(watch)">
       {{ watch.Name }} 
       <span class="badge">{{ watch.List.length }}</span>
@@ -372,6 +373,7 @@
     </div>
   </div>
 </div>
+</div>
 <button class="navbtn" @click="addWatchlist()" v-b-tooltip.hover title="Add ticker to watchlist">
         <img class="img" src="@/assets/icons/plus.png" alt="add to watchlist">
       </button>
@@ -380,6 +382,7 @@
       <img class="img" src="@/assets/icons/dots.png" alt="more options">
     </button>
     <div class="dropdown-vnav">
+      <div class="watchlist-dropdown-menu2">
       <button class="dropdown-item" @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Watchlist">
         <img class="img" src="@/assets/icons/play.png" alt="autoplay watchlist"> Autoplay
       </button>
@@ -393,6 +396,7 @@
         <img class="img" src="@/assets/icons/edit2.png" alt="edit watchlist name"> Rename Watchlist
       </button>
     </div>
+  </div>
   </div>
 </div>
 <div id="watch-container">
@@ -441,7 +445,7 @@
                 </label>
               </div>
             </div>
-          </div>
+            </div>
           <div style="flex: 1; text-align: center;">
             <img 
   class="cmp-logo" 
@@ -3272,8 +3276,16 @@ opacity: 1;
   cursor: pointer;
 }
 
-.select-container .dropdown-container div:hover {
+.watchlist-dropdown-menu {
+  background-color: $base2;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.select-container .watchlist-dropdown-menu div:hover {
   background-color: $accent2;
+  border-radius: 5px;
 }
 
 .icondlt{
@@ -3404,6 +3416,7 @@ opacity: 1;
 
 .dropdown-menu > div:hover {
   background-color: $accent2;
+  border-radius: 5px;
 }
 
 .dropdown-btn:hover + .dropdown-menu, 
@@ -3441,8 +3454,16 @@ opacity: 1;
   cursor: pointer;
 }
 
+.watchlist-dropdown-menu2 {
+  background-color: $base2;
+  padding: 5px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
 .dropdown-item:hover {
   background-color: $accent2;
+  border-radius: 5px;
 }
 
 .dropdown-item img {
