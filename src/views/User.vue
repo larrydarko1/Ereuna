@@ -166,7 +166,7 @@ Thank you for your understanding.</p>
     <div class="subscription-form">
       <div 
       class="sub-option" 
-      :class="{ selected: selectedOption === 1 }"
+      :class="{ select: selectedOption === 1 }"
       @click="selectOption(1)"
     >
       <h3 class="plan">1 Month</h3>
@@ -174,7 +174,7 @@ Thank you for your understanding.</p>
     </div>
     <div 
       class="sub-option" 
-      :class="{ selected: selectedOption === 2 }"
+      :class="{ select: selectedOption === 2 }"
       @click="selectOption(2)"
     >
       <h3 class="plan">4 Months</h3>
@@ -198,7 +198,7 @@ Thank you for your understanding.</p>
     <h1>Select a payment method</h1>
     <div class="payment-form">
     <div class="pay-option">
-      <div class="square" :class="{ selected: selectedpay === 1 }" @click="selectPaymentMethod('Credit Card'), selectPay(1)">
+      <div class="square" :class="{ select: selectedpay === 1 }" @click="selectPaymentMethod('Credit Card'), selectPay(1)">
         <img class="icon-op" src="@/assets/icons/credit-card.png" alt="credit-card"> 
         <p>Credit Card</p>
     </div>
@@ -265,7 +265,9 @@ Thank you for your understanding.</p>
       </label>
     </div>
     <div v-if="isTwoFaEnabled">
-  <qrcode-vue v-if="qrCode" :value="qrCode"></qrcode-vue>
+      <div class="qr">
+        <qrcode-vue v-if="qrCode" :value="qrCode"></qrcode-vue>
+      </div>
 <br><br>
   <p class="twofa-instruction">
   IMPORTANT: If you start the pairing process but don't complete it by scanning the QR code, please make sure to toggle the switch back to the "off" position before logging out to avoid being locked out of your account.
@@ -760,7 +762,7 @@ async function toggleTwoFa() {
 .sidebar {
   display: flex;
   flex-direction: column;
-  width: 20%;
+  width: 15%;
   padding: 20px;
   background-color: $base2;
   overflow-y: auto; 
@@ -769,7 +771,7 @@ async function toggleTwoFa() {
 .content {
   display: flex;
   flex-direction: column;
-  width: 80%;
+  width: 85%;
   background-color: $base4;
   padding: 20px;
   text-align: center;
@@ -812,21 +814,26 @@ h2 {
   margin-top: 5px;
   display: flex;
   align-items: center;
-  width: 100%;
+  width: 90%;
   background-color: rgba($base2, 0.9);
   padding: 10px;
   color: $text1;
   font-size: 15px;
   cursor: pointer;
+  border-radius: 10px;
+  transition: background-color 0.3s ease-in-out;
+  opacity: 0.80
 }
 
 .menu:hover{
   cursor: pointer;
-  background-color: $base4;
+  background-color: $accent1;
+  opacity: 1;
 }
 
 .menu.selected {
-  background-color: $base4;
+  background-color: $accent1;
+  opacity: 1;
 }
 
 .icon {
@@ -879,7 +886,7 @@ p{
 /* buttons for settings */
 .userbtn {
   background-color: transparent;
-  color: whitesmoke;
+  color: $text1;
   border-radius: 10px;
   outline: none;
   border: solid 2px $accent1;
@@ -1103,7 +1110,7 @@ p{
   background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
 }
 
-.selected {
+.select {
     border:none;
     background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9);
     animation: border-animation 5s linear infinite; /* Animation */
@@ -1275,7 +1282,7 @@ p{
   max-width: 400px;
   margin: 40px auto;
   padding: 20px;
-  background-color: #f9f9f9;
+  background-color: $base2;
   border: 1px solid #ddd;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -1289,7 +1296,7 @@ p{
 
 .twofa-instruction {
   font-size: 14px;
-  color: #666;
+  color: $text1;
   margin-bottom: 20px;
 }
 
@@ -1309,9 +1316,9 @@ p{
   display: inline-block;
   width: 40px;
   height: 20px;
-  background-color: #ccc;
+  background-color: rgba($text1, 0.50);
   border-radius: 10px;
-  transition: background-color 0.2s;
+  transition: background-color 0.3s;
   cursor: pointer;
 }
 
@@ -1320,15 +1327,15 @@ p{
   position: absolute;
   width: 18px;
   height: 18px;
-  background-color: #fff;
+  background-color: $text1;
   border-radius: 50%;
   top: 1px;
   left: 1px;
-  transition: transform 0.2s;
+  transition: transform 0.3s;
 }
 
 .twofa-toggle-switch-checked {
-  background-color: #8c8dfe;
+  background-color: $accent1;
 }
 
 .twofa-toggle-switch-checked::before {
@@ -1338,6 +1345,13 @@ p{
 .twofa-toggle-label {
   font-size: 14px;
   margin-left: 10px;
+  margin-bottom: 2px;
+  color: $text2;
+}
+
+.qr{
+  background-color: $text1;
+  padding: 10px;
 }
 
 </style>
