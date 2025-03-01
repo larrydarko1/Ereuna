@@ -431,21 +431,23 @@
               <img class="imgm" src="@/assets/icons/dots.png" alt="" style="border: none;">
             </button>
             <div class="dropdown-menu">
-              <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
-                <label :for="'watchlist-' + index" class="checkbox-label">
-                  <div @click.stop="toggleWatchlist(ticker, item)" style="cursor: pointer;">
-                    <img
-  class="watchlist-icon"
-  :src="getWatchlistIcon(ticker, item)"
-  alt="Toggle Watchlist"
-/>
-                  </div>
-                  <span class="checkmark"></span>
-                  {{ ticker.Name }}
-                </label>
-              </div>
-            </div>
-            </div>
+  <div class="watchlist-dropdown-menu3">
+    <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
+      <label :for="'watchlist-' + index" class="checkbox-label">
+        <div @click.stop="toggleWatchlist(ticker, item)" style="cursor: pointer;">
+          <img
+            class="watchlist-icon"
+            :src="getWatchlistIcon(ticker, item)"
+            alt="Toggle Watchlist"
+          />
+        </div>
+        <span class="checkmark"></span>
+        {{ ticker.Name }}
+      </label>
+    </div>
+  </div>
+</div>
+</div>
           <div style="flex: 1; text-align: center;">
             <img 
   class="cmp-logo" 
@@ -3405,16 +3407,24 @@ opacity: 1;
   left: 20px;
 }
 
-.dropdown-menu > div {
+.watchlist-dropdown-menu3 {
+  background-color: $base2;
+  padding: 7px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  border-radius: 5px;
+}
+
+.watchlist-dropdown-menu3 > div {
   background-color: $base2;
   padding: 1px;
   height: 28px;
   display: flex;
   align-items: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
-.dropdown-menu > div:hover {
+.watchlist-dropdown-menu3 > div:hover {
   background-color: $accent2;
   border-radius: 5px;
 }
