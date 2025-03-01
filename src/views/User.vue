@@ -160,6 +160,8 @@ Thank you for your understanding.</p>
          <button class="userbtn" @click="deleteAccount()">Delete Account</button>
       </div>
 </div>
+<br>
+<br>
 </div>
       <div v-if="selectedIndex === 1">
         <div style="margin-bottom: 30px; border-bottom: 3px #262435 solid; padding-bottom: 25px;">

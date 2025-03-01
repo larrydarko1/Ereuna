@@ -7,6 +7,7 @@
           <img :src="downIcon" alt="Dropdown Icon" class="dropdown-icon" :class="{ 'dropdown-icon-hover': showDropdown }" />
   <p class="selected-value" @click.stop="">{{ selectedScreener ? selectedScreener : (ScreenersName.length > 0 ? 'Choose a Screener...' : 'No screeners available.') }}</p>
   <div class="dropdown-container" v-if="ScreenersName.length > 0">
+    <div class="wrapper">
     <div v-for="(screener, index) in ScreenersName" :key="index" :class="{'selected': selectedScreener === screener.Name}" @click="selectScreener(screener.Name)">
       <button class="icondlt2" @click.stop="ExcludeScreener(screener.Name)" v-b-tooltip.hover title="Toggle This Screener's Inclusion">
         <img class="img2" :src="getScreenerImage(screener)" alt="toggle screener">
@@ -16,6 +17,7 @@
         <img class="img2" src="@/assets/icons/close.png" alt="delete screener">
       </button>
     </div>
+  </div>
   </div>
 </div>
         <div :class="[showPriceInputs ? 'param-s1-expanded' : 'param-s1']">
@@ -456,14 +458,14 @@
           <div style="border: none;" v-if="showRSscore">
             <div class="DataInputs10">
             <p>Technical Score (1W)</p>
-            <input class="input" type="number" id="RSscore1Winput1" name="input5" min="1" max="100">
-            <input class="input" type="number" id="RSscore1Winput2" name="input6" min="1" max="100">
+            <input class="input" type="number" placeholder="min (1)" id="RSscore1Winput1" name="input5" min="1" max="100">
+            <input class="input" type="number" placeholder="max (100)" id="RSscore1Winput2" name="input6" min="1" max="100">
             <p>Technical Score (1M)</p>
-            <input class="input" type="number" id="RSscore1Minput1" name="input1" min="1" max="100">
-            <input class="input" type="number" id="RSscore1Minput2" name="input2" min="1" max="100">
+            <input class="input" type="number" placeholder="min (1)" id="RSscore1Minput1" name="input1" min="1" max="100">
+            <input class="input" type="number" placeholder="max (100)" id="RSscore1Minput2" name="input2" min="1" max="100">
             <p>Technical Score (4M)</p>
-            <input class="input" type="number" id="RSscore4Minput1" name="input3" min="1" max="100">
-            <input class="input" type="number" id="RSscore4Minput2" name="input4" min="1" max="100">
+            <input class="input" type="number" placeholder="min (1)" id="RSscore4Minput1" name="input3" min="1" max="100">
+            <input class="input" type="number" placeholder="max (100)" id="RSscore4Minput2" name="input4" min="1" max="100">
             </div>
             <div class="row">
               <button class="btns8" style="float:right" @click="SetRSscore()">
@@ -658,7 +660,7 @@
               <div style="flex:1;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
               <div style="flex:1;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
               <div style="flex:1;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
-              <div style="flex:1;">{{ asset.EPS }}</div>
+              <div style="flex:1;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
             </div>
             <div class="results2"> 
             </div>
@@ -747,7 +749,7 @@
               <div style="flex:1;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
               <div style="flex:1;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
               <div style="flex:1;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
-              <div style="flex:1;">{{ asset.EPS }}</div>
+              <div style="flex:1;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
             </div>
             <div class="results2"> 
             </div>
@@ -836,7 +838,7 @@
               <div style="flex:1;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
               <div style="flex:1;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
               <div style="flex:1;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
-              <div style="flex:1;">{{ asset.EPS }}</div>
+              <div style="flex:1;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
             </div>
             <div class="results2"> 
             </div>
@@ -934,7 +936,7 @@
               <div style="flex:1;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
               <div style="flex:1;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
               <div style="flex:1;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
-              <div style="flex:1;">{{ asset.EPS }}</div>
+              <div style="flex:1;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
             </div>
             <div class="results2"> 
             </div>
@@ -3764,7 +3766,7 @@ const toUpperCase = () => {
   color: $text2;
   background-color: $base2;
   border: none;
-  height: 450px;
+  height: 400px;
   position: relative;
 }
 
@@ -3784,14 +3786,14 @@ const toUpperCase = () => {
   color: $text2;
   background-color: $base2;
   border: none;
-  height: 600px;
+  height: 450px;
   position: relative;
 }
 
 
 .DataInputs{
   position: absolute;
-  left: 25%;
+  left: 17%;
   top: 10%;
   border: none;
 }
@@ -3821,8 +3823,8 @@ const toUpperCase = () => {
 
 .DataInputs10{
   position: absolute;
-  left: 35%;
-  top: 20%;
+  left: 0%;
+  top: 10%;
   border: none;
 }
 
@@ -4112,8 +4114,8 @@ const toUpperCase = () => {
   margin: none;
   padding: none;
   position: absolute;
-  top: 33%;
   left: 2%;
+  top: 40px;
   float: left;
 }
 
@@ -4347,7 +4349,7 @@ Header th {
 }
 
 .snavbtnslct{
-  background-color: $base3;
+  background-color: transparent;
   color: $text1;
   padding: 5px;
   outline: none;
@@ -4580,6 +4582,13 @@ Header th {
   z-index: 1000;
 }
 
+.wrapper{
+  background-color: $base2;
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+}
+
 .select-container .dropdown-container {
   position: absolute;
   top: 100%;
@@ -4590,20 +4599,24 @@ Header th {
 
 .select-container .dropdown-container div {
   display: none;
-  background-color: $base4;
+  background-color: $base2;
   margin-bottom: 0.1px;
   z-index: 1000;
 }
 
 .select-container:hover .dropdown-container div {
   display: block;
-  background-color: $base4;
+  background-color: $base2;
   padding: 5px;
   cursor: pointer;
   z-index: 1000;
 }
 
-.select-container .dropdown-container div:hover {
+.wrapper div {
+  border-radius: 5px;
+}
+
+.select-container .wrapper div:hover {
   background-color: $accent2;
   z-index: 1000;
 }
@@ -4781,12 +4794,13 @@ Header th {
 
 .custom-checkbox.checked {
   color: $text1; /* Change text color when checked */
+  opacity: 1;
 }
 
 .checkmark {
   width: 8px; /* Smaller width */
   height: 8px; /* Smaller height */
-  background-color: $text1;
+  background-color: $text2;
   border-radius: 50%; /* Make it circular */
   margin-right: 5px;
   display: inline-block;
@@ -4817,7 +4831,7 @@ Header th {
   color: $text1; /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
   border: solid 1px $base4;
-  background-color:$base1;
+  background-color:$base4;
 }
 
 .input:focus{
@@ -4844,6 +4858,23 @@ Header th {
 .dropdown-icon-hover {
   content: url('@/assets/icons/up.png');
   width: 10px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+input[type="date"]{
+  color: $base3;
+}
+
+.input[type="number"]::-webkit-inner-spin-button, 
+.input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 </style>
