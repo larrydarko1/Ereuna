@@ -3484,10 +3484,6 @@ app.get('/:ticker/earningsdate/:apiKey',
         const formattedData = Data.flatMap(item => {
           // Safely handle quarterlyIncome in case it's undefined
           if (!item.quarterlyIncome || !Array.isArray(item.quarterlyIncome)) {
-            logger.warn('Invalid quarterly income data', {
-              ticker: ticker,
-              itemId: item._id
-            });
             return [];
           }
 
@@ -6179,10 +6175,6 @@ app.get('/screener/country/:apiKey', validate([
 
       // Remove any null or undefined values from the array
       const uniqueCountry = Country.filter(country => country !== null && country !== undefined);
-
-      logger.info('Countries retrieved successfully', {
-        count: uniqueCountry.length
-      });
 
       res.json(uniqueCountry);
 
@@ -11207,12 +11199,6 @@ app.patch('/:user/update-default-symbol/:apiKey',
       }
 
       if (result.modifiedCount === 0) {
-        logger.warn({
-          msg: 'No Changes Made to Default Symbol',
-          requestId: requestId,
-          username: obfuscateUsername(username)
-        });
-
         return res.status(400).json({ message: 'No changes made' });
       }
 

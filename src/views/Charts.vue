@@ -2691,6 +2691,7 @@ onMounted(() => {
   flex-direction: column;
   background-repeat: no-repeat;
   max-width: 800px;
+  max-height: 800px;
 }
 
 #chartdiv {
@@ -2809,14 +2810,14 @@ onMounted(() => {
 
 
 #notes-container {
-  background-color: $base2;
+  background-color: $base4;
   color: aliceblue;
   width: 300px;
   height: 80px;
   padding-left: 5px;
   padding-top: 5px;
   margin: 5px;
-  border: 1px solid $base1;
+  border: 1px solid $base4;
   border-radius: 5px;
   outline: none;
   resize: none;
@@ -2826,19 +2827,9 @@ onMounted(() => {
   color: $text1;
 }
 
-.category {
-  text-align: left;
-  border: none;
-  font-size: 1.2rem;
-  color: $text2;
-  letter-spacing: 0.01em;
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-}
-
 .description {
   border: none;
   text-align: center;
-  font-weight: bold;
   overflow: hidden; /* Hide overflow when not expanded */
   transition: height 0.3s ease; /* Smooth transition for height */
   /* Set a fixed height when not expanded */
@@ -2854,8 +2845,9 @@ onMounted(() => {
   border: none;
 }
 
+/* note section */
 .title {
-  background-color: $base4;
+  background-color: $base1;
   color: $text1;
   text-align: center;
   padding: 3.5px;
@@ -2926,7 +2918,7 @@ onMounted(() => {
 
 .tbl{
   text-align: center;
-  background-color: $base4;
+  background-color: $base1;
   border: none;
   color: whitesmoke;
   cursor: pointer;
@@ -2938,7 +2930,7 @@ onMounted(() => {
 
 .ntbl{
   text-align: center;
-  background-color: $base4;
+  background-color: $base1;
   border: none;
   color: $text2;
 }
@@ -3032,12 +3024,14 @@ onMounted(() => {
 color: $text1;
 font-size: 20px;
 font-weight: bold;
+opacity: 1;
 }
 
 .name{
   color: $text1;
   font-size: 15px;
 font-weight: bold;
+opacity: 1;
 }
 
 
@@ -3058,7 +3052,7 @@ font-weight: bold;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: $base1;
+    background-color: $base2;
     width: 300px;
     height: 150px;
     display: flex;
@@ -3076,7 +3070,7 @@ font-weight: bold;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: $base1;
+    background-color: $base2;
     width: 350px;
     height: 200px;
     display: flex;
@@ -3268,7 +3262,7 @@ font-weight: bold;
 
 .select-container  .dropdown-container div {
   display: none;
-  background-color: $base4;
+  background-color: $base2;
  border: none;
 }
 
@@ -3297,7 +3291,7 @@ font-weight: bold;
 
 /* */ 
 .toggle-btn {
-  background-color: $base3;
+  background-color: $base2;
   border: none;
   cursor: pointer;
   width: 100%;
@@ -3306,7 +3300,7 @@ font-weight: bold;
 }
 
 .toggle-btn:hover {
-  background-color: $base2;
+  background-color: $base3;
   opacity: 1;
 }
 
@@ -3392,7 +3386,7 @@ font-weight: bold;
 .dropdown-menu {
   display: none;
   cursor: pointer;
-  width: 125px;
+  width: 200px;
   position: absolute; 
   z-index: 1000;
   top: -10px;
@@ -3400,11 +3394,12 @@ font-weight: bold;
 }
 
 .dropdown-menu > div {
-  background-color: $base4;
+  background-color: $base2;
   padding: 1px;
   height: 28px;
   display: flex;
   align-items: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .dropdown-menu > div:hover {
@@ -3439,7 +3434,7 @@ font-weight: bold;
   align-items: center;
   width: 100%;
   padding: 10px;
-  background-color: $base4;
+  background-color: $base2;
   border: none;
   color: $text1;
   text-align: left;
@@ -3485,6 +3480,7 @@ font-weight: bold;
   align-items: center;
   justify-content: center;
   background-color: $base2;
+  letter-spacing: 0.3px;
 }
 
 /* description tab */
@@ -3505,19 +3501,18 @@ font-weight: bold;
 }
 
 .summary-row .category {
-  flex: 0 0 40%;
-  font-weight: bold;
+  flex: 0 0 50%;
+  font-weight: 600;
 }
 
 .summary-row .response {
-  flex: 0 0 60%;
-  font-weight: bold;
+  flex: 0 0 50%;
 }
 
 .eps-header, .earn-header, .sales-header{
   display: flex; 
   font-weight: bold; 
-  background-color: $base4;
+  background-color: $base1;
   text-align: center;
   color: $text1;
   height: 20px;

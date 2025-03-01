@@ -4172,11 +4172,10 @@ p {
   right: 0;
   bottom: 0;
   background-color: rgba($text2, 0.6);
-  -webkit-transition: .1s;
-  transition: .1s;
+  -webkit-transition: .3s;
+  transition: .3s;
   margin: none;
   padding: none;
-  border: solid 1px $base4;
 }
 
 .slider:before {
@@ -4185,10 +4184,10 @@ p {
   height: 13px;
   width: 13px;
   left: 2px;
-  bottom: 2.5px;
+  bottom: 3.5px;
   background-color: $text1;
-  -webkit-transition: .1s;
-  transition: .1s;
+  -webkit-transition: .3s;
+  transition: .3s;
   margin: none;
   padding: none;
 }
@@ -4204,7 +4203,7 @@ input:focus+.slider {
 input:checked+.slider:before {
   -webkit-transform: translateX(13px);
   -ms-transform: translateX(13px);
-  transform: translateX(20px);
+  transform: translateX(22px);
 }
 
 /* Rounded sliders */
