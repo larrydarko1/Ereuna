@@ -299,6 +299,44 @@
     class="toggle-btn">
     {{ showAllSales ? 'Show Less' : 'Show All' }}
 </button>
+<div v-if="displayedDividendsItems.length > 0" id="DividendsTable">
+  <div class="dividends-header">
+    <div class="dividends-cell" style="flex: 0 0 50%;">Reported</div>
+    <div class="dividends-cell" style="flex: 0 0 50%;">Dividends</div>
+  </div>
+  <div class="dividends-body">
+    <div v-for="(dividend, index) in displayedDividendsItems" :key="index" class="dividends-row">
+      <div class="dividends-cell" style="flex: 0 0 50%;">{{ formatDate(dividend.payment_date) }}</div>
+      <div class="dividends-cell" style="flex: 0 0 50%;">{{ parseFloat(dividend.amount).toLocaleString() }}</div>
+    </div>
+  </div>
+</div>
+<div v-if="displayedDividendsItems.length === 0" class="no-data">No dividend data available</div>
+<button 
+    v-if="showDividendsButton" 
+    @click="showAllDividends = !showAllDividends" 
+    class="toggle-btn">
+    {{ showAllDividends ? 'Show Less' : 'Show All' }}
+</button>
+<div v-if="displayedSplitsItems.length > 0" id="SplitsTable">
+  <div class="splits-header">
+    <div class="splits-cell" style="flex: 0 0 50%;">Reported</div>
+    <div class="splits-cell" style="flex: 0 0 50%;">Split</div>
+  </div>
+  <div class="splits-body">
+    <div v-for="(split, index) in displayedSplitsItems" :key="index" class="splits-row">
+      <div class="splits-cell" style="flex: 0 0 50%;">{{ formatDate(split.effective_date) }}</div>
+      <div class="splits-cell" style="flex: 0 0 50%;">{{ split.split_factor }}</div>
+    </div>
+  </div>
+</div>
+<div v-if="displayedSplitsItems.length === 0" class="no-data">No splits data available</div>
+<button 
+    v-if="showSplitsButton" 
+    @click="showAllSplits = !showAllSplits" 
+    class="toggle-btn">
+    {{ showAllSplits ? 'Show Less' : 'Show All' }}
+</button>
         <h3 class="title">Notes Container</h3>
 <div v-if="BeautifulNotes.length > 0">
   <div class="note" v-for="note in BeautifulNotes" :key="note.Date">
@@ -659,6 +697,32 @@ const showSalesButton = computed(() => {
   return (assetInfo?.quarterlyFinancials?.length || 0) > 4;
 });
 
+const displayedDividendsItems = computed(() => {
+  const dividends = DividendsDate.value || [];
+  if (dividends.length === 0) return [];
+  if (dividends.length <= 4) return dividends;
+  return showAllDividends.value ? dividends : dividends.slice(0, 4);
+});
+
+const showDividendsButton = computed(() => {
+  return (DividendsDate.value?.length || 0) > 4;
+});
+
+const showAllDividends = ref(false);
+
+const displayedSplitsItems = computed(() => {
+  const splits = SplitsDate.value || [];
+  if (splits.length === 0) return [];
+  if (splits.length <= 4) return splits;
+  return showAllSplits.value ? splits : splits.slice(0, 4);
+});
+
+const showSplitsButton = computed(() => {
+  return (SplitsDate.value?.length || 0) > 4;
+});
+
+const showAllSplits = ref(false);
+
 // function that searches for tickers
 async function searchTicker(providedSymbol) {
   let response; 
@@ -734,8 +798,8 @@ async function searchTicker(providedSymbol) {
       await fetchData10();
       await fetchData11();
       await fetchData12();
-      await fetchEarningsDate();
       await fetchSplitsDate();
+      await fetchDividendsDate();
     }
     isChartLoading.value = false;
   }
@@ -1086,37 +1150,6 @@ async function showTicker() {
   }
 }
 
-async function fetchEarningsDate() {
-  try {
-    let ticker = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${ticker}/earningsdate/${apiKey}`);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const newEARNDates = await response.json();
-    const ipoDate = data.value[0].time; // extract IPO date from the first document in the data list 
-    const ipoDateObject = new Date(ipoDate); // convert ipoDate to a date object
-    
-    const filteredEARNDates = newEARNDates.filter((date) => {
-      const dateObject = new Date(`${date.time.year}-${date.time.month}-${date.time.day}`); // convert date to a date object
-      return dateObject >= ipoDateObject;
-    });
-    
-    EARNdates.value = filteredEARNDates.map((date) => {
-      return {
-        time: date.time,
-      };
-    });
-
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-  }
-}
-
 async function fetchSplitsDate() {
   try {
     let ticker = (defaultSymbol || selectedItem).toUpperCase();
@@ -1126,8 +1159,27 @@ async function fetchSplitsDate() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    const newSPLITDates = await response.json();
-    SPLITdates.value = newSPLITDates;
+    const newSplitsDate = await response.json();
+    SplitsDate.value = newSplitsDate;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+  }
+}
+
+async function fetchDividendsDate() {
+  try {
+    let ticker = (defaultSymbol || selectedItem).toUpperCase();
+    const response = await fetch(`/api/${ticker}/dividendsdate/${apiKey}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const newDividendsDate = await response.json();
+    DividendsDate.value = newDividendsDate;
 
   } catch (error) {
     if (error.name === 'AbortError') {
@@ -1148,8 +1200,8 @@ const data9 = ref([]); // weekly 10MA
 const data10 = ref([]); // weekly 20MA
 const data11 = ref([]); // weekly 50MA
 const data12 = ref([]); // weekly 200MA
-const EARNdates = ref([]); // Earnings Data - just date
-const SPLITdates = ref([]); // Splits Data - just date
+const SplitsDate = ref([]); // Splits Data - just date
+const DividendsDate = ref([]); // Dividends Data 
 
 async function fetchData() {
   try {
@@ -1727,43 +1779,6 @@ watch(data12, (newData12) => {
   Histogram.setData(relativeVolumeData);
 });
 
-watch(EARNdates, (newEARNdates) => {
-  newEARNdates.sort((a, b) => {
-    return a.time.year - b.time.year || a.time.month - b.time.month || a.time.day - b.time.day;
-  });
-  const markers1 = newEARNdates.map((date) => {
-    return {
-      time: date.time,
-      position: 'aboveBar',
-      color: '#8c8dfe', 
-      shape: 'circle',
-      size: 1,
-      text: 'E',
-      tooltip: 'Earnings Date',
-    };
-  });
-  Histogram.setMarkers(markers1); 
-});
-
-
-watch(SPLITdates, (newSPLITdates) => {
-  newSPLITdates.sort((a, b) => {
-    return a.time.year - b.time.year || a.time.month - b.time.month || a.time.day - b.time.day;
-  });
-const markers2 = newSPLITdates.map((date) => {
-    return {
-      time: date.time,
-      position: 'aboveBar',
-      color: '#8c8dfe', 
-      shape: 'circle',
-      size: 1,
-      text: 'S',
-      tooltip: 'Earnings Date',
-    };
-  });
-  barSeries.setMarkers(markers2);
-});
-
 function calculateChanges(dataPoints) {
   const changes = [];
   for (let i = 0; i < dataPoints.length; i++) {
@@ -1951,8 +1966,6 @@ function updateLegend3(data) {
   await fetchData10();
   await fetchData11();
   await fetchData12();
-  await fetchEarningsDate();
-  await fetchSplitsDate();
   updateLegend3(data.value);
   isLoading.value = false
 
@@ -3321,8 +3334,8 @@ opacity: 1;
 .no-data {
   padding: 20px;
   text-align: center;
-  background-color: $base1;
-  color: $text2;
+  background-color: $base2;
+  color: rgba($text2, 0.40);
 }
 
 /* buttons inside chart, top right */
@@ -3540,7 +3553,7 @@ opacity: 1;
   flex: 0 0 50%;
 }
 
-.eps-header, .earn-header, .sales-header{
+.dividends-header, .eps-header, .earn-header, .sales-header, .splits-header{
   display: flex; 
   font-weight: bold; 
   background-color: $base1;
@@ -3551,14 +3564,14 @@ opacity: 1;
   align-items: center;
 }
 
-.eps-body, .earn-body, .sales-body{
+.dividends-body, .eps-body, .earn-body, .sales-body, .splits-body{
   display: flex;
   flex-direction: column;
   text-align: center;
   color: $text2;
 }
 
-.eps-row, .earn-row, .sales-row {
+.dividends-row, .eps-row, .earn-row, .sales-row, .splits-row {
   display: flex;
   height: 20px;
   text-align: center;

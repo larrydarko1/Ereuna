@@ -3576,7 +3576,6 @@ app.get('/:ticker/splitsdate/:apiKey',
   async (req, res) => {
     try {
       const apiKey = req.params.apiKey;
-
       const sanitizedKey = sanitizeInput(apiKey);
 
       if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
@@ -3588,7 +3587,7 @@ app.get('/:ticker/splitsdate/:apiKey',
           message: 'Unauthorized API Access'
         });
       }
-      // Sanitize and validate ticker
+
       const ticker = sanitizeInput(req.params.ticker).toUpperCase();
 
       const client = new MongoClient(uri);
@@ -3599,11 +3598,9 @@ app.get('/:ticker/splitsdate/:apiKey',
         const db = client.db('EreunaDB');
         const collection = db.collection('AssetInfo');
 
-        // Find data with logging
-        const Data = await collection.find({ Symbol: ticker }).toArray();
+        const data = await collection.findOne({ Symbol: ticker });
 
-        // Log if no data found
-        if (Data.length === 0) {
+        if (!data || !data.splits) {
           logger.warn('No splits data found', {
             ticker: ticker
           });
@@ -3612,64 +3609,17 @@ app.get('/:ticker/splitsdate/:apiKey',
           });
         }
 
-        // Process and format splits dates
-        const formattedData = Data.flatMap(item => {
-          // Safely handle splits in case it's undefined
-          if (!item.splits || !Array.isArray(item.splits)) {
-            logger.warn('Invalid splits data', {
-              ticker: ticker,
-              itemId: item._id
-            });
-            return [];
-          }
+        const splits = data.splits.reverse();
 
-          return item.splits.map(split => {
-            try {
-              const date = new Date(split.effective_date);
-
-              // Validate date
-              if (isNaN(date.getTime())) {
-                logger.warn('Invalid date in splits data', {
-                  ticker: ticker,
-                  originalDate: split.effective_date
-                });
-                return null;
-              }
-
-              return {
-                time: {
-                  year: date.getFullYear(),
-                  month: date.getMonth() + 1,
-                  day: date.getDate(),
-                },
-                // Optionally add more split details if needed
-                details: {
-                  ratio: split.ratio || null,
-                  type: split.type || 'unknown'
-                }
-              };
-            } catch (dateError) {
-              logger.error('Error processing split date', {
-                ticker: ticker,
-                error: dateError.message
-              });
-              return null;
-            }
-          }).filter(entry => entry !== null); // Remove invalid entries
-        });
-
-        // Send formatted data
-        res.status(200).json(formattedData);
+        res.status(200).json(splits);
 
       } catch (dbError) {
-        // Log database-specific errors
         logger.error('Database error retrieving splits dates', {
           ticker: ticker,
           error: dbError.message,
           stack: dbError.stack
         });
 
-        // Differentiate between different types of database errors
         if (dbError.name === 'MongoError' || dbError.name === 'MongoNetworkError') {
           return res.status(503).json({
             message: 'Database service unavailable',
@@ -3683,7 +3633,6 @@ app.get('/:ticker/splitsdate/:apiKey',
         });
 
       } finally {
-        // Ensure database connection is always closed
         try {
           await client.close();
         } catch (closeError) {
@@ -3694,8 +3643,96 @@ app.get('/:ticker/splitsdate/:apiKey',
       }
 
     } catch (unexpectedError) {
-      // Catch any unexpected errors in the main try block
       logger.error('Unexpected error in splits date retrieval', {
+        error: unexpectedError.message,
+        stack: unexpectedError.stack
+      });
+
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: 'An unexpected error occurred'
+      });
+    }
+  }
+);
+
+// Sends dividend dates
+app.get('/:ticker/dividendsdate/:apiKey',
+  validate([
+    validationSchemas.chartData('ticker'),
+    validationSchemas.apiKeyParam()
+  ]),
+  async (req, res) => {
+    try {
+      const apiKey = req.params.apiKey;
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+
+      const ticker = sanitizeInput(req.params.ticker).toUpperCase();
+
+      const client = new MongoClient(uri);
+
+      try {
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('AssetInfo');
+
+        const data = await collection.findOne({ Symbol: ticker });
+
+        if (!data || !data.dividends) {
+          logger.warn('No dividend data found', {
+            ticker: ticker
+          });
+          return res.status(404).json({
+            message: 'No dividend data found for this ticker'
+          });
+        }
+
+        const dividends = data.dividends.reverse();
+
+        res.status(200).json(dividends);
+
+      } catch (dbError) {
+        logger.error('Database error retrieving dividend dates', {
+          ticker: ticker,
+          error: dbError.message,
+          stack: dbError.stack
+        });
+
+        if (dbError.name === 'MongoError' || dbError.name === 'MongoNetworkError') {
+          return res.status(503).json({
+            message: 'Database service unavailable',
+            error: 'Unable to connect to the database'
+          });
+        }
+
+        return res.status(500).json({
+          message: 'Internal Server Error',
+          error: 'Failed to retrieve dividend dates'
+        });
+
+      } finally {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.error('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
+
+    } catch (unexpectedError) {
+      logger.error('Unexpected error in dividend date retrieval', {
         error: unexpectedError.message,
         stack: unexpectedError.stack
       });
