@@ -337,6 +337,13 @@
     class="toggle-btn">
     {{ showAllSplits ? 'Show Less' : 'Show All' }}
 </button>
+<button class="financialbtn" @click="showPopup = true">View Financial Statements</button>
+<div v-if="showPopup" class="popup">
+    <div class="popup-content">
+      <!-- Your popup content here -->
+      <button @click="showPopup = false">Close</button>
+    </div>
+  </div>
         <h3 class="title">Notes Container</h3>
 <div v-if="BeautifulNotes.length > 0">
   <div class="note" v-for="note in BeautifulNotes" :key="note.Date">
@@ -549,6 +556,7 @@ function getWatchlistIcon(ticker, item) {
 }
 
 const showDropdown = ref(false);
+const showPopup = ref(false) // div for financial statements
 
 // activates sorting of watchlist elements / drag and drop 
 const sortable = ref(null);
@@ -800,6 +808,7 @@ async function searchTicker(providedSymbol) {
       await fetchData12();
       await fetchSplitsDate();
       await fetchDividendsDate();
+      await fetchFinancials();
     }
     isChartLoading.value = false;
   }
@@ -2682,6 +2691,30 @@ onMounted(() => {
   getLastUpdate();
 });
 
+
+const AnnualFinancials = ref([]);
+const QuarterlyFinancials = ref([]);
+
+async function fetchFinancials() {
+  try {
+    let ticker = (defaultSymbol || selectedItem).toUpperCase();
+    const response = await fetch(`/api/${ticker}/financials/${apiKey}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const newFinancials = await response.json();
+    AnnualFinancials.value = newFinancials.annualFinancials;
+    QuarterlyFinancials.value = newFinancials.quarterlyFinancials;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+  }
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -3317,6 +3350,21 @@ opacity: 1;
 }
 
 /* */ 
+
+.financialbtn{
+  background-color: $accent1;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  padding: 10px;
+  color: $text1;
+  transition: background-color 0.5s ease-in-out;
+}
+
+.financialbtn:hover{
+  background-color: $accent2;
+}
+
 .toggle-btn {
   background-color: $base2;
   border: none;
@@ -3648,5 +3696,26 @@ opacity: 1;
 
 #list:focus {
   outline: none;
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.popup-content {
+  background-color: $base2;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  width: 50%;
 }
 </style>
