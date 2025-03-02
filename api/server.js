@@ -11424,3 +11424,96 @@ app.get('/getlastupdate',
     }
   }
 );
+
+// Sends annual and quarterly financials
+app.get('/:ticker/financials/:apiKey',
+  validate([
+    validationSchemas.chartData('ticker'),
+    validationSchemas.apiKeyParam()
+  ]),
+  async (req, res) => {
+    try {
+      const apiKey = req.params.apiKey;
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+
+      const ticker = sanitizeInput(req.params.ticker).toUpperCase();
+
+      const client = new MongoClient(uri);
+
+      try {
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('AssetInfo');
+
+        const data = await collection.findOne({ Symbol: ticker });
+
+        if (!data || !data.AnnualFinancials || !data.quarterlyFinancials) {
+          logger.warn('No financial data found', {
+            ticker: ticker
+          });
+          return res.status(404).json({
+            message: 'No financial data found for this ticker'
+          });
+        }
+
+        const annualFinancials = data.AnnualFinancials;
+        const quarterlyFinancials = data.quarterlyFinancials;
+
+        res.status(200).json({
+          annualFinancials,
+          quarterlyFinancials
+        });
+
+      } catch (dbError) {
+        logger.error('Database error retrieving financial data', {
+          ticker: ticker,
+          error: dbError.message,
+          stack: dbError.stack
+        });
+
+        if (dbError.name === 'MongoError' || dbError.name === 'MongoNetworkError') {
+          return res.status(503).json({
+            message: 'Database service unavailable',
+            error: 'Unable to connect to the database'
+          });
+        }
+
+        return res.status(500).json({
+          message: 'Internal Server Error',
+          error: 'Failed to retrieve financial data'
+        });
+
+      } finally {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.error('Error closing database connection', {
+            error: closeError.message
+          });
+        }
+      }
+
+    } catch (unexpectedError) {
+      logger.error('Unexpected error in financial data retrieval', {
+        error: unexpectedError.message,
+        stack: unexpectedError.stack
+      });
+
+      return res.status(500).json({
+        message: 'Internal Server Error',
+        error: 'An unexpected error occurred'
+      });
+    }
+  }
+);
