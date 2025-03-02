@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
 import time
 import requests
 from dotenv import load_dotenv
@@ -10,8 +11,11 @@ from datetime import datetime
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
+import pytz
 
 app = FastAPI()
+# Create a scheduler
+scheduler = BackgroundScheduler()
 
 # uvicorn main:app --reload 
 
@@ -1227,8 +1231,7 @@ def Daily():
     print(f'\nTotal execution time: {total_execution_time:.2f} seconds')
     set_maintenance_mode(False)
 
-scheduler = BackgroundScheduler()
-#scheduler.add_job(Daily, 'interval', minutes=20) 
+# Add the job to the scheduler
+scheduler.add_job(Daily, CronTrigger(hour=0, minute=5, timezone='CET'))
+# Start the scheduler
 scheduler.start()
-
-Daily()
