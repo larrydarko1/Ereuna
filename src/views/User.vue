@@ -888,11 +888,11 @@ p{
 
 /* buttons for settings */
 .userbtn {
-  background-color: transparent;
+  background-color: $accent1;;
   color: $text1;
   border-radius: 10px;
+  border: none;
   outline: none;
-  border: solid 2px $accent1;
   padding: 5px;
   margin: 5px;
   width: 150px;
@@ -902,7 +902,7 @@ p{
 }
 
 .userbtn:hover {
-    background-color: $accent1; /* Background color on hover */
+    background-color: $accent2; /* Background color on hover */
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }
 

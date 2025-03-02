@@ -26,6 +26,24 @@ tickers = ['A', 'AA', 'AACG', 'AACT', 'AADI', 'AAGR', 'AAGRW', 'AAL', 'AAM', 'AA
 
 api_key = os.getenv('TIINGO_KEY')  # Load API key from environment variable
 
+
+#maintenance mode
+def set_maintenance_mode(mode):
+    collection = db["systemSettings"]
+    
+    # Update the document with name = 'EreunaApp'
+    collection.update_one(
+        {"name": "EreunaApp"},
+        {
+            "$set": {
+                "maintenance": mode,
+                "lastUpdated": datetime.datetime.now()  # Set to current date in BSON format
+            }
+        }
+    )
+    client.close()
+    
+
 #symbol, name, description, IPO, exchange
 def getSummary():
     collection = db['AssetInfo']  
@@ -112,7 +130,7 @@ def getSummary2():
         print(f"Failed to retrieve data. Status code: {response.status_code}")
         print(response.text)
     
-# daily OHCLV + splits and dividend derivatives
+# daily OHCLV 
 def getPrice():
     daily_collection = db["OHCLVData"]
     weekly_collection = db["OHCLVData2"]
@@ -335,91 +353,129 @@ def getDividendYield():
             print(f"Error fetching data for {ticker}: {response.status_code}")
 
 def getSplits():
-    # Get the collections
     ohclv_data_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
+    updates = []
 
-    # Loop through each ticker
     for ticker in tickers:
+        try:
+            # Find the documents in OHCLVData with the current ticker
+            pipeline = [
+                {'$match': {'tickerID': ticker}},
+                {'$project': {'_id': 0, 'timestamp': 1, 'splitFactor': 1}}
+            ]
+            ohclv_data = list(ohclv_data_collection.aggregate(pipeline))
 
-        # Find the documents in OHCLVData with the current ticker
-        ohclv_data = ohclv_data_collection.find({'tickerID': ticker})
-        # Initialize a list to store the splits
-        splits = []
+            # Initialize a list to store the splits
+            splits = []
 
-        # Loop through each document in OHCLVData
-        for document in ohclv_data:
-            # Check if the split factor is not 1
-            if document.get('splitFactor', 1) != 1:
-                # Create a new split document
-                split = {
-                    'effective_date': document['timestamp'],
-                    'split_factor': document['splitFactor']
-                }
-                # Add the split to the list
-                splits.append(split)
+            # Loop through each document in OHCLVData
+            for document in ohclv_data:
+                # Check if the split factor is not 1
+                if document.get('splitFactor', 1) != 1:
+                    # Create a new split document
+                    split = {
+                        'effective_date': document['timestamp'],
+                        'split_factor': document['splitFactor']
+                    }
+                    # Add the split to the list
+                    splits.append(split)
 
-        # Find the document in AssetInfo with the current ticker
-        asset_info = asset_info_collection.find_one({'Symbol': ticker})
+            # Find the document in AssetInfo with the current ticker
+            asset_info = asset_info_collection.find_one({'Symbol': ticker})
 
-        # If the document exists, update the splits
-        if asset_info:
-            try:
+            # If the document exists, update the splits
+            if asset_info:
                 # Remove the existing splits
-                asset_info_collection.update_one({'Symbol': ticker}, {'$set': {'splits': []}})
+                updates.append(
+                    UpdateOne(
+                        {'Symbol': ticker},
+                        {'$set': {'splits': []}}
+                    )
+                )
 
                 # Add the new splits
-                asset_info_collection.update_one({'Symbol': ticker}, {'$push': {'splits': {'$each': splits}}})
+                updates.append(
+                    UpdateOne(
+                        {'Symbol': ticker},
+                        {'$push': {'splits': {'$each': splits}}}
+                    )
+                )
                 print(f'Updated splits for ticker: {ticker}')
-            except Exception as e:
-                print(f'Error updating splits for ticker: {ticker} - {str(e)}')
-        else:
-            print(f'No AssetInfo found for ticker: {ticker}')
+            else:
+                print(f'No AssetInfo found for ticker: {ticker}')
+        except Exception as e:
+            print(f'Error updating splits for ticker: {ticker} - {str(e)}')
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
 
     
 def getDividends():
-    # Get the collections
     ohclv_data_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
+    updates = []
 
-    # Loop through each ticker
     for ticker in tickers:
-        print(f'Processing ticker: {ticker}')
+        try:
+            # Find the documents in OHCLVData with the current ticker
+            pipeline = [
+                {'$match': {'tickerID': ticker}},
+                {'$project': {'_id': 0, 'timestamp': 1, 'divCash': 1}}
+            ]
+            ohclv_data = list(ohclv_data_collection.aggregate(pipeline))
 
-        # Find the documents in OHCLVData with the current ticker
-        ohclv_data = ohclv_data_collection.find({'tickerID': ticker})
+            # Initialize a list to store the dividends
+            dividends = []
 
-        # Initialize a list to store the dividends
-        dividends = []
+            # Loop through each document in OHCLVData
+            for document in ohclv_data:
+                # Check if the divCash is not 0
+                if document.get('divCash', 0) != 0:
+                    # Create a new dividend document
+                    dividend = {
+                        'payment_date': document['timestamp'],
+                        'amount': document['divCash']
+                    }
+                    # Add the dividend to the list
+                    dividends.append(dividend)
 
-        # Loop through each document in OHCLVData
-        for document in ohclv_data:
-            # Check if the divCash is not 0
-            if document.get('divCash', 0) != 0:
-                # Create a new dividend document
-                dividend = {
-                    'payment_date': document['timestamp'],
-                    'amount': document['divCash']
-                }
-                # Add the dividend to the list
-                dividends.append(dividend)
+            # Find the document in AssetInfo with the current ticker
+            asset_info = asset_info_collection.find_one({'Symbol': ticker})
 
-        # Find the document in AssetInfo with the current ticker
-        asset_info = asset_info_collection.find_one({'Symbol': ticker})
-
-        # If the document exists, update the dividends
-        if asset_info:
-            try:
+            # If the document exists, update the dividends
+            if asset_info:
                 # Remove the existing dividends
-                asset_info_collection.update_one({'Symbol': ticker}, {'$set': {'dividends': []}})
+                updates.append(
+                    UpdateOne(
+                        {'Symbol': ticker},
+                        {'$set': {'dividends': []}}
+                    )
+                )
 
                 # Add the new dividends
-                asset_info_collection.update_one({'Symbol': ticker}, {'$push': {'dividends': {'$each': dividends}}})
+                updates.append(
+                    UpdateOne(
+                        {'Symbol': ticker},
+                        {'$push': {'dividends': {'$each': dividends}}}
+                    )
+                )
                 print(f'Updated dividends for ticker: {ticker}')
-            except Exception as e:
-                print(f'Error updating dividends for ticker: {ticker} - {str(e)}')
-        else:
-            print(f'No AssetInfo found for ticker: {ticker}')
+            else:
+                print(f'No AssetInfo found for ticker: {ticker}')
+        except Exception as e:
+            print(f'Error updating dividends for ticker: {ticker} - {str(e)}')
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
 
    
 def update_asset_info_with_time_series():
@@ -1137,9 +1193,13 @@ def getHistoricalPrice():
 
 #run every day
 def Daily():
+    set_maintenance_mode(True)
+    
     functions = [
         ('getPrice', getPrice),
         ('updateDailyRatios', updateDailyRatios),
+        ('updateSplits', getSplits),
+        ('updateDividends', getDividends),
         ('update_timeseries', update_asset_info_with_time_series),
         ('calculate_volumes', calculate_volumes),
         ('calculate_moving_averages', calculate_moving_averages),
@@ -1165,7 +1225,10 @@ def Daily():
         print(f'{func_name} took {execution_time:.2f} seconds to execute')
     
     print(f'\nTotal execution time: {total_execution_time:.2f} seconds')
+    set_maintenance_mode(False)
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(Daily, 'interval', minutes=20) 
+#scheduler.add_job(Daily, 'interval', minutes=20) 
 scheduler.start()
+
+Daily()
