@@ -415,17 +415,18 @@ async function SignUp() {
       password: password.value,
       subscriptionPlan: selectedOption.value,
       paymentMethodId,
-      return_url: `${window.location.origin}/payment-completion/${apiKey}`,
+      return_url: `${window.location.origin}/payment-completion`,
     };
 
     if (PromoCode.value && PromoCode.value.trim() !== '') {
       payload.promoCode = PromoCode.value.trim();
     }
 
-    const response = await fetch(`/api/signup/${apiKey}`, {
+    const response = await fetch('/api/signup', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify(payload),
     });
@@ -440,7 +441,7 @@ async function SignUp() {
         }
         notification.value.show('Payment successful!');
         router.push('/login');
-      } else if (responseData.message === "User  created successfully") {
+      } else if (responseData.message === "User   created successfully") {
         // Download the raw recovery key
         const authKey = responseData.rawAuthKey;
         const blob = new Blob([authKey], { type: 'text/plain' });
@@ -462,7 +463,7 @@ async function SignUp() {
       throw new Error(responseData.message || 'Unexpected response from server');
     }
   } catch (error) {
-    console.error('Error during signup:', error);
+    error.value = error.message;
     notification.value.show('An error occurred during signup. Please try again.');
   } finally {
     processing.value = false;

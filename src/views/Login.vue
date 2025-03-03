@@ -110,10 +110,11 @@ async function login() {
   }
 
   try {
-    const response = await fetch(`/api/login/${apiKey}`, {
+    const response = await fetch('/api/login', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         username,
@@ -149,16 +150,17 @@ async function login() {
       }
     }
   } catch (error) {
-    // Log error
+    error.value = error.message;
   }
 }
 
 async function verifyMfa() {
   try {
-    const mfaResponse = await fetch(`/api/verify-mfa/${apiKey}`, {
+    const mfaResponse = await fetch('/api/verify-mfa', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         username: storedUsername.value,
@@ -179,7 +181,7 @@ async function verifyMfa() {
       mfaError.value = true;
     }
   } catch (error) {
-    // Log error
+    error.value = error.message;
   }
 }
 

@@ -42,10 +42,11 @@
   try {
     const key = recoveryKey.value; // Use a different variable name to avoid confusion
 
-    const response = await fetch(`/api/recover/${apiKey}`, {
+    const response = await fetch('/api/recover', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({ recoveryKey: key }),
     });
@@ -59,7 +60,7 @@
       throw new Error(errorData.message || 'Invalid recovery key');
     }
   } catch (error) {
-    console.error('Validation Error:', error);
+    error.value = error.message;
     
     if (error.message) {
       errorMessage.value = error.message;
@@ -74,10 +75,11 @@
   
 const changePassword = async () => {
   try {
-    const response = await fetch(`/api/change-password2/${apiKey}`, {
+    const response = await fetch('/api/change-password2', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         recoveryKey: recoveryKey.value,
@@ -105,7 +107,7 @@ const changePassword = async () => {
       successMessage.value = '';
     }
   } catch (error) {
-    console.error('Change Password Error:', error);
+    error.value = error.message;
     
     if (error.message) {
       errorMessage.value = error.message || 'An unexpected error occurred.';
