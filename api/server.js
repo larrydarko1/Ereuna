@@ -152,19 +152,18 @@ try {
 export default app;
 
 // endpoint that creates users / assuming payment has been successful on client-side 
-app.post('/signup/:apiKey',
+app.post('/signup',
   validate([
     ...validationSets.registration,
     validationSchemas.paymentMethodId(),
-    validationSchemas.promoCode(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.promoCode()
   ]),
   async (req, res) => {
     const requestLogger = createRequestLogger(req);
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -371,8 +370,8 @@ function handleError(error, logger, req) {
 }
 
 // Endpoint for verifying the token
-app.get('/verify/:apiKey', (req, res) => {
-  const apiKey = req.params.apiKey;
+app.get('/verify', (req, res) => {
+  const apiKey = req.header('x-api-key');
 
   const sanitizedKey = sanitizeInput(apiKey);
 
@@ -474,12 +473,11 @@ app.get('/verify/:apiKey', (req, res) => {
 });
 
 // Endpoint for user login
-app.post('/login/:apiKey',
+app.post('/login',
   validate([
     validationSchemas.username(),
     validationSchemas.password(),
-    validationSchemas.rememberMe(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.rememberMe()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -491,7 +489,7 @@ app.post('/login/:apiKey',
 
     try {
       const { username, password, rememberMe } = req.body;
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -637,16 +635,15 @@ app.post('/login/:apiKey',
   }
 );
 
-app.post('/verify-mfa/:apiKey',
+app.post('/verify-mfa',
   validate([
     validationSchemas.username(),
     validationSchemas.mfaCode(),
-    validationSchemas.apiKeyParam(),
     validationSchemas.rememberMe()
   ]),
   async (req, res) => {
     const { username, mfaCode, rememberMe } = req.body;
-    const apiKey = req.params.apiKey;
+    const apiKey = req.header('x-api-key');
 
     // Validate API key
     const sanitizedKey = sanitizeInput(apiKey);
@@ -732,11 +729,10 @@ app.post('/verify-mfa/:apiKey',
 );
 
 // Endpoint for toggling 2FA
-app.post('/twofa/:apiKey',
+app.post('/twofa',
   validate([
     validationSchemas.username(),
-    validationSchemas.enabled(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.enabled()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -748,7 +744,7 @@ app.post('/twofa/:apiKey',
 
     try {
       const { username, enabled } = req.body;
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -861,10 +857,9 @@ app.post('/twofa/:apiKey',
 );
 
 //endpoint that allows for password reset
-app.post('/recover/:apiKey',
+app.post('/recover',
   validate([
-    validationSchemas.recoveryKey(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.recoveryKey()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -876,7 +871,7 @@ app.post('/recover/:apiKey',
     });
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -999,11 +994,10 @@ app.post('/recover/:apiKey',
 );
 
 // endpoint that generates a new recovery key upon validation 
-app.patch('/generate-key/:apiKey',
+app.patch('/generate-key',
   validate([
     validationSchemas.user(),
-    validationSchemas.password(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.password()
   ]),
   async (req, res) => {
     const requestLogger = logger.child({
@@ -1015,7 +1009,7 @@ app.patch('/generate-key/:apiKey',
 
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -1187,7 +1181,7 @@ app.patch('/generate-key/:apiKey',
 );
 
 // Endpoint to actually retrieve the key using the token
-app.get('/retrieve-key/:apiKey', async (req, res) => {
+app.get('/retrieve-key', async (req, res) => {
   // Create a child logger with request-specific context
   const requestLogger = logger.child({
     requestId: crypto.randomBytes(16).toString('hex'),
@@ -1198,7 +1192,7 @@ app.get('/retrieve-key/:apiKey', async (req, res) => {
 
   let client;
   try {
-    const apiKey = req.params.apiKey;
+    const apiKey = req.header('x-api-key');
 
     const sanitizedKey = sanitizeInput(apiKey);
 
@@ -1285,12 +1279,11 @@ app.get('/retrieve-key/:apiKey', async (req, res) => {
 });
 
 // endpoint that updates user document with new password
-app.patch('/password-change/:apiKey',
+app.patch('/password-change',
   validate([
     validationSchemas.user(),
     validationSchemas.oldPassword(),
-    validationSchemas.newPassword(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.newPassword()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -1323,7 +1316,7 @@ app.patch('/password-change/:apiKey',
 
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -1473,11 +1466,10 @@ app.patch('/password-change/:apiKey',
 );
 
 //endpoint that changes password with recovery method 
-app.patch('/change-password2/:apiKey',
+app.patch('/change-password2',
   validate([
     validationSchemas.recoveryKey(),
-    validationSchemas.newPassword(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.newPassword()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -1489,7 +1481,7 @@ app.patch('/change-password2/:apiKey',
     });
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -1619,12 +1611,11 @@ app.patch('/change-password2/:apiKey',
 );
 
 // endpoint that updates username for user
-app.patch('/change-username/:apiKey',
+app.patch('/change-username',
   // Validation middleware
   validate([
     validationSchemas.user('user'),
-    validationSchemas.newUsername(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.newUsername()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -1637,7 +1628,7 @@ app.patch('/change-username/:apiKey',
 
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -1824,11 +1815,10 @@ app.patch('/change-username/:apiKey',
   }
 );
 
-app.delete('/account-delete/:apiKey',
+app.delete('/account-delete',
   validate([
     validationSchemas.user(),
-    validationSchemas.password(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.password()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -1841,7 +1831,7 @@ app.delete('/account-delete/:apiKey',
 
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -2021,12 +2011,12 @@ app.delete('/account-delete/:apiKey',
 );
 
 // endpoint that retrieves expriation days for users (user section)
-app.get('/get-expiration-date/:apiKey',
-  validate([validationSchemas.apiKeyParam(),
-  body('user')
-    .optional() // removing this invalidates the check 
-    .trim()
-    .notEmpty().withMessage('Username is required')
+app.get('/get-expiration-date',
+  validate([
+    body('user')
+      .optional() // removing this invalidates the check 
+      .trim()
+      .notEmpty().withMessage('Username is required')
   ]),
   async (req, res) => {
     const username = req.query.user; // Keep original query parameter retrieval
@@ -2044,7 +2034,7 @@ app.get('/get-expiration-date/:apiKey',
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -2112,13 +2102,12 @@ app.get('/get-expiration-date/:apiKey',
 );
 
 //endpoint to display info results
-app.get('/chart/:identifier/:apiKey', validate([
-  validationSchemas.identifier(),
-  validationSchemas.apiKeyParam()
+app.get('/chart/:identifier', validate([
+  validationSchemas.identifier()
 ]),
   async (req, res) => {
     const identifier = req.params.identifier.toUpperCase();
-    const apiKey = req.params.apiKey;
+    const apiKey = req.header('x-api-key');
     let client;
 
     const sanitizedKey = sanitizeInput(apiKey);
@@ -2134,19 +2123,6 @@ app.get('/chart/:identifier/:apiKey', validate([
     }
 
     try {
-      const apiKey = req.params.apiKey;
-
-      const sanitizedKey = sanitizeInput(apiKey);
-
-      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-        logger.warn('Invalid API key', {
-          providedApiKey: !!sanitizedKey
-        });
-
-        return res.status(401).json({
-          message: 'Unauthorized API Access'
-        });
-      }
       client = new MongoClient(uri);
       await client.connect();
 
@@ -2206,12 +2182,11 @@ app.get('/chart/:identifier/:apiKey', validate([
 );
 
 // endpoint to create new notes 
-app.post('/:symbol/notes/:apiKey',
+app.post('/:symbol/notes',
   validate([
     validationSchemas.symbol('symbol'),
     validationSchemas.note('note'),
-    validationSchemas.Username('Username'), ,
-    validationSchemas.apiKeyParam()
+    validationSchemas.Username('Username')
   ]),
   async (req, res) => {
     const ticker = req.params.symbol.toUpperCase();
@@ -2224,7 +2199,7 @@ app.post('/:symbol/notes/:apiKey',
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -2319,8 +2294,7 @@ app.post('/:symbol/notes/:apiKey',
 );
 
 // endpoint to search notes 
-app.get('/:user/:symbol/notes/:apiKey', validate(validationSets.notesSearch,
-  validationSchemas.apiKeyParam()),
+app.get('/:user/:symbol/notes', validate(validationSets.notesSearch),
   async (req, res) => {
     const ticker = req.params.symbol.toUpperCase();
     const Username = req.params.user;
@@ -2332,7 +2306,7 @@ app.get('/:user/:symbol/notes/:apiKey', validate(validationSets.notesSearch,
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -2382,12 +2356,12 @@ app.get('/:user/:symbol/notes/:apiKey', validate(validationSets.notesSearch,
   });
 
 // endpoint to delete a note
-app.delete('/:symbol/notes/:apiKey/:noteId', validate(validationSets.notesDeletion),
+app.delete('/:symbol/notes/:noteId', validate(validationSets.notesDeletion),
   async (req, res) => {
     const ticker = req.params.symbol.toUpperCase();
     const noteId = req.params.noteId;
     const Username = req.query.user;
-    const apiKey = req.params.apiKey;
+    const apiKey = req.header('x-api-key');
 
     const sanitizedKey = sanitizeInput(apiKey);
 
@@ -2451,15 +2425,14 @@ app.delete('/:symbol/notes/:apiKey/:noteId', validate(validationSets.notesDeleti
 );
 
 //this endpoint retrieves OHCL Data for the charts 
-app.get('/:ticker/data/:apiKey',
-  validate(validationSets.chartData,
-    validationSchemas.apiKeyParam()),
+app.get('/:ticker/data',
+  validate(validationSets.chartData),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -2524,15 +2497,14 @@ app.get('/:ticker/data/:apiKey',
 );
 
 //this endpoint retrieves volume Data for the charts 
-app.get('/:ticker/data2/:apiKey',
-  validate(validationSets.chartData,
-    validationSchemas.apiKeyParam()),
+app.get('/:ticker/data2',
+  validate(validationSets.chartData),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -2594,15 +2566,14 @@ app.get('/:ticker/data2/:apiKey',
 );
 
 //sends data for 10DMA (SMA)
-app.get('/:ticker/data3/:apiKey',
-  validate(validationSets.chartData,
-    validationSchemas.apiKeyParam()),
+app.get('/:ticker/data3',
+  validate(validationSets.chartData),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -2636,11 +2607,6 @@ app.get('/:ticker/data3/:apiKey',
 
       // Check if there's enough data to calculate moving average
       if (Data.length < 10) {
-        logger.warn({
-          msg: 'Insufficient Data for Moving Average Calculation',
-          ticker: ticker,
-          dataPoints: Data.length
-        });
         return res.status(400).json({
           message: 'Insufficient data to calculate 10-day moving average',
           availableDataPoints: Data.length
@@ -2682,15 +2648,14 @@ app.get('/:ticker/data3/:apiKey',
 );
 
 //sends data for 20DMA (SMA)
-app.get('/:ticker/data4/:apiKey',
-  validate(validationSets.chartData,
-    validationSchemas.apiKeyParam()),
+app.get('/:ticker/data4',
+  validate(validationSets.chartData),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -2723,11 +2688,6 @@ app.get('/:ticker/data4/:apiKey',
 
       // Check if there's enough data to calculate moving average
       if (Data.length < 20) {
-        logger.warn({
-          msg: 'Insufficient Data for Moving Average Calculation',
-          ticker: ticker,
-          dataPoints: Data.length
-        });
         return res.status(400).json({
           message: 'Insufficient data to calculate 20-day moving average',
           availableDataPoints: Data.length
@@ -2769,15 +2729,14 @@ app.get('/:ticker/data4/:apiKey',
 );
 
 //sends data for 50DMA (SMA)
-app.get('/:ticker/data5/:apiKey',
-  validate(validationSets.chartData,
-    validationSchemas.apiKeyParam()),
+app.get('/:ticker/data5',
+  validate(validationSets.chartData),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -2811,11 +2770,6 @@ app.get('/:ticker/data5/:apiKey',
 
       // Check if there's enough data to calculate moving average
       if (Data.length < 50) {
-        logger.warn({
-          msg: 'Insufficient Data for Moving Average Calculation',
-          ticker: ticker,
-          dataPoints: Data.length
-        });
         return res.status(400).json({
           message: 'Insufficient data to calculate 50-day moving average',
           availableDataPoints: Data.length
@@ -2857,15 +2811,14 @@ app.get('/:ticker/data5/:apiKey',
 );
 
 //sends data for 200DMA (SMA)
-app.get('/:ticker/data6/:apiKey',
-  validate(validationSets.chartData,
-    validationSchemas.apiKeyParam()),
+app.get('/:ticker/data6',
+  validate(validationSets.chartData),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -2898,11 +2851,6 @@ app.get('/:ticker/data6/:apiKey',
 
       // Check if there's enough data to calculate moving average
       if (Data.length < 200) {
-        logger.warn({
-          msg: 'Insufficient Data for Moving Average Calculation',
-          ticker: ticker,
-          dataPoints: Data.length
-        });
         return res.status(400).json({
           message: 'Insufficient data to calculate 200-day moving average',
           availableDataPoints: Data.length
@@ -2944,15 +2892,14 @@ app.get('/:ticker/data6/:apiKey',
 );
 
 //Weekly OHCL Data
-app.get('/:ticker/data7/:apiKey',
-  validate(validationSets.chartData,
-    validationSchemas.apiKeyParam()),
+app.get('/:ticker/data7',
+  validate(validationSets.chartData),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -3015,15 +2962,14 @@ app.get('/:ticker/data7/:apiKey',
 );
 
 // Weekly Volume Data
-app.get('/:ticker/data8/:apiKey',
-  validate(validationSets.chartData,
-    validationSchemas.apiKeyParam()),
+app.get('/:ticker/data8',
+  validate(validationSets.chartData),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -3085,15 +3031,14 @@ app.get('/:ticker/data8/:apiKey',
 );
 
 //sends data for 10DMA (SMA)
-app.get('/:ticker/data9/:apiKey',
-  validate(validationSets.chartData,
-    validationSchemas.apiKeyParam()),
+app.get('/:ticker/data9',
+  validate(validationSets.chartData),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -3126,11 +3071,6 @@ app.get('/:ticker/data9/:apiKey',
 
       // Check if there's enough data to calculate moving average
       if (Data.length < 10) {
-        logger.warn({
-          msg: 'Insufficient Data for Moving Average Calculation',
-          ticker: ticker,
-          dataPoints: Data.length
-        });
         return res.status(400).json({
           message: 'Insufficient data to calculate 10-day moving average',
           availableDataPoints: Data.length
@@ -3172,15 +3112,14 @@ app.get('/:ticker/data9/:apiKey',
 );
 
 //sends data for 20DMA (SMA)
-app.get('/:ticker/data10/:apiKey',
-  validate(validationSets.chartData,
-    validationSchemas.apiKeyParam()),
+app.get('/:ticker/data10',
+  validate(validationSets.chartData),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -3214,11 +3153,6 @@ app.get('/:ticker/data10/:apiKey',
 
       // Check if there's enough data to calculate moving average
       if (Data.length < 20) {
-        logger.warn({
-          msg: 'Insufficient Data for Moving Average Calculation',
-          ticker: ticker,
-          dataPoints: Data.length
-        });
         return res.status(400).json({
           message: 'Insufficient data to calculate 20-day moving average',
           availableDataPoints: Data.length
@@ -3260,15 +3194,14 @@ app.get('/:ticker/data10/:apiKey',
 );
 
 //sends data for 50DMA (SMA)
-app.get('/:ticker/data11/:apiKey',
-  validate(validationSets.chartData,
-    validationSchemas.apiKeyParam()),
+app.get('/:ticker/data11',
+  validate(validationSets.chartData),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -3302,11 +3235,6 @@ app.get('/:ticker/data11/:apiKey',
 
       // Check if there's enough data to calculate moving average
       if (Data.length < 50) {
-        logger.warn({
-          msg: 'Insufficient Data for Moving Average Calculation',
-          ticker: ticker,
-          dataPoints: Data.length
-        });
         return res.status(400).json({
           message: 'Insufficient data to calculate 50-day moving average',
           availableDataPoints: Data.length
@@ -3348,15 +3276,14 @@ app.get('/:ticker/data11/:apiKey',
 );
 
 //sends data for 200DMA (SMA)
-app.get('/:ticker/data12/:apiKey',
-  validate(validationSets.chartData,
-    validationSchemas.apiKeyParam()),
+app.get('/:ticker/data12',
+  validate(validationSets.chartData),
   async (req, res) => {
     const ticker = sanitizeInput(req.params.ticker.toUpperCase());
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -3390,11 +3317,6 @@ app.get('/:ticker/data12/:apiKey',
 
       // Check if there's enough data to calculate moving average
       if (Data.length < 200) {
-        logger.warn({
-          msg: 'Insufficient Data for Moving Average Calculation',
-          ticker: ticker,
-          dataPoints: Data.length
-        });
         return res.status(400).json({
           message: 'Insufficient data to calculate 200-day moving average',
           availableDataPoints: Data.length
@@ -3436,14 +3358,13 @@ app.get('/:ticker/data12/:apiKey',
 );
 
 // Sends earnings date 
-app.get('/:ticker/earningsdate/:apiKey',
+app.get('/:ticker/earningsdate',
   validate([
-    validationSchemas.chartData('ticker'),
-    validationSchemas.apiKeyParam()
+    validationSchemas.chartData('ticker')
   ]),
   async (req, res) => {
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -3568,14 +3489,13 @@ app.get('/:ticker/earningsdate/:apiKey',
 );
 
 // Sends splits date 
-app.get('/:ticker/splitsdate/:apiKey',
+app.get('/:ticker/splitsdate',
   validate([
-    validationSchemas.chartData('ticker'),
-    validationSchemas.apiKeyParam()
+    validationSchemas.chartData('ticker')
   ]),
   async (req, res) => {
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
       const sanitizedKey = sanitizeInput(apiKey);
 
       if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
@@ -3657,14 +3577,13 @@ app.get('/:ticker/splitsdate/:apiKey',
 );
 
 // Sends dividend dates
-app.get('/:ticker/dividendsdate/:apiKey',
+app.get('/:ticker/dividendsdate',
   validate([
-    validationSchemas.chartData('ticker'),
-    validationSchemas.apiKeyParam()
+    validationSchemas.chartData('ticker')
   ]),
   async (req, res) => {
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
       const sanitizedKey = sanitizeInput(apiKey);
 
       if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
@@ -3746,14 +3665,13 @@ app.get('/:ticker/dividendsdate/:apiKey',
 );
 
 // endpoint that retrieves watchlists (names)
-app.get('/:user/watchlists/:apiKey',
+app.get('/:user/watchlists',
   validate([
-    validationSchemas.userParam('user'),
-    validationSchemas.apiKeyParam()
+    validationSchemas.userParam('user')
   ]),
   async (req, res) => {
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -3845,11 +3763,10 @@ app.get('/:user/watchlists/:apiKey',
 );
 
 // endpoint that retrieves content of watchlists based on the selected name 
-app.get('/:user/watchlists/:list/:apiKey',
+app.get('/:user/watchlists/:list',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.watchlistName(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.watchlistName()
   ]),
   async (req, res) => {
     try {
@@ -3858,7 +3775,7 @@ app.get('/:user/watchlists/:list/:apiKey',
       const client = new MongoClient(uri);
 
       try {
-        const apiKey = req.params.apiKey;
+        const apiKey = req.header('x-api-key');
 
         const sanitizedKey = sanitizeInput(apiKey);
 
@@ -3927,14 +3844,13 @@ app.get('/:user/watchlists/:list/:apiKey',
 );
 
 // 
-app.get('/:symbol/data-values/:apiKey',
+app.get('/:symbol/data-values',
   validate([
-    validationSchemas.symbolParam('symbol'),
-    validationSchemas.apiKeyParam()
+    validationSchemas.symbolParam('symbol')
   ]),
   async (req, res) => {
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -4008,11 +3924,10 @@ app.get('/:symbol/data-values/:apiKey',
 );
 
 // endpoint to add symbol to selected watchlist 
-app.patch('/:user/watchlists/:list/:apiKey',
+app.patch('/:user/watchlists/:list',
   validate([
     validationSchemas.userParam('user'),
     validationSchemas.watchlistName(),
-    validationSchemas.apiKeyParam(),
     body('Name').trim()
       .isLength({ min: 1, max: 20 })
       .withMessage('Watchlist name must be between 1 and 20 characters')
@@ -4026,7 +3941,7 @@ app.patch('/:user/watchlists/:list/:apiKey',
   ]),
   async (req, res) => {
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -4165,12 +4080,11 @@ app.patch('/:user/watchlists/:list/:apiKey',
 );
 
 // endpoint that deletes ticker from selected watchlist 
-app.patch('/:user/deleteticker/watchlists/:list/:ticker/:apiKey',
+app.patch('/:user/deleteticker/watchlists/:list/:ticker',
   validate([
     validationSchemas.userParam('user'),
     validationSchemas.watchlistName(),
-    validationSchemas.symbolParam('ticker'),
-    validationSchemas.apiKeyParam()
+    validationSchemas.symbolParam('ticker')
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -4182,7 +4096,7 @@ app.patch('/:user/deleteticker/watchlists/:list/:ticker/:apiKey',
     });
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -4300,11 +4214,10 @@ app.patch('/:user/deleteticker/watchlists/:list/:ticker/:apiKey',
 );
 
 // endpoint that deletes selected watchlist
-app.delete('/:user/delete/watchlists/:list/:apiKey',
+app.delete('/:user/delete/watchlists/:list',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.watchlistName(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.watchlistName()
   ]),
   async (req, res) => {
     const requestLogger = logger.child({
@@ -4314,7 +4227,7 @@ app.delete('/:user/delete/watchlists/:list/:apiKey',
     });
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -4361,11 +4274,10 @@ app.delete('/:user/delete/watchlists/:list/:apiKey',
   });
 
 // endpoint that creates a new watchlist 
-app.post('/:user/create/watchlists/:list/:apiKey',
+app.post('/:user/create/watchlists/:list',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.watchlistName(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.watchlistName()
   ]),
   async (req, res) => {
     const requestLogger = logger.child({
@@ -4375,7 +4287,7 @@ app.post('/:user/create/watchlists/:list/:apiKey',
     });
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -4503,11 +4415,10 @@ app.post('/:user/create/watchlists/:list/:apiKey',
 );
 
 // endpoint that renames selected watchlist 
-app.patch('/:user/rename/watchlists/:oldname/:apiKey',
+app.patch('/:user/rename/watchlists/:oldname',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.newname(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.newname()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -4518,7 +4429,7 @@ app.patch('/:user/rename/watchlists/:oldname/:apiKey',
     });
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -4575,11 +4486,10 @@ app.patch('/:user/rename/watchlists/:oldname/:apiKey',
   });
 
 // endpoint that handles creation of new screeners 
-app.post('/:user/create/screener/:list/:apiKey',
+app.post('/:user/create/screener/:list',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.screenerName(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.screenerName()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -4591,7 +4501,7 @@ app.post('/:user/create/screener/:list/:apiKey',
 
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -4675,12 +4585,11 @@ app.post('/:user/create/screener/:list/:apiKey',
   });
 
 // endpoint that renames selected screener
-app.patch('/:user/rename/screener/:apiKey',
+app.patch('/:user/rename/screener',
   validate([
     validationSchemas.userParam('user'),
     validationSchemas.oldname(),
-    validationSchemas.newname(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.newname()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -4692,7 +4601,7 @@ app.patch('/:user/rename/screener/:apiKey',
 
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -4781,11 +4690,10 @@ app.patch('/:user/rename/screener/:apiKey',
   });
 
 // endpoint that deletes selected screener 
-app.delete('/:user/delete/screener/:list/:apiKey',
+app.delete('/:user/delete/screener/:list',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.screenerName(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.screenerName()
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -4797,7 +4705,7 @@ app.delete('/:user/delete/screener/:list/:apiKey',
 
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -4847,10 +4755,9 @@ app.delete('/:user/delete/screener/:list/:apiKey',
   });
 
 // endpoint that sends unfiltered database data into screener results (minus hidden list for user)
-app.get('/:user/screener/results/all/:apiKey',
+app.get('/:user/screener/results/all',
   validate([
-    validationSchemas.userParam('user'),
-    validationSchemas.apiKeyParam()
+    validationSchemas.userParam('user')
   ]),
   async (req, res) => {
     // Create a child logger with request-specific context
@@ -4862,7 +4769,7 @@ app.get('/:user/screener/results/all/:apiKey',
 
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -4936,18 +4843,17 @@ app.get('/:user/screener/results/all/:apiKey',
   });
 
 // endpoint that updates screener document with price parameters 
-app.patch('/screener/price/:apiKey', validate([
+app.patch('/screener/price', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice(),
-  validationSchemas.apiKeyParam()
+  validationSchemas.maxPrice()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -5082,18 +4988,17 @@ app.patch('/screener/price/:apiKey', validate([
 
 
 // endpoint that updates screener document with market cap parameters 
-app.patch('/screener/marketcap/:apiKey',
+app.patch('/screener/marketcap',
   validate([
     validationSchemas.user(),
     validationSchemas.screenerNameBody(),
     validationSchemas.minPrice(),
-    validationSchemas.maxPrice(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.maxPrice()
   ]),
   async (req, res) => {
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -5227,11 +5132,10 @@ app.patch('/screener/marketcap/:apiKey',
 );
 
 // endpoint that updates screener document with ipo date parameters 
-app.patch('/screener/ipo-date/:apiKey',
+app.patch('/screener/ipo-date',
   validate([
     validationSchemas.user(),
     validationSchemas.screenerNameBody(),
-    validationSchemas.apiKeyParam(),
     // Custom validation for dates
     body('minPrice')
       .optional()
@@ -5261,7 +5165,7 @@ app.patch('/screener/ipo-date/:apiKey',
   async (req, res) => {
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -5388,16 +5292,15 @@ app.patch('/screener/ipo-date/:apiKey',
 );
 
 // endpoint that handles adding symbol to hidden list for user 
-app.patch('/screener/:user/hidden/:symbol/:apiKey',
+app.patch('/screener/:user/hidden/:symbol',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.symbolParam('symbol'),
-    validationSchemas.apiKeyParam()
+    validationSchemas.symbolParam('symbol')
   ]),
   async (req, res) => {
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -5485,15 +5388,14 @@ app.patch('/screener/:user/hidden/:symbol/:apiKey',
 );
 
 // endpoint that fetches hidden list for user 
-app.get('/screener/results/:user/hidden/:apiKey',
+app.get('/screener/results/:user/hidden',
   validate([
-    validationSchemas.userParam('user'),
-    validationSchemas.apiKeyParam()
+    validationSchemas.userParam('user')
   ]),
   async (req, res) => {
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -5567,15 +5469,14 @@ app.get('/screener/results/:user/hidden/:apiKey',
 );
 
 // endpoint that retrieves all screeners' names for user 
-app.get('/screener/:user/names/:apiKey',
+app.get('/screener/:user/names',
   validate([
-    validationSchemas.userParam('user'),
-    validationSchemas.apiKeyParam()
+    validationSchemas.userParam('user')
   ]),
   async (req, res) => {
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -5649,15 +5550,14 @@ app.get('/screener/:user/names/:apiKey',
 );
 
 // endpoint that sends hidden list of user in results 
-app.get('/:user/screener/results/hidden/:apiKey',
+app.get('/:user/screener/results/hidden',
   validate([
-    validationSchemas.userParam('user'),
-    validationSchemas.apiKeyParam()
+    validationSchemas.userParam('user')
   ]),
   async (req, res) => {
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -5751,16 +5651,15 @@ app.get('/:user/screener/results/hidden/:apiKey',
 );
 
 // endpoint that removes ticker from hidden list 
-app.patch('/screener/:user/show/:symbol/:apiKey',
+app.patch('/screener/:user/show/:symbol',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.symbolParam('symbol'),
-    validationSchemas.apiKeyParam()
+    validationSchemas.symbolParam('symbol')
   ]),
   async (req, res) => {
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -5860,13 +5759,11 @@ app.patch('/screener/:user/show/:symbol/:apiKey',
 );
 
 // endpoint that retrieves all available sectors for user (for screener)
-app.get('/screener/sectors/:apiKey', validate([
-  validationSchemas.apiKeyParam()
-]),
+app.get('/screener/sectors',
   async (req, res) => {
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -5916,11 +5813,10 @@ app.get('/screener/sectors/:apiKey', validate([
   });
 
 // endpoint that updates screener document with sector params 
-app.patch('/screener/sectors/:apiKey',
+app.patch('/screener/sectors',
   validate([
     validationSchemas.user(),
     validationSchemas.screenerNameBody(),
-    validationSchemas.apiKeyParam(),
     body('sectors')
       .isArray().withMessage('Sectors must be an array')
       .custom((value) => {
@@ -5939,7 +5835,7 @@ app.patch('/screener/sectors/:apiKey',
   async (req, res) => {
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -6012,13 +5908,11 @@ app.patch('/screener/sectors/:apiKey',
 );
 
 // endpoint that retrieves all available exchanges for user (screener)
-app.get('/screener/exchange/:apiKey', validate([
-  validationSchemas.apiKeyParam()
-]),
+app.get('/screener/exchange',
   async (req, res) => {
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -6071,11 +5965,10 @@ app.get('/screener/exchange/:apiKey', validate([
   });
 
 // endpoint that updates screener document with exchange params 
-app.patch('/screener/exchange/:apiKey',
+app.patch('/screener/exchange',
   validate([
     validationSchemas.user(),
     validationSchemas.screenerNameBody(),
-    validationSchemas.apiKeyParam(),
     body('exchanges')
       .isArray().withMessage('Exchanges must be an array')
       .custom((value) => {
@@ -6092,7 +5985,7 @@ app.patch('/screener/exchange/:apiKey',
   async (req, res) => {
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -6182,13 +6075,11 @@ app.patch('/screener/exchange/:apiKey',
 );
 
 // endpoint that retrieves all available countries for user (screener)
-app.get('/screener/country/:apiKey', validate([
-  validationSchemas.apiKeyParam()
-]),
+app.get('/screener/country',
   async (req, res) => {
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -6236,11 +6127,10 @@ app.get('/screener/country/:apiKey', validate([
 );
 
 // endpoint that updates screener document with country params 
-app.patch('/screener/country/:apiKey',
+app.patch('/screener/country',
   validate([
     validationSchemas.user(),
     validationSchemas.screenerNameBody(),
-    validationSchemas.apiKeyParam(),
     body('countries')
       .isArray().withMessage('Countries must be an array')
       .custom((value) => {
@@ -6257,7 +6147,7 @@ app.patch('/screener/country/:apiKey',
   async (req, res) => {
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -6347,18 +6237,17 @@ app.patch('/screener/country/:apiKey',
 );
 
 // endpoint that updates screener document with PE parameters 
-app.patch('/screener/pe/:apiKey', validate([
+app.patch('/screener/pe', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice(),
-  validationSchemas.apiKeyParam()
+  validationSchemas.maxPrice()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -6490,18 +6379,17 @@ app.patch('/screener/pe/:apiKey', validate([
   });
 
 // endpoint that updates screener document with Forward PE parameters 
-app.patch('/screener/forward-pe/:apiKey', validate([
+app.patch('/screener/forward-pe', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice(),
-  validationSchemas.apiKeyParam()
+  validationSchemas.maxPrice()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -6630,18 +6518,17 @@ app.patch('/screener/forward-pe/:apiKey', validate([
   });
 
 // endpoint that updates screener document with PEG parameters 
-app.patch('/screener/peg/:apiKey', validate([
+app.patch('/screener/peg', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice(),
-  validationSchemas.apiKeyParam()
+  validationSchemas.maxPrice()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -6768,18 +6655,17 @@ app.patch('/screener/peg/:apiKey', validate([
   });
 
 // endpoint that updates screener document with PEG parameters 
-app.patch('/screener/eps/:apiKey', validate([
+app.patch('/screener/eps', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice(),
-  validationSchemas.apiKeyParam()
+  validationSchemas.maxPrice()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -6911,18 +6797,17 @@ app.patch('/screener/eps/:apiKey', validate([
   });
 
 // endpoint that updates screener document with PS Ratio parameters 
-app.patch('/screener/ps-ratio/:apiKey', validate([
+app.patch('/screener/ps-ratio', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice(),
-  validationSchemas.apiKeyParam()
+  validationSchemas.maxPrice()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -7055,18 +6940,17 @@ app.patch('/screener/ps-ratio/:apiKey', validate([
   });
 
 // endpoint that updates screener document with PB Ratio parameters 
-app.patch('/screener/pb-ratio/:apiKey', validate([
+app.patch('/screener/pb-ratio', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice(),
-  validationSchemas.apiKeyParam()
+  validationSchemas.maxPrice()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -7199,18 +7083,17 @@ app.patch('/screener/pb-ratio/:apiKey', validate([
   });
 
 // endpoint that updates screener document with Beta parameters 
-app.patch('/screener/beta/:apiKey', validate([
+app.patch('/screener/beta', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice(),
-  validationSchemas.apiKeyParam()
+  validationSchemas.maxPrice()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -7359,18 +7242,17 @@ app.patch('/screener/beta/:apiKey', validate([
   });
 
 // endpoint that updates screener document with dividend yield parameters 
-app.patch('/screener/div-yield/:apiKey', validate([
+app.patch('/screener/div-yield', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.minPrice(),
-  validationSchemas.maxPrice(),
-  validationSchemas.apiKeyParam()
+  validationSchemas.maxPrice()
 ]),
   async (req, res) => {
     let minPrice, maxPrice, screenerName, Username;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -7513,14 +7395,13 @@ app.patch('/screener/div-yield/:apiKey', validate([
   });
 
 //endpoint is supposed to update document with growth % 
-app.patch('/screener/fundamental-growth/:apiKey', validate([
+app.patch('/screener/fundamental-growth', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
-  validationSchemas.apiKeyParam(),
 ]), async (req, res) => {
   let client;
   try {
-    const apiKey = req.params.apiKey;
+    const apiKey = req.header('x-api-key');
 
     const sanitizedKey = sanitizeInput(apiKey);
 
@@ -7698,17 +7579,16 @@ app.patch('/screener/fundamental-growth/:apiKey', validate([
 });
 
 // endpoint that updates screener document with volume parameters 
-app.patch('/screener/volume/:apiKey', validate([
+app.patch('/screener/volume', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
   validationSchemas.relativeVolumeOption(),
   validationSchemas.averageVolumeOption(), ,
-  validationSchemas.apiKeyParam(),
   ...validationSchemas.volumeValues()
 ]), async (req, res) => {
   let client;
   try {
-    const apiKey = req.params.apiKey;
+    const apiKey = req.header('x-api-key');
 
     const sanitizedKey = sanitizeInput(apiKey);
 
@@ -7829,10 +7709,9 @@ app.patch('/screener/volume/:apiKey', validate([
 });
 
 // endpoint that updates screener document with RS Score parameters 
-app.patch('/screener/rs-score/:apiKey', validate([
+app.patch('/screener/rs-score', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
-  validationSchemas.apiKeyParam(),
   // Custom validation for RS Score values
   body('value1')
     .optional({ nullable: true }) // Allow null values
@@ -7898,7 +7777,7 @@ app.patch('/screener/rs-score/:apiKey', validate([
 ]), async (req, res) => {
   let client;
   try {
-    const apiKey = req.params.apiKey;
+    const apiKey = req.header('x-api-key');
 
     const sanitizedKey = sanitizeInput(apiKey);
 
@@ -8002,10 +7881,9 @@ app.patch('/screener/rs-score/:apiKey', validate([
 });
 
 // endpoint that updates screener document with price peformance parameters 
-app.patch('/screener/price-performance/:apiKey', validate([
+app.patch('/screener/price-performance', validate([
   validationSchemas.user(),
   validationSchemas.screenerNameBody(),
-  validationSchemas.apiKeyParam(),
 
   // Validation for changePerc values
   body('value1')
@@ -8095,7 +7973,7 @@ app.patch('/screener/price-performance/:apiKey', validate([
 ]), async (req, res) => {
   let client;
   try {
-    const apiKey = req.params.apiKey;
+    const apiKey = req.header('x-api-key');
 
     const sanitizedKey = sanitizeInput(apiKey);
 
@@ -8301,15 +8179,14 @@ app.patch('/screener/price-performance/:apiKey', validate([
 });
 
 // i don't think this endpoint is used at the moment...great fucking mess 
-app.get('/screener/performance/:ticker/:apiKey', [
+app.get('/screener/performance/:ticker', [
   validationSchemas.chartData('ticker')
-], validate([validationSchemas.chartData('ticker'),
-validationSchemas.apiKeyParam()]), async (req, res) => {
+], validate([validationSchemas.chartData('ticker')]), async (req, res) => {
   const obfuscatedUsername = req.user ? obfuscateUsername(req.user.username) : 'unknown';
   let client;
 
   try {
-    const apiKey = req.params.apiKey;
+    const apiKey = req.header('x-api-key');
 
     const sanitizedKey = sanitizeInput(apiKey);
 
@@ -8380,18 +8257,17 @@ validationSchemas.apiKeyParam()]), async (req, res) => {
 });
 
 // Full Reset screener parameters 
-app.patch('/screener/reset/:user/:name/:apiKey',
+app.patch('/screener/reset/:user/:name',
   validate([
     validationSchemas.userParam('user'),
-    validationSchemas.screenerNameParam(),
-    validationSchemas.apiKeyParam()
+    validationSchemas.screenerNameParam()
   ]),
   async (req, res) => {
     const obfuscatedUsername = req.user ? obfuscateUsername(req.user.username) : 'unknown';
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -8481,10 +8357,9 @@ app.patch('/screener/reset/:user/:name/:apiKey',
 );
 
 // Reset Individual screener parameter 
-app.patch('/reset/screener/param/:apiKey',
+app.patch('/reset/screener/param',
   validate([
     validationSchemas.user(),
-    validationSchemas.apiKeyParam(),
     body('Name')
       .trim()
       .isLength({ min: 1, max: 20 })
@@ -8511,7 +8386,7 @@ app.patch('/reset/screener/param/:apiKey',
 
     let client;
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -8694,18 +8569,17 @@ app.patch('/reset/screener/param/:apiKey',
   });
 
 // retrieves params from individual screener document 
-app.get('/screener/datavalues/:user/:name/:apiKey',
+app.get('/screener/datavalues/:user/:name',
   validate([
     validationSchemas.userParam('user'),
     validationSchemas.screenerNameParam(),
-    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     const usernameID = req.params.user;
     const name = req.params.name;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -8823,9 +8697,8 @@ app.get('/screener/datavalues/:user/:name/:apiKey',
 );
 
 // endpoint that sends filtered results for screener
-app.get('/screener/:user/results/filtered/:name/:apiKey',
+app.get('/screener/:user/results/filtered/:name',
   validate([
-    validationSchemas.apiKeyParam(),
     param('user')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -8843,7 +8716,7 @@ app.get('/screener/:user/results/filtered/:name/:apiKey',
     const screenerName = sanitizeInput(req.params.name); // Sanitize screener name input
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -9475,18 +9348,17 @@ app.get('/screener/:user/results/filtered/:name/:apiKey',
 );
 
 // endpoint that sends summary for selected screener 
-app.get('/screener/summary/:usernameID/:name/:apiKey',
+app.get('/screener/summary/:usernameID/:name',
   validate([
     validationSchemas.userParam2(),
     validationSchemas.screenerNameParam(),
-    validationSchemas.apiKeyParam()
   ]),
   async (req, res) => {
     const startTime = Date.now();
     const requestId = crypto.randomBytes(16).toString('hex');
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -9592,9 +9464,8 @@ app.get('/screener/summary/:usernameID/:name/:apiKey',
 );
 
 // endpoint that sends combined screener results and removes duplicate values 
-app.get('/screener/:usernameID/all/:apiKey',
+app.get('/screener/:usernameID/all',
   validate([
-    validationSchemas.apiKeyParam(),
     param('usernameID')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -9607,7 +9478,7 @@ app.get('/screener/:usernameID/all/:apiKey',
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -10297,9 +10168,8 @@ app.get('/screener/:usernameID/all/:apiKey',
 );
 
 // endpoint that updates the watchlist oder after sortable.js is used 
-app.patch('/watchlists/update-order/:Username/:Name/:apiKey',
+app.patch('/watchlists/update-order/:Username/:Name',
   validate([
-    validationSchemas.apiKeyParam(),
     param('Username')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -10326,7 +10196,7 @@ app.patch('/watchlists/update-order/:Username/:Name/:apiKey',
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -10404,9 +10274,8 @@ app.patch('/watchlists/update-order/:Username/:Name/:apiKey',
 );
 
 // endpoint that should add/remove tickers with inputs 
-app.patch('/watchlist/addticker/:isAdding/:apiKey',
+app.patch('/watchlist/addticker/:isAdding',
   validate([
-    validationSchemas.apiKeyParam(),
     param('isAdding')
       .isIn(['true', 'false']).withMessage('isAdding must be true or false'),
 
@@ -10433,7 +10302,7 @@ app.patch('/watchlist/addticker/:isAdding/:apiKey',
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -10554,9 +10423,8 @@ app.patch('/watchlist/addticker/:isAdding/:apiKey',
 );
 
 // endpoint that toggles value for screener, to include or exclude from combined list
-app.patch('/:user/toggle/screener/:list/:apiKey',
+app.patch('/:user/toggle/screener/:list',
   validate([
-    validationSchemas.apiKeyParam(),
     param('user')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -10574,7 +10442,7 @@ app.patch('/:user/toggle/screener/:list/:apiKey',
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -10667,9 +10535,8 @@ app.patch('/:user/toggle/screener/:list/:apiKey',
 );
 
 // endpoint that retrieves watchlists for a specific user
-app.get('/:user/full-watchlists/:apiKey',
+app.get('/:user/full-watchlists',
   validate([
-    validationSchemas.apiKeyParam(),
     param('user')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -10681,7 +10548,7 @@ app.get('/:user/full-watchlists/:apiKey',
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -10747,15 +10614,13 @@ app.get('/:user/full-watchlists/:apiKey',
 );
 
 // Maintenance status GET endpoint
-app.get('/maintenance-status/:apiKey', validate([
-  validationSchemas.apiKeyParam()
-]),
+app.get('/maintenance-status',
   async (req, res) => {
     const requestId = crypto.randomBytes(16).toString('hex');
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -10807,9 +10672,8 @@ app.get('/maintenance-status/:apiKey', validate([
   });
 
 // Maintenance status POST endpoint
-app.post('/maintenance-status/:apiKey',
+app.post('/maintenance-status',
   validate([
-    validationSchemas.apiKeyParam(),
     body('maintenance')
       .custom((value) => {
         // Sanitize the input first
@@ -10826,7 +10690,7 @@ app.post('/maintenance-status/:apiKey',
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -10892,9 +10756,8 @@ app.post('/maintenance-status/:apiKey',
 );
 
 // retrieves receipts for the user 
-app.get('/get-receipts/:user/:apiKey',
+app.get('/get-receipts/:user',
   validate([
-    validationSchemas.apiKeyParam(),
     param('user')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -10906,7 +10769,7 @@ app.get('/get-receipts/:user/:apiKey',
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -10993,15 +10856,13 @@ app.get('/get-receipts/:user/:apiKey',
 );
 
 //endpoint that retrieves exchanges for each symbol (related to assigning pictures correctly)
-app.get('/symbols-exchanges/:apiKey', validate([
-  validationSchemas.apiKeyParam()
-]),
+app.get('/symbols-exchanges',
   async (req, res) => {
     const requestId = crypto.randomBytes(16).toString('hex');
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -11069,9 +10930,8 @@ app.get('/symbols-exchanges/:apiKey', validate([
   });
 
 // endpoint that retrieves default symbol for user
-app.get('/:user/default-symbol/:apiKey',
+app.get('/:user/default-symbol',
   validate([
-    validationSchemas.apiKeyParam(),
     param('user')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -11083,7 +10943,7 @@ app.get('/:user/default-symbol/:apiKey',
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -11150,9 +11010,8 @@ app.get('/:user/default-symbol/:apiKey',
 );
 
 // endpoint that updates default symbol for user
-app.patch('/:user/update-default-symbol/:apiKey',
+app.patch('/:user/update-default-symbol',
   validate([
-    validationSchemas.apiKeyParam(),
     // Validate user parameter
     param('user')
       .trim()
@@ -11172,7 +11031,7 @@ app.patch('/:user/update-default-symbol/:apiKey',
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 
@@ -11269,9 +11128,8 @@ app.patch('/:user/update-default-symbol/:apiKey',
 );
 
 // Endpoint that retrieves the 'Hidden' list for a user
-app.get('/:user/hidden/:apiKey',
+app.get('/:user/hidden',
   validate([
-    validationSchemas.apiKeyParam(),
     param('user')
       .trim()
       .notEmpty().withMessage('Username is required')
@@ -11283,7 +11141,7 @@ app.get('/:user/hidden/:apiKey',
     let client;
 
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
 
       const sanitizedKey = sanitizeInput(apiKey);
 

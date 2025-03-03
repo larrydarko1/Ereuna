@@ -1092,13 +1092,17 @@ async function fetchUserDefaultSymbol() {
   try {
     if (!user) return null;
 
-    const response = await fetch(`/api/${user}/default-symbol/${apiKey}`);
+    const response = await fetch(`/api/${user}/default-symbol`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     if (!response.ok) throw new Error('Failed to fetch default symbol');
 
     const data = await response.json();
     return data.defaultSymbol;
   } catch (error) {
-    console.error('Error fetching user default symbol:', error);
+    error.value = error.message;
     return null;
   }
 }
@@ -1107,15 +1111,18 @@ async function updateUserDefaultSymbol(symbol) {
   try {
     if (!user) return;
 
-    const response = await fetch(`/api/${user}/update-default-symbol/${apiKey}`, {
+    const response = await fetch(`/api/${user}/update-default-symbol`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
       body: JSON.stringify({ defaultSymbol: symbol })
     });
 
     if (!response.ok) throw new Error('Failed to update default symbol');
   } catch (error) {
-    console.error('Error updating user default symbol:', error);
+    error.value = error.message;
   }
 }
 
@@ -1161,7 +1168,11 @@ const ImagePaths = ref([]);
 // Async function to fetch symbols and exchanges
 async function fetchSymbolsAndExchanges() {
   try {
-    const response = await fetch(`/api/symbols-exchanges/${apiKey}`);
+    const response = await fetch('/api/symbols-exchanges', {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -1181,7 +1192,7 @@ async function fetchSymbolsAndExchanges() {
       };
     });
   } catch (error) {
-    console.error('Error fetching symbols and exchanges:', error);
+    error.value = error.message;
   }
 }
 
@@ -1295,7 +1306,11 @@ const data12 = ref([]); // weekly 200MA
 async function fetchData() {
   try {
     let symbol = defaultSymbol;
-    const response = await fetch(`/api/${symbol}/data/${apiKey}`);
+    const response = await fetch(`/api/${symbol}/data`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     
     if (!response.ok) {
       data.value = null; // Explicitly set to null if response is not ok
@@ -1312,14 +1327,18 @@ async function fetchData() {
     }
   } catch (err) {
     data.value = null; // Set to null in case of any error
-    console.error('Error fetching data:', err);
+    error.value = err.message;
   }
 }
 
 async function fetchData2() {
   let ticker = defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data2/${apiKey}`);
+    const response = await fetch(`/api/${ticker}/data2`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     
     if (!response.ok) {
       data2.value = null; // Explicitly set to null if response is not ok
@@ -1336,14 +1355,18 @@ async function fetchData2() {
     }
   } catch (error) {
     data2.value = null; // Set to null in case of any error
-    console.error('Error fetching data2:', error);
+    error.value = error.message;
   }
 }
 
 async function fetchData3() {
   let ticker = defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data3/${apiKey}`);
+    const response = await fetch(`/api/${ticker}/data3`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     
     if (!response.ok) {
       data3.value = null; // Explicitly set to null if response is not ok
@@ -1360,14 +1383,18 @@ async function fetchData3() {
     }
   } catch (error) {
     data3.value = null; // Set to null in case of any error
-    console.error('Error fetching data3:', error);
+    error.value = error.message;
   }
 }
 
 async function fetchData4() {
   let ticker = defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data4/${apiKey}`);
+    const response = await fetch(`/api/${ticker}/data4`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     
     if (!response.ok) {
       data4.value = null; // Explicitly set to null if response is not ok
@@ -1384,14 +1411,18 @@ async function fetchData4() {
     }
   } catch (error) {
     data4.value = null; // Set to null in case of any error
-    console.error('Error fetching data4:', error);
+    error.value = error.message;
   }
 }
 
 async function fetchData5() {
   let ticker = defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data5/${apiKey}`);
+    const response = await fetch(`/api/${ticker}/data5`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     
     if (!response.ok) {
       data5.value = null; // Explicitly set to null if response is not ok
@@ -1408,7 +1439,7 @@ async function fetchData5() {
     }
   } catch (error) {
     data5.value = null; // Set to null in case of any error
-    console.error('Error fetching data5:', error);
+    error.value = error.message;
   }
 }
 
@@ -1416,7 +1447,11 @@ async function fetchData5() {
 async function fetchData6() {
   let ticker = defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data6/${apiKey}`);
+    const response = await fetch(`/api/${ticker}/data6`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     
     if (!response.ok) {
       data6.value = null; // Explicitly set to null if response is not ok
@@ -1433,14 +1468,18 @@ async function fetchData6() {
     }
   } catch (error) {
     data6.value = null; // Set to null in case of any error
-    console.error('Error fetching data6:', error);
+    error.value = error.message;
   }
 }
 
 async function fetchData7() {
   let ticker = defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data7/${apiKey}`);
+    const response = await fetch(`/api/${ticker}/data7`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     
     if (!response.ok) {
       data7.value = null; // Explicitly set to null if response is not ok
@@ -1457,14 +1496,18 @@ async function fetchData7() {
     }
   } catch (error) {
     data7.value = null; // Set to null in case of any error
-    console.error('Error fetching data7:', error);
+    error.value = error.message;
   }
 }
 
 async function fetchData8() {
   let ticker = defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data8/${apiKey}`);
+    const response = await fetch(`/api/${ticker}/data8`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     
     if (!response.ok) {
       data8.value = null; // Explicitly set to null if response is not ok
@@ -1481,14 +1524,18 @@ async function fetchData8() {
     }
   } catch (error) {
     data8.value = null; // Set to null in case of any error
-    console.error('Error fetching data8:', error);
+    error.value = error.message;
   }
 }
 
 async function fetchData9() {
   let ticker = defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data9/${apiKey}`);
+    const response = await fetch(`/api/${ticker}/data9`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     
     if (!response.ok) {
       data9.value = null; // Explicitly set to null if response is not ok
@@ -1505,14 +1552,18 @@ async function fetchData9() {
     }
   } catch (error) {
     data9.value = null; // Set to null in case of any error
-    console.error('Error fetching data9:', error);
+    error.value = error.message;
   }
 }
 
 async function fetchData10() {
   let ticker = defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data10/${apiKey}`);
+    const response = await fetch(`/api/${ticker}/data10`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     
     if (!response.ok) {
       data10.value = null; // Explicitly set to null if response is not ok
@@ -1529,14 +1580,18 @@ async function fetchData10() {
     }
   } catch (error) {
     data10.value = null; // Set to null in case of any error
-    console.error('Error fetching data10:', error);
+    error.value = error.message;
   }
 }
 
 async function fetchData11() {
   let ticker = defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data11/${apiKey}`);
+    const response = await fetch(`/api/${ticker}/data11`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     
     if (!response.ok) {
       data11.value = null; // Explicitly set to null if response is not ok
@@ -1553,14 +1608,18 @@ async function fetchData11() {
     }
   } catch (error) {
     data11.value = null; // Set to null in case of any error
-    console.error('Error fetching data11:', error);
+    error.value = error.message;
   }
 }
 
 async function fetchData12() {
   let ticker = defaultSymbol;
   try {
-    const response = await fetch(`/api/${ticker}/data12/${apiKey}`);
+    const response = await fetch(`/api/${ticker}/data12`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     
     if (!response.ok) {
       data12.value = null; // Explicitly set to null if response is not ok
@@ -1577,7 +1636,7 @@ async function fetchData12() {
     }
   } catch (error) {
     data12.value = null; // Set to null in case of any error
-    console.error('Error fetching data12:', error);
+    error.value = error.message;
   }
 }
 
@@ -2019,51 +2078,57 @@ async function showMainResults() {
 
 // gets full screener results list (unfiltered)
 async function GetScreenerResultsAll() {
-  user = user;
   try {
-    const response = await fetch(`/api/${user}/screener/results/all/${apiKey}`);
+    const response = await fetch(`/api/${user}/screener/results/all`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
     screenerResults.value = data; 
   } catch (error) {
-    console.error('Error fetching screener results:', error);
+    error.value = error.message;
   }
 }
 GetScreenerResultsAll();
 
 // shows hidden results, it switch values between screeners, i think, there's a similar function below
 async function GetHiddenResults() {
-  user = user;
   try {
-    const response = await fetch(`/api/${user}/screener/results/hidden/${apiKey}`);
+    const response = await fetch(`/api/${user}/screener/results/hidden`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
     HiddenResults.value = data; 
   } catch (error) {
-    console.error('Error fetching screener results:', error);
+    error.value = error.message;
   }
 }
 GetHiddenResults();
 
 // gets all screener values for user 
 async function GetScreeners() {
-  user = user; // Ensure user is defined
   try {
-    const response = await fetch(`/api/screener/${user}/names/${apiKey}`, {
+    const response = await fetch(`/api/screener/${user}/names`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       }
     });
     const data = await response.json();
     // Assuming data is now an array of objects with Name and Include properties
     ScreenersName.value = data; 
   } catch (error) {
-    console.error('Error fetching screeners:', error);
+    error.value = error.message;
   }
 }
 GetScreeners();
@@ -2073,16 +2138,16 @@ async function SetPrice() {
   try {
     const leftPrice = parseFloat(document.getElementById('left-p').value)
     const rightPrice = parseFloat(document.getElementById('right-p').value)
-    user = user;
 
     if (leftPrice >= rightPrice) {
       throw new Error('Min price cannot be higher than or equal to max price')
     }
 
-    const response = await fetch(`/api/screener/price/${apiKey}`, {
+    const response = await fetch('/api/screener/price', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         minPrice: leftPrice,
@@ -2104,7 +2169,7 @@ async function SetPrice() {
       throw new Error('Error updating price range')
     }
   } catch (error) {
-    console.error('Error setting price:', error)
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -2114,16 +2179,16 @@ async function SetMarketCap() {
   try {
     const leftPrice = parseFloat(document.getElementById('left-mc').value);
     const rightPrice = parseFloat(document.getElementById('right-mc').value);
-    user = user;
 
     if (leftPrice >= rightPrice) {
       throw new Error('Min price cannot be higher than or equal to max price');
     }
 
-    const response = await fetch(`/api/screener/marketcap/${apiKey}`, {
+    const response = await fetch('/api/screener/marketcap', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         minPrice: leftPrice,
@@ -2143,13 +2208,13 @@ async function SetMarketCap() {
       try {
         await fetchScreenerResults(selectedScreener.value);
       } catch (error) {
-        console.error('Error updating screener results:', error);
+        error.value = error.message;
       }
     } else {
       throw new Error('Error updating range');
     }
   } catch (error) {
-    console.error('Error setting value:', error);
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -2159,12 +2224,12 @@ async function SetIpoDate() {
   try {
     const leftPrice = document.getElementById('left-ipo').value;
     const rightPrice = document.getElementById('right-ipo').value;
-    user = user;
 
-    const response = await fetch(`/api/screener/ipo-date/${apiKey}`, {
+    const response = await fetch('/api/screener/ipo-date', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         minPrice: leftPrice,
@@ -2184,13 +2249,13 @@ async function SetIpoDate() {
       try {
         await fetchScreenerResults(selectedScreener.value);
       } catch (error) {
-        console.error('Error updating screener results:', error);
+        error.value = error.message;
       }
     } else {
       throw new Error('Error updating range');
     }
   } catch (error) {
-    console.error('Error setting value:', error);
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -2199,8 +2264,7 @@ async function SetIpoDate() {
 async function hideStock(asset) {
   try {
     const symbol = asset.Symbol;
-    user = user;
-    const url = `/api/screener/${user}/hidden/${symbol}/${apiKey}`;
+    const url = `/api/screener/${user}/hidden/${symbol}`;
 
     if (!symbol) {
       throw new Error('Please provide a valid symbol');
@@ -2209,7 +2273,8 @@ async function hideStock(asset) {
     const response = await fetch(url, {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       }
     });
 
@@ -2225,7 +2290,7 @@ async function hideStock(asset) {
       throw new Error('Error hiding stock');
     }
   } catch (error) {
-    console.error('Error hiding stock:', error);
+    error.value = error.message;
   } finally {
     await GetHiddenResults();
     await GetCompoundedResults();
@@ -2246,9 +2311,12 @@ async function hideStock(asset) {
 
 // shows elements of hide list in screener
 async function getHideList() {
-  user = user;
   try {
-    const response = await fetch(`/api/screener/results/${user}/hidden/${apiKey}`);
+    const response = await fetch(`/api/screener/results/${user}/hidden`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     if (response.ok) {
       const data = await response.json();
       hideList.value = data;
@@ -2256,7 +2324,7 @@ async function getHideList() {
       console.error('Error:', response.status);
     }
   } catch (error) {
-    console.error('Error:', error);
+    error.value = error.message;
   }
   await GetScreenerResultsAll();
   await GetHiddenResults();
@@ -2304,8 +2372,7 @@ function logElement() {
 async function ShowStock(asset) {
   try {
     const symbol = asset.Symbol;
-    user = user;
-    const url = `/api/screener/${user}/show/${symbol}/${apiKey}`;
+    const url = `/api/screener/${user}/show/${symbol}`;
 
     if (!symbol) {
       throw new Error('Please provide a valid symbol');
@@ -2314,7 +2381,8 @@ async function ShowStock(asset) {
     const response = await fetch(url, {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       }
     });
 
@@ -2329,7 +2397,7 @@ async function ShowStock(asset) {
       throw new Error('Error showing stock');
     }
   } catch (error) {
-    console.error('Error showing stock:', error);
+    error.value = error.message;
   } finally {
     await GetScreenerResultsAll();
     await fetchScreenerResults();
@@ -2342,12 +2410,16 @@ async function ShowStock(asset) {
 // generates options for checkboxes for sectors
 async function GetSectors() {
   try {
-    const response = await fetch(`/api/screener/sectors/${apiKey}`);
+    const response = await fetch('/api/screener/sectors', {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     const data = await response.json();
     Sectors.value = data;
     selectedSectors.value = new Array(data.length).fill(false); // Initialize selection state
   } catch (error) {
-    console.error('Error:', error);
+    error.value = error.message;
   }
 }
 GetSectors();
@@ -2359,12 +2431,16 @@ const toggleSector = (index) => {
 // generates options for checkboxes for exchanges 
 async function GetExchanges() {
   try {
-    const response = await fetch(`/api/screener/exchange/${apiKey}`);
+    const response = await fetch('/api/screener/exchange', {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     const data = await response.json();
     Exchanges.value = data;
     selectedExchanges.value = new Array(data.length).fill(false); // Initialize selection state
   } catch (error) {
-    console.error('Error:', error);
+    error.value = error.message;
   }
 }
 GetExchanges();
@@ -2376,12 +2452,16 @@ const toggleExchange = (index) => {
 // generates options for checkboxes for country 
 async function GetCountry() {
   try {
-    const response = await fetch(`/api/screener/country/${apiKey}`);
+    const response = await fetch('/api/screener/country', {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
     const data = await response.json();
     Country.value = data;
     selectedCountries.value = new Array(data.length).fill(false); // Initialize selection state
   } catch (error) {
-    console.error('Error:', error);
+    error.value = error.message;
   }
 }
 GetCountry();
@@ -2395,10 +2475,11 @@ async function SetSector() {
   const selected = Sectors.value.filter((_, index) => selectedSectors.value[index]); // Get selected sectors
 
   try {
-    const response = await fetch(`/api/screener/sectors/${apiKey}`, {
+    const response = await fetch('/api/screener/sectors', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({ sectors: selected, screenerName: selectedScreener.value, user: user })
     });
@@ -2410,7 +2491,7 @@ async function SetSector() {
     const data = await response.json();
     await fetchScreenerResults(selectedScreener.value); // Update the list after setting the sector
   } catch (error) {
-    console.error('Error in SetSector:', error);
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -2420,10 +2501,11 @@ async function SetExchange() {
   const selected = Exchanges.value.filter((_, index) => selectedExchanges.value[index]); // Get selected exchanges
 
   try {
-    const response = await fetch(`/api/screener/exchange/${apiKey}`, {
+    const response = await fetch('/api/screener/exchange', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({ exchanges: selected, screenerName: selectedScreener.value, user: user })
     });
@@ -2435,7 +2517,7 @@ async function SetExchange() {
     const data = await response.json();
     await fetchScreenerResults(selectedScreener.value); // Update the list after setting the exchange
   } catch (error) {
-    console.error('Error in SetExchange:', error);
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -2445,10 +2527,11 @@ async function SetCountry() {
   const selected = Country.value.filter((_, index) => selectedCountries.value[index]); // Get selected countries
 
   try {
-    const response = await fetch(`/api/screener/country/${apiKey}`, {
+    const response = await fetch('/api/screener/country', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({ countries: selected, screenerName: selectedScreener.value, user: user })
     });
@@ -2460,7 +2543,7 @@ async function SetCountry() {
     const data = await response.json();
     await fetchScreenerResults(selectedScreener.value); // Update the list after setting the country
   } catch (error) {
-    console.error('Error in SetCountry:', error);
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -2476,9 +2559,12 @@ async function CreateScreener() {
       return;
     }
 
-    const response = await fetch(`/api/${user}/create/screener/${ScreenerName}/${apiKey}`, {
+    const response = await fetch(`/api/${user}/create/screener/${ScreenerName}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      }
     });
 
     const responseData = await response.json();
@@ -2492,7 +2578,7 @@ async function CreateScreener() {
       console.error(responseData.message);
     }
   } catch (error) {
-    console.error('Error creating screener:', error);
+    error.value = error.message;
   }
 }
 
@@ -2514,9 +2600,12 @@ async function UpdateScreener() {
       return;
     }
 
-    const response = await fetch(`/api/${user}/rename/screener/${apiKey}`, {
+    const response = await fetch(`/api/${user}/rename/screener`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
       body: JSON.stringify({ newname: ScreenerName, oldname: oldname })
     });
 
@@ -2531,18 +2620,18 @@ async function UpdateScreener() {
     } else {
     }
   } catch (error) {
-    console.error('Error renaming screener:', error);
+    error.value = error.message;
   }
 }
 
 // deletes screeners 
 async function DeleteScreener(screenerName) {
-  user = user; // Assuming user is defined elsewhere
-  const apiUrl = `/api/${user}/delete/screener/${screenerName}/${apiKey}`;
+  const apiUrl = `/api/${user}/delete/screener/${screenerName}`;
   const requestOptions = {
     method: 'DELETE',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-API-KEY': apiKey,
     },
     body: JSON.stringify({ currentScreenerName: screenerName })
   };
@@ -2551,7 +2640,7 @@ async function DeleteScreener(screenerName) {
     const response = await fetch(apiUrl, requestOptions);
     const data = await response.json();
   } catch (error) {
-    console.error(error);
+    error.value = error.message;
   }
   
   await GetScreeners();
@@ -2559,12 +2648,12 @@ async function DeleteScreener(screenerName) {
 }
 
 async function fetchScreenerResults(screenerName) {
-  user = user;
   try {
-    const response = await fetch(`/api/screener/${user}/results/filtered/${screenerName}/${apiKey}`, {
+    const response = await fetch(`/api/screener/${user}/results/filtered/${screenerName}`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       }
     });
     if (!response.ok) {
@@ -2575,36 +2664,39 @@ async function fetchScreenerResults(screenerName) {
     currentList.value = [...data]; // Update currentList with the new data
     await SummaryScreener();
   } catch (error) {
-    console.error('Error fetching screener results:', error);
+    error.value = error.message;
   }
 }
 
 async function fetchPerformanceResults(symbol) {
-  
-    try {
-      const response = await fetch(`/api/screener/performance/${symbol}/${apiKey}`);
-      const performanceData = await response.json();
-      PerformanceResults.value.push(performanceData);
-    } catch (error) {
-      console.error(`Error fetching data for ${symbol}:`, error);
-    }
+  try {
+    const response = await fetch(`/api/screener/performance/${symbol}`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
+    const performanceData = await response.json();
+    PerformanceResults.value.push(performanceData);
+  } catch (error) {
+    error.value = error.message;
   }
+}
 
 // adds and modifies PE Ratio value for screener 
 async function SetPE() {
   try {
     const leftPrice = parseFloat(document.getElementById('left-pe').value)
     const rightPrice = parseFloat(document.getElementById('right-pe').value)
-    user = user;
 
     if (leftPrice >= rightPrice) {
       throw new Error('Min cannot be higher than or equal to max')
     }
 
-    const response = await fetch(`/api/screener/pe/${apiKey}`, {
+    const response = await fetch('/api/screener/pe', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         minPrice: leftPrice,
@@ -2626,7 +2718,7 @@ async function SetPE() {
     }
     await fetchScreenerResults(selectedScreener.value); 
   } catch (error) {
-    console.error('Error setting price:', error)
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -2636,7 +2728,6 @@ async function SetForwardPE() {
   try {
     const leftPrice = parseFloat(document.getElementById('left-pef').value)
     const rightPrice = parseFloat(document.getElementById('right-pef').value)
-    user = user;
 
     if (leftPrice >= rightPrice) {
       throw new Error('Min cannot be higher than or equal to max')
@@ -2677,16 +2768,16 @@ async function SetPEG() {
   try {
     const leftPrice = parseFloat(document.getElementById('left-peg').value)
     const rightPrice = parseFloat(document.getElementById('right-peg').value)
-    user = user;
 
     if (leftPrice >= rightPrice) {
       throw new Error('Min cannot be higher than or equal to max')
     }
 
-    const response = await fetch(`/api/screener/peg/${apiKey}`, {
+    const response = await fetch('/api/screener/peg', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         minPrice: leftPrice,
@@ -2708,7 +2799,7 @@ async function SetPEG() {
       throw new Error('Error updating price range')
     }
   } catch (error) {
-    console.error('Error setting price:', error)
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -2718,16 +2809,16 @@ async function SetEPS() {
   try {
     const leftPrice = parseFloat(document.getElementById('left-eps').value)
     const rightPrice = parseFloat(document.getElementById('right-eps').value)
-    user = user;
 
     if (leftPrice >= rightPrice) {
       throw new Error('Min cannot be higher than or equal to max')
     }
 
-    const response = await fetch(`/api/screener/eps/${apiKey}`, {
+    const response = await fetch('/api/screener/eps', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         minPrice: leftPrice,
@@ -2749,7 +2840,7 @@ async function SetEPS() {
       throw new Error('Error updating price range')
     }
   } catch (error) {
-    console.error('Error setting price:', error)
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -2759,16 +2850,16 @@ async function SetPSRatio() {
   try {
     const leftPrice = parseFloat(document.getElementById('left-ps').value)
     const rightPrice = parseFloat(document.getElementById('right-ps').value)
-    user = user
 
     if (leftPrice >= rightPrice) {
       throw new Error('Min cannot be higher than or equal to max')
     }
 
-    const response = await fetch(`/api/screener/ps-ratio/${apiKey}`, {
+    const response = await fetch('/api/screener/ps-ratio', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         minPrice: leftPrice,
@@ -2790,7 +2881,7 @@ async function SetPSRatio() {
       throw new Error('Error updating price range')
     }
   } catch (error) {
-    console.error('Error setting price:', error)
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -2800,16 +2891,16 @@ async function SetPBRatio() {
   try {
     const leftPrice = parseFloat(document.getElementById('left-pb').value)
     const rightPrice = parseFloat(document.getElementById('right-pb').value)
-    user = user
 
     if (leftPrice >= rightPrice) {
       throw new Error('Min cannot be higher than or equal to max')
     }
 
-    const response = await fetch(`/api/screener/pb-ratio/${apiKey}`, {
+    const response = await fetch('/api/screener/pb-ratio', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         minPrice: leftPrice,
@@ -2829,7 +2920,7 @@ async function SetPBRatio() {
       await fetchScreenerResults(selectedScreener.value);
     } 
   } catch (error) {
-    console.error('Error setting price:', error)
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
   await fetchScreenerResults(selectedScreener.value);
@@ -2840,7 +2931,6 @@ async function SetBeta() {
   try {
     const leftPrice = parseFloat(document.getElementById('left-beta').value)
     const rightPrice = parseFloat(document.getElementById('right-beta').value)
-    user = user
 
     if (leftPrice >= rightPrice) {
       throw new Error('Min cannot be higher than or equal to max')
@@ -2881,16 +2971,16 @@ async function SetDivYield() {
   try {
     const leftPrice = parseFloat(document.getElementById('left-divyield').value)
     const rightPrice = parseFloat(document.getElementById('right-divyield').value)
-    user = user
 
     if (leftPrice >= rightPrice) {
       throw new Error('Min cannot be higher than or equal to max')
     }
 
-    const response = await fetch(`/api/screener/div-yield/${apiKey}`, {
+    const response = await fetch('/api/screener/div-yield', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         minPrice: leftPrice,
@@ -2912,7 +3002,7 @@ async function SetDivYield() {
       throw new Error('Error updating price range')
     }
   } catch (error) {
-    console.error('Error setting price:', error)
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -2932,12 +3022,12 @@ async function SetFundamentalGrowth() {
     const rightEPSYoY = parseFloat(document.getElementById('right-EPSYoY').value);
     const leftEPSQoQ = parseFloat(document.getElementById('left-EPSQoQ').value);
     const rightEPSQoQ = parseFloat(document.getElementById('right-EPSQoQ').value);
-    user = user;
 
-    const response = await fetch(`/api/screener/fundamental-growth/${apiKey}`, {
+    const response = await fetch('/api/screener/fundamental-growth', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         minRevYoY: leftRevYoY, 
@@ -2969,10 +3059,10 @@ async function SetFundamentalGrowth() {
     }
   } catch (error) {
     if (error.response && error.response.status === 400) {
-      console.error('Error:', error.response.data.message);
+      error.value = error.response.data.message;
       // Display an error message to the user
     } else {
-      console.error('Error setting price:', error)
+      error.value = error.message;
       await fetchScreenerResults(selectedScreener.value);
   }}
 }
@@ -2986,12 +3076,12 @@ async function SetVolume(){
     const value4 = parseFloat(document.getElementById('right-avgvol').value * 1000)
     const relVolOption = document.getElementById('option-relvol').value
     const avgVolOption = document.getElementById('option-avgvol').value
-    user = user;
 
-    const response = await fetch(`/api/screener/volume/${apiKey}`, {
+    const response = await fetch('/api/screener/volume', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         value1: value1,
@@ -3016,7 +3106,7 @@ async function SetVolume(){
       throw new Error('Error updating price range')
     }
   } catch (error) {
-    console.error('Error setting price:', error)
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -3030,12 +3120,12 @@ async function SetRSscore(){
     const value4 = parseFloat(document.getElementById('RSscore4Minput2').value)
     const value5 = parseFloat(document.getElementById('RSscore1Winput1').value)
     const value6 = parseFloat(document.getElementById('RSscore1Winput2').value)
-    user = user
 
-    const response = await fetch(`/api/screener/rs-score/${apiKey}`, {
+    const response = await fetch('/api/screener/rs-score', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         value1: value1,
@@ -3060,7 +3150,7 @@ async function SetRSscore(){
       throw new Error('Error updating range')
     }
   } catch (error) {
-    console.error('Error:', error)
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -3081,12 +3171,12 @@ async function SetPricePerformance(){
     const ma50 = document.getElementById('ma50').value;
     const ma20 = document.getElementById('ma20').value;
     const ma10 = document.getElementById('ma10').value;
-    user = user;
 
-    const response = await fetch(`/api/screener/price-performance/${apiKey}`, {
+    const response = await fetch('/api/screener/price-performance', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         value1: changeperc1, 
@@ -3119,22 +3209,25 @@ async function SetPricePerformance(){
     }
   } catch (error) {
     if (error.response && error.response.status === 400) {
-      console.error('Error:', error.response.data.message);
+      error.value = error.response.data.message;
       await fetchScreenerResults(selectedScreener.value);
     } else {
-      console.error('Error setting price:', error)
+      error.value = error.message;
       await fetchScreenerResults(selectedScreener.value);
   }}
 }
 
 // function that updates screener parameters graphically 
 async function CurrentScreener() {
-  user = user;
   const Name = selectedScreener.value;
 
-  try {
-    const response = await fetch(`/api/screener/datavalues/${user}/${Name}/${apiKey}`);
-    const screenerSettings = await response.json();
+try {
+  const response = await fetch(`/api/screener/datavalues/${user}/${Name}`, {
+    headers: {
+      'X-API-KEY': apiKey,
+    }
+  });
+  const screenerSettings = await response.json();
 
     let priceList = screenerSettings.Price;
     let marketCapList = screenerSettings.MarketCap;
@@ -3279,20 +3372,20 @@ async function CurrentScreener() {
 
     });
   } catch (error) {
-    console.error(error);
+    error.value = error.message;
   }
 }
 
 // function that resets screener values (all of them)
 async function ResetScreener() {
-  user = user;
   const Name = selectedScreener.value;
 
   try {
-    const response = await fetch(`/api/screener/reset/${user}/${Name}/${apiKey}`, {
+    const response = await fetch(`/api/screener/reset/${user}/${Name}`, {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         user,
@@ -3304,10 +3397,9 @@ async function ResetScreener() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const jsonData = await response.json();
-    console.log(jsonData);
     await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
-    console.error('Error:', error);
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
@@ -3337,7 +3429,6 @@ const valueMap = {
 async function Reset(value) {
   const stringValue = valueMap[value];
   try {
-    user = user;
     const Name = selectedScreener.value;
 
     const requestBody = {
@@ -3349,12 +3440,13 @@ async function Reset(value) {
     const options = {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify(requestBody)
     };
 
-    const response = await fetch(`/api/reset/screener/param/${apiKey}`, options);
+    const response = await fetch('/api/reset/screener/param', options);
 
     if (!response.ok) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
@@ -3362,18 +3454,21 @@ async function Reset(value) {
     }
     await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
-    console.error('Error resetting value:', error);
+    error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
 }
 
 // function that updates screener summary graphically 
 async function SummaryScreener() {
-  user = user;
   const Name = selectedScreener.value;
 
   try {
-    const response = await fetch(`/api/screener/summary/${user}/${Name}/${apiKey}`);
+    const response = await fetch(`/api/screener/summary/${user}/${Name}`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      }
+    });
     const screenerSettings = await response.json();
 
     const attributes = [
@@ -3438,19 +3533,22 @@ attributes.forEach((attribute) => {
 });
 screenerSummary.value = newScreenerSummary; // Replace the entire array
   } catch (error) {
-    console.error(error);
+    error.value = error.message;
   }
 }
 
 // fetches data for cumulative screener results 
 async function GetCompoundedResults() {
-  user = user;
   try {
-    const response = await fetch(`/api/screener/${user}/all/${apiKey}`);
+    const response = await fetch(`/api/screener/${user}/all`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      }
+    });
     const data = await response.json();
     compoundedResults.value = data;
   } catch (error) {
-    console.error('Error:', error);
+    error.value = error.message;
   }
 }
 GetCompoundedResults();
@@ -3486,16 +3584,19 @@ const selectedWatchlist = ref([]);
 
 // generates all watchlist names 
 async function getWatchlists() {
-  user = user;
   try {
-    const response = await fetch(`/api/${user}/watchlists/${apiKey}`);
+    const response = await fetch(`/api/${user}/watchlists`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      }
+    });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
     watchlist.tickers = data; 
   } catch (error) {
-    console.error('Error fetching watchlists:', error);
+    error.value = error.message;
   }
 }
 
@@ -3505,14 +3606,14 @@ onMounted(() => {
 
 async function addtoWatchlist(ticker, symbol, $event) {
   const isChecked = $event.target.checked;
-  user = user;
   const isAdding = isChecked;
 
   try {
-    const response = await fetch(`/api/watchlist/addticker/${isAdding ? 'true' : 'false'}/${apiKey}`, {
+    const response = await fetch(`/api/watchlist/addticker/${isAdding ? 'true' : 'false'}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
         watchlistName: ticker.Name,
@@ -3534,7 +3635,7 @@ async function addtoWatchlist(ticker, symbol, $event) {
     const result = await response.json()
 
   } catch (error) {
-    console.error('Error updating watchlist:', error)
+    error.value = error.message;
   }
 }
 
@@ -3561,7 +3662,11 @@ const updateCheckbox = (ticker, symbol, $event) => {
 const FullWatchlists = ref([]);
 
 async function getFullWatchlists(user){
-  const response = await fetch(`/api/${user}/full-watchlists/${apiKey}`)
+  const response = await fetch(`/api/${user}/full-watchlists`, {
+    headers: {
+      'X-API-KEY': apiKey,
+    }
+  })
   FullWatchlists.value = await response.json()
 };
 getFullWatchlists(user);
@@ -3577,12 +3682,12 @@ const isAssetInWatchlist = (ticker, symbol) => {
 };
 
 async function ExcludeScreener(screener) {
-  user = user; 
-  const apiUrl = `/api/${user}/toggle/screener/${screener}/${apiKey}`; 
+  const apiUrl = `/api/${user}/toggle/screener/${screener}`; 
   const requestOptions = {
     method: 'PATCH', 
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-API-KEY': apiKey,
     },
     body: JSON.stringify({ currentScreenerName: screener }) // Sending the current screener name
   };
@@ -3591,7 +3696,7 @@ async function ExcludeScreener(screener) {
     const response = await fetch(apiUrl, requestOptions);
     const data = await response.json();
   } catch (error) {
-    console.error(error);
+    error.value = error.message;
   }
 
   await GetScreeners(); // Refresh the list of screeners

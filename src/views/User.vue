@@ -359,9 +359,12 @@ async function changePassword() {
   }
 
   try {
-    const response = await fetch(`/api/password-change/${apiKey}`, {
+    const response = await fetch('/api/password-change', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
       body: JSON.stringify({ oldPassword: oldPassword.value, newPassword: newPassword.value, user: user }),
     });
 
@@ -370,14 +373,13 @@ async function changePassword() {
     if (data.confirm) {
       passwordSuccess.value = true;
       // Password changed successfully
-      console.log('Password changed successfully');
     } else if (data.error === 'old_password_incorrect') {
       oldPasswordError.value = true;
     } else {
-      console.error('Error changing password:', data.error);
+      error.value = error.message;
     }
   } catch (error) {
-    console.error('Error changing password:', error);
+    error.value = error.message;
   }
 }
 
@@ -406,9 +408,12 @@ async function changeUsername() {
   }
 
   try {
-    const response = await fetch(`/api/change-username/${apiKey}`, {
+    const response = await fetch('/api/change-username', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
       body: JSON.stringify({ newUsername: newUsername.value, user: user }),
     });
 
@@ -422,17 +427,16 @@ async function changeUsername() {
       usernameErrorMessage.value = 'Current username and new username cannot be the same';
     } else if (data.confirm) {
       // Username changed successfully
-      console.log('Username changed successfully');
       usernameSuccess.value = true;
       usernameSuccessMessage.value = 'Username changed successfully!';
       setTimeout(() => {
         LogOut();
       }, 3000);
     } else {
-      console.error('Error changing username:', data.error);
+      error.value = error.message;
     }
   } catch (error) {
-    console.error('Error changing username:', error);
+    error.value = error.message;
   }
 }
 
@@ -451,9 +455,12 @@ async function deleteAccount() {
   }
 
   try {
-    const response = await fetch(`/api/account-delete/${apiKey}`, {
+    const response = await fetch('/api/account-delete', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
       body: JSON.stringify({ user: user, password: PswDelete.value }),
     });
 
@@ -464,13 +471,12 @@ async function deleteAccount() {
       deleteErrorMessage.value = 'Password is incorrect';
     } else if (data.confirm) {
       // Account deleted successfully
-      console.log('Account deleted successfully');
       await LogOut(); // Call LogOut function after successful deletion
     } else {
-      console.error('Error deleting account:', data.error);
+      error.value = error.message;
     }
   } catch (error) {
-    console.error('Error deleting account:', error);
+    error.value = error.message;
   }
 }
 
@@ -496,9 +502,12 @@ async function GenerateNewKey() {
 
   try {
     // Call the generate-key endpoint
-    const response = await fetch(`/api/generate-key/${apiKey}`, {
+    const response = await fetch('/api/generate-key', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
       body: JSON.stringify({ 
         user: user, // Use .value if user is a ref
         password: Pswauth.value // Send the password
@@ -541,7 +550,7 @@ async function GenerateNewKey() {
       keyErrorMessage.value = data.message || 'An error occurred';
     }
   } catch (error) {
-    console.error('Error generating new key:', error);
+    error.value = error.message;
     keyError.value = true;
     keyErrorMessage.value = 'Network error. Please try again.';
   }
@@ -553,14 +562,16 @@ const expirationDays = ref(null);
 // Create a function to get the expiration date
 async function getExpirationDate() {
   try {
-    const response = await fetch(`/api/get-expiration-date/${apiKey}/?user=${encodeURIComponent(user)}`, {
+    const response = await fetch(`/api/get-expiration-date/?user=${encodeURIComponent(user)}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Error retrieving expiration date:', errorData.error);
       expirationDays.value = 'Error retrieving expiration date';
       return;
     }
@@ -570,11 +581,10 @@ async function getExpirationDate() {
     if (data.expirationDays !== undefined) {
       expirationDays.value = data.expirationDays; // Set the number of days remaining
     } else {
-      console.error('Unexpected response format:', data);
       expirationDays.value = 'Unexpected response format';
     }
   } catch (error) {
-    console.error('Error retrieving expiration date:', error);
+    error.value = error.message;
     expirationDays.value = 'Error retrieving expiration date';
   }
 }
@@ -610,9 +620,12 @@ async function GetReceipts() {
   loading.value = true;
   error.value = null;
   try {
-    const response = await fetch(`/api/get-receipts/${user}/${apiKey}`, {
+    const response = await fetch(`/api/get-receipts/${user}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
     });
 
     if (!response.ok) {
@@ -622,8 +635,7 @@ async function GetReceipts() {
     const data = await response.json();
     receipts.value = data.receipts;
   } catch (error) {
-    error.value = 'Failed to load receipts';
-    console.error(error);
+    error.value = error.message;
   } finally {
     loading.value = false;
   }
@@ -726,9 +738,12 @@ async function toggleTwoFa() {
   const username = user
 
   try {
-    const response = await fetch(`/api/twofa/${apiKey}`, {
+    const response = await fetch('/api/twofa', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
       body: JSON.stringify({ username, enabled }),
     });
 
@@ -741,10 +756,10 @@ async function toggleTwoFa() {
       isTwoFaEnabled.value = enabled;
       qrCode.value = '';
     } else {
-      console.error('Error toggling 2FA:', data.error);
+      error.value = error.message;
     }
   } catch (error) {
-    console.error('Error toggling 2FA:', error);
+    error.value = error.message;
   }
 }
 
