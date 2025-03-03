@@ -326,7 +326,7 @@
   <div class="splits-body">
     <div v-for="(split, index) in displayedSplitsItems" :key="index" class="splits-row">
       <div class="splits-cell" style="flex: 0 0 50%;">{{ formatDate(split.effective_date) }}</div>
-      <div class="splits-cell" style="flex: 0 0 50%;">{{ split.split_factor }}</div>
+      <div class="splits-cell" style="flex: 0 0 50%;">{{ parseInt(split.split_factor) }}</div>
     </div>
   </div>
 </div>
@@ -339,10 +339,27 @@
 </button>
 <button class="financialbtn" @click="showPopup = true">View Financial Statements</button>
 <div v-if="showPopup" class="popup">
-    <div class="popup-content">
-      <!-- Your popup content here -->
-      <button @click="showPopup = false">Close</button>
+  <div class="popup-content">
+  <div class="toggle-button-container">
+    <button @click="toggleFinancials" class="toggle-button">
+      {{ isAnnualFinancials ? 'Switch to Quarterly Reports' : 'Switch to Annual Reports' }}
+    </button>
+    <button class="toggle-button" @click="showPopup = false">Close</button>
+  </div>
+  <br>
+  <div class="financials-header">
+    <div class="attribute-name">Attribute</div>
+    <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="fiscal-year">
+      {{ getQuarterAndYear(financial.fiscalDateEnding) }}
     </div>
+  </div>
+  <div v-for="(attribute, index) in Object.keys(currentFinancials[0]).filter(attr => attr !== 'fiscalDateEnding')" :key="index" class='financials-row'>
+    <div class="attribute-name">{{ attributeMap[attribute] || attribute }}</div>
+    <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="financial-value">
+      {{ isNaN(parseInt(financial[attribute])) ? '-' : parseInt(financial[attribute]).toLocaleString() }}
+    </div>
+  </div>
+</div>
   </div>
         <h3 class="title">Notes Container</h3>
 <div v-if="BeautifulNotes.length > 0">
@@ -2692,13 +2709,106 @@ onMounted(() => {
 });
 
 
+const attributeMap = {
+  rps: 'Revenue Per Share',
+  roa: 'Return on Assets ROA',
+  assetTurnover: 'Asset Turnover',
+  bookVal: 'Book Value',
+  bvps: 'Book Value Per Share',
+  totalRevenue: 'Revenue',
+  epsDil: 'Earnings Per Share Diluted',
+  netIncome: 'Net Income',
+  profitMargin: 'Profit Margin',
+  revenueQoQ: 'Revenue QoQ Growth',
+  debtEquity: 'Debt to Equity Ratio',
+  grossMargin: 'Gross Margin',
+  roe: 'Return on Equity ROE',
+  currentRatio: 'Current Ratio',
+  fxRate: 'FX Rate',
+  sharesBasic: 'Shares Outstanding',
+  piotroskiFScore: 'Piotroski F-Score',
+  longTermDebtEquity: 'Long-term Debt to Equity',
+  opMargin: 'Operating Margin',
+  epsQoQ: 'Earnings Per Share QoQ Growth',
+  peRatio: 'Price to Earnings Ratio',
+  shareswaDil: 'Weighted Average Shares Diluted',
+  eps: 'Earnings Per Share',
+  ppeq: 'Property, Plant & Equipment',
+  ebitda: 'EBITDA',
+  freeCashFlow: 'Free Cash Flow',
+  issrepayDebt: 'Issuance or Repayment of Debt Securities',
+  capex: 'Capital Expenditure',
+  rnd: 'Research & Development',
+  sga: 'Selling, General & Administrative',
+  investmentsCurrent: 'Current Investments',
+  payDiv: 'Payment of Dividends & Other Cash Distributions',
+  investmentsAcqDisposals: 'Investment Acquisitions & Disposals',
+  taxLiabilities: 'Tax Liabilities',
+  ncff: 'Net Cash Flow from Financing',
+  opinc: 'Operating Income',
+  nonControllingInterests: 'Net Income to Non-Controlling Interests',
+  assetsNonCurrent: 'Other Assets',
+  taxAssets: 'Tax Assets',
+  issrepayEquity: 'Issuance or Repayment of Equity',
+  ncfx: 'Effect of Exchange Rate Changes on Cash',
+  ncfo: 'Net Cash Flow from Operations',
+  grossProfit: 'Gross Profit',
+  debtCurrent: 'Current Debt',
+  retainedEarnings: 'Accumulated Retained Earnings or Deficit',
+  liabilitiesNonCurrent: 'Other Liabilities',
+  sbcomp: 'Shared-based Compensation',
+  businessAcqDisposals: 'Business Acquisitions & Disposals',
+  liabilitiesCurrent: 'Current Liabilities',
+  acctRec: 'Accounts Receivable',
+  cashAndEq: 'Cash and Equivalents',
+  accoci: 'Accumulated Other Comprehensive Income',
+  depamor: 'Depreciation, Amortization & Accretion',
+  assetsCurrent: 'Current Assets',
+  shareswa: 'Weighted Average Shares',
+  investments: 'Investments',
+  prefDVDs: 'Preferred Dividends Income Statement Impact',
+  intangibles: 'Intangible Assets',
+  opex: 'Operating Expenses',
+  inventory: 'Inventory',
+  deposits: 'Deposits',
+  ebt: 'Earnings before tax',
+  netMargin: 'Net Margin',
+  investmentsNonCurrent: 'Non-Current Investments',
+  totalAssets: 'Total Assets',
+  deferredRev: 'Deferred Revenue',
+  taxExp: 'Tax Expense',
+  debt: 'Total Debt',
+  costRev: 'Cost of Revenue',
+  acctPay: 'Accounts Payable',
+  ncf: 'Net Cash Flow to Change in Cash & Cash Equivalents',
+  netIncDiscOps: 'Net Income from Discontinued Operations',
+  totalLiabilities: 'Total Liabilities',
+  ncfi: 'Net Cash Flow from Investing',
+  debtNonCurrent: 'Non-Current Debt',
+  ebit: 'Earning Before Interest & Taxes EBIT',
+  netIncComStock: 'Net Income Common Stock',
+  intexp: 'Interest Expense',
+  consolidatedIncome: 'Consolidated Income',
+  equity: 'Shareholders Equity',
+  marketCap: 'Market Capitalization',
+  enterpriseVal: 'Enterprise Value',
+  shareFactor: 'Share Factor',
+  trailingPEG1Y: 'PEG Ratio',
+  pbRatio: 'Price to Book Ratio',
+};
+
 const AnnualFinancials = ref([]);
 const QuarterlyFinancials = ref([]);
 
 async function fetchFinancials() {
   try {
     let ticker = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${ticker}/financials/${apiKey}`);
+    const headers = {
+      'x-api-key': apiKey
+    };
+    const response = await fetch(`/api/${ticker}/financials`, {
+      headers: headers
+    });
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -2712,6 +2822,25 @@ async function fetchFinancials() {
     if (error.name === 'AbortError') {
       return;
     }
+  }
+}
+
+const isAnnualFinancials = ref(true);
+const currentFinancials = computed(() => {
+  return isAnnualFinancials.value ? AnnualFinancials.value : QuarterlyFinancials.value;
+});
+
+function toggleFinancials() {
+  isAnnualFinancials.value = !isAnnualFinancials.value;
+}
+
+function getQuarterAndYear(dateString) {
+  const date = new Date(dateString);
+  if (isAnnualFinancials.value) {
+    return date.getFullYear();
+  } else {
+    const quarter = Math.floor((date.getMonth() + 3) / 3);
+    return `Q${quarter} ${date.getFullYear()}`;
   }
 }
 
@@ -3716,6 +3845,70 @@ opacity: 1;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  width: 50%;
+  width: 70%;
+  height: 60%;
+  overflow: scroll;
+  color: rgba($text1,0.70);
 }
+
+.financials-header {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  color: $text1;
+  border-radius: 5px;
+  min-width: 100px; 
+}
+
+.attribute-name {
+  text-align: left;
+  min-width: 250px;
+  background-color: $base1;
+  padding: 10px 5px;
+  border-radius: 5px;
+  margin-right: 5px;
+  color: $text1;
+}
+
+.fiscal-year {
+  text-align: center;
+  min-width: 100px;
+  background-color: $base1;
+  padding: 10px 0;
+  border-radius: 5px;
+  margin-right: 5px;
+}
+
+.financials-row {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+
+.financial-value {
+  text-align: center;
+  min-width: 100px; 
+  border-bottom: 1px solid $base1;
+  padding-bottom: 10px;
+  padding-top: 10px;
+  border-radius: 5px;
+  margin-right: 5px;
+  background-color: rgba($base3, 0.15);
+}
+
+.toggle-button{
+  margin: 3px;
+  padding: 5px;
+  border: none;
+  border-radius: 5px;
+  background-color: $accent1;
+  color: $text1;
+  transition: background-color 0.5s ease-in-out;
+}
+
+.toggle-button:hover{
+cursor: pointer;
+  background-color: $accent2;
+}
+
 </style>
