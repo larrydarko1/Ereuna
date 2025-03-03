@@ -11426,14 +11426,13 @@ app.get('/getlastupdate',
 );
 
 // Sends annual and quarterly financials
-app.get('/:ticker/financials/:apiKey',
+app.get('/:ticker/financials',
   validate([
-    validationSchemas.chartData('ticker'),
-    validationSchemas.apiKeyParam()
+    validationSchemas.chartData('ticker')
   ]),
   async (req, res) => {
     try {
-      const apiKey = req.params.apiKey;
+      const apiKey = req.header('x-api-key');
       const sanitizedKey = sanitizeInput(apiKey);
 
       if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
