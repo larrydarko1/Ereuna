@@ -17,7 +17,7 @@
 </div>
 
     <!-- Hero Section -->
-    <div class="hero-section">
+    <div class="hero-section" id="hero">
   <video class="hero-video" autoplay muted loop>
     <source src="@/assets/videos/heroAnimation.mp4" type="video/mp4">
     Your browser does not support the video tag.
@@ -148,7 +148,7 @@ Rather than keeping it exclusive to my own use, I decided to commercialize the p
     <h2 style="text-align: center; font-size: 20px; color: whitesmoke;">FREQUENTLY ASKED QUESTIONS</h2>
     <div class="faq-cards">
       <div class="faq-card" v-for="(item, index) in faqs" :key="index">
-        <h3 class="faq-question" @click="toggleAnswer(index)">{{ item.question }}</h3>
+        <h3 class="faq-question">{{ item.question }}</h3>
         <div class="faq-answer" v-show="item.show">
           <p>{{ item.answer }}</p>
         </div>
@@ -159,6 +159,7 @@ Rather than keeping it exclusive to my own use, I decided to commercialize the p
     <!-- Footer -->
     <div class="footer">
   <p>&copy; Ereuna Srl 2025. All rights reserved.</p>
+  <div class="back-to-top" @click="scrollToSection('hero')">Back to Top</div>
   <div class="footer-links">
     <a href="#" @click.prevent="showTermsModal">Terms of Service</a> 
     <a href="#" @click.prevent="showPrivacyModal">Privacy Policy</a>
@@ -248,18 +249,18 @@ import { useRouter } from 'vue-router';
 import { ref } from 'vue';
 
 const faqs = ref([
-  { question: 'What is the payment method?', answer: 'We accept Credit Cards or major Cryptocurrencies. (Bitcoin, Ethereum and Monero), more cryptocurrencies will be added in the future.', show: false },
-  { question: 'Is there a refund policy?', answer: 'Yes, you are eligible for refunds the first 15 days. you have to write to support@ereuna.co and provide your Username, refunds will be processed within 5 business days', show: false },
-  { question: 'Is there a commitment or contract?', answer: 'No, there is no commitment or contract. It\'s recharge based, no automatic / recurring charges. you can add more days to your subscription in the User session', show: false },
+  { question: 'What is the payment method?', answer: 'We accept Credit Cards or major Cryptocurrencies. (Bitcoin, Ethereum and Monero), more cryptocurrencies will be added in the future.', show: true },
+  { question: 'Is there a refund policy?', answer: 'Yes, you are eligible for refunds the first 15 days. you have to write to support@ereuna.co and provide your Username, refunds will be processed within 5 business days', show: true },
+  { question: 'Is there a commitment or contract?', answer: 'No, there is no commitment or contract. It\'s recharge based, no automatic / recurring charges. you can add more days to your subscription in the User session', show: true },
   { 
     question: 'Who is this platform designed for?', 
     answer: 'Our platform is specifically designed for retail traders with mid to long-term investment horizons, including swing traders and position traders, as well as investors seeking to conduct thorough research. We aim to provide a low-cost, professional-grade solution for stock screening and fundamental data analysis, catering to individuals who struggle to afford average monthly subscription fees for features they may not necessarily need. By streamlining our services and focusing on essential tools, we strive to make high-quality research accessible to a wider audience.', 
-    show: false 
+    show: true 
   },
   { 
     question: 'Will there be more financial instruments added in the future?', 
     answer: 'Yes, as we grow, we plan to add more financial instruments to our platform, including derivatives such as ETFs, stocks from other stock markets beyond the US, and cryptocurrencies. This expansion will provide our users with a more comprehensive suite of investment options and enhance their overall experience.', 
-    show: false 
+    show: true 
   },
 ]);
 
@@ -310,7 +311,7 @@ function closePrivacyModal() {
   display: flex;
   justify-content: space-between; /* Push logo to the left and buttons to the right */
   align-items: center;
-  background-color: rgba(29, 28, 41, 0.5); /* Reduced opacity for glass effect */
+  background-color: rgba($base4, 0.5); /* Reduced opacity for glass effect */
   border-radius: 10px;
   color: #f5f5f5;
   padding: 10px 20px; /* Add horizontal padding for better spacing */
@@ -354,7 +355,7 @@ function closePrivacyModal() {
 .content-section3 {
   padding: 40px 0px;
   background-color: transparent;
-  border: 2px solid #8c8dfe; /* Add border style and color */
+  border: 2px solid $accent1; /* Add border style and color */
   margin: 20px;
   border-radius: 10px;
   display: flex; /* Enable flexbox */
@@ -371,7 +372,7 @@ function closePrivacyModal() {
   }
   
   .hero-section {
-    color: white;
+    color: $text1;
     height: 650px;
     min-width: 1200px;
   }
@@ -413,21 +414,34 @@ function closePrivacyModal() {
   
 .footer {
   padding: 20px;
-  background-color: #1d1c29;
-  color: #D3D3D3;
+  background-color: $base4;
+  color: $text2;
   text-align: center;
   margin-top: 20px;
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between; /* Add this line */
+  justify-content: space-between;
   min-width: 1200px;
 }
 
 .footer-links {
   margin-left: auto;
   display: flex;
-  gap: 20px; 
+  gap: 20px;
+}
+
+.back-to-top {
+  cursor: pointer;
+  color: whitesmoke;
+  opacity: 0.90;
+  margin: 0 auto;
+  flex: 1;
+  text-align: center;
+}
+
+.back-to-top:hover {
+  opacity: 1;
 }
 
 a{
@@ -518,7 +532,7 @@ a:hover{
 }
 
 .feature-card {
-  background-color: #181722;
+  background-color: $base4;
   padding: 20px;
   border-radius: 10px;
   text-align: center;
@@ -529,10 +543,8 @@ a:hover{
 .cta-section {
   text-align: center;
   padding: 60px 20px;
-  border-radius: 10px;
   overflow: hidden;
-  background: linear-gradient(to top, #f7f7f7, #f7f7f7);
-  background-image: linear-gradient(to bottom, #8c8dfe1a, #8c8efe00);
+  background-color: $base4;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.05);
   margin-top: 40px;
   min-width: 1200px;
@@ -615,7 +627,7 @@ a:hover{
 }
 
 .table-header {
-  background-color: #181722;
+  background-color: $base2;
 }
 
 .table-cell {
@@ -649,7 +661,7 @@ a:hover{
 }
 
 .faq-card {
-  background-color: #181722;
+  background-color: $base4;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -661,7 +673,6 @@ a:hover{
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
-  cursor: pointer;
   opacity: 1;
 }
 
@@ -708,7 +719,7 @@ a:hover{
 .text{
   font-size: 14px;
   padding: 0 100px;
-  text-align: center;
+  text-align: left;
 }
 
   </style>

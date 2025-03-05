@@ -3,7 +3,9 @@
     <Header />
     <div id="main">
       <div v-if="showCreateNote" class="CreateNote">
+        <br>
         <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
+        <br>
         <p style="font-size: 9px; padding: 0; color: whitesmoke; opacity: 0.60; margin: 5px;">350 characters max / 10 notes limit for each symbol</p>
   <textarea  id="notes-container" 
       placeholder="write notes here" 
@@ -18,7 +20,6 @@
       <div v-if="showCreateWatchlist" class="CreateWatchlist">
         <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
         <h3 class="title">Create Watchlist</h3>
-        <p style="font-size: 7px; color: whitesmoke; opacity: 0.60; margin: 0; padding: 0;" >Max 20 characters / 20 Watchlists for each user</p>
         <input
       id="inputcreate"
       placeholder="Enter Watchlist Name"
@@ -3012,6 +3013,7 @@ function getQuarterAndYear(dateString) {
   height: 100%;
   flex-direction: column;
   background-repeat: no-repeat;
+  min-width: 800px;
   max-width: 800px;
   max-height: 800px;
 }
@@ -3019,6 +3021,9 @@ function getQuarterAndYear(dateString) {
 #chartdiv {
   flex: 1;
   border: none;
+  min-width: 800px;
+  max-width: 800px;
+  max-height: 800px;
 }
 
 #chartdiv2 {
@@ -3385,6 +3390,8 @@ opacity: 1;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(10px);
     z-index: 1000;
+    padding: 10px;
+    border: 2px solid $accent3; 
   }
 
   .CreateNote {
@@ -3403,28 +3410,33 @@ opacity: 1;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(10px);
     z-index: 1000;
+    padding: 10px;
+    border: 2px solid $accent3; 
   }
 
   .RenameWatchlist h3, .CreateWatchlist h3, .CreateNote h3 {
     background-color: transparent;
-    color: $text1;
+    color: rgba($text1, 0.50);
     border: none;
     margin-top: 10px;
   }
 
   .RenameWatchlist input, .CreateWatchlist input  {
-    margin-bottom: 3px;
-    margin-top: 5px;
-    text-align: center;
-    background-color: $text1;
-  color: $base4;
-  padding: 5px;
+    border-radius: 25px;
+  padding: 5px 5px 5px 15px;
+  margin: 7px;
+  width: 160px;
   outline: none;
-  border: solid 1px $base1;
+  color: $base3; /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
+  border: solid 1px $base4;
+  background-color:$base4;
   }
 
   .RenameWatchlist input:focus , .CreateWatchlist input:focus{
-  border-color: $accent1;
+    border-color: $accent1; 
+  box-shadow: 0 0 5px rgba($accent3, 0.5); 
+  outline: none; 
 }
   
   .inner {
@@ -3503,6 +3515,7 @@ opacity: 1;
 
 .wlist:hover{
   cursor: pointer;
+  background-color: rgba($base2,0.80);
 }
 
 .wlist .dbtn {
