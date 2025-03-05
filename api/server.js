@@ -7907,7 +7907,7 @@ app.patch('/screener/price-performance', validate([
   body('value3')
     .optional({ nullable: true })
     .custom((value) => {
-      if (value === null || value === '') return true;
+      if (value === null || value === '' || value === '-') return true;
       const validOptions = ['1D', '1W', '1M', '4M', '6M', '1Y', 'YTD'];
       return validOptions.includes(value.trim());
     })

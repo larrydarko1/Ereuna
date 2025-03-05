@@ -353,16 +353,16 @@
             <div style="display: flex; justify-content: center; align-items: center; border: none;">
             <input class="input" id="changeperc1" type="text" style="width: 70px; margin: 0 5px;" placeholder="Min">
             <input class="input" id="changeperc2" type="text" style="width: 70px; margin: 0 5px;" placeholder="Max">
-            <select name="" id="changepercselect" style="width: 50px;">
-              <option value="" style="text-align: center;">-</option>
-              <option value="1D" style="text-align: center;">1D</option>
-              <option value="1W" style="text-align: center;">1W</option>
-              <option value="1M" style="text-align: center;">1M</option>
-              <option value="4M" style="text-align: center;">4M</option>
-              <option value="6M" style="text-align: center;">6M</option>
-              <option value="1Y" style="text-align: center;">1Y</option>
-              <option value="YTD" style="text-align: center;">YTD</option>
-            </select>
+            <div class="changeperc-select-container">
+  <div class="changeperc-dropdown-btn">
+    <p class="selected-value">{{ changepercSelect }}</p>
+  </div>
+  <div class="changeperc-dropdown-menu">
+    <div v-for="(option, index) in changepercOptions" :key="index" @click="selectChangepercOption(option)">
+      {{ option }}
+    </div>
+  </div>
+</div>
           </div>
           <div style="border: none;">
             <p style="text-align: center;">% off 52weekhigh</p>
@@ -377,63 +377,77 @@
             </div>
           </div>
             <div style="display: flex; flex-direction: column; align-items: center; border:none;">
-            <div style="display: flex; align-items: center; border:none;">
-              <input type="checkbox" id="alltimehigh">
-              <p style="margin-left: 10px;">New All time High</p>
-            </div>
-            <div style="display: flex; align-items: center; border:none;">
-              <input type="checkbox" id="alltimelow">
-              <p style="margin-left: 10px;">New All time Low</p>
-            </div>
+              <br>
+              <div 
+  class="custom-checkbox" 
+  :class="{ checked: allTimeHigh }" 
+  @click="toggleAllTimeHigh"
+>
+  <span class="checkmark"></span>
+  New All time High
+</div>
+<div 
+  class="custom-checkbox" 
+  :class="{ checked: allTimeLow }" 
+  @click="toggleAllTimeLow"
+>
+  <span class="checkmark"></span>
+  New All time Low
+</div>
           </div>
+          <br>
           <div style="display: flex; flex-direction: column; align-items: center; border: none;">
             <div style="display: flex; align-items: center; border: none;">
               <p style="margin-right: 10px;">200MA</p>
-              <select name="" id="ma200" style="text-align: center;">
-                <option value="-" style="text-align: center;">-</option>
-                <option value="abv50" style="text-align: center;">above 50MA</option>
-                <option value="abv20" style="text-align: center;">above 20MA</option>
-                <option value="abv10" style="text-align: center;">above 10MA</option>
-                <option value="blw50" style="text-align: center;">below 50MA</option>
-                <option value="blw20" style="text-align: center;">below 20MA</option>
-                <option value="blw10" style="text-align: center;">below 10MA</option>
-              </select>
+              <div class="ma200-select-container">
+  <div class="ma200-dropdown-btn">
+    <p class="selected-value">{{ ma200Select }}</p>
+  </div>
+  <div class="ma200-dropdown-menu">
+    <div v-for="(option, index) in ma200Options" :key="index" @click="selectMa200Option(option)">
+      {{ option }}
+    </div>
+  </div>
+</div>
             </div>
             <div style="display: flex; align-items: center; border: none;">
               <p style="margin-right: 10px;">50MA</p>
-              <select name="" id="ma50" style="text-align: center;">
-                <option value="-" style="text-align: center;">-</option>
-                <option value="abv200" style="text-align: center;">above 200MA</option>
-                <option value="abv20" style="text-align: center;">above 20MA</option>
-                <option value="abv10" style="text-align: center;">above 10MA</option>
-                <option value="blw200" style="text-align: center;">below 200MA</option>
-                <option value="blw20" style="text-align: center;">below 20MA</option>
-                <option value="blw10" style="text-align: center;">below 10MA</option>
-              </select>
+              <div class="ma50-select-container">
+  <div class="ma50-dropdown-btn">
+    <p class="selected-value">{{ ma50Select }}</p>
+  </div>
+  <div class="ma50-dropdown-menu">
+    <div v-for="(option, index) in ma50Options" :key="index" @click="selectMa50Option(option)">
+      {{ option }}
+    </div>
+  </div>
+</div>
             </div>
             <div style="display: flex; align-items: center; border: none;">
               <p style="margin-right: 10px;">20MA</p>
-              <select name="" id="ma20" style="text-align: center;">
-                <option value="-" style="text-align: center;">-</option>
-                <option value="abv200" style="text-align: center;">above 200MA</option>
-                <option value="abv50" style="text-align: center;">above 50MA</option>
-                <option value="abv10" style="text-align: center;">above 10MA</option>
-                <option value="blw200" style="text-align: center;">below 200MA</option>
-                <option value="blow50" style="text-align: center;">below 50MA</option>
-                <option value="blw10" style="text-align: center;">below 10MA</option>
-              </select>
+              <div class="ma20-select-container">
+  <div class="ma20-dropdown-btn">
+    <p class="selected-value">{{ ma20Select }}</p>
+  </div>
+  <div class="ma20-dropdown-menu">
+    <div v-for="(option, index) in ma20Options" :key="index" @click="selectMa20Option(option)">
+      {{ option }}
+    </div>
+  </div>
+</div>
             </div>
             <div style="display: flex; align-items: center; border: none;">
               <p style="margin-right: 10px;">10MA</p>
-              <select name="" id="ma10" style="text-align: center;">
-                <option value="-" style="text-align: center;">-</option>
-                <option value="abv200" style="text-align: center;">above 200MA</option>
-                <option value="abv50" style="text-align: center;">above 50MA</option>
-                <option value="abv20" style="text-align: center;">above 20MA</option>
-                <option value="blw200" style="text-align: center;">below 200MA</option>
-                <option value="blw50" style="text-align: center;">below 50MA</option>
-                <option value="blw20" style="text-align: center;">below 20MA</option>
-              </select>
+              <div class="ma10-select-container">
+  <div class="ma10-dropdown-btn">
+    <p class="selected-value">{{ ma10Select }}</p>
+  </div>
+  <div class="ma10-dropdown-menu">
+    <div v-for="(option, index) in ma10Options" :key="index" @click="selectMa10Option(option)">
+      {{ option }}
+    </div>
+  </div>
+</div>
             </div>
           </div>
               </div>
@@ -478,46 +492,56 @@
           </div>
         </div>
         <div :class="[showVolume ? 'param-s7-expanded' : 'param-s1']">
-          <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Volume</p>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showVolume" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showVolume">
-            <div class="DataInputs4">
-              <p>Relative Volume</p>
-              <input class="input" id="left-relvol" type="text" placeholder="min">
-              <input class="input" id="right-relvol" type="text" placeholder="max">
-              <select name="" id="option-relvol">
-                <option value="-">-</option>
-                <option value="1W">1W</option>
-                <option value="1M">1M</option>
-                <option value="6M">6M</option>
-                <option value="1Y">1Y</option>
-              </select>
-              <p>Average Volume (1000s)</p>
-              <input class="input" id="left-avgvol" type="text" placeholder="min">
-              <input class="input" id="right-avgvol" type="text" placeholder="max">
-              <select name="" id="option-avgvol">
-                <option value="-">-</option>
-                <option value="1W">1W</option>
-                <option value="1M">1M</option>
-                <option value="6M">6M</option>
-                <option value="1Y">1Y</option>
-              </select>
-            </div>
-            <div class="row">
-              <button class="btns7" style="float:right" @click="SetVolume()">
-                <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
-              </button>
-              <button class="btns7r"style="float:right" @click="Reset('Volume')">
-                <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
-              </button>
-            </div>
-          </div>
-        </div>
+  <div class="row">
+    <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Volume</p>
+    <label style="float:right" class="switch">
+      <input type="checkbox" id="price-check" v-model="showVolume" style="border: none;">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showVolume">
+    <div class="DataInputs4">
+      <p>Relative Volume</p>
+      <div style="display: flex; align-items: center;">
+  <input class="input" id="left-relvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;">
+  <input class="input" id="right-relvol" type="text" placeholder="max" style="width: 70px; margin: 0 5px;">
+  <div class="relvol-select-container" style="margin-left: 5px;">
+    <div class="relvol-dropdown-btn">
+      <p class="selected-value">{{ relVolSelect }}</p>
+    </div>
+    <div class="relvol-dropdown-menu">
+      <div v-for="(option, index) in relVolOptions" :key="index" @click="selectRelVolOption(option)">
+        {{ option }}
+      </div>
+    </div>
+  </div>
+</div>
+      <p>Average Volume (1000s)</p>
+      <div style="display: flex; align-items: center;">
+  <input class="input" id="left-avgvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;">
+  <input class="input" id="right-avgvol" type="text" placeholder="max" style="width: 70px; margin: 0 5px;">
+  <div class="avgvol-select-container" style="margin-left: 5px;">
+    <div class="avgvol-dropdown-btn">
+      <p class="selected-value">{{ avgVolSelect }}</p>
+    </div>
+    <div class="avgvol-dropdown-menu">
+      <div v-for="(option, index) in avgVolOptions" :key="index" @click="selectAvgVolOption(option)">
+        {{ option }}
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+    <div class="row">
+      <button class="btns7" style="float:right" @click="SetVolume()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btns7r"style="float:right" @click="Reset('Volume')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
         <div class="results"></div>
       </div>
       <div id="resultsDiv" >
@@ -3073,8 +3097,8 @@ async function SetVolume(){
     const value2 = parseFloat(document.getElementById('right-relvol').value)
     const value3 = parseFloat(document.getElementById('left-avgvol').value * 1000)
     const value4 = parseFloat(document.getElementById('right-avgvol').value * 1000)
-    const relVolOption = document.getElementById('option-relvol').value
-    const avgVolOption = document.getElementById('option-avgvol').value
+    const relVolOption = relVolSelect.value
+    const avgVolOption = avgVolSelect.value
 
     const response = await fetch('/api/screener/volume', {
       method: 'PATCH',
@@ -3159,17 +3183,17 @@ async function SetPricePerformance(){
   try {
     const changeperc1 = parseFloat(document.getElementById('changeperc1').value) / 100;
     const changeperc2 = parseFloat(document.getElementById('changeperc2').value) / 100;
-    const changepercselect = document.getElementById('changepercselect').value;
+    const changepercselect = changepercSelect.value;
     const weekhigh1 = parseFloat(document.getElementById('weekhigh1').value);
     const weekhigh2 = parseFloat(document.getElementById('weekhigh2').value);
     const weeklow1 = parseFloat(document.getElementById('weeklow1').value);
     const weeklow2 = parseFloat(document.getElementById('weeklow2').value);
-    const alltimehigh = document.getElementById('alltimehigh').checked ? 'yes' : 'no';
-    const alltimelow = document.getElementById('alltimelow').checked ? 'yes' : 'no';
-    const ma200 = document.getElementById('ma200').value;
-    const ma50 = document.getElementById('ma50').value;
-    const ma20 = document.getElementById('ma20').value;
-    const ma10 = document.getElementById('ma10').value;
+    const alltimehigh = allTimeHigh.value ? 'yes' : 'no';
+    const alltimelow = allTimeLow.value ? 'yes' : 'no';
+    const ma200 = ma200Select.value;
+    const ma50 = ma50Select.value;
+    const ma20 = ma20Select.value;
+    const ma10 = ma10Select.value;
 
     const response = await fetch('/api/screener/price-performance', {
       method: 'PATCH',
@@ -3716,6 +3740,121 @@ const toUpperCase = () => {
   searchQuery.value = searchQuery.value.toUpperCase();
 };
 
+const changepercOptions = ref([
+  '-',
+  '1D',
+  '1W',
+  '1M',
+  '4M',
+  '6M',
+  '1Y',
+  'YTD'
+]);
+
+const ma200Options = ref([
+  '-',
+  'abv50',
+  'abv20',
+  'abv10',
+  'blw50',
+  'blw20',
+  'blw10'
+]);
+
+const ma50Options = ref([
+  '-',
+  'abv200',
+  'abv20',
+  'abv10',
+  'blw200',
+  'blw20',
+  'blw10'
+]);
+
+const ma20Options = ref([
+  '-',
+  'abv200',
+  'abv50',
+  'abv10',
+  'blw200',
+  'blw50',
+  'blw10'
+]);
+
+const ma10Options = ref([
+  '-',
+  'abv200',
+  'abv50',
+  'abv20',
+  'blw200',
+  'blw50',
+  'blw20'
+]);
+
+const changepercSelect = ref('-');
+const ma200Select = ref('-');
+const ma50Select = ref('-');
+const ma20Select = ref('-');
+const ma10Select = ref('-');
+
+function selectChangepercOption(option) {
+  changepercSelect.value = option;
+}
+
+function selectMa200Option(option) {
+  ma200Select.value = option;
+}
+
+function selectMa50Option(option) {
+  ma50Select.value = option;
+}
+
+function selectMa20Option(option) {
+  ma20Select.value = option;
+}
+
+function selectMa10Option(option) {
+  ma10Select.value = option;
+}
+
+const allTimeHigh = ref(false);
+const allTimeLow = ref(false);
+
+function toggleAllTimeHigh() {
+  allTimeHigh.value = !allTimeHigh.value;
+}
+
+function toggleAllTimeLow() {
+  allTimeLow.value = !allTimeLow.value;
+}
+
+const relVolOptions = ref([
+  '-',
+  '1W',
+  '1M',
+  '6M',
+  '1Y'
+]);
+
+const avgVolOptions = ref([
+  '-',
+  '1W',
+  '1M',
+  '6M',
+  '1Y'
+]);
+
+const relVolSelect = ref('-');
+const avgVolSelect = ref('-');
+
+function selectRelVolOption(option) {
+  relVolSelect.value = option;
+}
+
+function selectAvgVolOption(option) {
+  avgVolSelect.value = option;
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -3908,7 +4047,7 @@ const toUpperCase = () => {
 
 .DataInputs4{
   position: absolute;
-  left: 20%;
+  left: 5%;
   top: 15%;
   border: none;
 }
@@ -4982,4 +5121,156 @@ input[type="date"]{
   -moz-appearance: textfield;
 }
 
+.changeperc-select-container {
+  position: relative;
+  background-color: $base2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 20px;
+  height: 5px;
+  border-radius: 15px;
+  margin-left: 4px;
+  padding: 7px;
+  z-index: 1000;
+  border: solid 2px $base1;
+}
+
+.changeperc-dropdown-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.changeperc-dropdown-menu {
+  display: none;
+  cursor: pointer;
+  width: 125px;
+  position: absolute; 
+  z-index: 1000;
+  top: -10px;
+  left: 20px;
+}
+
+.changeperc-dropdown-menu > div {
+  background-color: $base2;
+  padding: 5px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.changeperc-dropdown-menu > div:hover {
+  background-color: $accent2;
+}
+
+.changeperc-dropdown-btn:hover + .changeperc-dropdown-menu, 
+.changeperc-dropdown-menu:hover {
+  display: block;
+}
+
+.ma200-select-container, .ma50-select-container, .ma20-select-container, .ma10-select-container {
+  position: relative;
+  background-color: $base2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 40px;
+  height: 5px;
+  border-radius: 15px;
+  margin-left: 4px;
+  padding: 7px;
+  border: solid 2px $base1;
+}
+
+.ma200-dropdown-btn, .ma50-dropdown-btn, .ma20-dropdown-btn, .ma10-dropdown-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.ma200-dropdown-menu, .ma50-dropdown-menu, .ma20-dropdown-menu, .ma10-dropdown-menu {
+  display: none;
+  cursor: pointer;
+  width: 125px;
+  position: absolute; 
+  z-index: 1000;
+  top: -10px;
+  left: 20px;
+}
+
+.ma200-dropdown-menu > div, .ma50-dropdown-menu > div, .ma20-dropdown-menu > div, .ma10-dropdown-menu > div {
+  background-color: $base2;
+  padding: 5px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.ma200-dropdown-menu > div:hover, .ma50-dropdown-menu > div:hover, .ma20-dropdown-menu > div:hover, .ma10-dropdown-menu > div:hover {
+  background-color: $accent1;
+}
+
+.ma200-dropdown-btn:hover + .ma200-dropdown-menu, 
+.ma200-dropdown-menu:hover,
+.ma50-dropdown-btn:hover + .ma50-dropdown-menu, 
+.ma50-dropdown-menu:hover,
+.ma20-dropdown-btn:hover + .ma20-dropdown-menu, 
+.ma20-dropdown-menu:hover,
+.ma10-dropdown-btn:hover + .ma10-dropdown-menu, 
+.ma10-dropdown-menu:hover {
+  display: block;
+}
+
+.relvol-select-container, .avgvol-select-container {
+  position: relative;
+  background-color: $base2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 40px;
+  height: 5px;
+  border-radius: 15px;
+  margin-left: 4px;
+  padding: 7px;
+  border: solid 2px $base1;
+}
+
+.relvol-dropdown-btn, .avgvol-dropdown-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.relvol-dropdown-menu, .avgvol-dropdown-menu {
+  display: none;
+  cursor: pointer;
+  width: 125px;
+  position: absolute; 
+  z-index: 1000;
+  top: -10px;
+  left: 20px;
+}
+
+.relvol-dropdown-menu > div, .avgvol-dropdown-menu > div {
+  background-color: $base2;
+  padding: 5px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.relvol-dropdown-menu > div:hover, .avgvol-dropdown-menu > div:hover {
+  background-color: $accent1;
+}
+
+.relvol-dropdown-btn:hover + .relvol-dropdown-menu, 
+.relvol-dropdown-menu:hover,
+.avgvol-dropdown-btn:hover + .avgvol-dropdown-menu, 
+.avgvol-dropdown-menu:hover {
+  display: block;
+}
 </style>
