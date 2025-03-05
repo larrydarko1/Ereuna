@@ -5,6 +5,7 @@ import time
 import requests
 from dotenv import load_dotenv
 import os
+import glob
 from pymongo import MongoClient, UpdateOne
 from bson import ObjectId
 from datetime import datetime
@@ -41,11 +42,10 @@ def set_maintenance_mode(mode):
         {
             "$set": {
                 "maintenance": mode,
-                "lastUpdated": datetime.datetime.now()  # Set to current date in BSON format
+                "lastUpdated": datetime.now()  # Set to current date in BSON format
             }
         }
     )
-    client.close()
     
 
 #symbol, name, description, IPO, exchange
@@ -1219,19 +1219,105 @@ def Daily():
         func_start_time = time.time()
         func()
         func_end_time = time.time()
-        execution_times[func_name] = func_end_time - func_start_time
+        execution_time_in_seconds = func_end_time - func_start_time
+        execution_time_in_minutes = execution_time_in_seconds / 60
+        execution_times[func_name] = execution_time_in_minutes
 
     end_time = time.time()
-    total_execution_time = end_time - start_time
+    total_execution_time_in_seconds = end_time - start_time
+    total_execution_time_in_minutes = total_execution_time_in_seconds / 60
 
     print('Execution times:')
     for func_name, execution_time in execution_times.items():
-        print(f'{func_name} took {execution_time:.2f} seconds to execute')
+        print(f'{func_name} took {execution_time:.2f} minutes to execute')
     
-    print(f'\nTotal execution time: {total_execution_time:.2f} seconds')
+    print(f'\nTotal execution time: {total_execution_time_in_minutes:.2f} minutes')
     set_maintenance_mode(False)
 
 # Add the job to the scheduler
-scheduler.add_job(Daily, CronTrigger(hour=0, minute=5, timezone='CET'))
+scheduler.add_job(Daily, CronTrigger(hour=11, minute=30, timezone='CET'))
 # Start the scheduler
 scheduler.start()
+
+delisted = []
+
+#removes delisted tickers from the database
+def Delist():
+    asset_info_collection = db['AssetInfo']
+    ohclv_data_collection = db['OHCLVData']
+    ohclv_data_collection2 = db['OHCLVData2']
+
+    print("Deleting documents from collections...")
+    for i, asset in enumerate(delisted):
+        try:
+            # Delete the document from the AssetInfo collection
+            asset_info_collection.delete_one({'Symbol': asset})
+
+            # Delete the documents from the OHCLVData and OHCLVData2 collections
+            ohclv_data_collection.delete_many({'tickerID': asset})
+            ohclv_data_collection2.delete_many({'tickerID': asset})
+
+            print(f"Processed {i+1} out of {len(delisted)} assets")
+        except Exception as e:
+            print(f"Error processing {asset}: {e}")
+
+
+def ArrangeIcons():
+    # Get the current working directory
+    current_dir = os.getcwd()
+    
+    # Construct the path to the 'pictures' folder
+    pictures_dir = os.path.join(current_dir, 'server', 'pictures')
+    
+    # Check if the 'pictures' folder exists
+    if os.path.exists(pictures_dir):
+        # Initialize an empty list to store the SVG file names
+        svg_file_names = []
+        
+        # Iterate over the files in the 'pictures' folder
+        for filename in os.listdir(pictures_dir):
+            # Check if the file is an SVG file
+            if filename.endswith('.svg'):
+                # Extract the name of the SVG file (without the extension)
+                svg_file_name = filename.split('.')[0]
+                
+                # Add the SVG file name to the list
+                svg_file_names.append(svg_file_name)
+        
+        # Iterate over the SVG file names
+        for svg_file_name in svg_file_names:
+            # Access the MongoDB collection
+            asset_info_collection = db['AssetInfo']
+            
+            # Find the document with the matching Symbol
+            document = asset_info_collection.find_one({'Symbol': svg_file_name})
+            
+            # Check if the document exists
+            if document:
+                # Extract the Exchange attribute
+                exchange = document.get('Exchange')
+                
+                # Check if the Exchange attribute exists
+                if exchange:
+                    # Construct the path to the Exchange folder
+                    exchange_dir = os.path.join(current_dir, 'server', 'pictures', exchange)
+                    
+                    # Check if the Exchange folder exists
+                    if not os.path.exists(exchange_dir):
+                        # Create the Exchange folder
+                        os.makedirs(exchange_dir)
+                    
+                    # Construct the path to the SVG file
+                    svg_file_path = os.path.join(pictures_dir, f'{svg_file_name}.svg')
+                    
+                    # Move the SVG file to the Exchange folder
+                    os.replace(svg_file_path, os.path.join(exchange_dir, f'{svg_file_name}.svg'))
+                    
+                    print(f'Moved {svg_file_name}.svg to {exchange} folder')
+                else:
+                    print(f'No Exchange attribute found for {svg_file_name}')
+            else:
+                print(f'No document found for {svg_file_name}')
+    else:
+        print("The 'pictures' folder does not exist.")
+

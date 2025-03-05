@@ -376,8 +376,7 @@ const validationSets = {
     notesDeletion: [
         validationSchemas.symbolParam('symbol'),
         validationSchemas.noteId(),
-        validationSchemas.userQuery(),
-        validationSchemas.apiKeyParam()
+        validationSchemas.userQuery()
     ],
 
     chartData: [

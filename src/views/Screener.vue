@@ -524,7 +524,6 @@
         <div v-if="showCreateScreener" class="CreateScreener">
           <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
           <h3>Create Screener</h3>
-          <p style="color: whitesmoke; opacity: 0.60; font-size: 7px; margin: 0; padding: 0;" >Max 20 Characters / 20 Screeners for each user</p>
           <input
       id="inputcreate"
       placeholder="Enter Screener Name"
@@ -578,24 +577,24 @@
           </button>
           <h1 :key="resultListLength" class='title2'>RESULTS: {{ resultListLength }}</h1>
         </div>
-          <template v-if="listMode === 'main'">
+          <div v-if="listMode === 'main'">
             <div class="RES" >
           <div class="Header" style="display: flex; flex-direction: row; width: 100vw; height: 30px; align-items: center;">
-            <div style="flex:0.5;"></div>
-            <div style="flex:0.5;"></div>
-            <div style="flex:1;">Ticker</div>
-            <div style="flex:2;">Name</div>
-            <div style="flex:1;">Price</div>
-            <div style="flex:1;">Chg%</div>
-            <div style="flex:1;">Technical Score (1W)</div>
-            <div style="flex:1;">Technical Score (1M)</div>
-            <div style="flex:1;">Technical Score (4M)</div>
-            <div style="flex:1;">ISIN</div>
-            <div style="flex:1;">Market Cap</div>
-            <div style="flex:1;">PE Ratio</div>
-            <div style="flex:1;">PEG Ratio</div>
-            <div style="flex:1;">Dividend Yield</div>
-            <div style="flex:1;">EPS</div>
+            <div style="min-width: 50px;"></div>
+            <div style="min-width: 50px;"></div>
+            <div style="min-width: 70px;">Ticker</div>
+            <div style="min-width: 300px;">Name</div>
+            <div style="min-width: 100px;">Price</div>
+            <div style="min-width: 70px;">Chg%</div>
+            <div style="min-width: 120px;">Technical Score (1W)</div>
+            <div style="min-width: 120px;">Technical Score (1M)</div>
+            <div style="min-width: 120px;">Technical Score (4M)</div>
+            <div style="min-width: 100px;">ISIN</div>
+            <div style="min-width: 150px;">Market Cap</div>
+            <div style="min-width: 70px;">PE Ratio</div>
+            <div style="min-width: 70px;">PEG Ratio</div>
+            <div style="min-width: 70px;">Dividend Yield</div>
+            <div style="min-width: 70px;">EPS</div>
           </div>
           <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll1">
             <div 
@@ -612,7 +611,7 @@
   ]" 
   :data-symbol="asset.Symbol"
 >
-            <div style="flex:0.5; position: relative;">
+            <div style="min-width: 50px;; position: relative;">
                 <button class="dropdown-btn">
                   <img class="img" src="@/assets/icons/dots.png" alt="" style="border: none;">
                 </button>
@@ -642,49 +641,49 @@
                   </div>
                 </div>
               </div>
-              <div style="flex:0.5;">
+              <div style="min-width: 50px;">
                 <img 
   :src="getImagePath(asset)" 
   class="img" 
 />
               </div>
-              <div style="flex:1;" class="btsymbol">{{ asset.Symbol }}</div>
-              <div style="flex:2;">{{ asset.Name }}</div>
-              <div style="flex:1;">{{ asset.Close }}</div>
-              <div style="flex:1;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{ (asset.todaychange * 100).toFixed(2) }}%</div>
-              <div style="flex:1;">{{ asset.RSScore1W }}</div>
-              <div style="flex:1;">{{ asset.RSScore1M }}</div>
-              <div style="flex:1;">{{ asset.RSScore4M }}</div>
-              <div style="flex:1;">{{ asset.ISIN }}</div>
-              <div style="flex:1;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
-              <div style="flex:1;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
-              <div style="flex:1;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
-              <div style="flex:1;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
-              <div style="flex:1;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
+              <div style="min-width: 70px;" class="btsymbol">{{ asset.Symbol }}</div>
+              <div style="min-width: 300px;">{{ asset.Name }}</div>
+              <div style="min-width: 100px;">{{ asset.Close }}</div>
+              <div style="min-width: 70px;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{ (asset.todaychange * 100).toFixed(2) }}%</div>
+              <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
+              <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
+              <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+              <div style="min-width: 100px;">{{ asset.ISIN }}</div>
+              <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
+              <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+              <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
+              <div style="min-width: 70px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
+              <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
             </div>
             <div class="results2"> 
             </div>
           </div>
           </div>
-          </template>
-          <template v-else-if="listMode === 'filter'">
+          </div>
+          <div v-else-if="listMode === 'filter'">
             <div class="RES">
           <div class="Header" style="display: flex; flex-direction: row; width: 100vw; height: 30px; align-items: center;">
-            <div style="flex:0.5;"></div>
-            <div style="flex:0.5;"></div>
-            <div style="flex:1;">Ticker</div>
-            <div style="flex:2;">Name</div>
-            <div style="flex:1;">Price</div>
-            <div style="flex:1;">Chg%</div>
-            <div style="flex:1;">Technical Score (1W)</div>
-            <div style="flex:1;">Technical Score (1M)</div>
-            <div style="flex:1;">Technical Score (4M)</div>
-            <div style="flex:1;">ISIN</div>
-            <div style="flex:1;">Market Cap</div>
-            <div style="flex:1;">PE Ratio</div>
-            <div style="flex:1;">PEG Ratio</div>
-            <div style="flex:1;">Dividend Yield</div>
-            <div style="flex:1;">EPS</div>
+            <div style="min-width: 50px;"></div>
+            <div style="min-width: 50px;"></div>
+            <div style="min-width: 70px;">Ticker</div>
+            <div style="min-width: 300px;">Name</div>
+            <div style="min-width: 100px;">Price</div>
+            <div style="min-width: 70px;">Chg%</div>
+            <div style="min-width: 120px;">Technical Score (1W)</div>
+            <div style="min-width: 120px;">Technical Score (1M)</div>
+            <div style="min-width: 120px;">Technical Score (4M)</div>
+            <div style="min-width: 100px;">ISIN</div>
+            <div style="min-width: 150px;">Market Cap</div>
+            <div style="min-width: 70px;">PE Ratio</div>
+            <div style="min-width: 70px;">PEG Ratio</div>
+            <div style="min-width: 70px;">Dividend Yield</div>
+            <div style="min-width: 70px;">EPS</div>
           </div>
           <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll2">
             <div 
@@ -701,7 +700,7 @@
   ]" 
   :data-symbol="asset.Symbol"
 >
-              <div style="flex:0.5; position: relative;">
+              <div style="min-width: 50px; position: relative;">
                 <button class="dropdown-btn">
                   <img class="img" src="@/assets/icons/dots.png" alt="" style="border: none;">
                 </button>
@@ -731,49 +730,49 @@
                   </div>
                 </div>
               </div>
-              <div style="flex:0.5;">
+              <div style="min-width: 50px;">
                 <img 
   :src="getImagePath(asset)" 
   class="img" 
 />
               </div>
-              <div style="flex:1;" class="btsymbol">{{ asset.Symbol }}</div>
-              <div style="flex:2;">{{ asset.Name }}</div>
-              <div style="flex:1;">{{ asset.Close }}</div>
-              <div style="flex:1;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{ (asset.todaychange * 100).toFixed(2) }}%</div>
-              <div style="flex:1;">{{ asset.RSScore1W }}</div>
-              <div style="flex:1;">{{ asset.RSScore1M }}</div>
-              <div style="flex:1;">{{ asset.RSScore4M }}</div>
-              <div style="flex:1;">{{ asset.ISIN }}</div>
-              <div style="flex:1;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
-              <div style="flex:1;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
-              <div style="flex:1;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
-              <div style="flex:1;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
-              <div style="flex:1;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
+              <div style="min-width: 70px;" class="btsymbol">{{ asset.Symbol }}</div>
+              <div style="min-width: 300px;">{{ asset.Name }}</div>
+              <div style="min-width: 100px;">{{ asset.Close }}</div>
+              <div style="min-width: 70px;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{ (asset.todaychange * 100).toFixed(2) }}%</div>
+              <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
+              <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
+              <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+              <div style="min-width: 100px;">{{ asset.ISIN }}</div>
+              <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
+              <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+              <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
+              <div style="min-width: 70px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
+              <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
             </div>
             <div class="results2"> 
             </div>
           </div>
           </div>
-          </template>
-          <template v-else-if="listMode === 'hidden'">
+          </div>
+          <div v-else-if="listMode === 'hidden'">
             <div class="RES">
           <div class="Header" style="display: flex; flex-direction: row; width: 100vw; height: 30px; align-items: center;">
-            <div style="flex:0.5;"></div>
-            <div style="flex:0.5;"></div>
-            <div style="flex:1;">Ticker</div>
-            <div style="flex:2;">Name</div>
-            <div style="flex:1;">Price</div>
-            <div style="flex:1;">Chg%</div>
-            <div style="flex:1;">Technical Score (1W)</div>
-            <div style="flex:1;">Technical Score (1M)</div>
-            <div style="flex:1;">Technical Score (4M)</div>
-            <div style="flex:1;">ISIN</div>
-            <div style="flex:1;">Market Cap</div>
-            <div style="flex:1;">PE Ratio</div>
-            <div style="flex:1;">PEG Ratio</div>
-            <div style="flex:1;">Dividend Yield</div>
-            <div style="flex:1;">EPS</div>
+            <div style="min-width: 50px;"></div>
+            <div style="min-width: 50px;"></div>
+            <div style="min-width: 70px;">Ticker</div>
+            <div style="min-width: 300px;">Name</div>
+            <div style="min-width: 100px;">Price</div>
+            <div style="min-width: 70px;">Chg%</div>
+            <div style="min-width: 120px;">Technical Score (1W)</div>
+            <div style="min-width: 120px;">Technical Score (1M)</div>
+            <div style="min-width: 120px;">Technical Score (4M)</div>
+            <div style="min-width: 100px;">ISIN</div>
+            <div style="min-width: 150px;">Market Cap</div>
+            <div style="min-width: 70px;">PE Ratio</div>
+            <div style="min-width: 70px;">PEG Ratio</div>
+            <div style="min-width: 70px;">Dividend Yield</div>
+            <div style="min-width: 70px;">EPS</div>
           </div>
           <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll3">
             <div 
@@ -790,7 +789,7 @@
   ]" 
   :data-symbol="asset.Symbol"
 >
-              <div style="flex:0.5; position: relative;">
+              <div style="min-width: 50px;; position: relative;">
                 <button class="dropdown-btn">
                   <img class="img" src="@/assets/icons/dots.png" alt="" style="border: none;">
                 </button>
@@ -820,49 +819,49 @@
                   </div>
                 </div>
               </div>
-              <div style="flex:0.5;">
+              <div style="min-width: 50px;">
                 <img 
   :src="getImagePath(asset)" 
   class="img" 
 />
               </div>
-              <div style="flex:1;" class="btsymbol">{{ asset.Symbol }}</div>
-              <div style="flex:2;">{{ asset.Name }}</div>
-              <div style="flex:1;">{{ asset.Close }}</div>
-              <div style="flex:1;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{ (asset.todaychange * 100).toFixed(2) }}%</div>
-              <div style="flex:1;">{{ asset.RSScore1W }}</div>
-              <div style="flex:1;">{{ asset.RSScore1M }}</div>
-              <div style="flex:1;">{{ asset.RSScore4M }}</div>
-              <div style="flex:1;">{{ asset.ISIN }}</div>
-              <div style="flex:1;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
-              <div style="flex:1;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
-              <div style="flex:1;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
-              <div style="flex:1;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
-              <div style="flex:1;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
+              <div style="min-width: 70px;" class="btsymbol">{{ asset.Symbol }}</div>
+              <div style="min-width: 300px;">{{ asset.Name }}</div>
+              <div style="min-width: 100px;;">{{ asset.Close }}</div>
+              <div style="min-width: 70px;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{ (asset.todaychange * 100).toFixed(2) }}%</div>
+              <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
+              <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
+              <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+              <div style="min-width: 100px;">{{ asset.ISIN }}</div>
+              <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
+              <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+              <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
+              <div style="min-width: 70px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
+              <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
             </div>
             <div class="results2"> 
             </div>
             </div>
           </div>
-          </template>
-          <template v-else-if="listMode === 'combined'">
+          </div>
+          <div v-else-if="listMode === 'combined'">
             <div class="RES">
           <div class="Header" style="display: flex; flex-direction: row; width: 100vw; height: 30px; align-items: center;">
-            <div style="flex:0.5;"></div>
-            <div style="flex:0.5;"></div>
-            <div style="flex:1;">Ticker</div>
-            <div style="flex:2;">Name</div>
-            <div style="flex:1;">Price</div>
-            <div style="flex:1;">Chg%</div>
-            <div style="flex:1;">Technical Score (1W)</div>
-            <div style="flex:1;">Technical Score (1M)</div>
-            <div style="flex:1;">Technical Score (4M)</div>
-            <div style="flex:1;">ISIN</div>
-            <div style="flex:1;">Market Cap</div>
-            <div style="flex:1;">PE Ratio</div>
-            <div style="flex:1;">PEG Ratio</div>
-            <div style="flex:1;">Dividend Yield</div>
-            <div style="flex:1;">EPS</div>
+            <div style="min-width: 50px;"></div>
+            <div style="min-width: 50px;"></div>
+            <div style="min-width: 70px;">Ticker</div>
+            <div style="min-width: 300px;">Name</div>
+            <div style="min-width: 100px;">Price</div>
+            <div style="min-width: 70px;">Chg%</div>
+            <div style="min-width: 120px;">Technical Score (1W)</div>
+            <div style="min-width: 120px;">Technical Score (1M)</div>
+            <div style="min-width: 120px;">Technical Score (4M)</div>
+            <div style="min-width: 100px;">ISIN</div>
+            <div style="min-width: 150px;">Market Cap</div>
+            <div style="min-width: 70px;">PE Ratio</div>
+            <div style="min-width: 70px;">PEG Ratio</div>
+            <div style="min-width: 70px;">Dividend Yield</div>
+            <div style="min-width: 70px;">EPS</div>
           </div>
           <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll4">
             <div 
@@ -879,7 +878,7 @@
   ]" 
   :data-symbol="asset.Symbol"
 >
-              <div style="flex:0.5; position: relative;">
+              <div style="min-width: 50px;; position: relative;">
                 <button class="dropdown-btn">
                   <img class="img" src="@/assets/icons/dots.png" alt="" style="border: none;">
                 </button>
@@ -909,13 +908,13 @@
                   </div>
                 </div>
               </div>
-              <div style="flex:0.5;">
+              <div style="min-width: 50px;">
                 <img 
   :src="getImagePath(asset)" 
   class="img" 
 />
               </div>
-              <div style="flex:1;" class="btsymbol">
+              <div style="min-width: 70px;" class="btsymbol">
                 {{ asset.Symbol }}
   <span v-if="asset.isDuplicate" class="duplicate-asterisk">
     * 
@@ -925,24 +924,24 @@
     </span>
   </span>
 </div>
-              <div style="flex:2;">{{ asset.Name }}</div>
-              <div style="flex:1;">{{ asset.Close }}</div>
-              <div style="flex:1;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{ (asset.todaychange * 100).toFixed(2) }}%</div>
-              <div style="flex:1;">{{ asset.RSScore1W }}</div>
-              <div style="flex:1;">{{ asset.RSScore1M }}</div>
-              <div style="flex:1;">{{ asset.RSScore4M }}</div>
-              <div style="flex:1;">{{ asset.ISIN }}</div>
-              <div style="flex:1;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
-              <div style="flex:1;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
-              <div style="flex:1;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
-              <div style="flex:1;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
-              <div style="flex:1;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
+              <div style="min-width: 300px;">{{ asset.Name }}</div>
+              <div style="min-width: 100px;">{{ asset.Close }}</div>
+              <div style="min-width: 70px;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{ (asset.todaychange * 100).toFixed(2) }}%</div>
+              <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
+              <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
+              <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+              <div style="min-width: 100px;">{{ asset.ISIN }}</div>
+              <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
+              <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+              <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
+              <div style="min-width: 70px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
+              <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
             </div>
             <div class="results2"> 
             </div>
           </div>
           </div>
-          </template>
+          </div>
         </div>
       <div id="sidebar-r">
         <h1 class="title3">WEEKLY CHART</h1>
@@ -3733,17 +3732,13 @@ const toUpperCase = () => {
   flex-direction: column;
   background-color: $base4;
   overflow-y: scroll;
+  min-width: 300px;
 }
 
 #resultsDiv {
   flex: 0 0 50%;
   width: 100vw;
   overflow-x: scroll;
-}
-
-#resultsDiv table {
-  flex: 0 0 50%;
-  width: 100vw;
 }
 
 #sidebar-r {
@@ -3755,6 +3750,7 @@ const toUpperCase = () => {
   background-color: $base4;
   z-index: 1000;
   max-width: 500px;
+  min-width: 400px;
 }
 
 #filters {
@@ -4346,8 +4342,7 @@ input:checked+.slider:before {
   padding: 5px;
 }
 
-.Header,
-Header th {
+.Header{
   background-color: $base1;
   text-align: center;
   color: $text1;
@@ -4477,45 +4472,50 @@ Header th {
 .RenameScreener,
 .CreateScreener {
   position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: $base2;
-    width: 300px;
-    height: 150px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: $base2;
+  width: 300px;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 10px;
+  border: 2px solid $accent3; 
 }
 
 .RenameScreener h3,
 .CreateScreener h3 {
   background-color: transparent;
-    color: $text1;
+    color: rgba($text1, 0.5);
     border: none;
     margin-top: 10px;
 }
 
 .RenameScreener input,
 .CreateScreener input {
-  margin-bottom: 3px;
-    margin-top: 5px;
-    text-align: center;
-    background-color: $base4;
-  color: $base3;
-  padding: 5px;
+  border-radius: 25px;
+  padding: 5px 5px 5px 15px;
+  margin: 7px;
+  width: 160px;
   outline: none;
-  border: solid 1px $base3;
+  color: $base3; /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
+  border: solid 1px $base4;
+  background-color:$base4;
 }
 
 .RenameScreener input:focus,
 .CreateScreener input:focus {
-  border-color: $accent1;
+  border-color: $accent1; /* Change border color on focus */
+  box-shadow: 0 0 5px rgba($accent3, 0.5); /* Subtle shadow effect */
+  outline: none; /* Remove default outline */
 }
 
 .CreateScreener input.input-error, 

@@ -142,36 +142,39 @@ const changePassword = async () => {
 
 input {
   border-radius: 25px;
-  padding: 5px;
+  padding: 5px 5px 5px 15px;
   margin: 7px;
-  width: 190%; /* Adjusted width to 100% */
+  width: 300px;
   outline: none;
-  color: whitesmoke; /* Dark text color */
+  color: $base3; /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
-  border: solid 1px #171728;
-  background-color: #2c2b3e; /* Dark background color */
+  border: solid 1px $base4;
+  background-color:$base4;
 }
 
 input:focus {
-  border-color: #8c8dfe; /* Change border color on focus */
+  border-color: $accent1; /* Change border color on focus */
   box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
   outline: none; /* Remove default outline */
 }
 
 button {
   background-color: transparent;
-  color: whitesmoke;
+  color: $text1;
   border-radius: 10px;
+  border: solid 2px $accent1;
   outline: none;
-  border: solid 2px #8c8dfe;
   padding: 5px;
   margin: 5px;
-  width: 120%;
+  width: 150px;
+  cursor: pointer; /* Pointer cursor on hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
 }
 
 button:hover {
-  cursor: pointer;
-  background-color: #8c8dfe;
+  background-color: $accent1; /* Background color on hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }
   
   .error {

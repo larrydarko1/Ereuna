@@ -235,7 +235,7 @@ async function verifyMfa() {
   color: whitesmoke;
   border-radius: 10px;
   outline: none;
-  border: solid 2px #8c8dfe;
+  border: solid 2px $accent1;
   padding: 5px;
   margin: 5px;
   width: 100%;
@@ -245,7 +245,7 @@ async function verifyMfa() {
 }
 
 .signbtn:hover {
-  background-color: #8c8dfe; /* Background color on hover */
+  background-color: $accent1; /* Background color on hover */
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }
 
