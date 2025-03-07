@@ -165,15 +165,15 @@
 <div class="eps-body">
   <div v-for="(earnings, index) in displayedEPSItems" :key="earnings.fiscalDateEnding" class="eps-row">
     <div class="eps-cell" style="flex: 0 0 20%;">{{ formatDate(earnings.fiscalDateEnding) }}</div>
-    <div class="eps-cell" style="flex: 0 0 40%;">{{ earnings.reportedEPS }}</div>
+    <div class="eps-cell" style="flex: 0 0 40%;">{{ parseFloat(earnings.reportedEPS).toFixed(2) }}</div>
     
     <!-- Change here: Check if there are fewer than 4 items -->
     <div class="eps-cell" style="flex: 0 0 20%;" v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
       <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
     </div>
     <div class="eps-cell" style="flex: 0 0 20%;" v-else :class="calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) > 0 ? 'positive' : 'negative'">
-      {{ calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) }}%
-    </div>
+  {{ isNaN(calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0)) || !isFinite(calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0)) ? '-' : calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) + '%' }}
+</div>
     
     <div class="eps-cell" style="flex: 0 0 10%;" v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
       <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
@@ -218,8 +218,8 @@
       <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
     </div>
     <div class="earn-cell" style="flex: 0 0 20%;" v-else :class="calculateNet(quarterlyReport.netIncome) > 0 ? 'positive' : 'negative'">
-      {{ calculateNet(quarterlyReport.netIncome) }}%
-    </div>
+  {{ isNaN(calculateNet(quarterlyReport.netIncome)) || !isFinite(calculateNet(quarterlyReport.netIncome)) || calculateNet(quarterlyReport.netIncome) === null ? '-' : calculateNet(quarterlyReport.netIncome) + '%' }}
+</div>
     
     <div class="earn-cell" style="flex: 0 0 10%;" v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
       <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
@@ -268,8 +268,8 @@
         <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
       </div>
       <div class="sales-cell" style="flex: 0 0 20%;" v-else :class="calculateRev(quarterlyReport.totalRevenue) > 0 ? 'positive' : 'negative'">
-        {{ calculateRev(quarterlyReport.totalRevenue) }}%
-      </div>
+  {{ isNaN(calculateRev(quarterlyReport.totalRevenue)) || !isFinite(calculateRev(quarterlyReport.totalRevenue)) || calculateRev(quarterlyReport.totalRevenue) === null ? '-' : calculateRev(quarterlyReport.totalRevenue) + '%' }}
+</div>
       
       <div class="sales-cell" style="flex: 0 0 10%;" v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
         <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
