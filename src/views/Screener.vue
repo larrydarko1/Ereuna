@@ -603,7 +603,7 @@
         </div>
           <div v-if="listMode === 'main'">
             <div class="RES" >
-          <div class="Header" style="display: flex; flex-direction: row; width: 100vw; height: 30px; align-items: center;">
+          <div class="Header">
             <div style="min-width: 50px;"></div>
             <div style="min-width: 50px;"></div>
             <div style="min-width: 70px;">Ticker</div>
@@ -620,7 +620,7 @@
             <div style="min-width: 70px;">Dividend Yield</div>
             <div style="min-width: 70px;">EPS</div>
           </div>
-          <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll1">
+          <div id="wlist-container"  @scroll.passive="handleScroll1">
             <div 
   id="wlist" 
   style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;" 
@@ -4486,6 +4486,12 @@ input:checked+.slider:before {
   text-align: center;
   color: $text1;
   border: none;
+  display: flex; 
+  flex-direction: row; 
+width: 100vw;; 
+  height: 30px; 
+  align-items: center;
+  min-width: 1550px;
 }
 
 .even {
@@ -5272,5 +5278,13 @@ input[type="date"]{
 .avgvol-dropdown-btn:hover + .avgvol-dropdown-menu, 
 .avgvol-dropdown-menu:hover {
   display: block;
+}
+
+#wlist-container{
+  height: 2000px; 
+  width: 100vw; 
+  min-width: 1550px;
+  overflow-y: scroll; 
+  z-index: 1000;
 }
 </style>
