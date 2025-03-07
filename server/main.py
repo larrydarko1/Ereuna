@@ -197,33 +197,41 @@ def getPrice():
 
             for week_start, week_data in weekly_grouped:
                 if not week_data.empty:
-                    weekly_doc = {
-                        'tickerID': week_data['ticker'].iloc[0].upper(),
-                        'timestamp': week_start.to_pydatetime(),
-                        'open': float(week_data['open'].iloc[0]),
-                        'high': float(week_data['high'].max()),
-                        'low': float(week_data['low'].min()),
-                        'close': float(week_data['close'].iloc[-1]),
-                        'volume': int(week_data['volume'].sum())
-                    }
-                    
                     # Check if weekly document already exists
                     existing_weekly_doc = weekly_collection.find_one({
-                        'tickerID': weekly_doc['tickerID'], 
-                        'timestamp': weekly_doc['timestamp']
+                        'tickerID': week_data['ticker'].iloc[0].upper(), 
+                        'timestamp': week_start.to_pydatetime()
                     })
                     
                     if not existing_weekly_doc:
+                        # Create a new weekly document
+                        weekly_doc = {
+                            'tickerID': week_data['ticker'].iloc[0].upper(),
+                            'timestamp': week_start.to_pydatetime(),
+                            'open': float(week_data['open'].iloc[0]),
+                            'high': float(week_data['high'].iloc[0]),
+                            'low': float(week_data['low'].iloc[0]),
+                            'close': float(week_data['close'].iloc[0]),
+                            'volume': int(week_data['volume'].iloc[0])
+                        }
                         weekly_collection.insert_one(weekly_doc)
                         print(f"Inserted weekly document for {weekly_doc['tickerID']} on {weekly_doc['timestamp']}")
                     else:
-                        print(f"Weekly document for {weekly_doc['tickerID']} on {weekly_doc['timestamp']} already exists")
+                        # Update the existing weekly document
+                        for index, row in week_data.iterrows():
+                            existing_weekly_doc['high'] = max(existing_weekly_doc['high'], float(row['high']))
+                            existing_weekly_doc['low'] = min(existing_weekly_doc['low'], float(row['low']))
+                            existing_weekly_doc['close'] = float(row['close'])
+                            existing_weekly_doc['volume'] += int(row['volume'])
+                        weekly_collection.update_one({'_id': existing_weekly_doc['_id']}, {'$set': existing_weekly_doc})
+                        print(f"Updated weekly document for {existing_weekly_doc['tickerID']} on {existing_weekly_doc['timestamp']}")
         else:
             print("No data found for the specified tickers.")
     else:
         print(f"Error: {response.text}")
     
 
+#MarketCap, PE, PB, PEG with for loop, not individual stocks
 def updateDailyRatios():
     ohclv_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
@@ -1602,12 +1610,12 @@ def Daily():
     set_maintenance_mode(False)
     
     
-def run_simultaneously():
+def Run():
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         executor.submit(Daily)
         executor.submit(checkFinancialUpdates)
 
 # Add the job to the scheduler
-scheduler.add_job(run_simultaneously, CronTrigger(hour=11, minute=30, timezone='CET'))
+scheduler.add_job(Run, CronTrigger(hour=11, minute=30, timezone='CET'))
 # Start the scheduler
 scheduler.start()

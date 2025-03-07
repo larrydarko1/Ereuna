@@ -1,9 +1,10 @@
 <template>
     <header class="header">
-      <a title="Home" class="icon2" id="home-icon" alt="account"></a>
-      <router-link to="/screener" title="screener" :class="['icon', { 'active': route.path === '/screener' }]" id="screener-icon" alt="screener"></router-link>
-      <router-link to="/charts" title="chart" :class="['icon', { 'active': route.path === '/charts' }]" id="chart-icon" alt="chart"></router-link>
-      <router-link to="/user" title="user" :class="['icon', { 'active': route.path === '/user' }]" id="user-icon" alt="user"></router-link>
+      <a class="icon2" id="home-icon" alt="account"></a>
+      <a title="Logout" @click="LogOut()" class="icon" id="logout-icon" alt="account"></a>
+      <router-link to="/screener" title="Screener" :class="['icon', { 'active': route.path === '/screener' }]" id="screener-icon" alt="screener"></router-link>
+      <router-link to="/charts" title="Chart" :class="['icon', { 'active': route.path === '/charts' }]" id="chart-icon" alt="chart"></router-link>
+      <router-link to="/user" title="Dashboard" :class="['icon', { 'active': route.path === '/user' }]" id="user-icon" alt="user"></router-link>
     </header>
   </template>
   
@@ -11,6 +12,17 @@
   import { useRoute } from 'vue-router';
   
   const route = useRoute();
+
+  async function LogOut() {
+    try {
+        localStorage.clear();
+        setTimeout(function() {
+                location.reload();
+            }, 100);
+    } catch (error) {
+        console.error('Error logging out:', error);
+    }
+}
   </script>
   
   <style lang="scss">
@@ -68,12 +80,22 @@
   }
 
   #user-icon {
-    background-image: url('@/assets/icons/user.png');
+    background-image: url('@/assets/icons/dashboard.png');
+    width: 13px;
+    height: 13px;
   }
   
   #user-icon:hover,
   #user-icon.active {
-    background-image: url('@/assets/icons/user-hover.png');
+    background-image: url('@/assets/icons/dashboard-hover.png');
+  }
+
+  #logout-icon {
+    background-image: url('@/assets/icons/logout.png');
+  }
+  
+  #logout-icon:hover {
+    background-image: url('@/assets/icons/logout-hover.png');
   }
   
   #home-icon {
