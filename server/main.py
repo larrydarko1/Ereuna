@@ -431,6 +431,7 @@ def Dividends(tickerID, timestamp, divCash):
     else:
         print(f"No document found in AssetInfo for {tickerID}")
 
+new_tickers = ['ADD']
 #scan endpoints for financial statements updates and update symbol when it does
 def checkFinancialUpdates():
     collection = db['AssetInfo']
@@ -491,14 +492,6 @@ def updateFinancial(new_tickers):
             result = collection.find_one({'Symbol': ticker})
 
             if result:
-                # Clear existing data
-                collection.update_one({'Symbol': ticker}, {'$set': {
-                    'annualEarnings': [],
-                    'quarterlyEarnings': [],
-                    'AnnualFinancials': [],
-                    'quarterlyFinancials': []
-                }})
-
                 # Process the data
                 for statement in data:
                     date_str = statement['date']
@@ -514,15 +507,15 @@ def updateFinancial(new_tickers):
                         if eps:
                             eps_value = eps['value']
                             if quarter == 0:
-                                collection.update_one({'Symbol': ticker}, {'$push': {
-                                    'annualEarnings': {
+                                collection.update_one({'Symbol': ticker, 'annualEarnings.fiscalDateEnding': date}, {'$set': {
+                                    'annualEarnings.$': {
                                         'fiscalDateEnding': date,
                                         'reportedEPS': eps_value
                                     }
                                 }})
                             else:
-                                collection.update_one({'Symbol': ticker}, {'$push': {
-                                    'quarterlyEarnings': {
+                                collection.update_one({'Symbol': ticker, 'quarterlyEarnings.fiscalDateEnding': date}, {'$set': {
+                                    'quarterlyEarnings.$': {
                                         'fiscalDateEnding': date,
                                         'reportedEPS': eps_value
                                     }
@@ -559,12 +552,12 @@ def updateFinancial(new_tickers):
                                     financial_data[data_code] = value
 
                             if quarter == 0:
-                                collection.update_one({'Symbol': ticker}, {'$push': {
-                                    'AnnualFinancials': financial_data
+                                collection.update_one({'Symbol': ticker, 'AnnualFinancials.fiscalDateEnding': date}, {'$set': {
+                                    'AnnualFinancials.$': financial_data
                                 }})
                             else:
-                                collection.update_one({'Symbol': ticker}, {'$push': {
-                                    'quarterlyFinancials': financial_data
+                                collection.update_one({'Symbol': ticker, 'quarterlyFinancials.fiscalDateEnding': date}, {'$set': {
+                                    'quarterlyFinancials.$': financial_data
                                 }})
                 print(f"Successfully updated financial data for {ticker}")
             else:
@@ -1606,4 +1599,4 @@ def Daily():
 # Start the scheduler
 scheduler.start()
 
-checkFinancialUpdates()
+updateFinancial(new_tickers)
