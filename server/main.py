@@ -431,7 +431,6 @@ def Dividends(tickerID, timestamp, divCash):
     else:
         print(f"No document found in AssetInfo for {tickerID}")
 
-new_tickers = ['ADD']
 #scan endpoints for financial statements updates and update symbol when it does
 def checkFinancialUpdates():
     collection = db['AssetInfo']
@@ -493,10 +492,25 @@ def updateFinancial(new_tickers):
 
             if result:
                 # Process the data
+                quarterly_earnings_data = []
+                annual_earnings_data = []
+                quarterly_financials_data = []
+                annual_financials_data = []
                 for statement in data:
                     date_str = statement['date']
                     date = datetime.strptime(date_str, '%Y-%m-%d')
                     quarter = statement['quarter']
+
+                    earnings_data = {
+                        'fiscalDateEnding': date,
+                        'reportedEPS': 0
+                    }
+
+                    financial_data = {
+                        'fiscalDateEnding': date,
+                        'totalRevenue': 0,
+                        'netIncome': 0
+                    }
 
                     if 'statementData' in statement and 'incomeStatement' in statement['statementData']:
                         income_statement = statement['statementData']['incomeStatement']
@@ -505,61 +519,48 @@ def updateFinancial(new_tickers):
                         netinc = next((item for item in income_statement if item['dataCode'] == 'netinc'), None)
 
                         if eps:
-                            eps_value = eps['value']
-                            if quarter == 0:
-                                collection.update_one({'Symbol': ticker, 'annualEarnings.fiscalDateEnding': date}, {'$set': {
-                                    'annualEarnings.$': {
-                                        'fiscalDateEnding': date,
-                                        'reportedEPS': eps_value
-                                    }
-                                }})
-                            else:
-                                collection.update_one({'Symbol': ticker, 'quarterlyEarnings.fiscalDateEnding': date}, {'$set': {
-                                    'quarterlyEarnings.$': {
-                                        'fiscalDateEnding': date,
-                                        'reportedEPS': eps_value
-                                    }
-                                }})
+                            earnings_data['reportedEPS'] = eps['value'] or 0
 
                         if revenue and netinc:
-                            revenue_value = revenue['value']
-                            netinc_value = netinc['value']
-                            financial_data = {
-                                'fiscalDateEnding': date,
-                                'totalRevenue': revenue_value,
-                                'netIncome': netinc_value
-                            }
+                            financial_data['totalRevenue'] = revenue['value'] or 0
+                            financial_data['netIncome'] = netinc['value'] or 0
 
-                            if 'balanceSheet' in statement['statementData']:
-                                balance_sheet = statement['statementData']['balanceSheet']
-                                for item in balance_sheet:
-                                    data_code = item['dataCode']
-                                    value = item['value']
-                                    financial_data[data_code] = value
+                    if 'balanceSheet' in statement['statementData']:
+                        balance_sheet = statement['statementData']['balanceSheet']
+                        for item in balance_sheet:
+                            data_code = item['dataCode']
+                            value = item['value'] or 0
+                            financial_data[data_code] = value
 
-                            if 'cashFlow' in statement['statementData']:
-                                cash_flow = statement['statementData']['cashFlow']
-                                for item in cash_flow:
-                                    data_code = item['dataCode']
-                                    value = item['value']
-                                    financial_data[data_code] = value
+                    if 'cashFlow' in statement['statementData']:
+                        cash_flow = statement['statementData']['cashFlow']
+                        for item in cash_flow:
+                            data_code = item['dataCode']
+                            value = item['value'] or 0
+                            financial_data[data_code] = value
 
-                            if 'overview' in statement['statementData']:
-                                overview = statement['statementData']['overview']
-                                for item in overview:
-                                    data_code = item['dataCode']
-                                    value = item['value']
-                                    financial_data[data_code] = value
+                    if 'overview' in statement['statementData']:
+                        overview = statement['statementData']['overview']
+                        for item in overview:
+                            data_code = item['dataCode']
+                            value = item['value'] or 0
+                            financial_data[data_code] = value
 
-                            if quarter == 0:
-                                collection.update_one({'Symbol': ticker, 'AnnualFinancials.fiscalDateEnding': date}, {'$set': {
-                                    'AnnualFinancials.$': financial_data
-                                }})
-                            else:
-                                collection.update_one({'Symbol': ticker, 'quarterlyFinancials.fiscalDateEnding': date}, {'$set': {
-                                    'quarterlyFinancials.$': financial_data
-                                }})
-                print(f"Successfully updated financial data for {ticker}")
+                    if quarter == 0:
+                        annual_earnings_data.append(earnings_data)
+                        annual_financials_data.append(financial_data)
+                    else:
+                        quarterly_earnings_data.append(earnings_data)
+                        quarterly_financials_data.append(financial_data)
+
+                # Update the quarterly and annual earnings and financial data in the MongoDB database
+                collection.update_one({'Symbol': ticker}, {'$set': {
+                    'quarterlyEarnings': quarterly_earnings_data,
+                    'annualEarnings': annual_earnings_data,
+                    'quarterlyFinancials': quarterly_financials_data,
+                    'AnnualFinancials': annual_financials_data
+                }})
+                print(f"Successfully updated earnings and financial data for {ticker}")
             else:
                 print(f"No document found for {ticker}")
         else:
@@ -1599,4 +1600,4 @@ def Daily():
 # Start the scheduler
 scheduler.start()
 
-updateFinancial(new_tickers)
+checkFinancialUpdates()
