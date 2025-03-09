@@ -3597,7 +3597,7 @@ opacity: 1;
 
 .select-container  .dropdown-container div {
   display: none;
-  background-color: $base2;
+  background-color: $base4;
  border: none;
 }
 
@@ -3608,7 +3608,7 @@ opacity: 1;
 }
 
 .watchlist-dropdown-menu {
-  background-color: $base2;
+  background-color: $base4;
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
@@ -3752,7 +3752,7 @@ opacity: 1;
 }
 
 .watchlist-dropdown-menu3 {
-  background-color: $base2;
+  background-color: $base4;
   padding: 7px;
   display: flex;
   flex-direction: column;
@@ -3761,7 +3761,7 @@ opacity: 1;
 }
 
 .watchlist-dropdown-menu3 > div {
-  background-color: $base2;
+  background-color: $base4;
   padding: 1px;
   height: 28px;
   display: flex;
@@ -3801,7 +3801,7 @@ opacity: 1;
   align-items: center;
   width: 100%;
   padding: 10px;
-  background-color: $base2;
+  background-color: $base4;
   border: none;
   color: $text1;
   text-align: left;
@@ -3809,7 +3809,7 @@ opacity: 1;
 }
 
 .watchlist-dropdown-menu2 {
-  background-color: $base2;
+  background-color: $base4;
   padding: 5px;
   border-radius: 5px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
