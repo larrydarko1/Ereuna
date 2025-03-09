@@ -5,7 +5,10 @@
   <button type="button" class="verify-mfa" @click="verifyMfa">Verify</button>
 </div>
   <div class="login-form" @keydown.enter="login()">
-    <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/owl.png" alt="">
+    <div class="logo-container">
+      <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/owl.png" alt="">
+      <div class="beta">BETA VERSION</div>
+    </div>
     <div class="input-with-icon">
       <input class="form-input" placeholder="Username" type="username">
       <img class="icon" src="@/assets/icons/username2.png" alt="">
@@ -56,7 +59,7 @@
     <h3>{{ welcomeMessage }}</h3>
   </div>
   <div class="releaseNote" style="display: flex; flex-direction: row; align-items: center;">
-  <h3> V1.0.1 // ALPHA TEST  - </h3> 
+  <h3> V1.0.3 // Beta Version </h3> 
   </div>
   <div class="releaseNote2" style="display: flex; flex-direction: row; align-items: center;">
     <h3>Crypto Donations</h3> 
@@ -437,15 +440,38 @@ async function verifyMfa() {
 .mfa-popup button {
   width: 90%;
   padding: 10px;
-  background-color: #8c8dfe;
-  color: #fff;
+  background-color: $accent1;
+  color: $text1;
   border: none;
   border-radius: 5px;
   cursor: pointer;
 }
 
 .mfa-popup button:hover {
-  background-color: #8c8dfe;
+  background-color: $accent2;
+}
+
+.logo-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.beta {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) rotate(-5deg);
+  border: solid 2px $accent1;
+  width: 100px;
+  border-radius: 5px;
+  color: $accent1;
+  text-align: center;
+  letter-spacing: 2px;
+  font-weight: bold;
+  padding: 3px;
+  margin-top: 72px;
 }
 
 </style>
