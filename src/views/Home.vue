@@ -11,7 +11,7 @@
       <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 12px;">Sign Up</router-link>
     </div>
     <div class="navbtn2" @click="$router.push('/login')">
-  <router-link to="/login" style="color: whitesmoke; text-decoration: none; font-size: 12px;">Login</router-link>
+  <router-link to="/login" style="color: whitesmoke; text-decoration: none; font-size: 12px; background-color: transparent;">Login</router-link>
 </div>
   </div>
 </div>
@@ -120,12 +120,20 @@ Rather than keeping it exclusive to my own use, I decided to commercialize the p
     <!-- Pricing Section -->
     <div class="content-section" id="pricing">
       <h2 style="text-align: center; font-size: 20px; color: whitesmoke;">PRICING</h2>
-      <div class="pricing-cards">
-        <!-- Single Plan -->
         <div class="pricing-card">
-          <p class="feature">5.99€ + VAT / Month</p>
-            <p>No commitment, it's recharge based, no automatic / recurring charges </p>
-            <p>Eligible for refunds the first 15 days</p>
+          <h3 style="font-size: 16px;">JUST ONE TIER</h3>
+         <div class="price-container">
+          <p><span class="feature" style="font-size: 50px;">5.99€</span></p>
+         <p class="price-container2">+ VAT / Month</p> 
+         </div> 
+         <div class="bullet-list">
+          <p>&bull; Coverage of 5500+ US stocks, EOD and 20+ years of financial statements</p> 
+          <p>&bull; Tradingview Lightweight charts, watchlists, Notes, Summary data </p> 
+          <p>&bull; Fast and efficient screening capabilities, saving you time and effort in your investment research</p>
+          <p>&bull; Run multiple screeners simultaniously and hide stocks that are irrelevant for you, allowing for a quicker and more efficient way to run blablabla</p> 
+          <p>&bull; No commitment, it's recharge based, no automatic / recurring charges</p> 
+          <p>&bull; Eligible for refunds the first 15 days</p> 
+         </div>
          <div class="payme">
           <img class="icon2" src="@/assets/icons/credit-card.png" alt="credit-card"> 
           <img class="icon2" src="@/assets/icons/bitcoin.png" alt="">
@@ -133,7 +141,6 @@ Rather than keeping it exclusive to my own use, I decided to commercialize the p
           <img class="icon2" src="@/assets/icons/monero.png" alt="">
           <p>Payable with Credit Card or major Cryptocurrencies</p>
          </div>
-        </div>
       </div>
     </div>
 
@@ -161,86 +168,65 @@ Rather than keeping it exclusive to my own use, I decided to commercialize the p
   <p>&copy; Ereuna Srl 2025. All rights reserved.</p>
   <div class="back-to-top" @click="scrollToSection('hero')">Back to Top</div>
   <div class="footer-links">
-    <a href="#" @click.prevent="showTermsModal">Terms of Service</a> 
-    <a href="#" @click.prevent="showPrivacyModal">Privacy Policy</a>
+    <a href="#" @click.prevent="showTermsModal">Terms of Service  & Privacy Policy</a> 
   </div>
 </div>
 </div>
 
   <div v-if="showTerms" class="modal" @click.self="closeTermsModal">
-    <h2 style="color: whitesmoke;">Terms of Service</h2>
+    <h2 style="color: whitesmoke;">Terms of Service & Privacy Policy</h2>
     <div class="modal-content">
-        <p>These Terms of Service ("Terms") govern your access to and use of our web application ("Service"). By subscribing to or using our Service, you agree to these Terms. If you do not agree, please do not use our Service.</p>
-
-        <p><strong>1. Acceptance of Terms</strong></p>
-        <p>By creating an account and using our Service, you confirm that you are at least 18 years old or have the consent of a parent or guardian. You agree to comply with all applicable laws and regulations.</p>
-
-        <p><strong>2. Subscription and Payment</strong></p>
-        <p><strong>Subscription Plans:</strong> Our Service is offered on a monthly subscription basis. You can choose from various subscription plans, which will be detailed on our website.</p>
-        <p><strong>Payment:</strong> By subscribing, you agree to manually recharge your account as needed for continued access to the Service. We do not charge your payment method automatically; you have the flexibility to add funds to your account at your discretion.</p>
-
-        <p><strong>3. Account Responsibilities</strong></p>
-        <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use of your account or any other breach of security.</p>
-
-        <p><strong>4. User Conduct</strong></p>
-        <p>You agree not to use the Service for any unlawful or prohibited purpose. You will not:</p>
-        <ul>
-            <li>Violate any applicable laws or regulations.</li>
-            <li>Transmit any harmful or malicious code.</li>
-            <li>Attempt to gain unauthorized access to our systems or networks.</li>
-        </ul>
-
-        <p><strong>5. Termination</strong></p>
-        <p>We reserve the right to suspend or terminate your access to the Service at our discretion, without notice, for conduct that we believe violates these Terms or is harmful to other users or our business.</p>
-
-        <p><strong>6. Limitation of Liability</strong></p>
-        <p>To the fullest extent permitted by law, we shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service, even if we have been advised of the possibility of such damages.</p>
-
-        <p><strong>7. Changes to Terms</strong></p>
-        <p>We may update these Terms from time to time. We will notify you of any changes by posting the new Terms on our website. Your continued use of the Service after any changes constitutes your acceptance of the new Terms.</p>
-
-        <p><strong>8. Contact Us</strong></p>
-        <p>If you have any questions or concerns about these Terms, please contact us at: <a href="mailto:support@ereuna.co">support@ereuna.co</a></p>
+    <h2>1. INTRODUCTION</h2>
+    <p>These Terms and Conditions and Privacy Policy ("Terms") govern the use of the Ereuna platform ("Platform") and the services provided by Ereuna ("Company"). By using the Platform, you ("User  ") agree to be bound by these Terms.</p>
+    
+    <h2>2. DATA AGGREGATION SERVICES</h2>
+    <p>The Company provides financial data aggregation services using data supplied by our partner Tiingo, as well as internally calculated formulas using the data provided by Tiingo. Core data, including End-of-Day (EOD) and financial data, is provided by Tiingo and their third-party providers. The Company does not assume any responsibility for inaccuracies in the core data. The responsibility for any inaccuracies lies with Tiingo and their third-party partners.</p>
+    
+    <h2>3. USER INFORMATION AND PRIVACY</h2>
+    <p>The Company is committed to collecting the minimum amount of user information necessary to anonymize users to the greatest extent possible and to store only the information that is essential for the functioning of the application. The Company does not implement any tracking systems, except for those necessary to authenticate user sessions or for minimal logging purposes to ensure the platform's functionality and security. IP addresses and fingerprints may be logged. The Company does not sell user information to third parties, and does not store payment data, names, surnames, email addresses, or phone numbers in its database.</p>
+    
+    <h2>4. PAYMENT TERMS</h2>
+    <p>Payment can be made using a credit card through Stripe, the Company's payment partner, which will process and take responsibility for the security of credit card information. Credit card information will not be stored in the Company's database. The Company offers a prepaid system with four categories: 1 month, 4 months, 6 months, and 1 year. The amount will be €5.99 per month, plus any applicable value-added taxes based on the client's location.</p>
+    
+    <h2>5. REFUND POLICY</h2>
+    <p>The client can request a refund within the first 15 days of their initial subscription. For subsequent recharge payments, the client can request a refund within the first 48 hours. Please note that this refund policy only applies to the initial subscription and subsequent recharge payments, and not to any other circumstances.</p>
+    
+    <h2>6. SECURITY AND ACCESS</h2>
+    <p>Users are strictly prohibited from attempting to access the server, API, or other services reserved for staff members, regardless of their intentions. Additionally, users are not permitted to resell data or scrape the platform in any way. Any attempts to bypass security measures or exploit the platform for unauthorized purposes will be considered a serious breach of these Terms.</p>
+    
+    <h2>7. RECOVERY METHODS</h2>
+    <p>The Company offers a two-factor authentication verification using an authenticator app with a QR code. For password recovery, a code can be entered to reset the password. The recovery code can be downloaded during the registration process or regenerated and downloaded during a user's session. No other recovery methods will be used. It is the user's responsibility to securely store their recovery code, as it will be the only means of regaining access to their account in the event of a lost or forgotten password.</p>
+    
+    <h2>8. MODIFICATION OF TERMS</h2>
+    <p>The Company reserves the right to modify these Terms, provided that it notifies all users on the platform and they must re-accept the new conditions or terminate their use of the service. Users will be informed of any changes to these Terms, and it is their responsibility to review and agree to the updated Terms. If a user does not agree to the new Terms, they must cancel their subscription and cease using the service.</p>
+    
+    <h2>9. DATA UPDATE AND MAINTENANCE</h2>
+    <p>New data and formulas will be updated approximately 2 hours after the US markets close on each business day (due to the provider's schedule) and there will be a maintenance period during which the platform will be temporarily unavailable to allow new data to be uploaded and loaded into the platform. This maintenance period typically lasts around 20 minutes, after which the platform will be available again.</p>
+    
+    <h2>10. SUPPORT AND CONTACT</h2>
+    <p>For any questions or support, you can contact the Company at the email address <a href="mailto:contact@ereuna.co">contact@ereuna.co</a>. The Company will respond to inquiries and provide assistance to the best of its abilities.</p>
+    
+    <h2>11. LEGAL BASIS AND JURISDICTION</h2>
+    <p>The Platform is legally based in Italy and the European Union. As required by European Union laws, logs will be kept for a period of up to 18 months. After this period, the logs will be deleted. The Platform is subject to the laws and regulations of the European Union and Italy, and will comply with all applicable requirements, including those related to data retention and privacy.</p>
+    
+    <h2>12. ACCOUNT CANCELLATION</h2>
+    <p>The user can cancel their account at any time through the user session on the platform. Upon account cancellation, all user data will be deleted within 48 hours (except for logs, which will be retained for 18 months as previously mentioned). A refund will be applicable, taking into account the remaining time, calculated as described in these Terms.</p>
+    
+    <h2>13. DATA BREACH NOTIFICATION</h2>
+    <p>The Company is obligated to notify users in the event of a data breach. As previously stated, no sensitive data is stored on the platform, and data minimization is implemented. The most sensitive data, such as payment information, is managed by Stripe. All data is encrypted to ensure its confidentiality and security. In the event of a data breach, the Company will notify affected users promptly and provide them with information on the measures being taken to mitigate the breach and prevent future incidents.</p>
+    
+    <h2>14. INTELLECTUAL PROPERTY</h2>
+    <p>The Platform and all its content, including but not limited to text, images, and software, are protected by intellectual property laws. The User agrees to not reproduce, distribute, or display any content from the Platform without prior written permission from the Company. The User also agrees to not use any trademarks, logos, or service marks of the Company without prior written permission.</p>
+    
+    <h2>15. LIMITATION OF LIABILITY</h2>
+    <p>In no event shall the Company be liable for any damages, including but not limited to incidental, consequential, or punitive damages, arising out of or in connection with the use of the Platform. The User agrees to hold harmless the Company, its officers, directors, employees, and agents, from any claims, demands, or actions arising out of or in connection with the use of the Platform.</p>
+    
+    <h2>16. USER RESPONSIBILITY</h2>
+    <p>The User is solely responsible for the content they upload, publish, or share on the Platform. The User agrees to not upload, publish, or share any content that is unlawful, defamatory, libelous, abusive, threatening, harassing, obscene, or otherwise objectionable. The User also agrees to not use the Platform to infringe on the rights of others, including but not limited to intellectual property rights.</p>
+    
+    <p>By using the Platform, you acknowledge that you have read, understood, and agree to be bound by these Terms.</p>
     </div>
     <button @click="closeTermsModal"><img style="width: 10px;" src="@/assets/icons/close.png" alt=""></button>
-</div>
-
-<div v-if="showPrivacy" class="modal" @click.self="closePrivacyModal">
-    <h2 style="color: whitesmoke;">Privacy Policy</h2>
-    <div class="modal-content">
-        <p>Privacy Policy for Account Registration</p>
-        <p>We are committed to protecting your privacy. This Privacy Policy outlines how we collect, use, and safeguard your personal information when you register for an account with us.</p>
-
-        <p><strong>1. Information We Collect</strong></p>
-        <p>When you register for an account, we may collect the following types of information:</p>
-        <ul>
-            <li><strong>Personal Information:</strong> This may include your name, email address, phone number, and any other information you provide during the registration process.</li>
-            <li><strong>Account Information:</strong> This includes your username, password, and any preferences you set for your account.</li>
-            <li><strong>Usage Data:</strong> We may collect information about how you use our services, including your interactions with our website and applications.</li>
-        </ul>
-
-        <p><strong>2. How We Use Your Information</strong></p>
-        <p>We may use the information we collect for various purposes, including:</p>
-        <ul>
-            <li>To create and manage your account.</li>
-            <li>To communicate with you regarding your account and our services.</li>
-            <li>To improve our services and enhance user experience.</li>
-            <li>To comply with legal obligations and protect our rights.</li>
-        </ul>
-
-        <p><strong>3. Data Security</strong></p>
-        <p>We take the security of your personal information seriously. We implement appropriate technical and organizational measures to protect your data from unauthorized access, loss, or misuse. However, please be aware that no method of transmission over the internet or electronic storage is 100% secure.</p>
-
-        <p><strong>4. Sharing Your Information</strong></p>
-        <p>We do not sell, trade, or otherwise transfer your personal information to outside parties without your consent, except as required by law or to protect our rights. We may share your information with trusted third-party service providers who assist us in operating our website and conducting our business, provided they agree to keep your information confidential.</p>
-
-        <p><strong>5. Your Rights</strong></p>
-        <p>You have the right to access, correct, or delete your personal information at any time.</p>
-
-        <p><strong>6. Changes to This Privacy Policy</strong></p>
-        <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on our website. We encourage you to review this Privacy Policy periodically for any updates.</p>
-    </div>
-    <button @click="closePrivacyModal"><img style="width: 10px;" src="@/assets/icons/close.png" alt=""></button>
 </div>
 </template>
   
@@ -264,10 +250,6 @@ const faqs = ref([
   },
 ]);
 
-const toggleAnswer = (index) => {
-  faqs.value[index].show = !faqs.value[index].show;
-};
-
 const router = useRouter();
 
 // Define the scrollToSection function
@@ -279,7 +261,6 @@ const scrollToSection = (sectionId) => {
 };
 
 const showTerms = ref(false);
-const showPrivacy = ref(false);
 
 function showTermsModal() {
   showTerms.value = true;
@@ -287,14 +268,6 @@ function showTermsModal() {
 
 function closeTermsModal() {
   showTerms.value = false;
-}
-
-function showPrivacyModal() {
-  showPrivacy.value = true;
-}
-
-function closePrivacyModal() {
-  showPrivacy.value = false;
 }
 
   </script>
@@ -538,6 +511,7 @@ a:hover{
   text-align: center;
   flex: 1;
   height: 300px;
+  border: solid 1px $accent2
 }
 
 .cta-section {
@@ -720,6 +694,45 @@ a:hover{
   font-size: 14px;
   padding: 0 100px;
   text-align: left;
+}
+
+.pricing-card{
+  background-color: $base4;
+  display: flexbox;
+  border-radius: 10px;
+  align-items: center;
+  text-align: center;
+  padding: 10px;
+  max-width: 400px;
+  color: $text1;
+  align-items: center;
+  margin: 0 auto;
+  border: solid 1px $accent3;
+}
+
+.price-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.price-container2 {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) rotate(-5deg);
+  font-size: 20px;
+  margin-top: 55px;
+  margin-left: 25px;
+}
+
+.bullet-list{
+  text-align: left;
+  padding: 10px;
+  margin-top: 25px;
+  letter-spacing: 0.5px;
+  opacity: 0.90;
 }
 
   </style>

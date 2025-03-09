@@ -5040,6 +5040,8 @@ width: 100vw;;
   align-items: center;
   cursor: pointer;
   padding: 5px;
+  opacity: 0.7; /* Initial opacity */
+  transition: opacity 0.3s;
 }
 
 .custom-checkbox.checked {
@@ -5050,7 +5052,7 @@ width: 100vw;;
 .checkmark {
   width: 8px; /* Smaller width */
   height: 8px; /* Smaller height */
-  background-color: $text2;
+  background-color: $text1;
   border-radius: 50%; /* Make it circular */
   margin-right: 5px;
   display: inline-block;

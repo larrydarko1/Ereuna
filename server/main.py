@@ -203,7 +203,21 @@ def getPrice():
                         'timestamp': week_start.to_pydatetime()
                     })
                     
-                    if not existing_weekly_doc:
+                    if existing_weekly_doc:
+                        # Update the existing weekly document
+                        for index, row in week_data.iterrows():
+                            existing_weekly_doc['high'] = max(existing_weekly_doc['high'], float(row['high']))
+                            existing_weekly_doc['low'] = min(existing_weekly_doc['low'], float(row['low']))
+                            existing_weekly_doc['close'] = float(row['close'])
+                            existing_weekly_doc['volume'] += int(row['volume'])
+
+                        # Remove the existing document
+                        weekly_collection.delete_one({'tickerID': existing_weekly_doc['tickerID'], 'timestamp': existing_weekly_doc['timestamp']})
+
+                        # Insert the updated document
+                        weekly_collection.insert_one(existing_weekly_doc)
+                        print(f"Updated weekly document for {existing_weekly_doc['tickerID']} on {existing_weekly_doc['timestamp']}")
+                    else:
                         # Create a new weekly document
                         weekly_doc = {
                             'tickerID': week_data['ticker'].iloc[0].upper(),
@@ -216,15 +230,6 @@ def getPrice():
                         }
                         weekly_collection.insert_one(weekly_doc)
                         print(f"Inserted weekly document for {weekly_doc['tickerID']} on {weekly_doc['timestamp']}")
-                    else:
-                        # Update the existing weekly document
-                        for index, row in week_data.iterrows():
-                            existing_weekly_doc['high'] = max(existing_weekly_doc['high'], float(row['high']))
-                            existing_weekly_doc['low'] = min(existing_weekly_doc['low'], float(row['low']))
-                            existing_weekly_doc['close'] = float(row['close'])
-                            existing_weekly_doc['volume'] += int(row['volume'])
-                        weekly_collection.update_one({'_id': existing_weekly_doc['_id']}, {'$set': existing_weekly_doc})
-                        print(f"Updated weekly document for {existing_weekly_doc['tickerID']} on {existing_weekly_doc['timestamp']}")
         else:
             print("No data found for the specified tickers.")
     else:
@@ -385,27 +390,22 @@ def Split(tickerID, timestamp, splitFactor):
             'split_factor': splitFactor
         }
 
-        # Add the new split object to the end of the splits array
-        asset_info_collection.update_one(
-            {'Symbol': tickerID},
-            {'$push': {'splits': new_split}}
-        )
-
         # Update the SharesOutstanding attribute
         if splitFactor > 0:
             # Split: multiply SharesOutstanding by splitFactor
-            asset_info_collection.update_one(
-                {'Symbol': tickerID},
-                [{'$set': {'SharesOutstanding': {'$mul': ['$SharesOutstanding', splitFactor]}}}]
-            )
+            updated_shares = asset_info_doc['SharesOutstanding'] * splitFactor
         elif splitFactor < 0:
             # Reverse split: divide SharesOutstanding by the absolute value of splitFactor
-            asset_info_collection.update_one(
-                {'Symbol': tickerID},
-                [{'$set': {'SharesOutstanding': {'$divide': ['$SharesOutstanding', abs(splitFactor)]}}}]
-            )
+            updated_shares = asset_info_doc['SharesOutstanding'] / abs(splitFactor)
         else:
             print("Invalid split factor. It should be a non-zero number.")
+            return
+
+        # Update the document
+        asset_info_collection.update_one(
+            {'Symbol': tickerID},
+            {'$push': {'splits': new_split}, '$set': {'SharesOutstanding': updated_shares}}
+        )
 
         print(f"Split factor triggered for {tickerID} on {timestamp} with split factor {splitFactor}")
 
@@ -413,7 +413,6 @@ def Split(tickerID, timestamp, splitFactor):
         getHistoricalPrice2(tickerID)
     else:
         print(f"No document found in AssetInfo for {tickerID}")
-        
 
 
 def Dividends(tickerID, timestamp, divCash):
@@ -1608,14 +1607,11 @@ def Daily():
     
     print(f'\nTotal execution time: {total_execution_time_in_minutes:.2f} minutes')
     set_maintenance_mode(False)
-    
-    
-def Run():
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        executor.submit(Daily)
-        executor.submit(checkFinancialUpdates)
+    checkFinancialUpdates()
 
 # Add the job to the scheduler
-scheduler.add_job(Run, CronTrigger(hour=11, minute=30, timezone='CET'))
+scheduler.add_job(Daily, CronTrigger(hour=14, minute=25, timezone='CET'))
 # Start the scheduler
 scheduler.start()
+
+#17:15 for now
