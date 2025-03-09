@@ -1610,8 +1610,8 @@ def Daily():
     checkFinancialUpdates()
 
 # Add the job to the scheduler
-scheduler.add_job(Daily, CronTrigger(hour=14, minute=25, timezone='CET'))
+scheduler.add_job(Daily, CronTrigger(hour=17, minute=15, timezone='US/Eastern'))
 # Start the scheduler
 scheduler.start()
 
-#17:15 for now
+#17:15 for now / scheduler.add_job(Daily, CronTrigger(hour=17, minute=15, timezone='US/Eastern'))

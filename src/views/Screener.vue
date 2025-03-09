@@ -4594,7 +4594,7 @@ width: 100vw;;
 }
 
 .snavbtnslct{
-  background-color: transparent;
+  background-color: $base1;
   color: $text1;
   padding: 5px;
   outline: none;
@@ -4849,14 +4849,14 @@ width: 100vw;;
 
 .select-container .dropdown-container div {
   display: none;
-  background-color: $base2;
+  background-color: $base4;
   margin-bottom: 0.1px;
   z-index: 1000;
 }
 
 .select-container:hover .dropdown-container div {
   display: block;
-  background-color: $base2;
+  background-color: $base4;
   padding: 5px;
   cursor: pointer;
   z-index: 1000;
@@ -4884,6 +4884,9 @@ width: 100vw;;
   z-index: 1000;
   top: -10px;
   left: 20px;
+  padding: 5px;
+  border-radius: 5px;
+  background-color: $base4;
 }
 
 .dropdown-menu > div {
@@ -4892,6 +4895,7 @@ width: 100vw;;
   height: 14px;
   display: flex;
   align-items: center;
+  border-radius: 5px;
 }
 
 .dropdown-menu > div:hover {
@@ -4913,6 +4917,8 @@ width: 100vw;;
   left: 100%;
   top: 0; 
   background-color: $base4;
+  padding: 5px;
+  border-radius: 5px;
   min-width: 150px;
   z-index: 1001;
   align-items: center; 
@@ -4929,6 +4935,7 @@ width: 100vw;;
   align-items: center;
   height: 24px;
   box-sizing: border-box;
+  border-radius: 5px;
 }
 
 .watchlist-item:hover {
