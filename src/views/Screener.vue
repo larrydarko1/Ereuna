@@ -22,7 +22,15 @@
 </div>
         <div :class="[showPriceInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Price</p>
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>Price</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">Price refers to the current market price of a stock, which is the amount of money an investor would need to pay to buy one share of the stock.</span>
+    </div>
+  </span>
+</div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPriceInputs" style="border: none;">
               <span class="slider round"></span>
@@ -45,7 +53,15 @@
         </div>
         <div :class="[showMarketCapInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Market Cap (1000s)</p>
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>Market Cap (1000s)</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">Market capitalization (market cap) is the total value of all outstanding shares of a company's stock. It is calculated by multiplying the total number of shares outstanding by the current market price of one share. In this context, market cap is displayed in thousands (1000s).</span>
+    </div>
+  </span>
+</div>
             <label style="float:right" class="switch">
               <input type="checkbox" v-model="showMarketCapInputs">
               <span class="slider round"></span>
@@ -68,7 +84,15 @@
         </div>
         <div :class="[showIPOInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">IPO Date</p>
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>IPO Date</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">IPO (Initial Public Offering) is the first public sale of a company's stock, allowing it to raise capital from public investors. IPO Date refers to the date when a company's stock first became available for public trading, marking its transition from a private to a publicly traded company.</span>
+    </div>
+  </span>
+</div>
             <label style="float:right" class="switch">
               <input type="checkbox" v-model="showIPOInputs">
               <span class="slider round"></span>
@@ -89,9 +113,17 @@
             </div>
           </div>
         </div>
-        <div :class="[ShowSector ? 'param-s2-expanded' : 'param-s2']">
+        <div :class="[ShowSector ? 'param-s2-expanded' : 'param-s1']">
     <div class="row">
-      <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Sector</p>
+      <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>Sector</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">Sector refers to a specific industry or market category that a company operates in, such as Technology, Healthcare, or Finance.</span>
+    </div>
+  </span>
+</div>
       <label style="float:right" class="switch">
         <input type="checkbox" v-model="ShowSector">
         <span class="slider round"></span>
@@ -121,9 +153,17 @@
       </div>
     </div>
   </div>
-  <div :class="[ShowExchange ? 'param-s3-expanded' : 'param-s3']">
+  <div :class="[ShowExchange ? 'param-s3-expanded' : 'param-s1']">
     <div class="row">
-      <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Exchange</p>
+      <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>Exchange</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">Exchange refers to the stock exchange where a company's shares are listed and traded, such as the New York Stock Exchange (NYSE) or NASDAQ.</span>
+    </div>
+  </span>
+</div>
       <label style="float:right" class="switch">
         <input type="checkbox" v-model="ShowExchange">
         <span class="slider round"></span>
@@ -153,9 +193,17 @@
       </div>
     </div>
   </div>
-  <div :class="[ShowCountry ? 'param-s9-expanded' : 'param-s9']">
+  <div :class="[ShowCountry ? 'param-s9-expanded' : 'param-s1']">
     <div class="row">
-      <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Country</p>
+      <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>Country</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">Country refers to the nation where a company is headquartered or primarily operates, such as the United States, Canada, or the United Kingdom.</span>
+    </div>
+  </span>
+</div>
       <label style="float:right" class="switch">
         <input type="checkbox" v-model="ShowCountry">
         <span class="slider round"></span>
@@ -187,7 +235,15 @@
   </div>
         <div :class="[showPEInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">PE Ratio</p>
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>PE Ratio</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">PE Ratio (Price-to-Earnings Ratio) is a measure of a company's current stock price relative to its earnings per share. It helps investors understand how much they are paying for each dollar of earnings.</span>
+    </div>
+  </span>
+</div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPEInputs" style="border: none;">
               <span class="slider round"></span>
@@ -210,7 +266,15 @@
         </div>
         <div :class="[showPEGInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">PEG Ratio</p>
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>PEG Ratio</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">PEG Ratio (Price-to-Earnings Growth Ratio) is a measure of a company's stock price relative to its earnings per share and expected growth rate. It helps investors understand whether a stock is overvalued or undervalued based on its growth prospects.</span>
+    </div>
+  </span>
+</div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPEGInputs" style="border: none;">
               <span class="slider round"></span>
@@ -233,11 +297,21 @@
         </div>
         <div :class="[showEPSInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">EPS</p>
+            <div>
+              <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+                 <p >EPS</p>
+    <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">EPS stands for Earnings Per Share, which is a company's profit divided by the number of outstanding shares.</span>
+        </div>
+      </span> 
+              </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showEPSInputs" style="border: none;">
               <span class="slider round"></span>
             </label>
+          </div>
           </div>
           <div style="border: none;" v-if="showEPSInputs">
             <div class="row">
@@ -256,7 +330,15 @@
         </div>
         <div :class="[showPBInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">PB Ratio</p>
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>PB Ratio</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">PB Ratio (Price-to-Book Ratio) is a measure of a company's stock price relative to its book value per share. It helps investors understand whether a stock is overvalued or undervalued based on its underlying assets.</span>
+    </div>
+  </span>
+</div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPBInputs" style="border: none;">
               <span class="slider round"></span>
@@ -279,7 +361,15 @@
         </div>
         <div :class="[showDivYieldInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Dividend Yield (%)</p>
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>Dividend Yield TTM (%)</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">Dividend Yield TTM (Trailing Twelve Months) is the ratio of the annual dividend payment per share to the stock's current price, expressed as a percentage. It represents the return on investment from dividend payments over the past 12 months.</span>
+    </div>
+  </span>
+</div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showDivYieldInputs" style="border: none;">
               <span class="slider round"></span>
@@ -302,7 +392,15 @@
         </div>
         <div :class="[showFundYoYQoQ ? 'param-s5-expanded' : 'param-s1']">
           <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Revenue / Earnings / EPS Growth</p>
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>Revenue / Earnings / EPS Growth</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">This section calculates the growth rate of a company's Revenue, Earnings (Net Income), and Earnings Per Share (EPS) over time. The growth rates are calculated as a percentage change from the previous quarter (QoQ) and from the same quarter in the previous year (YoY).</span>
+    </div>
+  </span>
+</div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showFundYoYQoQ" style="border: none;">
               <span class="slider round"></span>
@@ -341,7 +439,15 @@
         </div>
         <div :class="[showPricePerf ? 'param-s6-expanded' : 'param-s1']">
           <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Price Performance</p>
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>Price Performance</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">Filter stocks by price performance, including: Change %, % off 52-week high/low, New all-time high/low, MA crossovers; Identify trending stocks and potential breakouts.</span>
+    </div>
+  </span>
+</div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPricePerf" style="border: none;">
               <span class="slider round"></span>
@@ -463,7 +569,15 @@
         </div>
         <div :class="[showRSscore ? 'param-s8-expanded' : 'param-s1']">
           <div class="row">
-            <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Technical Score</p>
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>Technical Score</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">A score that ranks a stock's technical performance relative to all assets in our database. It's based on a weighted average of percentage returns over 1 week, 1 month, and 1 quarter. The score ranges from 1 (worst) to 100 (best).</span>
+    </div>
+  </span>
+</div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showRSscore" style="border: none;">
               <span class="slider round"></span>
@@ -493,7 +607,15 @@
         </div>
         <div :class="[showVolume ? 'param-s7-expanded' : 'param-s1']">
   <div class="row">
-    <p style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px;">Volume</p>
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>Volume</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">Volume metrics include Relative Volume, which measures a stock's trading volume compared to its average volume over a given period, and Average Volume (1000s), which represents the average number of shares traded per day, expressed in thousands. These metrics help you understand a stock's liquidity and trading activity.</span>
+    </div>
+  </span>
+</div>
     <label style="float:right" class="switch">
       <input type="checkbox" id="price-check" v-model="showVolume" style="border: none;">
       <span class="slider round"></span>
@@ -3855,6 +3977,16 @@ function selectAvgVolOption(option) {
   avgVolSelect.value = option;
 }
 
+const showTooltip = ref(false)
+
+function handleMouseOver() {
+  showTooltip.value = true
+}
+
+function handleMouseOut() {
+  showTooltip.value = false
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -4702,7 +4834,7 @@ width: 100vw;;
   text-align: center;
   align-items: center;
   padding: 10px;
-  height: 50px;
+  height: 200px;
   border:none;
 }
 
@@ -5295,5 +5427,48 @@ input[type="date"]{
   min-width: 1550px;
   overflow-y: scroll; 
   z-index: 1000;
+}
+
+.question-mark-wrapper {
+  position: relative;
+}
+
+.question-mark-wrapper img {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  margin-left: 7px;
+}
+
+.tooltip {
+  position: absolute;
+  top: 12px;
+  left: 50px;
+  background-color: $base1;
+  border: 1px solid $accent3;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  display: none;
+  z-index: 100000000000000000000;
+}
+
+.tooltip-text {
+  color: $text1;
+}
+
+.question-mark-wrapper:hover .tooltip {
+  display: block;
+}
+
+.question-mark-wrapper .tooltip {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.question-mark-wrapper:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
 }
 </style>

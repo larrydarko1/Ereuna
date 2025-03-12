@@ -4,7 +4,7 @@
       <a title="Logout" @click="LogOut()" class="icon" id="logout-icon" alt="account"></a>
       <router-link to="/screener" title="Screener" :class="['icon', { 'active': route.path === '/screener' }]" id="screener-icon" alt="screener"></router-link>
       <router-link to="/charts" title="Chart" :class="['icon', { 'active': route.path === '/charts' }]" id="chart-icon" alt="chart"></router-link>
-      <router-link to="/user" title="Dashboard" :class="['icon', { 'active': route.path === '/user' }]" id="user-icon" alt="user"></router-link>
+      <router-link to="/dashboard" title="Dashboard" :class="['icon', { 'active': route.path === '/dashboard' }]" id="user-icon" alt="user"></router-link>
     </header>
   </template>
   

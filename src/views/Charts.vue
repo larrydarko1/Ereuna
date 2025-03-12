@@ -380,6 +380,19 @@
 <div class="results"></div>
 </div>
 </div>
+<div id="center">
+  <div class="indexes">
+  <button 
+    v-for="(index, i) in Indexes" 
+    :key="i" 
+    :class="{ active: activeIndex === i, 'index-btn': true }" 
+    @click="seeIndex(i)"
+  >
+    {{ index.Symbol }} <span :class="parseFloat(index.percentageReturn) > 0 ? 'positive' : 'negative'">{{ index.percentageReturn }}</span> 
+    <img style="margin-left: 5px;" v-if="parseFloat(index.percentageReturn) > 0" src="@/assets/icons/positive.png" alt="Up" width="10" height="10">
+    <img style="margin-left: 5px;" v-else src="@/assets/icons/negative.png" alt="Down" width="10" height="10">
+  </button>
+</div>
 <div id="chart-container">
     <div id="legend"></div>
     <div id="legend2">
@@ -394,7 +407,7 @@
 </button>
     </div>
     <div id="legend3"></div>
-    <div id="legend4">
+    <div id="legend4" v-if="!['SPY', 'QQQ', 'DIA', 'IWM'].includes(defaultSymbol)">
       <img class="chart-img" :src="getImagePath(assetInfo.Symbol)" alt="">
       <p class="ticker" >{{assetInfo.Symbol}} </p> <p class="name" > - {{assetInfo.Name}}</p>
       <div v-if="isInHiddenList(selectedItem)" class="hidden-message">
@@ -414,6 +427,7 @@
       <p style="margin: 0; font-size: 10px;">Financial data provided by Tiingo.com as of {{ currentDate }} - All financial data is provided by Tiingo, with the exception of certain calculated metrics such as moving averages and Technical Score, which are derived from Tiingo's data.</p>
 </div>
   </div>
+</div>
       <div id="sidebar-right">
       <div style="position: sticky; top: 0; z-index: 1000;">
         <div id="searchtable">
@@ -761,6 +775,7 @@ const showAllSplits = ref(false);
 // function that searches for tickers
 async function searchTicker(providedSymbol) {
   let response; 
+  activeIndex.value = -1;
   try {
     isChartLoading.value = true;
     const searchbar = document.getElementById('searchbar');
@@ -2986,6 +3001,79 @@ function getQuarterAndYear(dateString) {
   }
 }
 
+const activeIndex = ref(-1);
+
+async function seeIndex(index) {
+  if (activeIndex.value === index) {
+    activeIndex.value = -1;
+    defaultSymbol = localStorage.getItem('defaultSymbol');
+    isChartLoading.value = true;
+    await fetchData();
+    await fetchData2();
+    await fetchData3();
+    await fetchData4();
+    await fetchData5();
+    await fetchData6();
+    await fetchData7();
+    await fetchData8();
+    await fetchData9();
+    await fetchData10();
+    await fetchData11();
+    await fetchData12();
+    isChartLoading.value = false;
+  } else {
+    activeIndex.value = index;
+    const symbols = ['SPY', 'QQQ', 'DIA', 'IWM'];
+    const symbol = symbols[index];
+    defaultSymbol = symbol;
+    isChartLoading.value = true;
+    await fetchData(symbol);
+    await fetchData2(symbol);
+    await fetchData3(symbol);
+    await fetchData4(symbol);
+    await fetchData5(symbol);
+    await fetchData6(symbol);
+    await fetchData7(symbol);
+    await fetchData8(symbol);
+    await fetchData9(symbol);
+    await fetchData10(symbol);
+    await fetchData11(symbol);
+    await fetchData12(symbol);
+    isChartLoading.value = false;
+  }
+}
+
+// Define the Indexes list
+let Indexes = ref([]);
+
+// Function to fetch markets data
+async function fetchMarkets() {
+  try {
+    const headers = {
+      'x-api-key': apiKey
+    };
+    const response = await fetch('/api/markets', {
+      headers: headers
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const newMarkets = await response.json();
+    Indexes.value = newMarkets;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+  }
+}
+
+onMounted(() => {
+  fetchMarkets();
+});
+
 </script>
 
 <style lang="scss" scoped>
@@ -3023,7 +3111,8 @@ function getQuarterAndYear(dateString) {
   border: none;
   min-width: 800px;
   max-width: 800px;
-  max-height: 800px;
+  max-height: 580px;
+  min-height: 580px;
 }
 
 #chartdiv2 {
@@ -3086,6 +3175,7 @@ function getQuarterAndYear(dateString) {
   align-items: center;
   background-color: $base2;
   position: relative;
+  border: solid 1px $base4;
 }
 
 /* input for searching symbols */
@@ -4063,6 +4153,35 @@ opacity: 1;
 .toggle-button:hover{
 cursor: pointer;
   background-color: $accent2;
+}
+
+.indexes {
+  background-color: $base2;
+  height: 20px;
+  color: $text1;
+  display: flex; /* or display: grid */
+  justify-content: space-between;
+  align-items: center;
+  border: solid 2px $base4;
+  padding: 0 25%;
+}
+
+.index-btn{
+  background-color: $base2;
+  color: $text1;
+  border-radius: 5px;
+  border-color: transparent;
+  letter-spacing: 0.2px;
+}
+
+.index-btn:hover{
+  background-color: $base4;
+  color: $text1;
+}
+
+.index-btn.active {
+  background-color: rgba($accent1, 0.30); /* color when active */
+  color: $text1;
 }
 
 </style>

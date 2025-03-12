@@ -82,12 +82,12 @@ const passwordError = ref(false);
 const fieldsError = ref(false);
 const welcomePopup = ref(false);
 const rememberMe = ref(false);
-const welcomeMessage = ref('');
 const showPassword = ref(false);
 const mfaError = ref(false);
 const mfaRequired = ref(false);
 const mfaCode = ref('');
 const storedUsername = ref('');
+const welcomeMessage = ref('');
 
 async function login() {
   const usernameInput = document.querySelector('input[placeholder="Username"]');
@@ -136,6 +136,8 @@ async function login() {
         // MFA verification not required, proceed with login
         const token = responseBody.token;
         localStorage.setItem('token', token);
+        welcomeMessage.value = `Welcome ${username}!`;
+        welcomePopup.value = true;
         router.push({ name: 'Charts' });
       }
     } else {
@@ -311,7 +313,7 @@ async function verifyMfa() {
 
 .welcome-popup {
   position: absolute;
-  bottom: 30px;
+  bottom: 100px;
   left: 0;
   right: 0;
   border: 1px solid green;

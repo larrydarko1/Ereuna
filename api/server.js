@@ -11374,3 +11374,74 @@ app.get('/:ticker/financials',
     }
   }
 );
+
+app.get('/markets',
+  async (req, res) => {
+    let client;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData');
+
+      const tickers = ['SPY', 'QQQ', 'DIA', 'IWM'];
+      const marketsData = [];
+
+      for (const ticker of tickers) {
+        const data = await collection.find({ tickerID: ticker }).sort({ timestamp: -1 }).limit(2).toArray();
+
+        if (data.length < 2) {
+          logger.warn({
+            msg: 'Insufficient Data Found',
+            ticker: ticker
+          });
+          continue;
+        }
+
+        const latestClose = parseFloat(data[0].close.toString().slice(0, 8));
+        const previousClose = parseFloat(data[1].close.toString().slice(0, 8));
+        const percentageChange = ((latestClose - previousClose) / previousClose) * 100;
+
+        marketsData.push({
+          Symbol: ticker,
+          percentageReturn: percentageChange.toFixed(2) + '%'
+        });
+      }
+
+      res.json(marketsData);
+
+    } catch (error) {
+      // Log any unexpected errors
+      logger.error({
+        msg: 'Markets Data Retrieval Error',
+        error: error.message
+      });
+
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    } finally {
+      // Ensure client is closed
+      if (client) {
+        await client.close();
+      }
+    }
+  }
+);
