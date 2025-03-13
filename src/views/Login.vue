@@ -55,7 +55,14 @@
   <div v-if="fieldsError" class="error-popup">
     <h3>Please fill both username and password fields</h3>
   </div>
-  <div v-if="welcomePopup" class="welcome-popup">
+  <div v-if="welcomePopup"  class="welcome-popup">
+    <div class="loader">
+      <div class="orbe" style="--index: 0"></div>
+      <div class="orbe" style="--index: 1"></div>
+      <div class="orbe" style="--index: 2"></div>
+      <div class="orbe" style="--index: 3"></div>
+      <div class="orbe" style="--index: 4"></div>
+  </div>
     <h3>{{ welcomeMessage }}</h3>
   </div>
   <div class="releaseNote" style="display: flex; flex-direction: row; align-items: center;">
@@ -299,16 +306,23 @@ async function verifyMfa() {
 
 .error-popup {
   position: absolute;
-  bottom: 30px;
+  bottom: 100px;
   left: 0;
   right: 0;
-  border: 1px solid red;
+  margin: auto;
+  border: 2px solid red;
+  border-radius: 10px;
   padding: 10px;
-  text-align: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  max-width: 500px;
 }
 
 .error-popup h3 {
   color: red;
+  font-size: 16px;
+  margin-left: 20px;
 }
 
 .welcome-popup {
@@ -316,13 +330,20 @@ async function verifyMfa() {
   bottom: 100px;
   left: 0;
   right: 0;
-  border: 1px solid green;
+  margin: auto;
+  border: 2px solid green;
+  border-radius: 10px;
   padding: 10px;
-  text-align: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  max-width: 500px;
 }
 
 .welcome-popup h3 {
   color: green;
+  font-size: 16px;
+  margin-left: 20px;
 }
 
 .forgot-password {
@@ -475,5 +496,49 @@ async function verifyMfa() {
   padding: 3px;
   margin-top: 72px;
 }
+
+.loader {
+    --size-loader: 20px;
+    --size-orbe: 2px;
+    width: var(--size-loader);
+    height: var(--size-loader);
+    position: relative;
+    transform: rotate(45deg);
+    margin-top: 10px;
+  }
+
+  .orbe {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    --delay: calc(var(--index) * 0.1s);
+    animation: orbit7456 ease-in-out 1.5s var(--delay) infinite;
+    opacity: calc(1 - calc(0.2 * var(--index)));
+  }
+
+  .orbe::after {
+    position: absolute;
+    content: '';
+    top: 0;
+    left: 0;
+    width: var(--size-orbe);
+    height: var(--size-orbe);
+    background-color: #3ae374;
+    box-shadow: 0px 0px 20px 2px #3ae374;
+    border-radius: 50%;
+  }
+
+  @keyframes orbit7456 {
+    0% {
+    }
+
+    80% {
+      transform: rotate(360deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 
 </style>

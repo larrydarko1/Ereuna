@@ -12,6 +12,7 @@ import datetime as dt
 import pandas as pd
 import numpy as np
 import pytz
+import calendar
 
 app = FastAPI()
 # Create a scheduler
@@ -42,6 +43,7 @@ def set_maintenance_mode(mode):
             }
         }
     )
+    
     
 #symbol, name, description, IPO, exchange
 def getSummary():
@@ -162,6 +164,12 @@ def getSummary2():
         print(f"Failed to retrieve data. Status code: {response.status_code}")
         print(response.text)
     
+def get_start_of_week(timestamp):
+    # Get the first day of the week (Monday)
+    first_day_of_week = timestamp - dt.timedelta(days=timestamp.weekday())
+
+    return first_day_of_week
+
 # daily OHCLV 
 def getPrice():
     daily_collection = db["OHCLVData"]
@@ -201,7 +209,7 @@ def getPrice():
             # Rename fields
             for doc in daily_data_dict:
                 doc['tickerID'] = doc.pop('ticker').upper()
-                doc['timestamp'] = datetime.strptime(doc['date'], '%Y-%m-%d')
+                doc['timestamp'] = dt.datetime.strptime(doc['date'], '%Y-%m-%d')
 
                 # Check for splitFactor and divCash conditions
                 if doc['splitFactor'] != 1 and doc['splitFactor'] != 1.0:
@@ -223,44 +231,48 @@ def getPrice():
                     print(f"Daily document for {daily_doc['tickerID']} on {daily_doc['timestamp']} already exists")
 
             # Process weekly data from daily data
-            df['timestamp'] = pd.to_datetime(df['date'])
-            weekly_grouped = df.groupby(pd.Grouper(key='timestamp', freq='W-MON'))
+            for daily_doc in daily_data_dict:
+                # Get the start of the week
+                weekly_timestamp = get_start_of_week(daily_doc['timestamp'])
 
-            for week_start, week_data in weekly_grouped:
-                if not week_data.empty:
-                    # Check if weekly document already exists
-                    existing_weekly_doc = weekly_collection.find_one({
-                        'tickerID': week_data['ticker'].iloc[0].upper(), 
-                        'timestamp': week_start.to_pydatetime()
-                    })
-                    
-                    if existing_weekly_doc:
-                        # Update the existing weekly document
-                        for index, row in week_data.iterrows():
-                            existing_weekly_doc['high'] = max(existing_weekly_doc['high'], float(row['high']))
-                            existing_weekly_doc['low'] = min(existing_weekly_doc['low'], float(row['low']))
-                            existing_weekly_doc['close'] = float(row['close'])
-                            existing_weekly_doc['volume'] += int(row['volume'])
+                # Check if weekly document already exists for the current week
+                existing_weekly_doc = weekly_collection.find_one({
+                    'tickerID': daily_doc['tickerID'], 
+                    'timestamp': weekly_timestamp
+                })
 
-                        # Remove the existing document
-                        weekly_collection.delete_one({'tickerID': existing_weekly_doc['tickerID'], 'timestamp': existing_weekly_doc['timestamp']})
+                if existing_weekly_doc:
+                    # Extract the existing document
+                    existing_weekly_doc_id = existing_weekly_doc['_id']
+                    existing_weekly_doc_tickerID = existing_weekly_doc['tickerID']
+                    existing_weekly_doc_timestamp = existing_weekly_doc['timestamp']
+                    existing_weekly_doc_open = existing_weekly_doc['open']
 
-                        # Insert the updated document
-                        weekly_collection.insert_one(existing_weekly_doc)
-                        print(f"Updated weekly document for {existing_weekly_doc['tickerID']} on {existing_weekly_doc['timestamp']}")
-                    else:
-                        # Create a new weekly document
-                        weekly_doc = {
-                            'tickerID': week_data['ticker'].iloc[0].upper(),
-                            'timestamp': week_start.to_pydatetime(),
-                            'open': float(week_data['open'].iloc[0]),
-                            'high': float(week_data['high'].iloc[0]),
-                            'low': float(week_data['low'].iloc[0]),
-                            'close': float(week_data['close'].iloc[0]),
-                            'volume': int(week_data['volume'].iloc[0])
-                        }
-                        weekly_collection.insert_one(weekly_doc)
-                        print(f"Inserted weekly document for {weekly_doc['tickerID']} on {weekly_doc['timestamp']}")
+                    # Compare daily document with existing weekly document
+                    updated_weekly_doc_high = max(existing_weekly_doc.get('high', float('-inf')), daily_doc['high'])
+                    updated_weekly_doc_low = min(existing_weekly_doc.get('low', float('inf')), daily_doc['low'])
+                    updated_weekly_doc_close = daily_doc['close']
+                    updated_weekly_doc_volume = existing_weekly_doc.get('volume', 0) + daily_doc['volume']
+
+                    # Delete the existing document
+                    weekly_collection.delete_one({'_id': existing_weekly_doc_id})
+
+                    # Insert the updated document
+                    updated_weekly_doc = {
+                        'tickerID': existing_weekly_doc_tickerID,
+                        'timestamp': existing_weekly_doc_timestamp,
+                        'open': existing_weekly_doc_open,
+                        'high': updated_weekly_doc_high,
+                        'low': updated_weekly_doc_low,
+                        'close': updated_weekly_doc_close,
+                        'volume': updated_weekly_doc_volume
+                    }
+                    weekly_collection.insert_one(updated_weekly_doc)
+                    print(f"Updated weekly document for {existing_weekly_doc_tickerID} on {existing_weekly_doc_timestamp}")
+                else:
+                    # Create a new weekly document
+                    weekly_collection.insert_one(daily_doc)
+                    print(f"Inserted weekly document for {daily_doc['tickerID']} on {daily_doc['timestamp']}")
         else:
             print("No data found for the specified tickers.")
     else:
@@ -1683,7 +1695,7 @@ def Daily():
     
     print(f'\nTotal execution time: {total_execution_time_in_minutes:.2f} minutes')
     set_maintenance_mode(False)
-    checkFinancialUpdates()
+    #checkFinancialUpdates()
 
 #scheduler
 scheduler.add_job(Daily, CronTrigger(hour=17, minute=15, timezone='US/Eastern'))
@@ -1730,4 +1742,13 @@ def RemoveDuplicateDocuments():
     except Exception as e:
         print(f"Error removing duplicate documents: {e}")
         
-'''
+
+def remove_documents_with_timestamp(timestamp_str):
+    weekly_collection = db["OHCLVData2"]
+    timestamp = dt.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f+00:00')
+    weekly_collection.delete_many({'timestamp': timestamp})
+
+# Call the function with the specific timestamp
+remove_documents_with_timestamp('2025-03-17T00:00:00.000+00:00')'''
+
+Daily()
