@@ -2,8 +2,10 @@
   <Header />
   <div id="main">
     <div class="sidebar">
-      <h1>Welcome, {{ user }}</h1>
-      <h2>{{ expirationDays !== null ? expirationDays + ' subscription days remaining' : 'Loading...' }}</h2>
+      <div class="user-wrapper">
+        <h1 class="user">{{ user }}</h1>
+      <h2 class="subscription-remaining">{{ expirationDays !== null ? expirationDays + ' subscription days remaining' : 'Loading...' }}</h2> 
+      </div>
       <div class="menu selected" @click="selectMenu($event, 0)">
         <img src="@/assets/icons/username2.png" alt="Icon" class="icon">Account Settings
       </div>
@@ -54,7 +56,10 @@
     type="button"
     class="password-toggle"
   >
-    {{ showOldPassword ? 'Hide' : 'Show' }}
+    <img class="toggle-icon"
+      :src="showOldPassword ? hideIcon : showIcon" 
+      alt="Toggle Password Visibility"
+    />
   </button>
 </div>
 </div>
@@ -71,9 +76,13 @@
     type="button"
     class="password-toggle"
   >
-    {{ showNewPassword ? 'Hide' : 'Show' }}
+    <img class="toggle-icon"
+      :src="showNewPassword ? hideIcon : showIcon" 
+      alt="Toggle Password Visibility"
+    />
   </button>
-</div></div>
+</div>
+</div>
     <div style="margin-right: 3px;" >
       <div style="position: relative;">
   <input 
@@ -87,9 +96,13 @@
     type="button"
     class="password-toggle"
   >
-    {{ showConfirmPassword ? 'Hide' : 'Show' }}
+    <img class="toggle-icon"
+      :src="showConfirmPassword ? hideIcon : showIcon" 
+      alt="Toggle Password Visibility"
+    />
   </button>
-</div></div>
+</div>
+</div>
 </div>
 <div style="display: flex; justify-content: center; ">
   <p v-if="confirmPasswordError" class="error-text">Password doesn't match</p>
@@ -108,6 +121,7 @@
     </h2>
          <div style="position: relative;">
           <p>To generate a new recovery key, type your password</p>
+          <div style="position: relative;">
   <input 
     class="userinput"
     :type="showPswauth ? 'text' : 'password'"
@@ -118,8 +132,12 @@
     type="button"
     class="password-toggle3"
   >
-    {{ showPswauth ? 'Hide' : 'Show' }}
+    <img class="toggle-icon"
+      :src="showPswauth ? hideIcon : showIcon" 
+      alt="Toggle Password Visibility"
+    />
   </button>
+</div>
 </div>
 <div style="display: flex; justify-content: center; ">
      <p v-if="keyError" class="error-text">{{ keyErrorMessage }}</p>
@@ -146,9 +164,12 @@
   <button 
     @click="showPswDelete = !showPswDelete" 
     type="button"
-    class="password-toggle2"
+    class="password-toggle3"
   >
-    {{ showPswDelete ? 'Hide' : 'Show' }}
+    <img class="toggle-icon"
+      :src="showPswDelete ? hideIcon : showIcon" 
+      alt="Toggle Password Visibility"
+    />
   </button>
 </div>
          <p>By proceeding with the deletion of your account, you acknowledge and understand that this action is irreversible. Once your account is deleted, you will permanently lose access to your account and all associated data, including but not limited to personal information, settings, and any content you have created or stored.
@@ -160,8 +181,7 @@ Thank you for your understanding.</p>
          <button class="userbtn" @click="deleteAccount()">Delete Account</button>
       </div>
 </div>
-<br>
-<br>
+<div style="height: 100px"></div>
 </div>
       <div v-if="selectedIndex === 1">
         <div style="margin-bottom: 30px; border-bottom: 3px #262435 solid; padding-bottom: 25px;">
@@ -254,6 +274,7 @@ Thank you for your understanding.</p>
   </div>
 </div>
         </div>
+        <div style="height: 100px"></div>
       </div>
       <div v-if="selectedIndex === 2">
   <div class="twofa-container">
@@ -291,6 +312,8 @@ import {ref, onMounted} from 'vue';
 import { jsPDF } from "jspdf";
 import owlImage from '@/assets/icons/owl3.png';
 import QrcodeVue from 'qrcode.vue'
+import hideIcon from '@/assets/icons/hide.png';
+import showIcon from '@/assets/icons/show.png';
 
 const store = useStore();
 const user = store.getters.getUser;
@@ -802,6 +825,18 @@ h1 {
   margin-bottom: 0;
 }
 
+.user {
+  color: $accent3;
+  font-size: 23px;
+  margin-bottom: 0;
+}
+
+.subscription-remaining{
+  color: $text2;
+  font-size: 12px;
+  margin-bottom: 30px;
+}
+
 h2 {
   color: $text1;
   font-size: 15px;
@@ -912,13 +947,11 @@ p{
   margin: 5px;
   width: 150px;
   cursor: pointer; /* Pointer cursor on hover */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
   transition: all 0.3s ease; /* Smooth transition for hover effects */
 }
 
 .userbtn:hover {
     background-color: $accent2; /* Background color on hover */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
 }
 
 /* inputs for settings */
@@ -1285,8 +1318,8 @@ p{
 
 .password-toggle3 {
   position: absolute;
-  left: 54.5%;
-  top: 68%;
+  left: 56%;
+  top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
@@ -1379,6 +1412,11 @@ p{
   padding: 15px;
   margin: 0 auto;
   margin-bottom: 20px;
+}
+
+.toggle-icon {
+  width: 15px; /* Adjust the size as needed */
+  cursor: pointer; /* Change cursor to pointer on hover */
 }
 
 </style>

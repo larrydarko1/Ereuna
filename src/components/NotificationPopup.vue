@@ -51,6 +51,7 @@ defineExpose({ show });
   display: flex;
   justify-content: flex-start; 
   align-items: center;
+  padding: 10px;
 }
 
 .close-button-img {
@@ -66,9 +67,11 @@ defineExpose({ show });
   right: -10px; 
   border: none;
   background-color: transparent;
+  opacity: 0.80;
 }
 
 .ntfbtn:hover {
   cursor: pointer;
+  opacity: 1;
 }
 </style>
