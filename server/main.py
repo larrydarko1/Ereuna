@@ -5,7 +5,7 @@ import time
 import requests
 from dotenv import load_dotenv
 import os
-from pymongo import MongoClient, UpdateOne
+from pymongo import MongoClient, UpdateOne, DeleteOne, InsertOne
 from bson import ObjectId
 from datetime import datetime
 import datetime as dt
@@ -29,29 +29,38 @@ db = client['EreunaDB']
 api_key = os.getenv('TIINGO_KEY')  # Load API key from environment variable
 
 
-#maintenance mode
-def set_maintenance_mode(mode):
+#set maintenance mode on the app when it's set to True, users can't login when that happens
+def maintenanceMode(mode):
     collection = db["systemSettings"]
-    
-    # Update the document with name = 'EreunaApp'
     collection.update_one(
         {"name": "EreunaApp"},
         {
             "$set": {
                 "maintenance": mode,
-                "lastUpdated": datetime.now()  # Set to current date in BSON format
+                "lastUpdated": datetime.now() 
             }
         }
     )
+
+# Get the first day of the week (Monday)
+def getMonday(timestamp):
+    first_day_of_week = timestamp - dt.timedelta(days=timestamp.weekday())
+    return first_day_of_week
     
-    
-#symbol, name, description, IPO, exchange
+'''
+Section for IPOs and monthly update for stocks
+'''
+#updates symbol, name, description, IPO, exchange, sector, industry, location, currency, country
 def getSummary():
     start_time = time.time()
     collection = db['AssetInfo']
     tickers = [doc['Symbol'] for doc in collection.find()]
     print('checking for summary updates')
-    updated_tickers = []
+
+    # Fetch meta data for all tickers
+    url = f'https://api.tiingo.com/tiingo/fundamentals/meta?token={api_key}'
+    response = requests.get(url)
+    meta_data = response.json() if response.status_code == 200 else []
 
     for ticker in tickers:
         print(f'scanning {ticker}')
@@ -74,103 +83,346 @@ def getSummary():
                     result.get('Description') != data['description'] or
                     result.get('IPO') != (datetime.strptime(data['startDate'], '%Y-%m-%d') if data.get('startDate') else None) or
                     result.get('Exchange') != data['exchangeCode']):
-                    updated_tickers.append(ticker)
-                    print(f'new summary data found for {ticker}, added to update list')
+                    print(f'new summary data found for {ticker}, updating')
+                    # Update the existing document
+                    collection.update_one(
+                        {'Symbol': ticker},
+                        {'$set': {
+                            'Name': data['name'],
+                            'Description': data['description'],
+                            'IPO': datetime.strptime(data['startDate'], '%Y-%m-%d') if data.get('startDate') else None,  # Convert to BSON date
+                            'Exchange': data['exchangeCode']
+                        }}
+                    )
+                    print(f'{ticker} Summary Updated Successfully')
+                else:
+                    print(f'No changes found for {ticker}')
+
+                # Update meta data
+                ticker = ticker.lower()
+                ticker_data = next((item for item in meta_data if item['ticker'] == ticker), None)
+                if ticker_data is not None:
+                    sector = ticker_data.get('sector')
+                    industry = ticker_data.get('industry')
+                    reporting_currency = ticker_data.get('reportingCurrency')
+                    location = ticker_data.get('location')
+                    country = location.split(', ')[-1] if location else None
+                    address = location if location else None
+
+                    # Update the document in MongoDB where Symbol matches the ticker
+                    collection.update_one(
+                        {'Symbol': ticker},
+                        {'$set': {
+                            'Sector': sector,
+                            'Industry': industry,
+                            'Currency': reporting_currency,
+                            'Address': address,
+                            'Country': country
+                        }}
+                    )
+                    print(f'{ticker} Summary Data Updated Successfully')
+                else:
+                    print(f'No meta data found for {ticker}')
             else:
                 print(f"No document found for {ticker}")
         else:
             print(f"Error fetching data for {ticker}: {response.status_code}")
-
-    # Call the updateSummary function for each updated ticker
-    updateSummary(updated_tickers)
     end_time = time.time()
     execution_time_in_seconds = end_time - start_time
     execution_time_in_minutes = execution_time_in_seconds / 60
-    print(f'getSummary took {execution_time_in_minutes:.2f} minutes to execute')
+    print(f'get_and_update_summary took {execution_time_in_minutes:.2f} minutes to execute')
 
-def updateSummary(updated_tickers):
-    start_time = time.time()
+#gets full splits history 
+def getFullSplits():
+    ohclv_data_collection = db['OHCLVData']
+    asset_info_collection = db['AssetInfo']
+    updates = []
+
+    for asset_info in asset_info_collection.find():
+        ticker = asset_info['Symbol']
+        try:
+            # Find the documents in OHCLVData with the current ticker
+            pipeline = [
+                {'$match': {'tickerID': ticker}},
+                {'$project': {'_id': 0, 'timestamp': 1, 'splitFactor': 1}}
+            ]
+            ohclv_data = list(ohclv_data_collection.aggregate(pipeline))
+
+            # Initialize a list to store the splits
+            splits = []
+
+            # Loop through each document in OHCLVData
+            for document in ohclv_data:
+                # Check if the split factor is not 1
+                if document.get('splitFactor', 1) != 1:
+                    # Create a new split document
+                    split = {
+                        'effective_date': document['timestamp'],
+                        'split_factor': document['splitFactor']
+                    }
+                    # Add the split to the list
+                    splits.append(split)
+
+            # Remove the existing splits
+            updates.append(
+                UpdateOne(
+                    {'Symbol': ticker},
+                    {'$set': {'splits': []}}
+                )
+            )
+
+            # Add the new splits
+            updates.append(
+                UpdateOne(
+                    {'Symbol': ticker},
+                    {'$push': {'splits': {'$each': splits}}}
+                )
+            )
+            print(f'Updated splits for ticker: {ticker}')
+        except Exception as e:
+            print(f'Error updating splits for ticker: {ticker} - {str(e)}')
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
+
+#gets full dividend history 
+def getFullDividends():
+    ohclv_data_collection = db['OHCLVData']
+    asset_info_collection = db['AssetInfo']
+    updates = []
+
+    for asset_info in asset_info_collection.find():
+        ticker = asset_info['Symbol']
+        try:
+            # Find the documents in OHCLVData with the current ticker
+            pipeline = [
+                {'$match': {'tickerID': ticker}},
+                {'$project': {'_id': 0, 'timestamp': 1, 'divCash': 1}}
+            ]
+            ohclv_data = list(ohclv_data_collection.aggregate(pipeline))
+
+            # Initialize a list to store the dividends
+            dividends = []
+
+            # Loop through each document in OHCLVData
+            for document in ohclv_data:
+                # Check if the divCash is not 0
+                if document.get('divCash', 0) != 0:
+                    # Create a new dividend document
+                    dividend = {
+                        'payment_date': document['timestamp'],
+                        'amount': document['divCash']
+                    }
+                    # Add the dividend to the list
+                    dividends.append(dividend)
+
+            # Remove the existing dividends
+            updates.append(
+                UpdateOne(
+                    {'Symbol': ticker},
+                    {'$set': {'dividends': []}}
+                )
+            )
+
+            # Add the new dividends
+            updates.append(
+                UpdateOne(
+                    {'Symbol': ticker},
+                    {'$push': {'dividends': {'$each': dividends}}}
+                )
+            )
+            print(f'Updated dividends for ticker: {ticker}')
+        except Exception as e:
+            print(f'Error updating dividends for ticker: {ticker} - {str(e)}')
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
+   
+#gets full financials again from scratch 
+def getFinancials():
+    maintenanceMode(True)
     collection = db['AssetInfo']
 
-    for ticker in updated_tickers:
+    tickers2 = [doc['Symbol'] for doc in collection.find()]
+
+    for ticker in tickers2:
         print(f'processing {ticker}')
-        url = f'https://api.tiingo.com/tiingo/daily/{ticker}?token={api_key}'
+        url = f'https://api.tiingo.com/tiingo/fundamentals/{ticker}/statements?token={api_key}'
         response = requests.get(url)
 
         if response.status_code == 200:
             data = response.json()
 
-            # Update the existing document
-            result = collection.update_one(
-                {'Symbol': ticker},
-                {'$set': {
-                    'Name': data['name'],
-                    'Description': data['description'],
-                    'IPO': datetime.strptime(data['startDate'], '%Y-%m-%d') if data.get('startDate') else None,  # Convert to BSON date
-                    'Exchange': data['exchangeCode']
-                }}
-            )
+            result = collection.find_one({'Symbol': ticker})
 
-            if result.matched_count == 1:
-                print(f'{ticker} Summary Updated Successfully')
+            if result:
+                quarterly_earnings_data = []
+                annual_earnings_data = []
+                quarterly_financials_data = []
+                annual_financials_data = []
+                for statement in data:
+                    date_str = statement['date']
+                    date = datetime.strptime(date_str, '%Y-%m-%d')
+                    quarter = statement['quarter']
+
+                    earnings_data = {
+                        'fiscalDateEnding': date,
+                        'reportedEPS': 0
+                    }
+
+                    financial_data = {
+                        'fiscalDateEnding': date,
+                        'totalRevenue': 0,
+                        'netIncome': 0
+                    }
+
+                    if 'statementData' in statement and 'incomeStatement' in statement['statementData']:
+                        income_statement = statement['statementData']['incomeStatement']
+                        eps = next((item for item in income_statement if item['dataCode'] == 'eps'), None)
+                        revenue = next((item for item in income_statement if item['dataCode'] == 'revenue'), None)
+                        netinc = next((item for item in income_statement if item['dataCode'] == 'netinc'), None)
+
+                        if eps:
+                            earnings_data['reportedEPS'] = eps['value'] or 0
+
+                        if revenue and netinc:
+                            financial_data['totalRevenue'] = revenue['value'] or 0
+                            financial_data['netIncome'] = netinc['value'] or 0
+
+                    if 'balanceSheet' in statement['statementData']:
+                        balance_sheet = statement['statementData']['balanceSheet']
+                        for item in balance_sheet:
+                            data_code = item['dataCode']
+                            value = item['value'] or 0
+                            financial_data[data_code] = value
+
+                    if 'cashFlow' in statement['statementData']:
+                        cash_flow = statement['statementData']['cashFlow']
+                        for item in cash_flow:
+                            data_code = item['dataCode']
+                            value = item['value'] or 0
+                            financial_data[data_code] = value
+
+                    if 'overview' in statement['statementData']:
+                        overview = statement['statementData']['overview']
+                        for item in overview:
+                            data_code = item['dataCode']
+                            value = item['value'] or 0
+                            financial_data[data_code] = value
+
+                    if quarter == 0:
+                        annual_earnings_data.append(earnings_data)
+                        annual_financials_data.append(financial_data)
+                    else:
+                        quarterly_earnings_data.append(earnings_data)
+                        quarterly_financials_data.append(financial_data)
+
+                collection.update_one({'Symbol': ticker}, {'$set': {
+                    'quarterlyEarnings': quarterly_earnings_data,
+                    'annualEarnings': annual_earnings_data,
+                    'quarterlyFinancials': quarterly_financials_data,
+                    'AnnualFinancials': annual_financials_data
+                }})
+                print(f"Successfully updated financial data for {ticker}")
             else:
-                print(f"No document found for {ticker}, skipping update")
+                print(f"No document found for {ticker}")
         else:
             print(f"Error fetching data for {ticker}: {response.status_code}")
-    end_time = time.time()
-    execution_time_in_seconds = end_time - start_time
-    execution_time_in_minutes = execution_time_in_seconds / 60
-    print(f'updateSummary took {execution_time_in_minutes:.2f} minutes to execute')
+    maintenanceMode(False)
 
-    
-#sector, industry, currency, location, country         /// IT'S FUCKED, IT CREATES A COPY OF THE DOCUMENTS EVERY FUCKING TIME
-def getSummary2():
-    url = f'https://api.tiingo.com/tiingo/fundamentals/meta?token={api_key}'
-    response = requests.get(url)
+#uploads full ohclvdata from scratch, don't use everyday    
+def getHistoricalPrice():
+    daily_collection = db["OHCLVData"]
+    weekly_collection = db["OHCLVData2"]
+    asset_info_collection = db["AssetInfo"]
 
-    if response.status_code == 200:
-        data = response.json()
-        collection = db['AssetInfo']
-        for document in collection.find():
-            ticker = document['Symbol']
-            ticker = ticker.lower()
-            ticker_data = next((item for item in data if item['ticker'] == ticker), None)
-            if ticker_data is None:
-                print(f'No data found for {ticker}')
-                continue
+    for asset_info in asset_info_collection.find():
+        ticker = asset_info['Symbol']
+        now = datetime.now()
+        url = f'https://api.tiingo.com/tiingo/daily/{ticker}/prices?token={api_key}&startDate=1990-01-01&endDate={now.strftime("%Y-%m-%d")}'
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if len(data) > 0:
+                df = pd.DataFrame(data)
+                df = df.rename(columns={'date': 'timestamp'})
+                df.columns = ['timestamp', 'close', 'high', 'low', 'open', 'volume', 'adjClose', 'adjHigh', 'adjLow', 'adjOpen', 'adjVolume', 'divCash', 'splitFactor']
+                df['tickerID'] = ticker
+                
+                # Convert NumPy types to Python native types
+                def convert_numpy_types(doc):
+                    return {
+                        k: (int(v) if isinstance(v, np.integer) else 
+                            float(v) if isinstance(v, np.floating) else 
+                            v) for k, v in doc.items()
+                    }
+                
+                # Convert dataframe to list of dictionaries
+                daily_data_dict = df[['tickerID', 'timestamp', 'adjOpen', 'adjHigh', 'adjLow', 'adjClose', 'adjVolume', 'divCash', 'splitFactor']].to_dict(orient='records')
+                daily_data_dict = [convert_numpy_types(doc) for doc in daily_data_dict]
 
-            # Extract the required information
-            sector = ticker_data.get('sector')
-            industry = ticker_data.get('industry')
-            reporting_currency = ticker_data.get('reportingCurrency')
-            location = ticker_data.get('location')
-            country = location.split(', ')[-1] if location else None
-            address = location if location else None
+                # Rename fields
+                for doc in daily_data_dict:
+                    doc['open'] = doc.pop('adjOpen')
+                    doc['high'] = doc.pop('adjHigh')
+                    doc['low'] = doc.pop('adjLow')
+                    doc['close'] = doc.pop('adjClose')
+                    doc['volume'] = doc.pop('adjVolume')
+                    doc['timestamp'] = datetime.strptime(doc['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
 
-            # Update the document in MongoDB where Symbol matches the ticker
-            collection.update_one(
-                {'Symbol': ticker},
-                {'$set': {
-                    'Sector': sector,
-                    'Industry': industry,
-                    'Currency': reporting_currency,
-                    'Address': address,
-                    'Country': country
-                }},
-                upsert=True
-            )
-            print(f'{ticker} Summary Data Updated Successfully')
-    else:
-        print(f"Failed to retrieve data. Status code: {response.status_code}")
-        print(response.text)
-    
-def get_start_of_week(timestamp):
-    # Get the first day of the week (Monday)
-    first_day_of_week = timestamp - dt.timedelta(days=timestamp.weekday())
+                # Insert daily documents, preventing duplicates
+                for daily_doc in daily_data_dict:
+                    existing_daily_doc = daily_collection.find_one({
+                        'tickerID': daily_doc['tickerID'], 
+                        'timestamp': daily_doc['timestamp']
+                    })
+                    
+                    if not existing_daily_doc:
+                        daily_collection.insert_one(daily_doc)
+                        
+                # Process weekly data from daily data
+                df['timestamp'] = pd.to_datetime(df['timestamp'])
+                weekly_grouped = df.groupby(pd.Grouper(key='timestamp', freq='W-MON'))
+                
+                for week_start, week_data in weekly_grouped:
+                    if not week_data.empty:
+                        weekly_doc = {
+                            'tickerID': ticker,
+                            'timestamp': week_start.to_pydatetime(),
+                            'open': float(week_data['adjOpen'].iloc[0]),
+                            'high': float(week_data['adjHigh'].max()),
+                            'low': float(week_data['adjLow'].min()),
+                            'close': float(week_data['adjClose'].iloc[-1]),
+                            'volume': int(week_data['adjVolume'].sum())
+                        }
+                        
+                        # Check if weekly document already exists
+                        existing_weekly_doc = weekly_collection.find_one({
+                            'tickerID': ticker, 
+                            'timestamp': weekly_doc['timestamp']
+                        })
+                        
+                        if not existing_weekly_doc:
+                            weekly_collection.insert_one(weekly_doc)
+                print(f"Successfully processed {ticker}")
+            else:
+                print(f"No data found for {ticker}")
+        else:
+            print(f"Error: {response.text}")
 
-    return first_day_of_week
-
-# daily OHCLV 
+'''
+Daily updates section
+'''
+# get daily OHCLV Data and build weekly OHCLV day after day
 def getPrice():
     daily_collection = db["OHCLVData"]
     weekly_collection = db["OHCLVData2"]
@@ -231,9 +483,10 @@ def getPrice():
                     print(f"Daily document for {daily_doc['tickerID']} on {daily_doc['timestamp']} already exists")
 
             # Process weekly data from daily data
+            bulk_updates = []
             for daily_doc in daily_data_dict:
                 # Get the start of the week
-                weekly_timestamp = get_start_of_week(daily_doc['timestamp'])
+                weekly_timestamp = getMonday(daily_doc['timestamp'])
 
                 # Check if weekly document already exists for the current week
                 existing_weekly_doc = weekly_collection.find_one({
@@ -254,11 +507,9 @@ def getPrice():
                     updated_weekly_doc_close = daily_doc['close']
                     updated_weekly_doc_volume = existing_weekly_doc.get('volume', 0) + daily_doc['volume']
 
-                    # Delete the existing document
-                    weekly_collection.delete_one({'_id': existing_weekly_doc_id})
-
-                    # Insert the updated document
-                    updated_weekly_doc = {
+                    # Add the delete and insert operations to the bulk updates list
+                    bulk_updates.append(DeleteOne({'_id': existing_weekly_doc_id}))
+                    bulk_updates.append(InsertOne({
                         'tickerID': existing_weekly_doc_tickerID,
                         'timestamp': existing_weekly_doc_timestamp,
                         'open': existing_weekly_doc_open,
@@ -266,20 +517,26 @@ def getPrice():
                         'low': updated_weekly_doc_low,
                         'close': updated_weekly_doc_close,
                         'volume': updated_weekly_doc_volume
-                    }
-                    weekly_collection.insert_one(updated_weekly_doc)
-                    print(f"Updated weekly document for {existing_weekly_doc_tickerID} on {existing_weekly_doc_timestamp}")
+                    }))
+                    print(f"Updated weekly document for {existing_weekly_doc['tickerID']} on {existing_weekly_doc['timestamp']}")
                 else:
                     # Create a new weekly document
                     weekly_collection.insert_one(daily_doc)
                     print(f"Inserted weekly document for {daily_doc['tickerID']} on {daily_doc['timestamp']}")
+
+            # Perform the bulk update
+            if bulk_updates:
+                try:
+                    weekly_collection.bulk_write(bulk_updates)
+                    print("Bulk update completed")
+                except Exception as e:
+                    print(f"Error: {e}")
         else:
             print("No data found for the specified tickers.")
     else:
         print(f"Error: {response.text}")
     
-
-#MarketCap, PE, PB, PEG with for loop, not individual stocks
+#updates MarketCap, PE, PB, PEG , PS
 def updateDailyRatios():
     ohclv_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
@@ -322,8 +579,13 @@ def updateDailyRatios():
                         pb_ratio = current_price / book_value_per_share if book_value_per_share != 0 else 0
                     else:
                         pb_ratio = 0
+
+                    # Calculate the price-to-sales ratio
+                    total_revenue = most_recent_financials.get('totalRevenue', 0)
+                    ps_ratio = current_price / (total_revenue / shares_outstanding) if shares_outstanding != 0 and total_revenue != 0 else 0
                 else:
                     pb_ratio = 0
+                    ps_ratio = 0
 
                 # Calculate the trailing price-to-earnings growth ratio
                 quarterly_earnings = asset_info_doc.get('quarterlyEarnings', [])
@@ -343,6 +605,7 @@ def updateDailyRatios():
                             'MarketCapitalization': market_cap,
                             'PERatio': pe_ratio,
                             'PriceToBookRatio': pb_ratio,
+                            'PriceToSalesRatio': ps_ratio,
                             'PEGRatio': trailing_peg
                         }}
                     )
@@ -359,47 +622,6 @@ def updateDailyRatios():
             print(f"Updated {result.modified_count} documents")
         except Exception as e:
             print(f"Error updating documents: {e}")
-
-#updates dividend yiels 
-def getDividendYieldTTM():
-    collection = db['AssetInfo']
-
-    for document in collection.find():
-        ticker = document['Symbol']
-        dividends = document.get('dividends', [])
-        time_series = document.get('TimeSeries', [])
-
-        if not dividends:
-            print(f'No data found for {ticker}')
-            # Update the existing document
-            collection.update_one(
-                {'Symbol': ticker},
-                {'$set': {'DividendYield': None}}
-            )
-            print(f'{ticker} Dividend Yield TTM Updated Successfully')
-            continue
-
-        try:
-            # Sort the dividends by payment date
-            sorted_dividends = sorted(dividends, key=lambda x: x['payment_date'])
-
-            # Calculate the total dividends paid over the past 12 months
-            current_date = dt.datetime.now()
-            ttm_dividends = [dividend for dividend in sorted_dividends if (current_date - dividend['payment_date']).days <= 365]
-            ttm_dividend_per_share = sum(dividend['amount'] for dividend in ttm_dividends)
-
-            # Extract the current stock price
-            current_stock_price = list(time_series.values())[0].get('4. close')
-            dividend_yield_ttm = ttm_dividend_per_share / current_stock_price
-
-            # Update the existing document
-            collection.update_one(
-                {'Symbol': ticker},
-                {'$set': {'DividendYield': dividend_yield_ttm}}
-            )
-            print(f'{ticker} Dividend Yield TTM Updated Successfully')
-        except Exception as e:
-            print(f"Error processing {ticker}: {str(e)}")
             
 #updates splits when triggered 
 def Split(tickerID, timestamp, splitFactor):
@@ -465,62 +687,81 @@ def Dividends(tickerID, timestamp, divCash):
     else:
         print(f"No document found in AssetInfo for {tickerID}")
 
+#triggers when there's a split, it deleted and reuploads updated ohclvdata
+def getHistoricalPrice2(tickerID):
+    daily_collection = db["OHCLVData"]
+    weekly_collection = db["OHCLVData2"]
+
+    # Find and delete existing documents for the tickerID
+    daily_collection.delete_many({'tickerID': tickerID})
+    weekly_collection.delete_many({'tickerID': tickerID})
+
+    now = datetime.now()
+    url = f'https://api.tiingo.com/tiingo/daily/{tickerID}/prices?token={api_key}&startDate=1990-01-01&endDate={now.strftime("%Y-%m-%d")}'
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        data = response.json()
+        if len(data) > 0:
+            df = pd.DataFrame(data)
+            df = df.rename(columns={'date': 'timestamp'})
+            df.columns = ['timestamp', 'close', 'high', 'low', 'open', 'volume', 'adjClose', 'adjHigh', 'adjLow', 'adjOpen', 'adjVolume', 'divCash', 'splitFactor']
+            df['tickerID'] = tickerID
+            
+            # Convert NumPy types to Python native types
+            def convert_numpy_types(doc):
+                return {
+                    k: (int(v) if isinstance(v, np.integer) else 
+                        float(v) if isinstance(v, np.floating) else 
+                        v) for k, v in doc.items()
+                }
+            
+            # Convert dataframe to list of dictionaries
+            daily_data_dict = df[['tickerID', 'timestamp', 'adjOpen', 'adjHigh', 'adjLow', 'adjClose', 'adjVolume', 'divCash', 'splitFactor']].to_dict(orient='records')
+            daily_data_dict = [convert_numpy_types(doc) for doc in daily_data_dict]
+
+            # Rename fields
+            for doc in daily_data_dict:
+                doc['open'] = doc.pop('adjOpen')
+                doc['high'] = doc.pop('adjHigh')
+                doc['low'] = doc.pop('adjLow')
+                doc['close'] = doc.pop('adjClose')
+                doc['volume'] = doc.pop('adjVolume')
+                doc['timestamp'] = datetime.strptime(doc['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+
+            # Insert daily documents
+            for daily_doc in daily_data_dict:
+                daily_collection.insert_one(daily_doc)
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            weekly_grouped = df.groupby(pd.Grouper(key='timestamp', freq='W-MON'))
+            for week_start, week_data in weekly_grouped:
+                if not week_data.empty:
+                    weekly_doc = {
+                        'tickerID': tickerID,
+                        'timestamp': week_start.to_pydatetime(),
+                        'open': float(week_data['adjOpen'].iloc[0]),
+                        'high': float(week_data['adjHigh'].max()),
+                        'low': float(week_data['adjLow'].min()),
+                        'close': float(week_data['adjClose'].iloc[-1]),
+                        'volume': int(week_data['adjVolume'].sum())
+                    }
+                    weekly_collection.insert_one(weekly_doc)
+            print(f"Successfully processed {tickerID}")
+        else:
+            print(f"No data found for {tickerID}")
+    else:
+        print(f"Error: {response.text}")
+
 #scan endpoints for financial statements updates and update symbol when it does
-def checkFinancialUpdates():
+def checkAndUpdateFinancialUpdates():
     start_time = time.time()
     collection = db['AssetInfo']
-    new_tickers = []
-
-    # Get the list of stocks from the database
     tickers = [doc['Symbol'] for doc in collection.find()]
     print('checking for financial statements updates')
+    new_tickers_data = {}
+
     for ticker in tickers:
         print(f'scanning {ticker}')
-        url = f'https://api.tiingo.com/tiingo/fundamentals/{ticker}/statements?token={api_key}'
-        response = requests.get(url)
-
-        if response.status_code == 200:
-            data = response.json()
-
-            # Find the document in MongoDB where Symbol matches the ticker
-            result = collection.find_one({'Symbol': ticker})
-
-            if result:
-                # Process the data
-                for statement in data:
-                    date_str = statement['date']
-                    date = datetime.strptime(date_str, '%Y-%m-%d')
-                    quarter = statement['quarter']
-
-                    if 'statementData' in statement and 'incomeStatement' in statement['statementData']:
-                        if quarter == 0:
-                            existing_annual_earnings = result.get('annualEarnings', [])
-                            existing_annual_earnings_dates = [item['fiscalDateEnding'] for item in existing_annual_earnings]
-                            if date not in existing_annual_earnings_dates:
-                                new_tickers.append(ticker)
-                                print(f'new annual data found for {ticker}, added to upgrade list')
-                        else:
-                            existing_quarterly_earnings = result.get('quarterlyEarnings', [])
-                            existing_quarterly_earnings_dates = [item['fiscalDateEnding'] for item in existing_quarterly_earnings]
-                            if date not in existing_quarterly_earnings_dates:
-                                new_tickers.append(ticker)
-                                print(f'new quarterly data found for {ticker}, added to upgrade list')
-
-    # Call the updateFinancial function for each new ticker
-    updateFinancial(new_tickers)
-    end_time = time.time()
-    execution_time_in_seconds = end_time - start_time
-    execution_time_in_minutes = execution_time_in_seconds / 60
-    print(f'checkFinancialUpdates took {execution_time_in_minutes:.2f} minutes to execute')
-
-#update new financial data to scanned documents 
-def updateFinancial(new_tickers):
-    start_time = time.time()
-    set_maintenance_mode(True)
-    collection = db['AssetInfo']
-
-    for ticker in new_tickers:
-        print(f'processing {ticker}')
         url = f'https://api.tiingo.com/tiingo/fundamentals/{ticker}/statements?token={api_key}'
         response = requests.get(url)
 
@@ -536,6 +777,8 @@ def updateFinancial(new_tickers):
                 annual_earnings_data = []
                 quarterly_financials_data = []
                 annual_financials_data = []
+                new_data_found = False
+
                 for statement in data:
                     date_str = statement['date']
                     date = datetime.strptime(date_str, '%Y-%m-%d')
@@ -587,147 +830,52 @@ def updateFinancial(new_tickers):
                             financial_data[data_code] = value
 
                     if quarter == 0:
+                        existing_annual_earnings = result.get('annualEarnings', [])
+                        existing_annual_earnings_dates = [item['fiscalDateEnding'] for item in existing_annual_earnings]
+                        if date not in existing_annual_earnings_dates:
+                            new_data_found = True
+                            print(f'new annual data found for {ticker}')
                         annual_earnings_data.append(earnings_data)
                         annual_financials_data.append(financial_data)
                     else:
+                        existing_quarterly_earnings = result.get('quarterlyEarnings', [])
+                        existing_quarterly_earnings_dates = [item['fiscalDateEnding'] for item in existing_quarterly_earnings]
+                        if date not in existing_quarterly_earnings_dates:
+                            new_data_found = True
+                            print(f'new quarterly data found for {ticker}')
                         quarterly_earnings_data.append(earnings_data)
                         quarterly_financials_data.append(financial_data)
 
-                # Update the quarterly and annual earnings and financial data in the MongoDB database
-                collection.update_one({'Symbol': ticker}, {'$set': {
-                    'quarterlyEarnings': quarterly_earnings_data,
-                    'annualEarnings': annual_earnings_data,
-                    'quarterlyFinancials': quarterly_financials_data,
-                    'AnnualFinancials': annual_financials_data
-                }})
-                print(f"Successfully updated earnings and financial data for {ticker}")
+                if new_data_found:
+                    new_tickers_data[ticker] = {
+                        'quarterlyEarnings': quarterly_earnings_data,
+                        'annualEarnings': annual_earnings_data,
+                        'quarterlyFinancials': quarterly_financials_data,
+                        'AnnualFinancials': annual_financials_data
+                    }
             else:
                 print(f"No document found for {ticker}")
         else:
             print(f"Error fetching data for {ticker}: {response.status_code}")
+    
+    maintenanceMode(True)
+    # Update the quarterly and annual earnings and financial data in the MongoDB database
+    for ticker, data in new_tickers_data.items():
+        print(f'processing {ticker}')
+        collection.update_one({'Symbol': ticker}, {'$set': data})
+        print(f"Successfully updated earnings and financial data for {ticker}")
+
     update_eps_shares_dividend_date()
-    set_maintenance_mode(False)
+    calculate_qoq_changes()
+    calculate_YoY_changes()
+    maintenanceMode(False)
     end_time = time.time()
     execution_time_in_seconds = end_time - start_time
     execution_time_in_minutes = execution_time_in_seconds / 60
-    print(f'updateFinancial took {execution_time_in_minutes:.2f} minutes to execute')
-
-#gets full splits history 
-def getSplits():
-    ohclv_data_collection = db['OHCLVData']
-    asset_info_collection = db['AssetInfo']
-    updates = []
-
-    for asset_info in asset_info_collection.find():
-        ticker = asset_info['Symbol']
-        try:
-            # Find the documents in OHCLVData with the current ticker
-            pipeline = [
-                {'$match': {'tickerID': ticker}},
-                {'$project': {'_id': 0, 'timestamp': 1, 'splitFactor': 1}}
-            ]
-            ohclv_data = list(ohclv_data_collection.aggregate(pipeline))
-
-            # Initialize a list to store the splits
-            splits = []
-
-            # Loop through each document in OHCLVData
-            for document in ohclv_data:
-                # Check if the split factor is not 1
-                if document.get('splitFactor', 1) != 1:
-                    # Create a new split document
-                    split = {
-                        'effective_date': document['timestamp'],
-                        'split_factor': document['splitFactor']
-                    }
-                    # Add the split to the list
-                    splits.append(split)
-
-            # Remove the existing splits
-            updates.append(
-                UpdateOne(
-                    {'Symbol': ticker},
-                    {'$set': {'splits': []}}
-                )
-            )
-
-            # Add the new splits
-            updates.append(
-                UpdateOne(
-                    {'Symbol': ticker},
-                    {'$push': {'splits': {'$each': splits}}}
-                )
-            )
-            print(f'Updated splits for ticker: {ticker}')
-        except Exception as e:
-            print(f'Error updating splits for ticker: {ticker} - {str(e)}')
-
-    if updates:
-        try:
-            result = asset_info_collection.bulk_write(updates)
-            print(f"Updated {result.modified_count} documents")
-        except Exception as e:
-            print(f"Error updating documents: {e}")
-
-#gets full dividend history 
-def getDividends():
-    ohclv_data_collection = db['OHCLVData']
-    asset_info_collection = db['AssetInfo']
-    updates = []
-
-    for asset_info in asset_info_collection.find():
-        ticker = asset_info['Symbol']
-        try:
-            # Find the documents in OHCLVData with the current ticker
-            pipeline = [
-                {'$match': {'tickerID': ticker}},
-                {'$project': {'_id': 0, 'timestamp': 1, 'divCash': 1}}
-            ]
-            ohclv_data = list(ohclv_data_collection.aggregate(pipeline))
-
-            # Initialize a list to store the dividends
-            dividends = []
-
-            # Loop through each document in OHCLVData
-            for document in ohclv_data:
-                # Check if the divCash is not 0
-                if document.get('divCash', 0) != 0:
-                    # Create a new dividend document
-                    dividend = {
-                        'payment_date': document['timestamp'],
-                        'amount': document['divCash']
-                    }
-                    # Add the dividend to the list
-                    dividends.append(dividend)
-
-            # Remove the existing dividends
-            updates.append(
-                UpdateOne(
-                    {'Symbol': ticker},
-                    {'$set': {'dividends': []}}
-                )
-            )
-
-            # Add the new dividends
-            updates.append(
-                UpdateOne(
-                    {'Symbol': ticker},
-                    {'$push': {'dividends': {'$each': dividends}}}
-                )
-            )
-            print(f'Updated dividends for ticker: {ticker}')
-        except Exception as e:
-            print(f'Error updating dividends for ticker: {ticker} - {str(e)}')
-
-    if updates:
-        try:
-            result = asset_info_collection.bulk_write(updates)
-            print(f"Updated {result.modified_count} documents")
-        except Exception as e:
-            print(f"Error updating documents: {e}")
+    print(f'checkAndUpdateFinancialUpdates took {execution_time_in_minutes:.2f} minutes to execute')
 
 #updates assetinfo with recent ohclvdata 
-def update_asset_info_with_time_series():
+def updateTimeSeries():
     ohclv_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
     updates = []
@@ -767,9 +915,50 @@ def update_asset_info_with_time_series():
             print(f"Updated {result.modified_count} documents")
         except Exception as e:
             print(f"Error updating documents: {e}")
-   
+            
+#updates dividend yields TTM daily 
+def getDividendYieldTTM():
+    collection = db['AssetInfo']
+
+    for document in collection.find():
+        ticker = document['Symbol']
+        dividends = document.get('dividends', [])
+        time_series = document.get('TimeSeries', [])
+
+        if not dividends:
+            print(f'No data found for {ticker}')
+            # Update the existing document
+            collection.update_one(
+                {'Symbol': ticker},
+                {'$set': {'DividendYield': None}}
+            )
+            print(f'{ticker} Dividend Yield TTM Updated Successfully')
+            continue
+
+        try:
+            # Sort the dividends by payment date
+            sorted_dividends = sorted(dividends, key=lambda x: x['payment_date'])
+
+            # Calculate the total dividends paid over the past 12 months
+            current_date = dt.datetime.now()
+            ttm_dividends = [dividend for dividend in sorted_dividends if (current_date - dividend['payment_date']).days <= 365]
+            ttm_dividend_per_share = sum(dividend['amount'] for dividend in ttm_dividends)
+
+            # Extract the current stock price
+            current_stock_price = list(time_series.values())[0].get('4. close')
+            dividend_yield_ttm = ttm_dividend_per_share / current_stock_price
+
+            # Update the existing document
+            collection.update_one(
+                {'Symbol': ticker},
+                {'$set': {'DividendYield': dividend_yield_ttm}}
+            )
+            print(f'{ticker} Dividend Yield TTM Updated Successfully')
+        except Exception as e:
+            print(f"Error processing {ticker}: {str(e)}")
+
 #calculates average volume for 1w, 1m, 6m and 1y
-def calculate_volumes():
+def calculateVolumes():
     ohclv_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
     updates = []
@@ -822,7 +1011,7 @@ def calculate_volumes():
             print(f"Error updating documents: {e}")
 
 #calculates moving averages (10, 20, 50 and 200DMA)
-def calculate_moving_averages():
+def calculateSMAs():
     ohclv_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
     updates = []
@@ -869,7 +1058,7 @@ def calculate_moving_averages():
             print(f"Error updating documents: {e}")
 
 #calulcates technical score 
-def calculate_rs_scores():
+def calculateTechnicalScores():
     ohclv_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
     updates = []
@@ -1003,7 +1192,7 @@ def calculate_rs_scores():
             print(f"Error updating documents: {e}")
 
 #calculates both 52wk and all time high/low
-def calculate_alltime_high_low_and_perc52wk():
+def calculateAlltimehighlowandperc52wk():
     ohclv_data_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
     updates = []
@@ -1070,7 +1259,7 @@ def calculate_alltime_high_low_and_perc52wk():
             print(f"Error updating documents: {e}")
  
 #caluclautes percentage changes for today, wk, 1m, 4m, 6m, 1y, and YTD (althought ytd is still a bit weird)
-def calculate_change_perc():
+def calculatePerc():
     ohclv_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
     updates = []
@@ -1138,392 +1327,7 @@ def calculate_change_perc():
             print(f"Updated {result.modified_count} documents")
         except Exception as e:
             print(f"Error updating documents: {e}")
-        
-        
-def calculate_qoq_changes():
-    collection = db['AssetInfo']
-    for doc in collection.find():
-        ticker = doc['Symbol']
-        quarterly_income = doc.get('quarterlyIncome', [])
-        quarterly_earnings = doc.get('quarterlyEarnings', [])
-        total_revenue = [float(x.get('totalRevenue', 0)) for x in quarterly_income if x.get('totalRevenue') not in ['', 'None', None]]
-        net_income = [float(x.get('netIncome', 0)) for x in quarterly_income if x.get('netIncome') not in ['', 'None', None]]
-        reported_eps = [float(x.get('reportedEPS', 0)) for x in quarterly_earnings if x.get('reportedEPS') not in ['', 'None', None]]
-        if len(total_revenue) > 1:
-            current_quarter = total_revenue[0]
-            previous_quarter = total_revenue[1]
-            if previous_quarter != 0:
-                revenue_qoq = ((current_quarter - previous_quarter) / previous_quarter) 
-            else:
-                revenue_qoq = 0
-        else:
-            revenue_qoq = 0
-        if len(net_income) > 1:
-            current_quarter = net_income[0]
-            previous_quarter = net_income[1]
-            if previous_quarter != 0:
-                earnings_qoq = ((current_quarter - previous_quarter) / previous_quarter) 
-            else:
-                earnings_qoq = 0
-        else:
-            earnings_qoq = 0
-        if len(reported_eps) > 1:
-            current_quarter = reported_eps[0]
-            previous_quarter = reported_eps[1]
-            if previous_quarter != 0:
-                eps_qoq = ((current_quarter - previous_quarter) / previous_quarter) 
-            else:
-                eps_qoq = 0
-        else:
-            eps_qoq = 0
-        collection.update_one({'Symbol': ticker}, {'$set': {
-            'EPSQoQ': eps_qoq,
-            'EarningsQoQ': earnings_qoq,
-            'RevQoQ': revenue_qoq
-        }})
-
-def calculate_YoY_changes():
-    collection = db['AssetInfo']
-    for doc in collection.find():
-        ticker = doc['Symbol']
-        quarterly_income = doc.get('quarterlyIncome', [])
-        quarterly_earnings = doc.get('quarterlyEarnings', [])
-        total_revenue = [float(x.get('totalRevenue', 0)) for x in quarterly_income if x.get('totalRevenue') not in ['', 'None', None]]
-        net_income = [float(x.get('netIncome', 0)) for x in quarterly_income if x.get('netIncome') not in ['', 'None', None]]
-        reported_eps = [float(x.get('reportedEPS', 0)) for x in quarterly_earnings if x.get('reportedEPS') not in ['', 'None', None]]
-        if len(total_revenue) >= 5:
-            current_quarter = total_revenue[0]
-            previous_quarter = total_revenue[4]
-            if previous_quarter != 0:
-                revenue_yoy = ((current_quarter - previous_quarter) / previous_quarter) 
-            else:
-                revenue_yoy = 0
-        else:
-            revenue_yoy = 0
-        if len(net_income) >= 5:
-            current_quarter = net_income[0]
-            previous_quarter = net_income[4]
-            if previous_quarter != 0:
-                earnings_yoy = ((current_quarter - previous_quarter) / previous_quarter) 
-            else:
-                earnings_yoy = 0
-        else:
-            earnings_yoy = 0
-        if len(reported_eps) >= 5:
-            current_quarter = reported_eps[0]
-            previous_quarter = reported_eps[4]
-            if previous_quarter != 0:
-                eps_yoy = ((current_quarter - previous_quarter) / previous_quarter) 
-            else:
-                eps_yoy = 0
-        else:
-            eps_yoy = 0
-        collection.update_one({'Symbol': ticker}, {'$set': {
-            'EPSYoY': eps_yoy,
-            'EarningsYoY': earnings_yoy,
-            'RevYoY': revenue_yoy
-        }})
-
-#gets full financials again from scratch 
-def getFinancials():
-    set_maintenance_mode(True)
-    collection = db['AssetInfo']
-
-    tickers2 = [doc['Symbol'] for doc in collection.find()]
-
-    for ticker in tickers2:
-        print(f'processing {ticker}')
-        url = f'https://api.tiingo.com/tiingo/fundamentals/{ticker}/statements?token={api_key}'
-        response = requests.get(url)
-
-        if response.status_code == 200:
-            data = response.json()
-
-            result = collection.find_one({'Symbol': ticker})
-
-            if result:
-                quarterly_earnings_data = []
-                annual_earnings_data = []
-                quarterly_financials_data = []
-                annual_financials_data = []
-                for statement in data:
-                    date_str = statement['date']
-                    date = datetime.strptime(date_str, '%Y-%m-%d')
-                    quarter = statement['quarter']
-
-                    earnings_data = {
-                        'fiscalDateEnding': date,
-                        'reportedEPS': 0
-                    }
-
-                    financial_data = {
-                        'fiscalDateEnding': date,
-                        'totalRevenue': 0,
-                        'netIncome': 0
-                    }
-
-                    if 'statementData' in statement and 'incomeStatement' in statement['statementData']:
-                        income_statement = statement['statementData']['incomeStatement']
-                        eps = next((item for item in income_statement if item['dataCode'] == 'eps'), None)
-                        revenue = next((item for item in income_statement if item['dataCode'] == 'revenue'), None)
-                        netinc = next((item for item in income_statement if item['dataCode'] == 'netinc'), None)
-
-                        if eps:
-                            earnings_data['reportedEPS'] = eps['value'] or 0
-
-                        if revenue and netinc:
-                            financial_data['totalRevenue'] = revenue['value'] or 0
-                            financial_data['netIncome'] = netinc['value'] or 0
-
-                    if 'balanceSheet' in statement['statementData']:
-                        balance_sheet = statement['statementData']['balanceSheet']
-                        for item in balance_sheet:
-                            data_code = item['dataCode']
-                            value = item['value'] or 0
-                            financial_data[data_code] = value
-
-                    if 'cashFlow' in statement['statementData']:
-                        cash_flow = statement['statementData']['cashFlow']
-                        for item in cash_flow:
-                            data_code = item['dataCode']
-                            value = item['value'] or 0
-                            financial_data[data_code] = value
-
-                    if 'overview' in statement['statementData']:
-                        overview = statement['statementData']['overview']
-                        for item in overview:
-                            data_code = item['dataCode']
-                            value = item['value'] or 0
-                            financial_data[data_code] = value
-
-                    if quarter == 0:
-                        annual_earnings_data.append(earnings_data)
-                        annual_financials_data.append(financial_data)
-                    else:
-                        quarterly_earnings_data.append(earnings_data)
-                        quarterly_financials_data.append(financial_data)
-
-                collection.update_one({'Symbol': ticker}, {'$set': {
-                    'quarterlyEarnings': quarterly_earnings_data,
-                    'annualEarnings': annual_earnings_data,
-                    'quarterlyFinancials': quarterly_financials_data,
-                    'AnnualFinancials': annual_financials_data
-                }})
-                print(f"Successfully updated financial data for {ticker}")
-            else:
-                print(f"No document found for {ticker}")
-        else:
-            print(f"Error fetching data for {ticker}: {response.status_code}")
-    set_maintenance_mode(False)
-
-#updates data when financials are updated 
-def update_eps_shares_dividend_date():
-    try:
-        collection = db['AssetInfo']
-
-        # Iterate over each document in the collection
-        for document in collection.find():
-            ticker = document['Symbol']
-
-            # Check if the quarterlyEarnings array is not empty
-            if 'quarterlyEarnings' in document and document['quarterlyEarnings']:
-                # Extract the reportedEPS from the first object in the quarterlyEarnings array
-                reported_eps = document['quarterlyEarnings'][0].get('reportedEPS')
-
-                # Update the EPS attribute of the document
-                if reported_eps is not None:
-                    collection.update_one({'Symbol': ticker}, {'$set': {'EPS': reported_eps}})
-
-            # Check if the quarterlyFinancials array is not empty
-            if 'quarterlyFinancials' in document and document['quarterlyFinancials']:
-                # Extract the sharesBasic from the first object in the quarterlyFinancials array
-                shares_basic = document['quarterlyFinancials'][0].get('sharesBasic')
-
-                # Update the SharesOutstanding attribute of the document
-                if shares_basic is not None:
-                    collection.update_one({'Symbol': ticker}, {'$set': {'SharesOutstanding': shares_basic}})
-
-            # Check if the dividends array is not empty
-            if 'dividends' in document and document['dividends']:
-                # Extract the payment_date from the last object in the dividends array
-                payment_date = document['dividends'][-1].get('payment_date')
-
-                # Update the DividendDate attribute of the document
-                if payment_date is not None:
-                    collection.update_one({'Symbol': ticker}, {'$set': {'DividendDate': payment_date}})
-        print("Update successful")
-
-    except Exception as e:
-        print("Update failed: ", str(e))
-
-#uploads full ohclvdata from scratch, don't use everyday    
-def getHistoricalPrice():
-    daily_collection = db["OHCLVData"]
-    weekly_collection = db["OHCLVData2"]
-    asset_info_collection = db["AssetInfo"]
-
-    for asset_info in asset_info_collection.find():
-        ticker = asset_info['Symbol']
-        now = datetime.now()
-        url = f'https://api.tiingo.com/tiingo/daily/{ticker}/prices?token={api_key}&startDate=1990-01-01&endDate={now.strftime("%Y-%m-%d")}'
-        response = requests.get(url)
-        
-        if response.status_code == 200:
-            data = response.json()
-            if len(data) > 0:
-                df = pd.DataFrame(data)
-                df = df.rename(columns={'date': 'timestamp'})
-                df.columns = ['timestamp', 'close', 'high', 'low', 'open', 'volume', 'adjClose', 'adjHigh', 'adjLow', 'adjOpen', 'adjVolume', 'divCash', 'splitFactor']
-                df['tickerID'] = ticker
-                
-                # Convert NumPy types to Python native types
-                def convert_numpy_types(doc):
-                    return {
-                        k: (int(v) if isinstance(v, np.integer) else 
-                            float(v) if isinstance(v, np.floating) else 
-                            v) for k, v in doc.items()
-                    }
-                
-                # Convert dataframe to list of dictionaries
-                daily_data_dict = df[['tickerID', 'timestamp', 'adjOpen', 'adjHigh', 'adjLow', 'adjClose', 'adjVolume', 'divCash', 'splitFactor']].to_dict(orient='records')
-                daily_data_dict = [convert_numpy_types(doc) for doc in daily_data_dict]
-
-                # Rename fields
-                for doc in daily_data_dict:
-                    doc['open'] = doc.pop('adjOpen')
-                    doc['high'] = doc.pop('adjHigh')
-                    doc['low'] = doc.pop('adjLow')
-                    doc['close'] = doc.pop('adjClose')
-                    doc['volume'] = doc.pop('adjVolume')
-                    doc['timestamp'] = datetime.strptime(doc['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-
-                # Insert daily documents, preventing duplicates
-                for daily_doc in daily_data_dict:
-                    existing_daily_doc = daily_collection.find_one({
-                        'tickerID': daily_doc['tickerID'], 
-                        'timestamp': daily_doc['timestamp']
-                    })
-                    
-                    if not existing_daily_doc:
-                        daily_collection.insert_one(daily_doc)
-                        
-                # Process weekly data from daily data
-                df['timestamp'] = pd.to_datetime(df['timestamp'])
-                weekly_grouped = df.groupby(pd.Grouper(key='timestamp', freq='W-MON'))
-                
-                for week_start, week_data in weekly_grouped:
-                    if not week_data.empty:
-                        weekly_doc = {
-                            'tickerID': ticker,
-                            'timestamp': week_start.to_pydatetime(),
-                            'open': float(week_data['adjOpen'].iloc[0]),
-                            'high': float(week_data['adjHigh'].max()),
-                            'low': float(week_data['adjLow'].min()),
-                            'close': float(week_data['adjClose'].iloc[-1]),
-                            'volume': int(week_data['adjVolume'].sum())
-                        }
-                        
-                        # Check if weekly document already exists
-                        existing_weekly_doc = weekly_collection.find_one({
-                            'tickerID': ticker, 
-                            'timestamp': weekly_doc['timestamp']
-                        })
-                        
-                        if not existing_weekly_doc:
-                            weekly_collection.insert_one(weekly_doc)
-                print(f"Successfully processed {ticker}")
-            else:
-                print(f"No data found for {ticker}")
-        else:
-            print(f"Error: {response.text}")
-
-#triggers when there's a split, it deleted and reuploads updated ohclvdata
-def getHistoricalPrice2(tickerID):
-    daily_collection = db["OHCLVData"]
-    weekly_collection = db["OHCLVData2"]
-
-    # Find and delete existing documents for the tickerID
-    daily_collection.delete_many({'tickerID': tickerID})
-    weekly_collection.delete_many({'tickerID': tickerID})
-
-    now = datetime.now()
-    url = f'https://api.tiingo.com/tiingo/daily/{tickerID}/prices?token={api_key}&startDate=1990-01-01&endDate={now.strftime("%Y-%m-%d")}'
-    response = requests.get(url)
-    
-    if response.status_code == 200:
-        data = response.json()
-        if len(data) > 0:
-            df = pd.DataFrame(data)
-            df = df.rename(columns={'date': 'timestamp'})
-            df.columns = ['timestamp', 'close', 'high', 'low', 'open', 'volume', 'adjClose', 'adjHigh', 'adjLow', 'adjOpen', 'adjVolume', 'divCash', 'splitFactor']
-            df['tickerID'] = tickerID
-            
-            # Convert NumPy types to Python native types
-            def convert_numpy_types(doc):
-                return {
-                    k: (int(v) if isinstance(v, np.integer) else 
-                        float(v) if isinstance(v, np.floating) else 
-                        v) for k, v in doc.items()
-                }
-            
-            # Convert dataframe to list of dictionaries
-            daily_data_dict = df[['tickerID', 'timestamp', 'adjOpen', 'adjHigh', 'adjLow', 'adjClose', 'adjVolume', 'divCash', 'splitFactor']].to_dict(orient='records')
-            daily_data_dict = [convert_numpy_types(doc) for doc in daily_data_dict]
-
-            # Rename fields
-            for doc in daily_data_dict:
-                doc['open'] = doc.pop('adjOpen')
-                doc['high'] = doc.pop('adjHigh')
-                doc['low'] = doc.pop('adjLow')
-                doc['close'] = doc.pop('adjClose')
-                doc['volume'] = doc.pop('adjVolume')
-                doc['timestamp'] = datetime.strptime(doc['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-
-            # Insert daily documents
-            for daily_doc in daily_data_dict:
-                daily_collection.insert_one(daily_doc)
-            df['timestamp'] = pd.to_datetime(df['timestamp'])
-            weekly_grouped = df.groupby(pd.Grouper(key='timestamp', freq='W-MON'))
-            for week_start, week_data in weekly_grouped:
-                if not week_data.empty:
-                    weekly_doc = {
-                        'tickerID': tickerID,
-                        'timestamp': week_start.to_pydatetime(),
-                        'open': float(week_data['adjOpen'].iloc[0]),
-                        'high': float(week_data['adjHigh'].max()),
-                        'low': float(week_data['adjLow'].min()),
-                        'close': float(week_data['adjClose'].iloc[-1]),
-                        'volume': int(week_data['adjVolume'].sum())
-                    }
-                    weekly_collection.insert_one(weekly_doc)
-            print(f"Successfully processed {tickerID}")
-        else:
-            print(f"No data found for {tickerID}")
-    else:
-        print(f"Error: {response.text}")
-        
-
-#removes delisted tickers from the database
-def Delist(delisted):
-    asset_info_collection = db['AssetInfo']
-    ohclv_data_collection = db['OHCLVData']
-    ohclv_data_collection2 = db['OHCLVData2']
-    notes_collection = db['Notes']
-    users_collection = db['Users']
-    watchlists_collection = db['Watchlists']
-    print("Deleting documents from collections...")
-    for i, asset in enumerate(delisted):
-        try:
-            asset_info_collection.delete_one({'Symbol': asset})
-            ohclv_data_collection.delete_many({'tickerID': asset})
-            ohclv_data_collection2.delete_many({'tickerID': asset})
-            notes_collection.delete_many({'Symbol': asset})
-            users_collection.update_many({}, {'$pull': {'Hidden': asset}})
-            watchlists_collection.update_many({}, {'$pull': {'List': asset}})
-            print(f"Processed {i+1} out of {len(delisted)} assets")
-        except Exception as e:
-            print(f"Error processing {asset}: {e}")
-            
+  
 #scans documents for delisted stocks, it removes stocks that have ohclvdata older than 14 days            
 def scanDelisted():
     current_date = dt.datetime.now()
@@ -1547,35 +1351,27 @@ def scanDelisted():
             delisted.append(ticker)
     Delist(delisted)
 
+#removes delisted tickers from the database
+def Delist(delisted):
+    asset_info_collection = db['AssetInfo']
+    ohclv_data_collection = db['OHCLVData']
+    ohclv_data_collection2 = db['OHCLVData2']
+    notes_collection = db['Notes']
+    users_collection = db['Users']
+    watchlists_collection = db['Watchlists']
+    print("Deleting documents from collections...")
+    for i, asset in enumerate(delisted):
+        try:
+            asset_info_collection.delete_one({'Symbol': asset})
+            ohclv_data_collection.delete_many({'tickerID': asset})
+            ohclv_data_collection2.delete_many({'tickerID': asset})
+            notes_collection.delete_many({'Symbol': asset})
+            users_collection.update_many({}, {'$pull': {'Hidden': asset}})
+            watchlists_collection.update_many({}, {'$pull': {'List': asset}})
+            print(f"Processed {i+1} out of {len(delisted)} assets")
+        except Exception as e:
+            print(f"Error processing {asset}: {e}")
 
-def ArrangeIcons():
-    current_dir = os.getcwd()
-    pictures_dir = os.path.join(current_dir, 'server', 'pictures')
-    if os.path.exists(pictures_dir):
-        svg_file_names = []
-        for filename in os.listdir(pictures_dir):
-            if filename.endswith('.svg'):
-                svg_file_name = filename.split('.')[0]
-                svg_file_names.append(svg_file_name)
-        for svg_file_name in svg_file_names:
-            asset_info_collection = db['AssetInfo']
-            document = asset_info_collection.find_one({'Symbol': svg_file_name})
-            if document:
-                exchange = document.get('Exchange')
-                if exchange:
-                    exchange_dir = os.path.join(current_dir, 'server', 'pictures', exchange)
-                    if not os.path.exists(exchange_dir):
-                        os.makedirs(exchange_dir)
-                    svg_file_path = os.path.join(pictures_dir, f'{svg_file_name}.svg')
-                    os.replace(svg_file_path, os.path.join(exchange_dir, f'{svg_file_name}.svg'))
-                    print(f'Moved {svg_file_name}.svg to {exchange} folder')
-                else:
-                    print(f'No Exchange attribute found for {svg_file_name}')
-            else:
-                print(f'No document found for {svg_file_name}')
-    else:
-        print("The 'pictures' folder does not exist.")
-        
 #get OHCLVData from Nasdaq100, S&P500, Dow Jones 30, Russell 2000
 def getIndex():
     indexes = ['QQQ', 'SPY', 'DIA', 'IWM']
@@ -1649,29 +1445,405 @@ def getIndex():
                         })
 
                         if not existing_weekly_doc:
-                            weekly_collection.insert_one(weekly_doc)
+                            weekly_collection.insert_one(daily_doc)
                 print(f"Successfully processed {ticker}")
             else:
                 print(f"No data found for {ticker}")
         else:
             print(f"Error: {response.text}")
 
+'''
+Qaurterly Section
+'''
+#calculares QoQ changes        
+def calculate_qoq_changes():
+    collection = db['AssetInfo']
+    for doc in collection.find():
+        ticker = doc['Symbol']
+        quarterly_income = doc.get('quarterlyIncome', [])
+        quarterly_earnings = doc.get('quarterlyEarnings', [])
+        total_revenue = [float(x.get('totalRevenue', 0)) for x in quarterly_income if x.get('totalRevenue') not in ['', 'None', None]]
+        net_income = [float(x.get('netIncome', 0)) for x in quarterly_income if x.get('netIncome') not in ['', 'None', None]]
+        reported_eps = [float(x.get('reportedEPS', 0)) for x in quarterly_earnings if x.get('reportedEPS') not in ['', 'None', None]]
+        if len(total_revenue) > 1:
+            current_quarter = total_revenue[0]
+            previous_quarter = total_revenue[1]
+            if previous_quarter != 0:
+                revenue_qoq = ((current_quarter - previous_quarter) / previous_quarter) 
+            else:
+                revenue_qoq = 0
+        else:
+            revenue_qoq = 0
+        if len(net_income) > 1:
+            current_quarter = net_income[0]
+            previous_quarter = net_income[1]
+            if previous_quarter != 0:
+                earnings_qoq = ((current_quarter - previous_quarter) / previous_quarter) 
+            else:
+                earnings_qoq = 0
+        else:
+            earnings_qoq = 0
+        if len(reported_eps) > 1:
+            current_quarter = reported_eps[0]
+            previous_quarter = reported_eps[1]
+            if previous_quarter != 0:
+                eps_qoq = ((current_quarter - previous_quarter) / previous_quarter) 
+            else:
+                eps_qoq = 0
+        else:
+            eps_qoq = 0
+        collection.update_one({'Symbol': ticker}, {'$set': {
+            'EPSQoQ': eps_qoq,
+            'EarningsQoQ': earnings_qoq,
+            'RevQoQ': revenue_qoq
+        }})
+
+#calculares YoY changes 
+def calculate_YoY_changes():
+    collection = db['AssetInfo']
+    for doc in collection.find():
+        ticker = doc['Symbol']
+        quarterly_income = doc.get('quarterlyIncome', [])
+        quarterly_earnings = doc.get('quarterlyEarnings', [])
+        total_revenue = [float(x.get('totalRevenue', 0)) for x in quarterly_income if x.get('totalRevenue') not in ['', 'None', None]]
+        net_income = [float(x.get('netIncome', 0)) for x in quarterly_income if x.get('netIncome') not in ['', 'None', None]]
+        reported_eps = [float(x.get('reportedEPS', 0)) for x in quarterly_earnings if x.get('reportedEPS') not in ['', 'None', None]]
+        if len(total_revenue) >= 5:
+            current_quarter = total_revenue[0]
+            previous_quarter = total_revenue[4]
+            if previous_quarter != 0:
+                revenue_yoy = ((current_quarter - previous_quarter) / previous_quarter) 
+            else:
+                revenue_yoy = 0
+        else:
+            revenue_yoy = 0
+        if len(net_income) >= 5:
+            current_quarter = net_income[0]
+            previous_quarter = net_income[4]
+            if previous_quarter != 0:
+                earnings_yoy = ((current_quarter - previous_quarter) / previous_quarter) 
+            else:
+                earnings_yoy = 0
+        else:
+            earnings_yoy = 0
+        if len(reported_eps) >= 5:
+            current_quarter = reported_eps[0]
+            previous_quarter = reported_eps[4]
+            if previous_quarter != 0:
+                eps_yoy = ((current_quarter - previous_quarter) / previous_quarter) 
+            else:
+                eps_yoy = 0
+        else:
+            eps_yoy = 0
+        collection.update_one({'Symbol': ticker}, {'$set': {
+            'EPSYoY': eps_yoy,
+            'EarningsYoY': earnings_yoy,
+            'RevYoY': revenue_yoy
+        }})
+
+#updates data when financials are updated 
+def update_eps_shares_dividend_date():
+    try:
+        collection = db['AssetInfo']
+
+        # Iterate over each document in the collection
+        for document in collection.find():
+            ticker = document['Symbol']
+
+            # Check if the quarterlyEarnings array is not empty
+            if 'quarterlyEarnings' in document and document['quarterlyEarnings']:
+                # Extract the reportedEPS from the first object in the quarterlyEarnings array
+                reported_eps = document['quarterlyEarnings'][0].get('reportedEPS')
+
+                # Update the EPS attribute of the document
+                if reported_eps is not None:
+                    collection.update_one({'Symbol': ticker}, {'$set': {'EPS': reported_eps}})
+
+            # Check if the quarterlyFinancials array is not empty
+            if 'quarterlyFinancials' in document and document['quarterlyFinancials']:
+                # Extract the sharesBasic from the first object in the quarterlyFinancials array
+                shares_basic = document['quarterlyFinancials'][0].get('sharesBasic')
+
+                # Update the SharesOutstanding attribute of the document
+                if shares_basic is not None:
+                    collection.update_one({'Symbol': ticker}, {'$set': {'SharesOutstanding': shares_basic}})
+
+            # Check if the dividends array is not empty
+            if 'dividends' in document and document['dividends']:
+                # Extract the payment_date from the last object in the dividends array
+                payment_date = document['dividends'][-1].get('payment_date')
+
+                # Update the DividendDate attribute of the document
+                if payment_date is not None:
+                    collection.update_one({'Symbol': ticker}, {'$set': {'DividendDate': payment_date}})
+        print("Update successful")
+
+    except Exception as e:
+        print("Update failed: ", str(e))
+
+'''
+IPO section
+'''
+# List of new tickers to insert inside the database
+with open('server/new.txt', 'r') as file:
+    tickers = file.read().replace("'", "").split(', ')
+  
+def updateSummarySingle(ticker):
+    print(f'processing {ticker}')
+    url = f'https://api.tiingo.com/tiingo/daily/{ticker}?token={api_key}'
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+
+        # Update the existing document
+        collection = db['AssetInfo']
+        result = collection.update_one(
+            {'Symbol': ticker},
+            {'$set': {
+                'Name': data['name'].upper(),
+                'Description': data['description'],
+                'IPO': datetime.strptime(data['startDate'], '%Y-%m-%d') if data.get('startDate') else None,  # Convert to BSON date
+                'Exchange': data['exchangeCode']
+            }}
+        )
+    else:
+        print(f"Error fetching data for {ticker}: {response.status_code}")
+
+def getSummary2Single(ticker):
+    url = f'https://api.tiingo.com/tiingo/fundamentals/meta?token={api_key}'
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+        collection = db['AssetInfo']
+        ticker = ticker.lower()
+        ticker_data = next((item for item in data if item['ticker'] == ticker), None)
+        if ticker_data is None:
+            print(f'No data found for {ticker}')
+            return
+
+        # Extract the required information
+        sector = ticker_data.get('sector')
+        industry = ticker_data.get('industry')
+        reporting_currency = ticker_data.get('reportingCurrency')
+        location = ticker_data.get('location')
+        country = location.split(', ')[-1] if location else None
+        address = location if location else None
+
+        # Update the document in MongoDB where Symbol matches the ticker
+        collection.update_one(
+            {'Symbol': ticker.upper()},
+            {'$set': {
+                'Sector': sector,
+                'Industry': industry,
+                'Currency': reporting_currency,
+                'Address': address,
+                'Country': country
+            }},
+            upsert=True
+        )
+        print(f'{ticker} Summary Data Updated Successfully')
+    else:
+        print(f"Failed to retrieve data. Status code: {response.status_code}")
+        print(response.text)
+        
+def getSplitsSingle(ticker):
+    ohclv_data_collection = db['OHCLVData']
+    asset_info_collection = db['AssetInfo']
+
+    try:
+        # Find the documents in OHCLVData with the current ticker
+        pipeline = [
+            {'$match': {'tickerID': ticker}},
+            {'$project': {'_id': 0, 'timestamp': 1, 'splitFactor': 1}}
+        ]
+        ohclv_data = list(ohclv_data_collection.aggregate(pipeline))
+
+        # Initialize a list to store the splits
+        splits = []
+
+        # Loop through each document in OHCLVData
+        for document in ohclv_data:
+            # Check if the split factor is not 1
+            if document.get('splitFactor', 1) != 1:
+                # Create a new split document
+                split = {
+                    'effective_date': document['timestamp'],
+                    'split_factor': document['splitFactor']
+                }
+                # Add the split to the list
+                splits.append(split)
+
+        # Remove the existing splits
+        asset_info_collection.update_one(
+            {'Symbol': ticker},
+            {'$set': {'splits': []}}
+        )
+
+        # Add the new splits
+        asset_info_collection.update_one(
+            {'Symbol': ticker},
+            {'$push': {'splits': {'$each': splits}}}
+        )
+        print(f'Updated splits for ticker: {ticker}')
+    except Exception as e:
+        print(f'Error updating splits for ticker: {ticker} - {str(e)}')
+
+def getDividendsSingle(ticker):
+    ohclv_data_collection = db['OHCLVData']
+    asset_info_collection = db['AssetInfo']
+
+    try:
+        # Find the documents in OHCLVData with the current ticker
+        pipeline = [
+            {'$match': {'tickerID': ticker}},
+            {'$project': {'_id': 0, 'timestamp': 1, 'divCash': 1}}
+        ]
+        ohclv_data = list(ohclv_data_collection.aggregate(pipeline))
+
+        # Initialize a list to store the dividends
+        dividends = []
+
+        # Loop through each document in OHCLVData
+        for document in ohclv_data:
+            # Check if the divCash is not 0
+            if document.get('divCash', 0) != 0:
+                # Create a new dividend document
+                dividend = {
+                    'payment_date': document['timestamp'],
+                    'amount': document['divCash']
+                }
+                # Add the dividend to the list
+                dividends.append(dividend)
+
+        # Remove the existing dividends
+        asset_info_collection.update_one(
+            {'Symbol': ticker},
+            {'$set': {'dividends': []}}
+        )
+
+        # Add the new dividends
+        asset_info_collection.update_one(
+            {'Symbol': ticker},
+            {'$push': {'dividends': {'$each': dividends}}}
+        )
+        print(f'Updated dividends for ticker: {ticker}')
+    except Exception as e:
+        print(f'Error updating dividends for ticker: {ticker} - {str(e)}')
+
+def getFinancialsSingle(ticker):
+    print(f'processing {ticker}')
+    url = f'https://api.tiingo.com/tiingo/fundamentals/{ticker}/statements?token={api_key}'
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        data = response.json()
+
+        collection = db['AssetInfo']
+        result = collection.find_one({'Symbol': ticker})
+
+        if result:
+            quarterly_earnings_data = []
+            annual_earnings_data = []
+            quarterly_financials_data = []
+            annual_financials_data = []
+            for statement in data:
+                date_str = statement['date']
+                date = datetime.strptime(date_str, '%Y-%m-%d')
+                quarter = statement['quarter']
+
+                earnings_data = {
+                    'fiscalDateEnding': date,
+                    'reportedEPS': 0
+                }
+
+                financial_data = {
+                    'fiscalDateEnding': date,
+                    'totalRevenue': 0,
+                    'netIncome': 0
+                }
+
+                if 'statementData' in statement and 'incomeStatement' in statement['statementData']:
+                    income_statement = statement['statementData']['incomeStatement']
+                    eps = next((item for item in income_statement if item['dataCode'] == 'eps'), None)
+                    revenue = next((item for item in income_statement if item['dataCode'] == 'revenue'), None)
+                    netinc = next((item for item in income_statement if item['dataCode'] == 'netinc'), None)
+
+                    if eps:
+                        earnings_data['reportedEPS'] = eps['value'] or 0
+
+                    if revenue and netinc:
+                        financial_data['totalRevenue'] = revenue['value'] or 0
+                        financial_data['netIncome'] = netinc['value'] or 0
+
+                if 'balanceSheet' in statement['statementData']:
+                    balance_sheet = statement['statementData']['balanceSheet']
+                    for item in balance_sheet:
+                        data_code = item['dataCode']
+                        value = item['value'] or 0
+                        financial_data[data_code] = value
+
+                if 'cashFlow' in statement['statementData']:
+                    cash_flow = statement['statementData']['cashFlow']
+                    for item in cash_flow:
+                        data_code = item['dataCode']
+                        value = item['value'] or 0
+                        financial_data[data_code] = value
+
+                if 'overview' in statement['statementData']:
+                    overview = statement['statementData']['overview']
+                    for item in overview:
+                        data_code = item['dataCode']
+                        value = item['value'] or 0
+                        financial_data[data_code] = value
+
+                if quarter == 0:
+                    annual_earnings_data.append(earnings_data)
+                    annual_financials_data.append(financial_data)
+                else:
+                    quarterly_earnings_data.append(earnings_data)
+                    quarterly_financials_data.append(financial_data)
+
+            collection.update_one({'Symbol': ticker}, {'$set': {
+                'quarterlyEarnings': quarterly_earnings_data,
+                'annualEarnings': annual_earnings_data,
+                'quarterlyFinancials': quarterly_financials_data,
+                'AnnualFinancials': annual_financials_data
+            }})
+            print(f"Successfully updated financial data for {ticker}")
+        else:
+            print(f"No document found for {ticker}")
+    else:
+        print(f"Error fetching data for {ticker}: {response.status_code}")
+
+def IPO(tickers):
+    for ticker in tickers:
+        print(f"Processing {ticker}")
+        updateSummarySingle(ticker)
+        getSummary2Single(ticker)
+        getHistoricalPrice2(ticker)
+        getSplitsSingle(ticker)
+        getDividendsSingle(ticker)
+        getFinancialsSingle(ticker)
+#IPO(tickers)
+
 #run every day
 def Daily():
-    set_maintenance_mode(True)
+    maintenanceMode(True)
     
     functions = [
-        ('getPrice', getPrice),
+        #('getPrice', getPrice),
         ('checkDelist', scanDelisted),
         ('updateDailyRatios', updateDailyRatios),
-        ('update_timeseries', update_asset_info_with_time_series),
+        ('update_timeseries', updateTimeSeries),
         ('update_yield', getDividendYieldTTM),
-        ('calculate_volumes', calculate_volumes),
-        ('calculate_moving_averages', calculate_moving_averages),
-        ('calculate_rs_scores', calculate_rs_scores),
-        ('calculate__high_low', calculate_alltime_high_low_and_perc52wk),
-        ('calculate_change_perc', calculate_change_perc),
-        ('getIndexes', getIndex), 
+        ('calculate_volumes', calculateVolumes),
+        ('calculate_moving_averages', calculateSMAs),
+        ('calculate_rs_scores', calculateTechnicalScores),
+        ('calculate__high_low', calculateAlltimehighlowandperc52wk),
+        ('calculate_change_perc', calculatePerc),
+        #('getIndexes', getIndex), 
     ]
 
     execution_times = {}
@@ -1694,11 +1866,11 @@ def Daily():
         print(f'{func_name} took {execution_time:.2f} minutes to execute')
     
     print(f'\nTotal execution time: {total_execution_time_in_minutes:.2f} minutes')
-    set_maintenance_mode(False)
+    maintenanceMode(False)
     #checkFinancialUpdates()
 
 #scheduler
-scheduler.add_job(Daily, CronTrigger(hour=17, minute=15, timezone='US/Eastern'))
+scheduler.add_job(Daily, CronTrigger(hour=17, minute=15, day_of_week='mon-fri', timezone='US/Eastern'))
 scheduler.start()
 
 '''
@@ -1714,6 +1886,36 @@ def RemoveIsActiveAttribute():
         print(f"Error removing 'isActive' attribute: {e}")
         
             
+#arranges pictures based on market
+def ArrangeIcons():
+    current_dir = os.getcwd()
+    pictures_dir = os.path.join(current_dir, 'server', 'pictures')
+    if os.path.exists(pictures_dir):
+        svg_file_names = []
+        for filename in os.listdir(pictures_dir):
+            if filename.endswith('.svg'):
+                svg_file_name = filename.split('.')[0]
+                svg_file_names.append(svg_file_name)
+        for svg_file_name in svg_file_names:
+            asset_info_collection = db['AssetInfo']
+            document = asset_info_collection.find_one({'Symbol': svg_file_name})
+            if document:
+                exchange = document.get('Exchange')
+                if exchange:
+                    exchange_dir = os.path.join(current_dir, 'server', 'pictures', exchange)
+                    if not os.path.exists(exchange_dir):
+                        os.makedirs(exchange_dir)
+                    svg_file_path = os.path.join(pictures_dir, f'{svg_file_name}.svg')
+                    os.replace(svg_file_path, os.path.join(exchange_dir, f'{svg_file_name}.svg'))
+                    print(f'Moved {svg_file_name}.svg to {exchange} folder')
+                else:
+                    print(f'No Exchange attribute found for {svg_file_name}')
+            else:
+                print(f'No document found for {svg_file_name}')
+    else:
+        print("The 'pictures' folder does not exist.")
+
+
 def RemoveDuplicateDocuments():
     asset_info_collection = db['AssetInfo']
 
@@ -1751,4 +1953,3 @@ def remove_documents_with_timestamp(timestamp_str):
 # Call the function with the specific timestamp
 remove_documents_with_timestamp('2025-03-17T00:00:00.000+00:00')'''
 
-Daily()
