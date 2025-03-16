@@ -1064,7 +1064,7 @@
                 {{ asset.Symbol }}
   <span v-if="asset.isDuplicate" class="duplicate-asterisk">
     * 
-    <span class="tooltip">
+    <span class="tooltip2">
       Appears in:
       <div v-for="(screener, index) in asset.screenerNames" :key="index">{{ screener }}</div>
     </span>
@@ -5147,13 +5147,14 @@ width: 100vw;;
   position: relative; /* Positioning context for the tooltip */
 }
 
-.tooltip {
+.tooltip2 {
   visibility: hidden; /* Initially hide the tooltip */
   width: 120px; /* Adjust width as necessary */
   background-color: $base1; /* Background color of the tooltip */
   color: $text1; /* Text color */
   text-align: center; /* Center text */
   border-radius: 5px; /* Rounded corners */
+  border: solid 1px $accent3;
   padding: 5px; /* Padding */
   position: absolute; /* Positioning */
   z-index: 1000; /* Ensure it appears above other elements */
@@ -5164,7 +5165,7 @@ width: 100vw;;
   transition: opacity 0.3s; /* Smooth transition for visibility */
 }
 
-.duplicate-asterisk:hover .tooltip {
+.duplicate-asterisk:hover .tooltip2 {
   visibility: visible; /* Show tooltip on hover */
   opacity: 1; /* Fade in */
 }

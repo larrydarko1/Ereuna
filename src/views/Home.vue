@@ -30,6 +30,7 @@
     <br>
     <p style="color: #8c8dfe; font-size: 14px;"> 5.99€ / Month <span style="color: whitesmoke; font-size: 14px;">- No Commitment, Cancel Anytime</span></p>
   </div>
+  <div class="sphere-gradient"></div>
   </div>
 
     <!-- About Section -->
@@ -116,13 +117,13 @@
     <div class="content-section" id="pricing">
       <h2 style="text-align: center; font-size: 20px; color: whitesmoke;">PRICING</h2>
         <div class="pricing-card">
-          <h3 style="font-size: 16px;">JUST ONE TIER</h3>
+          <h3 style="font-size: 16px;">ALL FEATURES, JUST ONE TIER</h3>
          <div class="price-container">
           <p><span class="feature" style="font-size: 50px;">5.99€</span></p>
          <p class="price-container2">+ VAT / Month</p> 
          </div> 
          <div class="bullet-list">
-          <p>&bull; Coverage of 5500+ US stocks, EOD and 20+ years of financial statements</p> 
+          <p>&bull; Coverage of 5000+ US stocks, EOD and 20+ years of financial statements</p> 
           <p>&bull; Tradingview Lightweight charts, watchlists, Notes, Summary data </p> 
           <p>&bull; Fast and efficient screening capabilities, saving you time and effort in your investment research</p>
           <p>&bull; Run multiple screeners simultaniously and hide stocks that are irrelevant for you, allowing for a quicker and more efficient way to run blablabla</p> 
@@ -736,4 +737,17 @@ a:hover{
   margin: 25px;
 }
 
+.sphere-gradient {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, #8c8dfe 0%, #8c8dfe 50%, #fff 100%);
+  filter: blur(50px);
+  z-index: 0;
+  opacity: 0.15;
+}
   </style>
