@@ -14,20 +14,14 @@ import numpy as np
 import pytz
 import calendar
 
+#Middleware
 app = FastAPI()
-# Create a scheduler
 scheduler = BackgroundScheduler()
-
-# uvicorn main:app --reload 
-
-load_dotenv()  # Load environment variables from .env file
-
-# MongoDB connection setup
-mongo_uri = os.getenv('MONGODB_URI')  # Load MongoDB URI from environment variable
+load_dotenv()  
+mongo_uri = os.getenv('MONGODB_URI') 
 client = MongoClient(mongo_uri)
 db = client['EreunaDB']  
-api_key = os.getenv('TIINGO_KEY')  # Load API key from environment variable
-
+api_key = os.getenv('TIINGO_KEY')
 
 #set maintenance mode on the app when it's set to True, users can't login when that happens
 def maintenanceMode(mode):
@@ -1817,6 +1811,7 @@ def getFinancialsSingle(ticker):
     else:
         print(f"Error fetching data for {ticker}: {response.status_code}")
 
+#inserts new stocks listed 
 def IPO(tickers):
     for ticker in tickers:
         print(f"Processing {ticker}")
@@ -1826,14 +1821,20 @@ def IPO(tickers):
         getSplitsSingle(ticker)
         getDividendsSingle(ticker)
         getFinancialsSingle(ticker)
-#IPO(tickers)
 
+#Start from Scratch , don't do it unless absolutely necessary, because it burns through api calls 
+def ExMachina():
+    getSummary()
+    getHistoricalPrice()
+    getFinancials()
+    getFullSplits()
+    getFullDividends()
+    
 #run every day
 def Daily():
     maintenanceMode(True)
-    
     functions = [
-        #('getPrice', getPrice),
+        ('getPrice', getPrice),
         ('checkDelist', scanDelisted),
         ('updateDailyRatios', updateDailyRatios),
         ('update_timeseries', updateTimeSeries),
@@ -1843,9 +1844,8 @@ def Daily():
         ('calculate_rs_scores', calculateTechnicalScores),
         ('calculate__high_low', calculateAlltimehighlowandperc52wk),
         ('calculate_change_perc', calculatePerc),
-        #('getIndexes', getIndex), 
+        ('getIndexes', getIndex), 
     ]
-
     execution_times = {}
     start_time = time.time()
     
