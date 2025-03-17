@@ -3,7 +3,7 @@
     <Header />
     <div id="main">
       <div id="filters">
-        <div id="screener-select" class="select-container" @mouseover="showDropdown = true" @mouseout="showDropdown = false">
+        <div id="screener-select" class="select-container" :class="{ 'error-border': isScreenerError }" @mouseover="showDropdown = true" @mouseout="showDropdown = false">
           <img :src="downIcon" alt="Dropdown Icon" class="dropdown-icon" :class="{ 'dropdown-icon-hover': showDropdown }" />
   <p class="selected-value" @click.stop="">{{ selectedScreener ? selectedScreener : (ScreenersName.length > 0 ? 'Choose a Screener...' : 'No screeners available.') }}</p>
   <div class="dropdown-container" v-if="ScreenersName.length > 0">
@@ -259,6 +259,37 @@
                 <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
               </button>
               <button class="btnsr"style="float:right" @click="Reset('PE')">
+                <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showPSInputs ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>PS Ratio</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">PS Ratio (Price-to-Sales Ratio) is a measure of a company's current stock price relative to its revenue per share. It helps investors understand how much they are paying for each dollar of sales, providing insight into the company's valuation and potential for growth.</span>
+    </div>
+  </span>
+</div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" id="price-check" v-model="showPSInputs" style="border: none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showPSInputs">
+            <div class="row">
+              <input class="left input" id="left-ps" type="text" placeholder="min">
+              <input class="right input" id="right-ps" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetPSRatio()">
+                <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+              </button>
+              <button class="btnsr"style="float:right" @click="Reset('PS')">
                 <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
               </button>
             </div>
@@ -735,9 +766,14 @@
             <div style="min-width: 120px;">Technical Score (1W)</div>
             <div style="min-width: 120px;">Technical Score (1M)</div>
             <div style="min-width: 120px;">Technical Score (4M)</div>
+            <div style="min-width: 120px;">Exchange</div>
+            <div style="min-width: 120px;">Sector</div>
+            <div style="min-width: 120px;">Industry</div>
+            <div style="min-width: 120px;">Location</div>
             <div style="min-width: 100px;">ISIN</div>
             <div style="min-width: 150px;">Market Cap</div>
             <div style="min-width: 70px;">PE Ratio</div>
+            <div style="min-width: 70px;">PS Ratio</div>
             <div style="min-width: 70px;">PEG Ratio</div>
             <div style="min-width: 70px;">Dividend Yield</div>
             <div style="min-width: 70px;">EPS</div>
@@ -800,9 +836,14 @@
               <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+              <div style="min-width: 120px;">{{ asset.Exchange }}</div>
+              <div style="min-width: 120px;">{{ asset.Sector }}</div>
+              <div style="min-width: 120px;">{{ asset.Industry }}</div>
+              <div style="min-width: 120px;">{{ asset.Country }}</div>
               <div style="min-width: 100px;">{{ asset.ISIN }}</div>
               <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
               <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+              <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' : Math.floor(asset.PriceToSalesRatioTTM) }}</div>
               <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
               <div style="min-width: 70px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
               <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
@@ -824,9 +865,14 @@
             <div style="min-width: 120px;">Technical Score (1W)</div>
             <div style="min-width: 120px;">Technical Score (1M)</div>
             <div style="min-width: 120px;">Technical Score (4M)</div>
+            <div style="min-width: 120px;">Exchange</div>
+            <div style="min-width: 120px;">Sector</div>
+            <div style="min-width: 120px;">Industry</div>
+            <div style="min-width: 120px;">Location</div>
             <div style="min-width: 100px;">ISIN</div>
             <div style="min-width: 150px;">Market Cap</div>
             <div style="min-width: 70px;">PE Ratio</div>
+            <div style="min-width: 70px;">PS Ratio</div>
             <div style="min-width: 70px;">PEG Ratio</div>
             <div style="min-width: 70px;">Dividend Yield</div>
             <div style="min-width: 70px;">EPS</div>
@@ -889,9 +935,14 @@
               <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+              <div style="min-width: 120px;">{{ asset.Exchange }}</div>
+              <div style="min-width: 120px;">{{ asset.Sector }}</div>
+              <div style="min-width: 120px;">{{ asset.Industry }}</div>
+              <div style="min-width: 120px;">{{ asset.Country }}</div>
               <div style="min-width: 100px;">{{ asset.ISIN }}</div>
               <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
               <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+              <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' : Math.floor(asset.PriceToSalesRatioTTM) }}</div>
               <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
               <div style="min-width: 70px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
               <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
@@ -913,9 +964,14 @@
             <div style="min-width: 120px;">Technical Score (1W)</div>
             <div style="min-width: 120px;">Technical Score (1M)</div>
             <div style="min-width: 120px;">Technical Score (4M)</div>
+            <div style="min-width: 120px;">Exchange</div>
+            <div style="min-width: 120px;">Sector</div>
+            <div style="min-width: 120px;">Industry</div>
+            <div style="min-width: 120px;">Location</div>
             <div style="min-width: 100px;">ISIN</div>
             <div style="min-width: 150px;">Market Cap</div>
             <div style="min-width: 70px;">PE Ratio</div>
+            <div style="min-width: 70px;">PS Ratio</div>
             <div style="min-width: 70px;">PEG Ratio</div>
             <div style="min-width: 70px;">Dividend Yield</div>
             <div style="min-width: 70px;">EPS</div>
@@ -978,9 +1034,14 @@
               <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+              <div style="min-width: 120px;">{{ asset.Exchange }}</div>
+              <div style="min-width: 120px;">{{ asset.Sector }}</div>
+              <div style="min-width: 120px;">{{ asset.Industry }}</div>
+              <div style="min-width: 120px;">{{ asset.Country }}</div>
               <div style="min-width: 100px;">{{ asset.ISIN }}</div>
               <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
               <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+              <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' : Math.floor(asset.PriceToSalesRatioTTM) }}</div>
               <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
               <div style="min-width: 70px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
               <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
@@ -1002,9 +1063,14 @@
             <div style="min-width: 120px;">Technical Score (1W)</div>
             <div style="min-width: 120px;">Technical Score (1M)</div>
             <div style="min-width: 120px;">Technical Score (4M)</div>
+            <div style="min-width: 120px;">Exchange</div>
+            <div style="min-width: 120px;">Sector</div>
+            <div style="min-width: 120px;">Industry</div>
+            <div style="min-width: 120px;">Location</div>
             <div style="min-width: 100px;">ISIN</div>
             <div style="min-width: 150px;">Market Cap</div>
             <div style="min-width: 70px;">PE Ratio</div>
+            <div style="min-width: 70px;">PS Ratio</div>
             <div style="min-width: 70px;">PEG Ratio</div>
             <div style="min-width: 70px;">Dividend Yield</div>
             <div style="min-width: 70px;">EPS</div>
@@ -1076,9 +1142,14 @@
               <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+              <div style="min-width: 120px;">{{ asset.Exchange }}</div>
+              <div style="min-width: 120px;">{{ asset.Sector }}</div>
+              <div style="min-width: 120px;">{{ asset.Industry }}</div>
+              <div style="min-width: 120px;">{{ asset.Country }}</div>
               <div style="min-width: 100px;">{{ asset.ISIN }}</div>
               <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
               <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+              <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' : Math.floor(asset.PriceToSalesRatioTTM) }}</div>
               <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
               <div style="min-width: 70px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
               <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
@@ -1144,7 +1215,7 @@ const notification = ref(null);
 const showNotification = (message) => {
   notification.value.show(message);
 };
-
+const isScreenerError = ref(false);
 const showDropdown = ref(false);
 
 function getWatchlistIcon(ticker, item) {
@@ -2281,6 +2352,12 @@ GetScreeners();
 // adds and modifies price value for screener 
 async function SetPrice() {
   try {
+
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const leftPrice = parseFloat(document.getElementById('left-p').value)
     const rightPrice = parseFloat(document.getElementById('right-p').value)
 
@@ -2322,6 +2399,12 @@ async function SetPrice() {
 // add and or modifies market cap value and sends it
 async function SetMarketCap() {
   try {
+
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const leftPrice = parseFloat(document.getElementById('left-mc').value);
     const rightPrice = parseFloat(document.getElementById('right-mc').value);
 
@@ -2367,6 +2450,11 @@ async function SetMarketCap() {
 // add and or modifies market cap value and sends it
 async function SetIpoDate() {
   try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const leftPrice = document.getElementById('left-ipo').value;
     const rightPrice = document.getElementById('right-ipo').value;
 
@@ -2646,6 +2734,11 @@ async function SetExchange() {
   const selected = Exchanges.value.filter((_, index) => selectedExchanges.value[index]); // Get selected exchanges
 
   try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const response = await fetch('/api/screener/exchange', {
       method: 'PATCH',
       headers: {
@@ -2672,6 +2765,11 @@ async function SetCountry() {
   const selected = Country.value.filter((_, index) => selectedCountries.value[index]); // Get selected countries
 
   try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const response = await fetch('/api/screener/country', {
       method: 'PATCH',
       headers: {
@@ -2830,6 +2928,11 @@ async function fetchPerformanceResults(symbol) {
 // adds and modifies PE Ratio value for screener 
 async function SetPE() {
   try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const leftPrice = parseFloat(document.getElementById('left-pe').value)
     const rightPrice = parseFloat(document.getElementById('right-pe').value)
 
@@ -2911,6 +3014,11 @@ async function SetForwardPE() {
 // adds and modifies PEG Ratio value for screener 
 async function SetPEG() {
   try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const leftPrice = parseFloat(document.getElementById('left-peg').value)
     const rightPrice = parseFloat(document.getElementById('right-peg').value)
 
@@ -2952,6 +3060,11 @@ async function SetPEG() {
 // adds and modifies EPS value for screener 
 async function SetEPS() {
   try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const leftPrice = parseFloat(document.getElementById('left-eps').value)
     const rightPrice = parseFloat(document.getElementById('right-eps').value)
 
@@ -2993,6 +3106,11 @@ async function SetEPS() {
 // adds and modifies PS Ratio value for screener 
 async function SetPSRatio() {
   try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const leftPrice = parseFloat(document.getElementById('left-ps').value)
     const rightPrice = parseFloat(document.getElementById('right-ps').value)
 
@@ -3034,6 +3152,11 @@ async function SetPSRatio() {
 // adds and modifies PB Ratio value for screener 
 async function SetPBRatio() {
   try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const leftPrice = parseFloat(document.getElementById('left-pb').value)
     const rightPrice = parseFloat(document.getElementById('right-pb').value)
 
@@ -3114,6 +3237,11 @@ async function SetBeta() {
 // adds and modifies dividend yield value for screener 
 async function SetDivYield() {
   try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const leftPrice = parseFloat(document.getElementById('left-divyield').value)
     const rightPrice = parseFloat(document.getElementById('right-divyield').value)
 
@@ -3155,6 +3283,11 @@ async function SetDivYield() {
 // adds and modifies YoY and/or Qoq value for screener 
 async function SetFundamentalGrowth() {
   try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const leftRevYoY = parseFloat(document.getElementById('left-RevYoY').value);
     const rightRevYoY = parseFloat(document.getElementById('right-RevYoY').value);
     const leftRevQoQ = parseFloat(document.getElementById('left-RevQoQ').value);
@@ -3215,6 +3348,11 @@ async function SetFundamentalGrowth() {
 // updates screener value with volume parameters 
 async function SetVolume(){
   try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const value1 = parseFloat(document.getElementById('left-relvol').value)
     const value2 = parseFloat(document.getElementById('right-relvol').value)
     const value3 = parseFloat(document.getElementById('left-avgvol').value * 1000)
@@ -3259,6 +3397,11 @@ async function SetVolume(){
 // updates screener value with RS Score parameters 
 async function SetRSscore(){
   try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
     const value1 = parseFloat(document.getElementById('RSscore1Minput1').value)
     const value2 = parseFloat(document.getElementById('RSscore1Minput2').value)
     const value3 = parseFloat(document.getElementById('RSscore4Minput1').value)
@@ -3303,6 +3446,10 @@ async function SetRSscore(){
 // updates screener value with price performance parameters 
 async function SetPricePerformance(){
   try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
     const changeperc1 = parseFloat(document.getElementById('changeperc1').value) / 100;
     const changeperc2 = parseFloat(document.getElementById('changeperc2').value) / 100;
     const changepercselect = changepercSelect.value;
@@ -3617,7 +3764,7 @@ async function SummaryScreener() {
     const screenerSettings = await response.json();
 
     const attributes = [
-      'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'ForwardPE', 'PEG', 'EPS', 'PB', 'DivYield',
+      'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'PS', 'ForwardPE', 'PEG', 'EPS', 'PB', 'DivYield',
       'EPSQoQ', 'EPSYoY', 'EarningsQoQ', 'EarningsYoY', 'RevQoQ', 'RevYoY', 'AvgVolume1W', 'AvgVolume1M', 'AvgVolume6M', 'AvgVolume1Y',
       'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W','RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'NewHigh',
       'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO',
@@ -3627,6 +3774,7 @@ async function SummaryScreener() {
       'MarketCap': 'Market Cap',
       'PE': 'PE Ratio',
       'PB': 'PB Ratio',
+      'PS': 'PS Ratio',
       'DivYield': 'Dividend Yield (%)',
       'EPSQoQ': 'EPS Growth QoQ (%)',
       'EPSYoY': 'EPS Growth YoY (%)',
@@ -3720,6 +3868,7 @@ function selectScreener(screener) {
   CurrentScreener();
   fetchScreenerResults(screener);
   showFilterResults();
+  isScreenerError.value = false
   // Update the selected screener value
   emit('update:modelValue', screener);
 }
@@ -4003,6 +4152,7 @@ function handleMouseOut() {
   flex-direction: column;
   background-color: $base4;
   overflow-y: scroll;
+  overflow-y: visible;
   min-width: 300px;
 }
 
@@ -5424,8 +5574,8 @@ input[type="date"]{
 
 #wlist-container{
   height: 2000px; 
-  width: 100vw; 
-  min-width: 1550px;
+  width: 100%; 
+  min-width: 2100px;
   overflow-y: scroll; 
   z-index: 1000;
 }
@@ -5443,15 +5593,16 @@ input[type="date"]{
 
 .tooltip {
   position: absolute;
-  top: 12px;
-  left: 50px;
+  top: 0px;
+  left: 25px;
   background-color: $base1;
   border: 1px solid $accent3;
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   display: none;
-  z-index: 100000000000000000000;
+  z-index: 1000;
+  width: 200px;
 }
 
 .tooltip-text {
@@ -5471,5 +5622,23 @@ input[type="date"]{
 .question-mark-wrapper:hover .tooltip {
   visibility: visible;
   opacity: 1;
+}
+
+.error-border {
+  border: 1px solid red;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+  animation: pulse 3s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+  }
 }
 </style>
