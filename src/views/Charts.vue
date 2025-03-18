@@ -1628,11 +1628,11 @@ async function fetchData12() {
 let chartView = ref('D')
 let useAlternateData = false;
 const isLoading = ref(true)
-const charttype = ref('Bar')
-const isBarChart = ref(true);
+const charttype = ref('Candlestick')
+const isBarChart = ref(false);
 
 const chartTypeIcon = computed(() => {
-  return isBarChart.value ? barsIcon : candlesIcon;
+  return isBarChart.value ? candlesIcon : barsIcon ;
 });
 
 const toggleChartType = () => {
@@ -1685,11 +1685,15 @@ const chartDiv = document.getElementById('chartdiv');
       rightOffset: 20,
     },});
 
-let barSeries = chart.addBarSeries({
-  downColor: '#90bff9',
-  upColor: '#4caf50',
-  priceLineVisible: true,
-});
+let barSeries = chart.addCandlestickSeries({
+      downColor: '#90bff9',
+      upColor: '#4caf50',
+      borderDownColor: '#90bff9',
+      borderUpColor: '#4caf50',
+      wickDownColor: '#90bff9',
+      wickUpColor: '#4caf50',
+      priceLineVisible: true,
+    });
 
 function toggleChartType() {
   // Remove the existing series

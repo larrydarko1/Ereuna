@@ -1897,13 +1897,15 @@ onMounted(async () => {
     },
   });
 
-  const barSeries = chart.addBarSeries({
-    downColor: '#90bff9',
-    upColor: '#4caf50',
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    priceLineVisible: false,
-  });
+  const barSeries = chart.addCandlestickSeries({
+      downColor: '#90bff9',
+      upColor: '#4caf50',
+      borderDownColor: '#90bff9',
+      borderUpColor: '#4caf50',
+      wickDownColor: '#90bff9',
+      wickUpColor: '#4caf50',
+      priceLineVisible: true,
+    });
 
   const Histogram = chart.addHistogramSeries({
     color: '#ffffff',
@@ -2071,13 +2073,17 @@ onMounted(async () => {
     },
   });
 
-  const barSeries = chart.addBarSeries({
-    downColor: '#90bff9',
-    upColor: '#4caf50',
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    priceLineVisible: false,
-  });
+  const barSeries =  chart.addCandlestickSeries({
+      downColor: '#90bff9',
+      upColor: '#4caf50',
+      borderDownColor: '#90bff9',
+      borderUpColor: '#4caf50',
+      wickDownColor: '#90bff9',
+      wickUpColor: '#4caf50',
+      lastValueVisible: false,
+      crosshairMarkerVisible: false,
+      priceLineVisible: false,
+    });
 
   const Histogram = chart.addHistogramSeries({
     color: '#ffffff',
@@ -5417,6 +5423,7 @@ input[type="date"]{
 }
 .input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .changeperc-select-container {
