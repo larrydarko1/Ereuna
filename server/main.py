@@ -41,6 +41,10 @@ def getMonday(timestamp):
     first_day_of_week = timestamp - dt.timedelta(days=timestamp.weekday())
     return first_day_of_week
     
+def remove_documents_with_timestamp(timestamp_str):
+    weekly_collection = db["OHCLVData2"]
+    timestamp = dt.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f+00:00')
+    weekly_collection.delete_many({'timestamp': timestamp})
 '''
 Section for IPOs and monthly update for stocks
 '''
@@ -477,7 +481,6 @@ def getPrice():
                     print(f"Daily document for {daily_doc['tickerID']} on {daily_doc['timestamp']} already exists")
 
             # Process weekly data from daily data
-            bulk_updates = []
             for daily_doc in daily_data_dict:
                 # Get the start of the week
                 weekly_timestamp = getMonday(daily_doc['timestamp'])
@@ -489,47 +492,78 @@ def getPrice():
                 })
 
                 if existing_weekly_doc:
-                    # Extract the existing document
-                    existing_weekly_doc_id = existing_weekly_doc['_id']
-                    existing_weekly_doc_tickerID = existing_weekly_doc['tickerID']
-                    existing_weekly_doc_timestamp = existing_weekly_doc['timestamp']
-                    existing_weekly_doc_open = existing_weekly_doc['open']
-
-                    # Compare daily document with existing weekly document
-                    updated_weekly_doc_high = max(existing_weekly_doc.get('high', float('-inf')), daily_doc['high'])
-                    updated_weekly_doc_low = min(existing_weekly_doc.get('low', float('inf')), daily_doc['low'])
-                    updated_weekly_doc_close = daily_doc['close']
-                    updated_weekly_doc_volume = existing_weekly_doc.get('volume', 0) + daily_doc['volume']
-
-                    # Add the delete and insert operations to the bulk updates list
-                    bulk_updates.append(DeleteOne({'_id': existing_weekly_doc_id}))
-                    bulk_updates.append(InsertOne({
-                        'tickerID': existing_weekly_doc_tickerID,
-                        'timestamp': existing_weekly_doc_timestamp,
-                        'open': existing_weekly_doc_open,
-                        'high': updated_weekly_doc_high,
-                        'low': updated_weekly_doc_low,
-                        'close': updated_weekly_doc_close,
-                        'volume': updated_weekly_doc_volume
-                    }))
-                    print(f"Updated weekly document for {existing_weekly_doc['tickerID']} on {existing_weekly_doc['timestamp']}")
+                    return
                 else:
                     # Create a new weekly document
                     weekly_collection.insert_one(daily_doc)
                     print(f"Inserted weekly document for {daily_doc['tickerID']} on {daily_doc['timestamp']}")
 
-            # Perform the bulk update
-            if bulk_updates:
-                try:
-                    weekly_collection.bulk_write(bulk_updates)
-                    print("Bulk update completed")
-                except Exception as e:
-                    print(f"Error: {e}")
         else:
             print("No data found for the specified tickers.")
     else:
         print(f"Error: {response.text}")
-    
+        
+# Get Monday date of this week
+today = dt.date.today()
+monday = dt.datetime.combine(today - dt.timedelta(days=today.weekday()), dt.time())
+
+#updates weekly candles 
+def updateWeekly():
+    # Delete all filtered documents on OHCLVData2
+    remove_documents_with_timestamp(monday.strftime('%Y-%m-%dT%H:%M:%S.%f+00:00'))
+
+    # Create a single aggregation pipeline
+    pipeline = [
+        {'$match': {'timestamp': {'$gte': monday}}},
+        {'$group': {
+            '_id': '$tickerID',
+            'documents': {'$push': '$$ROOT'}
+        }},
+        {'$project': {
+            '_id': 1,
+            'documents': 1,
+            'weekly_candle': {
+                'open': {'$arrayElemAt': [{'$map': {'input': '$documents', 'as': 'doc', 'in': '$$doc.open'}}, 0]},
+                'high': {'$max': {'$map': {'input': '$documents', 'as': 'doc', 'in': '$$doc.high'}}},
+                'low': {'$min': {'$map': {'input': '$documents', 'as': 'doc', 'in': '$$doc.low'}}},
+                'close': {'$arrayElemAt': [{'$map': {'input': '$documents', 'as': 'doc', 'in': '$$doc.close'}}, -1]},
+                'volume': {'$sum': {'$map': {'input': '$documents', 'as': 'doc', 'in': '$$doc.volume'}}}
+            }
+        }},
+        {'$sort': {'_id': 1}}
+    ]
+
+    # Run the aggregation pipeline
+    results = list(db['OHCLVData'].aggregate(pipeline))
+
+    # Log the results
+    for result in results:
+        print("Result:")
+        print(result)
+
+    # Update the weekly documents inside OHCLVData2
+    updates = []
+    for result in results:
+        if result['documents']:  # Check if the stock has data for the current week
+            updates.append(
+               InsertOne({
+        'tickerID': result['_id'],
+        'timestamp': monday,
+        'open': result['weekly_candle']['open'],
+        'high': result['weekly_candle']['high'],
+        'low': result['weekly_candle']['low'],
+        'close': result['weekly_candle']['close'],
+        'volume': result['weekly_candle']['volume']
+    })
+            )
+
+    if updates:
+        try:
+            result = db['OHCLVData2'].bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
+              
 #updates MarketCap, PE, PB, PEG , PS
 def updateDailyRatios():
     ohclv_collection = db['OHCLVData']
@@ -1454,7 +1488,7 @@ def calculate_qoq_changes():
     collection = db['AssetInfo']
     for doc in collection.find():
         ticker = doc['Symbol']
-        quarterly_income = doc.get('quarterlyIncome', [])
+        quarterly_income = doc.get('quarterlyFinancials', [])
         quarterly_earnings = doc.get('quarterlyEarnings', [])
         total_revenue = [float(x.get('totalRevenue', 0)) for x in quarterly_income if x.get('totalRevenue') not in ['', 'None', None]]
         net_income = [float(x.get('netIncome', 0)) for x in quarterly_income if x.get('netIncome') not in ['', 'None', None]]
@@ -1497,7 +1531,7 @@ def calculate_YoY_changes():
     collection = db['AssetInfo']
     for doc in collection.find():
         ticker = doc['Symbol']
-        quarterly_income = doc.get('quarterlyIncome', [])
+        quarterly_income = doc.get('quarterlyFinancials', [])
         quarterly_earnings = doc.get('quarterlyEarnings', [])
         total_revenue = [float(x.get('totalRevenue', 0)) for x in quarterly_income if x.get('totalRevenue') not in ['', 'None', None]]
         net_income = [float(x.get('netIncome', 0)) for x in quarterly_income if x.get('netIncome') not in ['', 'None', None]]
@@ -1574,11 +1608,6 @@ def update_eps_shares_dividend_date():
 
     except Exception as e:
         print("Update failed: ", str(e))
-
-def remove_documents_with_timestamp(timestamp_str):
-    weekly_collection = db["OHCLVData2"]
-    timestamp = dt.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f+00:00')
-    weekly_collection.delete_many({'timestamp': timestamp})
 
 '''
 IPO section
@@ -1840,6 +1869,7 @@ def Daily():
     maintenanceMode(True)
     functions = [
         ('getPrice', getPrice),
+        ('getWeekly', updateWeekly),
         ('checkDelist', scanDelisted),
         ('updateDailyRatios', updateDailyRatios),
         ('update_timeseries', updateTimeSeries),
@@ -1876,7 +1906,7 @@ def Daily():
 
 #scheduler
 scheduler.add_job(Daily, CronTrigger(hour=17, minute=15, day_of_week='mon-fri', timezone='US/Eastern'))
-#scheduler.start()
+scheduler.start()
 
 '''
 def RemoveIsActiveAttribute():
@@ -1958,65 +1988,3 @@ def remove_documents_with_timestamp(timestamp_str):
 # Call the function with the specific timestamp
 remove_documents_with_timestamp('2025-03-17T00:00:00.000+00:00')'''
 
-# Get Monday date of this week
-today = dt.date.today()
-monday = dt.datetime.combine(today - dt.timedelta(days=today.weekday()), dt.time())
-
-def updateWeekly():
-    # Delete all filtered documents on OHCLVData2
-    remove_documents_with_timestamp(monday.strftime('%Y-%m-%dT%H:%M:%S.%f+00:00'))
-
-    # Create a single aggregation pipeline
-    pipeline = [
-        {'$match': {'timestamp': {'$gte': monday}}},
-        {'$group': {
-            '_id': '$tickerID',
-            'documents': {'$push': '$$ROOT'}
-        }},
-        {'$project': {
-            '_id': 1,
-            'documents': 1,
-            'weekly_candle': {
-                'open': {'$arrayElemAt': [{'$map': {'input': '$documents', 'as': 'doc', 'in': '$$doc.open'}}, 0]},
-                'high': {'$max': {'$map': {'input': '$documents', 'as': 'doc', 'in': '$$doc.high'}}},
-                'low': {'$min': {'$map': {'input': '$documents', 'as': 'doc', 'in': '$$doc.low'}}},
-                'close': {'$arrayElemAt': [{'$map': {'input': '$documents', 'as': 'doc', 'in': '$$doc.close'}}, -1]},
-                'volume': {'$sum': {'$map': {'input': '$documents', 'as': 'doc', 'in': '$$doc.volume'}}}
-            }
-        }},
-        {'$sort': {'_id': 1}}
-    ]
-
-    # Run the aggregation pipeline
-    results = list(db['OHCLVData'].aggregate(pipeline))
-
-    # Log the results
-    for result in results:
-        print("Result:")
-        print(result)
-
-    # Update the weekly documents inside OHCLVData2
-    updates = []
-    for result in results:
-        if result['documents']:  # Check if the stock has data for the current week
-            updates.append(
-                InsertOne({
-        'tickerID': result['_id'],
-        'timestamp': monday,
-        'open': result['weekly_candle']['open'],
-        'high': result['weekly_candle']['high'],
-        'low': result['weekly_candle']['low'],
-        'close': result['weekly_candle']['close'],
-        'volume': result['weekly_candle']['volume']
-    })
-            )
-
-    if updates:
-        try:
-            result = db['OHCLVData2'].bulk_write(updates)
-            print(f"Updated {result.modified_count} documents")
-        except Exception as e:
-            print(f"Error updating documents: {e}")
-            
-updateWeekly()
-            
