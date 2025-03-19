@@ -778,7 +778,7 @@ onUnmounted(() => {
 
 .message {
   font-size: 18px;
-  color: #666;
+  color: #cdcdcd;
   margin-bottom: 40px;
 }
   </style>

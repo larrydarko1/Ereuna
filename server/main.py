@@ -1575,6 +1575,11 @@ def update_eps_shares_dividend_date():
     except Exception as e:
         print("Update failed: ", str(e))
 
+def remove_documents_with_timestamp(timestamp_str):
+    weekly_collection = db["OHCLVData2"]
+    timestamp = dt.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f+00:00')
+    weekly_collection.delete_many({'timestamp': timestamp})
+
 '''
 IPO section
 '''
@@ -1871,7 +1876,7 @@ def Daily():
 
 #scheduler
 scheduler.add_job(Daily, CronTrigger(hour=17, minute=15, day_of_week='mon-fri', timezone='US/Eastern'))
-scheduler.start()
+#scheduler.start()
 
 '''
 def RemoveIsActiveAttribute():
@@ -1953,3 +1958,59 @@ def remove_documents_with_timestamp(timestamp_str):
 # Call the function with the specific timestamp
 remove_documents_with_timestamp('2025-03-17T00:00:00.000+00:00')'''
 
+def updateWeekly():
+    # Get AssetInfo collection
+    asset_info_collection = db['AssetInfo']
+
+    # Get Monday date of this week
+    today = dt.date.today()
+    monday = dt.datetime.combine(today - dt.timedelta(days=today.weekday()), dt.time())
+
+    # Get Symbol for every document in AssetInfo
+    symbols = [asset_info['Symbol'] for asset_info in asset_info_collection.find()]
+
+    # Loop through each symbol
+    for i, symbol in enumerate(symbols):
+        # Get most recent Monday date for this symbol
+        pipeline = [
+            {'$match': {'tickerID': symbol}},
+            {'$sort': {'timestamp': -1}},
+            {'$project': {'_id': 0, 'timestamp': 1}}
+        ]
+        documents = list(db['OHCLVData'].aggregate(pipeline))
+        if documents:
+            most_recent_monday = documents[0]['timestamp'].date()
+            if dt.datetime.combine(most_recent_monday, dt.time()) > monday:
+                monday = dt.datetime.combine(most_recent_monday, dt.time())
+
+        # Delete all filtered documents on OHCLVData2
+        remove_documents_with_timestamp(monday.strftime('%Y-%m-%dT%H:%M:%S.%f+00:00'))
+
+        # Get all documents for the week using Symbol with tickerID
+        pipeline = [
+            {'$match': {'tickerID': symbol, 'timestamp': {'$gte': monday}}},
+            {'$sort': {'timestamp': 1}}
+        ]
+        documents = list(db['OHCLVData'].aggregate(pipeline))
+
+        # Build weekly candle using those documents
+        if documents:
+            weekly_candle = {
+                'tickerID': symbol,
+                'timestamp': monday,
+                'open': documents[0]['open'],
+                'high': max(doc['high'] for doc in documents),
+                'low': min(doc['low'] for doc in documents),
+                'close': documents[-1]['close'],
+                'volume': sum(doc['volume'] for doc in documents)
+            }
+
+            # Update in bulk the weekly documents inside OHCLVData2
+            updates = [InsertOne({'tickerID': symbol, 'timestamp': monday}, {'$set': weekly_candle})]
+            db['OHCLVData2'].bulk_write(updates)
+
+        print(f"Processed {i+1} out of {len(symbols)} stocks")
+
+    client.close()
+    
+updateWeekly()
