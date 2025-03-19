@@ -1,5 +1,6 @@
 <template>
-    <div class="navbar">
+  <div class="landingPage">
+    <div id="navbar" class="navbar">
   <img class="icon" src="@/assets/icons/owl.png" alt="Owl Icon">
   <div class="nav-links">
     <div class="navbtn" @click="scrollToSection('about')">About</div>
@@ -151,10 +152,23 @@
     </div>
   </div>
 
+
+  <div id="about">
+      <h2 style="text-align: center; font-size: 20px; color: whitesmoke;">ABOUT</h2>
+      <p class="text">
+        Over the years I became fed up with the expensive and cluttered premium stock screeners on the current market. I was paying up to $50 per month for features I didn't need and was stuck sifting through irrelevant stocks and duplicate values.</p>
+<p class="text">
+  I built an affordable premium stock screening option for mid-long term oriented retail traders. you can hide unwanted stocks that don't meet your criteria, run multiple screeners simultaneously, so that you can remove duplicate value while still allowing you to see how many times a stock appeared and where, this allows you to do everything in 1/5 of the time (by estimate based on my personal screening routine), also by focusing only on core data (EOD price and financial statements), i was able to significantly reduce costs and took price down to just $5.99/month compared to 50-150 $ / month of industry average, i also have plans to expand to include new markets and features in the future.
+      </p>
+      <p class="text">
+        I can create a new market space that's uncontested by traditional premium screeners, because small investors should be able to put as much of their savings as they can in the market to growth their wealth, rather than speding them for the tools for analysing it.
+      </p>
+    </div>
+
     <!-- Footer -->
     <div class="footer">
   <p>&copy; Lorenzo Mazzola 2025. All rights reserved.</p>
-  <div class="back-to-top" @click="scrollToSection('hero')">Back to Top ↑</div>
+  <div class="back-to-top" @click="scrollToSection('navbar')">Back to Top ↑</div>
   <div class="footer-links">
     <a href="#" @click.prevent="showTermsModal">Terms of Service  & Privacy Policy</a> 
   </div>
@@ -209,6 +223,7 @@
     <p style="text-align: center; margin-top: 60px">By using the Platform, you acknowledge that you have read, understood, and agree to be bound by these Terms.</p>
     </div>
     <button @click="closeTermsModal"><img style="width: 10px;" src="@/assets/icons/close.png" alt=""></button>
+</div>
 </div>
 </template>
 
@@ -266,12 +281,11 @@ function closeTermsModal() {
   justify-content: space-between;
   align-items: center;
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   width: 100%;
+  min-width: 1000px;
   background-color: $base1;
   color: $text1;
+  margin: 40px auto;
 }
 
 .video-container {
@@ -324,7 +338,7 @@ function closeTermsModal() {
   text-align: left;
   z-index: 1;
   padding: 5%;
-  
+  width: 100%;
 }
 
 .title {
@@ -487,6 +501,7 @@ a:hover{
 .features{
   background-color: transparent;
   width: 100%;
+  min-width: 1000px;
   z-index: 2px;
   position: absolute;
   top: 100%;
@@ -806,4 +821,41 @@ h2{
   margin: 25px;
   font-size: 12px;
 }
+
+.landingPage {
+  min-width: 1000px;
+  width: 100%;
+}
+
+#about {
+  padding: 40px 0px;
+  color: #dcdcdc;
+  background-color: transparent;
+  border: 2px solid $accent1; /* Add border style and color */
+  margin: 20px;
+  border-radius: 10px;
+  display: flex; /* Enable flexbox */
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+  flex-direction: column; /* Stack child elements vertically (optional) */
+  margin: 60px;
+}
+
+.social-links {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.social-links img {
+  width: 20px;
+  height: 20px;
+  opacity: 0.5;
+}
+
+.social-links img:hover {
+  opacity: 1;
+}
+
+
 </style>
