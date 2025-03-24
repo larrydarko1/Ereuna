@@ -45,6 +45,35 @@ def remove_documents_with_timestamp(timestamp_str):
     weekly_collection = db["OHCLVData2"]
     timestamp = dt.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f+00:00')
     weekly_collection.delete_many({'timestamp': timestamp})
+
+#arranges pictures based on market
+def ArrangeIcons():
+    current_dir = os.getcwd()
+    pictures_dir = os.path.join(current_dir, 'server', 'pictures')
+    if os.path.exists(pictures_dir):
+        svg_file_names = []
+        for filename in os.listdir(pictures_dir):
+            if filename.endswith('.svg'):
+                svg_file_name = filename.split('.')[0]
+                svg_file_names.append(svg_file_name)
+        for svg_file_name in svg_file_names:
+            asset_info_collection = db['AssetInfo']
+            document = asset_info_collection.find_one({'Symbol': svg_file_name})
+            if document:
+                exchange = document.get('Exchange')
+                if exchange:
+                    exchange_dir = os.path.join(current_dir, 'server', 'pictures', exchange)
+                    if not os.path.exists(exchange_dir):
+                        os.makedirs(exchange_dir)
+                    svg_file_path = os.path.join(pictures_dir, f'{svg_file_name}.svg')
+                    os.replace(svg_file_path, os.path.join(exchange_dir, f'{svg_file_name}.svg'))
+                    print(f'Moved {svg_file_name}.svg to {exchange} folder')
+                else:
+                    print(f'No Exchange attribute found for {svg_file_name}')
+            else:
+                print(f'No document found for {svg_file_name}')
+    else:
+        print("The 'pictures' folder does not exist.")
 '''
 Section for IPOs and monthly update for stocks
 '''
@@ -633,7 +662,7 @@ def updateDailyRatios():
                             'MarketCapitalization': market_cap,
                             'PERatio': pe_ratio,
                             'PriceToBookRatio': pb_ratio,
-                            'PriceToSalesRatio': ps_ratio,
+                            'PriceToSalesRatioTTM': ps_ratio,
                             'PEGRatio': trailing_peg
                         }}
                     )
@@ -724,10 +753,10 @@ def getHistoricalPrice2(tickerID):
     daily_collection.delete_many({'tickerID': tickerID})
     weekly_collection.delete_many({'tickerID': tickerID})
 
-    now = datetime.now()
+    now = dt.datetime.now()
     url = f'https://api.tiingo.com/tiingo/daily/{tickerID}/prices?token={api_key}&startDate=1990-01-01&endDate={now.strftime("%Y-%m-%d")}'
     response = requests.get(url)
-    
+
     if response.status_code == 200:
         data = response.json()
         if len(data) > 0:
@@ -735,7 +764,7 @@ def getHistoricalPrice2(tickerID):
             df = df.rename(columns={'date': 'timestamp'})
             df.columns = ['timestamp', 'close', 'high', 'low', 'open', 'volume', 'adjClose', 'adjHigh', 'adjLow', 'adjOpen', 'adjVolume', 'divCash', 'splitFactor']
             df['tickerID'] = tickerID
-            
+
             # Convert NumPy types to Python native types
             def convert_numpy_types(doc):
                 return {
@@ -743,7 +772,7 @@ def getHistoricalPrice2(tickerID):
                         float(v) if isinstance(v, np.floating) else 
                         v) for k, v in doc.items()
                 }
-            
+
             # Convert dataframe to list of dictionaries
             daily_data_dict = df[['tickerID', 'timestamp', 'adjOpen', 'adjHigh', 'adjLow', 'adjClose', 'adjVolume', 'divCash', 'splitFactor']].to_dict(orient='records')
             daily_data_dict = [convert_numpy_types(doc) for doc in daily_data_dict]
@@ -755,13 +784,26 @@ def getHistoricalPrice2(tickerID):
                 doc['low'] = doc.pop('adjLow')
                 doc['close'] = doc.pop('adjClose')
                 doc['volume'] = doc.pop('adjVolume')
-                doc['timestamp'] = datetime.strptime(doc['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                doc['timestamp'] = dt.datetime.strptime(doc['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
 
-            # Insert daily documents
+            # Insert daily documents, preventing duplicates
             for daily_doc in daily_data_dict:
-                daily_collection.insert_one(daily_doc)
+                existing_daily_doc = daily_collection.find_one({
+                    'tickerID': daily_doc['tickerID'], 
+                    'timestamp': daily_doc['timestamp']
+                })
+
+                if not existing_daily_doc:
+                    daily_collection.insert_one(daily_doc)
+
+            # Process weekly data from daily data
             df['timestamp'] = pd.to_datetime(df['timestamp'])
-            weekly_grouped = df.groupby(pd.Grouper(key='timestamp', freq='W-MON'))
+            df['week_start'] = df['timestamp'].dt.to_period('W').dt.to_timestamp()
+
+            weekly_grouped = df.groupby('week_start')
+
+            weekly_collection.delete_many({'tickerID': tickerID})
+
             for week_start, week_data in weekly_grouped:
                 if not week_data.empty:
                     weekly_doc = {
@@ -773,7 +815,16 @@ def getHistoricalPrice2(tickerID):
                         'close': float(week_data['adjClose'].iloc[-1]),
                         'volume': int(week_data['adjVolume'].sum())
                     }
-                    weekly_collection.insert_one(weekly_doc)
+
+                    # Check if weekly document already exists
+                    existing_weekly_doc = weekly_collection.find_one({
+                        'tickerID': tickerID, 
+                        'timestamp': weekly_doc['timestamp']
+                    })
+
+                    if not existing_weekly_doc:
+                        weekly_collection.insert_one(weekly_doc)
+
             print(f"Successfully processed {tickerID}")
         else:
             print(f"No data found for {tickerID}")
@@ -1452,7 +1503,11 @@ def getIndex():
 
                 # Process weekly data from daily data
                 df['timestamp'] = pd.to_datetime(df['timestamp'])
-                weekly_grouped = df.groupby(pd.Grouper(key='timestamp', freq='W-MON'))
+                df['week_start'] = df['timestamp'].dt.to_period('W').dt.to_timestamp()
+
+                weekly_grouped = df.groupby('week_start')
+
+                weekly_collection.delete_many({'tickerID': ticker})
 
                 for week_start, week_data in weekly_grouped:
                     if not week_data.empty:
@@ -1472,13 +1527,71 @@ def getIndex():
                             'timestamp': weekly_doc['timestamp']
                         })
 
-                        if not existing_weekly_doc:
-                            weekly_collection.insert_one(daily_doc)
+                        
+                        weekly_collection.insert_one(weekly_doc)
+
                 print(f"Successfully processed {ticker}")
             else:
                 print(f"No data found for {ticker}")
         else:
             print(f"Error: {response.text}")
+
+#calculates average day volatility for specific timespans and updates documents 
+def calculateADV():
+    ohclv_collection = db["OHCLVData"]
+    asset_info_collection = db["AssetInfo"]
+    updates = []
+
+    print("Calculating Volatility Scores...")
+    for i, asset_info in enumerate(asset_info_collection.find()):
+        ticker = asset_info['Symbol']
+        try:
+            pipeline = [
+                {'$match': {'tickerID': ticker}},
+                {'$sort': {'timestamp': -1}},
+                {'$project': {'_id': 0, 'close': 1}}
+            ]
+            documents = list(ohclv_collection.aggregate(pipeline))
+
+            close_prices = [doc['close'] for doc in documents]
+
+            if len(close_prices) < 5:
+                continue
+
+            # Calculate daily returns
+            daily_returns = [close_prices[i] - close_prices[i-1] for i in range(1, len(close_prices))]
+
+            # Calculate average daily volatility over specific time spans
+            volatility_1w = (np.std(daily_returns[-5:]) / np.mean(close_prices[-5:])) * 100
+            volatility_1m = (np.std(daily_returns[-20:]) / np.mean(close_prices[-20:])) * 100
+            volatility_4m = (np.std(daily_returns[-80:]) / np.mean(close_prices[-80:])) * 100
+            volatility_1y = (np.std(daily_returns[-252:]) / np.mean(close_prices[-252:])) * 100
+
+            updates.append(
+                UpdateOne(
+                    {'Symbol': ticker},
+                    {'$set': {
+                        'ADV1W': volatility_1w,
+                        'ADV1M': volatility_1m,
+                        'ADV4M': volatility_4m,
+                        'ADV1Y': volatility_1y
+                    }}
+                )
+            )
+
+            print(f"Processed {i+1} out of {asset_info_collection.count_documents({})} stocks")
+        except Exception as e:
+            print(f"Error processing {ticker}: {e}")
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
+
+    print("Done calculating volatility scores.")
+    
 
 '''
 Qaurterly Section
@@ -1845,6 +1958,30 @@ def getFinancialsSingle(ticker):
     else:
         print(f"Error fetching data for {ticker}: {response.status_code}")
 
+def update_exchanges():
+    asset_info_collection = db['AssetInfo']
+
+    try:
+        # Find the documents in AssetInfo with Exchange attribute
+        pipeline = [
+            {'$match': {'Exchange': {'$exists': True}}},
+            {'$project': {'_id': 0, 'Symbol': 1, 'Exchange': 1}}
+        ]
+        asset_info_data = list(asset_info_collection.aggregate(pipeline))
+
+        # Loop through each document in AssetInfo
+        for document in asset_info_data:
+            # Check if the Exchange value is NYSE ARCA or NYSE MKT
+            if document['Exchange'] in ['NYSE ARCA', 'NYSE MKT']:
+                # Update the Exchange value to NYSE
+                asset_info_collection.update_one(
+                    {'Symbol': document['Symbol']},
+                    {'$set': {'Exchange': 'NYSE'}}
+                )
+                print(f'Updated exchange for symbol: {document["Symbol"]}')
+    except Exception as e:
+        print(f'Error updating exchanges - {str(e)}')
+
 #inserts new stocks listed 
 def IPO(tickers):
     for ticker in tickers:
@@ -1876,7 +2013,8 @@ def Daily():
         ('update_yield', getDividendYieldTTM),
         ('calculate_volumes', calculateVolumes),
         ('calculate_moving_averages', calculateSMAs),
-        ('calculate_rs_scores', calculateTechnicalScores),
+        ('calculate_technical_scores', calculateTechnicalScores),
+        ('calculate_average_volatility', calculateADV),
         ('calculate__high_low', calculateAlltimehighlowandperc52wk),
         ('calculate_change_perc', calculatePerc),
         ('getIndexes', getIndex), 
@@ -1905,7 +2043,7 @@ def Daily():
     #checkFinancialUpdates()
 
 #scheduler
-scheduler.add_job(Daily, CronTrigger(hour=17, minute=15, day_of_week='mon-fri', timezone='US/Eastern'))
+scheduler.add_job(Daily, CronTrigger(hour=17, minute=1, day_of_week='mon-fri', timezone='US/Eastern'))
 scheduler.start()
 
 '''
@@ -1920,36 +2058,6 @@ def RemoveIsActiveAttribute():
     except Exception as e:
         print(f"Error removing 'isActive' attribute: {e}")
         
-            
-#arranges pictures based on market
-def ArrangeIcons():
-    current_dir = os.getcwd()
-    pictures_dir = os.path.join(current_dir, 'server', 'pictures')
-    if os.path.exists(pictures_dir):
-        svg_file_names = []
-        for filename in os.listdir(pictures_dir):
-            if filename.endswith('.svg'):
-                svg_file_name = filename.split('.')[0]
-                svg_file_names.append(svg_file_name)
-        for svg_file_name in svg_file_names:
-            asset_info_collection = db['AssetInfo']
-            document = asset_info_collection.find_one({'Symbol': svg_file_name})
-            if document:
-                exchange = document.get('Exchange')
-                if exchange:
-                    exchange_dir = os.path.join(current_dir, 'server', 'pictures', exchange)
-                    if not os.path.exists(exchange_dir):
-                        os.makedirs(exchange_dir)
-                    svg_file_path = os.path.join(pictures_dir, f'{svg_file_name}.svg')
-                    os.replace(svg_file_path, os.path.join(exchange_dir, f'{svg_file_name}.svg'))
-                    print(f'Moved {svg_file_name}.svg to {exchange} folder')
-                else:
-                    print(f'No Exchange attribute found for {svg_file_name}')
-            else:
-                print(f'No document found for {svg_file_name}')
-    else:
-        print("The 'pictures' folder does not exist.")
-
 
 def RemoveDuplicateDocuments():
     asset_info_collection = db['AssetInfo']
@@ -1986,5 +2094,61 @@ def remove_documents_with_timestamp(timestamp_str):
     weekly_collection.delete_many({'timestamp': timestamp})
 
 # Call the function with the specific timestamp
-remove_documents_with_timestamp('2025-03-17T00:00:00.000+00:00')'''
+remove_documents_with_timestamp('2025-03-17T00:00:00.000+00:00')
 
+def MissingISIN():
+    asset_info_collection = db['AssetInfo']
+
+    try:
+        # Find the documents in AssetInfo without ISIN attribute
+        pipeline = [
+            {'$match': {'ISIN': {'$exists': False}}},
+            {'$project': {'_id': 0, 'Symbol': 1}}
+        ]
+        asset_info_data = list(asset_info_collection.aggregate(pipeline))
+
+        # Create a list of symbols without ISIN
+        symbols_without_isin = [document['Symbol'] for document in asset_info_data]
+
+        # Print the list of symbols
+        print(symbols_without_isin)
+    except Exception as e:
+        print(f'Error finding symbols without ISIN - {str(e)}')
+        
+
+
+def rename_volatility_fields():
+    """
+    Renames volatility fields in the AssetInfo collection.
+    """
+    asset_info_collection = db["AssetInfo"]
+    
+    # Define the updates to be made
+    updates = []
+    for doc in asset_info_collection.find():
+        update = {}
+        if 'volatility_4m' in doc:
+            update['$rename'] = {'volatility_4m': 'ADV4M'}
+        if 'volatility_1m' in doc:
+            if '$rename' not in update:
+                update['$rename'] = {}
+            update['$rename']['volatility_1m'] = 'ADV1M'
+        if 'volatility_1y' in doc:
+            if '$rename' not in update:
+                update['$rename'] = {}
+            update['$rename']['volatility_1y'] = 'ADV1Y'
+        if 'volatility_1w' in doc:
+            if '$rename' not in update:
+                update['$rename'] = {}
+            update['$rename']['volatility_1w'] = 'ADV1W'
+        
+        if update:
+            updates.append(UpdateOne({'_id': doc['_id']}, update))
+    
+    # Apply the updates
+    result = asset_info_collection.bulk_write(updates)
+    
+    # Print the result
+    print(f"Updated {result.modified_count} documents")
+    
+rename_volatility_fields()'''
