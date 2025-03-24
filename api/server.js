@@ -4827,6 +4827,10 @@ app.get('/:user/screener/results/all',
           RSScore4M: 1,
           todaychange: 1,
           ytdchange: 1,
+          ADV1W: 1,
+          ADV1M: 1,
+          ADV4M: 1,
+          ADV1Y: 1,
           _id: 0
         }
       }).toArray();
@@ -5624,6 +5628,10 @@ app.get('/:user/screener/results/hidden',
           RSScore1W: 1,
           RSScore1M: 1,
           RSScore4M: 1,
+          ADV1W: 1,
+          ADV1M: 1,
+          ADV4M: 1,
+          ADV1Y: 1,
           todaychange: 1,
           ytdchange: 1,
           _id: 0
@@ -7888,6 +7896,208 @@ app.patch('/screener/rs-score', validate([
   }
 });
 
+// endpoint that updates screener document with Average Daily Volatility (ADV) parameters 
+app.patch('/screener/adv', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  // Custom validation for ADV values
+  body('value1')
+    .optional({ nullable: true }) // Allow null values
+    .custom((value) => {
+      // If value is null or empty, return true (valid)
+      if (value === null || value === '') return true;
+
+      // Validate float
+      const parsedValue = parseFloat(value);
+      return isNaN(parsedValue) || !isNaN(parsedValue);
+    })
+    .withMessage('Value1 must be a float, NaN, or null'),
+
+  body('value2')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+
+      const parsedValue = parseFloat(value);
+      return isNaN(parsedValue) || !isNaN(parsedValue);
+    })
+    .withMessage('Value2 must be a float, NaN, or null'),
+
+  body('value3')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+
+      const parsedValue = parseFloat(value);
+      return isNaN(parsedValue) || !isNaN(parsedValue);
+    })
+    .withMessage('Value3 must be a float, NaN, or null'),
+
+  body('value4')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+
+      const parsedValue = parseFloat(value);
+      return isNaN(parsedValue) || !isNaN(parsedValue);
+    })
+    .withMessage('Value4 must be a float, NaN, or null'),
+
+  body('value5')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+
+      const parsedValue = parseFloat(value);
+      return isNaN(parsedValue) || !isNaN(parsedValue);
+    })
+    .withMessage('Value5 must be a float, NaN, or null'),
+
+  body('value6')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+
+      const parsedValue = parseFloat(value);
+      return isNaN(parsedValue) || !isNaN(parsedValue);
+    })
+    .withMessage('Value6 must be a float, NaN, or null'),
+
+  body('value7')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+
+      const parsedValue = parseFloat(value);
+      return isNaN(parsedValue) || !isNaN(parsedValue);
+    })
+    .withMessage('Value7 must be a float, NaN, or null'),
+
+  body('value8')
+    .optional({ nullable: true })
+    .custom((value) => {
+      if (value === null || value === '') return true;
+
+      const parsedValue = parseFloat(value);
+      return isNaN(parsedValue) || !isNaN(parsedValue);
+    })
+    .withMessage('Value8 must be a float, NaN, or null')
+]), async (req, res) => {
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+
+    const sanitizedKey = sanitizeInput(apiKey);
+
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
+
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
+    }
+    // Sanitize and parse inputs
+    const value1 = req.body.value1 ? parseFloat(sanitizeInput(req.body.value1.toString())) : null;
+    const value2 = req.body.value2 ? parseFloat(sanitizeInput(req.body.value2.toString())) : null;
+    const value3 = req.body.value3 ? parseFloat(sanitizeInput(req.body.value3.toString())) : null;
+    const value4 = req.body.value4 ? parseFloat(sanitizeInput(req.body.value4.toString())) : null;
+    const value5 = req.body.value5 ? parseFloat(sanitizeInput(req.body.value5.toString())) : null;
+    const value6 = req.body.value6 ? parseFloat(sanitizeInput(req.body.value6.toString())) : null;
+    const value7 = req.body.value7 ? parseFloat(sanitizeInput(req.body.value7.toString())) : null;
+    const value8 = req.body.value8 ? parseFloat(sanitizeInput(req.body.value8.toString())) : null;
+
+    const screenerName = sanitizeInput(req.body.screenerName);
+    const Username = sanitizeInput(req.body.user);
+
+    // Obfuscate username for logging
+    const obfuscatedUsername = obfuscateUsername(Username);
+
+    client = new MongoClient(uri);
+    await client.connect();
+
+    const db = client.db('EreunaDB');
+    const assetInfoCollection = db.collection('AssetInfo');
+    const screenersCollection = db.collection('Screeners');
+
+    const maxValues = await assetInfoCollection.aggregate([
+      { $group: { _id: null, ADV1M: { $max: '$ADV1M' }, ADV1W: { $max: '$ADV1W' }, ADV1Y: { $max: '$ADV1Y' }, ADV4M: { $max: '$ADV4M' } } }
+    ]).toArray();
+
+    const filter = { UsernameID: Username, Name: screenerName };
+    const updateDoc = { $set: {} };
+
+    // Define pairs and default values
+    const pairs = [
+      { key: 'ADV1W', values: [value1, value2], attribute: 'ADV1W' },
+      { key: 'ADV1M', values: [value3, value4], attribute: 'ADV1M' },
+      { key: 'ADV4M', values: [value5, value6], attribute: 'ADV4M' },
+      { key: 'ADV1Y', values: [value7, value8], attribute: 'ADV1Y' },
+    ];
+
+    // Process pairs
+    pairs.forEach((pair) => {
+      const values = pair.values;
+      const attribute = pair.attribute;
+
+      // Check if at least one value is present
+      if (values.some((value) => value !== null && !isNaN(value))) {
+        // Create a new array with default values for missing pairs
+        const max = maxValues[0][attribute];
+
+        const newArray = values.map((value, index) => value !== null && !isNaN(value) ? value : (index === 0 ? 0.01 : max));
+
+        // Add the new array to the update document
+        updateDoc.$set[pair.key] = newArray;
+      }
+    });
+
+    // Check if any updates are present
+    if (Object.keys(updateDoc.$set).length === 0) {
+      return res.status(200).json({ message: 'No ADV values to update' });
+    }
+
+    const options = { returnOriginal: false };
+    const result = await screenersCollection.findOneAndUpdate(filter, updateDoc, options);
+
+    // Check if the screener document was found
+    if (!result) {
+      logger.warn('Screener not found for ADV update', {
+        user: obfuscatedUsername,
+        screenerName: screenerName
+      });
+      return res.status(404).json({ message: 'Screener not found' });
+    }
+
+    res.json({
+      message: 'ADV updated successfully',
+      updatedFields: Object.keys(updateDoc.$set)
+    });
+
+  } catch (error) {
+    // Log error with obfuscated username and minimal details
+    logger.error('Error updating ADV', {
+      user: obfuscatedUsername,
+      errorType: error.constructor.name,
+      errorMessage: error.message
+    });
+
+    res.status(500).json({ message: 'Internal Server Error' });
+  } finally {
+    if (client) {
+      try {
+        await client.close(); // Ensure client is closed if it was initialized
+      } catch (closeError) {
+        logger.warn('Error closing database connection', {
+          user: obfuscatedUsername,
+          error: closeError.message
+        });
+      }
+    }
+  }
+});
+
 // endpoint that updates screener document with price peformance parameters 
 app.patch('/screener/price-performance', validate([
   validationSchemas.user(),
@@ -8379,7 +8589,7 @@ app.patch('/reset/screener/param',
       .isIn([
         'price', 'marketCap', 'IPO', 'Sector', 'Exchange', 'Country',
         'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta',
-        'DivYield', 'FundGrowth', 'PricePerformance', 'RSscore', 'Volume'
+        'DivYield', 'FundGrowth', 'PricePerformance', 'RSscore', 'Volume', 'ADV',
       ])
       .withMessage('Invalid parameter to reset')
   ]),
@@ -8508,6 +8718,12 @@ app.patch('/reset/screener/param',
           updateDoc.$unset.AvgVolume1Y = '';
           updateDoc.$unset.RelVolume1Y = '';
           break;
+        case 'ADV':
+          updateDoc.$unset.ADV1W = '';
+          updateDoc.$unset.ADV1M = '';
+          updateDoc.$unset.ADV4M = '';
+          updateDoc.$unset.ADV1Y = '';
+          break;
         default:
           // Log unknown value attempt
           requestLogger.warn('Attempted to reset with unknown parameter', {
@@ -8613,7 +8829,7 @@ app.get('/screener/datavalues/:user/:name',
           EarningsQoQ: 1, EarningsYoY: 1, RevQoQ: 1, RevYoY: 1, AvgVolume1W: 1, AvgVolume1M: 1,
           AvgVolume6M: 1, AvgVolume1Y: 1, RelVolume1W: 1, RelVolume1M: 1, RelVolume6M: 1, RelVolume1Y: 1,
           RSScore1W: 1, RSScore1M: 1, RSScore4M: 1, MA10: 1, MA20: 1, MA50: 1, MA200: 1, NewHigh: 1, NewLow: 1, PercOffWeekHigh: 1,
-          PercOffWeekLow: 1, changePerc: 1, IPO: 1,
+          PercOffWeekLow: 1, changePerc: 1, IPO: 1, ADV1W: 1, ADV1M: 1, ADV4M: 1, ADV1Y: 1,
         };
 
         const cursor = assetInfoCollection.find(query, { projection: projection });
@@ -8664,6 +8880,10 @@ app.get('/screener/datavalues/:user/:name',
           RSScore1W: document.RSScore1W,
           RSScore1M: document.RSScore1M,
           RSScore4M: document.RSScore4M,
+          ADV1W: document.ADV1W,
+          ADV1M: document.ADV1M,
+          ADV4M: document.ADV4M,
+          ADV1Y: document.ADV1Y,
           todaychange: document.todaychange,
           ytdchange: document.ytdchange,
           MA10: document.MA10,
@@ -8904,6 +9124,22 @@ app.get('/screener/:user/results/filtered/:name',
         screenerFilters.RSScore4M = screenerData.RSScore4M;
       }
 
+      if (screenerData.ADV1W && screenerData.ADV1W[0] !== 0 && screenerData.ADV1W[1] !== 0) {
+        screenerFilters.ADV1W = screenerData.ADV1W;
+      }
+
+      if (screenerData.ADV1M && screenerData.ADV1M[0] !== 0 && screenerData.ADV1M[1] !== 0) {
+        screenerFilters.ADV1M = screenerData.ADV1M;
+      }
+
+      if (screenerData.ADV4M && screenerData.ADV4M[0] !== 0 && screenerData.ADV4M[1] !== 0) {
+        screenerFilters.ADV4M = screenerData.ADV4M;
+      }
+
+      if (screenerData.ADV1Y && screenerData.ADV1Y[0] !== 0 && screenerData.ADV1Y[1] !== 0) {
+        screenerFilters.ADV1Y = screenerData.ADV1Y;
+      }
+
       if (screenerData.PercOffWeekHigh && screenerData.PercOffWeekHigh[0] !== 0 && screenerData.PercOffWeekHigh[1] !== 0) {
         screenerFilters.PercOffWeekHigh = screenerData.PercOffWeekHigh;
       }
@@ -9110,6 +9346,30 @@ app.get('/screener/:user/results/filtered/:name',
             query.RSScore4M = {
               $gt: screenerFilters.RSScore4M[0],
               $lt: screenerFilters.RSScore4M[1]
+            };
+            break;
+          case 'ADV1W':
+            query.ADV1W = {
+              $gt: screenerFilters.ADV1W[0],
+              $lt: screenerFilters.ADV1W[1]
+            };
+            break;
+          case 'ADV1M':
+            query.ADV1M = {
+              $gt: screenerFilters.ADV1M[0],
+              $lt: screenerFilters.ADV1M[1]
+            };
+            break;
+          case 'ADV4M':
+            query.ADV4M = {
+              $gt: screenerFilters.ADV4M[0],
+              $lt: screenerFilters.ADV4M[1]
+            };
+            break;
+          case 'ADV1Y':
+            query.ADV1Y = {
+              $gt: screenerFilters.ADV1Y[0],
+              $lt: screenerFilters.ADV1Y[1]
             };
             break;
           case 'changePerc':
@@ -9343,6 +9603,10 @@ app.get('/screener/:user/results/filtered/:name',
         RSScore1W: 1,
         RSScore1M: 1,
         RSScore4M: 1,
+        ADV1W: 1,
+        ADV1M: 1,
+        ADV4M: 1,
+        ADV1Y: 1,
         todaychange: 1,
         _id: 0
       }).toArray();
@@ -9427,9 +9691,9 @@ app.get('/screener/summary/:usernameID/:name',
         const attributes = [
           'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta', 'DivYield',
           'EPSQoQ', 'EPSYoY', 'EarningsQoQ', 'EarningsYoY', 'RevQoQ', 'RevYoY', 'changePerc', 'PercOffWeekHigh', 'PercOffWeekLow',
-          'NewHigh', 'NewLow', 'MA10', 'MA20', 'MA50', 'MA200', 'RSScore1W', 'RSScore1M', 'RSScore4M', 'RSScore1W', 'AvgVolume1W', 'RelVolume1W',
+          'NewHigh', 'NewLow', 'MA10', 'MA20', 'MA50', 'MA200', 'RSScore1W', 'RSScore1M', 'RSScore4M', 'AvgVolume1W', 'RelVolume1W',
           'AvgVolume1M', 'RelVolume1M', 'AvgVolume6M', 'RelVolume6M', 'AvgVolume1Y', 'RelVolume1Y', '1mchange', '1ychange', '4mchange',
-          '6mchange', 'todaychange', 'weekchange', 'ytdchange', 'IPO',
+          '6mchange', 'todaychange', 'weekchange', 'ytdchange', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y',
         ];
 
         const filteredData = attributes.reduce((acc, attribute) => {
@@ -9692,6 +9956,22 @@ app.get('/screener/:usernameID/all',
             screenerFilters.RSScore4M = screenerData.RSScore4M;
           }
 
+          if (screenerData.ADV1W && screenerData.ADV1W[0] !== 0 && screenerData.ADV1W[1] !== 0) {
+            screenerFilters.ADV1W = screenerData.ADV1W;
+          }
+
+          if (screenerData.ADV1M && screenerData.ADV1M[0] !== 0 && screenerData.ADV1M[1] !== 0) {
+            screenerFilters.ADV1M = screenerData.ADV1M;
+          }
+
+          if (screenerData.ADV4M && screenerData.ADV4M[0] !== 0 && screenerData.ADV4M[1] !== 0) {
+            screenerFilters.ADV4M = screenerData.ADV4M;
+          }
+
+          if (screenerData.ADV1Y && screenerData.ADV1Y[0] !== 0 && screenerData.ADV1Y[1] !== 0) {
+            screenerFilters.ADV1Y = screenerData.ADV1Y;
+          }
+
           if (screenerData.PercOffWeekHigh && screenerData.PercOffWeekHigh[0] !== 0 && screenerData.PercOffWeekHigh[1] !== 0) {
             screenerFilters.PercOffWeekHigh = screenerData.PercOffWeekHigh;
           }
@@ -9888,6 +10168,30 @@ app.get('/screener/:usernameID/all',
                 query.RSScore4M = {
                   $gt: screenerFilters.RSScore4M[0],
                   $lt: screenerFilters.RSScore4M[1]
+                };
+                break;
+              case 'ADV1W':
+                query.ADV1W = {
+                  $gt: screenerFilters.ADV1W[0],
+                  $lt: screenerFilters.ADV1W[1]
+                };
+                break;
+              case 'ADV1M':
+                query.ADV1M = {
+                  $gt: screenerFilters.ADV1M[0],
+                  $lt: screenerFilters.ADV1M[1]
+                };
+                break;
+              case 'ADV4M':
+                query.ADV4M = {
+                  $gt: screenerFilters.ADV4M[0],
+                  $lt: screenerFilters.ADV4M[1]
+                };
+                break;
+              case 'ADV1Y':
+                query.ADV1Y = {
+                  $gt: screenerFilters.ADV1Y[0],
+                  $lt: screenerFilters.ADV1Y[1]
                 };
                 break;
               case 'changePerc':
@@ -10117,6 +10421,10 @@ app.get('/screener/:usernameID/all',
             RSScore1W: 1,
             RSScore1M: 1,
             RSScore4M: 1,
+            ADV1W: 1,
+            ADV1M: 1,
+            ADV4M: 1,
+            ADV1Y: 1,
             todaychange: 1,
             _id: 0
           }).toArray();

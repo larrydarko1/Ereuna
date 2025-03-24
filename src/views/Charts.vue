@@ -356,8 +356,14 @@
   </div>
   <div v-for="(attribute, index) in Object.keys(currentFinancials[0]).filter(attr => attr !== 'fiscalDateEnding')" :key="index" class='financials-row'>
     <div class="attribute-name">{{ attributeMap[attribute] || attribute }}</div>
+    
     <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="financial-value">
       {{ isNaN(parseInt(financial[attribute])) ? '-' : parseInt(financial[attribute]).toLocaleString() }}
+      <div class="percentage-box" :class="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0 ? 'positive' : 'negative'">
+  {{ isNaN(parseFloat(getPercentageDifference(financial, attribute))) ? '-' : getPercentageDifference(financial, attribute) }}
+  <img  v-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0" src="@/assets/icons/positive.png" alt="Up" width="10" height="10">
+  <img  v-else-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute)))" src="@/assets/icons/negative.png" alt="Down" width="10" height="10">
+</div>
     </div>
   </div>
 </div>
@@ -3078,6 +3084,27 @@ onMounted(() => {
   fetchMarkets();
 });
 
+const getPercentageDifference = (financial, attribute) => {
+  const currentIndex = currentFinancials.value.indexOf(financial);
+  if (currentIndex < currentFinancials.value.length - 1) {
+    const nextFinancial = currentFinancials.value[currentIndex + 1];
+    const change = financial[attribute] - nextFinancial[attribute];
+    let percentageDifference;
+    if (nextFinancial[attribute] < 0) {
+      percentageDifference = (change / Math.abs(nextFinancial[attribute])) * 100;
+    } else {
+      percentageDifference = (change / nextFinancial[attribute]) * 100;
+    }
+    if (isNaN(percentageDifference) || !isFinite(percentageDifference)) {
+      return '-';
+    } else {
+      return percentageDifference.toFixed(2) + '%';
+    }
+  } else {
+    return '-';
+  }
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -4142,6 +4169,7 @@ opacity: 1;
   border-radius: 5px;
   margin-right: 5px;
   background-color: rgba($base3, 0.15);
+  position: relative;
 }
 
 .toggle-button{
@@ -4186,6 +4214,13 @@ cursor: pointer;
 .index-btn.active {
   background-color: rgba($accent1, 0.30); /* color when active */
   color: $text1;
+}
+
+.percentage-box{
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  background-color: transparent;
 }
 
 </style>

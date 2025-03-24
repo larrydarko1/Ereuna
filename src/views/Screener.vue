@@ -695,6 +695,47 @@
     </div>
   </div>
 </div>
+<div :class="[showADV ? 'param-s10-expanded' : 'param-s1']">
+          <div class="row">
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>Average Daily Volatility (ADV)</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">A measure of a stock's price fluctuation over a given period, calculated as the standard deviation of daily returns. It represents the average daily volatility of the stock's price, providing insight into the stock's risk and potential for price movements. The values are expressed as a percentage, with higher values indicating greater volatility.</span>
+    </div>
+  </span>
+</div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" id="price-check" v-model="showADV" style="border: none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showADV">
+            <div class="DataInputs10">
+            <p>ADV (1W)</p>
+            <input class="input" type="number" placeholder="min (%)" id="ADV1Winput1" name="input1">
+            <input class="input" type="number" placeholder="max (%)" id="ADV1Winput2" name="input2">
+            <p>ADV (1M)</p>
+            <input class="input" type="number" placeholder="min (%)" id="ADV1Minput1" name="input3">
+            <input class="input" type="number" placeholder="max (%)" id="ADV1Minput2" name="input4">
+            <p>ADV (4M)</p>
+            <input class="input" type="number" placeholder="min (%)" id="ADV4Minput1" name="input5">
+            <input class="input" type="number" placeholder="max (%)" id="ADV4Minput2" name="input6">
+            <p>ADV (1Y)</p>
+            <input class="input" type="number" placeholder="min (%)" id="ADV1Yinput1" name="input7">
+            <input class="input" type="number" placeholder="max (%)" id="ADV1Yinput2" name="input8">
+            </div>
+            <div class="row">
+              <button class="btns8" style="float:right" @click="SetADV()">
+                <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+              </button>
+              <button class="btns8r"style="float:right" @click="Reset('ADV')">
+                <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+              </button>
+            </div>
+          </div>
+        </div>
         <div class="results"></div>
       </div>
       <div id="resultsDiv" >
@@ -766,16 +807,20 @@
             <div style="min-width: 120px;">Technical Score (1W)</div>
             <div style="min-width: 120px;">Technical Score (1M)</div>
             <div style="min-width: 120px;">Technical Score (4M)</div>
+            <div style="min-width: 100px;">ADV (1W)</div>
+            <div style="min-width: 100px;">ADV (1M)</div>
+            <div style="min-width: 100px;">ADV (4M)</div>
+            <div style="min-width: 100px;">ADV (1Y)</div>
             <div style="min-width: 120px;">Exchange</div>
             <div style="min-width: 120px;">Sector</div>
-            <div style="min-width: 120px;">Industry</div>
+            <div style="min-width: 200px;">Industry</div>
             <div style="min-width: 120px;">Location</div>
             <div style="min-width: 100px;">ISIN</div>
             <div style="min-width: 150px;">Market Cap</div>
             <div style="min-width: 70px;">PE Ratio</div>
             <div style="min-width: 70px;">PS Ratio</div>
             <div style="min-width: 70px;">PEG Ratio</div>
-            <div style="min-width: 70px;">Dividend Yield</div>
+            <div style="min-width: 100px;">Dividend Yield (TTM)</div>
             <div style="min-width: 70px;">EPS</div>
           </div>
           <div id="wlist-container"  @scroll.passive="handleScroll1">
@@ -836,16 +881,20 @@
               <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV1W !== null && !isNaN(asset.ADV1W) ? asset.ADV1W.toFixed(2) + '%' : '-' }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV1M !== null && !isNaN(asset.ADV1M) ? asset.ADV1M.toFixed(2) + '%' : '-' }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV4M !== null && !isNaN(asset.ADV4M) ? asset.ADV4M.toFixed(2) + '%' : '-' }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV1Y !== null && !isNaN(asset.ADV1Y) ? asset.ADV1Y.toFixed(2) + '%' : '-' }}</div>
               <div style="min-width: 120px;">{{ asset.Exchange }}</div>
               <div style="min-width: 120px;">{{ asset.Sector }}</div>
-              <div style="min-width: 120px;">{{ asset.Industry }}</div>
+              <div style="min-width: 200px;">{{ asset.Industry }}</div>
               <div style="min-width: 120px;">{{ asset.Country }}</div>
               <div style="min-width: 100px;">{{ asset.ISIN }}</div>
               <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
               <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
               <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' : Math.floor(asset.PriceToSalesRatioTTM) }}</div>
               <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
-              <div style="min-width: 70px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
+              <div style="min-width: 100px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || asset.DividendYield === 0 || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
               <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
             </div>
             <div class="results2"> 
@@ -865,16 +914,20 @@
             <div style="min-width: 120px;">Technical Score (1W)</div>
             <div style="min-width: 120px;">Technical Score (1M)</div>
             <div style="min-width: 120px;">Technical Score (4M)</div>
+            <div style="min-width: 100px;">ADV (1W)</div>
+            <div style="min-width: 100px;">ADV (1M)</div>
+            <div style="min-width: 100px;">ADV (4M)</div>
+            <div style="min-width: 100px;">ADV (1Y)</div>
             <div style="min-width: 120px;">Exchange</div>
             <div style="min-width: 120px;">Sector</div>
-            <div style="min-width: 120px;">Industry</div>
+            <div style="min-width: 200px;">Industry</div>
             <div style="min-width: 120px;">Location</div>
             <div style="min-width: 100px;">ISIN</div>
             <div style="min-width: 150px;">Market Cap</div>
             <div style="min-width: 70px;">PE Ratio</div>
             <div style="min-width: 70px;">PS Ratio</div>
             <div style="min-width: 70px;">PEG Ratio</div>
-            <div style="min-width: 70px;">Dividend Yield</div>
+            <div style="min-width: 100px;">Dividend Yield (TTM)</div>
             <div style="min-width: 70px;">EPS</div>
           </div>
           <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll2">
@@ -935,16 +988,20 @@
               <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV1W !== null && !isNaN(asset.ADV1W) ? asset.ADV1W.toFixed(2) + '%' : '-' }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV1M !== null && !isNaN(asset.ADV1M) ? asset.ADV1M.toFixed(2) + '%' : '-' }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV4M !== null && !isNaN(asset.ADV4M) ? asset.ADV4M.toFixed(2) + '%' : '-' }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV1Y !== null && !isNaN(asset.ADV1Y) ? asset.ADV1Y.toFixed(2) + '%' : '-' }}</div>
               <div style="min-width: 120px;">{{ asset.Exchange }}</div>
               <div style="min-width: 120px;">{{ asset.Sector }}</div>
-              <div style="min-width: 120px;">{{ asset.Industry }}</div>
+              <div style="min-width: 200px;">{{ asset.Industry }}</div>
               <div style="min-width: 120px;">{{ asset.Country }}</div>
               <div style="min-width: 100px;">{{ asset.ISIN }}</div>
               <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
               <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
               <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' : Math.floor(asset.PriceToSalesRatioTTM) }}</div>
               <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
-              <div style="min-width: 70px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
+              <div style="min-width: 100px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || asset.DividendYield === 0 || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
               <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
             </div>
             <div class="results2"> 
@@ -964,16 +1021,20 @@
             <div style="min-width: 120px;">Technical Score (1W)</div>
             <div style="min-width: 120px;">Technical Score (1M)</div>
             <div style="min-width: 120px;">Technical Score (4M)</div>
+            <div style="min-width: 100px;">ADV (1W)</div>
+            <div style="min-width: 100px;">ADV (1M)</div>
+            <div style="min-width: 100px;">ADV (4M)</div>
+            <div style="min-width: 100px;">ADV (1Y)</div>
             <div style="min-width: 120px;">Exchange</div>
             <div style="min-width: 120px;">Sector</div>
-            <div style="min-width: 120px;">Industry</div>
+            <div style="min-width: 200px;">Industry</div>
             <div style="min-width: 120px;">Location</div>
             <div style="min-width: 100px;">ISIN</div>
             <div style="min-width: 150px;">Market Cap</div>
             <div style="min-width: 70px;">PE Ratio</div>
             <div style="min-width: 70px;">PS Ratio</div>
             <div style="min-width: 70px;">PEG Ratio</div>
-            <div style="min-width: 70px;">Dividend Yield</div>
+            <div style="min-width: 100px;">Dividend Yield (TTM)</div>
             <div style="min-width: 70px;">EPS</div>
           </div>
           <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll3">
@@ -1034,16 +1095,20 @@
               <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV1W !== null && !isNaN(asset.ADV1W) ? asset.ADV1W.toFixed(2) + '%' : '-' }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV1M !== null && !isNaN(asset.ADV1M) ? asset.ADV1M.toFixed(2) + '%' : '-' }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV4M !== null && !isNaN(asset.ADV4M) ? asset.ADV4M.toFixed(2) + '%' : '-' }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV1Y !== null && !isNaN(asset.ADV1Y) ? asset.ADV1Y.toFixed(2) + '%' : '-' }}</div>
               <div style="min-width: 120px;">{{ asset.Exchange }}</div>
               <div style="min-width: 120px;">{{ asset.Sector }}</div>
-              <div style="min-width: 120px;">{{ asset.Industry }}</div>
+              <div style="min-width: 200px;">{{ asset.Industry }}</div>
               <div style="min-width: 120px;">{{ asset.Country }}</div>
               <div style="min-width: 100px;">{{ asset.ISIN }}</div>
               <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
               <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
               <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' : Math.floor(asset.PriceToSalesRatioTTM) }}</div>
               <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
-              <div style="min-width: 70px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
+              <div style="min-width: 100px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || asset.DividendYield === 0 || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
               <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
             </div>
             <div class="results2"> 
@@ -1063,16 +1128,20 @@
             <div style="min-width: 120px;">Technical Score (1W)</div>
             <div style="min-width: 120px;">Technical Score (1M)</div>
             <div style="min-width: 120px;">Technical Score (4M)</div>
+            <div style="min-width: 100px;">ADV (1W)</div>
+            <div style="min-width: 100px;">ADV (1M)</div>
+            <div style="min-width: 100px;">ADV (4M)</div>
+            <div style="min-width: 100px;">ADV (1Y)</div>
             <div style="min-width: 120px;">Exchange</div>
             <div style="min-width: 120px;">Sector</div>
-            <div style="min-width: 120px;">Industry</div>
+            <div style="min-width: 200px;">Industry</div>
             <div style="min-width: 120px;">Location</div>
             <div style="min-width: 100px;">ISIN</div>
             <div style="min-width: 150px;">Market Cap</div>
             <div style="min-width: 70px;">PE Ratio</div>
             <div style="min-width: 70px;">PS Ratio</div>
             <div style="min-width: 70px;">PEG Ratio</div>
-            <div style="min-width: 70px;">Dividend Yield</div>
+            <div style="min-width: 100px;">Dividend Yield (TTM)</div>
             <div style="min-width: 70px;">EPS</div>
           </div>
           <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll4">
@@ -1142,16 +1211,20 @@
               <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
               <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV1W !== null && !isNaN(asset.ADV1W) ? asset.ADV1W.toFixed(2) + '%' : '-' }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV1M !== null && !isNaN(asset.ADV1M) ? asset.ADV1M.toFixed(2) + '%' : '-' }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV4M !== null && !isNaN(asset.ADV4M) ? asset.ADV4M.toFixed(2) + '%' : '-' }}</div>
+              <div style="min-width: 100px;">{{ asset.ADV1Y !== null && !isNaN(asset.ADV1Y) ? asset.ADV1Y.toFixed(2) + '%' : '-' }}</div>
               <div style="min-width: 120px;">{{ asset.Exchange }}</div>
               <div style="min-width: 120px;">{{ asset.Sector }}</div>
-              <div style="min-width: 120px;">{{ asset.Industry }}</div>
+              <div style="min-width: 200px;">{{ asset.Industry }}</div>
               <div style="min-width: 120px;">{{ asset.Country }}</div>
               <div style="min-width: 100px;">{{ asset.ISIN }}</div>
               <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
               <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
               <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' : Math.floor(asset.PriceToSalesRatioTTM) }}</div>
               <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
-              <div style="min-width: 70px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
+              <div style="min-width: 100px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || asset.DividendYield === 0 || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
               <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
             </div>
             <div class="results2"> 
@@ -1374,6 +1447,7 @@ let showBetaInputs = ref(false);
 let showFundYoYQoQ = ref(false);
 let showPricePerf = ref(false);
 let showRSscore = ref(false);
+let showADV = ref(false);
 let showVolume = ref(false);
 let showDivYieldInputs = ref(false);
 let showIPOInputs = ref(false);
@@ -3449,6 +3523,59 @@ async function SetRSscore(){
   }
 }
 
+// updates screener value with ADV parameters 
+async function SetADV(){
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const value1 = parseFloat(document.getElementById('ADV1Winput1').value).toFixed(2);
+    const value2 = parseFloat(document.getElementById('ADV1Winput2').value).toFixed(2);
+    const value3 = parseFloat(document.getElementById('ADV1Minput1').value).toFixed(2);
+    const value4 = parseFloat(document.getElementById('ADV1Minput2').value).toFixed(2);
+    const value5 = parseFloat(document.getElementById('ADV4Minput1').value).toFixed(2);
+    const value6 = parseFloat(document.getElementById('ADV4Minput2').value).toFixed(2);
+    const value7 = parseFloat(document.getElementById('ADV1Yinput1').value).toFixed(2);
+    const value8 = parseFloat(document.getElementById('ADV1Yinput2').value).toFixed(2);
+
+    const response = await fetch('/api/screener/adv', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        value1: value1,
+        value2: value2,
+        value3: value3,
+        value4: value4,
+        value5: value5,
+        value6: value6,
+        value7: value7,
+        value8: value8,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+      await fetchScreenerResults(selectedScreener.value);
+    } else {
+      throw new Error('Error updating range')
+    }
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
 // updates screener value with price performance parameters 
 async function SetPricePerformance(){
   try {
@@ -3567,6 +3694,10 @@ try {
     let PercOffWeekLow = screenerSettings.PercOffWeekLow
     let changePerc = screenerSettings.changePerc
     let IPO = screenerSettings.IPO
+    let ADV1W = screenerSettings.ADV1W
+    let ADV1M = screenerSettings.ADV1M
+    let ADV4M = screenerSettings.ADV4M
+    let ADV1Y = screenerSettings.ADV1Y
 
             
     showPriceInputs.value = screenerSettings?.Price?.length > 0;
@@ -3603,6 +3734,11 @@ try {
     screenerSettings?.RSScore1W?.length > 0 ||
     screenerSettings?.RSScore1M?.length > 0 || 
     screenerSettings?.RSScore4M?.length > 0;
+    showADV.value = 
+    screenerSettings?.ADV1W?.length > 0 ||
+    screenerSettings?.ADV1M?.length > 0 || 
+    screenerSettings?.ADV1Y?.length > 0 ||
+    screenerSettings?.ADV4M?.length > 0;
     showPricePerf.value = 
     screenerSettings?.MA10?.length > 0 || 
     screenerSettings?.MA20?.length > 0 ||
@@ -3654,6 +3790,14 @@ try {
     document.getElementById('RSscore1Minput2').value = RSScore1M[1];
     document.getElementById('RSscore4Minput1').value = RSScore4M[0];
     document.getElementById('RSscore4Minput2').value = RSScore4M[1];
+    document.getElementById('ADV1Winput1').value = ADV1W[0];
+    document.getElementById('ADV1Winput2').value = ADV1W[1];
+    document.getElementById('ADV1Minput1').value = ADV1M[0];
+    document.getElementById('ADV1Minput2').value = ADV1M[1];
+    document.getElementById('ADV4Minput1').value = ADV4M[0];
+    document.getElementById('ADV4Minput2').value = ADV4M[1];
+    document.getElementById('ADV1Yinput1').value = ADV1Y[0];
+    document.getElementById('ADV1Yinput2').value = ADV1Y[1];
 
     const sectorCheckboxes = document.querySelectorAll('.check input[type="checkbox"]');
 
@@ -3721,6 +3865,7 @@ const valueMap = {
   'Volume': 'Volume',
   'price': 'price',
   'IPO': 'IPO',
+  'ADV': 'ADV'
 };
 
 // function that resets indivudal values for screeners 
@@ -3773,7 +3918,7 @@ async function SummaryScreener() {
       'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'PS', 'ForwardPE', 'PEG', 'EPS', 'PB', 'DivYield',
       'EPSQoQ', 'EPSYoY', 'EarningsQoQ', 'EarningsYoY', 'RevQoQ', 'RevYoY', 'AvgVolume1W', 'AvgVolume1M', 'AvgVolume6M', 'AvgVolume1Y',
       'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W','RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'NewHigh',
-      'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO',
+      'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y',
     ];
 
     const attributeMapping = {
@@ -3805,6 +3950,10 @@ async function SummaryScreener() {
       'PercOffWeekLow': '% Off 52WeekLow',
       'changePerc': 'Change (%)',
       'IPO': 'IPO',
+      'ADV1W': 'ADV (1W)',
+      'ADV1M': 'ADV (1M)',
+      'ADV4M': 'ADV (4M)',
+      'ADV1Y': 'ADV (1Y)',
     };
 
     const valueMapping = {
@@ -4150,7 +4299,7 @@ function handleMouseOut() {
 #main {
   position: relative;
   display: flex;
-  height: 100vh;
+  max-height: 800px;
 }
 
 #filters {
@@ -4166,6 +4315,7 @@ function handleMouseOut() {
   flex: 0 0 50%;
   width: 100vw;
   overflow-x: scroll;
+  max-height: 800px;
 }
 
 #sidebar-r {
@@ -4173,11 +4323,8 @@ function handleMouseOut() {
   top: 0;
   right: 0;
   width: 30%;
-  height: 100vh;
   background-color: $base4;
   z-index: 1000;
-  max-width: 500px;
-  min-width: 400px;
 }
 
 #filters {
@@ -4315,6 +4462,16 @@ function handleMouseOut() {
   background-color: $base2;
   border: none;
   height: 450px;
+  position: relative;
+}
+
+.param-s10-expanded {
+  margin: 3px;
+  padding: 5px;
+  color: $text2;
+  background-color: $base2;
+  border: none;
+  height: 500px;
   position: relative;
 }
 
@@ -4776,10 +4933,10 @@ input:checked+.slider:before {
   border: none;
   display: flex; 
   flex-direction: row; 
-width: 100vw;; 
+  width: 100vw; 
   height: 30px; 
   align-items: center;
-  min-width: 1550px;
+  min-width: 2610px;
 }
 
 .even {
@@ -4788,6 +4945,7 @@ width: 100vw;;
   color: $text1;
   border: none;
   word-break: break-all;
+  min-width: 2610px;
 }
 
 .odd {
@@ -4795,6 +4953,7 @@ width: 100vw;;
   text-align: center;
   color: $text1;
   word-break: break-all;
+  min-width: 2610px;
 }
 
 .even:hover,
@@ -4854,12 +5013,13 @@ width: 100vw;;
   position: relative;
   background-color: $base2;
   width: 100vw;
+  min-width: 2610px;
 }
 
 .title2 {
   position: absolute;
   top: 13%;
-  left: 23%;
+  left: 14%;
   border: none;
 }
 
@@ -4990,7 +5150,6 @@ width: 100vw;;
   text-align: center;
   align-items: center;
   padding: 10px;
-  height: 200px;
   border:none;
 }
 
@@ -4998,7 +5157,6 @@ width: 100vw;;
   background-color: $base1;
   width: 100vw;
   color: $text1;
-  height: 200px;
   border:none;
 }
 
@@ -5023,8 +5181,8 @@ width: 100vw;;
 
 #summary{
   background-color: $base1;
-  height: 140px;
   border: none;
+  min-height: 250px;
 }
 
 .no-border {
@@ -5102,10 +5260,6 @@ width: 100vw;;
 .img3{
   height: 10px;
   width: 10px;
-}
-
-#wlist{
-  outline: none;
 }
 
 .select-container {
@@ -5580,11 +5734,15 @@ input[type="date"]{
 }
 
 #wlist-container{
-  height: 2000px; 
+  height: 3000px; 
   width: 100%; 
-  min-width: 2100px;
+  min-width: 2610px;
   overflow-y: scroll; 
   z-index: 1000;
+}
+
+#wlist{
+  outline: none;
 }
 
 .question-mark-wrapper {

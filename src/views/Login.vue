@@ -504,7 +504,7 @@ async function verifyMfa() {
     height: var(--size-loader);
     position: relative;
     transform: rotate(45deg);
-    margin-top: 10px;
+    margin-top: 12px;
   }
 
   .orbe {
