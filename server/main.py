@@ -45,7 +45,7 @@ def remove_documents_with_timestamp(timestamp_str):
     weekly_collection = db["OHCLVData2"]
     timestamp = dt.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f+00:00')
     weekly_collection.delete_many({'timestamp': timestamp})
-
+'''
 #arranges pictures based on market
 def ArrangeIcons():
     current_dir = os.getcwd()
@@ -74,7 +74,7 @@ def ArrangeIcons():
                 print(f'No document found for {svg_file_name}')
     else:
         print("The 'pictures' folder does not exist.")
-'''
+
 Section for IPOs and monthly update for stocks
 '''
 #updates symbol, name, description, IPO, exchange, sector, industry, location, currency, country
@@ -593,7 +593,7 @@ def updateWeekly():
         except Exception as e:
             print(f"Error updating documents: {e}")
               
-#updates MarketCap, PE, PB, PEG , PS
+#updates MarketCap, PE, PB, PEG , PS, RSI, Gap%
 def updateDailyRatios():
     ohclv_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
@@ -654,6 +654,46 @@ def updateDailyRatios():
                 else:
                     trailing_peg = 0
 
+                # Calculate the Relative Strength Index (RSI)
+                pipeline = [
+                    {'$match': {'tickerID': ticker}},
+                    {'$sort': {'timestamp': -1}},
+                    {'$project': {'_id': 0, 'close': 1}},
+                    {'$limit': 14}
+                ]
+                ohclv_docs = list(ohclv_collection.aggregate(pipeline))
+                if len(ohclv_docs) >= 14:
+                    closing_prices = [doc['close'] for doc in ohclv_docs]
+                    gains = []
+                    losses = []
+                    for i in range(1, len(closing_prices)):
+                        change = closing_prices[i] - closing_prices[i - 1]
+                        if change > 0:
+                            gains.append(change)
+                        else:
+                            losses.append(abs(change))
+                    average_gain = sum(gains) / len(gains)
+                    average_loss = sum(losses) / len(losses)
+                    rs = average_loss == 0 and 0 or average_gain / average_loss
+                    rsi = 100 - (100 / (1 + rs))
+                else:
+                    rsi = 0
+
+                # Calculate the Gap Percentage
+                pipeline = [
+                    {'$match': {'tickerID': ticker}},
+                    {'$sort': {'timestamp': -1}},
+                    {'$project': {'_id': 0, 'close': 1}},
+                    {'$limit': 2}
+                ]
+                ohclv_docs = list(ohclv_collection.aggregate(pipeline))
+                if len(ohclv_docs) >= 2:
+                    current_price = ohclv_docs[0]['close']
+                    previous_price = ohclv_docs[1]['close']
+                    gap_percentage = ((current_price - previous_price) / previous_price) * 100
+                else:
+                    gap_percentage = 0
+
                 # Update the asset info document
                 updates.append(
                     UpdateOne(
@@ -663,7 +703,9 @@ def updateDailyRatios():
                             'PERatio': pe_ratio,
                             'PriceToBookRatio': pb_ratio,
                             'PriceToSalesRatioTTM': ps_ratio,
-                            'PEGRatio': trailing_peg
+                            'PEGRatio': trailing_peg,
+                            'RSI': rsi,
+                            'Gap': gap_percentage
                         }}
                     )
                 )
@@ -1724,11 +1766,11 @@ def update_eps_shares_dividend_date():
 
 '''
 IPO section
-'''
+
 # List of new tickers to insert inside the database
 with open('server/new.txt', 'r') as file:
     tickers = file.read().replace("'", "").split(', ')
-  
+'''  
 def updateSummarySingle(ticker):
     print(f'processing {ticker}')
     url = f'https://api.tiingo.com/tiingo/daily/{ticker}?token={api_key}'
@@ -2043,7 +2085,7 @@ def Daily():
     #checkFinancialUpdates()
 
 #scheduler
-scheduler.add_job(Daily, CronTrigger(hour=17, minute=1, day_of_week='mon-fri', timezone='US/Eastern'))
+scheduler.add_job(Daily, CronTrigger(hour=17, minute=15, day_of_week='mon-fri', timezone='US/Eastern'))
 scheduler.start()
 
 '''
@@ -2152,3 +2194,4 @@ def rename_volatility_fields():
     print(f"Updated {result.modified_count} documents")
     
 rename_volatility_fields()'''
+

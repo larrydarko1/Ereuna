@@ -24,6 +24,7 @@ import {
 } from './validationUtils.js';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
+import { RootNodesUnavailableError } from 'redis';
 
 dotenv.config();
 
@@ -8589,7 +8590,9 @@ app.patch('/reset/screener/param',
       .isIn([
         'price', 'marketCap', 'IPO', 'Sector', 'Exchange', 'Country',
         'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta',
-        'DivYield', 'FundGrowth', 'PricePerformance', 'RSscore', 'Volume', 'ADV',
+        'DivYield', 'FundGrowth', 'PricePerformance', 'RSscore', 'Volume', 'ADV', 'ROE', 'ROA', 'CurrentRatio', 'CurrentAssets',
+        'CurrentLiabilities', 'CurrentDebt', 'CashEquivalents', 'FCF', 'ProfitMargin', 'GrossMargin',
+        'DebtEquity', 'BookValue', 'EV', 'RSI', 'Gap',
       ])
       .withMessage('Invalid parameter to reset')
   ]),
@@ -8724,6 +8727,51 @@ app.patch('/reset/screener/param',
           updateDoc.$unset.ADV4M = '';
           updateDoc.$unset.ADV1Y = '';
           break;
+        case 'ROE':
+          updateDoc.$unset.ROE = '';
+          break;
+        case 'ROA':
+          updateDoc.$unset.ROA = '';
+          break;
+        case 'CurrentRatio':
+          updateDoc.$unset.currentRatio = '';
+          break;
+        case 'CurrentAssets':
+          updateDoc.$unset.assetsCurrent = '';
+          break;
+        case 'CurrentLiabilities':
+          updateDoc.$unset.liabilitiesCurrent = '';
+          break;
+        case 'CurrentDebt':
+          updateDoc.$unset.debtCurrent = '';
+          break;
+        case 'CashEquivalents':
+          updateDoc.$unset.cashAndEq = '';
+          break;
+        case 'FCF':
+          updateDoc.$unset.freeCashFlow = '';
+          break;
+        case 'ProfitMargin':
+          updateDoc.$unset.profitMargin = '';
+          break;
+        case 'GrossMargin':
+          updateDoc.$unset.grossMargin = '';
+          break;
+        case 'DebtEquity':
+          updateDoc.$unset.debtEquity = '';
+          break;
+        case 'BookValue':
+          updateDoc.$unset.bookVal = '';
+          break;
+        case 'EV':
+          updateDoc.$unset.EV = '';
+          break;
+        case 'RSI':
+          updateDoc.$unset.RSI = '';
+          break;
+        case 'Gap':
+          updateDoc.$unset.Gap = '';
+          break;
         default:
           // Log unknown value attempt
           requestLogger.warn('Attempted to reset with unknown parameter', {
@@ -8829,7 +8877,9 @@ app.get('/screener/datavalues/:user/:name',
           EarningsQoQ: 1, EarningsYoY: 1, RevQoQ: 1, RevYoY: 1, AvgVolume1W: 1, AvgVolume1M: 1,
           AvgVolume6M: 1, AvgVolume1Y: 1, RelVolume1W: 1, RelVolume1M: 1, RelVolume6M: 1, RelVolume1Y: 1,
           RSScore1W: 1, RSScore1M: 1, RSScore4M: 1, MA10: 1, MA20: 1, MA50: 1, MA200: 1, NewHigh: 1, NewLow: 1, PercOffWeekHigh: 1,
-          PercOffWeekLow: 1, changePerc: 1, IPO: 1, ADV1W: 1, ADV1M: 1, ADV4M: 1, ADV1Y: 1,
+          PercOffWeekLow: 1, changePerc: 1, IPO: 1, ADV1W: 1, ADV1M: 1, ADV4M: 1, ADV1Y: 1, ROE: 1, ROA: 1, currentRatio: 1,
+          assetsCurrent: 1, liabilitiesCurrent: 1, debtCurrent: 1, cashAndEq: 1, freeCashFlow: 1, profitMargin: 1, grossMargin: 1,
+          debtEquity: 1, bookVal: 1, EV: 1, RSI: 1, Gap: 1,
         };
 
         const cursor = assetInfoCollection.find(query, { projection: projection });
@@ -8896,6 +8946,21 @@ app.get('/screener/datavalues/:user/:name',
           PercOffWeekLow: document.PercOffWeekLow,
           changePerc: document.changePerc,
           IPO: document.IPO,
+          ROE: document.ROE,
+          ROA: document.ROA,
+          currentRatio: document.currentRatio,
+          assetsCurrent: document.assetsCurrent,
+          liabilitiesCurrent: document.liabilitiesCurrent,
+          debtCurrent: document.debtCurrent,
+          cashAndEq: document.cashAndEq,
+          freeCashFlow: document.freeCashFlow,
+          profitMargin: document.profitMargin,
+          grossMargin: document.grossMargin,
+          debtEquity: document.debtEquity,
+          bookVal: document.bookVal,
+          EV: document.EV,
+          RSI: document.RSI,
+          Gap: document.Gap,
         };
 
         res.json(response);
@@ -9159,6 +9224,66 @@ app.get('/screener/:user/results/filtered/:name',
         if (screenerData.changePerc[2] && screenerData.changePerc[2].length > 0) {
           screenerFilters.changePerc[2] = screenerData.changePerc[2];
         }
+      }
+
+      if (screenerData.ROE && screenerData.ROE[0] !== 0 && screenerData.ROE[1] !== 0) {
+        screenerFilters.ROE = screenerData.ROE;
+      }
+
+      if (screenerData.ROA && screenerData.ROA[0] !== 0 && screenerData.ROA[1] !== 0) {
+        screenerFilters.ROA = screenerData.ROA;
+      }
+
+      if (screenerData.currentRatio && screenerData.currentRatio[0] !== 0 && screenerData.currentRatio[1] !== 0) {
+        screenerFilters.currentRatio = screenerData.currentRatio;
+      }
+
+      if (screenerData.assetsCurrent && screenerData.assetsCurrent[0] !== 0 && screenerData.assetsCurrent[1] !== 0) {
+        screenerFilters.assetsCurrent = screenerData.assetsCurrent;
+      }
+
+      if (screenerData.liabilitiesCurrent && screenerData.liabilitiesCurrent[0] !== 0 && screenerData.liabilitiesCurrent[1] !== 0) {
+        screenerFilters.liabilitiesCurrent = screenerData.liabilitiesCurrent;
+      }
+
+      if (screenerData.debtCurrent && screenerData.debtCurrent[0] !== 0 && screenerData.debtCurrent[1] !== 0) {
+        screenerFilters.debtCurrent = screenerData.debtCurrent;
+      }
+
+      if (screenerData.cashAndEq && screenerData.cashAndEq[0] !== 0 && screenerData.cashAndEq[1] !== 0) {
+        screenerFilters.cashAndEq = screenerData.cashAndEq;
+      }
+
+      if (screenerData.freeCashFlow && screenerData.freeCashFlow[0] !== 0 && screenerData.freeCashFlow[1] !== 0) {
+        screenerFilters.freeCashFlow = screenerData.freeCashFlow;
+      }
+
+      if (screenerData.profitMargin && screenerData.profitMargin[0] !== 0 && screenerData.profitMargin[1] !== 0) {
+        screenerFilters.profitMargin = screenerData.profitMargin;
+      }
+
+      if (screenerData.grossMargin && screenerData.grossMargin[0] !== 0 && screenerData.grossMargin[1] !== 0) {
+        screenerFilters.grossMargin = screenerData.grossMargin;
+      }
+
+      if (screenerData.debtEquity && screenerData.debtEquity[0] !== 0 && screenerData.debtEquity[1] !== 0) {
+        screenerFilters.debtEquity = screenerData.debtEquity;
+      }
+
+      if (screenerData.bookVal && screenerData.bookVal[0] !== 0 && screenerData.bookVal[1] !== 0) {
+        screenerFilters.bookVal = screenerData.bookVal;
+      }
+
+      if (screenerData.EV && screenerData.EV[0] !== 0 && screenerData.EV[1] !== 0) {
+        screenerFilters.EV = screenerData.EV;
+      }
+
+      if (screenerData.RSI && screenerData.RSI[0] !== 0 && screenerData.RSI[1] !== 0) {
+        screenerFilters.RSI = screenerData.RSI;
+      }
+
+      if (screenerData.Gap && screenerData.Gap[0] !== 0 && screenerData.Gap[1] !== 0) {
+        screenerFilters.Gap = screenerData.Gap;
       }
 
       // Filter the AssetInfo collection 
@@ -9558,6 +9683,96 @@ app.get('/screener/:user/results/filtered/:name',
               };
             }
             break;
+          case 'ROE':
+            query['quarterlyFinancials.0.roe'] = {
+              $gt: screenerFilters.ROE[0],
+              $lt: screenerFilters.ROE[1]
+            };
+            break;
+          case 'ROA':
+            query['quarterlyFinancials.0.roa'] = {
+              $gt: screenerFilters.ROA[0],
+              $lt: screenerFilters.ROA[1]
+            };
+            break;
+          case 'currentRatio':
+            query['quarterlyFinancials.0.currentRatio'] = {
+              $gt: screenerFilters.currentRatio[0],
+              $lt: screenerFilters.currentRatio[1]
+            };
+            break;
+          case 'assetsCurrent':
+            query['quarterlyFinancials.0.assetsCurrent'] = {
+              $gt: screenerFilters.assetsCurrent[0],
+              $lt: screenerFilters.assetsCurrent[1]
+            };
+            break;
+          case 'liabilitiesCurrent':
+            query['quarterlyFinancials.0.liabilitiesCurrent'] = {
+              $gt: screenerFilters.liabilitiesCurrent[0],
+              $lt: screenerFilters.liabilitiesCurrent[1]
+            };
+            break;
+          case 'debtCurrent':
+            query['quarterlyFinancials.0.debtCurrent'] = {
+              $gt: screenerFilters.debtCurrent[0],
+              $lt: screenerFilters.debtCurrent[1]
+            };
+            break;
+          case 'cashAndEq':
+            query['quarterlyFinancials.0.cashAndEq'] = {
+              $gt: screenerFilters.cashAndEq[0],
+              $lt: screenerFilters.cashAndEq[1]
+            };
+            break;
+          case 'freeCashFlow':
+            query['quarterlyFinancials.0.freeCashFlow'] = {
+              $gt: screenerFilters.freeCashFlow[0],
+              $lt: screenerFilters.freeCashFlow[1]
+            };
+            break;
+          case 'profitMargin':
+            query['quarterlyFinancials.0.profitMargin'] = {
+              $gt: screenerFilters.profitMargin[0],
+              $lt: screenerFilters.profitMargin[1]
+            };
+            break;
+          case 'grossMargin':
+            query['quarterlyFinancials.0.grossMargin'] = {
+              $gt: screenerFilters.grossMargin[0],
+              $lt: screenerFilters.grossMargin[1]
+            };
+            break;
+          case 'debtEquity':
+            query['quarterlyFinancials.0.debtEquity'] = {
+              $gt: screenerFilters.debtEquity[0],
+              $lt: screenerFilters.debtEquity[1]
+            };
+            break;
+          case 'bookVal':
+            query['quarterlyFinancials.0.bookVal'] = {
+              $gt: screenerFilters.bookVal[0],
+              $lt: screenerFilters.bookVal[1]
+            };
+            break;
+          case 'EV':
+            query.EV = {
+              $gt: screenerFilters.EV[0],
+              $lt: screenerFilters.EV[1]
+            };
+            break;
+          case 'RSI':
+            query.RSI = {
+              $gt: screenerFilters.RSI[0],
+              $lt: screenerFilters.RSI[1]
+            };
+            break;
+          case 'Gap':
+            query.Gap = {
+              $gt: screenerFilters.Gap[0],
+              $lt: screenerFilters.Gap[1]
+            };
+            break;
           default:
             break;
         }
@@ -9693,7 +9908,9 @@ app.get('/screener/summary/:usernameID/:name',
           'EPSQoQ', 'EPSYoY', 'EarningsQoQ', 'EarningsYoY', 'RevQoQ', 'RevYoY', 'changePerc', 'PercOffWeekHigh', 'PercOffWeekLow',
           'NewHigh', 'NewLow', 'MA10', 'MA20', 'MA50', 'MA200', 'RSScore1W', 'RSScore1M', 'RSScore4M', 'AvgVolume1W', 'RelVolume1W',
           'AvgVolume1M', 'RelVolume1M', 'AvgVolume6M', 'RelVolume6M', 'AvgVolume1Y', 'RelVolume1Y', '1mchange', '1ychange', '4mchange',
-          '6mchange', 'todaychange', 'weekchange', 'ytdchange', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y',
+          '6mchange', 'todaychange', 'weekchange', 'ytdchange', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio',
+          'assetsCurrent', 'liabilitiesCurrent', 'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin', 'debtEquity', 'bookVal', 'EV',
+          'RSI', 'Gap'
         ];
 
         const filteredData = attributes.reduce((acc, attribute) => {
@@ -9987,6 +10204,66 @@ app.get('/screener/:usernameID/all',
             if (screenerData.changePerc[2] && screenerData.changePerc[2].length > 0) {
               screenerFilters.changePerc[2] = screenerData.changePerc[2];
             }
+          }
+
+          if (screenerData.ROE && screenerData.ROE[0] !== 0 && screenerData.ROE[1] !== 0) {
+            screenerFilters.ROE = screenerData.ROE;
+          }
+
+          if (screenerData.ROA && screenerData.ROA[0] !== 0 && screenerData.ROA[1] !== 0) {
+            screenerFilters.ROA = screenerData.ROA;
+          }
+
+          if (screenerData.currentRatio && screenerData.currentRatio[0] !== 0 && screenerData.currentRatio[1] !== 0) {
+            screenerFilters.currentRatio = screenerData.currentRatio;
+          }
+
+          if (screenerData.assetsCurrent && screenerData.assetsCurrent[0] !== 0 && screenerData.assetsCurrent[1] !== 0) {
+            screenerFilters.assetsCurrent = screenerData.assetsCurrent;
+          }
+
+          if (screenerData.liabilitiesCurrent && screenerData.liabilitiesCurrent[0] !== 0 && screenerData.liabilitiesCurrent[1] !== 0) {
+            screenerFilters.liabilitiesCurrent = screenerData.liabilitiesCurrent;
+          }
+
+          if (screenerData.debtCurrent && screenerData.debtCurrent[0] !== 0 && screenerData.debtCurrent[1] !== 0) {
+            screenerFilters.debtCurrent = screenerData.debtCurrent;
+          }
+
+          if (screenerData.cashAndEq && screenerData.cashAndEq[0] !== 0 && screenerData.cashAndEq[1] !== 0) {
+            screenerFilters.cashAndEq = screenerData.cashAndEq;
+          }
+
+          if (screenerData.freeCashFlow && screenerData.freeCashFlow[0] !== 0 && screenerData.freeCashFlow[1] !== 0) {
+            screenerFilters.freeCashFlow = screenerData.freeCashFlow;
+          }
+
+          if (screenerData.profitMargin && screenerData.profitMargin[0] !== 0 && screenerData.profitMargin[1] !== 0) {
+            screenerFilters.profitMargin = screenerData.profitMargin;
+          }
+
+          if (screenerData.grossMargin && screenerData.grossMargin[0] !== 0 && screenerData.grossMargin[1] !== 0) {
+            screenerFilters.grossMargin = screenerData.grossMargin;
+          }
+
+          if (screenerData.debtEquity && screenerData.debtEquity[0] !== 0 && screenerData.debtEquity[1] !== 0) {
+            screenerFilters.debtEquity = screenerData.debtEquity;
+          }
+
+          if (screenerData.bookVal && screenerData.bookVal[0] !== 0 && screenerData.bookVal[1] !== 0) {
+            screenerFilters.bookVal = screenerData.bookVal;
+          }
+
+          if (screenerData.EV && screenerData.EV[0] !== 0 && screenerData.EV[1] !== 0) {
+            screenerFilters.EV = screenerData.EV;
+          }
+
+          if (screenerData.RSI && screenerData.RSI[0] !== 0 && screenerData.RSI[1] !== 0) {
+            screenerFilters.RSI = screenerData.RSI;
+          }
+
+          if (screenerData.Gap && screenerData.Gap[0] !== 0 && screenerData.Gap[1] !== 0) {
+            screenerFilters.Gap = screenerData.Gap;
           }
 
           Object.keys(screenerFilters).forEach((key) => {
@@ -10379,6 +10656,96 @@ app.get('/screener/:usernameID/all',
                     $lt: ["$MA10", "$MA20"]
                   };
                 }
+                break;
+              case 'ROE':
+                query['quarterlyFinancials.0.roe'] = {
+                  $gt: screenerFilters.ROE[0],
+                  $lt: screenerFilters.ROE[1]
+                };
+                break;
+              case 'ROA':
+                query['quarterlyFinancials.0.roa'] = {
+                  $gt: screenerFilters.ROA[0],
+                  $lt: screenerFilters.ROA[1]
+                };
+                break;
+              case 'currentRatio':
+                query['quarterlyFinancials.0.currentRatio'] = {
+                  $gt: screenerFilters.currentRatio[0],
+                  $lt: screenerFilters.currentRatio[1]
+                };
+                break;
+              case 'assetsCurrent':
+                query['quarterlyFinancials.0.assetsCurrent'] = {
+                  $gt: screenerFilters.assetsCurrent[0],
+                  $lt: screenerFilters.assetsCurrent[1]
+                };
+                break;
+              case 'liabilitiesCurrent':
+                query['quarterlyFinancials.0.liabilitiesCurrent'] = {
+                  $gt: screenerFilters.liabilitiesCurrent[0],
+                  $lt: screenerFilters.liabilitiesCurrent[1]
+                };
+                break;
+              case 'debtCurrent':
+                query['quarterlyFinancials.0.debtCurrent'] = {
+                  $gt: screenerFilters.debtCurrent[0],
+                  $lt: screenerFilters.debtCurrent[1]
+                };
+                break;
+              case 'cashAndEq':
+                query['quarterlyFinancials.0.cashAndEq'] = {
+                  $gt: screenerFilters.cashAndEq[0],
+                  $lt: screenerFilters.cashAndEq[1]
+                };
+                break;
+              case 'freeCashFlow':
+                query['quarterlyFinancials.0.freeCashFlow'] = {
+                  $gt: screenerFilters.freeCashFlow[0],
+                  $lt: screenerFilters.freeCashFlow[1]
+                };
+                break;
+              case 'profitMargin':
+                query['quarterlyFinancials.0.profitMargin'] = {
+                  $gt: screenerFilters.profitMargin[0],
+                  $lt: screenerFilters.profitMargin[1]
+                };
+                break;
+              case 'grossMargin':
+                query['quarterlyFinancials.0.grossMargin'] = {
+                  $gt: screenerFilters.grossMargin[0],
+                  $lt: screenerFilters.grossMargin[1]
+                };
+                break;
+              case 'debtEquity':
+                query['quarterlyFinancials.0.debtEquity'] = {
+                  $gt: screenerFilters.debtEquity[0],
+                  $lt: screenerFilters.debtEquity[1]
+                };
+                break;
+              case 'bookVal':
+                query['quarterlyFinancials.0.bookVal'] = {
+                  $gt: screenerFilters.bookVal[0],
+                  $lt: screenerFilters.bookVal[1]
+                };
+                break;
+              case 'EV':
+                query.EV = {
+                  $gt: screenerFilters.EV[0],
+                  $lt: screenerFilters.EV[1]
+                };
+                break;
+              case 'RSI':
+                query.RSI = {
+                  $gt: screenerFilters.RSI[0],
+                  $lt: screenerFilters.RSI[1]
+                };
+                break;
+              case 'Gap':
+                query.Gap = {
+                  $gt: screenerFilters.Gap[0],
+                  $lt: screenerFilters.Gap[1]
+                };
                 break;
               default:
                 break;
@@ -11769,3 +12136,2481 @@ app.get('/markets',
     }
   }
 );
+
+// endpoint that updates screener document with ROE parameters
+app.patch('/screener/roe', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minROE, maxROE, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minROE = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxROE = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minROE) && isNaN(maxROE)) {
+        return res.status(400).json({ message: 'Both min ROE and max ROE cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minROE to minimum ROE if it is not provided
+        if (isNaN(minROE) && !isNaN(maxROE)) {
+          const minROEDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                roe: { $ifNull: [{ $first: "$quarterlyFinancials.roe" }, null] },
+              },
+            },
+            {
+              $match: { roe: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                minROE: { $min: "$roe" },
+              },
+            },
+          ]).toArray();
+
+          if (minROEDoc.length > 0) {
+            minROE = minROEDoc[0].minROE;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine minimum ROE' });
+          }
+        }
+
+        // If maxROE is empty, find the highest ROE excluding 'None'
+        if (isNaN(maxROE) && !isNaN(minROE)) {
+          const maxROEDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                roe: { $ifNull: [{ $first: "$quarterlyFinancials.roe" }, null] },
+              },
+            },
+            {
+              $match: { roe: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                maxROE: { $max: "$roe" },
+              },
+            },
+          ]).toArray();
+
+          if (maxROEDoc.length > 0) {
+            maxROE = maxROEDoc[0].maxROE;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum ROE' });
+          }
+        }
+
+        // Ensure minROE is less than maxROE
+        if (minROE >= maxROE) {
+          return res.status(400).json({ message: 'Min ROE cannot be higher than or equal to max ROE' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { ROE: [minROE, maxROE] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        res.json({
+          message: 'ROE range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('ROE Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/roa', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minROA, maxROA, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minROA = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxROA = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minROA) && isNaN(maxROA)) {
+        return res.status(400).json({ message: 'Both min ROA and max ROA cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minROA to minimum ROA if it is not provided
+        if (isNaN(minROA) && !isNaN(maxROA)) {
+          const minROADoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                roa: { $ifNull: [{ $first: "$quarterlyFinancials.roa" }, null] },
+              },
+            },
+            {
+              $match: { roa: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                minROA: { $min: "$roa" },
+              },
+            },
+          ]).toArray();
+
+          if (minROADoc.length > 0) {
+            minROA = minROADoc[0].minROA;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine minimum ROA' });
+          }
+        }
+
+        // If maxROA is empty, find the highest ROA excluding 'None'
+        if (isNaN(maxROA) && !isNaN(minROA)) {
+          const maxROADoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                roa: { $ifNull: [{ $first: "$quarterlyFinancials.roa" }, null] },
+              },
+            },
+            {
+              $match: { roa: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                maxROA: { $max: "$roa" },
+              },
+            },
+          ]).toArray();
+
+          if (maxROADoc.length > 0) {
+            maxROA = maxROADoc[0].maxROA;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum ROA' });
+          }
+        }
+
+        // Ensure minROA is less than maxROA
+        if (minROA >= maxROA) {
+          return res.status(400).json({ message: 'Min ROA cannot be higher than or equal to max ROA' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { ROA: [minROA, maxROA] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        res.json({
+          message: 'ROA range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('ROA Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/current-ratio', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minCurrentRatio, maxCurrentRatio, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minCurrentRatio = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxCurrentRatio = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minCurrentRatio) && isNaN(maxCurrentRatio)) {
+        return res.status(400).json({ message: 'Both min Current Ratio and max Current Ratio cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minCurrentRatio to minimum Current Ratio if it is not provided
+        if (isNaN(minCurrentRatio) && !isNaN(maxCurrentRatio)) {
+          const minCurrentRatioDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                currentRatio: { $ifNull: [{ $first: "$quarterlyFinancials.currentRatio" }, null] },
+              },
+            },
+            {
+              $match: { currentRatio: { $ne: NaN } },
+            },
+            {
+              $group: {
+                _id: null,
+                minCurrentRatio: { $min: "$currentRatio" },
+              },
+            },
+          ]).toArray();
+
+          if (minCurrentRatioDoc.length > 0) {
+            minCurrentRatio = minCurrentRatioDoc[0].minCurrentRatio;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine minimum Current Ratio' });
+          }
+        }
+
+        // If maxCurrentRatio is empty, find the highest Current Ratio excluding 'None'
+        if (isNaN(maxCurrentRatio) && !isNaN(minCurrentRatio)) {
+          const maxCurrentRatioDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                currentRatio: { $ifNull: [{ $first: "$quarterlyFinancials.currentRatio" }, null] },
+              },
+            },
+            {
+              $match: { currentRatio: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                maxCurrentRatio: { $max: "$currentRatio" },
+              },
+            },
+          ]).toArray();
+
+          if (maxCurrentRatioDoc.length > 0) {
+            maxCurrentRatio = maxCurrentRatioDoc[0].maxCurrentRatio;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum Current Ratio' });
+          }
+        }
+
+        // Ensure minCurrentRatio is less than maxCurrentRatio
+        if (minCurrentRatio >= maxCurrentRatio) {
+          return res.status(400).json({ message: 'Min Current Ratio cannot be higher than or equal to max Current Ratio' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { currentRatio: [minCurrentRatio, maxCurrentRatio] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        res.json({
+          message: 'Current Ratio range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Current Ratio Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/current-assets', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minCurrentAssets, maxCurrentAssets, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minCurrentAssets = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) * 1000 : NaN;
+      maxCurrentAssets = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) * 1000 : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minCurrentAssets) && isNaN(maxCurrentAssets)) {
+        return res.status(400).json({ message: 'Both min Current Assets and max Current Assets cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minCurrentAssets to minimum Current Assets if it is not provided
+        if (isNaN(minCurrentAssets) && !isNaN(maxCurrentAssets)) {
+          const minCurrentAssetsDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                assetsCurrent: { $ifNull: [{ $first: "$quarterlyFinancials.assetsCurrent" }, null] },
+              },
+            },
+            {
+              $match: { assetsCurrent: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                minCurrentAssets: { $min: "$assetsCurrent" },
+              },
+            },
+          ]).toArray();
+
+          if (minCurrentAssetsDoc.length > 0) {
+            minCurrentAssets = minCurrentAssetsDoc[0].minCurrentAssets;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine minimum Current Assets' });
+          }
+        }
+
+        // If maxCurrentAssets is empty, find the highest Current Assets excluding 'None'
+        if (isNaN(maxCurrentAssets) && !isNaN(minCurrentAssets)) {
+          const maxCurrentAssetsDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                assetsCurrent: { $ifNull: [{ $first: "$quarterlyFinancials.assetsCurrent" }, null] },
+              },
+            },
+            {
+              $match: { assetsCurrent: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                maxCurrentAssets: { $max: "$assetsCurrent" },
+              },
+            },
+          ]).toArray();
+
+          if (maxCurrentAssetsDoc.length > 0) {
+            maxCurrentAssets = maxCurrentAssetsDoc[0].maxCurrentAssets;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum Current Assets' });
+          }
+        }
+
+        // Ensure minCurrentAssets is less than maxCurrentAssets
+        if (minCurrentAssets >= maxCurrentAssets) {
+          return res.status(400).json({ message: 'Min Current Assets cannot be higher than or equal to max Current Assets' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { assetsCurrent: [minCurrentAssets, maxCurrentAssets] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        res.json({
+          message: 'Current Assets range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Current Assets Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/current-liabilities', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minCurrentLiabilities, maxCurrentLiabilities, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minCurrentLiabilities = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) * 1000 : NaN;
+      maxCurrentLiabilities = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) * 1000 : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minCurrentLiabilities) && isNaN(maxCurrentLiabilities)) {
+        return res.status(400).json({ message: 'Both min Current Liabilities and max Current Liabilities cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minCurrentLiabilities to minimum Current Liabilities if it is not provided
+        if (isNaN(minCurrentLiabilities) && !isNaN(maxCurrentLiabilities)) {
+          const minCurrentLiabilitiesDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                liabilitiesCurrent: { $ifNull: [{ $first: "$quarterlyFinancials.liabilitiesCurrent" }, null] },
+              },
+            },
+            {
+              $match: { liabilitiesCurrent: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                minCurrentLiabilities: { $min: "$liabilitiesCurrent" },
+              },
+            },
+          ]).toArray();
+
+          if (minCurrentLiabilitiesDoc.length > 0) {
+            minCurrentLiabilities = minCurrentLiabilitiesDoc[0].minCurrentLiabilities;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine minimum Current Liabilities' });
+          }
+        }
+
+        // If maxCurrentLiabilities is empty, find the highest Current Liabilities excluding 'None'
+        if (isNaN(maxCurrentLiabilities) && !isNaN(minCurrentLiabilities)) {
+          const maxCurrentLiabilitiesDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                liabilitiesCurrent: { $ifNull: [{ $first: "$quarterlyFinancials.liabilitiesCurrent" }, null] },
+              },
+            },
+            {
+              $match: { liabilitiesCurrent: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                maxCurrentLiabilities: { $max: "$liabilitiesCurrent" },
+              },
+            },
+          ]).toArray();
+
+          if (maxCurrentLiabilitiesDoc.length > 0) {
+            maxCurrentLiabilities = maxCurrentLiabilitiesDoc[0].maxCurrentLiabilities;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum Current Liabilities' });
+          }
+        }
+
+        // Ensure minCurrentLiabilities is less than maxCurrentLiabilities
+        if (minCurrentLiabilities >= maxCurrentLiabilities) {
+          return res.status(400).json({ message: 'Min Current Liabilities cannot be higher than or equal to max Current Liabilities' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { liabilitiesCurrent: [minCurrentLiabilities, maxCurrentLiabilities] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        res.json({
+          message: 'Current Liabilities range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Current Liabilities Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/current-debt', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minCurrentDebt, maxCurrentDebt, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minCurrentDebt = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) * 1000 : NaN;
+      maxCurrentDebt = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) * 1000 : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minCurrentDebt) && isNaN(maxCurrentDebt)) {
+        return res.status(400).json({ message: 'Both min Current Debt and max Current Debt cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minCurrentDebt to minimum Current Debt if it is not provided
+        if (isNaN(minCurrentDebt) && !isNaN(maxCurrentDebt)) {
+          const minCurrentDebtDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                debtCurrent: { $ifNull: [{ $first: "$quarterlyFinancials.debtCurrent" }, null] },
+              },
+            },
+            {
+              $match: { debtCurrent: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                minCurrentDebt: { $min: "$debtCurrent" },
+              },
+            },
+          ]).toArray();
+
+          if (minCurrentDebtDoc.length > 0) {
+            minCurrentDebt = minCurrentDebtDoc[0].minCurrentDebt;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine minimum Current Debt' });
+          }
+        }
+
+        // If maxCurrentDebt is empty, find the highest Current Debt excluding 'None'
+        if (isNaN(maxCurrentDebt) && !isNaN(minCurrentDebt)) {
+          const maxCurrentDebtDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                debtCurrent: { $ifNull: [{ $first: "$quarterlyFinancials.debtCurrent" }, null] },
+              },
+            },
+            {
+              $match: { debtCurrent: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                maxCurrentDebt: { $max: "$debtCurrent" },
+              },
+            },
+          ]).toArray();
+
+          if (maxCurrentDebtDoc.length > 0) {
+            maxCurrentDebt = maxCurrentDebtDoc[0].maxCurrentDebt;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum Current Debt' });
+          }
+        }
+
+        // Ensure minCurrentDebt is less than maxCurrentDebt
+        if (minCurrentDebt >= maxCurrentDebt) {
+          return res.status(400).json({ message: 'Min Current Debt cannot be higher than or equal to max Current Debt' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { debtCurrent: [minCurrentDebt, maxCurrentDebt] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        res.json({
+          message: 'Current Debt range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Current Debt Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/cash-equivalents', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minCashEquivalents, maxCashEquivalents, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minCashEquivalents = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) * 1000 : NaN;
+      maxCashEquivalents = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) * 1000 : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minCashEquivalents) && isNaN(maxCashEquivalents)) {
+        return res.status(400).json({ message: 'Both min Cash Equivalents and max Cash Equivalents cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minCashEquivalents to minimum Cash Equivalents if it is not provided
+        if (isNaN(minCashEquivalents) && !isNaN(maxCashEquivalents)) {
+          const minCashEquivalentsDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                cashAndEq: { $ifNull: [{ $first: "$quarterlyFinancials.cashAndEq" }, null] },
+              },
+            },
+            {
+              $match: { cashAndEq: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                minCashEquivalents: { $min: "$cashAndEq" },
+              },
+            },
+          ]).toArray();
+
+          if (minCashEquivalentsDoc.length > 0) {
+            minCashEquivalents = minCashEquivalentsDoc[0].minCashEquivalents;
+            if (minCashEquivalents === 0) {
+              minCashEquivalents = 0.001; // Set minimum value to 0.001 if it's 0
+            }
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine minimum Cash Equivalents' });
+          }
+        }
+
+        // If maxCashEquivalents is empty, find the highest Cash Equivalents excluding 'None'
+        if (isNaN(maxCashEquivalents) && !isNaN(minCashEquivalents)) {
+          const maxCashEquivalentsDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                cashAndEq: { $ifNull: [{ $first: "$quarterlyFinancials.cashAndEq" }, null] },
+              },
+            },
+            {
+              $match: { cashAndEq: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                maxCashEquivalents: { $max: "$cashAndEq" },
+              },
+            },
+          ]).toArray();
+
+          if (maxCashEquivalentsDoc.length > 0) {
+            maxCashEquivalents = maxCashEquivalentsDoc[0].maxCashEquivalents;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum Cash Equivalents' });
+          }
+        }
+
+        // Ensure minCashEquivalents is less than maxCashEquivalents
+        if (minCashEquivalents >= maxCashEquivalents) {
+          return res.status(400).json({ message: 'Min Cash Equivalents cannot be higher than or equal to max Cash Equivalents' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { cashAndEq: [minCashEquivalents, maxCashEquivalents] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        res.json({
+          message: 'Cash Equivalents range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Cash Equivalents Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/free-cash-flow', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minFreeCashFlow, maxFreeCashFlow, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minFreeCashFlow = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) * 1000 : NaN;
+      maxFreeCashFlow = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) * 1000 : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minFreeCashFlow) && isNaN(maxFreeCashFlow)) {
+        return res.status(400).json({ message: 'Both min Free Cash Flow and max Free Cash Flow cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minFreeCashFlow to minimum Free Cash Flow if it is not provided
+        if (isNaN(minFreeCashFlow) && !isNaN(maxFreeCashFlow)) {
+          const minFreeCashFlowDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                freeCashFlow: { $ifNull: [{ $first: "$quarterlyFinancials.freeCashFlow" }, null] },
+              },
+            },
+            {
+              $match: { freeCashFlow: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                minFreeCashFlow: { $min: "$freeCashFlow" },
+              },
+            },
+          ]).toArray();
+
+          if (minFreeCashFlowDoc.length > 0) {
+            minFreeCashFlow = minFreeCashFlowDoc[0].minFreeCashFlow;
+            if (minFreeCashFlow === 0) {
+              minFreeCashFlow = 0.001; // Set minimum value to 0.001 if it's 0
+            }
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine minimum Free Cash Flow' });
+          }
+        }
+
+        // If maxFreeCashFlow is empty, find the highest Free Cash Flow excluding 'None'
+        if (isNaN(maxFreeCashFlow) && !isNaN(minFreeCashFlow)) {
+          const maxFreeCashFlowDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                freeCashFlow: { $ifNull: [{ $first: "$quarterlyFinancials.freeCashFlow" }, null] },
+              },
+            },
+            {
+              $match: { freeCashFlow: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                maxFreeCashFlow: { $max: "$freeCashFlow" },
+              },
+            },
+          ]).toArray();
+
+          if (maxFreeCashFlowDoc.length > 0) {
+            maxFreeCashFlow = maxFreeCashFlowDoc[0].maxFreeCashFlow;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum Free Cash Flow' });
+          }
+        }
+
+        // Ensure minFreeCashFlow is less than maxFreeCashFlow
+        if (minFreeCashFlow >= maxFreeCashFlow) {
+          return res.status(400).json({ message: 'Min Free Cash Flow cannot be higher than or equal to max Free Cash Flow' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { freeCashFlow: [minFreeCashFlow, maxFreeCashFlow] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        res.json({
+          message: 'Free Cash Flow range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Free Cash Flow Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/profit-margin', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minProfitMargin, maxProfitMargin, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minProfitMargin = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxProfitMargin = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minProfitMargin) && isNaN(maxProfitMargin)) {
+        return res.status(400).json({ message: 'Both min Profit Margin and max Profit Margin cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minProfitMargin to minimum Profit Margin if it is not provided
+        if (isNaN(minProfitMargin) && !isNaN(maxProfitMargin)) {
+          const minProfitMarginDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                profitMargin: { $ifNull: [{ $first: "$quarterlyFinancials.profitMargin" }, null] },
+              },
+            },
+            {
+              $match: { profitMargin: { $ne: NaN } },
+            },
+            {
+              $group: {
+                _id: null,
+                minProfitMargin: { $min: "$profitMargin" },
+              },
+            },
+          ]).toArray();
+
+          if (minProfitMarginDoc.length > 0) {
+            minProfitMargin = minProfitMarginDoc[0].minProfitMargin;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine minimum Profit Margin' });
+          }
+        }
+
+        // If maxProfitMargin is empty, find the highest Profit Margin excluding 'None'
+        if (isNaN(maxProfitMargin) && !isNaN(minProfitMargin)) {
+          const maxProfitMarginDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                profitMargin: { $ifNull: [{ $first: "$quarterlyFinancials.profitMargin" }, null] },
+              },
+            },
+            {
+              $match: { profitMargin: { $ne: NaN } },
+            },
+            {
+              $group: {
+                _id: null,
+                maxProfitMargin: { $max: "$profitMargin" },
+              },
+            },
+          ]).toArray();
+
+          if (maxProfitMarginDoc.length > 0) {
+            maxProfitMargin = maxProfitMarginDoc[0].maxProfitMargin;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum Profit Margin' });
+          }
+        }
+
+        // Ensure minProfitMargin is less than maxProfitMargin
+        if (minProfitMargin >= maxProfitMargin) {
+          return res.status(400).json({ message: 'Min Profit Margin cannot be higher than or equal to max Profit Margin' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { profitMargin: [minProfitMargin, maxProfitMargin] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        res.json({
+          message: 'Profit Margin range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Profit Margin Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/gross-margin', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minGrossMargin, maxGrossMargin, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minGrossMargin = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxGrossMargin = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minGrossMargin) && isNaN(maxGrossMargin)) {
+        return res.status(400).json({ message: 'Both min Gross Margin and max Gross Margin cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minGrossMargin to minimum Gross Margin if it is not provided
+        if (isNaN(minGrossMargin) && !isNaN(maxGrossMargin)) {
+          const minGrossMarginDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                grossMargin: { $ifNull: [{ $first: "$quarterlyFinancials.grossMargin" }, null] },
+              },
+            },
+            {
+              $match: { grossMargin: { $ne: NaN } },
+            },
+            {
+              $group: {
+                _id: null,
+                minGrossMargin: { $min: "$grossMargin" },
+              },
+            },
+          ]).toArray();
+
+          if (minGrossMarginDoc.length > 0) {
+            minGrossMargin = minGrossMarginDoc[0].minGrossMargin;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine minimum Gross Margin' });
+          }
+        }
+
+        // If maxGrossMargin is empty, find the highest Gross Margin excluding 'None'
+        if (isNaN(maxGrossMargin) && !isNaN(minGrossMargin)) {
+          const maxGrossMarginDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                grossMargin: { $ifNull: [{ $first: "$quarterlyFinancials.grossMargin" }, null] },
+              },
+            },
+            {
+              $match: { grossMargin: { $ne: NaN } },
+            },
+            {
+              $group: {
+                _id: null,
+                maxGrossMargin: { $max: "$grossMargin" },
+              },
+            },
+          ]).toArray();
+
+          if (maxGrossMarginDoc.length > 0) {
+            maxGrossMargin = maxGrossMarginDoc[0].maxGrossMargin;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum Gross Margin' });
+          }
+        }
+
+        // Ensure minGrossMargin is less than maxGrossMargin
+        if (minGrossMargin >= maxGrossMargin) {
+          return res.status(400).json({ message: 'Min Gross Margin cannot be higher than or equal to max Gross Margin' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { grossMargin: [minGrossMargin, maxGrossMargin] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        res.json({
+          message: 'Gross Margin range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Gross Margin Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/debt-to-equity-ratio', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minDebtToEquityRatio, maxDebtToEquityRatio, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minDebtToEquityRatio = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxDebtToEquityRatio = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minDebtToEquityRatio) && isNaN(maxDebtToEquityRatio)) {
+        return res.status(400).json({ message: 'Both min Debt to Equity Ratio and max Debt to Equity Ratio cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minDebtToEquityRatio to minimum Debt to Equity Ratio if it is not provided
+        if (isNaN(minDebtToEquityRatio) && !isNaN(maxDebtToEquityRatio)) {
+          const minDebtToEquityRatioDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                debtEquity: { $ifNull: [{ $first: "$quarterlyFinancials.debtEquity" }, null] },
+              },
+            },
+            {
+              $match: { debtEquity: { $ne: NaN } },
+            },
+            {
+              $group: {
+                _id: null,
+                minDebtToEquityRatio: { $min: "$debtEquity" },
+              },
+            },
+          ]).toArray();
+
+          if (minDebtToEquityRatioDoc.length > 0) {
+            minDebtToEquityRatio = minDebtToEquityRatioDoc[0].minDebtToEquityRatio;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine minimum Debt to Equity Ratio' });
+          }
+        }
+
+        // If maxDebtToEquityRatio is empty, find the highest Debt to Equity Ratio excluding 'None'
+        if (isNaN(maxDebtToEquityRatio) && !isNaN(minDebtToEquityRatio)) {
+          const maxDebtToEquityRatioDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                debtEquity: { $ifNull: [{ $first: "$quarterlyFinancials.debtEquity" }, null] },
+              },
+            },
+            {
+              $match: { debtEquity: { $ne: NaN } },
+            },
+            {
+              $group: {
+                _id: null,
+                maxDebtToEquityRatio: { $max: "$debtEquity" },
+              },
+            },
+          ]).toArray();
+
+          if (maxDebtToEquityRatioDoc.length > 0) {
+            maxDebtToEquityRatio = maxDebtToEquityRatioDoc[0].maxDebtToEquityRatio;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum Debt to Equity Ratio' });
+          }
+        }
+
+        // Ensure minDebtToEquityRatio is less than maxDebtToEquityRatio
+        if (minDebtToEquityRatio >= maxDebtToEquityRatio) {
+          return res.status(400).json({ message: 'Min Debt to Equity Ratio cannot be higher than or equal to max Debt to Equity Ratio' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { debtEquity: [minDebtToEquityRatio, maxDebtToEquityRatio] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        res.json({
+          message: 'Debt to Equity Ratio range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Debt to Equity Ratio Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/book-value', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minBookValue, maxBookValue, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minBookValue = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) * 1000 : NaN;
+      maxBookValue = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) * 1000 : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minBookValue) && isNaN(maxBookValue)) {
+        return res.status(400).json({ message: 'Both min Book Value and max Book Value cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        // Set default minBookValue to minimum Book Value if it is not provided
+        if (isNaN(minBookValue) && !isNaN(maxBookValue)) {
+          const minBookValueDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                bookVal: { $ifNull: [{ $first: "$quarterlyFinancials.bookVal" }, null] },
+              },
+            },
+            {
+              $match: { bookVal: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                minBookValue: { $min: "$bookVal" },
+              },
+            },
+          ]).toArray();
+
+          if (minBookValueDoc.length > 0) {
+            minBookValue = minBookValueDoc[0].minBookValue;
+            if (minBookValue === 0) {
+              minBookValue = 0.001; // Set minimum value to 0.001 if it's 0
+            }
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine minimum Book Value' });
+          }
+        }
+
+        // If maxBookValue is empty, find the highest Book Value excluding 'None'
+        if (isNaN(maxBookValue) && !isNaN(minBookValue)) {
+          const maxBookValueDoc = await assetInfoCollection.aggregate([
+            {
+              $project: {
+                bookVal: { $ifNull: [{ $first: "$quarterlyFinancials.bookVal" }, null] },
+              },
+            },
+            {
+              $match: { bookVal: { $ne: null } },
+            },
+            {
+              $group: {
+                _id: null,
+                maxBookValue: { $max: "$bookVal" },
+              },
+            },
+          ]).toArray();
+
+          if (maxBookValueDoc.length > 0) {
+            maxBookValue = maxBookValueDoc[0].maxBookValue;
+          } else {
+            return res.status(404).json({ message: 'No assets found to determine maximum Book Value' });
+          }
+        }
+
+        // Ensure minBookValue is less than maxBookValue
+        if (minBookValue >= maxBookValue) {
+          return res.status(400).json({ message: 'Min Book Value cannot be higher than or equal to max Book Value' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { bookVal: [minBookValue, maxBookValue] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'Unable to update screener'
+          });
+        }
+
+        res.json({
+          message: 'Book Value range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Book Value Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/ev', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minPrice, maxPrice, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) * 1000 : NaN;
+      maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) * 1000 : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minPrice) && isNaN(maxPrice)) {
+        return res.status(400).json({ message: 'Both min EV and max EV cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        if (isNaN(minPrice)) {
+          const minEV = await assetInfoCollection.aggregate([
+            {
+              $match: {
+                EV: { $ne: 'None', $ne: null, $ne: undefined }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                minEV: { $min: '$EV' }
+              }
+            }
+          ]).toArray();
+
+          if (minEV.length > 0) {
+            minPrice = minEV[0].minEV;
+          } else {
+            return res.status(404).json({
+              message: 'No assets found to determine minimum EV',
+              details: 'Unable to find a valid EV in the database'
+            });
+          }
+        }
+
+        if (isNaN(maxPrice)) {
+          const maxEV = await assetInfoCollection.aggregate([
+            {
+              $match: {
+                EV: { $ne: 'None', $ne: null, $ne: undefined }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                maxEV: { $max: '$EV' }
+              }
+            }
+          ]).toArray();
+
+          if (maxEV.length > 0) {
+            maxPrice = maxEV[0].maxEV;
+          } else {
+            return res.status(404).json({
+              message: 'No assets found to determine maximum EV',
+              details: 'Unable to find a valid EV in the database'
+            });
+          }
+        }
+
+        if (minPrice >= maxPrice) {
+          return res.status(400).json({ message: 'Min EV cannot be higher than or equal to max EV' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { EV: [minPrice, maxPrice] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        res.json({
+          message: 'EV range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('EV Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/rsi', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minRSI, maxRSI, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minRSI = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxRSI = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minRSI) && isNaN(maxRSI)) {
+        return res.status(400).json({ message: 'Both min RSI and max RSI cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        if (isNaN(minRSI)) {
+          minRSI = 1;
+        }
+        if (isNaN(maxRSI)) {
+          maxRSI = 100;
+        }
+
+        if (minRSI >= maxRSI) {
+          return res.status(400).json({ message: 'Min RSI cannot be higher than or equal to max RSI' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { RSI: [minRSI, maxRSI] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        res.json({
+          message: 'RSI range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('RSI Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
+
+app.patch('/screener/gap-percent', validate([
+  validationSchemas.user(),
+  validationSchemas.screenerNameBody(),
+  validationSchemas.minPrice(),
+  validationSchemas.maxPrice()
+]),
+  async (req, res) => {
+    let minPrice, maxPrice, screenerName, Username;
+
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      // Sanitize inputs
+      minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+      maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+      screenerName = sanitizeInput(req.body.screenerName || '');
+      Username = sanitizeInput(req.body.user || '');
+
+      // Validate inputs
+      if (!screenerName) {
+        return res.status(400).json({ message: 'Screener name is required' });
+      }
+      if (!Username) {
+        return res.status(400).json({ message: 'Username is required' });
+      }
+      if (isNaN(minPrice) && isNaN(maxPrice)) {
+        return res.status(400).json({ message: 'Both min Gap and max Gap cannot be empty' });
+      }
+
+      let client;
+      try {
+        client = new MongoClient(uri);
+        await client.connect();
+
+        const db = client.db('EreunaDB');
+        const collection = db.collection('Screeners');
+        const assetInfoCollection = db.collection('AssetInfo');
+
+        if (isNaN(minPrice)) {
+          const minGap = await assetInfoCollection.aggregate([
+            {
+              $match: {
+                Gap: { $ne: 'None', $ne: null, $ne: undefined, $ne: NaN }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                minGap: { $min: '$Gap' }
+              }
+            }
+          ]).toArray();
+
+          if (minGap.length > 0) {
+            minPrice = minGap[0].minGap;
+          } else {
+            return res.status(404).json({
+              message: 'No assets found to determine minimum Gap',
+              details: 'Unable to find a valid Gap in the database'
+            });
+          }
+        }
+
+        if (isNaN(maxPrice)) {
+          const maxGap = await assetInfoCollection.aggregate([
+            {
+              $match: {
+                Gap: { $ne: 'None', $ne: null, $ne: undefined, $ne: NaN }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                maxGap: { $max: '$Gap' }
+              }
+            }
+          ]).toArray();
+
+          if (maxGap.length > 0) {
+            maxPrice = maxGap[0].maxGap;
+          } else {
+            return res.status(404).json({
+              message: 'No assets found to determine maximum Gap',
+              details: 'Unable to find a valid Gap in the database'
+            });
+          }
+        }
+
+        if (minPrice >= maxPrice) {
+          return res.status(400).json({ message: 'Min Gap cannot be higher than or equal to max Gap' });
+        }
+
+        const filter = {
+          UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+          Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+        };
+
+        const existingScreener = await collection.findOne(filter);
+        if (!existingScreener) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        const updateDoc = { $set: { Gap: [minPrice, maxPrice] } };
+        const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+        if (!result) {
+          return res.status(404).json({
+            message: 'Screener not found',
+            details: 'No matching screener exists for the given user and name'
+          });
+        }
+
+        res.json({
+          message: 'Gap range updated successfully',
+          updatedScreener: result.value
+        });
+
+      } catch (dbError) {
+        logger.error('Database Operation Error', {
+          error: dbError.message,
+          stack: dbError.stack,
+          Username,
+          screenerName
+        });
+        res.status(500).json({
+          message: 'Database operation failed',
+          error: dbError.message
+        });
+      } finally {
+        if (client) {
+          try {
+            await client.close();
+          } catch (closeError) {
+            logger.warn('Error closing database connection', {
+              error: closeError.message
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Gap Update Error', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        message: 'Internal Server Error',
+        error: error.message
+      });
+    }
+  });
