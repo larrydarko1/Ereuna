@@ -1,7 +1,7 @@
 <template>
   <div class="landingPage">
     <div id="navbar" class="navbar">
-  <img class="icon" src="@/assets/icons/owl.png" alt="Owl Icon">
+  <img class="icon" src="@/assets/icons/ereuna.png" alt="Owl Icon">
   <div class="nav-links">
     <div class="navbtn" @click="scrollToSection('about')">About</div>
     <div class="navbtn" @click="scrollToSection('features')">Features</div>
@@ -17,10 +17,10 @@
   <div class="hero">
     <div class="content">
       <p class="description"><span style="color: #8c8dfe; font-size: 40px ;">Ereuna</span>'s invite-only beta test is now live.</p>
-      <p class="call-to-action">Join the beta program by emailing <a href="mailto:contact@ereuna.co" style="font-size: 18px;">contact@ereuna.co</a> to request access. it's free.</p>
+      <p class="call-to-action">Join the beta program by emailing <a href="mailto:contact@ereuna.io" style="font-size: 18px;">contact@ereuna.io</a> to request access. it's free.</p>
       <br>
       <br>
-      <span class="already-have-invite">Already have an invite?</span>
+      <span class="already-have-invite">Already have an account?</span>
       <button class="login-button" @click="redirectToLogin">Login Now &rarr;</button>
     </div>
     <div class="video-container">
@@ -132,7 +132,7 @@
    <!-- Call-to-Action Section -->
    <div class="cta-section">
     <h2 style="text-align: center; font-size: 30px; color: whitesmoke;">Ready to Get Started?</h2>
-    <p class="call-to-action">Join the beta program by emailing <a href="mailto:contact@ereuna.co" style="font-size: 18px;">contact@ereuna.co</a> to request free access.</p>
+    <p class="call-to-action">Join the beta program by emailing <a href="mailto:contact@ereuna.io" style="font-size: 18px;">contact@ereuna.io</a> to request free access.</p>
     <!-- <div class="navbtn3">Sign Up Now</div> -->
     </div>
   
@@ -206,7 +206,7 @@
     <p>New data and formulas will be updated approximately 2 hours after the US markets close on each business day (due to the provider's schedule) and there will be a maintenance period during which the platform will be temporarily unavailable to allow new data to be uploaded into the platform. This maintenance period typically lasts around 20 minutes, after which the platform will be available again.</p>
     
     <h2 class="contract-title">10. SUPPORT AND CONTACT</h2>
-    <p>For any questions or support, you can contact the Proprietor at the email address contact@ereuna.co. The Proprietor will respond to inquiries and provide assistance to the best of its abilities.</p>
+    <p>For any questions or support, you can contact the Proprietor at the email address contact@ereuna.io. The Proprietor will respond to inquiries and provide assistance to the best of its abilities.</p>
     
     <h2 class="contract-title">11. LEGAL BASIS AND JURISDICTION</h2>
     <p>The Platform is legally based in Italy and is subject to the laws and regulations of Italy. As required by applicable laws, logs will be kept for a period of up to 18 months. After this period, the logs will be deleted. The Platform will comply with all applicable requirements, including those related to data retention and privacy.</p>
@@ -387,8 +387,7 @@ function closeTermsModal() {
 }
 
 .icon {
-    width: 30px; /* Increased size for better visibility */
-    height: 30px; /* Increased size for better visibility */
+    height: 60px; /* Increased size for better visibility */
     opacity: 0.50;
   }
 

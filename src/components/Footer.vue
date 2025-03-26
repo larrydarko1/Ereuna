@@ -1,7 +1,7 @@
 <template>
   <footer>
     <p class="left">Ereuna Platform / Version 1.0.0 / Copyright &copy; 2025 / Developed by <a class="link" href="https://github.com/larrydarko1">Lorenzo Mazzola</a></p>
-    <p class="right">For technical support, send an email to <a class="link" href="mailto:contact@ereuna.co">contact@ereuna.co</a></p>
+    <p class="right">For technical support, send an email to <a class="link" href="mailto:contact@ereuna.io">contact@ereuna.io</a></p>
   </footer>
 </template>
 

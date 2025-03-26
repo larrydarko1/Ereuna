@@ -5,7 +5,8 @@ V1.0.1:
 - fixed fastAPI bugs for data integrity
 - added percentage with arrow on financial statements 
 - fixed annoying table overlap css bug in screener
-- added new screener parameters: Average Daily Volatility (ADV), PS ratio, 
+- added new screener parameters: Average Daily Volatility (ADV), PS ratio, Gap %, ROA, ROE, Current Ratio, Current Assets, Current Liabilities, Current Debt, Cash & Equivalents, Free Cash Flow, Profit Margin, Gross Margin, Debt to Equity ratio, Book Value, EV (enterprise value), RSI.
+- inserted formulas to calculate RSI and Gap % internally 
 
 
 Ereuna Platform / Developed with 🤬 by Lorenzo Mazzola

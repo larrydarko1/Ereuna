@@ -736,6 +736,471 @@
             </div>
           </div>
         </div>
+        <div :class="[showROE ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>Return of Equity (ROE)</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">ROE (Return on Equity) is a measure of a company's profitability, calculated by dividing its net income by shareholder equity. It helps investors understand how efficiently a company is generating profits from the equity invested by its shareholders, essentially showing the return on investment for each dollar of shareholder equity.</span>
+    </div>
+  </span>
+</div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" id="price-check" v-model="showROE" style="border: none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showROE">
+            <div class="row">
+              <input class="left input" id="left-roe" type="text" placeholder="min">
+              <input class="right input" id="right-roe" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetROE()">
+                <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+              </button>
+              <button class="btnsr"style="float:right" @click="Reset('ROE')">
+                <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showROA ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+  <p>Return of Assets (ROA)</p>
+  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+    <img src="@/assets/icons/question.png" alt="Question mark" />
+    <div class="tooltip" v-if="showTooltip">
+      <span class="tooltip-text">ROA (Return on Assets) is a measure of a company's profitability, calculated by dividing its net income by total assets. It helps investors understand how efficiently a company is generating profits from its assets, essentially showing the return on investment for each dollar of assets used. ROA indicates a company's ability to generate earnings from its assets, providing insight into its operational efficiency and management's effectiveness in utilizing resources.</span>
+    </div>
+  </span>
+</div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" id="price-check" v-model="showROA" style="border: none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showROA">
+            <div class="row">
+              <input class="left input" id="left-roa" type="text" placeholder="min">
+              <input class="right input" id="right-roa" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetROA()">
+                <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+              </button>
+              <button class="btnsr"style="float:right" @click="Reset('ROA')">
+                <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showCurrentRatio ? 'param-s1-expanded' : 'param-s1']">
+  <div class="row">
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>Current Ratio</p>
+      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">Current Ratio is a measure of a company's liquidity, calculated by dividing its current assets by its current liabilities. It helps investors understand a company's ability to pay its short-term debts and obligations.</span>
+        </div>
+      </span>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" id="current-ratio-check" v-model="showCurrentRatio" style="border: none;">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showCurrentRatio">
+    <div class="row">
+      <input class="left input" id="left-current-ratio" type="text" placeholder="min">
+      <input class="right input" id="right-current-ratio" type="text" placeholder="max">
+    </div>
+    <div class="row">
+      <button class="btns" style="float:right" @click="SetCurrentRatio()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btnsr" style="float:right" @click="Reset('CurrentRatio')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
+<div :class="[showCurrentAssets ? 'param-s1-expanded' : 'param-s1']">
+  <div class="row">
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>Current Assets (1000s)</p>
+      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">Current Assets represent the total value of a company's assets that are expected to be converted into cash within one year or within the company's normal operating cycle. In this context, current assets are displayed in thousands (1000s).</span>
+        </div>
+      </span>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" v-model="showCurrentAssets">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showCurrentAssets">
+    <div class="row">
+      <input class="left input" id="left-ca" type="text" placeholder="min">
+      <input class="right input" id="right-ca" type="text" placeholder="max">
+    </div>
+    <div class="row">
+      <button class="btns" style="float:right" @click="SetCurrentAssets()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btnsr" style="float:right" @click="Reset('CurrentAssets')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
+<div :class="[showCurrentLiabilities ? 'param-s1-expanded' : 'param-s1']">
+  <div class="row">
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>Current Liabilities (1000s)</p>
+      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">Current Liabilities represent the total value of a company's debts and obligations that are due within one year or within the company's normal operating cycle. In this context, current liabilities are displayed in thousands (1000s).</span>
+        </div>
+      </span>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" v-model="showCurrentLiabilities">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showCurrentLiabilities">
+    <div class="row">
+      <input class="left input" id="left-cl" type="text" placeholder="min">
+      <input class="right input" id="right-cl" type="text" placeholder="max">
+    </div>
+    <div class="row">
+      <button class="btns" style="float:right" @click="SetCurrentLiabilities()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btnsr" style="float:right" @click="Reset('CurrentLiabilities')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
+<div :class="[showCurrentDebt ? 'param-s1-expanded' : 'param-s1']">
+  <div class="row">
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>Current Debt (1000s)</p>
+      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">Current Debt represents the total value of a company's short-term debt obligations, including loans, credit lines, and other debt that is due within one year or within the company's normal operating cycle. In this context, current debt is displayed in thousands (1000s).</span>
+        </div>
+      </span>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" v-model="showCurrentDebt">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showCurrentDebt">
+    <div class="row">
+      <input class="left input" id="left-cd" type="text" placeholder="min">
+      <input class="right input" id="right-cd" type="text" placeholder="max">
+    </div>
+    <div class="row">
+      <button class="btns" style="float:right" @click="SetCurrentDebt()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btnsr" style="float:right" @click="Reset('CurrentDebt')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
+<div :class="[showCashEquivalents ? 'param-s1-expanded' : 'param-s1']">
+  <div class="row">
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>Cash & Equivalents (1000s)</p>
+      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">Cash & Equivalents represent the total value of a company's liquid assets, including cash, cash equivalents, and other highly liquid investments that can be easily converted into cash. In this context, cash & equivalents are displayed in thousands (1000s).</span>
+        </div>
+      </span>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" v-model="showCashEquivalents">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showCashEquivalents">
+    <div class="row">
+      <input class="left input" id="left-ce" type="text" placeholder="min">
+      <input class="right input" id="right-ce" type="text" placeholder="max">
+    </div>
+    <div class="row">
+      <button class="btns" style="float:right" @click="SetCashEquivalents()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btnsr" style="float:right" @click="Reset('CashEquivalents')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
+<div :class="[showFreeCashFlow ? 'param-s1-expanded' : 'param-s1']">
+  <div class="row">
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>Free Cash Flow (1000s)</p>
+      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">Free Cash Flow (FCF) is the amount of cash a company generates after accounting for capital expenditures, and is a key indicator of a company's financial health and ability to generate returns for shareholders. In this context, free cash flow is displayed in thousands (1000s).</span>
+        </div>
+      </span>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" v-model="showFreeCashFlow">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showFreeCashFlow">
+    <div class="row">
+      <input class="left input" id="left-fcf" type="text" placeholder="min">
+      <input class="right input" id="right-fcf" type="text" placeholder="max">
+    </div>
+    <div class="row">
+      <button class="btns" style="float:right" @click="SetFreeCashFlow()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btnsr" style="float:right" @click="Reset('FCF')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
+<div :class="[showProfitMargin ? 'param-s1-expanded' : 'param-s1']">
+  <div class="row">
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>Profit Margin</p>
+      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">Profit Margin is a measure of a company's profitability, calculated by dividing its net income by total revenue. It helps investors understand how efficiently a company is generating profits from its sales, essentially showing the return on investment for each dollar of revenue generated. Profit Margin indicates a company's ability to generate earnings from its sales, providing insight into its operational efficiency and management's effectiveness in pricing and cost control.</span>
+        </div>
+      </span>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" id="profit-margin-check" v-model="showProfitMargin" style="border: none;">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showProfitMargin">
+    <div class="row">
+      <input class="left input" id="left-pm" type="text" placeholder="min">
+      <input class="right input" id="right-pm" type="text" placeholder="max">
+    </div>
+    <div class="row">
+      <button class="btns" style="float:right" @click="SetProfitMargin()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btnsr" style="float:right" @click="Reset('ProfitMargin')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
+<div :class="[showGrossMargin ? 'param-s1-expanded' : 'param-s1']">
+  <div class="row">
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>Gross Margin</p>
+      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">Gross Margin is a measure of a company's profitability, calculated by dividing its gross profit by total revenue. It helps investors understand how efficiently a company is generating profits from its sales, essentially showing the return on investment for each dollar of revenue generated. Gross Margin indicates a company's ability to generate earnings from its sales, providing insight into its operational efficiency and management's effectiveness in pricing and cost control.</span>
+        </div>
+      </span>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" id="gross-margin-check" v-model="showGrossMargin" style="border: none;">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showGrossMargin">
+    <div class="row">
+      <input class="left input" id="left-gm" type="text" placeholder="min">
+      <input class="right input" id="right-gm" type="text" placeholder="max">
+    </div>
+    <div class="row">
+      <button class="btns" style="float:right" @click="SetGrossMargin()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btnsr" style="float:right" @click="Reset('GrossMargin')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
+<div :class="[showDebtToEquityRatio ? 'param-s1-expanded' : 'param-s1']">
+  <div class="row">
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>Debt to Equity Ratio</p>
+      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">Debt to Equity Ratio is a measure of a company's financial leverage, calculated by dividing its total debt by its total shareholder equity. It helps investors understand a company's level of indebtedness and its ability to meet its financial obligations. A higher debt to equity ratio indicates a higher level of financial risk.</span>
+        </div>
+      </span>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" id="debt-to-equity-check" v-model="showDebtToEquityRatio" style="border: none;">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showDebtToEquityRatio">
+    <div class="row">
+      <input class="left input" id="left-der" type="text" placeholder="min">
+      <input class="right input" id="right-der" type="text" placeholder="max">
+    </div>
+    <div class="row">
+      <button class="btns" style="float:right" @click="SetDebtToEquityRatio()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btnsr" style="float:right" @click="Reset('DebtEquity')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
+<div :class="[showBookValue ? 'param-s1-expanded' : 'param-s1']">
+  <div class="row">
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>Book Value (1000s)</p>
+      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">Book Value is the total value of a company's assets minus its liabilities, and is also known as shareholder equity. It represents the amount of money that would be left over for shareholders if the company were to liquidate its assets and pay off its debts. In this context, book value is displayed in thousands (1000s).</span>
+        </div>
+      </span>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" id="book-value-check" v-model="showBookValue" style="border: none;">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showBookValue">
+    <div class="row">
+      <input class="left input" id="left-bv" type="text" placeholder="min">
+      <input class="right input" id="right-bv" type="text" placeholder="max">
+    </div>
+    <div class="row">
+      <button class="btns" style="float:right" @click="SetBookValue()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btnsr" style="float:right" @click="Reset('BookValue')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
+<div :class="[showEV ? 'param-s1-expanded' : 'param-s1']">
+  <div class="row">
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>EV (Enterprise Value) - 1000s</p>
+      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">Enterprise Value (EV) is a measure of a company's total value, calculated by adding its market capitalization, total debt, and minority interest, and then subtracting its cash and cash equivalents. It represents the total value of a company's operations and is often used as a metric to evaluate a company's financial health and performance. In this context, EV is displayed in thousands (1000s).</span>
+        </div>
+      </span>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" id="ev-check" v-model="showEV" style="border: none;">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showEV">
+    <div class="row">
+      <input class="left input" id="left-ev" type="text" placeholder="min">
+      <input class="right input" id="right-ev" type="text" placeholder="max">
+    </div>
+    <div class="row">
+      <button class="btns" style="float:right" @click="SetEV()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btnsr" style="float:right" @click="Reset('EV')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
+<div :class="[showRSI ? 'param-s1-expanded' : 'param-s1']">
+  <div class="row">
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>RSI (Relative Strength Index)</p>
+      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">Relative Strength Index (RSI) is a technical indicator used to measure the magnitude of recent price changes to determine overbought or oversold conditions. It is calculated on a scale of 0 to 100, with readings above 70 indicating overbought conditions and readings below 30 indicating oversold conditions.</span>
+        </div>
+      </span>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" id="rsi-check" v-model="showRSI" style="border: none;">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showRSI">
+    <div class="row">
+      <input class="left input" id="left-rsi" type="number" placeholder="min" min="1" max="100">
+      <input class="right input" id="right-rsi" type="number" placeholder="max" min="1" max="100">
+    </div>
+    <div class="row">
+      <button class="btns" style="float:right" @click="SetRSI()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btnsr" style="float:right" @click="Reset('RSI')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
+<div :class="[showGap ? 'param-s1-expanded' : 'param-s1']">
+  <div class="row">
+    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>Gap %</p>
+      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
+        <img src="@/assets/icons/question.png" alt="Question mark" />
+        <div class="tooltip" v-if="showTooltip">
+          <span class="tooltip-text">Gap % is a measure of the percentage change in a stock's price from the previous day's close to the current day's open. It is calculated as (Current Open - Previous Close) / Previous Close. A positive gap % indicates an upward price movement, while a negative gap % indicates a downward price movement.</span>
+        </div>
+      </span>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" id="gap-percent-check" v-model="showGap" style="border: none;">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none;" v-if="showGap">
+    <div class="row">
+      <input class="left input" id="left-gap" type="text" placeholder="min">
+      <input class="right input" id="right-gap" type="text" placeholder="max">
+    </div>
+    <div class="row">
+      <button class="btns" style="float:right" @click="SetGapPercent()">
+        <img class="iconbtn" src="@/assets/icons/diskette.png" alt="Save">
+      </button>
+      <button class="btnsr" style="float:right" @click="Reset('Gap')">
+        <img class="iconbtn" src="@/assets/icons/reset2.png" alt="Reset">
+      </button>
+    </div>
+  </div>
+</div>
         <div class="results"></div>
       </div>
       <div id="resultsDiv" >
@@ -1451,6 +1916,21 @@ let showADV = ref(false);
 let showVolume = ref(false);
 let showDivYieldInputs = ref(false);
 let showIPOInputs = ref(false);
+let showROE = ref(false);
+let showROA = ref(false);
+let showCurrentRatio = ref(false);
+let showCurrentAssets = ref(false);
+let showCurrentLiabilities = ref(false);
+let showCurrentDebt = ref(false);
+let showCashEquivalents = ref(false);
+let showFreeCashFlow = ref(false);
+let showProfitMargin = ref(false);
+let showGrossMargin = ref(false);
+let showDebtToEquityRatio = ref(false);
+let showBookValue = ref(false);
+let showEV = ref(false);
+let showRSI = ref(false);
+let showGap = ref(false);
 const listMode = ref('main');
 
 const ImagePaths = ref([]);
@@ -3698,6 +4178,21 @@ try {
     let ADV1M = screenerSettings.ADV1M
     let ADV4M = screenerSettings.ADV4M
     let ADV1Y = screenerSettings.ADV1Y
+    let ROE = screenerSettings.ROE
+    let ROA = screenerSettings.ROA
+    let currentRatio = screenerSettings.currentRatio
+    let assetsCurrent = screenerSettings.assetsCurrent
+    let liabilitiesCurrent = screenerSettings.liabilitiesCurrent
+    let debtCurrent = screenerSettings.debtCurrent
+    let cashAndEq = screenerSettings.cashAndEq
+    let freeCashFlow = screenerSettings.freeCashFlow
+    let profitMargin = screenerSettings.profitMargin
+    let grossMargin = screenerResults.grossMargin
+    let debtEquity = screenerSettings.debtEquity
+    let bookVal = screenerSettings.bookVal
+    let EV = screenerSettings.EV
+    let RSI = screenerSettings.RSI
+    let Gap = screenerSettings.Gap
 
             
     showPriceInputs.value = screenerSettings?.Price?.length > 0;
@@ -3749,6 +4244,21 @@ try {
     screenerSettings?.PercOffWeekHigh?.length > 0 ||
     screenerSettings?.PercOffWeekLow?.length > 0 ||
     screenerSettings?.changePerc?.length > 0;
+    showROE.value = screenerSettings?.ROE?.length > 0;
+    showROA.value = screenerSettings?.ROA?.length > 0;
+    showCurrentRatio.value = screenerSettings?.currentRatio?.length > 0;
+    showCurrentAssets.value = screenerSettings?.assetsCurrent?.length > 0;
+    showCurrentLiabilities.value = screenerSettings?.liabilitiesCurrent?.length > 0;
+    showCurrentDebt.value = screenerSettings?.debtCurrent?.length > 0;
+    showCashEquivalents.value = screenerSettings?.cashAndEq?.length > 0;
+    showFreeCashFlow.value = screenerSettings?.freeCashFlow?.length > 0;
+    showProfitMargin.value = screenerSettings?.profitMargin?.length > 0;
+    showGrossMargin.value = screenerSettings?.grossMargin?.length > 0;
+    showDebtToEquityRatio.value = screenerSettings?.debtEquity?.length > 0;
+    showBookValue.value = screenerSettings?.bookVal?.length > 0;
+    showEV.value = screenerSettings?.EV?.length > 0;
+    showRSI.value = screenerSettings?.RSI?.length > 0;
+    showGap.value = screenerSettings?.Gap?.length > 0;
 
     document.getElementById('left-p').value = priceList[0];
     document.getElementById('right-p').value = priceList[1];
@@ -3798,6 +4308,36 @@ try {
     document.getElementById('ADV4Minput2').value = ADV4M[1];
     document.getElementById('ADV1Yinput1').value = ADV1Y[0];
     document.getElementById('ADV1Yinput2').value = ADV1Y[1];
+    document.getElementById('left-roe').value = ROE[0];
+    document.getElementById('right-roe').value = ROE[1];
+    document.getElementById('left-roa').value = ROA[0];
+    document.getElementById('right-roa').value = ROA[1];
+    document.getElementById('left-current-ratio').value = currentRatio[0];
+    document.getElementById('right-current-ratio').value = currentRatio[1];
+    document.getElementById('left-ca').value = assetsCurrent[0];
+    document.getElementById('right-ca').value = assetsCurrent[1];
+    document.getElementById('left-cl').value = liabilitiesCurrent[0];
+    document.getElementById('right-cl').value = liabilitiesCurrent[1];
+    document.getElementById('left-cd').value = debtCurrent[0];
+    document.getElementById('right-cd').value = debtCurrent[1];
+    document.getElementById('left-ce').value = cashAndEq[0];
+    document.getElementById('right-ce').value = cashAndEq[1];
+    document.getElementById('left-fcf').value = freeCashFlow[0];
+    document.getElementById('right-fcf').value = freeCashFlow[1];
+    document.getElementById('left-pm').value = profitMargin[0];
+    document.getElementById('right-pm').value = profitMargin[1];
+    document.getElementById('left-gm').value = grossMargin[0];
+    document.getElementById('right-gm').value = grossMargin[1];
+    document.getElementById('left-der').value = debtEquity[0];
+    document.getElementById('right-der').value = debtEquity[1];
+    document.getElementById('left-bv').value = bookVal[0];
+    document.getElementById('right-bv').value = bookVal[1];
+    document.getElementById('left-ev').value = EV[0];
+    document.getElementById('right-ev').value = EV[1];
+    document.getElementById('left-rsi').value = RSI[0];
+    document.getElementById('right-rsi').value = RSI[1];
+    document.getElementById('left-gap').value = Gap[0];
+    document.getElementById('right-gap').value = Gap[1]; 
 
     const sectorCheckboxes = document.querySelectorAll('.check input[type="checkbox"]');
 
@@ -3865,7 +4405,22 @@ const valueMap = {
   'Volume': 'Volume',
   'price': 'price',
   'IPO': 'IPO',
-  'ADV': 'ADV'
+  'ADV': 'ADV',
+  'ROE': 'ROE',
+  'ROA': 'ROA',
+  'CurrentRatio': 'CurrentRatio',
+  'CurrentAssets': 'CurrentAssets',
+  'CurrentLiabilities': 'CurrentLiabilities',
+  'CurrentDebt': 'CurrentDebt',
+  'CashEquivalents': 'CashEquivalents',
+  'FCF': 'FCF',
+  'ProfitMargin': 'ProfitMargin',
+  'GrossMargin': 'GrossMargin',
+  'DebtEquity': 'DebtEquity',
+  'BookValue': 'BookValue',
+  'EV': 'EV',
+  'RSI': 'RSI',
+  'Gap': 'Gap'
 };
 
 // function that resets indivudal values for screeners 
@@ -3918,7 +4473,9 @@ async function SummaryScreener() {
       'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'PS', 'ForwardPE', 'PEG', 'EPS', 'PB', 'DivYield',
       'EPSQoQ', 'EPSYoY', 'EarningsQoQ', 'EarningsYoY', 'RevQoQ', 'RevYoY', 'AvgVolume1W', 'AvgVolume1M', 'AvgVolume6M', 'AvgVolume1Y',
       'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W','RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'NewHigh',
-      'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y',
+      'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio', 
+      'assetsCurrent', 'liabilitiesCurrent', 'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin', 'debtEquity', 'bookVal', 'EV',
+      'RSI', 'Gap'
     ];
 
     const attributeMapping = {
@@ -3954,6 +4511,21 @@ async function SummaryScreener() {
       'ADV1M': 'ADV (1M)',
       'ADV4M': 'ADV (4M)',
       'ADV1Y': 'ADV (1Y)',
+      'ROE': 'ROE',
+      'ROA': 'ROA',
+      'currentRatio': 'Current Ratio',
+      'assetsCurrent': 'Current Assets',
+      'liabilitiesCurrent': 'Current Liabilities',
+      'debtCurrent': 'Current Debt',
+      'cashAndEq': 'Cash and Equivalents',
+      'freeCashFlow': 'Free Cash Flow',
+      'profitMargin': 'Profit Margin',
+      'grossMargin': 'Gross Margin',
+      'debtEquity': 'Debt/Equity',
+      'bookVal': 'Book Value',
+      'EV': 'Enterprise Value',
+      'RSI': 'RSI',
+      'Gap': 'Gap %',
     };
 
     const valueMapping = {
@@ -4291,6 +4863,681 @@ function handleMouseOut() {
   showTooltip.value = false
 }
 
+async function SetROE() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftROE = parseFloat(document.getElementById('left-roe').value)
+    const rightROE = parseFloat(document.getElementById('right-roe').value)
+
+    if (leftROE >= rightROE) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/roe', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftROE,
+        maxPrice: rightROE,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating ROE range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetROA() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftROA = parseFloat(document.getElementById('left-roa').value)
+    const rightROA = parseFloat(document.getElementById('right-roa').value)
+
+    if (leftROA >= rightROA) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/roa', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftROA,
+        maxPrice: rightROA,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating ROA range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetCurrentRatio() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftCurrentRatio = parseFloat(document.getElementById('left-current-ratio').value)
+    const rightCurrentRatio = parseFloat(document.getElementById('right-current-ratio').value)
+
+    if (leftCurrentRatio >= rightCurrentRatio) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/current-ratio', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftCurrentRatio,
+        maxPrice: rightCurrentRatio,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating Current Ratio range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetCurrentAssets() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftCurrentAssets = parseFloat(document.getElementById('left-ca').value)
+    const rightCurrentAssets = parseFloat(document.getElementById('right-ca').value)
+
+    if (leftCurrentAssets >= rightCurrentAssets) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/current-assets', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftCurrentAssets,
+        maxPrice: rightCurrentAssets,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating Current Assets range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetCurrentLiabilities() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftCurrentLiabilities = parseFloat(document.getElementById('left-cl').value)
+    const rightCurrentLiabilities = parseFloat(document.getElementById('right-cl').value)
+
+    if (leftCurrentLiabilities >= rightCurrentLiabilities) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/current-liabilities', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftCurrentLiabilities,
+        maxPrice: rightCurrentLiabilities,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating Current Liabilities range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetCurrentDebt() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftCurrentDebt = parseFloat(document.getElementById('left-cd').value)
+    const rightCurrentDebt = parseFloat(document.getElementById('right-cd').value)
+
+    if (leftCurrentDebt >= rightCurrentDebt) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/current-debt', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftCurrentDebt,
+        maxPrice: rightCurrentDebt,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating Current Debt range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetCashEquivalents() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftCashEquivalents = parseFloat(document.getElementById('left-ce').value)
+    const rightCashEquivalents = parseFloat(document.getElementById('right-ce').value)
+
+    if (leftCashEquivalents >= rightCashEquivalents) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/cash-equivalents', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftCashEquivalents,
+        maxPrice: rightCashEquivalents,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating Cash Equivalents range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetFreeCashFlow() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftFreeCashFlow = parseFloat(document.getElementById('left-fcf').value)
+    const rightFreeCashFlow = parseFloat(document.getElementById('right-fcf').value)
+
+    if (leftFreeCashFlow >= rightFreeCashFlow) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/free-cash-flow', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftFreeCashFlow,
+        maxPrice: rightFreeCashFlow,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating Free Cash Flow range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetProfitMargin() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftProfitMargin = parseFloat(document.getElementById('left-pm').value)
+    const rightProfitMargin = parseFloat(document.getElementById('right-pm').value)
+
+    if (leftProfitMargin >= rightProfitMargin) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/profit-margin', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftProfitMargin,
+        maxPrice: rightProfitMargin,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating Profit Margin range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetGrossMargin() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftGrossMargin = parseFloat(document.getElementById('left-gm').value)
+    const rightGrossMargin = parseFloat(document.getElementById('right-gm').value)
+
+    if (leftGrossMargin >= rightGrossMargin) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/gross-margin', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftGrossMargin,
+        maxPrice: rightGrossMargin,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating Gross Margin range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetDebtToEquityRatio() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftDebtToEquityRatio = parseFloat(document.getElementById('left-der').value)
+    const rightDebtToEquityRatio = parseFloat(document.getElementById('right-der').value)
+
+    if (leftDebtToEquityRatio >= rightDebtToEquityRatio) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/debt-to-equity-ratio', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftDebtToEquityRatio,
+        maxPrice: rightDebtToEquityRatio,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating Debt to Equity Ratio range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetBookValue() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftBookValue = parseFloat(document.getElementById('left-bv').value)
+    const rightBookValue = parseFloat(document.getElementById('right-bv').value)
+
+    if (leftBookValue >= rightBookValue) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/book-value', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftBookValue,
+        maxPrice: rightBookValue,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating Book Value range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetEV() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftEV = parseFloat(document.getElementById('left-ev').value)
+    const rightEV = parseFloat(document.getElementById('right-ev').value)
+
+    if (leftEV >= rightEV) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/ev', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftEV,
+        maxPrice: rightEV,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating EV range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetRSI() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftRSI = parseFloat(document.getElementById('left-rsi').value)
+    const rightRSI = parseFloat(document.getElementById('right-rsi').value)
+
+    if (leftRSI >= rightRSI) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/rsi', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftRSI,
+        maxPrice: rightRSI,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating RSI range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+async function SetGapPercent() {
+  try {
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftGapPercent = parseFloat(document.getElementById('left-gap').value)
+    const rightGapPercent = parseFloat(document.getElementById('right-gap').value)
+
+    if (leftGapPercent >= rightGapPercent) {
+      throw new Error('Min cannot be higher than or equal to max')
+    }
+
+    const response = await fetch('/api/screener/gap-percent', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftGapPercent,
+        maxPrice: rightGapPercent,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'updated successfully') {
+    } else {
+      throw new Error('Error updating Gap % range')
+    }
+    await fetchScreenerResults(selectedScreener.value); 
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -4307,7 +5554,6 @@ function handleMouseOut() {
   flex-direction: column;
   background-color: $base4;
   overflow-y: scroll;
-  overflow-y: visible;
   min-width: 300px;
 }
 
@@ -5149,7 +6395,7 @@ input:checked+.slider:before {
   color: $text1;
   text-align: center;
   align-items: center;
-  padding: 10px;
+  padding: 100px;
   border:none;
 }
 
