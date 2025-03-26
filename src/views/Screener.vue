@@ -2,6 +2,11 @@
   <body>
     <Header />
     <div id="main">
+      <div class="tooltip-container" style="position: relative;">
+  <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
+    <span class="tooltip-text">{{ tooltipText }}</span>
+  </div>
+</div>
       <div id="filters">
         <div id="screener-select" class="select-container" :class="{ 'error-border': isScreenerError }" @mouseover="showDropdown = true" @mouseout="showDropdown = false">
           <img :src="downIcon" alt="Dropdown Icon" class="dropdown-icon" :class="{ 'dropdown-icon-hover': showDropdown }" />
@@ -24,12 +29,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>Price</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">Price refers to the current market price of a stock, which is the amount of money an investor would need to pay to buy one share of the stock.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'price')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPriceInputs" style="border: none;">
@@ -55,12 +55,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>Market Cap (1000s)</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">Market capitalization (market cap) is the total value of all outstanding shares of a company's stock. It is calculated by multiplying the total number of shares outstanding by the current market price of one share. In this context, market cap is displayed in thousands (1000s).</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'market-cap')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" v-model="showMarketCapInputs">
@@ -86,12 +81,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>IPO Date</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">IPO (Initial Public Offering) is the first public sale of a company's stock, allowing it to raise capital from public investors. IPO Date refers to the date when a company's stock first became available for public trading, marking its transition from a private to a publicly traded company.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'ipo')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" v-model="showIPOInputs">
@@ -117,12 +107,7 @@
     <div class="row">
       <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>Sector</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">Sector refers to a specific industry or market category that a company operates in, such as Technology, Healthcare, or Finance.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'sector')" @mouseout="handleMouseOut" />
 </div>
       <label style="float:right" class="switch">
         <input type="checkbox" v-model="ShowSector">
@@ -157,12 +142,7 @@
     <div class="row">
       <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>Exchange</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">Exchange refers to the stock exchange where a company's shares are listed and traded, such as the New York Stock Exchange (NYSE) or NASDAQ.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'exchange')" @mouseout="handleMouseOut" />
 </div>
       <label style="float:right" class="switch">
         <input type="checkbox" v-model="ShowExchange">
@@ -197,12 +177,7 @@
     <div class="row">
       <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>Country</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">Country refers to the nation where a company is headquartered or primarily operates, such as the United States, Canada, or the United Kingdom.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'country')" @mouseout="handleMouseOut" />
 </div>
       <label style="float:right" class="switch">
         <input type="checkbox" v-model="ShowCountry">
@@ -237,12 +212,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>PE Ratio</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">PE Ratio (Price-to-Earnings Ratio) is a measure of a company's current stock price relative to its earnings per share. It helps investors understand how much they are paying for each dollar of earnings.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'pe')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPEInputs" style="border: none;">
@@ -268,12 +238,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>PS Ratio</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">PS Ratio (Price-to-Sales Ratio) is a measure of a company's current stock price relative to its revenue per share. It helps investors understand how much they are paying for each dollar of sales, providing insight into the company's valuation and potential for growth.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'ps')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPSInputs" style="border: none;">
@@ -299,12 +264,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>PEG Ratio</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">PEG Ratio (Price-to-Earnings Growth Ratio) is a measure of a company's stock price relative to its earnings per share and expected growth rate. It helps investors understand whether a stock is overvalued or undervalued based on its growth prospects.</span>
-    </div>
-  </span>
+  <img class="question-img" id="price" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'peg')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPEGInputs" style="border: none;">
@@ -331,12 +291,7 @@
             <div>
               <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
                  <p >EPS</p>
-    <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">EPS stands for Earnings Per Share, which is a company's profit divided by the number of outstanding shares.</span>
-        </div>
-      </span> 
+                 <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'eps')" @mouseout="handleMouseOut" />
               </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showEPSInputs" style="border: none;">
@@ -363,12 +318,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>PB Ratio</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">PB Ratio (Price-to-Book Ratio) is a measure of a company's stock price relative to its book value per share. It helps investors understand whether a stock is overvalued or undervalued based on its underlying assets.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'pb')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPBInputs" style="border: none;">
@@ -394,12 +344,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>Dividend Yield TTM (%)</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">Dividend Yield TTM (Trailing Twelve Months) is the ratio of the annual dividend payment per share to the stock's current price, expressed as a percentage. It represents the return on investment from dividend payments over the past 12 months.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'div')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showDivYieldInputs" style="border: none;">
@@ -425,12 +370,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>Revenue / Earnings / EPS Growth</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">This section calculates the growth rate of a company's Revenue, Earnings (Net Income), and Earnings Per Share (EPS) over time. The growth rates are calculated as a percentage change from the previous quarter (QoQ) and from the same quarter in the previous year (YoY).</span>
-    </div>
-  </span>
+  <img class="question-img" id="price" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'growth')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showFundYoYQoQ" style="border: none;">
@@ -472,12 +412,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>Price Performance</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">Filter stocks by price performance, including: Change %, % off 52-week high/low, New all-time high/low, MA crossovers; Identify trending stocks and potential breakouts.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'perf')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPricePerf" style="border: none;">
@@ -602,12 +537,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>Technical Score</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">A score that ranks a stock's technical performance relative to all assets in our database. It's based on a weighted average of percentage returns over 1 week, 1 month, and 1 quarter. The score ranges from 1 (worst) to 100 (best).</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'rs')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showRSscore" style="border: none;">
@@ -640,12 +570,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>Volume</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">Volume metrics include Relative Volume, which measures a stock's trading volume compared to its average volume over a given period, and Average Volume (1000s), which represents the average number of shares traded per day, expressed in thousands. These metrics help you understand a stock's liquidity and trading activity.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'volume')" @mouseout="handleMouseOut" />
 </div>
     <label style="float:right" class="switch">
       <input type="checkbox" id="price-check" v-model="showVolume" style="border: none;">
@@ -699,12 +624,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>Average Daily Volatility (ADV)</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">A measure of a stock's price fluctuation over a given period, calculated as the standard deviation of daily returns. It represents the average daily volatility of the stock's price, providing insight into the stock's risk and potential for price movements. The values are expressed as a percentage, with higher values indicating greater volatility.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'adv')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showADV" style="border: none;">
@@ -740,12 +660,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>Return of Equity (ROE)</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">ROE (Return on Equity) is a measure of a company's profitability, calculated by dividing its net income by shareholder equity. It helps investors understand how efficiently a company is generating profits from the equity invested by its shareholders, essentially showing the return on investment for each dollar of shareholder equity.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'roe')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showROE" style="border: none;">
@@ -771,12 +686,7 @@
           <div class="row">
             <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
   <p>Return of Assets (ROA)</p>
-  <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <img src="@/assets/icons/question.png" alt="Question mark" />
-    <div class="tooltip" v-if="showTooltip">
-      <span class="tooltip-text">ROA (Return on Assets) is a measure of a company's profitability, calculated by dividing its net income by total assets. It helps investors understand how efficiently a company is generating profits from its assets, essentially showing the return on investment for each dollar of assets used. ROA indicates a company's ability to generate earnings from its assets, providing insight into its operational efficiency and management's effectiveness in utilizing resources.</span>
-    </div>
-  </span>
+  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'roa')" @mouseout="handleMouseOut" />
 </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showROA" style="border: none;">
@@ -802,12 +712,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>Current Ratio</p>
-      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">Current Ratio is a measure of a company's liquidity, calculated by dividing its current assets by its current liabilities. It helps investors understand a company's ability to pay its short-term debts and obligations.</span>
-        </div>
-      </span>
+      <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'current-ratio')" @mouseout="handleMouseOut" />
     </div>
     <label style="float:right" class="switch">
       <input type="checkbox" id="current-ratio-check" v-model="showCurrentRatio" style="border: none;">
@@ -833,12 +738,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>Current Assets (1000s)</p>
-      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">Current Assets represent the total value of a company's assets that are expected to be converted into cash within one year or within the company's normal operating cycle. In this context, current assets are displayed in thousands (1000s).</span>
-        </div>
-      </span>
+      <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'current-assets')" @mouseout="handleMouseOut" />
     </div>
     <label style="float:right" class="switch">
       <input type="checkbox" v-model="showCurrentAssets">
@@ -864,12 +764,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>Current Liabilities (1000s)</p>
-      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">Current Liabilities represent the total value of a company's debts and obligations that are due within one year or within the company's normal operating cycle. In this context, current liabilities are displayed in thousands (1000s).</span>
-        </div>
-      </span>
+      <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'current-liabilities')" @mouseout="handleMouseOut" />
     </div>
     <label style="float:right" class="switch">
       <input type="checkbox" v-model="showCurrentLiabilities">
@@ -895,12 +790,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>Current Debt (1000s)</p>
-      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">Current Debt represents the total value of a company's short-term debt obligations, including loans, credit lines, and other debt that is due within one year or within the company's normal operating cycle. In this context, current debt is displayed in thousands (1000s).</span>
-        </div>
-      </span>
+      <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'current-debt')" @mouseout="handleMouseOut" />
     </div>
     <label style="float:right" class="switch">
       <input type="checkbox" v-model="showCurrentDebt">
@@ -926,12 +816,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>Cash & Equivalents (1000s)</p>
-      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">Cash & Equivalents represent the total value of a company's liquid assets, including cash, cash equivalents, and other highly liquid investments that can be easily converted into cash. In this context, cash & equivalents are displayed in thousands (1000s).</span>
-        </div>
-      </span>
+      <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'casheq')" @mouseout="handleMouseOut" />
     </div>
     <label style="float:right" class="switch">
       <input type="checkbox" v-model="showCashEquivalents">
@@ -957,12 +842,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>Free Cash Flow (1000s)</p>
-      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">Free Cash Flow (FCF) is the amount of cash a company generates after accounting for capital expenditures, and is a key indicator of a company's financial health and ability to generate returns for shareholders. In this context, free cash flow is displayed in thousands (1000s).</span>
-        </div>
-      </span>
+      <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'fcf')" @mouseout="handleMouseOut" />
     </div>
     <label style="float:right" class="switch">
       <input type="checkbox" v-model="showFreeCashFlow">
@@ -988,12 +868,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>Profit Margin</p>
-      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">Profit Margin is a measure of a company's profitability, calculated by dividing its net income by total revenue. It helps investors understand how efficiently a company is generating profits from its sales, essentially showing the return on investment for each dollar of revenue generated. Profit Margin indicates a company's ability to generate earnings from its sales, providing insight into its operational efficiency and management's effectiveness in pricing and cost control.</span>
-        </div>
-      </span>
+      <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'profit-margin')" @mouseout="handleMouseOut" />
     </div>
     <label style="float:right" class="switch">
       <input type="checkbox" id="profit-margin-check" v-model="showProfitMargin" style="border: none;">
@@ -1019,12 +894,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>Gross Margin</p>
-      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">Gross Margin is a measure of a company's profitability, calculated by dividing its gross profit by total revenue. It helps investors understand how efficiently a company is generating profits from its sales, essentially showing the return on investment for each dollar of revenue generated. Gross Margin indicates a company's ability to generate earnings from its sales, providing insight into its operational efficiency and management's effectiveness in pricing and cost control.</span>
-        </div>
-      </span>
+      <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'gross-margin')" @mouseout="handleMouseOut" />
     </div>
     <label style="float:right" class="switch">
       <input type="checkbox" id="gross-margin-check" v-model="showGrossMargin" style="border: none;">
@@ -1050,12 +920,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>Debt to Equity Ratio</p>
-      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">Debt to Equity Ratio is a measure of a company's financial leverage, calculated by dividing its total debt by its total shareholder equity. It helps investors understand a company's level of indebtedness and its ability to meet its financial obligations. A higher debt to equity ratio indicates a higher level of financial risk.</span>
-        </div>
-      </span>
+      <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'debt-equity')" @mouseout="handleMouseOut" />
     </div>
     <label style="float:right" class="switch">
       <input type="checkbox" id="debt-to-equity-check" v-model="showDebtToEquityRatio" style="border: none;">
@@ -1081,12 +946,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>Book Value (1000s)</p>
-      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">Book Value is the total value of a company's assets minus its liabilities, and is also known as shareholder equity. It represents the amount of money that would be left over for shareholders if the company were to liquidate its assets and pay off its debts. In this context, book value is displayed in thousands (1000s).</span>
-        </div>
-      </span>
+      <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'book-value')" @mouseout="handleMouseOut" />
     </div>
     <label style="float:right" class="switch">
       <input type="checkbox" id="book-value-check" v-model="showBookValue" style="border: none;">
@@ -1112,12 +972,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>EV (Enterprise Value) - 1000s</p>
-      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">Enterprise Value (EV) is a measure of a company's total value, calculated by adding its market capitalization, total debt, and minority interest, and then subtracting its cash and cash equivalents. It represents the total value of a company's operations and is often used as a metric to evaluate a company's financial health and performance. In this context, EV is displayed in thousands (1000s).</span>
-        </div>
-      </span>
+      <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'ev')" @mouseout="handleMouseOut" />
     </div>
     <label style="float:right" class="switch">
       <input type="checkbox" id="ev-check" v-model="showEV" style="border: none;">
@@ -1143,12 +998,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>RSI (Relative Strength Index)</p>
-      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">Relative Strength Index (RSI) is a technical indicator used to measure the magnitude of recent price changes to determine overbought or oversold conditions. It is calculated on a scale of 0 to 100, with readings above 70 indicating overbought conditions and readings below 30 indicating oversold conditions.</span>
-        </div>
-      </span>
+      <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'rsi')" @mouseout="handleMouseOut" />
     </div>
     <label style="float:right" class="switch">
       <input type="checkbox" id="rsi-check" v-model="showRSI" style="border: none;">
@@ -1174,12 +1024,7 @@
   <div class="row">
     <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>Gap %</p>
-      <span class="question-mark-wrapper" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-        <img src="@/assets/icons/question.png" alt="Question mark" />
-        <div class="tooltip" v-if="showTooltip">
-          <span class="tooltip-text">Gap % is a measure of the percentage change in a stock's price from the previous day's close to the current day's open. It is calculated as (Current Open - Previous Close) / Previous Close. A positive gap % indicates an upward price movement, while a negative gap % indicates a downward price movement.</span>
-        </div>
-      </span>
+      <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, 'gap')" @mouseout="handleMouseOut" />
     </div>
     <label style="float:right" class="switch">
       <input type="checkbox" id="gap-percent-check" v-model="showGap" style="border: none;">
@@ -4853,16 +4698,6 @@ function selectAvgVolOption(option) {
   avgVolSelect.value = option;
 }
 
-const showTooltip = ref(false)
-
-function handleMouseOver() {
-  showTooltip.value = true
-}
-
-function handleMouseOut() {
-  showTooltip.value = false
-}
-
 async function SetROE() {
   try {
     if (!selectedScreener.value) {
@@ -5536,6 +5371,96 @@ async function SetGapPercent() {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
   }
+}
+
+
+const showTooltip = ref(false)
+let tooltipText = ref('');
+let tooltipLeft = ref();
+let tooltipTop = ref();
+
+function handleMouseOver(event, id) {
+  showTooltip.value = true
+  const element = event.target
+  const rect = element.getBoundingClientRect()
+  tooltipTop.value = rect.top + window.scrollY + element.offsetHeight - 30;
+  tooltipLeft.value = rect.left + window.scrollX + element.offsetWidth / 2
+  tooltipText.value = getTooltipText(id)
+}
+
+function getTooltipText(id) {
+  switch (id) {
+    case 'price':
+      return 'Price refers to the current market price of a stock, which is the amount of money an investor would need to pay to buy one share of the stock.';
+    case 'market-cap':
+      return 'Market capitalization (market cap) is the total value of all outstanding shares of a company\'s stock. It is calculated by multiplying the total number of shares outstanding by the current market price of one share. In this context, market cap is displayed in thousands (1000s).';
+    case 'ipo':
+      return 'IPO (Initial Public Offering) is the first public sale of a company\'s stock, allowing it to raise capital from public investors. IPO Date refers to the date when a company\'s stock first became available for public trading, marking its transition from a private to a publicly traded company.';
+    case 'sector':
+      return 'The sector refers to the industry or category that a company operates in. This can help investors understand the company\'s business model and potential risks and opportunities.';
+    case 'exchange':
+      return 'Exchange refers to the stock exchange where a company\'s shares are listed and traded, such as the New York Stock Exchange (NYSE) or NASDAQ.';
+    case 'growth':
+      return 'This section calculates the growth rate of a company\'s Revenue, Earnings (Net Income), and Earnings Per Share (EPS) over time. The growth rates are calculated as a percentage change from the previous quarter (QoQ) and from the same quarter in the previous year (YoY).';
+    case 'country':
+      return 'The country refers to the nation where a company is headquartered or primarily operates. This can be an important factor in evaluating a company\'s exposure to local economic and regulatory conditions.';
+    case 'pe':
+      return 'The price-to-earnings (P/E) ratio is a valuation metric that compares a company\'s current stock price to its earnings per share (EPS). This can help investors evaluate whether a company\'s stock is overvalued or undervalued.';
+    case 'ps':
+      return 'The price-to-sales (P/S) ratio is a valuation metric that compares a company\'s current stock price to its revenue per share. This can help investors evaluate whether a company\'s stock is overvalued or undervalued.';
+    case 'peg':
+      return 'The price-to-earnings growth (PEG) ratio is a valuation metric that compares a company\'s current stock price to its earnings per share (EPS) growth rate. This can help investors evaluate whether a company\'s stock is overvalued or undervalued.';
+    case 'eps':
+      return 'Earnings per share (EPS) is a measure of a company\'s profitability, calculated by dividing its net income by the number of outstanding shares.';
+    case 'pb':
+      return 'The price-to-book (P/B) ratio is a valuation metric that compares a company\'s current stock price to its book value per share. This can help investors evaluate whether a company\'s stock is overvalued or undervalued.';
+    case 'div':
+      return 'Dividend Yield TTM (Trailing Twelve Months) is the ratio of the annual dividend payment per share to the stock\'s current price, expressed as a percentage. It represents the return on investment from dividend payments over the past 12 months.';
+    case 'perf':
+      return 'Filter stocks by price performance, including: Change %, % off 52-week high/low, New all-time high/low, MA crossovers; Identify trending stocks and potential breakouts.';
+    case 'rs':
+      return 'A score that ranks a stock\'s technical performance relative to all assets in our database. It\'s based on a weighted average of percentage returns over 1 week, 1 month, and 1 quarter. The score ranges from 1 (worst) to 100 (best).';
+    case 'volume':
+      return 'Volume metrics include Relative Volume, which measures a stock\'s trading volume compared to its average volume over a given period, and Average Volume (1000s), which represents the average number of shares traded per day, expressed in thousands. These metrics help you understand a stock\'s liquidity and trading activity.';
+    case 'adv':
+      return 'A measure of a stock\'s price fluctuation over a given period, calculated as the standard deviation of daily returns. It represents the average daily volatility of the stock\'s price, providing insight into the stock\'s risk and potential for price movements. The values are expressed as a percentage, with higher values indicating greater volatility.';
+    case 'roe':
+      return 'Return on equity (ROE) is a measure of a company\'s profitability, calculated by dividing its net income by its total shareholder equity.';
+    case 'roa':
+      return 'Return on assets (ROA) is a measure of a company\'s profitability, calculated by dividing its net income by its total assets.';
+    case 'current-ratio':
+      return 'The current ratio is a liquidity metric that compares a company\'s current assets to its current liabilities.';
+    case 'current-assets':
+      return 'Current assets are a company\'s assets that are expected to be converted into cash within one year or within the company\'s normal operating cycle.';
+    case 'current-liabilities':
+      return 'Current liabilities are a company\'s debts or obligations that are due within one year or within the company\'s normal operating cycle.';
+    case 'current-debt':
+      return 'Current debt refers to a company\'s short-term debt obligations, such as accounts payable, short-term loans, and commercial paper.';
+    case 'casheq':
+      return 'Cash and equivalents (casheq) refers to a company\'s liquid assets, such as cash, cash equivalents, and short-term investments.';
+    case 'fcf':
+      return 'Free cash flow (FCF) is a measure of a company\'s ability to generate cash from its operations, calculated by subtracting capital expenditures from operating cash flow.';
+    case 'profit-margin':
+      return 'Profit margin is a measure of a company\'s profitability, calculated by dividing its net income by its revenue.';
+    case 'gross-margin':
+      return 'Gross margin is a measure of a company\'s profitability, calculated by dividing its gross profit by its revenue.';
+    case 'debt-equity':
+      return 'The debt-to-equity ratio is a leverage metric that compares a company\'s total debt to its total shareholder equity.';
+    case 'book-value':
+      return 'Book value is a company\'s total assets minus its total liabilities, which represents the company\'s net worth.';
+    case 'ev':
+      return 'Enterprise value (EV) is a measure of a company\'s total value, calculated by adding its market capitalization to its total debt and subtracting its cash and equivalents.';
+    case 'rsi':
+      return 'The relative strength index (RSI) is a technical indicator that measures a company\'s stock price momentum, ranging from 0 to 100.';
+    case 'gap':
+      return 'Gap % is a measure of the percentage change in a stock\'s price from the previous day\'s close to the current day\'s open. It is calculated as (Current Open - Previous Close) / Previous Close. A positive gap % indicates an upward price movement, while a negative gap % indicates a downward price movement.';
+    default:
+      return '';
+  }
+}
+
+function handleMouseOut() {
+  showTooltip.value = false
 }
 
 </script>
@@ -6996,22 +6921,18 @@ input[type="date"]{
 }
 
 .question-mark-wrapper img {
-  width: 15px;
-  height: 15px;
+  width: 15px; height: 15px;
   cursor: pointer;
   margin-left: 7px;
 }
 
 .tooltip {
   position: absolute;
-  top: 0px;
-  left: 25px;
   background-color: $base1;
   border: 1px solid $accent3;
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  display: none;
   z-index: 1000;
   width: 200px;
 }
@@ -7051,5 +6972,11 @@ input[type="date"]{
   100% {
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
   }
+}
+
+.question-img{
+  width: 15px;
+  cursor: pointer;
+  margin-left: 5px;
 }
 </style>
