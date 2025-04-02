@@ -3,9 +3,9 @@
     <div id="navbar" class="navbar">
   <img class="icon" src="@/assets/icons/ereuna.png" alt="Owl Icon">
   <div class="nav-links">
-    <div class="navbtn" @click="scrollToSection('about')">About</div>
     <div class="navbtn" @click="scrollToSection('features')">Features</div>
     <div class="navbtn" @click="scrollToSection('pricing')">Pricing</div>
+    <div class="navbtn" @click="scrollToSection('about')">About</div>
     <div class="navbtn">
       <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 12px;">Sign Up</router-link>
     </div>
@@ -17,7 +17,7 @@
   <div class="hero">
     <div class="content">
       <p class="description"><span style="color: #8c8dfe; font-size: 40px ;">Ereuna</span>'s invite-only beta test is now live.</p>
-      <p class="call-to-action">Join the beta program by emailing <a href="mailto:contact@ereuna.io" style="font-size: 18px;">contact@ereuna.io</a> to request access. it's free.</p>
+      <p class="call-to-action">Join the beta program by emailing <a href="mailto:contact@ereuna.io" style="font-size: 18px;">contact@ereuna.io</a> to request free access.</p>
       <br>
       <br>
       <span class="already-have-invite">Already have an account?</span>
@@ -45,17 +45,17 @@
       <br>
       <h2>FEATURES</h2>
       <div class="feature-cards">
-        <div class="feature-card">
-          <h3 class="feature">Data, Simplified</h3>
-          <p class="bullet"><span class="bullet" style="font-size: 15px; color: white;">Personalized Stock Universe</span> <br>you can customize your stock universe by hiding stocks that are irrelevant to your workflow and investment criteria, tailoring the data to your individual investment needs and preferences.</p>
-          <p class="bullet"><span class="bullet" style="font-size: 15px; color: white;">One-Click Multi-Screener Analysis</span> <br>you can run multiple screeners simultaneously, providing a comprehensive view of your desired stocks in a single click.</p>
-        </div>
-        <div class="feature-card">
-  <h3 class="feature2">Unbeatable Pricing</h3>
-  <p class="bullet"><span class="bullet" style="font-size: 15px; color: white;">Unbeatable Value</span> <br>this platform offers the cheapest and most affordable professional stock screening and research solution on the market, focusing on essential EOD and core fundamental data that drives informed decision-making.</p>
-  <p class="bullet"><span class="bullet" style="font-size: 15px; color: white;">Up to 96% Cost Savings</span> <br>by stripping away expensive features like integrated news APIs and real-time/intraday data, this platform provides professional-grade tools at a significantly lower cost, making it up to 96% cheaper than other platforms.</p>
+  <div class="feature-card">
+    <h3 class="feature">Data, Simplified</h3>
+    <p class="bullet"><span class="bullet" style="font-size: 15px; color: white; display: flex; align-items: center;"><img style="width: 20px; margin-right: 5px;" src="@/assets/icons/settings.png" alt="">Personalized Stock Universe</span> <br>you can customize your stock universe by hiding stocks that are irrelevant to your workflow and investment criteria, tailoring the data to your individual investment needs and preferences.</p>
+    <p class="bullet"><span class="bullet" style="font-size: 15px; color: white; display: flex; align-items: center;"><img style="width: 20px; margin-right: 5px;" src="@/assets/icons/intersect.png" alt="">One-Click Multi-Screener Analysis</span> <br>you can run multiple screeners simultaneously, providing a comprehensive view of your desired stocks in a single click.</p>
+  </div>
+  <div class="feature-card">
+    <h3 class="feature2">Unbeatable Pricing</h3>
+    <p class="bullet"><span class="bullet" style="font-size: 15px; color: white; display: flex; align-items: center;"><img style="width: 20px; margin-right: 5px;" src="@/assets/icons/savings.png" alt="">Unbeatable Value</span> <br>this platform offers the cheapest and most affordable professional stock screening and research solution on the market, focusing on essential EOD and core fundamental data that drives informed decision-making.</p>
+    <p class="bullet"><span class="bullet" style="font-size: 15px; color: white; display: flex; align-items: center;"><img style="width: 20px; margin-right: 5px;" src="@/assets/icons/discount.png" alt="">Up to 96% Cost Savings</span> <br>by stripping away expensive features like integrated news APIs and real-time/intraday data, this platform provides professional-grade tools at a significantly lower cost, making it up to 96% cheaper than other platforms.</p>
+  </div>
 </div>
-      </div>
    <!-- Tradeoff Section -->
    <div id="tradeoff">
   <h2>THE TRADEOFF</h2>
@@ -102,7 +102,7 @@
     <div class="content-section" id="pricing">
       <h2 style="text-align: center; font-size: 20px; color: whitesmoke;">PRICING</h2>
         <div class="pricing-card">
-          <h3 style="font-size: 16px;">ALL FEATURES, JUST ONE TIER</h3>
+          <h3 style="font-size: 16px;">ALL FEATURES, ONE TIER</h3>
          <div class="price-container">
           <p><span class="feature" style="font-size: 50px;">5.99€</span></p>
          <p class="price-container2">+ VAT / Month</p> 
@@ -111,7 +111,7 @@
           <br>
           <p>&bull; Coverage of 5000+ Stocks listed on NYSE and Nasdaq</p> 
           <p>&bull; 35+ years of EOD price data (Daily and Weekly), 20+ years of financial statements</p> 
-          <p>&bull; One-Click Multi-Screener and other time saving features, 30+ screening parameters</p> 
+          <p>&bull; One-Click Multi-Screener and other time saving features, 50+ screening parameters</p> 
           <p>&bull; No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days</p> 
          <br>
          <br>
@@ -155,10 +155,10 @@
       <p class="text">
         Over the years I became fed up with the expensive and cluttered premium stock screeners on the current market. I was paying up to $50 per month for features I didn't need and was stuck sifting through irrelevant stocks and duplicate values.</p>
 <p class="text">
-  I built an affordable premium stock screening option for mid-long term oriented retail traders. you can hide unwanted stocks that don't meet your criteria, run multiple screeners simultaneously, so that you can remove duplicate value while still allowing you to see how many times a stock appeared and where, this allows you to do everything in 1/5 of the time (by estimate based on my personal screening routine), also by focusing only on core data (EOD price and financial statements), i was able to significantly reduce costs and took price down to just $5.99/month compared to 50-150 $ / month of industry average, i also have plans to expand to include new markets and features in the future.
+  I built an affordable stock screening option for mid-long term oriented retail traders. you can hide unwanted stocks that don't meet your criteria, run multiple screeners simultaneously, so that you can remove duplicate value while still allowing you to see how many times a stock appeared and where, this allows you to do everything in 1/5 of the time (by estimate based on my personal screening routine), also by focusing only on core data (EOD price and financial statements), i was able to significantly reduce costs and took price down to just $5.99/month compared to 50-150 $ / month of industry average, i also have plans to expand to include new markets and features in the future.
       </p>
       <p class="text">
-        I can create a new market space that's uncontested by traditional premium screeners, because small investors should be able to put as much of their savings as they can in the market to growth their wealth, rather than speding them for the tools for analysing it.
+        I can create a new market space that's uncontested by traditional premium screeners, because small investors should be able to put as much of their savings as they can in the market to growth their wealth, rather than spending them on tools for analysing it.
       </p>
     </div>
 
@@ -246,7 +246,7 @@ const faqs = ref([
     show: true 
   },
   { question: 'What is the payment method?', answer: 'Credit Card via Stripe, cryptocurrencies will be added in the future.', show: true },
-  { question: 'Is there a refund policy?', answer: 'Yes, you are eligible for refunds the first 15 days of registration. you have to write to support@ereuna.co and provide your Username and invoice id, refunds will be processed within 5 business days', show: true },
+  { question: 'Is there a refund policy?', answer: 'Yes, you are eligible for refunds the first 15 days of registration. you have to write to contact@ereuna.io and provide your Username and invoice id, refunds will be processed within 5 business days', show: true },
   { question: 'Is there a commitment or contract?', answer: 'No, there is no commitment or contract. It\'s recharge based, no automatic / recurring charges. you can add more days to your subscription in the Dashboard session', show: true },
 ]);
 
