@@ -66,7 +66,7 @@
     <h3>{{ welcomeMessage }}</h3>
   </div>
   <div class="releaseNote" style="display: flex; flex-direction: row; align-items: center;">
-  <h3> V1.0.3 // Beta Version </h3> 
+  <h3> V1.0.1 // Beta Version </h3> 
   </div>
   <div class="releaseNote2" style="display: flex; flex-direction: row; align-items: center;">
     <h3>Crypto Donations</h3> 

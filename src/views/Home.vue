@@ -24,10 +24,7 @@
       <button class="login-button" @click="redirectToLogin">Login Now &rarr;</button>
     </div>
     <div class="video-container">
-      <video class="hero-video" autoplay muted loop>
-    <source src="@/assets/videos/heroAnimation.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
+      <img class="hero-video" src="@/assets/videos/heroAnimation.gif" alt="Hero Animation">
       <div class="beta-tag-on-video">
         <span class="title">Beta Now Available</span>
       </div>

@@ -1,4 +1,8 @@
-V1.0.1:
+v1.0.2
+- 
+
+------
+v1.0.1:
 - fixed overflow of question mark tooltips on screener.
 - added sector, industry, country, exchange, ADV inside screener tables 
 - added visual cue error on screener when you don’t select a screener name a try to set a param
