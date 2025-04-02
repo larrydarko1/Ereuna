@@ -2085,7 +2085,8 @@ def Daily():
     #checkFinancialUpdates()
 
 #scheduler
-scheduler.add_job(Daily, CronTrigger(hour=17, minute=15, day_of_week='mon-fri', timezone='US/Eastern'))
+scheduler.add_job(Daily, CronTrigger(hour=17, minute=15, day_of_week='2-4', timezone='US/Eastern'))
+scheduler.add_job(Daily, CronTrigger(hour=18, minute=1, day_of_week='1,5', timezone='US/Eastern'))
 scheduler.start()
 
 '''
@@ -2195,3 +2196,4 @@ def rename_volatility_fields():
     
 rename_volatility_fields()'''
 
+#Daily()
