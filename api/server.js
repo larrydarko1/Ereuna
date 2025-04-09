@@ -3969,14 +3969,6 @@ app.patch('/:user/watchlists/:list',
         const db = client.db('EreunaDB');
         const collection = db.collection('Watchlists');
 
-        // Check watchlist limit (optional, based on previous implementation)
-        const existingWatchlistsCount = await collection.countDocuments({ UsernameID: user });
-        if (existingWatchlistsCount >= 20) {
-          return res.status(400).json({
-            message: 'Maximum number of watchlists (20) has been reached'
-          });
-        }
-
         // Verify watchlist exists and belongs to the user
         const watchlist = await collection.findOne({
           Name: sanitizedName,

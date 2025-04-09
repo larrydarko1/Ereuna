@@ -2971,10 +2971,13 @@ getHideList();
 
 // starts autoplay all rows of screeners in order 
 function AutoPlay() {
-  if (autoplayRunning) {
-    clearTimeout(autoplayTimeoutId);
+  const button = document.getElementById('watchlistAutoplay');
+  if (button.classList.contains('snavbtnslct')) {
+    button.classList.remove('snavbtnslct');
     autoplayRunning = false;
+    clearTimeout(autoplayTimeoutId);
   } else {
+    button.classList.add('snavbtnslct');
     autoplayRunning = true;
     autoplayIndex = 0;
     logElement();
@@ -3223,7 +3226,11 @@ async function CreateScreener() {
       await GetCompoundedResults();
       showCreateScreener.value = false;
     } else {
-      console.error(responseData.message);
+      if (response.status === 400 && responseData.message === 'Maximum number of screeners (20) has been reached') {
+        notification.value.show('You have reached the maximum number of screeners (20). Please delete some screeners to create new ones.');
+      } else {
+        console.error(responseData.message);
+      }
     }
   } catch (error) {
     error.value = error.message;
@@ -5065,8 +5072,8 @@ async function SetProfitMargin() {
       throw new Error('Please select a screener')
     }
 
-    const leftProfitMargin = parseFloat(document.getElementById('left-pm').value)
-    const rightProfitMargin = parseFloat(document.getElementById('right-pm').value)
+    const leftProfitMargin = parseFloat(document.getElementById('left-pm').value) / 100
+    const rightProfitMargin = parseFloat(document.getElementById('right-pm').value) / 100
 
     if (leftProfitMargin >= rightProfitMargin) {
       throw new Error('Min cannot be higher than or equal to max')
@@ -5110,8 +5117,8 @@ async function SetGrossMargin() {
       throw new Error('Please select a screener')
     }
 
-    const leftGrossMargin = parseFloat(document.getElementById('left-gm').value)
-    const rightGrossMargin = parseFloat(document.getElementById('right-gm').value)
+    const leftGrossMargin = parseFloat(document.getElementById('left-gm').value) / 100
+    const rightGrossMargin = parseFloat(document.getElementById('right-gm').value) / 100
 
     if (leftGrossMargin >= rightGrossMargin) {
       throw new Error('Min cannot be higher than or equal to max')
@@ -6363,7 +6370,7 @@ input:checked+.slider:before {
 
 .loading-container1 {
   position: absolute;
-  top: 10%;
+  top: 0%;
   left: 0;
   width: 100%;
   height: 100%;

@@ -402,34 +402,35 @@ async function SignUp() {
 
     const responseData = await response.json(); // Parse the response as JSON
 
-    if (response.ok) {
-      if (responseData.requiresAction) {
-        const { error } = await stripe.value.handleCardAction(responseData.clientSecret);
-        if (error) {
-          throw new Error(error.message);
-        }
-        notification.value.show('Payment successful!');
-        router.push('/login');
-      } else if (responseData.message === "User   created successfully") {
-        // Download the raw recovery key
-        const authKey = responseData.rawAuthKey;
-        const blob = new Blob([authKey], { type: 'text/plain' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'ereuna_recovery_key.txt'; 
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
+    if (response.status === 201) {
+      // Download the raw recovery key
+      const authKey = responseData.rawAuthKey;
+      const blob = new Blob([authKey], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ereuna_recovery_key.txt'; 
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
 
-        notification.value.show('Signup successful! Your authentication key has been downloaded.');
-        router.push('/login');
+      notification.value.show('Signup successful! Your authentication key has been downloaded.');
+      router.push('/login');
+    } else if (response.status === 400) {
+      if (responseData.errors && responseData.errors[0].message === 'Username already exists') {
+        notification.value.show('Username already exists. Please choose a different username.');
+      } else if (responseData.errors && responseData.errors[0].message === 'Invalid subscription plan') {
+        notification.value.show('Invalid subscription plan. Please choose a valid plan.');
+      } else if (responseData.errors && responseData.errors[0].message === 'Payment method ID is required') {
+        notification.value.show('Payment method ID is required. Please select a payment method.');
       } else {
-        throw new Error('Unexpected response from server');
+        notification.value.show('An error occurred during signup. Please try again.');
       }
+    } else if (response.status === 401) {
+      notification.value.show('Unauthorized API Access. Please try again.');
     } else {
-      throw new Error(responseData.message || 'Unexpected response from server');
+      notification.value.show('An unexpected error occurred during signup. Please try again.');
     }
   } catch (error) {
     error.value = error.message;
@@ -438,6 +439,7 @@ async function SignUp() {
     processing.value = false;
   }
 }
+
 
 onMounted(() => {
   selectOption(1); // Set default subscription option
@@ -534,6 +536,7 @@ p{
     background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
     padding: 2px; /* Space for the border effect */
     -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+    mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
     -webkit-mask-composite: source-out; /* For masking */
     animation: border-animation 5s linear infinite; /* Add animation */
     mask-composite: exclude; /* For masking */
@@ -553,6 +556,7 @@ p{
     background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
     padding: 2px; /* Space for the border effect */
     -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+    mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
     -webkit-mask-composite: source-out; /* For masking */
     animation: border-animation 5s linear infinite; /* Add animation */
     mask-composite: exclude; /* For masking */
@@ -684,6 +688,7 @@ a:hover{
   background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
   padding: 2px; /* Space for the border effect */
   -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+  mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
   -webkit-mask-composite: source-out; /* For masking */
   mask-composite: exclude; /* For masking */
   animation: border-animation 5s linear infinite;
@@ -720,6 +725,7 @@ a:hover{
   background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
   padding: 2px; /* Space for the border effect */
   -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+  mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
   -webkit-mask-composite: source-out; /* For masking */
   animation: border-animation 5s linear infinite;
   mask-composite: exclude; /* For masking */
