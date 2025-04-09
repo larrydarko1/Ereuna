@@ -2082,11 +2082,10 @@ def Daily():
     
     print(f'\nTotal execution time: {total_execution_time_in_minutes:.2f} minutes')
     maintenanceMode(False)
-    #checkFinancialUpdates()
+    checkAndUpdateFinancialUpdates()
 
 #scheduler
-scheduler.add_job(Daily, CronTrigger(hour=17, minute=15, day_of_week='2-4', timezone='US/Eastern'))
-scheduler.add_job(Daily, CronTrigger(hour=18, minute=1, day_of_week='1,5', timezone='US/Eastern'))
+scheduler.add_job(Daily, CronTrigger(hour=18, minute=0, day_of_week='mon-fri', timezone='US/Eastern'))
 scheduler.start()
 
 '''

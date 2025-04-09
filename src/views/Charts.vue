@@ -392,16 +392,16 @@
 </div>
 <div id="center">
   <div class="indexes">
-  <button 
-    v-for="(index, i) in Indexes" 
-    :key="i" 
-    :class="{ active: activeIndex === i, 'index-btn': true }" 
-    @click="seeIndex(i)"
-  >
-    {{ index.Symbol }} <span :class="parseFloat(index.percentageReturn) > 0 ? 'positive' : 'negative'">{{ index.percentageReturn }}</span> 
-    <img style="margin-left: 5px;" v-if="parseFloat(index.percentageReturn) > 0" src="@/assets/icons/positive.png" alt="Up" width="10" height="10">
-    <img style="margin-left: 5px;" v-else src="@/assets/icons/negative.png" alt="Down" width="10" height="10">
-  </button>
+    <button 
+  v-for="(index, i) in Indexes" 
+  :key="i" 
+  :class="{ active: activeIndex === i, 'index-btn': true }" 
+  @click="seeIndex(i)"
+>
+  {{ symbolMapping[index.Symbol] }} <span :class="parseFloat(index.percentageReturn) > 0 ? 'positive' : 'negative'">{{ index.percentageReturn }}</span> 
+  <img style="margin-left: 5px;" v-if="parseFloat(index.percentageReturn) > 0" src="@/assets/icons/positive.png" alt="Up" width="10" height="10">
+  <img style="margin-left: 5px;" v-else src="@/assets/icons/negative.png" alt="Down" width="10" height="10">
+</button>
 </div>
 <div id="chart-container">
     <div id="legend"></div>
@@ -1136,6 +1136,8 @@ async function sendNote() {
         document.getElementById('notes-container').value = '';
         showCreateNote.value = false;
         await searchNotes(symbol);
+      } else if (response.status === 400) {
+        notification.value.show('Maximum note limit (10) reached for this symbol');
       } else {
         notification.value.show('Failed to create note');
       }
@@ -2320,8 +2322,15 @@ async function CreateWatchlist() {
 
     // Check if the request was successful
     if (response.ok) {
-    } else {
+    } else if (response.status === 400) {
       const errorData = await response.json();
+      if (errorData.message === 'Maximum number of watchlists (20) has been reached') {
+        notification.value.show('Maximum number of watchlists (20) has been reached');
+      } else {
+        notification.value.show('Failed to create watchlist');
+      }
+    } else {
+      notification.value.show('Failed to create watchlist');
     }
   } catch (error) {
     error.value = error.message;
@@ -2468,7 +2477,7 @@ async function addWatchlist() {
     {
       symbol = searchbar.value.toUpperCase() || defaultSymbol; // Use defaultSymbol if searchbar value is empty
 
- // Get the selected watchlist name without the length
+      // Get the selected watchlist name without the length
       const selectedWatchlistElement = realwatchlist.querySelector('div.selected');
       if (selectedWatchlistElement) {
         const watchlistNameElement = selectedWatchlistElement.querySelector('span.badge').previousSibling;
@@ -2511,10 +2520,16 @@ async function addWatchlist() {
         body: JSON.stringify(patchData)
       });
 
-        // Check for 400 response from the PATCH request
-        if (patchResponse.status === 400) {
+      // Check for 400 response from the PATCH request
+      if (patchResponse.status === 400) {
         const errorResponse = await patchResponse.json();
-        notification.value.show(errorResponse.message || 'Limit reached, cannot add more than 100 symbols per watchlist');
+        if (errorResponse.message === 'Maximum number of watchlists (20) has been reached') {
+          notification.value.show('You have reached the maximum number of watchlists (20). Please delete a watchlist before adding a new one.');
+        } else if (errorResponse.message === 'Limit reached, cannot add more than 100 symbols per watchlist') {
+          notification.value.show('Limit reached, cannot add more than 100 symbols per watchlist');
+        } else {
+          notification.value.show('Failed to add ticker to watchlist');
+        }
         return;
       }
 
@@ -2524,7 +2539,7 @@ async function addWatchlist() {
     }
   } catch (err) {
     error.value = err.message;
-  } 
+  }
 
   await getWatchlists();
   await getFullWatchlists(user);
@@ -3014,6 +3029,13 @@ function getQuarterAndYear(dateString) {
     return `Q${quarter} ${date.getFullYear()}`;
   }
 }
+
+const symbolMapping = {
+  SPY: 'SPX',
+  QQQ: 'NDX',
+  DIA: 'DJI',
+  IWM: 'RUT',
+};
 
 const activeIndex = ref(-1);
 

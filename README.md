@@ -1,6 +1,7 @@
 v1.0.2
-- 
-
+- renamed index names from index funds with proper index (but kept index fund data which closely resembles indexes)
+- bug fixes: loader position on daily chart in screener, margin parameters are now divided by 100 as they should, autoplay button css class can be toggled now, alert for maximum screeners is now accessable, alert per note ora non ha più messaggio generico, 
+- consolidated alerts on dashboard section
 ------
 v1.0.1:
 - fixed overflow of question mark tooltips on screener.

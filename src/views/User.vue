@@ -300,6 +300,7 @@ Thank you for your understanding.</p>
 </div>
     </div>
   </div>
+  <NotificationPopup ref="notification" />
   <Footer />
 </template>
 
@@ -314,10 +315,17 @@ import owlImage from '@/assets/icons/owl3.png';
 import QrcodeVue from 'qrcode.vue'
 import hideIcon from '@/assets/icons/hide.png';
 import showIcon from '@/assets/icons/show.png';
+import NotificationPopup from '@/components/NotificationPopup.vue';
 
 const store = useStore();
 const user = store.getters.getUser;
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
+
+// for popup notifications
+const notification = ref(null);
+const showNotification = () => {
+  notification.value.show('This is a custom notification message!');
+};
 
 const router = useRouter();
 
@@ -350,34 +358,22 @@ function selectMenu(event, index) {
 let oldPassword = ref('');
 let newPassword = ref('');
 let confirmPassword = ref('');
-let oldPasswordError = ref(false);
-let newPasswordError = ref(false);
-let confirmPasswordError = ref(false);
-let passwordSuccess = ref(false);
-const showOldPassword = ref(false);
-const showNewPassword = ref(false);
-const showConfirmPassword = ref(false);
 const showPswDelete = ref(false);
 const showPswauth = ref(false);
 
 async function changePassword() {
-  oldPasswordError.value = false;
-  newPasswordError.value = false;
-  confirmPasswordError.value = false;
-  passwordSuccess.value = false;
-
   if (oldPassword.value === '') {
-    oldPasswordError.value = true;
+    notification.value.show('Please enter your old password');
     return;
   }
 
   if (newPassword.value === '') {
-    newPasswordError.value = true;
+    notification.value.show('Please enter a new password');
     return;
   }
 
   if (confirmPassword.value !== newPassword.value) {
-    confirmPasswordError.value = true;
+    notification.value.show('Passwords do not match');
     return;
   }
 
@@ -394,39 +390,28 @@ async function changePassword() {
     const data = await response.json();
 
     if (data.confirm) {
-      passwordSuccess.value = true;
+      notification.value.show('Password changed successfully');
       // Password changed successfully
     } else if (data.error === 'old_password_incorrect') {
-      oldPasswordError.value = true;
+      notification.value.show('Old password is incorrect');
     } else {
-      error.value = error.message;
+      notification.value.show('Failed to change password');
     }
   } catch (error) {
-    error.value = error.message;
+    notification.value.show('Failed to change password');
   }
 }
 
 let newUsername = ref('');
-let usernameError = ref(false);
-let usernameErrorMessage = ref('');
-let usernameSuccess = ref(false);
-let usernameSuccessMessage = ref('');
 
 async function changeUsername() {
-  usernameError.value = false;
-  usernameErrorMessage.value = '';
-  usernameSuccess.value = false;
-  usernameSuccessMessage.value = '';
-
   if (newUsername.value === '') {
-    usernameError.value = true;
-    usernameErrorMessage.value = 'Please enter a new username';
+    notification.value.show('Please enter a new username');
     return;
   }
 
   if (newUsername.value === user) {
-    usernameError.value = true;
-    usernameErrorMessage.value = 'Current username and new username cannot be the same';
+    notification.value.show('Current username and new username cannot be the same');
     return;
   }
 
@@ -443,37 +428,28 @@ async function changeUsername() {
     const data = await response.json();
 
     if (data.error === 'username_taken') {
-      usernameError.value = true;
-      usernameErrorMessage.value = 'Username already taken';
+      notification.value.show('Username already taken');
     } else if (data.error === 'current username and new username cannot be the same') {
-      usernameError.value = true;
-      usernameErrorMessage.value = 'Current username and new username cannot be the same';
+      notification.value.show('Current username and new username cannot be the same');
     } else if (data.confirm) {
       // Username changed successfully
-      usernameSuccess.value = true;
-      usernameSuccessMessage.value = 'Username changed successfully!';
+      notification.value.show('Username changed successfully!');
       setTimeout(() => {
         LogOut();
       }, 3000);
     } else {
-      error.value = error.message;
+      notification.value.show('Failed to change username');
     }
   } catch (error) {
-    error.value = error.message;
+    notification.value.show('Failed to change username');
   }
 }
 
 let PswDelete = ref('');
-let deleteError = ref(false);
-let deleteErrorMessage = ref('');
 
 async function deleteAccount() {
-  deleteError.value = false;
-  deleteErrorMessage.value = '';
-
   if (PswDelete.value === '') {
-    deleteError.value = true;
-    deleteErrorMessage.value = 'Please enter your password';
+    notification.value.show('Please enter your password');
     return;
   }
 
@@ -490,93 +466,78 @@ async function deleteAccount() {
     const data = await response.json();
 
     if (data.error === 'password_incorrect') {
-      deleteError.value = true;
-      deleteErrorMessage.value = 'Password is incorrect';
+      notification.value.show('Password is incorrect');
     } else if (data.confirm) {
       // Account deleted successfully
+      notification.value.show('Account deleted successfully!');
       await LogOut(); // Call LogOut function after successful deletion
     } else {
-      error.value = error.message;
+      notification.value.show('Failed to delete account');
     }
   } catch (error) {
-    error.value = error.message;
+    notification.value.show('Failed to delete account');
   }
 }
 
-const keyError = ref(false);
-const keyErrorMessage = ref('');
-const keySuccess = ref(false);
-const keySuccessMessage = ref('');
 const Pswauth = ref('');
 
 async function GenerateNewKey() {
-  // Reset states
-  keyError.value = false;
-  keyErrorMessage.value = '';
-  keySuccess.value = false;
-  keySuccessMessage.value = '';
 
-  // Validate password input
-  if (!Pswauth.value.trim()) {
-    keyError.value = true;
-    keyErrorMessage.value = 'Please enter your password';
-    return;
-  }
+// Validate password input
+if (!Pswauth.value.trim()) {
+  notification.value.show('Please enter your password');
+  return;
+}
 
-  try {
-    // Call the generate-key endpoint
-    const response = await fetch('/api/generate-key', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ 
-        user: user, // Use .value if user is a ref
-        password: Pswauth.value // Send the password
-      }),
-    });
+try {
+  // Call the generate-key endpoint
+  const response = await fetch('/api/generate-key', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-KEY': apiKey,
+    },
+    body: JSON.stringify({ 
+      user: user, // Use .value if user is a ref
+      password: Pswauth.value // Send the password
+    }),
+  });
 
-    const data = await response.json();
+  const data = await response.json();
 
-    if (response.ok) {
-      if (data.confirm) {
-        // Key generation successful
-        keySuccess.value = true;
-        keySuccessMessage.value = 'New key generated successfully!';
+  if (response.ok) {
+    if (data.confirm) {
+      // Key generation successful
+      notification.value.show('New key generated successfully!');
 
-        // Trigger download of the raw key
-        const rawAuthKey = data.rawAuthKey; // Raw key returned from the endpoint
-        if (rawAuthKey) {
-          // Create and trigger file download
-          const blob = new Blob([rawAuthKey], { type: 'text/plain' });
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = url;
-          a.download = `${user}_recovery_key.txt`; // Use the username for the filename
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-        }
-
-        // Clear password
-        Pswauth.value = '';
-      } else {
-        // Handle unexpected response
-        keyError.value = true;
-        keyErrorMessage.value = 'An unexpected error occurred';
+      // Trigger download of the raw key
+      const rawAuthKey = data.rawAuthKey; // Raw key returned from the endpoint
+      if (rawAuthKey) {
+        // Create and trigger file download
+        const blob = new Blob([rawAuthKey], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${user}_recovery_key.txt`; // Use the username for the filename
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
       }
+
+      // Clear password
+      Pswauth.value = '';
     } else {
-      // Handle API errors
-      keyError.value = true;
-      keyErrorMessage.value = data.message || 'An error occurred';
+      // Handle unexpected response
+      notification.value.show('An unexpected error occurred');
     }
-  } catch (error) {
-    error.value = error.message;
-    keyError.value = true;
-    keyErrorMessage.value = 'Network error. Please try again.';
+  } else {
+    // Handle API errors
+    notification.value.show(data.message || 'An error occurred');
   }
+} catch (error) {
+  notification.value.show('Network error. Please try again.');
+}
 }
 
 // Create a ref to store the expiration days
@@ -1015,7 +976,8 @@ p{
     border-radius: 10px; /* Match the border radius of the parent */
     background: linear-gradient(270deg, $accent1, #4c4d8f, #494bb9); /* Gradient colors */
     padding: 2px; /* Space for the border effect */
-    -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+    -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); 
+    mask: linear-gradient(white, white) content-box, linear-gradient(white, white);/* For masking */
     -webkit-mask-composite: source-out; /* For masking */
     animation: border-animation 5s linear infinite; /* Add animation */
     mask-composite: exclude; /* For masking */
@@ -1057,7 +1019,8 @@ p{
     border-radius: 10px; /* Match the border radius of the parent */
     background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
     padding: 2px; /* Space for the border effect */
-    -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+    -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); 
+    mask: linear-gradient(white, white) content-box, linear-gradient(white, white);/* For masking */
     -webkit-mask-composite: source-out; /* For masking */
     animation: border-animation 5s linear infinite; /* Add animation */
     mask-composite: exclude; /* For masking */
@@ -1113,7 +1076,8 @@ p{
   border-radius: 5px; /* Match the border radius of the parent */
   background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
   padding: 2px; /* Space for the border effect */
-  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
+  mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
   -webkit-mask-composite: source-out; /* For masking */
   mask-composite: exclude; /* For masking */
   animation: border-animation 5s linear infinite;
@@ -1148,7 +1112,8 @@ p{
   border-radius: 5px; /* Match the border radius of the parent */
   background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
   padding: 2px; /* Space for the border effect */
-  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
+  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); 
+  mask: linear-gradient(white, white) content-box, linear-gradient(white, white);/* For masking */
   -webkit-mask-composite: source-out; /* For masking */
   animation: border-animation 5s linear infinite;
   mask-composite: exclude; /* For masking */
