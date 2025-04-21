@@ -6537,6 +6537,8 @@ input:checked+.slider:before {
   left: 100%;
   top: 0; 
   background-color: $base4;
+  max-height: 185px;
+  overflow-y: scroll;
   padding: 5px;
   border-radius: 5px;
   min-width: 150px;

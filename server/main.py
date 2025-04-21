@@ -2082,7 +2082,7 @@ def Daily():
     
     print(f'\nTotal execution time: {total_execution_time_in_minutes:.2f} minutes')
     maintenanceMode(False)
-    checkAndUpdateFinancialUpdates()
+    #checkAndUpdateFinancialUpdates()
 
 #scheduler
 scheduler.add_job(Daily, CronTrigger(hour=18, minute=0, day_of_week='mon-fri', timezone='US/Eastern'))
@@ -2195,4 +2195,4 @@ def rename_volatility_fields():
     
 rename_volatility_fields()'''
 
-#Daily()
+Daily()

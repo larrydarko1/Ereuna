@@ -16,8 +16,8 @@
 </div>
   <div class="hero">
     <div class="content">
-      <p class="description"><span style="color: #8c8dfe; font-size: 40px ;">Ereuna</span>'s invite-only beta test is now live.</p>
-      <p class="call-to-action">Join the beta program by emailing <a href="mailto:contact@ereuna.io" style="font-size: 18px;">contact@ereuna.io</a> to request free access.</p>
+      <p class="description"><span style="color: #8c8dfe; font-size: 40px ;">Ereuna</span>'s beta test is now live.</p> 
+      <p class="call-to-action">Join the beta program by clicking this <a href="/signup" style="font-size: 18px;">link</a> to create a free account</p>
       <br>
       <br>
       <span class="already-have-invite">Already have an account?</span>
@@ -129,8 +129,7 @@
    <!-- Call-to-Action Section -->
    <div class="cta-section">
     <h2 style="text-align: center; font-size: 30px; color: whitesmoke;">Ready to Get Started?</h2>
-    <p class="call-to-action">Join the beta program by emailing <a href="mailto:contact@ereuna.io" style="font-size: 18px;">contact@ereuna.io</a> to request free access.</p>
-    <!-- <div class="navbtn3">Sign Up Now</div> -->
+     <div class="navbtn3" @click="$router.push('/signup')">Join Now</div> 
     </div>
   
     <div style="padding: 30px">
@@ -250,11 +249,23 @@ const faqs = ref([
   { question: 'Is there a commitment or contract?', answer: 'No, there is no commitment or contract. It\'s recharge based, no automatic / recurring charges. you can add more days to your subscription in the Dashboard session', show: true },
 ]);
 
-// Define the scrollToSection function
 const scrollToSection = (sectionId) => {
   const element = document.getElementById(sectionId);
   if (element) {
     element.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // Update the position of the .sphere-gradient element
+  const sphereGradient = document.querySelector('.sphere-gradient');
+  const scrollY = window.scrollY;
+  const heroHeight = document.querySelector('.hero').offsetHeight;
+
+  if (scrollY > heroHeight) {
+    sphereGradient.style.position = 'absolute';
+    sphereGradient.style.top = `${scrollY + 110}px`;
+  } else {
+    sphereGradient.style.position = 'fixed';
+    sphereGradient.style.top = '110%';
   }
 };
 
@@ -518,8 +529,8 @@ a:hover{
   border-radius: 25px; /* Rounded corners */
   background-color: transparent; /* Button background color */
   color: whitesmoke; /* Text color */
-  padding: 10px 20px; /* Padding for better spacing */
-  font-size: 16px; /* Font size */
+  padding: 15px 30px; /* Increased padding for better spacing */
+  font-size: 18px; /* Increased font size */
   cursor: pointer; /* Pointer cursor on hover */
   position: relative; /* For pseudo-element positioning */
   overflow: hidden; /* Hide overflow for pseudo-element */
@@ -530,7 +541,21 @@ a:hover{
   justify-content: center; /* Center horizontally */
 }
 
-/* Gradient border animation */
+/* New animation */
+.navbtn3:hover {
+  background-color: #8c8dfe;
+  color: white;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  transform: scale(1.05); /* Scale up on hover */
+  transition: all 0.3s ease-in-out; /* Changed transition timing function for smoother animation */
+}
+
+.navbtn3:active {
+  transform: scale(0.95); /* Scale down on click */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Reduced shadow on click */
+  transition: all 0.1s ease-out; /* Faster transition on click */
+}
+
 .navbtn3::before {
   content: '';
   position: absolute; /* Position it absolutely */
@@ -540,19 +565,13 @@ a:hover{
   bottom: 0;
   z-index: -1; /* Place it behind the content */
   border-radius: 25px; /* Match the border radius of the parent */
-  background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
+  background: transparent; /* Background color */
   padding: 2px; /* Space for the border effect */
-  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
-  mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
-  -webkit-mask-composite: source-out; /* For masking */
-  animation: border-animation 5s linear infinite;
-  mask-composite: exclude; /* For masking */
-  background-size: 300% 300%; 
+  transition: all 0.3s ease; /* Smooth transition */
+  border: 2px solid $accent1;
 }
 
 .navbtn3:hover::before {
-  -webkit-mask: none; /* Remove the mask on hover */
-  mask: none; /* Remove the mask on hover */
   padding: 0; /* Remove padding to fill the entire button */
 }
 
