@@ -32,7 +32,7 @@
     background-color: $base1;
     border: solid 1px $base1;
     padding: 0px;
-    min-width: 1370px;
+    min-width: 1400px;
   }
   
   .icon {

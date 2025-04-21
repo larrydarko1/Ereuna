@@ -14606,3 +14606,56 @@ app.patch('/screener/gap-percent', validate([
       });
     }
   });
+
+app.post('/trial',
+  async (req, res) => {
+    const requestLogger = createRequestLogger(req);
+    let client;
+
+    try {
+      const apiKey = req.header('x-api-key');
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      const { username, password } = req.body;
+      const sanitizedUsername = sanitizeInput(username);
+      const hashedPassword = await argon2.hash(password);
+      const rawAuthKey = crypto.randomBytes(64).toString('hex');
+
+      logSignupAttempt(requestLogger, sanitizedUsername, null, null);
+
+      client = new MongoClient(uri);
+      await client.connect();
+      const db = client.db('EreunaDB');
+      const usersCollection = db.collection('Users');
+
+      if (await isUsernameTaken(usersCollection, sanitizedUsername, requestLogger)) {
+        return res.status(400).json({ errors: [{ field: 'username', message: 'Username already exists' }] });
+      }
+
+      const creationDate = new Date();
+      const expirationDate = new Date(creationDate.getTime() + 30 * 24 * 60 * 60 * 1000); // add 30 days
+
+      const newUser = await createUser(usersCollection, sanitizedUsername, hashedPassword, expirationDate, null, null, rawAuthKey, requestLogger);
+      if (!newUser) return res.status(500).json({ message: 'Failed to create user' });
+
+      logSuccessfulSignup(requestLogger, newUser.insertedId, null);
+
+      return res.status(201).json({ message: 'User created successfully', rawAuthKey });
+
+    } catch (error) {
+      handleError(error, requestLogger, req);
+      return res.status(500).json({ message: 'An error occurred during trial signup', error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error' });
+    } finally {
+      if (client) await client.close();
+    }
+  }
+);

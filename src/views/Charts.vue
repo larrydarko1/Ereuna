@@ -1,559 +1,573 @@
 <template>
+
   <body>
     <Header />
     <div id="main">
       <div class="tooltip-container">
-  <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
-    <span class="tooltip-text">{{ tooltipText }}</span>
-  </div>
-</div>
+        <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
+          <span class="tooltip-text">{{ tooltipText }}</span>
+        </div>
+      </div>
       <div v-if="showCreateNote" class="CreateNote">
         <br>
         <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
         <br>
-        <p style="font-size: 9px; padding: 0; color: whitesmoke; opacity: 0.60; margin: 5px;">350 characters max / 10 notes limit for each symbol</p>
-  <textarea  id="notes-container" 
-      placeholder="write notes here" 
-      :class="{ error: characterCount > 350 }" 
-      v-model="noteContent" 
-      @input="updateCharacterCount"></textarea>
+        <p style="font-size: 9px; padding: 0; color: whitesmoke; opacity: 0.60; margin: 5px;">350 characters max / 10
+          notes limit for each symbol</p>
+        <textarea id="notes-container" placeholder="write notes here" :class="{ error: characterCount > 350 }"
+          v-model="noteContent" @input="updateCharacterCount"></textarea>
         <div class="inner">
-          <button @click="showCreateNote = false"><img class="imgbtn" src="@/assets/icons/back-arrow.png" alt=""></button>
+          <button @click="showCreateNote = false"><img class="imgbtn" src="@/assets/icons/back-arrow.png"
+              alt=""></button>
           <button @click="sendNote()"><img class="imgbtn" src="@/assets/icons/submit.png" alt=""></button>
         </div>
       </div>
       <div v-if="showCreateWatchlist" class="CreateWatchlist">
         <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
         <h3 class="title">Create Watchlist</h3>
-        <input
-      id="inputcreate"
-      placeholder="Enter Watchlist Name"
-      type="text"
-      v-model="watchlistName"
-      :class="{'input-error': watchlistName.length > 20}"
-    />
+        <input id="inputcreate" placeholder="Enter Watchlist Name" type="text" v-model="watchlistName"
+          :class="{ 'input-error': watchlistName.length > 20 }" />
         <div class="inner">
-          <button @click="showCreateWatchlist = false"><img class="imgbtn" src="@/assets/icons/back-arrow.png" alt=""></button>
+          <button @click="showCreateWatchlist = false"><img class="imgbtn" src="@/assets/icons/back-arrow.png"
+              alt=""></button>
           <button @click="CreateWatchlist()"><img class="imgbtn" src="@/assets/icons/submit.png" alt=""></button>
         </div>
       </div>
       <div v-if="showRenameWatchlist" class="RenameWatchlist">
         <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
         <h3 class="title">Rename Watchlist</h3>
-        <input 
-        id="inputrename" 
-        placeholder="Enter Watchlist Name" 
-        type="text"
-        v-model="watchlistName"
-      :class="{'input-error': watchlistName.length > 20}"
-      />
+        <input id="inputrename" placeholder="Enter Watchlist Name" type="text" v-model="watchlistName"
+          :class="{ 'input-error': watchlistName.length > 20 }" />
         <div class="inner">
-          <button @click="showRenameWatchlist = false"><img class="imgbtn" src="@/assets/icons/back-arrow.png" alt=""></button>
+          <button @click="showRenameWatchlist = false"><img class="imgbtn" src="@/assets/icons/back-arrow.png"
+              alt=""></button>
           <button @click="UpdateWatchlist()"><img class="imgbtn" src="@/assets/icons/submit.png" alt=""></button>
         </div>
       </div>
       <div id="sidebar-left">
         <div v-if="isLoading3" style="position: relative; height: 100%;">
-    <div style="position: absolute; top: 45%; left: 43%;">
-    <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="bars" size="32" />
-  </div>
-</div>
-<div v-else style="border:none" >
-<div class="summary-container">
-  <div class="summary-row">
-    <div class="category">Exchange</div>
-    <div class="response">
-      {{ assetInfo.Exchange }}
-    </div>
-  </div>
-  <div class="summary-row">
-    <div class="category">ISIN</div>
-    <div class="response">{{ assetInfo.ISIN }}</div>
-  </div>
-  <div class="summary-row">
-    <div class="category">IPO Date</div>
-    <div class="response">{{ formatDate(assetInfo.IPO) }}</div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Sector</div>
-    <div class="response">
-      {{ assetInfo.Sector.charAt(0).toUpperCase() + assetInfo.Sector.slice(1).toLowerCase() }}
-    </div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Industry</div>
-    <div class="response">
-      {{ assetInfo.Industry.charAt(0).toUpperCase() + assetInfo.Industry.slice(1).toLowerCase() }}
-    </div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Reported Currency</div>
-<div class="response">{{ assetInfo.Currency.toUpperCase() }}</div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Technical Score (1W)</div>
-    <div class="response">{{ assetInfo.RSScore1W }}</div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Technical Score (1M)</div>
-    <div class="response">{{ assetInfo.RSScore1M }}</div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Technical Score (4M)</div>
-    <div class="response">{{ assetInfo.RSScore4M }}</div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Market Cap</div>
-    <div class="response">{{ parseInt(assetInfo.MarketCapitalization).toLocaleString() }}</div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Shares Outstanding</div>
-    <div class="response">{{ parseInt(assetInfo.SharesOutstanding).toLocaleString() }}</div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Location</div>
-    <div class="response">{{ assetInfo.Address }}</div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Dividend Date</div>
-    <div class="response">
-      {{ 
-        (assetInfo.DividendDate !== 'Invalid Date' && assetInfo.DividendDate != null && !isNaN(Date.parse(assetInfo.DividendDate))) 
-          ? formatDate(assetInfo.DividendDate) 
-          : '-' 
-      }}
-    </div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Dividend Yield</div>
-    <div class="response">
-      {{ (assetInfo.DividendYield != null && !isNaN(assetInfo.DividendYield)) ? (parseFloat(assetInfo.DividendYield) * 100).toFixed(2) + '%' : '-' }}
-    </div>
-  </div>
-  <div class="summary-row">
-    <div class="category">Book Value</div>
-    <div class="response">
-      {{ (assetInfo.BookValue != null && !isNaN(assetInfo.BookValue)) ? parseFloat(assetInfo.BookValue) : '-' }}
-    </div>
-  </div>
-  <div class="summary-row">
-    <div class="category">PEG Ratio</div>
-    <div class="response">
-  {{ (assetInfo.PEGRatio != null && !isNaN(assetInfo.PEGRatio) && assetInfo.PEGRatio >= 0) ? parseInt(assetInfo.PEGRatio) : '-' }}
-</div>
-  </div>
-  <div class="summary-row">
-    <div class="category">PE Ratio</div>
-<div class="response">
-  {{ (assetInfo.PERatio != null && !isNaN(assetInfo.PERatio) && assetInfo.PERatio >= 0) ? parseInt(assetInfo.PERatio) : '-' }}
-</div>
-  </div>
-  <div class="summary-row2">
-    <div :class="['description', { 'expanded': showAllDescription }]" :style="{ height: showAllDescription ? 'auto' : minHeight }">
-      {{ assetInfo.Description }}
-    </div>
-  </div>
-  <button 
-      @click="showAllDescription = !showAllDescription" 
-      class="toggle-btn">
-      {{ showAllDescription ? 'Show Less' : 'Show All' }}
-    </button>
-</div>
-<div v-if="displayedEPSItems.length > 0" id="EPStable">
-  <div class="eps-header">
-    <div class="eps-cell" style="flex: 0 0 20%;">Reported</div>
-    <div class="eps-cell" style="flex: 0 0 40%;">EPS</div>
-    <div class="eps-cell" style="flex: 0 0 20%;">Chg (%)</div>
-    <div class="eps-cell" style="flex: 0 0 10%;">QoQ</div>
-    <div class="eps-cell" style="flex: 0 0 10%;">YoY</div>
-</div>
-<div class="eps-body">
-  <div v-for="(earnings, index) in displayedEPSItems" :key="earnings.fiscalDateEnding" class="eps-row">
-    <div class="eps-cell" style="flex: 0 0 20%;">{{ formatDate(earnings.fiscalDateEnding) }}</div>
-    <div class="eps-cell" style="flex: 0 0 40%;">{{ parseFloat(earnings.reportedEPS).toFixed(2) }}</div>
-    
-    <!-- Change here: Check if there are fewer than 4 items -->
-    <div class="eps-cell" style="flex: 0 0 20%;" v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
-      <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-    </div>
-    <div class="eps-cell" style="flex: 0 0 20%;" v-else :class="calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) > 0 ? 'positive' : 'negative'">
-  {{ isNaN(calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0)) || !isFinite(calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0)) ? '-' : calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) + '%' }}
-</div>
-    
-    <div class="eps-cell" style="flex: 0 0 10%;" v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
-      <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-    </div>
-    <div class="eps-cell" style="flex: 0 0 10%;" v-else>
-      <img v-if="getQoQClass(calculateQoQ1(earnings.reportedEPS)) === 'green'" src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-      <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-    </div>
-    
-    <div class="eps-cell" style="flex: 0 0 10%;" v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
-      <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-    </div>
-    <div class="eps-cell" style="flex: 0 0 10%;" v-else>
-      <img v-if="getYoYClass(calculateYoY1(earnings.reportedEPS)) === 'green'" src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-      <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-    </div>
-  </div>
-</div>
-</div>
-<div v-if="displayedEPSItems.length === 0" class="no-data">No EPS data available</div>
-<button 
-    v-if="showEPSButton" 
-    @click="showAllEPS = !showAllEPS" 
-    class="toggle-btn">
-    {{ showAllEPS ? 'Show Less' : 'Show All' }}
-</button>
-<div v-if="displayedEarningsItems.length > 0" id="Earntable">
-  <div class="earn-header">
-    <div class="earn-cell" style="flex: 0 0 20%;">Reported</div>
-    <div class="earn-cell" style="flex: 0 0 40%;">Earnings</div>
-    <div class="earn-cell" style="flex: 0 0 20%;">Chg (%)</div>
-    <div class="earn-cell" style="flex: 0 0 10%;">QoQ</div>
-    <div class="earn-cell" style="flex: 0 0 10%;">YoY</div>
-  </div>
-  <div class="earn-body">
-  <div v-for="(quarterlyReport, index) in displayedEarningsItems" :key="quarterlyReport.fiscalDateEnding" class="earn-row">
-    <div class="earn-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
-    <div class="earn-cell" style="flex: 0 0 40%;">{{ parseInt(quarterlyReport.netIncome).toLocaleString() }}</div>
-    
-    <!-- Change here: Check if there are fewer than 4 items -->
-    <div class="earn-cell" style="flex: 0 0 20%;" v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
-      <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-    </div>
-    <div class="earn-cell" style="flex: 0 0 20%;" v-else :class="calculateNet(quarterlyReport.netIncome) > 0 ? 'positive' : 'negative'">
-  {{ isNaN(calculateNet(quarterlyReport.netIncome)) || !isFinite(calculateNet(quarterlyReport.netIncome)) || calculateNet(quarterlyReport.netIncome) === null ? '-' : calculateNet(quarterlyReport.netIncome) + '%' }}
-</div>
-    
-    <div class="earn-cell" style="flex: 0 0 10%;" v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
-      <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-    </div>
-    <div class="earn-cell" style="flex: 0 0 10%;" v-else>
-      <img v-if="getQoQClass(calculateQoQ2(quarterlyReport.netIncome)) === 'green'" 
-           src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-      <img v-else 
-           src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-    </div>
-    
-    <div class="earn-cell" style="flex: 0 0 10%;" v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
-      <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-    </div>
-    <div class="earn-cell" style="flex: 0 0 10%;" v-else>
-      <img v-if="getYoYClass(calculateYoY2(quarterlyReport.netIncome)) === 'green'" 
-           src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-      <img v-else 
-           src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-    </div>
-  </div>
-</div>
-</div>
-<div v-if="displayedEarningsItems.length === 0" class="no-data">No earnings data available</div>
-<button 
-    v-if="showEarningsButton" 
-    @click="showAllEarnings = !showAllEarnings" 
-    class="toggle-btn">
-    {{ showAllEarnings ? 'Show Less' : 'Show All' }}
-</button>
-<div v-if="displayedSalesItems.length > 0" id="Salestable">
-  <div class="sales-header">
-    <div class="sales-cell" style="flex: 0 0 20%;">Reported</div>
-    <div class="sales-cell" style="flex: 0 0 40%;">Sales</div>
-    <div class="sales-cell" style="flex: 0 0 20%;">Chg (%)</div>
-    <div class="sales-cell" style="flex: 0 0 10%;">QoQ</div>
-    <div class="sales-cell" style="flex: 0 0 10%;">YoY</div>
-  </div>
-  <div class="sales-body">
-    <div v-for="(quarterlyReport, index) in displayedSalesItems" :key="quarterlyReport.fiscalDateEnding" class="sales-row">
-      <div class="sales-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
-      <div class="sales-cell" style="flex: 0 0 40%;">{{ parseInt(quarterlyReport.totalRevenue).toLocaleString() }}</div>
-      
-      <!-- Change here: Check if there are fewer than 4 items -->
-      <div class="sales-cell" style="flex: 0 0 20%;" v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
-        <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-      </div>
-      <div class="sales-cell" style="flex: 0 0 20%;" v-else :class="calculateRev(quarterlyReport.totalRevenue) > 0 ? 'positive' : 'negative'">
-  {{ isNaN(calculateRev(quarterlyReport.totalRevenue)) || !isFinite(calculateRev(quarterlyReport.totalRevenue)) || calculateRev(quarterlyReport.totalRevenue) === null ? '-' : calculateRev(quarterlyReport.totalRevenue) + '%' }}
-</div>
-      
-      <div class="sales-cell" style="flex: 0 0 10%;" v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
-        <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-      </div>
-      <div class="sales-cell" style="flex: 0 0 10%;" v-else>
-        <img v-if="getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'" 
-             src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-        <img v-else 
-             src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-      </div>
-      
-      <div class="sales-cell" style="flex: 0 0 10%;" v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
-        <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-      </div>
-      <div class="sales-cell" style="flex: 0 0 10%;" v-else>
-        <img v-if="getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'" 
-             src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-        <img v-else 
-             src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-      </div>
-    </div>
-  </div>
-</div>
-<div v-if="displayedSalesItems.length === 0" class="no-data">No sales data available</div>
-<button 
-    v-if="showSalesButton" 
-    @click="showAllSales = !showAllSales" 
-    class="toggle-btn">
-    {{ showAllSales ? 'Show Less' : 'Show All' }}
-</button>
-<div v-if="displayedDividendsItems.length > 0" id="DividendsTable">
-  <div class="dividends-header">
-    <div class="dividends-cell" style="flex: 0 0 50%;">Reported</div>
-    <div class="dividends-cell" style="flex: 0 0 50%;">Dividends</div>
-  </div>
-  <div class="dividends-body">
-    <div v-for="(dividend, index) in displayedDividendsItems" :key="index" class="dividends-row">
-      <div class="dividends-cell" style="flex: 0 0 50%;">{{ formatDate(dividend.payment_date) }}</div>
-      <div class="dividends-cell" style="flex: 0 0 50%;">{{ parseFloat(dividend.amount).toLocaleString() }}</div>
-    </div>
-  </div>
-</div>
-<div v-if="displayedDividendsItems.length === 0" class="no-data">No dividend data available</div>
-<button 
-    v-if="showDividendsButton" 
-    @click="showAllDividends = !showAllDividends" 
-    class="toggle-btn">
-    {{ showAllDividends ? 'Show Less' : 'Show All' }}
-</button>
-<div v-if="displayedSplitsItems.length > 0" id="SplitsTable">
-  <div class="splits-header">
-    <div class="splits-cell" style="flex: 0 0 50%;">Reported</div>
-    <div class="splits-cell" style="flex: 0 0 50%;">Split</div>
-  </div>
-  <div class="splits-body">
-    <div v-for="(split, index) in displayedSplitsItems" :key="index" class="splits-row">
-      <div class="splits-cell" style="flex: 0 0 50%;">{{ formatDate(split.effective_date) }}</div>
-      <div class="splits-cell" style="flex: 0 0 50%;">{{ parseInt(split.split_factor) }}</div>
-    </div>
-  </div>
-</div>
-<div v-if="displayedSplitsItems.length === 0" class="no-data">No splits data available</div>
-<button 
-    v-if="showSplitsButton" 
-    @click="showAllSplits = !showAllSplits" 
-    class="toggle-btn">
-    {{ showAllSplits ? 'Show Less' : 'Show All' }}
-</button>
-<button class="financialbtn" @click="showPopup = true">View Financial Statements</button>
-<div v-if="showPopup" class="popup">
-  <div class="popup-content">
-  <div class="toggle-button-container">
-    <button @click="toggleFinancials" class="toggle-button">
-      {{ isAnnualFinancials ? 'Switch to Quarterly Reports' : 'Switch to Annual Reports' }}
-    </button>
-    <button class="toggle-button" @click="showPopup = false">Close</button>
-  </div>
-  <br>
-  <div class="financials-header">
-    <div class="attribute-name">Attribute</div>
-    <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="fiscal-year">
-      {{ getQuarterAndYear(financial.fiscalDateEnding) }}
-    </div>
-  </div>
-  <div v-for="(attribute, index) in Object.keys(currentFinancials[0]).filter(attr => attr !== 'fiscalDateEnding')" :key="index" class='financials-row'>
-    <div class="attribute-name">{{ attributeMap[attribute] || attribute }}  <img class="question-img" src="@/assets/icons/question.png" alt="Question mark" @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut" /></div>
-    <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="financial-value">
-      {{ isNaN(parseInt(financial[attribute])) ? '-' : parseInt(financial[attribute]).toLocaleString() }}
-      <div class="percentage-box" :class="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0 ? 'positive' : 'negative'">
-  {{ isNaN(parseFloat(getPercentageDifference(financial, attribute))) ? '-' : getPercentageDifference(financial, attribute) }}
-  <img  v-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0" src="@/assets/icons/positive.png" alt="Up" width="10" height="10">
-  <img  v-else-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute)))" src="@/assets/icons/negative.png" alt="Down" width="10" height="10">
-</div>
-    </div>
-  </div>
-</div>
-  </div>
-        <h3 class="title">Notes Container</h3>
-<div v-if="BeautifulNotes.length > 0">
-  <div class="note" v-for="note in BeautifulNotes" :key="note.Date">
-    <div class="inline-note">
-      <img class="img" src="@/assets/icons/note.png" alt="">
-    </div>
-    <button class="notebtn" @click="removeNote(note._id)">
-        <img class="imgdlt" src="@/assets/icons/close.png" alt="">
-      </button>
-    <p class="note-msg-date" style="color: whitesmoke; opacity: 0.60;">Created: {{ formatDate(note.Date) }}</p>
-    <p class="note-msg">{{ note.Message }}</p>
-  </div>
-</div>
-<div v-else>
-</div>
-<div class="results"></div>
-</div>
-</div>
-<div id="center">
-  <div class="indexes">
-    <button 
-  v-for="(index, i) in Indexes" 
-  :key="i" 
-  :class="{ active: activeIndex === i, 'index-btn': true }" 
-  @click="seeIndex(i)"
->
-  {{ symbolMapping[index.Symbol] }} <span :class="parseFloat(index.percentageReturn) > 0 ? 'positive' : 'negative'">{{ index.percentageReturn }}</span> 
-  <img style="margin-left: 5px;" v-if="parseFloat(index.percentageReturn) > 0" src="@/assets/icons/positive.png" alt="Up" width="10" height="10">
-  <img style="margin-left: 5px;" v-else src="@/assets/icons/negative.png" alt="Down" width="10" height="10">
-</button>
-</div>
-<div id="chart-container">
-    <div id="legend"></div>
-    <div id="legend2">
-      <button class="navbtng" v-b-tooltip.hover title="Change Chart View" @click="toggleChartView">{{ chartView }}</button>
-      <button 
-  class="navbtng" 
-  v-b-tooltip.hover 
-  title="Change Chart type" 
-  @click="toggleChartType"
->
-  <img :src="chartTypeIcon" alt="Chart Type" class="chart-type-icon">
-</button>
-    </div>
-    <div id="legend3"></div>
-    <div id="legend4" v-if="!['SPY', 'QQQ', 'DIA', 'IWM'].includes(defaultSymbol)">
-      <img class="chart-img" :src="getImagePath(assetInfo.Symbol)" alt="">
-      <p class="ticker" >{{assetInfo.Symbol}} </p> <p class="name" > - {{assetInfo.Name}}</p>
-      <div v-if="isInHiddenList(selectedItem)" class="hidden-message">
-        <img class="chart-img2" src="@/assets/icons/hide.png" alt="">
-        <p>This Asset Is In Your Hidden List</p>
-      </div>
-    </div>
-    <div id="chartdiv"></div>
-    <div class="loading-container" v-if="isChartLoading">
-      <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="64" />
-    </div>
-    <div class="loading-container" v-if="isLoading">
-      <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="64" />
-    </div>
-    <div id="chartdiv2" style="padding: 15px;">
-      <img src="@/assets/images/logos/tiingo.png" alt="Image" style="height: 15px; margin-right: 10px; margin-bottom: 7px;">
-      <p style="margin: 0; font-size: 10px;">Financial data provided by Tiingo.com as of {{ currentDate }} - All financial data is provided by Tiingo, with the exception of certain calculated metrics such as moving averages and Technical Score, which are derived from Tiingo's data.</p>
-</div>
-  </div>
-</div>
-      <div id="sidebar-right">
-      <div style="position: sticky; top: 0; z-index: 1000;">
-        <div id="searchtable">
-          <input type="text" id="searchbar" name="search" placeholder="Search Ticker" 
-          v-model="searchQuery" @input="toUpperCase" @keydown.enter="searchTicker()">
-            <button class="wlbtn2" id="searchBtn" @click="searchTicker()" v-b-tooltip.hover title="Search Symbol"><img class="img" src="@/assets/icons/search.png" alt=""></button>
+          <div style="position: absolute; top: 45%; left: 43%;">
+            <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="bars" size="32" />
+          </div>
         </div>
-        <div id="wlnav">
-          <div id="realwatchlist" class="select-container" @mouseover="showDropdown = true" @mouseout="showDropdown = false">
-            <img :src="downIcon" alt="Dropdown Icon" class="dropdown-icon" :class="{ 'dropdown-icon-hover': showDropdown }" />
-  <p style="font-weight: bold;" class="selected-value" @click.stop="">{{ selectedWatchlist ? selectedWatchlist.Name : 'Select a watch' }}</p>
-  <div class="dropdown-container">
-    <div class="watchlist-dropdown-menu">
-    <div v-for="watch in watchlist.tickers" :key="watch.Name" :class="{'selected': selectedWatchlist && selectedWatchlist.Name === watch.Name}" @click="filterWatchlist(watch)">
-      {{ watch.Name }} 
-      <span class="badge">{{ watch.List.length }}</span>
-      <button class="icondlt" id="watchlistDelete" @click.stop="DeleteWatchlist(watch)" v-b-tooltip.hover title="Delete Watchlist">
-        <img class="img" src="@/assets/icons/close.png" alt="delete watchlist">
-      </button>
-    </div>
-  </div>
-</div>
-</div>
-<button class="navbtn" @click="addWatchlist()" v-b-tooltip.hover title="Add ticker to watchlist">
-        <img class="img" src="@/assets/icons/plus.png" alt="add to watchlist">
-      </button>
-<div class="wlnav-dropdown">
-    <button class="dropdown-toggle wlbtn" v-b-tooltip.hover title="More Options">
-      <img class="img" src="@/assets/icons/dots.png" alt="more options">
-    </button>
-    <div class="dropdown-vnav">
-      <div class="watchlist-dropdown-menu2">
-      <button class="dropdown-item" @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Watchlist">
-        <img class="img" src="@/assets/icons/play.png" alt="autoplay watchlist"> Autoplay
-      </button>
-      <button class="dropdown-item" @click="showCreateNote = true" v-b-tooltip.hover title="Create a Note">
-        <img class="img" src="@/assets/icons/note.png" alt=""> Create Note
-      </button>
-      <button class="dropdown-item" @click="showCreateWatchlist = true" v-b-tooltip.hover title="Create New Watchlist">
-        <img class="img" src="@/assets/icons/add.png" alt="create new watchlist"> New Watchlist
-      </button>
-      <button class="dropdown-item" @click="showRenameWatchlist = true" v-b-tooltip.hover title="Rename Watchlist">
-        <img class="img" src="@/assets/icons/edit2.png" alt="edit watchlist name"> Rename Watchlist
-      </button>
-    </div>
-  </div>
-  </div>
-</div>
-<div id="watch-container">
-  <div class="ntbl" style="flex: 0.5"></div>
-  <div class="ntbl" style="flex: 1"></div>
-  <div class="tbl" style="flex: 1" @click="sortTable('ticker')"><img class="img2" src="@/assets/icons/sort.png" alt="sort">Ticker</div>
-  <div class="tbl" style="flex: 1" @click="sortTable('last')"><img class="img2" src="@/assets/icons/sort.png" alt="sort">Last</div>
-  <div class="tbl" style="flex: 1" @click="sortTable('chg')"><img class="img2" src="@/assets/icons/sort.png" alt="sort">Chg</div>
-  <div class="tbl" style="flex: 1" @click="sortTable('perc')"><img class="img2" src="@/assets/icons/sort.png" alt="sort">%</div>
-</div>
-</div>
-  <div v-if="isLoading2" style="position: relative; height: 100%;">
-    <div style="position: absolute; top: 45%; left: 43%;">
-    <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="bars" size="32" />
-  </div>
-</div>
-  <div v-else>
-    <div id="list" 
-       ref="watchlistContainer"
-       tabindex="0"
-       @keydown="handleKeydown"
-       @click="handleClick">
-      <div ref="sortable">
-        <div
-          v-for="item in watchlist2.tickers"
-          :key="item"
-          :class="{ 'selected': selectedItem === item, 'wlist': true }"
-          @click="selectRow(item)"
-        >
-          <div style="flex: 0.5; position: relative;">
-            <button class="dropdown-btn">
-              <img class="imgm" src="@/assets/icons/dots.png" alt="" style="border: none;">
+        <div v-else style="border:none">
+          <div class="summary-container">
+            <div class="summary-row">
+              <div class="category">Exchange</div>
+              <div class="response">
+                {{ assetInfo.Exchange }}
+              </div>
+            </div>
+            <div class="summary-row">
+              <div class="category">ISIN</div>
+              <div class="response">{{ assetInfo.ISIN }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="category">IPO Date</div>
+              <div class="response">{{ formatDate(assetInfo.IPO) }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="category">Sector</div>
+              <div class="response">
+                {{ assetInfo.Sector.charAt(0).toUpperCase() + assetInfo.Sector.slice(1).toLowerCase() }}
+              </div>
+            </div>
+            <div class="summary-row">
+              <div class="category">Industry</div>
+              <div class="response">
+                {{ assetInfo.Industry.charAt(0).toUpperCase() + assetInfo.Industry.slice(1).toLowerCase() }}
+              </div>
+            </div>
+            <div class="summary-row">
+              <div class="category">Reported Currency</div>
+              <div class="response">{{ assetInfo.Currency.toUpperCase() }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="category">Technical Score (1W)</div>
+              <div class="response">{{ assetInfo.RSScore1W }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="category">Technical Score (1M)</div>
+              <div class="response">{{ assetInfo.RSScore1M }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="category">Technical Score (4M)</div>
+              <div class="response">{{ assetInfo.RSScore4M }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="category">Market Cap</div>
+              <div class="response">{{ parseInt(assetInfo.MarketCapitalization).toLocaleString() }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="category">Shares Outstanding</div>
+              <div class="response">{{ parseInt(assetInfo.SharesOutstanding).toLocaleString() }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="category">Location</div>
+              <div class="response">{{ assetInfo.Address }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="category">Dividend Date</div>
+              <div class="response">
+                {{
+                  (assetInfo.DividendDate !== 'Invalid Date' && assetInfo.DividendDate != null &&
+                    !isNaN(Date.parse(assetInfo.DividendDate)))
+                    ? formatDate(assetInfo.DividendDate)
+                    : '-'
+                }}
+              </div>
+            </div>
+            <div class="summary-row">
+              <div class="category">Dividend Yield</div>
+              <div class="response">
+                {{ (assetInfo.DividendYield != null && !isNaN(assetInfo.DividendYield)) ?
+                  (parseFloat(assetInfo.DividendYield) * 100).toFixed(2) + '%' : '-' }}
+              </div>
+            </div>
+            <div class="summary-row">
+              <div class="category">Book Value</div>
+              <div class="response">
+                {{ (assetInfo.BookValue != null && !isNaN(assetInfo.BookValue)) ? parseFloat(assetInfo.BookValue) : '-'
+                }}
+              </div>
+            </div>
+            <div class="summary-row">
+              <div class="category">PEG Ratio</div>
+              <div class="response">
+                {{ (assetInfo.PEGRatio != null && !isNaN(assetInfo.PEGRatio) && assetInfo.PEGRatio >= 0) ?
+                  parseInt(assetInfo.PEGRatio) : '-' }}
+              </div>
+            </div>
+            <div class="summary-row">
+              <div class="category">PE Ratio</div>
+              <div class="response">
+                {{ (assetInfo.PERatio != null && !isNaN(assetInfo.PERatio) && assetInfo.PERatio >= 0) ?
+                  parseInt(assetInfo.PERatio) : '-' }}
+              </div>
+            </div>
+            <div class="summary-row2">
+              <div :class="['description', { 'expanded': showAllDescription }]"
+                :style="{ height: showAllDescription ? 'auto' : minHeight }">
+                {{ assetInfo.Description }}
+              </div>
+            </div>
+            <button @click="showAllDescription = !showAllDescription" class="toggle-btn">
+              {{ showAllDescription ? 'Show Less' : 'Show All' }}
             </button>
-            <div class="dropdown-menu">
-  <div class="watchlist-dropdown-menu3">
-    <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
-      <label :for="'watchlist-' + index" class="checkbox-label">
-        <div @click.stop="toggleWatchlist(ticker, item)" style="cursor: pointer;">
-          <img
-            class="watchlist-icon"
-            :src="getWatchlistIcon(ticker, item)"
-            alt="Toggle Watchlist"
-          />
-        </div>
-        <span class="checkmark"></span>
-        {{ ticker.Name }}
-      </label>
-    </div>
-  </div>
-</div>
-</div>
-          <div style="flex: 1; text-align: center;">
-            <img 
-  class="cmp-logo" 
-  :src="getImagePath(item)" 
-  alt="" 
-/>
           </div>
-          <div style="flex: 1; text-align: center;" class="btsymbol">{{ item }}</div>
-          <div style="flex: 1; text-align: center;">{{ quotes[item] }}</div>
-          <div style="flex: 1; text-align: center;" :class="changes[item] > 0 ? 'positive' : 'negative'">{{ changes[item] }}</div>
-          <div style="flex: 1; text-align: center;" :class="perc[item] > 0 ? 'positive' : 'negative'">{{ perc[item] }}%</div>
-          <div class="delete-cell" style="position: relative;">
-            <button class="dbtn" @click="deleteTicker(item)" style="position: absolute; right: 0;" @click.stop>╳</button>
+          <div v-if="displayedEPSItems.length > 0" id="EPStable">
+            <div class="eps-header">
+              <div class="eps-cell" style="flex: 0 0 20%;">Reported</div>
+              <div class="eps-cell" style="flex: 0 0 40%;">EPS</div>
+              <div class="eps-cell" style="flex: 0 0 20%;">Chg (%)</div>
+              <div class="eps-cell" style="flex: 0 0 10%;">QoQ</div>
+              <div class="eps-cell" style="flex: 0 0 10%;">YoY</div>
+            </div>
+            <div class="eps-body">
+              <div v-for="(earnings, index) in displayedEPSItems" :key="earnings.fiscalDateEnding" class="eps-row">
+                <div class="eps-cell" style="flex: 0 0 20%;">{{ formatDate(earnings.fiscalDateEnding) }}</div>
+                <div class="eps-cell" style="flex: 0 0 40%;">{{ parseFloat(earnings.reportedEPS).toFixed(2) }}</div>
+
+                <!-- Change here: Check if there are fewer than 4 items -->
+                <div class="eps-cell" style="flex: 0 0 20%;"
+                  v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
+                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
+                </div>
+                <div class="eps-cell" style="flex: 0 0 20%;" v-else
+                  :class="calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) > 0 ? 'positive' : 'negative'">
+                  {{ isNaN(calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index +
+                    1]?.reportedEPS || 0)) || !isFinite(calculatePercentageChange(earnings.reportedEPS,
+                      assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0)) ? '-' :
+                    calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS ||
+                      0) + '%' }}
+                </div>
+
+                <div class="eps-cell" style="flex: 0 0 10%;"
+                  v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
+                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
+                </div>
+                <div class="eps-cell" style="flex: 0 0 10%;" v-else>
+                  <img v-if="getQoQClass(calculateQoQ1(earnings.reportedEPS)) === 'green'"
+                    src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+                  <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+                </div>
+
+                <div class="eps-cell" style="flex: 0 0 10%;"
+                  v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
+                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
+                </div>
+                <div class="eps-cell" style="flex: 0 0 10%;" v-else>
+                  <img v-if="getYoYClass(calculateYoY1(earnings.reportedEPS)) === 'green'"
+                    src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+                  <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-if="displayedEPSItems.length === 0" class="no-data">No EPS data available</div>
+          <button v-if="showEPSButton" @click="showAllEPS = !showAllEPS" class="toggle-btn">
+            {{ showAllEPS ? 'Show Less' : 'Show All' }}
+          </button>
+          <div v-if="displayedEarningsItems.length > 0" id="Earntable">
+            <div class="earn-header">
+              <div class="earn-cell" style="flex: 0 0 20%;">Reported</div>
+              <div class="earn-cell" style="flex: 0 0 40%;">Earnings</div>
+              <div class="earn-cell" style="flex: 0 0 20%;">Chg (%)</div>
+              <div class="earn-cell" style="flex: 0 0 10%;">QoQ</div>
+              <div class="earn-cell" style="flex: 0 0 10%;">YoY</div>
+            </div>
+            <div class="earn-body">
+              <div v-for="(quarterlyReport, index) in displayedEarningsItems" :key="quarterlyReport.fiscalDateEnding"
+                class="earn-row">
+                <div class="earn-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
+                <div class="earn-cell" style="flex: 0 0 40%;">{{ parseInt(quarterlyReport.netIncome).toLocaleString() }}
+                </div>
+
+                <!-- Change here: Check if there are fewer than 4 items -->
+                <div class="earn-cell" style="flex: 0 0 20%;"
+                  v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
+                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
+                </div>
+                <div class="earn-cell" style="flex: 0 0 20%;" v-else
+                  :class="calculateNet(quarterlyReport.netIncome) > 0 ? 'positive' : 'negative'">
+                  {{ isNaN(calculateNet(quarterlyReport.netIncome)) ||
+                    !isFinite(calculateNet(quarterlyReport.netIncome)) || calculateNet(quarterlyReport.netIncome) === null
+                    ? '-' : calculateNet(quarterlyReport.netIncome) + '%' }}
+                </div>
+
+                <div class="earn-cell" style="flex: 0 0 10%;"
+                  v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
+                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
+                </div>
+                <div class="earn-cell" style="flex: 0 0 10%;" v-else>
+                  <img v-if="getQoQClass(calculateQoQ2(quarterlyReport.netIncome)) === 'green'"
+                    src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+                  <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+                </div>
+
+                <div class="earn-cell" style="flex: 0 0 10%;"
+                  v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
+                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
+                </div>
+                <div class="earn-cell" style="flex: 0 0 10%;" v-else>
+                  <img v-if="getYoYClass(calculateYoY2(quarterlyReport.netIncome)) === 'green'"
+                    src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+                  <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-if="displayedEarningsItems.length === 0" class="no-data">No earnings data available</div>
+          <button v-if="showEarningsButton" @click="showAllEarnings = !showAllEarnings" class="toggle-btn">
+            {{ showAllEarnings ? 'Show Less' : 'Show All' }}
+          </button>
+          <div v-if="displayedSalesItems.length > 0" id="Salestable">
+            <div class="sales-header">
+              <div class="sales-cell" style="flex: 0 0 20%;">Reported</div>
+              <div class="sales-cell" style="flex: 0 0 40%;">Sales</div>
+              <div class="sales-cell" style="flex: 0 0 20%;">Chg (%)</div>
+              <div class="sales-cell" style="flex: 0 0 10%;">QoQ</div>
+              <div class="sales-cell" style="flex: 0 0 10%;">YoY</div>
+            </div>
+            <div class="sales-body">
+              <div v-for="(quarterlyReport, index) in displayedSalesItems" :key="quarterlyReport.fiscalDateEnding"
+                class="sales-row">
+                <div class="sales-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
+                <div class="sales-cell" style="flex: 0 0 40%;">{{
+                  parseInt(quarterlyReport.totalRevenue).toLocaleString() }}</div>
+
+                <!-- Change here: Check if there are fewer than 4 items -->
+                <div class="sales-cell" style="flex: 0 0 20%;"
+                  v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
+                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
+                </div>
+                <div class="sales-cell" style="flex: 0 0 20%;" v-else
+                  :class="calculateRev(quarterlyReport.totalRevenue) > 0 ? 'positive' : 'negative'">
+                  {{ isNaN(calculateRev(quarterlyReport.totalRevenue)) ||
+                    !isFinite(calculateRev(quarterlyReport.totalRevenue)) || calculateRev(quarterlyReport.totalRevenue)
+                    === null ? '-' : calculateRev(quarterlyReport.totalRevenue) + '%' }}
+                </div>
+
+                <div class="sales-cell" style="flex: 0 0 10%;"
+                  v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
+                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
+                </div>
+                <div class="sales-cell" style="flex: 0 0 10%;" v-else>
+                  <img v-if="getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'"
+                    src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+                  <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+                </div>
+
+                <div class="sales-cell" style="flex: 0 0 10%;"
+                  v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
+                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
+                </div>
+                <div class="sales-cell" style="flex: 0 0 10%;" v-else>
+                  <img v-if="getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'"
+                    src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
+                  <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-if="displayedSalesItems.length === 0" class="no-data">No sales data available</div>
+          <button v-if="showSalesButton" @click="showAllSales = !showAllSales" class="toggle-btn">
+            {{ showAllSales ? 'Show Less' : 'Show All' }}
+          </button>
+          <div v-if="displayedDividendsItems.length > 0" id="DividendsTable">
+            <div class="dividends-header">
+              <div class="dividends-cell" style="flex: 0 0 50%;">Reported</div>
+              <div class="dividends-cell" style="flex: 0 0 50%;">Dividends</div>
+            </div>
+            <div class="dividends-body">
+              <div v-for="(dividend, index) in displayedDividendsItems" :key="index" class="dividends-row">
+                <div class="dividends-cell" style="flex: 0 0 50%;">{{ formatDate(dividend.payment_date) }}</div>
+                <div class="dividends-cell" style="flex: 0 0 50%;">{{ parseFloat(dividend.amount).toLocaleString() }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-if="displayedDividendsItems.length === 0" class="no-data">No dividend data available</div>
+          <button v-if="showDividendsButton" @click="showAllDividends = !showAllDividends" class="toggle-btn">
+            {{ showAllDividends ? 'Show Less' : 'Show All' }}
+          </button>
+          <div v-if="displayedSplitsItems.length > 0" id="SplitsTable">
+            <div class="splits-header">
+              <div class="splits-cell" style="flex: 0 0 50%;">Reported</div>
+              <div class="splits-cell" style="flex: 0 0 50%;">Split</div>
+            </div>
+            <div class="splits-body">
+              <div v-for="(split, index) in displayedSplitsItems" :key="index" class="splits-row">
+                <div class="splits-cell" style="flex: 0 0 50%;">{{ formatDate(split.effective_date) }}</div>
+                <div class="splits-cell" style="flex: 0 0 50%;">{{ parseInt(split.split_factor) }}</div>
+              </div>
+            </div>
+          </div>
+          <div v-if="displayedSplitsItems.length === 0" class="no-data">No splits data available</div>
+          <button v-if="showSplitsButton" @click="showAllSplits = !showAllSplits" class="toggle-btn">
+            {{ showAllSplits ? 'Show Less' : 'Show All' }}
+          </button>
+          <button class="financialbtn" @click="showPopup = true">View Financial Statements</button>
+          <div v-if="showPopup" class="popup">
+            <div class="popup-content">
+              <div class="toggle-button-container">
+                <button @click="toggleFinancials" class="toggle-button">
+                  {{ isAnnualFinancials ? 'Switch to Quarterly Reports' : 'Switch to Annual Reports' }}
+                </button>
+                <button class="toggle-button" @click="showPopup = false">Close</button>
+              </div>
+              <br>
+              <div class="financials-header">
+                <div class="attribute-name">Attribute</div>
+                <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="fiscal-year">
+                  {{ getQuarterAndYear(financial.fiscalDateEnding) }}
+                </div>
+              </div>
+              <div
+                v-for="(attribute, index) in Object.keys(currentFinancials[0]).filter(attr => attr !== 'fiscalDateEnding')"
+                :key="index" class='financials-row'>
+                <div class="attribute-name">{{ attributeMap[attribute] || attribute }} <img class="question-img"
+                    src="@/assets/icons/question.png" alt="Question mark"
+                    @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut" /></div>
+                <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="financial-value">
+                  {{ isNaN(parseInt(financial[attribute])) ? '-' : parseInt(financial[attribute]).toLocaleString() }}
+                  <div class="percentage-box"
+                    :class="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0 ? 'positive' : 'negative'">
+                    {{ isNaN(parseFloat(getPercentageDifference(financial, attribute))) ? '-' :
+                      getPercentageDifference(financial, attribute) }}
+                    <img
+                      v-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0"
+                      src="@/assets/icons/positive.png" alt="Up" width="10" height="10">
+                    <img v-else-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute)))"
+                      src="@/assets/icons/negative.png" alt="Down" width="10" height="10">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <h3 class="title">Notes Container</h3>
+          <div v-if="BeautifulNotes.length > 0">
+            <div class="note" v-for="note in BeautifulNotes" :key="note.Date">
+              <div class="inline-note">
+                <img class="img" src="@/assets/icons/note.png" alt="">
+              </div>
+              <button class="notebtn" @click="removeNote(note._id)">
+                <img class="imgdlt" src="@/assets/icons/close.png" alt="">
+              </button>
+              <p class="note-msg-date" style="color: whitesmoke; opacity: 0.60;">Created: {{ formatDate(note.Date) }}
+              </p>
+              <p class="note-msg">{{ note.Message }}</p>
+            </div>
+          </div>
+          <div v-else>
+          </div>
+          <div class="results"></div>
+        </div>
+      </div>
+      <div id="center">
+        <div class="indexes">
+          <button v-for="(index, i) in Indexes" :key="i" :class="{ active: activeIndex === i, 'index-btn': true }"
+            @click="seeIndex(i)">
+            {{ symbolMapping[index.Symbol] }} <span
+              :class="parseFloat(index.percentageReturn) > 0 ? 'positive' : 'negative'">{{ index.percentageReturn
+              }}</span>
+            <img style="margin-left: 5px;" v-if="parseFloat(index.percentageReturn) > 0"
+              src="@/assets/icons/positive.png" alt="Up" width="10" height="10">
+            <img style="margin-left: 5px;" v-else src="@/assets/icons/negative.png" alt="Down" width="10" height="10">
+          </button>
+        </div>
+        <div id="chart-container">
+          <div id="legend"></div>
+          <div id="legend2">
+            <button class="navbtng" v-b-tooltip.hover title="Change Chart View" @click="toggleChartView">{{ chartView
+              }}</button>
+            <button class="navbtng" v-b-tooltip.hover title="Change Chart type" @click="toggleChartType">
+              <img :src="chartTypeIcon" alt="Chart Type" class="chart-type-icon">
+            </button>
+          </div>
+          <div id="legend3"></div>
+          <div id="legend4" v-if="!['SPY', 'QQQ', 'DIA', 'IWM'].includes(defaultSymbol)">
+            <img class="chart-img" :src="getImagePath(assetInfo.Symbol)" alt="">
+            <p class="ticker">{{ assetInfo.Symbol }} </p>
+            <p class="name"> - {{ assetInfo.Name }}</p>
+            <div v-if="isInHiddenList(selectedItem)" class="hidden-message">
+              <img class="chart-img2" src="@/assets/icons/hide.png" alt="">
+              <p>This Asset Is In Your Hidden List</p>
+            </div>
+          </div>
+          <div id="chartdiv"></div>
+          <div class="loading-container" v-if="isChartLoading">
+            <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="64" />
+          </div>
+          <div class="loading-container" v-if="isLoading">
+            <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="64" />
+          </div>
+          <div id="chartdiv2" style="padding: 15px;">
+            <img src="@/assets/images/logos/tiingo.png" alt="Image"
+              style="height: 15px; margin-right: 10px; margin-bottom: 7px;">
+            <p style="margin: 0; font-size: 10px;">Core financial data provided by Tiingo.com as of {{ currentDate }} -
+              Any metrics or calculations not directly provided by Tiingo are derived internally using their core data.
+              End-of-day (EOD) data updates occur daily, Monday through Friday, between 6:00 PM and 6:30 PM ET, subject
+              to Tiingo's data availability.</p>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-  <div class="results2"></div>
+      <div id="sidebar-right">
+        <div style="position: sticky; top: 0; z-index: 1000;">
+          <div id="searchtable">
+            <input type="text" id="searchbar" name="search" placeholder="Search Ticker" v-model="searchQuery"
+              @input="toUpperCase" @keydown.enter="searchTicker()">
+            <button class="wlbtn2" id="searchBtn" @click="searchTicker()" v-b-tooltip.hover title="Search Symbol"><img
+                class="img" src="@/assets/icons/search.png" alt=""></button>
+          </div>
+          <div id="wlnav">
+            <div id="realwatchlist" class="select-container" @mouseover="showDropdown = true"
+              @mouseout="showDropdown = false">
+              <img :src="downIcon" alt="Dropdown Icon" class="dropdown-icon"
+                :class="{ 'dropdown-icon-hover': showDropdown }" />
+              <p style="font-weight: bold;" class="selected-value" @click.stop="">{{ selectedWatchlist ?
+                selectedWatchlist.Name : 'Select a watch' }}</p>
+              <div class="dropdown-container">
+                <div class="watchlist-dropdown-menu">
+                  <div v-for="watch in watchlist.tickers" :key="watch.Name"
+                    :class="{ 'selected': selectedWatchlist && selectedWatchlist.Name === watch.Name }"
+                    @click="filterWatchlist(watch)">
+                    {{ watch.Name }}
+                    <span class="badge">{{ watch.List.length }}</span>
+                    <button class="icondlt" id="watchlistDelete" @click.stop="DeleteWatchlist(watch)" v-b-tooltip.hover
+                      title="Delete Watchlist">
+                      <img class="img" src="@/assets/icons/close.png" alt="delete watchlist">
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button class="navbtn" @click="addWatchlist()" v-b-tooltip.hover title="Add ticker to watchlist">
+              <img class="img" src="@/assets/icons/plus.png" alt="add to watchlist">
+            </button>
+            <div class="wlnav-dropdown">
+              <button class="dropdown-toggle wlbtn" v-b-tooltip.hover title="More Options">
+                <img class="img" src="@/assets/icons/dots.png" alt="more options">
+              </button>
+              <div class="dropdown-vnav">
+                <div class="watchlist-dropdown-menu2">
+                  <button class="dropdown-item" @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Watchlist">
+                    <img class="img" src="@/assets/icons/play.png" alt="autoplay watchlist"> Autoplay
+                  </button>
+                  <button class="dropdown-item" @click="showCreateNote = true" v-b-tooltip.hover title="Create a Note">
+                    <img class="img" src="@/assets/icons/note.png" alt=""> Create Note
+                  </button>
+                  <button class="dropdown-item" @click="showCreateWatchlist = true" v-b-tooltip.hover
+                    title="Create New Watchlist">
+                    <img class="img" src="@/assets/icons/add.png" alt="create new watchlist"> New Watchlist
+                  </button>
+                  <button class="dropdown-item" @click="showRenameWatchlist = true" v-b-tooltip.hover
+                    title="Rename Watchlist">
+                    <img class="img" src="@/assets/icons/edit2.png" alt="edit watchlist name"> Rename Watchlist
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="watch-container">
+            <div class="ntbl" style="flex: 0.5"></div>
+            <div class="ntbl" style="flex: 1"></div>
+            <div class="tbl" style="flex: 1" @click="sortTable('ticker')"><img class="img2"
+                src="@/assets/icons/sort.png" alt="sort">Ticker</div>
+            <div class="tbl" style="flex: 1" @click="sortTable('last')"><img class="img2" src="@/assets/icons/sort.png"
+                alt="sort">Last</div>
+            <div class="tbl" style="flex: 1" @click="sortTable('chg')"><img class="img2" src="@/assets/icons/sort.png"
+                alt="sort">Chg</div>
+            <div class="tbl" style="flex: 1" @click="sortTable('perc')"><img class="img2" src="@/assets/icons/sort.png"
+                alt="sort">%</div>
+          </div>
+        </div>
+        <div v-if="isLoading2" style="position: relative; height: 100%;">
+          <div style="position: absolute; top: 45%; left: 43%;">
+            <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="bars" size="32" />
+          </div>
+        </div>
+        <div v-else>
+          <div id="list" ref="watchlistContainer" tabindex="0" @keydown="handleKeydown" @click="handleClick">
+            <div ref="sortable">
+              <div v-for="item in watchlist2.tickers" :key="item"
+                :class="{ 'selected': selectedItem === item, 'wlist': true }" @click="selectRow(item)">
+                <div style="flex: 0.5; position: relative;">
+                  <button class="dropdown-btn">
+                    <img class="imgm" src="@/assets/icons/dots.png" alt="" style="border: none;">
+                  </button>
+                  <div class="dropdown-menu">
+                    <div class="watchlist-dropdown-menu3">
+                      <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
+                        <label :for="'watchlist-' + index" class="checkbox-label">
+                          <div @click.stop="toggleWatchlist(ticker, item)" style="cursor: pointer;">
+                            <img class="watchlist-icon" :src="getWatchlistIcon(ticker, item)" alt="Toggle Watchlist" />
+                          </div>
+                          <span class="checkmark"></span>
+                          {{ ticker.Name }}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="flex: 1; text-align: center;">
+                  <img class="cmp-logo" :src="getImagePath(item)" alt="" />
+                </div>
+                <div style="flex: 1; text-align: center;" class="btsymbol">{{ item }}</div>
+                <div style="flex: 1; text-align: center;">{{ quotes[item] }}</div>
+                <div style="flex: 1; text-align: center;" :class="changes[item] > 0 ? 'positive' : 'negative'">{{
+                  changes[item] }}</div>
+                <div style="flex: 1; text-align: center;" :class="perc[item] > 0 ? 'positive' : 'negative'">{{
+                  perc[item] }}%</div>
+                <div class="delete-cell" style="position: relative;">
+                  <button class="dbtn" @click="deleteTicker(item)" style="position: absolute; right: 0;"
+                    @click.stop>╳</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="results2"></div>
       </div>
     </div>
     <NotificationPopup ref="notification" />
@@ -566,7 +580,7 @@
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import { reactive, onMounted, ref, watch, computed, nextTick } from 'vue';
-import { createChart, ColorType, CrosshairMode} from 'lightweight-charts';
+import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
 import LoadingOverlay from 'vue-loading-overlay';
 import Sortable from 'sortablejs';
 import barsIcon from '@/assets/icons/bars.png';
@@ -592,7 +606,7 @@ const showNotification = () => {
 
 // shows icons for toggle watchlist (the thing that adds / removes dropdown menu, the damn checkboxes)
 function getWatchlistIcon(ticker, item) {
-  return isAssetInWatchlist(ticker.Name, item) 
+  return isAssetInWatchlist(ticker.Name, item)
     ? new URL('@/assets/icons/checked.png', import.meta.url).href
     : new URL('@/assets/icons/unchecked.png', import.meta.url).href;
 }
@@ -607,7 +621,7 @@ function initializeSortable() {
   if (sortable.value) {
     new Sortable(sortable.value, {
       animation: 150,
-      onEnd: async function() {
+      onEnd: async function () {
         await UpdateWatchlistOrder();
       }
     });
@@ -632,7 +646,7 @@ async function initializeComponent() {
     await Promise.all([
       getWatchlists(),
       filterWatchlist(),
-      fetchSymbolsAndExchanges() 
+      fetchSymbolsAndExchanges()
     ]);
 
     if (watchlist2.tickers && watchlist2.tickers.length > 0) {
@@ -641,10 +655,10 @@ async function initializeComponent() {
 
     await nextTick();
     await Promise.all([
-    await searchTicker(),
-    await searchNotes(),
-    await fetchHiddenList()
-  ]);
+      await searchTicker(),
+      await searchNotes(),
+      await fetchHiddenList()
+    ]);
 
     isLoading2.value = false;
     isLoading3.value = false;
@@ -666,9 +680,9 @@ onMounted(() => {
   });
 });
 
-onMounted( async () => {
+onMounted(async () => {
   await getWatchlists(),
-  await filterWatchlist()
+    await filterWatchlist()
 });
 
 // retirves and updates the default symbol for the user 
@@ -784,19 +798,19 @@ const showAllSplits = ref(false);
 
 // function that searches for tickers
 async function searchTicker(providedSymbol) {
-  let response; 
+  let response;
   activeIndex.value = -1;
   try {
     isChartLoading.value = true;
     const searchbar = document.getElementById('searchbar');
     let symbol;
     {
-      symbol = (searchbar.value || defaultSymbol).toUpperCase(); 
+      symbol = (searchbar.value || defaultSymbol).toUpperCase();
       response = await fetch(`/api/chart/${symbol}`, {
         headers: {
           'X-API-KEY': apiKey,
         },
-      }); 
+      });
 
       if (response.status === 404) {
         notification.value.show('Ticker not Found');
@@ -810,7 +824,7 @@ async function searchTicker(providedSymbol) {
       localStorage.setItem('defaultSymbol', data.Symbol);
       defaultSymbol = data.Symbol;
       selectedItem = data.Symbol;
-      await updateUserDefaultSymbol(data.Symbol); 
+      await updateUserDefaultSymbol(data.Symbol);
 
       assetInfo.Name = data.Name;
       assetInfo.ISIN = data.ISIN;
@@ -1127,7 +1141,7 @@ async function sendNote() {
           'Content-Type': 'application/json',
           'X-API-KEY': apiKey,
         },
-        body: JSON.stringify({ note, Username: user }), 
+        body: JSON.stringify({ note, Username: user }),
       });
 
       const responseData = await response.json();
@@ -1243,11 +1257,11 @@ async function fetchSplitsDate() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newSplitsDate = await response.json();
     SplitsDate.value = newSplitsDate;
 
@@ -1267,11 +1281,11 @@ async function fetchDividendsDate() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newDividendsDate = await response.json();
     DividendsDate.value = newDividendsDate;
 
@@ -1306,7 +1320,7 @@ async function fetchData() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -1328,11 +1342,11 @@ async function fetchData2() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newData2 = await response.json();
     data2.value = newData2;
   } catch (error) {
@@ -1351,14 +1365,14 @@ async function fetchData3() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       data3.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newData3 = await response.json();
-    
+
     // Check if newData3 is undefined, null, or empty
     if (!newData3 || newData3.length === 0) {
       data3.value = null;
@@ -1382,14 +1396,14 @@ async function fetchData4() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       data4.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newData4 = await response.json();
-    
+
     // Check if newData4 is undefined, null, or empty
     if (!newData4 || newData4.length === 0) {
       data4.value = null;
@@ -1413,14 +1427,14 @@ async function fetchData5() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       data5.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newData5 = await response.json();
-    
+
     // Check if newData5 is undefined, null, or empty
     if (!newData5 || newData5.length === 0) {
       data5.value = null;
@@ -1444,14 +1458,14 @@ async function fetchData6() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       data6.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newData6 = await response.json();
-    
+
     // Check if newData6 is undefined, null, or empty
     if (!newData6 || newData6.length === 0) {
       data6.value = null;
@@ -1475,11 +1489,11 @@ async function fetchData7() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newData7 = await response.json();
     data7.value = newData7;
   } catch (error) {
@@ -1498,11 +1512,11 @@ async function fetchData8() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newData8 = await response.json();
     data8.value = newData8;
   } catch (error) {
@@ -1521,14 +1535,14 @@ async function fetchData9() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       data9.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newData9 = await response.json();
-    
+
     // Check if newData9 is undefined, null, or empty
     if (!newData9 || newData9.length === 0) {
       data9.value = null;
@@ -1552,14 +1566,14 @@ async function fetchData10() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       data10.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newData10 = await response.json();
-    
+
     // Check if newData10 is undefined, null, or empty
     if (!newData10 || newData10.length === 0) {
       data10.value = null;
@@ -1583,14 +1597,14 @@ async function fetchData11() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       data11.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newData11 = await response.json();
-    
+
     // Check if newData11 is undefined, null, or empty
     if (!newData11 || newData11.length === 0) {
       data11.value = null;
@@ -1614,14 +1628,14 @@ async function fetchData12() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       data12.value = null; // Explicitly set to null if response is not ok
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newData12 = await response.json();
-    
+
     // Check if newData12 is undefined, null, or empty
     if (!newData12 || newData12.length === 0) {
       data12.value = null;
@@ -1644,7 +1658,7 @@ const charttype = ref('Candlestick')
 const isBarChart = ref(false);
 
 const chartTypeIcon = computed(() => {
-  return isBarChart.value ? candlesIcon : barsIcon ;
+  return isBarChart.value ? candlesIcon : barsIcon;
 });
 
 const toggleChartType = () => {
@@ -1657,7 +1671,7 @@ onMounted(async () => {
   try {
     isInitializing.value = true;
     localStorage.removeItem('defaultSymbol');
-    
+
     selectedItem = await fetchUserDefaultSymbol();
     if (selectedItem) {
       defaultSymbol = selectedItem;
@@ -1665,328 +1679,330 @@ onMounted(async () => {
     }
     await showTicker();
     await nextTick()
-const chartDiv = document.getElementById('chartdiv');
-  const chart = createChart(chartDiv, {
-    layout: {
-      background: {
-        type: ColorType.Solid,
-        color: '#0f0f1b',
+    const chartDiv = document.getElementById('chartdiv');
+    const chart = createChart(chartDiv, {
+      layout: {
+        background: {
+          type: ColorType.Solid,
+          color: '#0f0f1b',
+        },
+        textColor: '#ffffff',
       },
-      textColor: '#ffffff',
-    },
-    grid: {
-      vertLines: {
-        color: 'transparent',
+      grid: {
+        vertLines: {
+          color: 'transparent',
+        },
+        horzLines: {
+          color: 'transparent',
+        }
+      }, crosshair: {
+        mode: CrosshairMode.Normal,
+        vertLine: {
+          color: "#8c8dfe",
+          labelBackgroundColor: "#8c8dfe",
+        },
+        horzLine: {
+          color: "#8c8dfe",
+          labelBackgroundColor: "#8c8dfe",
+        },
       },
-      horzLines: {
-        color: 'transparent',
+      timeScale: {
+        barSpacing: 2.5,
+        minBarSpacing: 0.1,
+        rightOffset: 20,
+      },
+    });
+
+    let barSeries = chart.addCandlestickSeries({
+      downColor: '#90bff9',
+      upColor: '#4caf50',
+      borderDownColor: '#90bff9',
+      borderUpColor: '#4caf50',
+      wickDownColor: '#90bff9',
+      wickUpColor: '#4caf50',
+      priceLineVisible: true,
+    });
+
+    function toggleChartType() {
+      // Remove the existing series
+      chart.removeSeries(barSeries);
+
+      if (isBarChart.value) {
+        // Create a bar series
+        barSeries = chart.addBarSeries({
+          downColor: '#90bff9',
+          upColor: '#4caf50',
+          priceLineVisible: true,
+        });
+      } else {
+        // Create a candlestick series
+        barSeries = chart.addCandlestickSeries({
+          downColor: '#90bff9',
+          upColor: '#4caf50',
+          borderDownColor: '#90bff9',
+          borderUpColor: '#4caf50',
+          wickDownColor: '#90bff9',
+          wickUpColor: '#4caf50',
+          priceLineVisible: true,
+        });
       }
-    }, crosshair: { mode: CrosshairMode.Normal,
-      vertLine: {
-        color: "#8c8dfe",
-        labelBackgroundColor: "#8c8dfe",
+
+      // Update the data for the new series
+      const currentData = useAlternateData ? data7.value : data.value;
+      const changes = calculateChanges(currentData);
+      barSeries.setData(changes);
+    }
+
+    // Watch for changes in the chart type
+    watch(isBarChart, () => {
+      toggleChartType();
+    });
+
+    // Update the existing watchers (keep these as they were)
+    watch(data, (newData) => {
+      const changes = calculateChanges(newData);
+      if (!useAlternateData) {
+        barSeries.setData(changes);
+        updateLastRecordedValue(changes);
+      }
+    });
+
+    watch(data7, (newData7) => {
+      const changes = calculateChanges(newData7);
+      if (useAlternateData) {
+        barSeries.setData(changes);
+        updateLastRecordedValue(changes);
+      }
+    });
+
+    // Modified toggleChartTypeUI function
+    function toggleChartTypeUI() {
+      isBarChart.value = !isBarChart.value;
+      toggleChartType();
+    }
+
+    const Histogram = chart.addHistogramSeries({
+      color: '#4D4D4D',
+      priceLineVisible: true,
+      priceFormat: {
+        type: 'volume',
       },
-      horzLine: {
-        color: "#8c8dfe",
-        labelBackgroundColor: "#8c8dfe",
-      },
-    },
-    timeScale: {
-      barSpacing: 2.5,
-      minBarSpacing: 0.1,
-      rightOffset: 20,
-    },});
-
-let barSeries = chart.addCandlestickSeries({
-      downColor: '#90bff9',
-      upColor: '#4caf50',
-      borderDownColor: '#90bff9',
-      borderUpColor: '#4caf50',
-      wickDownColor: '#90bff9',
-      wickUpColor: '#4caf50',
-      priceLineVisible: true,
+      priceScaleId: '',
     });
 
-function toggleChartType() {
-  // Remove the existing series
-  chart.removeSeries(barSeries);
-
-  if (isBarChart.value) {
-    // Create a bar series
-    barSeries = chart.addBarSeries({
-      downColor: '#90bff9',
-      upColor: '#4caf50',
-      priceLineVisible: true,
+    const MaSeries1 = chart.addLineSeries({
+      color: '#00bcd4',
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false,
+      lineWidth: 1,
     });
-  } else {
-    // Create a candlestick series
-    barSeries = chart.addCandlestickSeries({
-      downColor: '#90bff9',
-      upColor: '#4caf50',
-      borderDownColor: '#90bff9',
-      borderUpColor: '#4caf50',
-      wickDownColor: '#90bff9',
-      wickUpColor: '#4caf50',
-      priceLineVisible: true,
+
+    const MaSeries2 = chart.addLineSeries({
+      color: '#2862ff',
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false,
+      lineWidth: 1,
     });
-  }
 
-  // Update the data for the new series
-  const currentData = useAlternateData ? data7.value : data.value;
-  const changes = calculateChanges(currentData);
-  barSeries.setData(changes);
-}
-
-// Watch for changes in the chart type
-watch(isBarChart, () => {
-  toggleChartType();
-});
-
-// Update the existing watchers (keep these as they were)
-watch(data, (newData) => {
-  const changes = calculateChanges(newData);
-  if (!useAlternateData) {
-    barSeries.setData(changes);
-    updateLastRecordedValue(changes);
-  }
-});
-
-watch(data7, (newData7) => {
-  const changes = calculateChanges(newData7);
-  if (useAlternateData) {
-    barSeries.setData(changes);
-    updateLastRecordedValue(changes);
-  }
-});
-
-// Modified toggleChartTypeUI function
-function toggleChartTypeUI() {
-  isBarChart.value = !isBarChart.value;
-  toggleChartType();
-}
-
-  const Histogram = chart.addHistogramSeries({
-    color: '#4D4D4D',
-    priceLineVisible: true,
-    priceFormat: {
-      type: 'volume',
-    },
-    priceScaleId: '',
-  });
-
-  const MaSeries1 = chart.addLineSeries({
-    color: '#00bcd4',
-    priceLineVisible: false,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    lineWidth: 1,
-  });
-
-  const MaSeries2 = chart.addLineSeries({
-    color: '#2862ff',
-    priceLineVisible: false,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    lineWidth: 1,
-  });
-
-  const MaSeries3 = chart.addLineSeries({
-    color: '#ffeb3b',
-    priceLineVisible: false,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    lineWidth: 1,
-  });
-
-  const MaSeries4 = chart.addLineSeries({
-    color: '#4caf50',
-    priceLineVisible: false,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    lineWidth: 1,
-  });
-
-  Histogram.priceScale().applyOptions({
-    scaleMargins: {
-      top: 0.9,
-      bottom: 0,
-    }
-  });
-
-  let lastRecordedValue = null;
-
-  function updateLastRecordedValue(changes) {
-  if (chartView.value === 'D') {
-    lastRecordedValue = changes[changes.length - 1];
-  } else if (chartView.value === 'W') {
-    lastRecordedValue = changes[changes.length - 1];
-  }
-  updateFirstRow(lastRecordedValue);
-}
-
-watch(data, (newData) => {
-  const changes = calculateChanges(newData);
-  if (!useAlternateData) {
-    barSeries.setData(changes);
-    updateLastRecordedValue(changes);
-  }
-});
-
-watch(data7, (newData7) => {
-  const changes = calculateChanges(newData7);
-  if (useAlternateData) {
-    barSeries.setData(changes);
-    updateLastRecordedValue(changes);
-  }
-});
-
-  watch(data2, (newData2) => {
-    if (!useAlternateData) {
-      Histogram.setData(newData2);
-    }
-  });
-
-  watch(data8, (newData8) => {
-    if (useAlternateData) {
-      Histogram.setData(newData8);
-    }
-  });
-
-  watch(data3, (newData3) => {
-  if (newData3 === null) {
-    MaSeries1.setData([]); // Clear the series data
-  } else if (!useAlternateData) {
-    MaSeries1.setData(newData3);
-  }
-});
-
-watch(data4, (newData4) => {
-  if (newData4 === null) {
-    MaSeries2.setData([]); // Clear the series data
-  } else if (!useAlternateData) {
-    MaSeries2.setData(newData4);
-  }
-});
-
-watch(data5, (newData5) => {
-  if (newData5 === null) {
-    MaSeries3.setData([]); // Clear the series data
-  } else if (!useAlternateData) {
-    MaSeries3.setData(newData5);
-  }
-});
-
-watch(data6, (newData6) => {
-  if (newData6 === null) {
-    MaSeries4.setData([]); // Clear the series data
-  } else if (!useAlternateData) {
-    MaSeries4.setData(newData6);
-  }
-});
-
-watch(data9, (newData9) => {
-  if (newData9 === null) {
-    MaSeries1.setData([]); // Clear the series data
-  } else if (useAlternateData) {
-    MaSeries1.setData(newData9);
-  }
-});
-
-watch(data10, (newData10) => {
-  if (newData10 === null) {
-    MaSeries2.setData([]); // Clear the series data
-  } else if (useAlternateData) {
-    MaSeries2.setData(newData10);
-  }
-});
-
-watch(data11, (newData11) => {
-  if (newData11 === null) {
-    MaSeries3.setData([]); // Clear the series data
-  } else if (useAlternateData) {
-    MaSeries3.setData(newData11);
-  }
-});
-
-watch(data12, (newData12) => {
-  if (newData12 === null) {
-    MaSeries4.setData([]); // Clear the series data
-  } else if (useAlternateData) {
-    MaSeries4.setData(newData12);
-  }
-});
-
-  watch(data2, (newData2) => {
-  const relativeVolumeData = newData2.map((dataPoint, index) => {
-    const averageVolume = calculateAverageVolume(newData2, index);
-    const relativeVolume = dataPoint.value / averageVolume;
-    const color = relativeVolume > 2 ? '#8c8dfe' : '#4D4D4D'; 
-    return {
-      time: dataPoint.time, 
-      value: dataPoint.value,
-      color,
-    };
-  });
-  Histogram.setData(relativeVolumeData);
-});
-
-function calculateChanges(dataPoints) {
-  const changes = [];
-  for (let i = 0; i < dataPoints.length; i++) {
-    const currentPoint = dataPoints[i];
-    const previousPoint = i > 0 ? dataPoints[i - 1] : null;
-    let change = 0;
-    let percentageChange = 0;
-
-    if (previousPoint) {
-      change = currentPoint.close - previousPoint.close;
-      percentageChange = (change / previousPoint.close) * 100;
-    }
-
-    changes.push({
-      time: currentPoint.time,
-      open: currentPoint.open,
-      high: currentPoint.high,
-      low: currentPoint.low,
-      close: currentPoint.close,
-      change: change.toFixed(2),
-      percentageChange: percentageChange.toFixed(2) + '%',
+    const MaSeries3 = chart.addLineSeries({
+      color: '#ffeb3b',
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false,
+      lineWidth: 1,
     });
-  }
-  return changes;
-}
 
-watch(data, (newData) => {
-  const changes = calculateChanges(newData);
-  barSeries.setData(changes);
-});
+    const MaSeries4 = chart.addLineSeries({
+      color: '#4caf50',
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false,
+      lineWidth: 1,
+    });
 
-function calculateAverageVolume(data, index) {
-  const windowSize = 365; // adjust this value to change the window size for calculating average volume
-  const start = Math.max(0, index - windowSize + 1);
-  const end = index + 1;
-  const sum = data.slice(start, end).reduce((acc, current) => acc + current.value, 0);
-  return sum / (end - start);
-}
+    Histogram.priceScale().applyOptions({
+      scaleMargins: {
+        top: 0.9,
+        bottom: 0,
+      }
+    });
 
-  const container = document.getElementById('legend');
-  const firstRow = document.createElement('div');
-  container.appendChild(firstRow);
+    let lastRecordedValue = null;
 
-  function updateFirstRow(value) {
-  if (value) {
-    const priceOpen = value.open.toFixed(2);
-    const priceHigh = value.high.toFixed(2);
-    const priceLow = value.low.toFixed(2);
-    const priceClose = value.close.toFixed(2);
-    const priceChange = value.change;
-    const changePerc = value.percentageChange;
+    function updateLastRecordedValue(changes) {
+      if (chartView.value === 'D') {
+        lastRecordedValue = changes[changes.length - 1];
+      } else if (chartView.value === 'W') {
+        lastRecordedValue = changes[changes.length - 1];
+      }
+      updateFirstRow(lastRecordedValue);
+    }
 
-    // Check if the current candle is up or down
-    const isUp = priceClose > priceOpen;
-    const className = isUp ? 'positive' : 'negative';
+    watch(data, (newData) => {
+      const changes = calculateChanges(newData);
+      if (!useAlternateData) {
+        barSeries.setData(changes);
+        updateLastRecordedValue(changes);
+      }
+    });
 
-    firstRow.innerHTML = `
+    watch(data7, (newData7) => {
+      const changes = calculateChanges(newData7);
+      if (useAlternateData) {
+        barSeries.setData(changes);
+        updateLastRecordedValue(changes);
+      }
+    });
+
+    watch(data2, (newData2) => {
+      if (!useAlternateData) {
+        Histogram.setData(newData2);
+      }
+    });
+
+    watch(data8, (newData8) => {
+      if (useAlternateData) {
+        Histogram.setData(newData8);
+      }
+    });
+
+    watch(data3, (newData3) => {
+      if (newData3 === null) {
+        MaSeries1.setData([]); // Clear the series data
+      } else if (!useAlternateData) {
+        MaSeries1.setData(newData3);
+      }
+    });
+
+    watch(data4, (newData4) => {
+      if (newData4 === null) {
+        MaSeries2.setData([]); // Clear the series data
+      } else if (!useAlternateData) {
+        MaSeries2.setData(newData4);
+      }
+    });
+
+    watch(data5, (newData5) => {
+      if (newData5 === null) {
+        MaSeries3.setData([]); // Clear the series data
+      } else if (!useAlternateData) {
+        MaSeries3.setData(newData5);
+      }
+    });
+
+    watch(data6, (newData6) => {
+      if (newData6 === null) {
+        MaSeries4.setData([]); // Clear the series data
+      } else if (!useAlternateData) {
+        MaSeries4.setData(newData6);
+      }
+    });
+
+    watch(data9, (newData9) => {
+      if (newData9 === null) {
+        MaSeries1.setData([]); // Clear the series data
+      } else if (useAlternateData) {
+        MaSeries1.setData(newData9);
+      }
+    });
+
+    watch(data10, (newData10) => {
+      if (newData10 === null) {
+        MaSeries2.setData([]); // Clear the series data
+      } else if (useAlternateData) {
+        MaSeries2.setData(newData10);
+      }
+    });
+
+    watch(data11, (newData11) => {
+      if (newData11 === null) {
+        MaSeries3.setData([]); // Clear the series data
+      } else if (useAlternateData) {
+        MaSeries3.setData(newData11);
+      }
+    });
+
+    watch(data12, (newData12) => {
+      if (newData12 === null) {
+        MaSeries4.setData([]); // Clear the series data
+      } else if (useAlternateData) {
+        MaSeries4.setData(newData12);
+      }
+    });
+
+    watch(data2, (newData2) => {
+      const relativeVolumeData = newData2.map((dataPoint, index) => {
+        const averageVolume = calculateAverageVolume(newData2, index);
+        const relativeVolume = dataPoint.value / averageVolume;
+        const color = relativeVolume > 2 ? '#8c8dfe' : '#4D4D4D';
+        return {
+          time: dataPoint.time,
+          value: dataPoint.value,
+          color,
+        };
+      });
+      Histogram.setData(relativeVolumeData);
+    });
+
+    function calculateChanges(dataPoints) {
+      const changes = [];
+      for (let i = 0; i < dataPoints.length; i++) {
+        const currentPoint = dataPoints[i];
+        const previousPoint = i > 0 ? dataPoints[i - 1] : null;
+        let change = 0;
+        let percentageChange = 0;
+
+        if (previousPoint) {
+          change = currentPoint.close - previousPoint.close;
+          percentageChange = (change / previousPoint.close) * 100;
+        }
+
+        changes.push({
+          time: currentPoint.time,
+          open: currentPoint.open,
+          high: currentPoint.high,
+          low: currentPoint.low,
+          close: currentPoint.close,
+          change: change.toFixed(2),
+          percentageChange: percentageChange.toFixed(2) + '%',
+        });
+      }
+      return changes;
+    }
+
+    watch(data, (newData) => {
+      const changes = calculateChanges(newData);
+      barSeries.setData(changes);
+    });
+
+    function calculateAverageVolume(data, index) {
+      const windowSize = 365; // adjust this value to change the window size for calculating average volume
+      const start = Math.max(0, index - windowSize + 1);
+      const end = index + 1;
+      const sum = data.slice(start, end).reduce((acc, current) => acc + current.value, 0);
+      return sum / (end - start);
+    }
+
+    const container = document.getElementById('legend');
+    const firstRow = document.createElement('div');
+    container.appendChild(firstRow);
+
+    function updateFirstRow(value) {
+      if (value) {
+        const priceOpen = value.open.toFixed(2);
+        const priceHigh = value.high.toFixed(2);
+        const priceLow = value.low.toFixed(2);
+        const priceClose = value.close.toFixed(2);
+        const priceChange = value.change;
+        const changePerc = value.percentageChange;
+
+        // Check if the current candle is up or down
+        const isUp = priceClose > priceOpen;
+        const className = isUp ? 'positive' : 'negative';
+
+        firstRow.innerHTML = `
       <strong class="${className}"><span style="color: white">Open:</span> ${priceOpen}</strong>
       <strong class="${className}"><span style="color: white">High:</span> ${priceHigh}</strong>
       <strong class="${className}"><span style="color: white">Low:</span> ${priceLow}</strong>
@@ -1994,32 +2010,32 @@ function calculateAverageVolume(data, index) {
       <strong class="${className}">${priceChange}</strong>
       <strong class="${className}">${changePerc}</strong>
     `;
-  }
-}
-
-  chart.subscribeCrosshairMove(param => {
-  if (param.time) {
-    let changes;
-    if (chartView.value === 'D') {
-      changes = calculateChanges(data.value);
-    } else if (chartView.value === 'W') {
-      changes = calculateChanges(data7.value); // Use weekly data for weekly chart view
+      }
     }
 
-    const currentChange = changes.find(change => change.time === param.time);
-    if (currentChange) {
-      const priceOpen = currentChange.open.toFixed(2);
-      const priceHigh = currentChange.high.toFixed(2);
-      const priceLow = currentChange.low.toFixed(2);
-      const priceClose = currentChange.close.toFixed(2);
-      const priceChange = currentChange.change;
-      const changePerc = currentChange.percentageChange;
+    chart.subscribeCrosshairMove(param => {
+      if (param.time) {
+        let changes;
+        if (chartView.value === 'D') {
+          changes = calculateChanges(data.value);
+        } else if (chartView.value === 'W') {
+          changes = calculateChanges(data7.value); // Use weekly data for weekly chart view
+        }
 
-      // Check if the current candle is up or down
-      const isUp = priceClose > priceOpen;
-      const className = isUp ? 'positive' : 'negative';
+        const currentChange = changes.find(change => change.time === param.time);
+        if (currentChange) {
+          const priceOpen = currentChange.open.toFixed(2);
+          const priceHigh = currentChange.high.toFixed(2);
+          const priceLow = currentChange.low.toFixed(2);
+          const priceClose = currentChange.close.toFixed(2);
+          const priceChange = currentChange.change;
+          const changePerc = currentChange.percentageChange;
 
-      firstRow.innerHTML = `
+          // Check if the current candle is up or down
+          const isUp = priceClose > priceOpen;
+          const className = isUp ? 'positive' : 'negative';
+
+          firstRow.innerHTML = `
         <strong class="${className}"><span style="color: white">Open:</span> ${priceOpen}</strong>
         <strong class="${className}"><span style="color: white">High:</span> ${priceHigh}</strong>
         <strong class="${className}"><span style="color: white">Low:</span> ${priceLow}</strong>
@@ -2027,113 +2043,84 @@ function calculateAverageVolume(data, index) {
         <strong class="${className}">${priceChange}</strong>
         <strong class="${className}">${changePerc}</strong>
       `;
+        }
+      }
+
+    });
+
+    function calculateReturns(data) {
+      const returns = {};
+      const periods = ['1W', '1M', '3M', '6M', '1Y', '3Y', '5Y'];
+
+      periods.forEach((period) => {
+        let initialValue;
+        let finalValue;
+
+        // Get the last (most recent) closing price
+        finalValue = data[data.length - 1]?.close || 0;
+
+        switch (period) {
+          case '1W':
+            // 5 trading days
+            initialValue = data[data.length - 5]?.close || 0;
+            break;
+          case '1M':
+            // ~21 trading days
+            initialValue = data[data.length - 21]?.close || 0;
+            break;
+          case '3M':
+            // ~63 trading days
+            initialValue = data[data.length - 63]?.close || 0;
+            break;
+          case '6M':
+            // ~126 trading days
+            initialValue = data[data.length - 126]?.close || 0;
+            break;
+          case '1Y':
+            // ~252 trading days
+            initialValue = data[data.length - 252]?.close || 0;
+            break;
+          case '3Y':
+            // ~756 trading days
+            initialValue = data[data.length - 756]?.close || 0;
+            break;
+          case '5Y':
+            // ~1260 trading days
+            initialValue = data[data.length - 1260]?.close || 0;
+            break;
+          default:
+            break;
+        }
+
+        if (initialValue > 0) {
+          const returnPercentage = ((finalValue - initialValue) / initialValue * 100).toFixed(2) + '%';
+          returns[period] = returnPercentage;
+        } else {
+          returns[period] = '-';
+        }
+      });
+
+      return returns;
     }
-  }
 
-});
+    const legend3 = document.getElementById('legend3');
 
-function calculateReturns(data) {
-  const returns = {};
-  const periods = ['1W', '1M', '3M', '6M', '1Y', '3Y', '5Y'];
+    function updateLegend3(data) {
+      const returns = calculateReturns(data);
+      let html = '';
 
-  periods.forEach((period) => {
-    let initialValue;
-    let finalValue;
-    
-    // Get the last (most recent) closing price
-    finalValue = data[data.length - 1]?.close || 0;
+      Object.keys(returns).forEach((period) => {
+        const isUp = parseFloat(returns[period].replace('%', '')) > 0;
+        const className = isUp ? 'positive' : 'negative';
 
-    switch (period) {
-      case '1W':
-        // 5 trading days
-        initialValue = data[data.length - 5]?.close || 0;
-        break;
-      case '1M':
-        // ~21 trading days
-        initialValue = data[data.length - 21]?.close || 0;
-        break;
-      case '3M':
-        // ~63 trading days
-        initialValue = data[data.length - 63]?.close || 0;
-        break;
-      case '6M':
-        // ~126 trading days
-        initialValue = data[data.length - 126]?.close || 0;
-        break;
-      case '1Y':
-        // ~252 trading days
-        initialValue = data[data.length - 252]?.close || 0;
-        break;
-      case '3Y':
-        // ~756 trading days
-        initialValue = data[data.length - 756]?.close || 0;
-        break;
-      case '5Y':
-        // ~1260 trading days
-        initialValue = data[data.length - 1260]?.close || 0;
-        break;
-      default:
-        break;
-    }
-
-    if (initialValue > 0) {
-      const returnPercentage = ((finalValue - initialValue) / initialValue * 100).toFixed(2) + '%';
-      returns[period] = returnPercentage;
-    } else {
-      returns[period] = '-';
-    }
-  });
-
-  return returns;
-}
-
-const legend3 = document.getElementById('legend3');
-
-function updateLegend3(data) {
-  const returns = calculateReturns(data);
-  let html = '';
-
-  Object.keys(returns).forEach((period) => {
-    const isUp = parseFloat(returns[period].replace('%', '')) > 0;
-    const className = isUp ? 'positive' : 'negative';
-
-    html += `
+        html += `
       <strong style="color: white">${period}: <span class="${className}">${returns[period]}</span></strong>
     `;
-  });
+      });
 
-  legend3.innerHTML = html;
-}
+      legend3.innerHTML = html;
+    }
 
-  await fetchData();
-  await fetchData2();
-  await fetchData3();
-  await fetchData4();
-  await fetchData5();
-  await fetchData6();
-  await fetchData7();
-  await fetchData8();
-  await fetchData9();
-  await fetchData10();
-  await fetchData11();
-  await fetchData12();
-  updateLegend3(data.value);
-  isLoading.value = false
-
-  watch(data, (newData) => {
-  updateLegend3(newData);
-});
-
-  } catch (error) {
-  } finally {
-    isInitializing.value = false;
-  }
-
-});
-
-async function toggleChartView() {
-  chartView.value = chartView.value === 'D' ? 'W' : 'D';
-  useAlternateData = !useAlternateData;
     await fetchData();
     await fetchData2();
     await fetchData3();
@@ -2146,12 +2133,41 @@ async function toggleChartView() {
     await fetchData10();
     await fetchData11();
     await fetchData12();
+    updateLegend3(data.value);
+    isLoading.value = false
+
+    watch(data, (newData) => {
+      updateLegend3(newData);
+    });
+
+  } catch (error) {
+  } finally {
+    isInitializing.value = false;
+  }
+
+});
+
+async function toggleChartView() {
+  chartView.value = chartView.value === 'D' ? 'W' : 'D';
+  useAlternateData = !useAlternateData;
+  await fetchData();
+  await fetchData2();
+  await fetchData3();
+  await fetchData4();
+  await fetchData5();
+  await fetchData6();
+  await fetchData7();
+  await fetchData8();
+  await fetchData9();
+  await fetchData10();
+  await fetchData11();
+  await fetchData12();
 }
 
 const watchlist = reactive([]); // dynamic list containing watchlist names for every user 
 const watchlist2 = reactive([]); // dynamic list containing content of watchlists
 const quotes = reactive({}); // dynamic list containing quotes for elements of watchlist
-const changes = reactive ({}); // dynamic list containing price changes for elements of watchlist
+const changes = reactive({}); // dynamic list containing price changes for elements of watchlist
 const perc = reactive({}); // dynamic list containing % changes for elements of watchlist
 const selectedWatchlist = ref(JSON.parse(localStorage.getItem('selectedWatchlist')) || null);
 
@@ -2182,7 +2198,7 @@ async function getWatchlists() {
       }
       const data = await response.json();
       watchlist.tickers = data;
-      
+
       // If no watchlist is selected, select the first one
       if (!selectedWatchlist.value && data.length > 0) {
         updateSelectedWatchlist(data[0]);
@@ -2209,7 +2225,7 @@ async function filterWatchlist(watch) {
   if (watch) {
     updateSelectedWatchlist(watch);
   }
-  
+
   try {
     const response = await fetch(`/api/${user}/watchlists/${selectedWatchlist.value.Name}`, {
       headers: {
@@ -2242,13 +2258,13 @@ async function fetchSymbolsAndExchanges() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
+
     // Map the data to the required format for ImagePaths
     ImagePaths.value = data.map(item => ({
       symbol: item.Symbol,
@@ -2262,7 +2278,7 @@ async function fetchSymbolsAndExchanges() {
 // Helper function to get image path based on symbol
 function getImagePath(item) {
   // Find the matching object in ImagePaths
-  const matchedImageObject = ImagePaths.value.find(image => 
+  const matchedImageObject = ImagePaths.value.find(image =>
     image.symbol === item
   );
 
@@ -2337,7 +2353,7 @@ async function CreateWatchlist() {
   }
   showCreateWatchlist.value = false;
   await getWatchlists();
-  
+
   // Find the newly created watchlist and select it
   const newWatchlist = watchlist.tickers.find(watch => watch.Name === watchlistName);
   if (newWatchlist) {
@@ -2384,7 +2400,7 @@ async function UpdateWatchlist() {
   } catch (error) {
     error.value = error.message;
   }
-  
+
   showRenameWatchlist.value = false;
   await getWatchlists();
 
@@ -2399,7 +2415,7 @@ async function DeleteWatchlist(watch) {
   const currentWatchlistName = watch.Name;
 
   // Set up the API request
-  const apiUrl = `/api/${user}/delete/watchlists/${currentWatchlistName}`; 
+  const apiUrl = `/api/${user}/delete/watchlists/${currentWatchlistName}`;
   const requestOptions = {
     method: 'DELETE',
     headers: {
@@ -2425,14 +2441,14 @@ async function deleteTicker(item) {
   const realwatchlist = document.getElementById('realwatchlist');
   let selectedWatchlistName;
 
-// Get the selected watchlist name from the DOM
-const selectedWatchlistElement = document.getElementById('realwatchlist').querySelector('div.selected');
-if (selectedWatchlistElement) {
-  const watchlistNameElement = selectedWatchlistElement.querySelector('span.badge').previousSibling;
-  selectedWatchlistName = watchlistNameElement.textContent.trim();
-} else {
-  return;
-}
+  // Get the selected watchlist name from the DOM
+  const selectedWatchlistElement = document.getElementById('realwatchlist').querySelector('div.selected');
+  if (selectedWatchlistElement) {
+    const watchlistNameElement = selectedWatchlistElement.querySelector('span.badge').previousSibling;
+    selectedWatchlistName = watchlistNameElement.textContent.trim();
+  } else {
+    return;
+  }
 
   const ticker = item; // The ticker to delete
 
@@ -2442,7 +2458,7 @@ if (selectedWatchlistElement) {
   };
 
   try {
-    const response = await fetch(`/api/${user}/deleteticker/watchlists/${patchData.watchlist}/${patchData.ticker}`, { 
+    const response = await fetch(`/api/${user}/deleteticker/watchlists/${patchData.watchlist}/${patchData.ticker}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -2547,7 +2563,7 @@ async function addWatchlist() {
 
 let rowCount = ref(0);
 let selectedIndex = ref(0);
-const watchlistContainer = ref(null); 
+const watchlistContainer = ref(null);
 
 watch(() => watchlist2.tickers, async () => {
   await nextTick();
@@ -2576,7 +2592,7 @@ function handleKeydown(event) {
     event.preventDefault();
     const direction = event.key === 'ArrowUp' ? -1 : 1;
     const newRowIndex = selectedIndex.value + direction;
-    
+
     if (newRowIndex >= 0 && newRowIndex < rowCount.value) {
       const newSelectedItem = watchlist2.tickers[newRowIndex];
       selectRow(newSelectedItem);
@@ -2807,7 +2823,7 @@ const updateCheckbox = (ticker, symbol, $event) => {
 
 const FullWatchlists = ref([]);
 
-async function getFullWatchlists(user){
+async function getFullWatchlists(user) {
   try {
     const response = await fetch(`/api/${user}/full-watchlists`, {
       headers: {
@@ -2995,11 +3011,11 @@ async function fetchFinancials() {
     const response = await fetch(`/api/${ticker}/financials`, {
       headers: headers
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newFinancials = await response.json();
     AnnualFinancials.value = newFinancials.annualFinancials;
     QuarterlyFinancials.value = newFinancials.quarterlyFinancials;
@@ -3091,11 +3107,11 @@ async function fetchMarkets() {
     const response = await fetch('/api/markets', {
       headers: headers
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const newMarkets = await response.json();
     Indexes.value = newMarkets;
 
@@ -3256,7 +3272,7 @@ function handleMouseOut() {
 #sidebar-left {
   flex: 1;
   flex-direction: column;
-  background-color: $base4; 
+  background-color: $base4;
   overflow-y: scroll;
   overflow-x: hidden;
   min-width: 300px;
@@ -3285,7 +3301,7 @@ function handleMouseOut() {
 
 #chartdiv2 {
   padding: 10px;
-  border:none;
+  border: none;
   background-color: $base2;
   color: $text2;
 }
@@ -3301,18 +3317,18 @@ function handleMouseOut() {
 #wlnav {
   border-top: $base1 solid 1px;
   display: flex;
-  align-items: center; 
-  justify-content: space-between; 
+  align-items: center;
+  justify-content: space-between;
   background-color: $base2;
 }
 
 #realwatchlist {
-  height: 20px; 
+  height: 20px;
   outline: none;
   border: none;
   color: $text2;
   text-align: center;
-  flex-grow: 1; 
+  flex-grow: 1;
   background-color: transparent;
 }
 
@@ -3351,18 +3367,24 @@ function handleMouseOut() {
   border-radius: 25px;
   padding: 5px 5px 5px 15px;
   margin: 7px;
-  width: calc(100% - 30px); /* Make space for the button */
+  width: calc(100% - 30px);
+  /* Make space for the button */
   outline: none;
-  color: $base3; /* Dark text color */
-  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
+  color: $base3;
+  /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s;
+  /* Smooth transition for focus effects */
   border: solid 1px $base1;
-  background-color:$base4;
+  background-color: $base4;
 }
 
 #searchbar:focus {
-  border-color: $accent1; /* Change border color on focus */
-  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
-  outline: none; /* Remove default outline */
+  border-color: $accent1;
+  /* Change border color on focus */
+  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
+  /* Subtle shadow effect */
+  outline: none;
+  /* Remove default outline */
 }
 
 /* button for searching symbols, inside searchbar */
@@ -3415,14 +3437,18 @@ function handleMouseOut() {
 .description {
   border: none;
   text-align: center;
-  overflow: hidden; /* Hide overflow when not expanded */
-  transition: height 0.3s ease; /* Smooth transition for height */
+  overflow: hidden;
+  /* Hide overflow when not expanded */
+  transition: height 0.3s ease;
+  /* Smooth transition for height */
   /* Set a fixed height when not expanded */
-  height: 50px; /* This should match your minHeight */
+  height: 50px;
+  /* This should match your minHeight */
 }
 
 .description.expanded {
-  height: auto; /* Allow full height when expanded */
+  height: auto;
+  /* Allow full height when expanded */
 }
 
 .response {
@@ -3456,11 +3482,11 @@ function handleMouseOut() {
   border: none;
   color: $text2;
   cursor: pointer;
-  position: absolute; 
-  top: 5px;       
-  right: 5px;     
-  padding: 5px; 
-  z-index: 1;    
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  padding: 5px;
+  z-index: 1;
 }
 
 .img {
@@ -3486,11 +3512,11 @@ function handleMouseOut() {
   border: none;
   margin-top: 0;
   padding-top: 0;
-  word-wrap: break-word;    
-  overflow-wrap: break-word; 
-  white-space: normal;       
-  width: 100%;               
-  display: block; 
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  width: 100%;
+  display: block;
 }
 
 .note-msg-date {
@@ -3501,7 +3527,7 @@ function handleMouseOut() {
   position: relative;
 }
 
-.tbl{
+.tbl {
   text-align: center;
   background-color: $base1;
   border: none;
@@ -3513,7 +3539,7 @@ function handleMouseOut() {
   background-color: $base2;
 }
 
-.ntbl{
+.ntbl {
   text-align: center;
   background-color: $base1;
   border: none;
@@ -3605,18 +3631,18 @@ function handleMouseOut() {
   gap: 2px;
 }
 
-.ticker{
-color: $text1;
-font-size: 20px;
-font-weight: bold;
-opacity: 1;
+.ticker {
+  color: $text1;
+  font-size: 20px;
+  font-weight: bold;
+  opacity: 1;
 }
 
-.name{
+.name {
   color: $text1;
   font-size: 15px;
-font-weight: bold;
-opacity: 1;
+  font-weight: bold;
+  opacity: 1;
 }
 
 
@@ -3632,135 +3658,142 @@ opacity: 1;
   cursor: pointer;
 }
 
-.RenameWatchlist, .CreateWatchlist {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: $base2;
-    width: 300px;
-    height: 150px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
-    padding: 10px;
-    border: 2px solid $accent3; 
-  }
+.RenameWatchlist,
+.CreateWatchlist {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: $base2;
+  width: 300px;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 10px;
+  border: 2px solid $accent3;
+}
 
-  .CreateNote {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: $base2;
-    width: 350px;
-    height: 200px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
-    padding: 10px;
-    border: 2px solid $accent3; 
-  }
+.CreateNote {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: $base2;
+  width: 350px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 10px;
+  border: 2px solid $accent3;
+}
 
-  .RenameWatchlist h3, .CreateWatchlist h3, .CreateNote h3 {
-    background-color: transparent;
-    color: rgba($text1, 0.50);
-    border: none;
-    margin-top: 10px;
-  }
+.RenameWatchlist h3,
+.CreateWatchlist h3,
+.CreateNote h3 {
+  background-color: transparent;
+  color: rgba($text1, 0.50);
+  border: none;
+  margin-top: 10px;
+}
 
-  .RenameWatchlist input, .CreateWatchlist input  {
-    border-radius: 25px;
+.RenameWatchlist input,
+.CreateWatchlist input {
+  border-radius: 25px;
   padding: 5px 5px 5px 15px;
   margin: 7px;
   width: 160px;
   outline: none;
-  color: $base3; /* Dark text color */
-  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
+  color: $base3;
+  /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s;
+  /* Smooth transition for focus effects */
   border: solid 1px $base4;
-  background-color:$base4;
-  }
-
-  .RenameWatchlist input:focus , .CreateWatchlist input:focus{
-    border-color: $accent1; 
-  box-shadow: 0 0 5px rgba($accent3, 0.5); 
-  outline: none; 
+  background-color: $base4;
 }
-  
-  .inner {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    border: none;
-  }
 
-  .inner button {
-    background-color: transparent;
-    padding: 5px;
-    outline: none;
-    margin: 2px ;
-    border: none;
-    opacity: 0.60;
-  }
+.RenameWatchlist input:focus,
+.CreateWatchlist input:focus {
+  border-color: $accent1;
+  box-shadow: 0 0 5px rgba($accent3, 0.5);
+  outline: none;
+}
 
-  .inner button:hover {
-    cursor: pointer;
-    opacity: 1;
-  }
+.inner {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  border: none;
+}
 
-  .inner-logo{
-    opacity: 0.30;
-    width: 30px;
-    height: 30px;
-    border: none;
-  }
+.inner button {
+  background-color: transparent;
+  padding: 5px;
+  outline: none;
+  margin: 2px;
+  border: none;
+  opacity: 0.60;
+}
 
-  /* icons for tables in left column */
- .green {
-    background-image: url('@/assets/icons/green.png');
-    width: 10px;
-   height: 10px;
-   border: none;
-   text-align: center;
+.inner button:hover {
+  cursor: pointer;
+  opacity: 1;
+}
+
+.inner-logo {
+  opacity: 0.30;
+  width: 30px;
+  height: 30px;
+  border: none;
+}
+
+/* icons for tables in left column */
+.green {
+  background-image: url('@/assets/icons/green.png');
+  width: 10px;
+  height: 10px;
+  border: none;
+  text-align: center;
 }
 
 .red {
-    background-image: url('@/assets/icons/red.png');
-    width: 10px;
+  background-image: url('@/assets/icons/red.png');
+  width: 10px;
   height: 10px;
   border: none;
   text-align: center;
 }
 
 /* */
-.btnnav{
+.btnnav {
   display: flex;
-  float:inline-end;
+  float: inline-end;
 }
 
 /* button for adding tickers to watchlists */
-.navbtn{
+.navbtn {
   background-color: transparent;
   border: none;
   cursor: pointer;
   opacity: 0.80;
 }
 
-.navbtn:hover{
+.navbtn:hover {
   opacity: 1;
 }
 
-.wlist{
+.wlist {
   background-color: $base2;
   height: 27px;
   margin-top: 2px;
@@ -3771,9 +3804,9 @@ opacity: 1;
   color: $text1;
 }
 
-.wlist:hover{
+.wlist:hover {
   cursor: pointer;
-  background-color: rgba($base2,0.80);
+  background-color: rgba($base2, 0.80);
 }
 
 .wlist .dbtn {
@@ -3798,9 +3831,11 @@ opacity: 1;
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -3812,7 +3847,7 @@ opacity: 1;
   align-items: center;
   padding: 10px;
   height: 50px;
-  border:none;
+  border: none;
 }
 
 .results2 {
@@ -3821,7 +3856,7 @@ opacity: 1;
   align-items: center;
   padding: 100px;
   height: 50px;
-  border:none;
+  border: none;
 }
 
 .loading-container {
@@ -3834,7 +3869,7 @@ opacity: 1;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  border: none ;
+  border: none;
 }
 
 /* watchlist selector dropdow menu */
@@ -3846,20 +3881,22 @@ opacity: 1;
   justify-content: center;
 }
 
-.select-container  .dropdown-container {
+.select-container .dropdown-container {
   position: absolute;
   top: 100%;
   left: 0;
   width: 100%;
 }
 
-.select-container  .dropdown-container div {
+.select-container .dropdown-container div {
   display: none;
   background-color: $base4;
- border: none;
+  max-height: 200px;
+  overflow-y: scroll;
+  border: none;
 }
 
-.select-container:hover  .dropdown-container div {
+.select-container:hover .dropdown-container div {
   display: block;
   padding: 5px;
   cursor: pointer;
@@ -3877,7 +3914,7 @@ opacity: 1;
   border-radius: 5px;
 }
 
-.icondlt{
+.icondlt {
   background-color: transparent;
   border: none;
   padding: 0;
@@ -3885,14 +3922,14 @@ opacity: 1;
   opacity: 0.60;
 }
 
-.icondlt:hover{
+.icondlt:hover {
   cursor: pointer;
   opacity: 1;
 }
 
-/* */ 
+/* */
 
-.financialbtn{
+.financialbtn {
   background-color: $accent1;
   border: none;
   cursor: pointer;
@@ -3902,7 +3939,7 @@ opacity: 1;
   transition: background-color 0.5s ease-in-out;
 }
 
-.financialbtn:hover{
+.financialbtn:hover {
   background-color: $accent2;
 }
 
@@ -3928,7 +3965,7 @@ opacity: 1;
 }
 
 /* buttons inside chart, top right */
-.navbtng{
+.navbtng {
   background-color: transparent;
   color: $text1;
   text-align: center;
@@ -3938,20 +3975,20 @@ opacity: 1;
   border-radius: 25px;
   padding: 15px;
   opacity: 0.60;
-  width: 25px; 
-  height: 25px; 
+  width: 25px;
+  height: 25px;
   align-items: center;
   margin: 2px;
   display: flex;
 }
 
-.navbtng:hover{
+.navbtng:hover {
   opacity: 1;
 }
 
 .chart-type-icon {
-  width: 20px;  
-  height: 20px; 
+  width: 20px;
+  height: 20px;
 }
 
 /* */
@@ -3975,7 +4012,7 @@ opacity: 1;
 }
 
 /* popup divs section */
-.imgbtn{
+.imgbtn {
   width: 15px;
   height: 15px;
 }
@@ -3989,21 +4026,23 @@ opacity: 1;
 }
 
 .watchlist-icon {
-  width: 20px; 
-  height: 20px; 
-  margin-right: 8px;  
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
 }
 
 .checkbox-label {
-  display: flex;         
-  align-items: center;       
+  display: flex;
+  align-items: center;
 }
 
 .dropdown-menu {
   display: none;
   cursor: pointer;
   width: 200px;
-  position: absolute; 
+  max-height: 190px;
+  overflow-y: scroll;
+  position: absolute;
   z-index: 1000;
   top: -10px;
   left: 20px;
@@ -4018,7 +4057,7 @@ opacity: 1;
   border-radius: 5px;
 }
 
-.watchlist-dropdown-menu3 > div {
+.watchlist-dropdown-menu3>div {
   background-color: $base4;
   padding: 1px;
   height: 28px;
@@ -4026,12 +4065,12 @@ opacity: 1;
   align-items: center;
 }
 
-.watchlist-dropdown-menu3 > div:hover {
+.watchlist-dropdown-menu3>div:hover {
   background-color: $accent2;
   border-radius: 5px;
 }
 
-.dropdown-btn:hover + .dropdown-menu, 
+.dropdown-btn:hover+.dropdown-menu,
 .dropdown-menu:hover {
   display: block;
 }
@@ -4041,12 +4080,12 @@ opacity: 1;
 }
 
 /* nav menu dropdown on right */
-.dropdown-vnav{
+.dropdown-vnav {
   display: none;
   position: absolute;
   right: 0;
   min-width: 180px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   z-index: 10000;
 }
 
@@ -4086,15 +4125,16 @@ opacity: 1;
 /*  */
 
 #notes-container.error {
-  border-color: red; 
+  border-color: red;
 }
 
-.RenameWatchlist input.input-error, 
+.RenameWatchlist input.input-error,
 .CreateWatchlist input.input-error {
-  border: solid 1px red !important; /* Use !important to ensure it takes precedence */
+  border: solid 1px red !important;
+  /* Use !important to ensure it takes precedence */
 }
 
-.summary-container{
+.summary-container {
   display: flex;
   flex-direction: column;
   color: $text2;
@@ -4130,7 +4170,7 @@ opacity: 1;
 }
 
 .summary-row:last-child {
-  border-bottom:none;
+  border-bottom: none;
 }
 
 .summary-row .category {
@@ -4142,9 +4182,13 @@ opacity: 1;
   flex: 0 0 50%;
 }
 
-.dividends-header, .eps-header, .earn-header, .sales-header, .splits-header{
-  display: flex; 
-  font-weight: bold; 
+.dividends-header,
+.eps-header,
+.earn-header,
+.sales-header,
+.splits-header {
+  display: flex;
+  font-weight: bold;
   background-color: $base1;
   text-align: center;
   color: $text1;
@@ -4153,14 +4197,22 @@ opacity: 1;
   align-items: center;
 }
 
-.dividends-body, .eps-body, .earn-body, .sales-body, .splits-body{
+.dividends-body,
+.eps-body,
+.earn-body,
+.sales-body,
+.splits-body {
   display: flex;
   flex-direction: column;
   text-align: center;
   color: $text2;
 }
 
-.dividends-row, .eps-row, .earn-row, .sales-row, .splits-row {
+.dividends-row,
+.eps-row,
+.earn-row,
+.sales-row,
+.splits-row {
   display: flex;
   height: 20px;
   text-align: center;
@@ -4171,33 +4223,35 @@ opacity: 1;
   font-weight: bold;
 }
 
-#watch-container{
-  display: flex; 
-  flex-direction: row; 
+#watch-container {
+  display: flex;
+  flex-direction: row;
   width: 100%;
 }
 
-.tbl{
+.tbl {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-.chart-img{
+.chart-img {
   width: 20px;
   height: 20px;
   border-radius: 50%;
   margin-right: 5px;
 }
 
-.chart-img2{
+.chart-img2 {
   width: 15px;
   margin-right: 5px;
 }
 
 .hidden-message {
-  display: flex; /* Use flexbox for alignment */
-  align-items: center; /* Center items vertically */
-  justify-content: center; 
+  display: flex;
+  /* Use flexbox for alignment */
+  align-items: center;
+  /* Center items vertically */
+  justify-content: center;
   margin-left: 10px;
   opacity: 0.60;
 }
@@ -4260,7 +4314,7 @@ opacity: 1;
   width: 70%;
   height: 60%;
   overflow: scroll;
-  color: rgba($text1,0.70);
+  color: rgba($text1, 0.70);
 }
 
 .financials-header {
@@ -4269,7 +4323,7 @@ opacity: 1;
   padding: 10px;
   color: $text1;
   border-radius: 5px;
-  min-width: 100px; 
+  min-width: 100px;
 }
 
 .attribute-name {
@@ -4299,7 +4353,7 @@ opacity: 1;
 
 .financial-value {
   text-align: center;
-  min-width: 100px; 
+  min-width: 100px;
   border-bottom: 1px solid $base1;
   padding-bottom: 10px;
   padding-top: 10px;
@@ -4309,7 +4363,7 @@ opacity: 1;
   position: relative;
 }
 
-.toggle-button{
+.toggle-button {
   margin: 3px;
   padding: 5px;
   border: none;
@@ -4319,8 +4373,8 @@ opacity: 1;
   transition: background-color 0.5s ease-in-out;
 }
 
-.toggle-button:hover{
-cursor: pointer;
+.toggle-button:hover {
+  cursor: pointer;
   background-color: $accent2;
 }
 
@@ -4328,14 +4382,15 @@ cursor: pointer;
   background-color: $base2;
   height: 20px;
   color: $text1;
-  display: flex; /* or display: grid */
+  display: flex;
+  /* or display: grid */
   justify-content: space-between;
   align-items: center;
   border: solid 2px $base4;
   padding: 0 25%;
 }
 
-.index-btn{
+.index-btn {
   background-color: $base2;
   color: $text1;
   border-radius: 5px;
@@ -4343,17 +4398,18 @@ cursor: pointer;
   letter-spacing: 0.2px;
 }
 
-.index-btn:hover{
+.index-btn:hover {
   background-color: $base4;
   color: $text1;
 }
 
 .index-btn.active {
-  background-color: rgba($accent1, 0.30); /* color when active */
+  background-color: rgba($accent1, 0.30);
+  /* color when active */
   color: $text1;
 }
 
-.percentage-box{
+.percentage-box {
   position: absolute;
   top: -7px;
   right: -5px;
@@ -4375,10 +4431,9 @@ cursor: pointer;
   color: $text1;
 }
 
-.question-img{
+.question-img {
   width: 15px;
   cursor: pointer;
   margin-left: 5px;
 }
-
 </style>
