@@ -204,7 +204,7 @@
               </div>
             </div>
           </div>
-          <div v-if="displayedEPSItems.length === 0" class="no-data">No EPS data available</div>
+          <div v-if="displayedEPSItems.length === 0" class="no-data">No Quarterly EPS data available</div>
           <button v-if="showEPSButton" @click="showAllEPS = !showAllEPS" class="toggle-btn">
             {{ showAllEPS ? 'Show Less' : 'Show All' }}
           </button>
@@ -257,7 +257,7 @@
               </div>
             </div>
           </div>
-          <div v-if="displayedEarningsItems.length === 0" class="no-data">No earnings data available</div>
+          <div v-if="displayedEarningsItems.length === 0" class="no-data">No Quarterly earnings data available</div>
           <button v-if="showEarningsButton" @click="showAllEarnings = !showAllEarnings" class="toggle-btn">
             {{ showAllEarnings ? 'Show Less' : 'Show All' }}
           </button>
@@ -310,7 +310,7 @@
               </div>
             </div>
           </div>
-          <div v-if="displayedSalesItems.length === 0" class="no-data">No sales data available</div>
+          <div v-if="displayedSalesItems.length === 0" class="no-data">No Quarterly sales data available</div>
           <button v-if="showSalesButton" @click="showAllSales = !showAllSales" class="toggle-btn">
             {{ showAllSales ? 'Show Less' : 'Show All' }}
           </button>
@@ -366,9 +366,12 @@
               <div
                 v-for="(attribute, index) in Object.keys(currentFinancials[0]).filter(attr => attr !== 'fiscalDateEnding')"
                 :key="index" class='financials-row'>
-                <div class="attribute-name">{{ attributeMap[attribute] || attribute }} <img class="question-img"
-                    src="@/assets/icons/question.png" alt="Question mark"
-                    @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut" /></div>
+                <div class="attribute-name" style="display: grid; grid-template-columns: 1fr auto;">
+  {{ attributeMap[attribute] || attribute }}
+  <img class="question-img"
+       src="@/assets/icons/question.png" alt="Question mark"
+       @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut" />
+</div>
                 <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="financial-value">
                   {{ isNaN(parseInt(financial[attribute])) ? '-' : parseInt(financial[attribute]).toLocaleString() }}
                   <div class="percentage-box"
@@ -461,27 +464,26 @@
                 class="img" src="@/assets/icons/search.png" alt=""></button>
           </div>
           <div id="wlnav">
-            <div id="realwatchlist" class="select-container" @mouseover="showDropdown = true"
-              @mouseout="showDropdown = false">
-              <img :src="downIcon" alt="Dropdown Icon" class="dropdown-icon"
-                :class="{ 'dropdown-icon-hover': showDropdown }" />
-              <p style="font-weight: bold;" class="selected-value" @click.stop="">{{ selectedWatchlist ?
-                selectedWatchlist.Name : 'Select a watch' }}</p>
-              <div class="dropdown-container">
-                <div class="watchlist-dropdown-menu">
-                  <div v-for="watch in watchlist.tickers" :key="watch.Name"
-                    :class="{ 'selected': selectedWatchlist && selectedWatchlist.Name === watch.Name }"
-                    @click="filterWatchlist(watch)">
-                    {{ watch.Name }}
-                    <span class="badge">{{ watch.List.length }}</span>
-                    <button class="icondlt" id="watchlistDelete" @click.stop="DeleteWatchlist(watch)" v-b-tooltip.hover
-                      title="Delete Watchlist">
-                      <img class="img" src="@/assets/icons/close.png" alt="delete watchlist">
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+  <div id="realwatchlist" class="select-container" @mouseover="showDropdown = true"
+    @mouseout="showDropdown = false">
+    <img :src="downIcon" alt="Dropdown Icon" class="dropdown-icon"
+      :class="{ 'dropdown-icon-hover': showDropdown }" />
+    <p style="font-weight: bold;" class="selected-value" @click.stop="">{{ selectedWatchlist ? selectedWatchlist.Name : (watchlist && watchlist.tickers && watchlist.tickers.length > 0 ? 'Select a watch' : 'No Watchlists') }}</p>
+    <div class="dropdown-container" v-if="watchlist && watchlist.tickers && watchlist.tickers.length > 0">
+      <div class="watchlist-dropdown-menu">
+        <div v-for="watch in watchlist.tickers" :key="watch.Name"
+          :class="{ 'selected': selectedWatchlist && selectedWatchlist.Name === watch.Name }"
+          @click="filterWatchlist(watch)">
+          {{ watch.Name }}
+          <span class="badge">{{ watch.List.length }}</span>
+          <button class="icondlt" id="watchlistDelete" @click.stop="DeleteWatchlist(watch)" v-b-tooltip.hover
+            title="Delete Watchlist">
+            <img class="img" src="@/assets/icons/close.png" alt="delete watchlist">
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
             <button class="navbtn" @click="addWatchlist()" v-b-tooltip.hover title="Add ticker to watchlist">
               <img class="img" src="@/assets/icons/plus.png" alt="add to watchlist">
             </button>
@@ -528,45 +530,51 @@
           </div>
         </div>
         <div v-else>
-          <div id="list" ref="watchlistContainer" tabindex="0" @keydown="handleKeydown" @click="handleClick">
-            <div ref="sortable">
-              <div v-for="item in watchlist2.tickers" :key="item"
-                :class="{ 'selected': selectedItem === item, 'wlist': true }" @click="selectRow(item)">
-                <div style="flex: 0.5; position: relative;">
-                  <button class="dropdown-btn">
-                    <img class="imgm" src="@/assets/icons/dots.png" alt="" style="border: none;">
-                  </button>
-                  <div class="dropdown-menu">
-                    <div class="watchlist-dropdown-menu3">
-                      <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
-                        <label :for="'watchlist-' + index" class="checkbox-label">
-                          <div @click.stop="toggleWatchlist(ticker, item)" style="cursor: pointer;">
-                            <img class="watchlist-icon" :src="getWatchlistIcon(ticker, item)" alt="Toggle Watchlist" />
-                          </div>
-                          <span class="checkmark"></span>
-                          {{ ticker.Name }}
-                        </label>
-                      </div>
+  <div id="list" ref="watchlistContainer" tabindex="0" @keydown="handleKeydown" @click="handleClick">
+    <div v-if="watchlist2.tickers && watchlist2.tickers.length > 0">
+      <div ref="sortable">
+        <div v-for="item in watchlist2.tickers" :key="item"
+          :class="{ 'selected': selectedItem === item, 'wlist': true }" @click="selectRow(item)">
+          <div style="flex: 0.5; position: relative;">
+            <button class="dropdown-btn">
+              <img class="imgm" src="@/assets/icons/dots.png" alt="" style="border: none;">
+            </button>
+            <div class="dropdown-menu">
+              <div class="watchlist-dropdown-menu3">
+                <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
+                  <label :for="'watchlist-' + index" class="checkbox-label">
+                    <div @click.stop="toggleWatchlist(ticker, item)" style="cursor: pointer;">
+                      <img class="watchlist-icon" :src="getWatchlistIcon(ticker, item)" alt="Toggle Watchlist" />
                     </div>
-                  </div>
-                </div>
-                <div style="flex: 1; text-align: center;">
-                  <img class="cmp-logo" :src="getImagePath(item)" alt="" />
-                </div>
-                <div style="flex: 1; text-align: center;" class="btsymbol">{{ item }}</div>
-                <div style="flex: 1; text-align: center;">{{ quotes[item] }}</div>
-                <div style="flex: 1; text-align: center;" :class="changes[item] > 0 ? 'positive' : 'negative'">{{
-                  changes[item] }}</div>
-                <div style="flex: 1; text-align: center;" :class="perc[item] > 0 ? 'positive' : 'negative'">{{
-                  perc[item] }}%</div>
-                <div class="delete-cell" style="position: relative;">
-                  <button class="dbtn" @click="deleteTicker(item)" style="position: absolute; right: 0;"
-                    @click.stop>╳</button>
+                    <span class="checkmark"></span>
+                    {{ ticker.Name }}
+                  </label>
                 </div>
               </div>
             </div>
           </div>
+          <div style="flex: 1; text-align: center;">
+            <img class="cmp-logo" :src="getImagePath(item)" alt="" />
+          </div>
+          <div style="flex: 1; text-align: center;" class="btsymbol">{{ item }}</div>
+          <div style="flex: 1; text-align: center;">{{ quotes[item] }}</div>
+          <div style="flex: 1; text-align: center;" :class="changes[item] > 0 ? 'positive' : 'negative'">{{
+            changes[item] }}</div>
+          <div style="flex: 1; text-align: center;" :class="perc[item] > 0 ? 'positive' : 'negative'">{{
+            perc[item] }}%</div>
+          <div class="delete-cell" style="position: relative;">
+            <button class="dbtn" @click="deleteTicker(item)" style="position: absolute; right: 0;"
+              @click.stop>╳</button>
+          </div>
         </div>
+      </div>
+    </div>
+    <div v-else class="empty-list-message">
+      <img style="height: 30px;" src="@/assets/icons/null.png" alt="">
+      <p>This list is empty</p>
+    </div>
+  </div>
+</div>
         <div class="results2"></div>
       </div>
     </div>
@@ -3359,12 +3367,11 @@ function handleMouseOut() {
   align-items: center;
   background-color: $base2;
   position: relative;
-  border: solid 1px $base4;
 }
 
 /* input for searching symbols */
 #searchbar {
-  border-radius: 25px;
+  border-radius: 5px;
   padding: 5px 5px 5px 15px;
   margin: 7px;
   width: calc(100% - 30px);
@@ -3402,7 +3409,7 @@ function handleMouseOut() {
   cursor: pointer;
   height: 22px;
   width: 22px;
-  border-radius: 50%;
+  border-radius: 5px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -3449,6 +3456,10 @@ function handleMouseOut() {
 .description.expanded {
   height: auto;
   /* Allow full height when expanded */
+}
+
+.category{
+  color: $text1;
 }
 
 .response {
@@ -4149,7 +4160,6 @@ function handleMouseOut() {
   padding-right: 5px;
   padding-top: 5px;
   padding-bottom: 5px;
-  margin-top: 2px;
   align-items: center;
   justify-content: center;
   background-color: $base2;
@@ -4383,10 +4393,8 @@ function handleMouseOut() {
   height: 20px;
   color: $text1;
   display: flex;
-  /* or display: grid */
   justify-content: space-between;
   align-items: center;
-  border: solid 2px $base4;
   padding: 0 25%;
 }
 
@@ -4436,4 +4444,21 @@ function handleMouseOut() {
   cursor: pointer;
   margin-left: 5px;
 }
+
+.empty-list-message {
+  text-align: center;
+  padding: 20px;
+  color: white;
+  opacity: 0.70;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.empty-list-message p{
+  font-size: 18px;
+  margin-left: 10px;
+}
+
+
 </style>

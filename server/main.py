@@ -11,6 +11,8 @@ from datetime import datetime
 import datetime as dt
 import pandas as pd
 import numpy as np
+import pygame
+import threading
 import pytz
 import calendar
 
@@ -45,6 +47,14 @@ def remove_documents_with_timestamp(timestamp_str):
     weekly_collection = db["OHCLVData2"]
     timestamp = dt.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f+00:00')
     weekly_collection.delete_many({'timestamp': timestamp})
+
+def play_song(song_path):
+    pygame.init()
+    pygame.mixer.init()
+    pygame.mixer.music.load(song_path)
+    pygame.mixer.music.play(-1)  # -1 to loop the song
+
+
 '''
 #arranges pictures based on market
 def ArrangeIcons():
@@ -2045,6 +2055,10 @@ def ExMachina():
     
 #run every day
 def Daily():
+    song_path = '/Users/lorenzomazzola/Desktop/Ereuna Dev/server/song.mp3'
+    song_thread = threading.Thread(target=play_song, args=(song_path,))
+    song_thread.daemon = True  # set as daemon so it stops when main thread stops
+    song_thread.start()
     maintenanceMode(True)
     functions = [
         ('getPrice', getPrice),
@@ -2081,6 +2095,7 @@ def Daily():
         print(f'{func_name} took {execution_time:.2f} minutes to execute')
     
     print(f'\nTotal execution time: {total_execution_time_in_minutes:.2f} minutes')
+    song_thread.join()
     maintenanceMode(False)
     #checkAndUpdateFinancialUpdates()
 

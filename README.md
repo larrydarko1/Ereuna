@@ -1,8 +1,9 @@
 v1.0.2
 - renamed index names from index funds with proper index (but kept index fund data which closely resembles indexes)
-- bug fixes: loader position on daily chart in screener, margin parameters are now divided by 100 as they should, autoplay button css class can be toggled now, alert for maximum screeners is now accessable, alert per note ora non ha più messaggio generico, 
+- bug fixes: loader position on daily chart in screener, margin parameters are now divided by 100 as they should, autoplay button css class can be toggled now, alert for maximum screeners is now accessable, alert per note ora non ha più messaggio generico, Technical Score bug now includes 1 and 100 in parameters, non compare piu un div vuoto quando non ci sono piu watchlists o screeners, now combined list updates results dynamically when i include / exclude screeners.
 - consolidated alerts on dashboard section
 - max-height on dropdown menus in charts and screener now is shorter and overflow-y is handles by scroll.
+- redesigned UI a bit
 ------
 v1.0.1:
 - fixed overflow of question mark tooltips on screener.

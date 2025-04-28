@@ -1087,22 +1087,22 @@
         <div class="navmenu">
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }" @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover
             title="Create New Screener"><img class="img2" src="@/assets/icons/add.png"
-              alt="create new screener"></button>
+              alt="create new screener"> <label style="margin-left: 3px;">Create</label></button>
           <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }" @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover
             title="Rename Current Screener"><img class="img2" src="@/assets/icons/edit2.png"
-              alt="edit screener name"></button>
+              alt="edit screener name"><label style="margin-left: 3px;">Rename</label></button>
           <button class="snavbtn" v-b-tooltip.hover title="Reset Screener" @click="async() => {await ResetScreener(); await CurrentScreener();}" ><img class="img2"
-             src="@/assets/icons/reset.png" alt="reset screener"></button>
+             src="@/assets/icons/reset.png" alt="reset screener"> <label style="margin-left: 3px;">Reset</label></button>
           <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning === true }" @click="AutoPlay()" v-b-tooltip.hover
-            title="Autoplay Results"><img class="img2" src="@/assets/icons/play.png" alt="autoplay"></button>
+            title="Autoplay Results"><img class="img2" src="@/assets/icons/play.png" alt="autoplay"><label style="margin-left: 3px;">Autoplay</label></button>
           <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'hidden' }" v-b-tooltip.hover title="Hidden List" @click="showHiddenResults()"><img class="img2"
-              src="@/assets/icons/hide.png" alt="show hidden list"></button>
+              src="@/assets/icons/hide.png" alt="show hidden list"> <label style="margin-left: 3px;">Hidden Stocks</label></button>
               <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover title="Show Combined Screener Results" @click="showCombinedResults()">
-            <img class="img2" src="@/assets/icons/intersect.png" alt="show combined screener results">
+            <img class="img2" src="@/assets/icons/intersect.png" alt="show combined screener results"> <label style="margin-left: 3px;">Multi-Screener</label>
           </button>
           <button class="snavbtn" :class="{ 'snavbtnslct': showSearch }" id="showSearch" @click="showSearch = !showSearch" v-b-tooltip.hover title="Search">
             <img class="img2" src="@/assets/icons/search.png" alt="search">
-          </button>
+            <label style="margin-left: 3px;">Search</label></button>
           <h1 :key="resultListLength" class='title2'>RESULTS: {{ resultListLength }}</h1>
         </div>
           <div v-if="listMode === 'main'">
@@ -4574,6 +4574,7 @@ async function ExcludeScreener(screener) {
 
   await GetScreeners(); // Refresh the list of screeners
   await GetCompoundedResults(); // Refresh the compounded results
+  currentList.value = compoundedResults.value;
 }
 
 const getScreenerImage = (screener) => {
@@ -6189,6 +6190,8 @@ input:checked+.slider:before {
   width: 100%;
   border: none;
   position: relative;
+  display: flex;
+  flex-direction: row;
   background-color: $base2;
   width: 100vw;
   min-width: 2610px;
@@ -6197,7 +6200,7 @@ input:checked+.slider:before {
 .title2 {
   position: absolute;
   top: 13%;
-  left: 14%;
+  left: 20%;
   border: none;
 }
 
@@ -6217,6 +6220,8 @@ input:checked+.slider:before {
   outline: none;
   border: none;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
 .snavbtnslct{
@@ -6336,6 +6341,7 @@ input:checked+.slider:before {
   width: 100vw;
   color: $text1;
   border:none;
+  height: 200px;
 }
 
 .results2v{
@@ -6413,7 +6419,7 @@ input:checked+.slider:before {
 .searchDiv input{
  outline: none;
  height: 20px;
- border-radius: 10px;
+ border-radius: 5px;
  padding-left: 5px;
 }
 
@@ -6422,7 +6428,7 @@ input:checked+.slider:before {
  background-color: $accent1;
  outline: none;
  border: none;
- border-radius: 25px;
+ border-radius: 5px;
  position: absolute;
  right:0.3px;
 }

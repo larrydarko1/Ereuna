@@ -1,9 +1,11 @@
 <template>
     <div class="signup-form">
       <div class="logo-c">
-        <img class="logo" src="@/assets/icons/ereuna.png" alt="Owl Icon">
-          <p>Already Registered? <router-link to="/login" class="text">Login Here</router-link></p>
-        </div>
+  <router-link to="/" class="logo-link">
+    <img class="logo" src="@/assets/icons/ereuna.png" alt="Owl Icon">
+  </router-link>
+  <p>Already Registered? <router-link to="/login" class="text">Login Here</router-link></p>
+</div>
         <h1>Create a Free Account</h1>
       <div class="input-group">
         <input required type="text" :class="error" name="username" autocomplete="off" class="input">
@@ -29,7 +31,7 @@
     <a href="#" @click.prevent="showTermsModal">Terms of Service & Privacy Policy</a></label>
 </div>
       <button @click="Trial()" class="userbtn">Create</button>
-      <p><label style="color: #8c8dfe; font-size: inherit;">Security Notice:</label> A unique Recovery Key will be automatically downloaded upon successful registration. This key is essential for password recovery, so store it securely. If lost, you can generate a new key in your Account Settings. </p>
+      <p><label style="color: #8c8dfe; font-size: inherit;">Security Notice:</label> A unique Recovery Key is required for password recovery. You can download this key in the Dashboard section of your account. Please store it securely, as it will be the only means of regaining access to your account in the event of a lost or forgotten password.</p>
       <p> <label style="color: #8c8dfe; font-size: inherit;">2-Factor Authentication (2FA)</label>  is available as an optional security feature. To activate 2FA, navigate to the 'Security' section within your user session. Note that only authentication app-based 2FA is currently supported, with no SMS or email options available. </p>
     </div>
     <div v-if="showTerms" class="modal" @click.self="closeTermsModal">
@@ -128,9 +130,9 @@ async function Trial() {
   // Check for empty fields first
   if (!username || !password || !confirmPassword) {
     notification.value.show('Please fill in all fields.');
-    usernameInput.classList.add('error');
-    passwordInput.classList.add('error');
-    confirmPasswordInput.classList.add('error');
+    if (!username) usernameInput.classList.add('error');
+    if (!password) passwordInput.classList.add('error');
+    if (!confirmPassword) confirmPasswordInput.classList.add('error');
     return;
   }
 
@@ -149,13 +151,23 @@ async function Trial() {
     return;
   }
 
-  // Check for invalid characters in username and passwords
-  const invalidCharsRegex = /[^a-zA-Z0-9]/;
-  if (invalidCharsRegex.test(username) || invalidCharsRegex.test(password) || invalidCharsRegex.test(confirmPassword)) {
-    notification.value.show('Invalid characters in username or password.');
+  // Validate username
+  if (username.length < 3 || username.length > 25) {
+    notification.value.show('Username must be between 3 and 25 characters.');
     usernameInput.classList.add('error');
+    return;
+  }
+  const usernameRegex = /^[a-zA-Z0-9_]+$/;
+  if (!usernameRegex.test(username)) {
+    notification.value.show('Username can only contain letters, numbers, and underscores.');
+    usernameInput.classList.add('error');
+    return;
+  }
+
+  // Validate password
+  if (password.length < 5 || password.length > 40) {
+    notification.value.show('Password must be between 5 and 40 characters.');
     passwordInput.classList.add('error');
-    confirmPasswordInput.classList.add('error');
     return;
   }
 
@@ -174,20 +186,10 @@ async function Trial() {
 
   if (response.ok) {
     const responseBody = await response.json();
-    notification.value.show('User Created Successfully! a Recovery Key will be downloaded');
-    // Download the raw recovery key
-    const authKey = response.rawAuthKey;
-      const blob = new Blob([authKey], { type: 'text/plain' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'ereuna_recovery_key.txt'; 
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-      
-    router.push('/login');
+    notification.value.show('User Created Successfully!');
+    setTimeout(() => {
+        router.push('/login');
+    }, 5000);
   } else {
     const errorResponse = await response.json();
     notification.value.show('Username Already Taken.');
