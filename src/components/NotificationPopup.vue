@@ -1,7 +1,8 @@
 <template>
     <div v-if="visible" class="notification-popup" @click="close">
       <div class="notification-content">
-        <p>{{ message }}</p>
+        <img style="width: 20px;" src="@/assets/icons/info.png" alt="">
+        <p style="margin-left: 10px;">{{ message }}</p>
         <button class="ntfbtn" @click="close">
           <img class="close-button-img" src="@/assets/icons/close.png" alt="">
         </button>
@@ -36,7 +37,6 @@ defineExpose({ show });
   top: 20px;
   right: 20px;
   background: rgba($accent1, 0.2); // Original background color with 20% opacity
-  backdrop-filter: blur(10px); // Blur the background
   border: 1px solid rgba($accent2, 0.5); // Original border color with 50% opacity
   border-radius: 5px;
   padding: 10px;
@@ -73,5 +73,9 @@ defineExpose({ show });
 .ntfbtn:hover {
   cursor: pointer;
   opacity: 1;
+}
+
+p{
+  color: $text2;
 }
 </style>

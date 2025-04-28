@@ -9449,20 +9449,20 @@ app.get('/screener/:user/results/filtered/:name',
             break;
           case 'RSScore1W':
             query.RSScore1W = {
-              $gt: screenerFilters.RSScore1W[0],
-              $lt: screenerFilters.RSScore1W[1]
+              $gte: Math.max(screenerFilters.RSScore1W[0], 1),
+              $lte: Math.min(screenerFilters.RSScore1W[1], 100)
             };
             break;
           case 'RSScore1M':
             query.RSScore1M = {
-              $gt: screenerFilters.RSScore1M[0],
-              $lt: screenerFilters.RSScore1M[1]
+              $gte: Math.max(screenerFilters.RSScore1M[0], 1),
+              $lte: Math.min(screenerFilters.RSScore1M[1], 100)
             };
             break;
           case 'RSScore4M':
             query.RSScore4M = {
-              $gt: screenerFilters.RSScore4M[0],
-              $lt: screenerFilters.RSScore4M[1]
+              $gte: Math.max(screenerFilters.RSScore4M[0], 1),
+              $lte: Math.min(screenerFilters.RSScore4M[1], 100)
             };
             break;
           case 'ADV1W':
@@ -10423,20 +10423,20 @@ app.get('/screener/:usernameID/all',
                 break;
               case 'RSScore1W':
                 query.RSScore1W = {
-                  $gt: screenerFilters.RSScore1W[0],
-                  $lt: screenerFilters.RSScore1W[1]
+                  $gte: Math.max(screenerFilters.RSScore1W[0], 1),
+                  $lte: Math.min(screenerFilters.RSScore1W[1], 100)
                 };
                 break;
               case 'RSScore1M':
                 query.RSScore1M = {
-                  $gt: screenerFilters.RSScore1M[0],
-                  $lt: screenerFilters.RSScore1M[1]
+                  $gte: Math.max(screenerFilters.RSScore1M[0], 1),
+                  $lte: Math.min(screenerFilters.RSScore1M[1], 100)
                 };
                 break;
               case 'RSScore4M':
                 query.RSScore4M = {
-                  $gt: screenerFilters.RSScore4M[0],
-                  $lt: screenerFilters.RSScore4M[1]
+                  $gte: Math.max(screenerFilters.RSScore4M[0], 1),
+                  $lte: Math.min(screenerFilters.RSScore4M[1], 100)
                 };
                 break;
               case 'ADV1W':
@@ -14607,55 +14607,97 @@ app.patch('/screener/gap-percent', validate([
     }
   });
 
-app.post('/trial',
-  async (req, res) => {
-    const requestLogger = createRequestLogger(req);
-    let client;
+app.post('/trial', validate([
+  validationSchemas.username(),
+  validationSchemas.password()
+]), async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
 
-    try {
-      const apiKey = req.header('x-api-key');
-      const sanitizedKey = sanitizeInput(apiKey);
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
 
-      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-        logger.warn('Invalid API key', {
-          providedApiKey: !!sanitizedKey
-        });
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
 
-        return res.status(401).json({
-          message: 'Unauthorized API Access'
-        });
-      }
-      const { username, password } = req.body;
-      const sanitizedUsername = sanitizeInput(username);
-      const hashedPassword = await argon2.hash(password);
-      const rawAuthKey = crypto.randomBytes(64).toString('hex');
-
-      logSignupAttempt(requestLogger, sanitizedUsername, null, null);
-
-      client = new MongoClient(uri);
-      await client.connect();
-      const db = client.db('EreunaDB');
-      const usersCollection = db.collection('Users');
-
-      if (await isUsernameTaken(usersCollection, sanitizedUsername, requestLogger)) {
-        return res.status(400).json({ errors: [{ field: 'username', message: 'Username already exists' }] });
-      }
-
-      const creationDate = new Date();
-      const expirationDate = new Date(creationDate.getTime() + 30 * 24 * 60 * 60 * 1000); // add 30 days
-
-      const newUser = await createUser(usersCollection, sanitizedUsername, hashedPassword, expirationDate, null, null, rawAuthKey, requestLogger);
-      if (!newUser) return res.status(500).json({ message: 'Failed to create user' });
-
-      logSuccessfulSignup(requestLogger, newUser.insertedId, null);
-
-      return res.status(201).json({ message: 'User created successfully', rawAuthKey });
-
-    } catch (error) {
-      handleError(error, requestLogger, req);
-      return res.status(500).json({ message: 'An error occurred during trial signup', error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error' });
-    } finally {
-      if (client) await client.close();
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
     }
+
+    const { username, password } = req.body;
+    const sanitizedUsername = sanitizeInput(username);
+    const hashedPassword = await argon2.hash(password);
+    const rawAuthKey = crypto.randomBytes(64).toString('hex');
+
+    logSignupAttempt(requestLogger, sanitizedUsername, null, null);
+
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+
+    if (await isUsernameTaken(usersCollection, sanitizedUsername, requestLogger)) {
+      return res.status(400).json({ errors: [{ field: 'username', message: 'Username already exists' }] });
+    }
+
+    const creationDate = new Date();
+    const expirationDate = new Date(creationDate.getTime() + 30 * 24 * 60 * 60 * 1000); // add 30 days
+
+    const newUser = await createUser(usersCollection, sanitizedUsername, hashedPassword, expirationDate, null, null, rawAuthKey, requestLogger);
+    if (!newUser) return res.status(500).json({ message: 'Failed to create user' });
+
+    logSuccessfulSignup(requestLogger, newUser.insertedId, null);
+
+    // Notify Reddit of the conversion
+    const redditApiUrl = 'https://ads-api.reddit.com/api/v2.0/conversions/events/a2_gu65ayr0a7y3';
+    const redditApiToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IlNIQTI1NjpzS3dsMnlsV0VtMjVmcXhwTU40cWY4MXE2OWFFdWFyMnpLMUdhVGxjdWNZIiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1c2VyIiwiZXhwIjo0OTAxMTY1MzcyLjQ5NzY3LCJpYXQiOjE3NDU0MDUzNzIuNDk3NjcsImp0aSI6InE5THhTUnllZl9naTd5OHZZYVNqNnBYUzBJa0hNQSIsImNpZCI6IjFRMUVPelRQV25ZdmVyaHB0dmdXc1EiLCJsaWQiOiJ0Ml8xbndqanhicmkzIiwiYWlkIjoidDJfMW53amp4YnJpMyIsImxjYSI6MTc0NTM5OTgwMDcwOSwic2NwIjoiZUp5S1ZrcE1LVTdPenl0TExTck96TThyVm9vRkJBQUFfXzlCRmdidSIsImZsbyI6MTAsImxsIjp0cnVlfQ.CZ5nfGsO2KuhmnTuhHTDbt8BqKcrIF_MrjLk2SJ_h2qIDQRwBOVm3EkysHZbRy4S_v5SG8stzkPo05oDs3jOIsX4gV_BRus-giFz_K5Xb5vcENYRT_ZkIO8HWbLHuxS-mcsG9nYeo0ps4_4Ie_rFtGG3ooUqbYLm37ldb0xnlN7PrjNsqAd1jQA9lQaypwJkHkrO4hTe8oc0m4kpjWtiNPpZut6wH9SG8UDbqNHNTLF4UF1qn8YE-sKhavQ30-3KdZY63F1bVq2sdaBcXGSsN-EDQ8eEEa5bPwYmXRCpAvQk427X8KvezFYo_FB6Ti-__uDyoP9FgY-RVS9DcuKA8A';
+    const conversionData = {
+      test_mode: false,
+      events: [
+        {
+          event_at: new Date().toISOString(),
+          event_type: {
+            tracking_type: 'Custom',
+            custom_event_name: 'User Registered'
+          }
+        }
+      ]
+    };
+
+    const redditApiResponse = await fetch(redditApiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${redditApiToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(conversionData)
+    });
+
+    if (!redditApiResponse.ok) {
+      logger.error('Failed to notify Reddit of conversion', {
+        statusCode: redditApiResponse.status,
+        statusText: redditApiResponse.statusText
+      });
+    }
+
+    return res.status(201).json({ message: 'User created successfully', rawAuthKey });
+
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      const validationErrors = error.errors.map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+      return res.status(400).json({ errors: validationErrors });
+    }
+
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred during trial signup' });
+  } finally {
+    if (client) await client.close();
   }
-);
+});

@@ -1,21 +1,37 @@
 <template>
   <div v-if="mfaRequired" class="mfa-popup">
   <h3>Enter 2FA Code</h3>
-  <input placeholder="MFA Code" type="text" v-model="mfaCode" maxlength="6" style="text-align: center;">
+  <input placeholder="MFA Code" type="text" :class="error" name="factor" v-model="mfaCode" maxlength="6" style="text-align: center;">
   <button type="button" class="verify-mfa" @click="verifyMfa">Verify</button>
 </div>
+<div class="container">
+<div class="image-background">
+  <h3 class="quote">{{ quote.text }}</h3>
+<p class="author">— {{ quote.author }}</p>
+  <p class="footnote">Developed with 🤬 by <a href="https://github.com/larrydarko1" target="_blank">Lorenzo Mazzola</a><br>
+    Crypto Donations: <br>
+    BTC: bc1qv7lhtuzcv9k0zktgfetdg43g2ll3jtta0z5x5c
+    <br>
+    ETH: 0x150b03B3904D877e2399F6302c5Db5f332170304
+    <br>
+    XMR: 449bkU2MvFh1oiRZGYT72BAfF6uj3kPa1TJfBmPT1agNYFyrifsSW1reEGjrwgG9UujoV4EEEB14PMpDkVGinc3QGFwfVcw</p>
+  <img class="bg" src="@/assets/images/bg.png" alt="">
+</div>
+<div class="login container">
   <div class="login-form" @keydown.enter="login()">
     <div class="logo-container">
       <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/owl.png" alt="">
       <div class="beta">BETA VERSION</div>
     </div>
-    <div class="input-with-icon">
-      <input class="form-input" placeholder="Username" type="username">
-      <img class="icon" src="@/assets/icons/username2.png" alt="">
-    </div>
-    <div class="input-with-icon">
-    <input class="form-input" placeholder="Password" :type="showPassword ? 'text' : 'password'" >
-    <img class="icon" src="@/assets/icons/password2.png" alt="">
+    <br>
+    <br>
+    <div class="input-group">
+        <input required type="text" :class="error" name="Username" autocomplete="off" class="form-input">
+        <label :class="error" class="user-label">Username</label>
+      </div>
+      <div class="input-group">
+        <input required :type="showPassword ? 'text' : 'password'" :class="error" name="Password" autocomplete="off" class="form-input">
+        <label :class="error" class="user-label">Password</label>
     <button 
   type="button" 
   class="toggle-password" 
@@ -27,7 +43,7 @@
     class="toggle-icon"
   >
 </button>
-  </div>
+      </div>
   <div 
   class="custom-checkbox" 
   :class="{ checked: rememberMe }"
@@ -37,7 +53,7 @@
   <span class="checkmark"></span>
   <label for="remember-me-checkbox" class="label-text">Remember Me</label>
 </div>
-    <button class="signbtn" @click="login()">Login</button>
+    <button class="userbtn" @click="login()">Login</button>
     <br>
     <p class="text">Don't have an account? <router-link to="/signup" class="text">Sign Up</router-link></p>
     <p class="text forgot-password">
@@ -65,15 +81,9 @@
   </div>
     <h3>{{ welcomeMessage }}</h3>
   </div>
-  <div class="releaseNote" style="display: flex; flex-direction: row; align-items: center;">
-  <h3> V1.0.1 // Beta Version </h3> 
   </div>
-  <div class="releaseNote2" style="display: flex; flex-direction: row; align-items: center;">
-    <h3>Crypto Donations</h3> 
   </div>
-  <div class="releaseNote3" style="align-items: center; min-width: 1000px;">
-    <h3 style="font-size: 9px;">BTC: 326ZBjc3NcF2tShrXzZzgZSpnoVtXHA4KB  //  ETH: 0x150b03B3904D877e2399F6302c5Db5f332170304  // XMR: 449bkU2MvFh1oiRZGYT72BAfF6uj3kPa1TJfBmPT1agNYFyrifsSW1reEGjrwgG9UujoV4EEEB14PMpDkVGinc3QGFwfVcw</h3> 
-  </div>
+  <NotificationPopup ref="notification" />
 </template>
 
 <script setup>
@@ -81,12 +91,90 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import hideIcon from '@/assets/icons/hide.png';
 import showIcon from '@/assets/icons/show.png';
+import NotificationPopup from '@/components/NotificationPopup.vue';
+
+// for popup notifications
+const notification = ref(null);
+const showNotification = () => {
+  notification.value.show('This is a custom notification message!');
+};
+
+const quotes = [
+  {
+    text: "Price is what you pay. Value is what you get.",
+    author: "Warren Buffett"
+  },
+  {
+    text: "It's far better to buy a wonderful company at a fair price than a fair company at a wonderful price.",
+    author: "Warren Buffett"
+  },
+  {
+    text: "Our favorite holding period is forever.",
+    author: "Warren Buffett"
+  },
+  {
+    text: "Invest in what you know.",
+    author: "Peter Lynch"
+  },
+  {
+    text: "Go for a business that any idiot can run – because sooner or later, any idiot probably is going to run it.",
+    author: "Peter Lynch"
+  },
+  {
+    text: "Know what you own, and know why you own it.",
+    author: "Peter Lynch"
+  },
+  {
+    text: "Markets are constantly in a state of uncertainty and flux, and money is made by discounting the obvious and betting on the unexpected.",
+    author: "George Soros"
+  },
+  {
+    text: "The financial markets generally are unpredictable. So that one has to have different scenarios... The idea that you can actually predict what's going to happen contradicts my way of looking at the market.",
+    author: "George Soros"
+  },
+  {
+    text: "The biggest risk is not taking any risk.",
+    author: "Ray Dalio"
+  },
+  {
+    text: "Diversify or die.",
+    author: "Ray Dalio"
+  },
+  {
+    text: "The most important thing is to think for yourself and not be influenced by the crowd.",
+    author: "Ray Dalio"
+  },
+  {
+    text: "There is nothing new in Wall Street. There can't be because speculation is as old as the hills. Whatever happens in the stock market today has happened before and will happen again.",
+    author: "Jesse Livermore"
+  },
+  {
+    text: "The game of speculation is the most uniformly fascinating game in the world. But it is not a game for the stupid, the mentally lazy, the person of inferior emotional balance, or the get-rich-quick adventurer.",
+    author: "Jesse Livermore"
+  },
+  {
+    text: "In the short run, the market is a voting machine but in the long run, it is a weighing machine.",
+    author: "Benjamin Graham"
+  },
+  {
+    text: "The intelligent investor is a realist who sells to optimists and buys from pessimists.",
+    author: "Benjamin Graham"
+  },
+  {
+    text: "The stock investor is neither right nor wrong because others agreed or disagreed with him; he is right because his facts and analysis are right.",
+    author: "Benjamin Graham"
+  }
+];
+
+const quote = ref('');
+
+onMounted(() => {
+  const randomIndex = Math.floor(Math.random() * quotes.length);
+  quote.value = quotes[randomIndex];
+});
 
 const router = useRouter();
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
-const usernameError = ref(false);
-const passwordError = ref(false);
-const fieldsError = ref(false);
 const welcomePopup = ref(false);
 const rememberMe = ref(false);
 const showPassword = ref(false);
@@ -97,8 +185,8 @@ const storedUsername = ref('');
 const welcomeMessage = ref('');
 
 async function login() {
-  const usernameInput = document.querySelector('input[placeholder="Username"]');
-  const passwordInput = document.querySelector('input[placeholder="Password"]');
+  const usernameInput = document.querySelector('input[name="Username"]');
+  const passwordInput = document.querySelector('input[name="Password"]');
 
   const username = usernameInput.value.trim();
   const password = passwordInput.value.trim();
@@ -107,15 +195,13 @@ async function login() {
   storedUsername.value = username;
 
   // Reset all error states
-  usernameError.value = false;
-  passwordError.value = false;
-  fieldsError.value = false;
   welcomePopup.value = false;
-  mfaError.value = false;
 
   // Check for empty fields first
   if (!username || !password) {
-    fieldsError.value = true;
+    notification.value.show('Please fill both username and password fields');
+    if (!username) usernameInput.classList.add('error');
+    if (!password) passwordInput.classList.add('error');
     return;
   }
 
@@ -150,13 +236,17 @@ async function login() {
     } else {
       // Use exact string matching
       if (responseBody.message === 'Username doesn\'t exist') {
-        usernameError.value = true;
+        notification.value.show('Username doesn\'t exist');
+        usernameInput.classList.add('error');
       } else if (responseBody.message === 'Password is incorrect') {
-        passwordError.value = true;
+        notification.value.show('Password is incorrect');
+        passwordInput.classList.add('error');
       } else if (responseBody.message === 'Subscription is expired') {
         router.push({ path: '/renew-subscription' });
       } else if (responseBody.message === 'Please fill both username and password fields') {
-        fieldsError.value = true;
+        notification.value.show('Please fill both username and password fields');
+        if (!username) usernameInput.classList.add('error');
+        if (!password) passwordInput.classList.add('error');
       } else {
         // Log error
       }
@@ -167,6 +257,7 @@ async function login() {
 }
 
 async function verifyMfa() {
+  const factor = document.querySelector('input[name="MFA"]');
   try {
     const mfaResponse = await fetch('/api/verify-mfa', {
       method: 'POST',
@@ -185,12 +276,14 @@ async function verifyMfa() {
 
     if (mfaResponse.ok) {
       // MFA code is valid, proceed with login
+      welcomeMessage.value = `Welcome ${username}!`;
+      welcomePopup.value = true;
       const token = mfaResponseBody.token;
       localStorage.setItem('token', token);
       router.push({ name: 'Charts' });
     } else {
-      // MFA code is invalid, display error message
-      mfaError.value = true;
+      notification.value.show('Invalid MFA Code, try again.');
+      factor.classList.add('error');
     }
   } catch (error) {
     error.value = error.message;
@@ -205,41 +298,8 @@ async function verifyMfa() {
 .logo {
   align-items: center;
   justify-content: center;
-  width: 70px;
+  width: 90px;
   margin: 10px;
-}
-
-.text {
-  color: whitesmoke;
-  margin: 2px;
-}
-
-.form-input {
-  border-radius: 25px;
-  padding: 5px;
-  margin: 7px;
-  width: 100%;
-  outline: none;
-  color: whitesmoke; /* Dark text color */
-  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
-  border: solid 1px #171728;
-  background-color:#2c2b3e;
-}
-
-.form-input:focus {
-  border-color: #8c8dfe; /* Change border color on focus */
-  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
-  outline: none; /* Remove default outline */
-}
-.login-form {
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%); /* Center the form */
-  align-items: center;
-  justify-content: center;
 }
 
 .signbtn {
@@ -263,7 +323,7 @@ async function verifyMfa() {
 
 .toggle-password {
   position: absolute;
-  right: -16%;
+  right: 5%;
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -293,36 +353,11 @@ async function verifyMfa() {
   padding: 0;
 }
 
-.input-with-icon .form-input {
-  padding-left: 25px;
-}
-
 .remember-me {
   display: flex;
   flex-direction: row;
   margin-left: -17px;
   margin-right: auto;
-}
-
-.error-popup {
-  position: absolute;
-  bottom: 100px;
-  left: 0;
-  right: 0;
-  margin: auto;
-  border: 2px solid red;
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  max-width: 500px;
-}
-
-.error-popup h3 {
-  color: red;
-  font-size: 16px;
-  margin-left: 20px;
 }
 
 .welcome-popup {
@@ -350,47 +385,23 @@ async function verifyMfa() {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0;
 }
 
 .forgot-password img {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   padding-right: 5px;
 }
 
 .forgot-password span {
   margin-right: 5px; /* Adds a bit more space before the link */
+  color: $text2;
+  font-size: 1.2rem;
 }
 
 .forgot-password a:hover {
   text-decoration: underline; /* Adds underline on hover */
-}
-
-.releaseNote {
-  color: whitesmoke;
-  position: fixed; /* Change to fixed positioning */
-  bottom: 25px; /* Stick to the bottom */
-  left: 50%; /* Center horizontally */
-  transform: translateX(-50%); /* Adjust for centering */
-  text-align: center; /* Center text */
-}
-
-.releaseNote2 {
-  color: whitesmoke;
-  position: fixed; /* Change to fixed positioning */
-  bottom:12px; /* Stick to the bottom */
-  left: 50%; /* Center horizontally */
-  transform: translateX(-50%); /* Adjust for centering */
-  text-align: center; /* Center text */
-}
-
-.releaseNote3 {
-  color: whitesmoke;
-  position: fixed; /* Change to fixed positioning */
-  bottom:0px; /* Stick to the bottom */
-  left: 50%; /* Center horizontally */
-  transform: translateX(-50%); /* Adjust for centering */
-  text-align: center; /* Center text */
 }
 
 .custom-checkbox {
@@ -398,7 +409,7 @@ async function verifyMfa() {
   align-items: center;
   cursor: pointer;
   padding: 5px;
-  margin-left: 120px;
+  margin-left: 230px;
 }
 
 .checkmark {
@@ -420,6 +431,7 @@ async function verifyMfa() {
   opacity: 0.7; /* Initial opacity */
   transition: opacity 0.3s; /* Smooth transition for opacity */
   color: whitesmoke;
+  font-size: 12px;
 }
 
 .custom-checkbox.checked .label-text {
@@ -428,7 +440,7 @@ async function verifyMfa() {
 }
 
 .toggle-icon {
-  width: 15px; /* Adjust the size as needed */
+  width: 30px; /* Adjust the size as needed */
   cursor: pointer; /* Change cursor to pointer on hover */
 }
 
@@ -443,7 +455,7 @@ async function verifyMfa() {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   border-radius: 20px;
-  z-index: 1;
+  z-index: 10000;
   text-align: center;
 }
 
@@ -458,6 +470,12 @@ async function verifyMfa() {
   margin-bottom: 20px;
   border: 1px solid #ccc;
   border-radius: 10px;
+  box-shadow: none;
+}
+
+.mfa-popup input:focus {
+  border: 1px solid $accent1;
+  outline: none; /* Remove the default outline */
 }
 
 .mfa-popup button {
@@ -487,14 +505,16 @@ async function verifyMfa() {
   left: 50%;
   transform: translateX(-50%) rotate(-5deg);
   border: solid 2px $accent1;
-  width: 100px;
+  width: 160px;
   border-radius: 5px;
   color: $accent1;
   text-align: center;
   letter-spacing: 2px;
   font-weight: bold;
   padding: 3px;
-  margin-top: 72px;
+  margin-top: 90px;
+  cursor: default;
+  font-size: 16px;
 }
 
 .loader {
@@ -541,4 +561,202 @@ async function verifyMfa() {
     }
   }
 
+  .container {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  height: 100vh;
+}
+
+.image-background{
+  background-color: $base4;
+  min-width: 600px;
+  position: relative;
+}
+
+.image-background p {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  margin: 10px;
+  color: $text2;
+  z-index: 100;
+}
+
+.image-background h2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 10px;
+  color: $text2;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+}
+
+.image-background .quote {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-size: 25px;
+  color: $text1;
+  z-index: 100;
+}
+
+.image-background .author {
+  position: absolute;
+  bottom: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-size: 14px;
+  color: $text2;
+  z-index: 100;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  flex-direction: column;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: 80%;
+  transform: translate(-50%, -50%);
+}
+
+.input-group {
+    position: relative;
+    padding: 1rem;
+  }
+
+  p{
+    color: $text2;
+    font-size: 1.2rem;
+  }
+
+  .form-input {
+    border: solid 2px transparent;
+    border-radius: 1.5rem;
+    background-color:#2c2b3e;;
+    padding: 1.5rem;
+    font-size: 1.2rem;
+    width: 400px;
+    color: #f5f5f5;
+    transition: border 150ms cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .user-label {
+    text-align: center;
+    position: absolute;
+    left: 30px;
+    bottom: 45px;
+    color: #cdcdcd;
+    pointer-events: none;
+    transform: translateY(1.5rem);
+    transition: 150ms cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .form-input:focus, .form-input:valid {
+    outline: none;
+    border: 2px solid #8c8dfe;
+  }
+
+  .form-input:focus ~ label, .form-input:valid ~ label {
+    transform: translateY(-50%) scale(0.8);
+    background-color: #212121;
+    padding: 0 .4em;
+    color: #8c8dfe;
+  }
+
+  .userbtn {
+  background-color: transparent;
+  color: $text1;
+  border-radius: 10px;
+  outline: none;
+  border: solid 3px #8c8dfe;
+  padding: 10px;
+  margin: 10px;
+  width: 400px;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  font-size: 16px; /* Added font size for better readability */
+  font-weight: 500; /* Added font weight for better typography */
+}
+
+.userbtn:hover {
+  background-color: #8c8dfe;
+  color: white;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  transform: scale(1.05); /* New animation: scale up on hover */
+  transition: all 0.3s ease-in-out; /* Changed transition timing function for smoother animation */
+}
+
+.userbtn:active {
+  transform: scale(0.95); /* New animation: scale down on click */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Reduced shadow on click */
+  transition: all 0.1s ease-out; /* Faster transition on click */
+}
+
+a{
+    color: $accent1;
+    font-size: 1.2rem;
+}
+
+a:hover{
+    color: $accent2;
+    cursor: pointer;
+}
+
+.bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  overflow: hidden;
+  opacity: 0.20;
+}
+
+/* Mobile version */
+@media (max-width: 1100px) {
+  .container {
+    grid-template-columns: 100%;
+  }
+
+  .login-container {
+    height: 100vh;
+  }
+
+  .login-form {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+  }
+
+  .image-background .quote  {
+    display: none;
+  }
+
+  .bg {
+    display: none;
+  }
+}
+
+.error{
+    border-color: red;
+}
+
+.footnote{
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* subtle drop shadow */
+}
 </style>
