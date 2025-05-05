@@ -1087,22 +1087,22 @@
         <div class="navmenu">
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }" @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover
             title="Create New Screener"><img class="img2" src="@/assets/icons/add.png"
-              alt="create new screener"> <label style="margin-left: 3px;">Create</label></button>
+              alt="create new screener"> <label class=btnlabel>Create</label></button>
           <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }" @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover
             title="Rename Current Screener"><img class="img2" src="@/assets/icons/edit2.png"
-              alt="edit screener name"><label style="margin-left: 3px;">Rename</label></button>
+              alt="edit screener name"><label class=btnlabel>Rename</label></button>
           <button class="snavbtn" v-b-tooltip.hover title="Reset Screener" @click="async() => {await ResetScreener(); await CurrentScreener();}" ><img class="img2"
-             src="@/assets/icons/reset.png" alt="reset screener"> <label style="margin-left: 3px;">Reset</label></button>
+             src="@/assets/icons/reset.png" alt="reset screener"> <label class=btnlabel>Reset</label></button>
           <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning === true }" @click="AutoPlay()" v-b-tooltip.hover
-            title="Autoplay Results"><img class="img2" src="@/assets/icons/play.png" alt="autoplay"><label style="margin-left: 3px;">Autoplay</label></button>
+            title="Autoplay Results"><img class="img2" src="@/assets/icons/play.png" alt="autoplay"><label class=btnlabel>Autoplay</label></button>
           <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'hidden' }" v-b-tooltip.hover title="Hidden List" @click="showHiddenResults()"><img class="img2"
-              src="@/assets/icons/hide.png" alt="show hidden list"> <label style="margin-left: 3px;">Hidden Stocks</label></button>
+              src="@/assets/icons/hide.png" alt="show hidden list"> <label class=btnlabel>Hidden Stocks</label></button>
               <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover title="Show Combined Screener Results" @click="showCombinedResults()">
-            <img class="img2" src="@/assets/icons/intersect.png" alt="show combined screener results"> <label style="margin-left: 3px;">Multi-Screener</label>
+            <img class="img2" src="@/assets/icons/intersect.png" alt="show combined screener results"> <label class=btnlabel>Multi-Screener</label>
           </button>
           <button class="snavbtn" :class="{ 'snavbtnslct': showSearch }" id="showSearch" @click="showSearch = !showSearch" v-b-tooltip.hover title="Search">
             <img class="img2" src="@/assets/icons/search.png" alt="search">
-            <label style="margin-left: 3px;">Search</label></button>
+            <label class=btnlabel>Search</label></button>
           <h1 :key="resultListLength" class='title2'>RESULTS: {{ resultListLength }}</h1>
         </div>
           <div v-if="listMode === 'main'">
@@ -1133,7 +1133,7 @@
             <div style="min-width: 100px;">Dividend Yield (TTM)</div>
             <div style="min-width: 70px;">EPS</div>
           </div>
-          <div id="wlist-container"  @scroll.passive="handleScroll1">
+          <div class="wlist-container" @scroll.passive="handleScroll1">
             <div 
   id="wlist" 
   style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;" 
@@ -1240,7 +1240,7 @@
             <div style="min-width: 100px;">Dividend Yield (TTM)</div>
             <div style="min-width: 70px;">EPS</div>
           </div>
-          <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll2">
+          <div class="wlist-container" @scroll.passive="handleScroll2">
             <div 
   id="wlist" 
   style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;" 
@@ -1347,7 +1347,7 @@
             <div style="min-width: 100px;">Dividend Yield (TTM)</div>
             <div style="min-width: 70px;">EPS</div>
           </div>
-          <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll3">
+          <div class="wlist-container" @scroll.passive="handleScroll3">
             <div 
   id="wlist" 
   style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;" 
@@ -1454,7 +1454,7 @@
             <div style="min-width: 100px;">Dividend Yield (TTM)</div>
             <div style="min-width: 70px;">EPS</div>
           </div>
-          <div id="wlist-container" style="height: 2000px; width: 100vw; overflow-y: scroll; z-index: 1000;" @scroll.passive="handleScroll4">
+          <div class="wlist-container" @scroll.passive="handleScroll4">
             <div 
   id="wlist" 
   style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;" 
@@ -2268,7 +2268,7 @@ onMounted(async () => {
     layout: {
       background: {
         type: ColorType.Solid,
-        color: '#0f0f1b',
+        color: '#181926',
       },
       textColor: '#ffffff',
     },
@@ -2444,7 +2444,7 @@ onMounted(async () => {
     layout: {
       background: {
         type: ColorType.Solid,
-        color: '#0f0f1b',
+        color: '#181926',
       },
       textColor: '#ffffff',
     },
@@ -5494,6 +5494,7 @@ function handleMouseOut() {
   flex: 0 0 50%;
   width: 100vw;
   overflow-x: scroll;
+  overflow-y: hidden;
   max-height: 800px;
 }
 
@@ -6276,7 +6277,7 @@ input:checked+.slider:before {
 
 .RenameScreener input,
 .CreateScreener input {
-  border-radius: 25px;
+  border-radius: 5px;
   padding: 5px 5px 5px 15px;
   margin: 7px;
   width: 160px;
@@ -6919,8 +6920,8 @@ input[type="date"]{
   display: block;
 }
 
-#wlist-container{
-  height: 3000px; 
+.wlist-container{
+  height: 800px; 
   width: 100%; 
   min-width: 2610px;
   overflow-y: scroll; 
@@ -6993,5 +6994,10 @@ input[type="date"]{
   width: 15px;
   cursor: pointer;
   margin-left: 5px;
+}
+
+.btnlabel{
+  margin-left: 3px; 
+  cursor: inherit;
 }
 </style>

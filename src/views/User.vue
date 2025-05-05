@@ -22,7 +22,7 @@
         <div>
         <div class="userdiv">
           <h2 style="display: flex; align-items: center; justify-content: center;">
-            <img src="@/assets/icons/username2.png" alt="Icon" class="icon2">
+            <img src="@/assets/icons/username2.png" alt="Icon" style="width:15px; height: 15px; margin-right: 7px;">
       Change Username
     </h2>
         <div style="display: flex; justify-content: center;">
@@ -39,7 +39,7 @@
 <div>
   <div class="userdiv">
     <h2 style="display: flex; align-items: center; justify-content: center;">
-            <img src="@/assets/icons/password2.png" alt="Icon" class="icon2">
+            <img src="@/assets/icons/password2.png" alt="Icon" style="width:15px; height: 15px; margin-right: 7px;">
       Change Password
     </h2>
   <div style="display: flex; justify-content: center; ">
@@ -116,7 +116,7 @@
 <div>
   <div class="userdiv">
     <h2 style="display: flex; align-items: center; justify-content: center;">
-            <img src="@/assets/icons/forgot.png" alt="Icon" class="icon2">
+            <img src="@/assets/icons/forgot.png" alt="Icon" style="width:15px; height: 15px; margin-right: 7px;">
      Recovery / Authentication Key
     </h2>
          <div style="position: relative;">
@@ -151,7 +151,7 @@
       </div>
       <div class="userdiv">
     <h2 style="display: flex; align-items: center; justify-content: center;">
-            <img src="@/assets/icons/delete-account.png" alt="Icon" class="icon2">
+            <img src="@/assets/icons/delete-account.png" alt="Icon" style="width:15px; height: 15px; margin-right: 7px;">
       Delete Account
     </h2>
          <p>To delete your account, type your Password</p>
@@ -829,7 +829,7 @@ h2 {
   display: flex;
   align-items: center;
   width: 90%;
-  background-color: rgba($base2, 0.9);
+  background-color: rgba($base4, 0.9);
   padding: 10px;
   color: $text1;
   font-size: 15px;
@@ -854,11 +854,6 @@ h2 {
   width: 20px;
   height: 20px;
   margin-right: 10px;
-}
-
-.icon2 {
-  width: 15px;
-  height: 15px;
 }
 
 .icon3 {
@@ -901,7 +896,7 @@ p{
 .userbtn {
   background-color: $accent1;;
   color: $text1;
-  border-radius: 10px;
+  border-radius: 5px;
   border: none;
   outline: none;
   padding: 5px;
@@ -917,7 +912,7 @@ p{
 
 /* inputs for settings */
 .userinput{
-  border-radius: 25px;
+  border-radius: 5px;
   padding: 5px 5px 5px 15px;
   margin: 7px;
   width: 160px;

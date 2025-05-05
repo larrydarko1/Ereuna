@@ -1692,7 +1692,7 @@ onMounted(async () => {
       layout: {
         background: {
           type: ColorType.Solid,
-          color: '#0f0f1b',
+          color: '#181926',
         },
         textColor: '#ffffff',
       },
@@ -3274,7 +3274,7 @@ function handleMouseOut() {
 #main {
   display: flex;
   height: 100%;
-  max-height: 760px;
+  //max-height: 760px;
 }
 
 #sidebar-left {
@@ -3721,7 +3721,7 @@ function handleMouseOut() {
 
 .RenameWatchlist input,
 .CreateWatchlist input {
-  border-radius: 25px;
+  border-radius: 5px;
   padding: 5px 5px 5px 15px;
   margin: 7px;
   width: 160px;
@@ -3955,17 +3955,16 @@ function handleMouseOut() {
 }
 
 .toggle-btn {
-  background-color: $base2;
+  background-color: $accent1;
   border: none;
   cursor: pointer;
   width: 100%;
   color: $text1;
-  opacity: 0.60;
+  transition: background-color 0.5s ease-in-out;
 }
 
 .toggle-btn:hover {
-  background-color: $base3;
-  opacity: 1;
+  background-color: $accent2;
 }
 
 .no-data {
@@ -4185,7 +4184,7 @@ function handleMouseOut() {
 
 .summary-row .category {
   flex: 0 0 50%;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .summary-row .response {
@@ -4453,6 +4452,7 @@ function handleMouseOut() {
   display: flex;
   flex-direction: row;
   align-items: center;
+  margin-left: 40px;
 }
 
 .empty-list-message p{
