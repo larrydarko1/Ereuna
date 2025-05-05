@@ -1,34 +1,42 @@
 <template>
   <header class="header">
     <a class="icon2" id="home-icon" alt="account"></a>
-    <router-link to="/screener" title="Screener" :class="['nav-link', { 'active': route.path === '/screener' }]">
-      <img src="@/assets/icons/layers.png" alt="screener" />
-      <span>Screener</span>
-    </router-link>
-    <router-link to="/charts" title="Chart" :class="['nav-link', { 'active': route.path === '/charts' }]">
-      <img src="@/assets/icons/chart-histogram.png" alt="chart" />
-      <span>Chart</span>
-    </router-link>
-    <router-link to="/dashboard" title="Dashboard" :class="['nav-link', { 'active': route.path === '/dashboard' }]">
-      <img src="@/assets/icons/dashboard.png" alt="user" />
-      <span>Dashboard</span>
-    </router-link>
-    <a title="Logout" @click="LogOut()" class="nav-link" id="logout-icon">
-      <img src="@/assets/icons/logout.png" alt="logout" />
-      <span>Logout</span>
-    </a>
+    <div class="nav-links">
+       <router-link to="/dashboard" title="Dashboard" :class="['nav-link', { 'active': route.path === '/dashboard' }]">
+        <img :src="route.path === '/dashboard' ? dashboardHover : dashboard" alt="user" />
+        <span :class="{ activeText: route.path === '/dashboard' }">Dashboard</span>
+      </router-link>
+      <router-link to="/charts" title="Chart" :class="['nav-link', { 'active': route.path === '/charts' }]">
+        <img :src="route.path === '/charts' ? chartHistogramHover : chartHistogram" alt="chart" />
+        <span :class="{ activeText: route.path === '/charts' }">Charts</span>
+      </router-link>
+      <router-link to="/screener" title="Screener" :class="['nav-link', { 'active': route.path === '/screener' }]">
+        <img :src="route.path === '/screener' ? layersHover : layers" alt="screener" />
+        <span :class="{ activeText: route.path === '/screener' }">Screener</span>
+      </router-link>
+      <a title="Logout" @click="LogOut()" class="nav-link" id="logout-icon">
+        <img src="@/assets/icons/logout.png" alt="logout" />
+        <span>Logout</span>
+      </a>
+    </div>
   </header>
 </template>
 
 <script setup>
 import { useRoute } from 'vue-router';
+import layers from '@/assets/icons/layers.png';
+import layersHover from '@/assets/icons/layers-hover.png';
+import chartHistogram from '@/assets/icons/chart-histogram.png';
+import chartHistogramHover from '@/assets/icons/chart-histogram-hover.png';
+import dashboard from '@/assets/icons/dashboard.png';
+import dashboardHover from '@/assets/icons/dashboard-hover.png';
 
 const route = useRoute();
 
 async function LogOut() {
   try {
     localStorage.clear();
-    setTimeout(function() {
+    setTimeout(() => {
       location.reload();
     }, 100);
   } catch (error) {
@@ -44,10 +52,10 @@ async function LogOut() {
   background-color: $base1;
   border: solid 1px $base1;
   padding: 0px 10px;
-  min-width: 1400px;
+  min-width: 1350px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
 }
 
 .icon2 {
@@ -61,6 +69,11 @@ async function LogOut() {
   opacity: 0.30;
   background-image: url('@/assets/icons/owl.png');
   flex-shrink: 0;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
 }
 
 .nav-link {
@@ -85,6 +98,7 @@ async function LogOut() {
 .nav-link span {
   font-size: 14px;
   user-select: none;
+  transition: color 0.3s ease;
 }
 
 .nav-link:hover,
@@ -92,40 +106,8 @@ async function LogOut() {
   background-color: lighten($base1, 10%);
 }
 
-#screener-icon img {
-  content: url('@/assets/icons/layers.png');
-}
-
-#screener-icon:hover img,
-#screener-icon.active img {
-  content: url('@/assets/icons/layers-hover.png');
-}
-
-#chart-icon img {
-  content: url('@/assets/icons/chart-histogram.png');
-}
-
-#chart-icon:hover img,
-#chart-icon.active img {
-  content: url('@/assets/icons/chart-histogram-hover.png');
-}
-
-#user-icon img {
-  width: 13px;
-  height: 13px;
-  content: url('@/assets/icons/dashboard.png');
-}
-
-#user-icon:hover img,
-#user-icon.active img {
-  content: url('@/assets/icons/dashboard-hover.png');
-}
-
-#logout-icon img {
-  content: url('@/assets/icons/logout.png');
-}
-
-#logout-icon:hover img {
-  content: url('@/assets/icons/logout-hover.png');
+.nav-link.active span,
+.activeText {
+  color: $accent1;
 }
 </style>
