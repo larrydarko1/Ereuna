@@ -485,7 +485,7 @@
     </div>
   </div>
             <button class="navbtn" @click="addWatchlist()" v-b-tooltip.hover title="Add ticker to watchlist">
-              <img class="img" src="@/assets/icons/plus.png" alt="add to watchlist">
+              <img class="img" src="@/assets/icons/plus.png" alt="add to watchlist"> Add Symbol
             </button>
             <div class="wlnav-dropdown">
               <button class="dropdown-toggle wlbtn" v-b-tooltip.hover title="More Options">
@@ -3798,11 +3798,34 @@ function handleMouseOut() {
   border: none;
   cursor: pointer;
   opacity: 0.80;
+  color: $text1;
+  transition: opacity 0.2s ease;
+  padding: 5px;
+  margin: 5px;
+}
+
+.navbtn img {
+  transition: all 0.3s ease;
+  margin-right: 3px;
+}
+
+.navbtn:hover img {
+  animation: hoverAnim 0.3s ease;
+}
+
+@keyframes hoverAnim {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .navbtn:hover {
   opacity: 1;
 }
+
 
 .wlist {
   background-color: $base2;
