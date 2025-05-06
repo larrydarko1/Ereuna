@@ -16,6 +16,7 @@ const numberClass = computed(() => {
   return number.value > 0 ? 'positive' : 'negative';
 });
 
+/* 
 // Reactive variable to detect if screen width is less than mobile threshold
 const isMobile = ref(false);
 
@@ -30,7 +31,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', checkScreen);
-});
+});*/
 </script>
 
 <style lang="scss">

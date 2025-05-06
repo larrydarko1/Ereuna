@@ -726,7 +726,7 @@ a:hover{
 }
 
 /* Mobile version */
-@media (max-width: 1100px) {
+@media (max-width: 1150px) {
   .container {
     grid-template-columns: 100%;
   }
@@ -749,6 +749,63 @@ a:hover{
   .bg {
     display: none;
   }
+
+  .logo {
+    width: 8rem; // Increase logo size
+    margin: 0.5rem;
+  }
+
+  .form-input {
+    width: 30rem; // Increase form input width
+    padding: 1.5rem;
+    font-size: 1.2rem;
+  }
+
+  .user-label {
+    font-size: 1.2rem;
+  }
+
+  .userbtn {
+    width: 30rem; // Increase button width
+    padding: 1rem;
+    font-size: 1.4rem;
+  }
+
+  .toggle-password {
+    font-size: 1rem;
+  }
+
+  .toggle-icon {
+    width: 2.5rem; // Increase toggle icon size
+  }
+
+  .custom-checkbox {
+    padding: 0.5rem;
+  }
+
+  .checkmark {
+    width: 1rem; // Increase checkmark size
+    height: 1rem;
+  }
+
+  .label-text {
+    font-size: 1rem;
+  }
+
+  .forgot-password {
+    font-size: 1.2rem;
+  }
+
+  .forgot-password img {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .beta {
+    font-size: 1.4rem;
+    width: 15rem;
+    margin-top: 7.5rem;
+  }
 }
 
 .error{
@@ -759,4 +816,5 @@ a:hover{
   font-weight: bold;
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* subtle drop shadow */
 }
+
 </style>

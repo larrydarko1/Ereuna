@@ -421,4 +421,75 @@ h1{
   opacity: 0.20;
 }
 
+/* Mobile version */
+@media (max-width: 1150px) {
+  .signup-form {
+    border: none;
+    border-radius: 15px;
+    padding: 30px;
+    width: 400px;
+    margin: 50px auto;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    background-color: $base4;
+    z-index: 1000;
+  }
+
+  .input {
+    border: solid 2px transparent;
+    border-radius: 1.5rem;
+    background-color:#2c2b3e;;
+    padding: 1.5rem;
+    font-size: 1.2rem;
+    width: 320px;
+    color: #f5f5f5;
+    transition: border 150ms cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .userbtn {
+  background-color: transparent;
+  color: $text1;
+  border-radius: 10px;
+  outline: none;
+  border: solid 3px #8c8dfe;
+  padding: 10px;
+  margin: 10px;
+  width: 300px;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  font-size: 16px; /* Added font size for better readability */
+  font-weight: 500; /* Added font weight for better typography */
+}
+
+.user-label {
+    text-align: center;
+    position: absolute;
+    left: 50px;
+    bottom: 45px;
+    color: #cdcdcd;
+    pointer-events: none;
+    transform: translateY(1.5rem);
+    transition: 150ms cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .modal {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: $base2;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  width: 300px;
+}
+
+}
+
 </style>
