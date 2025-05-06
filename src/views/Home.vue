@@ -2,6 +2,14 @@
   <div class="landingPage">
     <div id="navbar" class="navbar">
   <img class="icon" src="@/assets/icons/ereuna.png" alt="Owl Icon">
+
+  <!-- Hidden checkbox toggler for mobile dropdown -->
+  <input type="checkbox" id="nav-toggle" class="nav-toggle" />
+  <label for="nav-toggle" class="nav-toggle-label" aria-label="Toggle navigation menu">
+    <span></span>
+    <span></span>
+  </label>
+
   <div class="nav-links">
     <div class="navbtn" @click="scrollToSection('features')">Features</div>
     <div class="navbtn" @click="scrollToSection('pricing')">Pricing</div>
@@ -10,14 +18,23 @@
       <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 12px;">Sign Up</router-link>
     </div>
     <div class="navbtn2" @click="$router.push('/login')">
-  <router-link to="/login" style="color: whitesmoke; text-decoration: none; font-size: 12px; background-color: transparent;">Login</router-link>
+      <router-link to="/login" style="color: whitesmoke; text-decoration: none; font-size: 12px; background-color: transparent;">Login</router-link>
+    </div>
+    <div class="navbtn-mobile" @click="scrollToSection('features')">Features</div>
+    <div class="navbtn-mobile" @click="scrollToSection('pricing')">Pricing</div>
+    <div class="navbtn-mobile" @click="scrollToSection('about')">About</div>
+    <div class="navbtn-mobile" @click="$router.push('/signup')">
+  <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 14px;">Sign Up</router-link>
+</div>
+<div class="navbtn-mobile" @click="$router.push('/login')">
+  <router-link to="/login" style="color: whitesmoke; text-decoration: none; font-size: 14px;">Login</router-link>
 </div>
   </div>
 </div>
   <div class="hero">
     <div class="content">
-      <p class="description"><span style="color: #8c8dfe; font-size: 40px ;">Ereuna</span>'s beta test is now live.</p> 
-      <p class="call-to-action">Join the beta program by clicking this <a href="/signup" style="font-size: 18px;">link</a> to create a free account</p>
+      <p class="description">Unlock Smarter Investing with <span style="color: #8c8dfe; font-size: inherit ;">Ereuna</span></p> 
+      <p class="call-to-action">Essential features and data for mid-to-long term investors, all at a fraction of the cost of traditional solutions. Join the beta program by clicking this <a href="/signup" style="font-size: inherit;">link</a> to create a free account</p>
       <br>
       <br>
       <span class="already-have-invite">Already have an account?</span>
@@ -35,7 +52,7 @@
   <div class="features">
     <div id="partners">
       <h2>PARTNERS</h2>
-      <div style="display: flex; justify-content: center; align-items: center; gap: 120px;">
+      <div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
     <img class="logo" src="@/assets/images/logos/tiingo.png" alt="">
     <img class="logo" src="@/assets/images/logos/tradingview.png" alt="">
 </div>
@@ -290,10 +307,8 @@ function closeTermsModal() {
   align-items: center;
   position: absolute;
   width: 100%;
-  min-width: 1000px;
   background-color: $base1;
   color: $text1;
-  margin: 40px auto;
 }
 
 .video-container {
@@ -508,7 +523,6 @@ a:hover{
 .features{
   background-color: transparent;
   width: 100%;
-  min-width: 1000px;
   z-index: 2px;
   position: absolute;
   top: 100%;
@@ -765,21 +779,20 @@ a:hover{
 
 /* New styles for added sections */
 .feature-cards {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(300px, 1fr));
   gap: 30px;
   margin-top: 20px;
-  align-content: center;
-  justify-content: center; 
+  justify-content: center;
 }
 
 .feature-card {
   background-color: $base4;
   padding: 20px;
+  margin: 5%;
   border-radius: 10px;
   text-align: center;
-  flex: 1;
   height: 300px;
-  max-width: 350px;
   border: solid 1px $accent2;
   color: #dcdcdc;
 }
@@ -837,11 +850,6 @@ h2{
   font-size: 12px;
 }
 
-.landingPage {
-  min-width: 1000px;
-  width: 100%;
-}
-
 #about {
   padding: 40px 0px;
   color: #dcdcdc;
@@ -871,6 +879,292 @@ h2{
 .social-links img:hover {
   opacity: 1;
 }
+
+/* Hide the checkbox input */
+.nav-toggle {
+  display: none;
+}
+
+/* Label styling */
+.nav-toggle-label {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  margin-left: auto;
+  margin-right: 20px;
+  user-select: none;
+  gap: 5px;
+}
+
+/* The two bars */
+.nav-toggle-label span {
+  display: block;
+  height: 3px;
+  background: whitesmoke;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  /* Set transform origin near the left edge for better rotation pivot */
+  transform-origin: 1.5px center;
+}
+
+/* Each bar full width */
+.nav-toggle-label span:nth-child(1),
+.nav-toggle-label span:nth-child(2) {
+  width: 25px;
+}
+
+/* Show the toggle on mobile (max-width 600px) */
+@media (max-width: 600px) {
+  .nav-toggle-label {
+    display: flex;
+  }
+}
+
+/* Toggle to cross when checked */
+#nav-toggle:checked + .nav-toggle-label span:nth-child(1) {
+  transform: rotate(45deg);
+}
+
+#nav-toggle:checked + .nav-toggle-label span:nth-child(2) {
+  transform: rotate(-45deg);
+}
+//hide second set of button from desktop
+  @media (min-width: 1150px) {
+  .navbtn-mobile{
+  display: none;
+}}
+
+/* Mobile version */
+@media (max-width: 1150px) {
+
+  .navbar {
+  display: flex;
+  justify-content: space-between; /* Push logo to the left and buttons to the right */
+  align-items: center;
+  background-color: transparent;
+  border-radius: 10px;
+  color: #f5f5f5;
+  padding: 15px 0px; /* Add horizontal padding for better spacing */
+  position: sticky;
+  top: 2%;
+  left: 2%;
+  right: 2%;
+  z-index: 1000;
+  opacity: 0.90;
+}
+
+.nav-links {
+    position: absolute;
+    top: 60px; /* below navbar */
+    right: 10px;
+    background-color: #25273a;
+    flex-direction: column;
+    width: 120px; /* reduced width */
+    border-radius: 5px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 1000;
+    gap: 0;
+    text-align: center; /* center links */
+  }
+
+  .navbtn {
+    padding: 10px 0px;
+    margin: 0px 50px;
+    opacity: 1;
+    font-size: 14px;
+    border-radius: 10px;
+    background-color: transparent;
+    color: whitesmoke;
+    transition: background-color 0.3s ease;
+    width: 100%; /* take full width */
+  }
+
+  .navbtn-mobile{
+    padding: 10px 0px;
+    margin: 0px 50px;
+    opacity: 1;
+    font-size: 14px;
+    border-radius: 10px;
+    background-color: transparent;
+    color: whitesmoke;
+    transition: background-color 0.3s ease;
+    width: 100%; /* take full width */
+    cursor: pointer;
+}
+
+  .navbtn-mobile:hover {
+    background-color: #8c8dfe;
+  }
+
+  /* Show hamburger menu */
+  .nav-toggle-label {
+    display: flex;
+  }
+
+  /* Hide original nav-links by default */
+  .nav-links {
+    pointer-events: none;
+  }
+
+  /* If nav-toggle checked, show nav-links */
+  .nav-toggle:checked ~ .nav-links {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .navbtn2 {
+    display: none;
+  }
+
+  .navbtn {
+    display: none;
+  }
+
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
+    margin-top: 10%;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
+    text-align: center; /* Center text horizontally */
+  }
+
+  .description {
+    font-size: 4rem; /* Adjust font size for better readability on mobile */
+    font-weight: bold;
+    margin: 0;
+    word-wrap: break-word; /* Break text if it overflows the screen */
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+
+  .call-to-action {
+    font-size: 1.5rem; /* Adjust font size for better readability on mobile */
+    color: #dcdcdc;
+    margin-top: 10px; /* Add some margin for better readability */
+    word-wrap: break-word; /* Break text if it overflows the screen */
+    padding-left: 12%;
+    padding-right: 12%;
+    a {
+      color: $accent1;
+      text-decoration: none;
+      &:hover {
+        color: $accent2;
+      }
+    }
+  }
+
+  .already-have-invite {
+    font-size: 12px;
+    margin-bottom: 10px;
+    display: block;
+    color: #dcdcdc;
+  }
+
+  .login-button {
+    background-color: transparent;
+    color: $text1;
+    border: solid 2px $accent1;
+    padding: 10px 20px;
+    font-size: 16px; /* Adjust font size for better readability on mobile */
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    margin-top: 10px; /* Add some margin for better readability */
+
+    &:hover {
+      background-color: $accent1;
+    }
+  }
+
+  .video-container {
+    margin-top: 0px; /* Add some margin for better readability */
+  }
+
+  .hero-video {
+    width: 100%; /* Make the video responsive */
+    border-radius: 10px;
+    border: solid 1px $accent3;
+    max-width: 300px; /* Set a maximum width for the video */
+  }
+
+  .beta-tag-on-video {
+  display: none;
+  }
+
+  h2{
+  color: $text1;
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 50px;
+}
+
+.logo{
+  height: 25px;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.feature-cards {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+#about {
+  color: #dcdcdc;
+  padding: 2%;
+  background-color: transparent;
+  border: 2px solid $accent1; /* Add border style and color */
+  border-radius: 10px;
+  display: flex; /* Enable flexbox */
+  align-items: center; /* Center vertically */
+  justify-content: center; /* Center horizontally */
+  flex-direction: column; /* Stack child elements vertically (optional) */
+}
+
+.text{
+  font-size: 14px;
+  padding: 0 10%;
+  text-align: left;
+}
+
+.back-to-top{
+  display: none;
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: $base2;
+  padding: 20px;
+  width: 70%;
+  border-radius: 15px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+}
+
 
 
 </style>
