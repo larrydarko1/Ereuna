@@ -1,3 +1,6 @@
+v1.0.3
+- introduced mobile optmization and light/dark mode.
+-----
 v1.0.2
 - renamed index names from index funds with proper index (but kept index fund data which closely resembles indexes)
 - bug fixes: loader position on daily chart in screener, margin parameters are now divided by 100 as they should, autoplay button css class can be toggled now, alert for maximum screeners is now accessable, alert per note ora non ha più messaggio generico, Technical Score bug now includes 1 and 100 in parameters, non compare piu un div vuoto quando non ci sono piu watchlists o screeners, now combined list updates results dynamically when i include / exclude screeners, infinite scrolling doesn't propagate to the parent container.

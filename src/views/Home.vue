@@ -1116,6 +1116,11 @@ h2{
   padding-right: 0;
 }
 
+.icon {
+    height: 60px; /* Increased size for better visibility */
+    opacity: 1;
+  }
+
 .feature-cards {
   display: grid;
   grid-template-columns: repeat(1, minmax(300px, 1fr));

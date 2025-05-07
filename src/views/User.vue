@@ -2,20 +2,23 @@
   <Header />
   <div id="main">
     <div class="sidebar">
-      <div class="user-wrapper">
+      <div class="inner">
+         <div class="user-wrapper">
         <h1 class="user">{{ user }}</h1>
       <h2 class="subscription-remaining">{{ expirationDays !== null ? expirationDays + ' subscription days remaining' : 'Loading...' }}</h2> 
       </div>
-      <div class="menu selected" @click="selectMenu($event, 0)">
+      <div class="menu-wrapper">
+        <div class="menu selected" @click="selectMenu($event, 0)">
         <img src="@/assets/icons/username2.png" alt="Icon" class="icon">Account Settings
       </div>
       <div class="menu" @click="selectMenu($event, 1)">
-        <img src="@/assets/icons/payment.png" alt="Icon" class="icon">Payment / Subscription
+        <img src="@/assets/icons/payment.png" alt="Icon" class="icon">Subscription
       </div>
       <div class="menu" @click="selectMenu($event, 2)">
         <img src="@/assets/icons/password2.png" alt="Icon" class="icon">Security / 2FA
       </div>
-      <button class="settingsbtn" @click="LogOut()">Log Out</button>
+      </div>
+      </div>
     </div>
     <div class="content">
       <div v-if="selectedIndex === 0">
@@ -758,7 +761,7 @@ async function toggleTwoFa() {
   height: 100vh; 
   overflow: hidden;
   width: 100% ;
-  min-width: 1250px;
+  //min-width: 1250px;
 }
 
 .sidebar {
@@ -803,26 +806,11 @@ h2 {
   font-size: 15px;
 }
 
-.settingsbtn {
-  background-color: transparent;
-    border: solid 2px $accent1; /* Border color */
-    color: $text1; /* Text color */
-    padding: 10px 20px; /* Increased padding for a better size */
-    margin-top: 15px;
-    border-radius: 10px; /* Rounded corners */
-    font-size: 12px; /* Font size */
-    font-weight: 500; /* Slightly bolder text */
-    text-align: center; /* Center text */
-    transition: all 0.3s ease; /* Smooth transition for hover effects */
-    cursor: pointer; /* Pointer cursor on hover */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+.menu-wrapper{
+ display: flex;
+ flex-direction: column;
+ gap: 5px;
 }
-
-.settingsbtn:hover {
-  background-color: $accent1; /* Background color on hover */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
-}
-
 
 .menu{
   margin-top: 5px;
@@ -834,9 +822,9 @@ h2 {
   color: $text1;
   font-size: 15px;
   cursor: pointer;
-  border-radius: 10px;
+  border-radius: 5px;
   transition: background-color 0.3s ease-in-out;
-  opacity: 0.80
+  opacity: 0.80;
 }
 
 .menu:hover{
@@ -1377,6 +1365,108 @@ p{
 .toggle-icon {
   width: 15px; /* Adjust the size as needed */
   cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+
+/* Mobile version */
+@media (max-width: 1150px) {
+  .settingsbtn{
+    display: none;
+  }
+
+  #main {
+  display: flex;
+  flex-direction: column;
+  width: 100% ;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  height: 15%;
+  width: 100%;
+  background-color: $base2;
+  padding: 0;
+}
+
+.content {
+  display: flex;
+  flex-direction: row;
+  height: 85%;
+  width: 100%;
+  background-color: $base4;
+  padding: 20px;
+  text-align: center;
+}
+
+.user-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  align-content: center;
+  width: 90vw; /* 70% of the viewport width */
+  margin: 0 auto;
+}
+
+.user {
+  color: $accent3;
+  font-size: 2.5rem;
+  margin: 0;
+  padding:0;
+}
+
+.subscription-remaining{
+  color: $text2;
+  font-size: 1.2rem;
+  margin: 0;
+  padding:0;
+}
+
+.menu-wrapper{
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  width: 90vw; /* 70% of the viewport width */
+  margin: 0 auto;
+}
+
+.menu{
+  margin-top: 5px;
+  display: flex;
+  justify-content: center; /* added justify-content: center */
+  align-items: center; /* already present */
+  background-color: rgba($base4, 0.9);
+  padding: 10px;
+  color: $text1;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease-in-out;
+  opacity: 0.80;
+  height: 3rem;
+}
+
+.menu:hover{
+  background-color: $accent1;
+  opacity: 1;
+}
+
+.menu.selected {
+  background-color: $accent1;
+  opacity: 1;
+}
+
+.inner{display: flex;
+flex-direction: column;}
+
+.icon {
+  width: 15px;
+  height: 15px;
+  margin-right: 7px;
+}
+
 }
 
 </style>
