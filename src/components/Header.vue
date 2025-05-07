@@ -45,14 +45,14 @@ async function LogOut() {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @use '../style.scss' as *;
 
 .header {
   background-color: $base1;
   border: solid 1px $base1;
   padding: 0px 10px;
-  min-width: 1350px;
+  //min-width: 1350px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -110,4 +110,43 @@ async function LogOut() {
 .activeText {
   color: $accent1;
 }
+
+/* Mobile version */
+@media (max-width: 1150px) {
+  .nav-link span {
+  display: none;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  margin: 1px;
+  padding: 5px 8px;
+  cursor: pointer;
+  text-decoration: none;
+  color: $text1;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.nav-link img {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+.icon2 {
+  width: 30px;
+  height: 30px;
+  margin: 5px;
+  padding: 5px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.30;
+  background-image: url('@/assets/icons/owl.png');
+  flex-shrink: 0;
+}
+  }
 </style>
