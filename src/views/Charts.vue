@@ -265,7 +265,7 @@ l-240 1 -90 -57z"/>
       <div id="sidebar-left">
         <div v-if="isLoading3" style="position: relative; height: 100%;">
           <div style="position: absolute; top: 45%; left: 43%;">
-            <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="bars" size="32" />
+            <Loader />
           </div>
         </div>
         <div v-else style="border:none">
@@ -663,10 +663,10 @@ l-240 1 -90 -57z"/>
           </div>
           <div id="chartdiv"></div>
           <div class="loading-container" v-if="isChartLoading">
-            <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="64" />
+            <Loader />
           </div>
           <div class="loading-container" v-if="isLoading">
-            <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="spinner" size="64" />
+            <Loader />
           </div>
           <div id="chartdiv2" style="padding: 15px;">
             <img src="@/assets/images/logos/tiingo.png" alt="Image"
@@ -765,7 +765,7 @@ l-240 1 -90 -57z"/>
         </div>
         <div v-if="isLoading2" style="position: relative; height: 100%;">
           <div style="position: absolute; top: 45%; left: 43%;">
-            <LoadingOverlay :active="true" color="#8c8dfe" opacity="1" loader="bars" size="32" />
+            <Loader />
           </div>
         </div>
         <div v-else>
@@ -845,7 +845,7 @@ import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import { reactive, onMounted, ref, watch, computed, nextTick } from 'vue';
 import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
-import LoadingOverlay from 'vue-loading-overlay';
+import Loader from '@/components/loader.vue';
 import Sortable from 'sortablejs';
 import barsIcon from '@/assets/icons/bars.png';
 import candlesIcon from '@/assets/icons/candles.png';
@@ -2427,6 +2427,7 @@ onMounted(async () => {
 });
 
 async function toggleChartView() {
+  isLoading.value = true;
   chartView.value = chartView.value === 'D' ? 'W' : 'D';
   useAlternateData = !useAlternateData;
   await fetchData();
@@ -2441,6 +2442,7 @@ async function toggleChartView() {
   await fetchData10();
   await fetchData11();
   await fetchData12();
+  isLoading.value = false;
 }
 
 const watchlist = reactive([]); // dynamic list containing watchlist names for every user 

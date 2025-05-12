@@ -53,7 +53,21 @@
   <span class="checkmark"></span>
   <label for="remember-me-checkbox" class="label-text">Remember Me</label>
 </div>
-    <button class="userbtn" @click="login()">Login</button>
+   <div class="userbtn" @click="login" :disabled="isLoggingIn">
+  <span v-if="isLoaderVisible" class="loader4">
+    <svg class="spinner" viewBox="0 0 50 50">
+      <circle
+        class="path"
+        cx="25"
+        cy="25"
+        r="20"
+        fill="none"
+        stroke-width="5"
+      />
+    </svg>
+  </span>
+  {{ isLogged ? 'Welcome!' : 'Login' }}
+</div>
     <br>
     <p class="text">Don't have an account? <router-link to="/signup" class="text">Sign Up</router-link></p>
     <p class="text forgot-password">
@@ -71,16 +85,6 @@
   <div v-if="fieldsError" class="error-popup">
     <h3>Please fill both username and password fields</h3>
   </div>
-  <div v-if="welcomePopup"  class="welcome-popup">
-    <div class="loader">
-      <div class="orbe" style="--index: 0"></div>
-      <div class="orbe" style="--index: 1"></div>
-      <div class="orbe" style="--index: 2"></div>
-      <div class="orbe" style="--index: 3"></div>
-      <div class="orbe" style="--index: 4"></div>
-  </div>
-    <h3>{{ welcomeMessage }}</h3>
-  </div>
   </div>
   </div>
   <NotificationPopup ref="notification" />
@@ -92,6 +96,9 @@ import { useRouter } from 'vue-router';
 import hideIcon from '@/assets/icons/hide.png';
 import showIcon from '@/assets/icons/show.png';
 import NotificationPopup from '@/components/NotificationPopup.vue';
+
+const isLogged = ref(false);
+const isLoaderVisible = ref(false);
 
 // for popup notifications
 const notification = ref(null);
@@ -185,6 +192,8 @@ const storedUsername = ref('');
 const welcomeMessage = ref('');
 
 async function login() {
+  isLogged.value = false;
+  isLoaderVisible.value = false;
   const usernameInput = document.querySelector('input[name="Username"]');
   const passwordInput = document.querySelector('input[name="Password"]');
 
@@ -227,10 +236,10 @@ async function login() {
         mfaRequired.value = true;
       } else {
         // MFA verification not required, proceed with login
+        isLogged.value = true;
+        isLoaderVisible.value = true;
         const token = responseBody.token;
         localStorage.setItem('token', token);
-        welcomeMessage.value = `Welcome ${username}!`;
-        welcomePopup.value = true;
         router.push({ name: 'Dashboard' });
       }
     } else {
@@ -276,11 +285,10 @@ async function verifyMfa() {
 
     if (mfaResponse.ok) {
       // MFA code is valid, proceed with login
-      welcomeMessage.value = `Welcome ${username}!`;
-      welcomePopup.value = true;
+      isLogged.value = true;
       const token = mfaResponseBody.token;
       localStorage.setItem('token', token);
-      router.push({ name: 'Charts' });
+      router.push({ name: 'Dashboard' });
     } else {
       notification.value.show('Invalid MFA Code, try again.');
       factor.classList.add('error');
@@ -679,6 +687,12 @@ async function verifyMfa() {
 
   .userbtn {
   background-color: transparent;
+  text-align: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
   color: $text1;
   border-radius: 10px;
   outline: none;
@@ -705,6 +719,49 @@ async function verifyMfa() {
   transform: scale(0.95); /* New animation: scale down on click */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Reduced shadow on click */
   transition: all 0.1s ease-out; /* Faster transition on click */
+  background-color: #8c8dfe;
+}
+
+.loader4 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 20px;
+  margin-right: 10px;
+}
+
+.spinner {
+  animation: rotate 2s linear infinite;
+  width: 25px;
+  height: 25px;
+}
+
+.path {
+  stroke: linear-gradient(45deg, #e8e8e8, #cdcdcd);
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+  stroke: #e8e8e8;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
 }
 
 a{
