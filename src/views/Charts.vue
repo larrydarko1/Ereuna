@@ -1,11 +1,29 @@
 <template>
   <body>
     <Header />
-    <div class="mobilenav">
-<button class="mnavbtn">Info</button>
-<button class="mnavbtn">Chart</button>
-<button class="mnavbtn">Watchlists</button>
-    </div>
+   <div class="mobilenav">
+    <button
+      class="mnavbtn"
+      :class="{ selected: selected === 'info' }"
+      @click="select('info')"
+    >
+      Info
+    </button>
+    <button
+      class="mnavbtn"
+      :class="{ selected: selected === 'chart' }"
+      @click="select('chart')"
+    >
+      Chart
+    </button>
+    <button
+      class="mnavbtn"
+      :class="{ selected: selected === 'watchlists' }"
+      @click="select('watchlists')"
+    >
+      Watchlists
+    </button>
+  </div>
     <div id="main">
       <div class="tooltip-container">
         <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
@@ -267,7 +285,7 @@ l-240 1 -90 -57z"/>
           </button>
         </div>
       </div>
-      <div id="sidebar-left">
+      <div id="sidebar-left" :class="{ 'hidden-mobile': selected !== 'info' }">
         <div v-if="isLoading3" style="position: relative; height: 100%;">
           <div style="position: absolute; top: 45%; left: 43%;">
             <Loader />
@@ -631,7 +649,7 @@ l-240 1 -90 -57z"/>
           <div class="results"></div>
         </div>
       </div>
-      <div id="center">
+      <div id="center" :class="{ 'hidden-mobile': selected !== 'chart' }">
         <div class="indexes">
   <button v-for="(index, i) in Indexes" :key="i" :class="{ active: activeIndex === i, 'index-btn': true }"
     @click="seeIndex(i)">
@@ -683,7 +701,7 @@ l-240 1 -90 -57z"/>
           </div>
         </div>
       </div>
-      <div id="sidebar-right">
+      <div id="sidebar-right" :class="{ 'hidden-mobile': selected !== 'watchlists' }">
         <div style="position: sticky; top: 0; z-index: 1000;">
           <div id="searchtable">
             <input type="text" id="searchbar" name="search" placeholder="Search Ticker" v-model="searchQuery"
@@ -3545,6 +3563,10 @@ function handleMouseOut() {
   showTooltip.value = false
 }
 
+const selected = ref('info')
+function select(option) {
+  selected.value = option
+}
 </script>
 
 <style lang="scss" scoped>
@@ -4824,31 +4846,38 @@ function handleMouseOut() {
   display: none;
 }
 
+@media (min-width: 1151px) {
+  #sidebar-left,
+  #chart-container,
+  #sidebar-right {
+    display: block !important;
+  }
+}
+
 /* Mobile version */
 @media (max-width: 1150px) {
 #main {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  //max-height: 760px;
 }
+
+/* Hide sections that have the 'hidden-mobile' class */
+  .hidden-mobile {
+    display: none !important;
+  }
 
 #sidebar-left {
   flex-direction: column;
   background-color: var(--base4);
-  overflow-y: scroll;
-  overflow-x: hidden;
-}
-
-#chart-container {
-  display: none;
+  height: 100%;
 }
 
 #sidebar-right {
   display: flex;
   flex-direction: column;
+  height: 100%;
   background-color: var(--base4);
-  overflow-y: scroll;
 }
 
 .indexes{
@@ -4872,13 +4901,13 @@ function handleMouseOut() {
   justify-content: center; 
   align-items: center;
   background-color: var(--base2);
-  padding: 0 18px;
+  padding: 10px 30px;
   color: var(--text1);
   font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 5px;
   transition: background-color 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
   opacity: 0.85;
   height: 3rem;

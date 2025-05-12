@@ -13,6 +13,26 @@ const numberClass = computed(() => {
   return number.value > 0 ? 'positive' : 'negative';
 });
 
+const themes = ['default', 'fuckmyeyes', 'colorblind'];
+const currentTheme = ref('default');
+function setTheme(newTheme) {
+  const root = document.documentElement;
+  root.classList.remove(...themes);
+  root.classList.add(newTheme);
+  localStorage.setItem('user-theme', newTheme);
+  currentTheme.value = newTheme;
+}
+
+function loadTheme() {
+  const savedTheme = localStorage.getItem('user-theme');
+  if (themes.includes(savedTheme)) {
+    setTheme(savedTheme);
+  } else {
+    setTheme('default');
+  }
+}
+
+loadTheme()
 </script>
 
 <style lang="scss">

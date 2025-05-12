@@ -240,7 +240,7 @@ async function login() {
         isLoaderVisible.value = true;
         const token = responseBody.token;
         localStorage.setItem('token', token);
-        router.push({ name: 'Dashboard' });
+        router.push({ name: 'Charts' });
       }
     } else {
       // Use exact string matching
@@ -288,7 +288,7 @@ async function verifyMfa() {
       isLogged.value = true;
       const token = mfaResponseBody.token;
       localStorage.setItem('token', token);
-      router.push({ name: 'Dashboard' });
+      router.push({ name: 'Charts' });
     } else {
       notification.value.show('Invalid MFA Code, try again.');
       factor.classList.add('error');
