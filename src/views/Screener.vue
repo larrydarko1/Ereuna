@@ -1355,7 +1355,77 @@
       </div>
       <div id="resultsDiv" >
         <div v-if="showCreateScreener" class="CreateScreener">
-          <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
+        <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
+ preserveAspectRatio="xMidYMid meet">
+<g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)"
+fill="var(--text1)" stroke="none">
+<path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
+-625 104 -601 387 -1216 800 -1735 123 -155 475 -507 616 -616 280 -217 609
+-419 1640 -1007 1314 -749 1735 -942 2525 -1157 257 -70 457 -130 660 -200
+924 -315 1748 -774 2455 -1366 434 -363 775 -722 1190 -1249 226 -288 317
+-379 445 -443 88 -43 153 -55 285 -50 132 5 194 24 287 84 72 48 197 173 283
+284 233 300 352 440 614 714 308 324 765 741 1030 940 147 110 476 327 671
+442 189 111 663 350 860 433 345 146 572 223 1122 381 1006 287 1271 406 2563
+1145 1100 630 1429 831 1710 1049 140 108 493 461 616 616 424 534 714 1175
+809 1790 26 166 31 467 11 570 -36 183 -117 294 -294 403 l-92 57 -273 -2
+c-149 -1 -246 -3 -214 -5 31 -2 57 -8 57 -12 0 -20 -966 -572 -1955 -1118
+-775 -427 -847 -462 -1125 -543 -319 -93 -606 -133 -955 -133 -318 0 -567 30
+-860 104 -270 68 -413 120 -830 301 -1352 588 -2103 789 -3348 899 -298 26
+-927 37 -1212 20 -880 -51 -1660 -206 -2527 -500 -353 -120 -486 -174 -1168
+-469 -561 -242 -873 -321 -1356 -342 -455 -19 -824 20 -1176 126 -280 83 -380
+132 -1143 552 -413 227 -1022 569 -1419 796 -163 94 -254 140 -287 146 -72 14
+-124 45 -158 94 -17 24 -37 46 -46 49 -22 9 -18 25 8 30 12 2 -86 5 -218 5
+l-240 1 -90 -57z"/>
+<path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z"/>
+<path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
+-765 -1960 -65 -377 -84 -670 -77 -1147 6 -360 19 -545 58 -805 125 -849 505
+-1739 1054 -2470 694 -926 1639 -1601 2760 -1973 393 -131 761 -205 1215 -244
+217 -19 820 -16 1055 5 478 43 804 92 839 127 12 12 -5 38 -258 375 -318 422
+-480 672 -745 1153 l-123 222 -167 0 c-643 0 -1147 109 -1667 360 -383 184
+-691 401 -1002 704 -383 374 -682 822 -875 1311 -175 444 -239 804 -239 1350
+0 611 120 1142 374 1650 183 365 364 619 697 980 94 102 181 214 181 234 0 14
+-49 38 -315 156 -275 122 -561 265 -870 438 -320 178 -439 241 -503 266 l-53
+21 -51 -47z"/>
+<path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
+-382 -387 -176 -457 -209 -462 -222 -7 -18 70 -122 173 -233 273 -295 429
+-503 594 -791 226 -394 394 -862 445 -1233 48 -353 48 -880 0 -1232 -48 -355
+-209 -812 -414 -1178 -413 -738 -1086 -1338 -1855 -1653 -464 -191 -909 -273
+-1477 -273 l-167 0 -122 -222 c-252 -456 -435 -741 -704 -1098 -212 -280 -306
+-410 -306 -421 0 -12 53 -25 260 -64 367 -69 618 -88 1125 -89 497 0 759 20
+1095 85 1456 282 2780 1184 3622 2469 368 560 633 1184 772 1817 81 372 106
+609 113 1109 9 632 -27 1014 -138 1464 -183 742 -504 1431 -947 2030 -169 228
+-311 380 -355 380 -13 0 -98 -38 -188 -84z"/>
+<path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
+-761 -191 -379 -407 -678 -715 -985 -281 -282 -540 -474 -950 -705 -110 -62
+-201 -114 -203 -115 -12 -11 103 -216 241 -429 216 -335 366 -522 846 -1061
+174 -195 358 -422 539 -665 248 -333 341 -407 542 -431 97 -11 219 -6 300 13
+137 32 248 132 450 403 233 314 459 589 718 873 251 275 419 479 534 647 135
+197 338 534 374 621 l14 32 -203 112 c-400 222 -668 420 -952 705 -320 320
+-541 629 -736 1030 -124 255 -247 600 -266 745 -8 63 -18 78 -61 90 -44 12
+-85 12 -130 -1z"/>
+<path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
+-528 435 -1160 557 -1303 25 -29 83 -101 128 -160 114 -148 273 -310 397 -402
+135 -102 282 -177 576 -293 132 -52 341 -142 465 -200 124 -57 238 -107 255
+-111 16 -4 73 -32 126 -62 180 -100 318 -152 785 -294 614 -187 1092 -375
+1659 -655 876 -432 1632 -934 2390 -1586 258 -222 448 -402 810 -768 181 -183
+389 -388 460 -454 113 -104 130 -124 130 -151 l0 -31 186 -3 186 -2 12 28 c28
+68 127 132 204 132 27 0 86 54 496 463 561 557 784 760 1176 1073 1154 919
+2396 1568 3804 1984 327 97 519 170 653 247 43 25 136 69 206 98 70 29 201 87
+292 130 90 42 272 119 405 172 132 52 278 115 325 140 243 128 419 282 625
+548 38 50 94 119 123 153 114 136 370 720 527 1202 147 454 264 912 310 1220
+18 121 48 431 42 437 -3 2 -44 -47 -93 -109 -49 -62 -142 -178 -208 -258 -883
+-1066 -1941 -1794 -3221 -2215 -1136 -375 -2424 -435 -3615 -169 -85 19 -278
+68 -428 110 l-272 75 -149 -141 c-82 -78 -180 -166 -218 -196 -183 -148 -429
+-289 -604 -348 -122 -41 -219 -48 -567 -44 -311 5 -319 5 -407 32 -191 58
+-455 207 -653 368 -42 35 -124 108 -182 163 -58 54 -121 114 -141 133 l-36 33
+-214 -60 c-564 -158 -911 -223 -1432 -268 -236 -20 -820 -23 -1047 -4 -961 77
+-1761 299 -2600 722 -932 469 -1698 1111 -2414 2024 -143 182 -140 178 -133
+140z"/>
+<path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z"/>
+<path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
+-3z"/>
+</g>
+</svg>
           <h3 style="color: var(--text1)">Create Screener</h3>
           <input
       id="inputcreate"
@@ -1374,7 +1444,77 @@
           </div>
         </div>
         <div v-if="showRenameScreener" class="RenameScreener">
-          <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
+         <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
+ preserveAspectRatio="xMidYMid meet">
+<g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)"
+fill="var(--text1)" stroke="none">
+<path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
+-625 104 -601 387 -1216 800 -1735 123 -155 475 -507 616 -616 280 -217 609
+-419 1640 -1007 1314 -749 1735 -942 2525 -1157 257 -70 457 -130 660 -200
+924 -315 1748 -774 2455 -1366 434 -363 775 -722 1190 -1249 226 -288 317
+-379 445 -443 88 -43 153 -55 285 -50 132 5 194 24 287 84 72 48 197 173 283
+284 233 300 352 440 614 714 308 324 765 741 1030 940 147 110 476 327 671
+442 189 111 663 350 860 433 345 146 572 223 1122 381 1006 287 1271 406 2563
+1145 1100 630 1429 831 1710 1049 140 108 493 461 616 616 424 534 714 1175
+809 1790 26 166 31 467 11 570 -36 183 -117 294 -294 403 l-92 57 -273 -2
+c-149 -1 -246 -3 -214 -5 31 -2 57 -8 57 -12 0 -20 -966 -572 -1955 -1118
+-775 -427 -847 -462 -1125 -543 -319 -93 -606 -133 -955 -133 -318 0 -567 30
+-860 104 -270 68 -413 120 -830 301 -1352 588 -2103 789 -3348 899 -298 26
+-927 37 -1212 20 -880 -51 -1660 -206 -2527 -500 -353 -120 -486 -174 -1168
+-469 -561 -242 -873 -321 -1356 -342 -455 -19 -824 20 -1176 126 -280 83 -380
+132 -1143 552 -413 227 -1022 569 -1419 796 -163 94 -254 140 -287 146 -72 14
+-124 45 -158 94 -17 24 -37 46 -46 49 -22 9 -18 25 8 30 12 2 -86 5 -218 5
+l-240 1 -90 -57z"/>
+<path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z"/>
+<path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
+-765 -1960 -65 -377 -84 -670 -77 -1147 6 -360 19 -545 58 -805 125 -849 505
+-1739 1054 -2470 694 -926 1639 -1601 2760 -1973 393 -131 761 -205 1215 -244
+217 -19 820 -16 1055 5 478 43 804 92 839 127 12 12 -5 38 -258 375 -318 422
+-480 672 -745 1153 l-123 222 -167 0 c-643 0 -1147 109 -1667 360 -383 184
+-691 401 -1002 704 -383 374 -682 822 -875 1311 -175 444 -239 804 -239 1350
+0 611 120 1142 374 1650 183 365 364 619 697 980 94 102 181 214 181 234 0 14
+-49 38 -315 156 -275 122 -561 265 -870 438 -320 178 -439 241 -503 266 l-53
+21 -51 -47z"/>
+<path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
+-382 -387 -176 -457 -209 -462 -222 -7 -18 70 -122 173 -233 273 -295 429
+-503 594 -791 226 -394 394 -862 445 -1233 48 -353 48 -880 0 -1232 -48 -355
+-209 -812 -414 -1178 -413 -738 -1086 -1338 -1855 -1653 -464 -191 -909 -273
+-1477 -273 l-167 0 -122 -222 c-252 -456 -435 -741 -704 -1098 -212 -280 -306
+-410 -306 -421 0 -12 53 -25 260 -64 367 -69 618 -88 1125 -89 497 0 759 20
+1095 85 1456 282 2780 1184 3622 2469 368 560 633 1184 772 1817 81 372 106
+609 113 1109 9 632 -27 1014 -138 1464 -183 742 -504 1431 -947 2030 -169 228
+-311 380 -355 380 -13 0 -98 -38 -188 -84z"/>
+<path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
+-761 -191 -379 -407 -678 -715 -985 -281 -282 -540 -474 -950 -705 -110 -62
+-201 -114 -203 -115 -12 -11 103 -216 241 -429 216 -335 366 -522 846 -1061
+174 -195 358 -422 539 -665 248 -333 341 -407 542 -431 97 -11 219 -6 300 13
+137 32 248 132 450 403 233 314 459 589 718 873 251 275 419 479 534 647 135
+197 338 534 374 621 l14 32 -203 112 c-400 222 -668 420 -952 705 -320 320
+-541 629 -736 1030 -124 255 -247 600 -266 745 -8 63 -18 78 -61 90 -44 12
+-85 12 -130 -1z"/>
+<path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
+-528 435 -1160 557 -1303 25 -29 83 -101 128 -160 114 -148 273 -310 397 -402
+135 -102 282 -177 576 -293 132 -52 341 -142 465 -200 124 -57 238 -107 255
+-111 16 -4 73 -32 126 -62 180 -100 318 -152 785 -294 614 -187 1092 -375
+1659 -655 876 -432 1632 -934 2390 -1586 258 -222 448 -402 810 -768 181 -183
+389 -388 460 -454 113 -104 130 -124 130 -151 l0 -31 186 -3 186 -2 12 28 c28
+68 127 132 204 132 27 0 86 54 496 463 561 557 784 760 1176 1073 1154 919
+2396 1568 3804 1984 327 97 519 170 653 247 43 25 136 69 206 98 70 29 201 87
+292 130 90 42 272 119 405 172 132 52 278 115 325 140 243 128 419 282 625
+548 38 50 94 119 123 153 114 136 370 720 527 1202 147 454 264 912 310 1220
+18 121 48 431 42 437 -3 2 -44 -47 -93 -109 -49 -62 -142 -178 -208 -258 -883
+-1066 -1941 -1794 -3221 -2215 -1136 -375 -2424 -435 -3615 -169 -85 19 -278
+68 -428 110 l-272 75 -149 -141 c-82 -78 -180 -166 -218 -196 -183 -148 -429
+-289 -604 -348 -122 -41 -219 -48 -567 -44 -311 5 -319 5 -407 32 -191 58
+-455 207 -653 368 -42 35 -124 108 -182 163 -58 54 -121 114 -141 133 l-36 33
+-214 -60 c-564 -158 -911 -223 -1432 -268 -236 -20 -820 -23 -1047 -4 -961 77
+-1761 299 -2600 722 -932 469 -1698 1111 -2414 2024 -143 182 -140 178 -133
+140z"/>
+<path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z"/>
+<path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
+-3z"/>
+</g>
+</svg>
           <h3 style="color: var(--text1)">Rename Screener</h3>
           <input 
         id="inputrename" 
@@ -1681,7 +1821,7 @@
                 </button>
                 <div class="dropdown-menu">
                   <div @click="ShowStock(asset)" @click.stop style="display: flex; flex-direction: row; align-items: center; height: 14px;">
-                    <img src="@/assets/icons/show.png" alt="" style="width: 15px; height: 15px; margin-right: 5px;">
+                   <svg style="width: 15px; height: 15px; margin-right: 5px;" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M0 0h48v48H0z" fill="none"></path> <g id="Shopicon"> <circle cx="24" cy="24" r="4"></circle> <path d="M24,38c12,0,20-14,20-14s-8-14-20-14S4,24,4,24S12,38,24,38z M24,16c4.418,0,8,3.582,8,8s-3.582,8-8,8s-8-3.582-8-8 S19.582,16,24,16z"></path> </g> </g></svg>
                     <p>Show Stock</p>
                   </div>
                   <div class="nested-dropdown" style="display: flex; flex-direction: row; align-items: center; height: 14px;">
@@ -1866,16 +2006,15 @@
     </div>
         <div id="dl-chart"></div>
         <h1 class="title3">SUMMARY</h1>
-        <div style="padding-top: 5px; overflow: scroll; border:none" id="summary">
-          <div style="color: whitesmoke; text-align: center; border: none">
+        <div style="padding-top: 5px; border:none" id="summary">
+          <div style="color: whitesmoke; text-align: center; border: none; overflow: scroll">
   <div style="color: var(--text1)" v-for="(item, index) in screenerSummary" :key="index">
-   <div style="padding: 5px;" v-if="item">
-  <span style="font-weight: bold;">{{ item.attribute }}</span> : 
-  <span>
-    <!-- Format value: assuming value is an array -->
-    {{ Array.isArray(item.value) ? item.value.join(' - ') : item.value }}
-  </span>
-</div>
+  <div style="padding: 5px;" v-if="item">
+    <span style="font-weight: bold;">{{ item.attribute }}</span> : 
+    <span>
+      {{ formatValue(item) }}
+    </span>
+  </div>
   </div>
 </div>
         <div style="height: 30px; border: none"></div>
@@ -1891,7 +2030,7 @@
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
-import { computed, onMounted, ref, watch, nextTick, reactive } from 'vue';
+import { computed, onMounted, ref, watch, nextTick, reactive, toRef} from 'vue';
 import { createChart, ColorType } from 'lightweight-charts';
 import LoadingOverlay from 'vue-loading-overlay';
 import { useStore } from 'vuex';
@@ -5820,6 +5959,107 @@ function handleMouseOut() {
   showTooltip.value = false
 }
 
+const props = defineProps({
+  item: {
+    type: Object,
+    required: true
+  }
+});
+const item = toRef(props, 'item');
+
+function formatDate(date) {
+  let d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return '';
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
+const percentageAttributes = [
+  'ADV (1W)',
+  'ADV (1M)',
+  'ADV (4M)',
+  'ADV (1Y)',
+  'Gap %',
+  '% Off 52WeekHigh',
+  '% Off 52WeekLow'
+];
+
+const growthAttributes = [
+  'Dividend Yield (%)',
+  'EPS Growth QoQ (%)',
+  'EPS Growth YoY (%)',
+  'Earnings Growth QoQ (%)',
+  'Earnings Growth YoY (%)',
+  'Revenue Growth QoQ (%)',
+  'Revenue Growth YoY (%)'
+];
+
+function formatValue(item) {
+  if (!item.value && item.value !== 0) return '';
+
+  const attribute = item.attribute;
+  let value = item.value;
+
+  if (attribute === 'IPO') {
+    if (Array.isArray(value)) {
+      return value.map(d => formatDate(d)).filter(d => d !== '').join(' - ');
+    } else {
+      return formatDate(value);
+    }
+  }
+
+   if (attribute === 'Change (%)') {
+    if (Array.isArray(value) && value.length === 3) {
+      // Process first two elements with growthAttributes logic (multiply by 100 + format)
+      const processed = value.slice(0, 2).map(v => {
+        let num = parseFloat(v);
+        return isNaN(num) ? v : (num * 100).toFixed(2) + '%';
+      });
+      // Append third element as is (string, untouched)
+      processed.push(String(value[2]));
+      return processed.join(' - ');
+    } else {
+      // Fallback to string representation if not array or length != 3
+      return Array.isArray(value) ? value.join(' - ') : String(value);
+    }
+  }
+
+    if (percentageAttributes.includes(attribute)) {
+    if (Array.isArray(value)) {
+      return value.map(v => {
+        let num = parseFloat(v);
+        return isNaN(num) ? v : num.toFixed(2) + '%';
+      }).join(' - ');
+    } else {
+      let num = parseFloat(value);
+      return isNaN(num) ? value : num.toFixed(2) + '%';
+    }
+  }
+
+  if (growthAttributes.includes(attribute)) {
+    if (Array.isArray(value)) {
+      return value.map(v => {
+        let num = parseFloat(v);
+        return isNaN(num) ? v : (num * 100).toFixed(2) + '%';
+      }).join(' - ');
+    } else {
+      let num = parseFloat(value);
+      return isNaN(num) ? value : (num * 100).toFixed(2) + '%';
+    }
+  }
+
+  if (Array.isArray(value)) {
+    let cleaned = value.map(v => String(v).replace(/'/g, '').replace(/,/g, '-'));
+    return cleaned.join(' - ');
+  } else if (typeof value === 'string') {
+    return value.replace(/'/g, '').replace(/,/g, '-');
+  } else {
+    return String(value);
+  }
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -6625,7 +6865,7 @@ input:checked+.slider:before {
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
-  z-index: 1000;
+  z-index: 10000;
   padding: 10px;
   border: 2px solid var(--accent3); 
 }

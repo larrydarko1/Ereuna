@@ -1,6 +1,5 @@
 :root {
     font-family: Helvetica Neue, Avenir, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
     font-weight: 400;
     color-scheme: light dark;
     font-synthesis: none;
@@ -32,7 +31,7 @@
     --ma1: #00bcd4; //10MA
 }
 
-.fuckmyeyes {
+.ihatemyeyes {
     --accent1: #8c8dfe;
     --accent2: #a9a5ff;
     --accent3: #63607a;
@@ -67,6 +66,27 @@
     --base4: #FFFFFF;
     --positive: #4caf50;
     --negative: #e5ff00;
+    --volume: #4d4d4d;
+    --ma4: #4caf50; //200MA
+    --ma3: #ffeb3b; //50MA
+    --ma2: #2862ff; //20MA
+    --ma1: #00bcd4; //10MA
+}
+
+.catpuccin {
+    --accent1: #8c8dfe;
+    --accent2: #a9a5ff;
+    --accent3: #cfcbff;
+    --accent4: #a9a5ff53; //just for selected overlay screener 
+    --text1: #ffffff;
+    --text2: #cad3f5;
+    --text3: #000000;
+    --base1: #181926;
+    --base2: #25273a;
+    --base3: #8a8a90;
+    --base4: #1e2030;
+    --positive: #4caf50;
+    --negative: #90bff9;
     --volume: #4d4d4d;
     --ma4: #4caf50; //200MA
     --ma3: #ffeb3b; //50MA

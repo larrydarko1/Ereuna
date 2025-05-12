@@ -413,9 +413,16 @@ Thank you for your understanding.</p>
         <div style="height: 100px"></div>
       </div>
       <div v-if="selectedIndex === 2">
-        <div class="theme-buttons">
-      <button v-for="(theme, index) in themes" :key="index" @click="setTheme(theme)" :class="{ active: currentTheme === theme }">{{ theme }}</button>
-    </div>
+         <div class="theme-buttons">
+    <button
+      v-for="(theme, index) in themes"
+      :key="index"
+      @click="setTheme(theme)"
+      :class="{ active: currentTheme === theme }"
+    >
+      {{ themeDisplayNames[theme] }}
+    </button>
+  </div>
       </div>
       <div v-if="selectedIndex === 3">
   <div class="twofa-container">
@@ -891,8 +898,16 @@ async function toggleTwoFa() {
   }
 }
 
-const themes = ['default', 'fuckmyeyes', 'colorblind'];
+const themes = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
 const currentTheme = ref('default');
+
+const themeDisplayNames = {
+  default: 'Default Theme (Dark)',
+  ihatemyeyes: 'I Hate My Eyes (light-mode)',
+  colorblind: "I'm Colorblind",
+  catpuccin: 'Catpuccin',
+};
+
 function setTheme(newTheme) {
   const root = document.documentElement;
   root.classList.remove(...themes);
@@ -1541,12 +1556,14 @@ p{
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
+  flex-direction: column;
   gap: 10px;
+  width: 70%;
 }
 
 .theme-buttons button {
-  width: 150px;
-  height: 150px;
+  height: 100px;
+  font-size: 1.5rem;
   border: none;
   border-radius: 5px;
   cursor: pointer;
