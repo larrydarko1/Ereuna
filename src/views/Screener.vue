@@ -1,13 +1,36 @@
 <template>
   <body>
     <Header />
+       <div class="mobilenav">
+    <button
+      class="mnavbtn"
+      :class="{ selected: selected === 'filters' }"
+      @click="select('filters')"
+    >
+      Filters
+    </button>
+    <button
+      class="mnavbtn"
+      :class="{ selected: selected === 'list' }"
+      @click="select('list')"
+    >
+      List
+    </button>
+    <button
+      class="mnavbtn"
+      :class="{ selected: selected === 'charts' }"
+      @click="select('charts')"
+    >
+      Charts
+    </button>
+  </div>
     <div id="main">
       <div class="tooltip-container" style="position: relative;">
   <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
     <span class="tooltip-text">{{ tooltipText }}</span>
   </div>
 </div>
-      <div id="filters">
+      <div id="filters" :class="{ 'hidden-mobile': selected !== 'filters' }">
         <div id="screener-select" class="select-container" :class="{ 'error-border': isScreenerError }" @mouseover="showDropdown = true" @mouseout="showDropdown = false">
            <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" 
       :class="{ 'dropdown-icon': showDropdown }" 
@@ -1353,7 +1376,7 @@
 </div>
         <div class="results"></div>
       </div>
-      <div id="resultsDiv" >
+      <div id="resultsDiv" :class="{ 'hidden-mobile': selected !== 'list' }">
         <div v-if="showCreateScreener" class="CreateScreener">
         <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
  preserveAspectRatio="xMidYMid meet">
@@ -1565,6 +1588,25 @@ l-240 1 -90 -57z"/>
           <button class="snavbtn" :class="{ 'snavbtnslct': showSearch }" id="showSearch" @click="showSearch = !showSearch" v-b-tooltip.hover title="Search">
            <svg class="img2" fill="var(--text1)" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12.027 9.92L16 13.95 14 16l-4.075-3.976A6.465 6.465 0 0 1 6.5 13C2.91 13 0 10.083 0 6.5 0 2.91 2.917 0 6.5 0 10.09 0 13 2.917 13 6.5a6.463 6.463 0 0 1-.973 3.42zM1.997 6.452c0 2.48 2.014 4.5 4.5 4.5 2.48 0 4.5-2.015 4.5-4.5 0-2.48-2.015-4.5-4.5-4.5-2.48 0-4.5 2.014-4.5 4.5z" fill-rule="evenodd"></path> </g></svg>
             <label class=btnlabel>Search</label></button>
+        </div>
+        <div class="navmenu-mobile">
+          <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }" @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover
+            title="Create New Screener">
+            <svg class="img2" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>new-indicator</title> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)"> <path d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z" id="Combined-Shape"> </path> </g> </g> </g></svg></button>
+          <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }" @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover
+            title="Rename Current Screener">
+            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path> <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path> <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path> </g></svg>
+             </button>
+          <button class="snavbtn" v-b-tooltip.hover title="Reset Screener" @click="async() => {await ResetScreener(); await CurrentScreener();}" >
+           <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" data-name="Layer 1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="20.48"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z"></path></g></svg>
+             </button>
+          <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'hidden' }" v-b-tooltip.hover title="Hidden List" @click="showHiddenResults()">
+           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Edit / Hide"> <path id="Vector" d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>
+              </button>
+              <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover title="Show Combined Screener Results" @click="showCombinedResults()">
+           <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z"></path> </g></svg>
+            
+          </button>
         </div>
           <div v-if="listMode === 'main'">
             <div class="RES" >
@@ -1988,7 +2030,7 @@ l-240 1 -90 -57z"/>
           </div>
           </div>
         </div>
-      <div id="sidebar-r">
+      <div id="sidebar-r" :class="{ 'hidden-mobile': selected !== 'charts' }">
         <h1 class="title3">WEEKLY CHART</h1>
         <div class="loading-container1" v-if="isChartLoading1">
       <Loader />
@@ -2033,7 +2075,6 @@ import Footer from '@/components/Footer.vue'
 import Loader from '@/components/loader.vue'
 import { computed, onMounted, ref, watch, nextTick, reactive, toRef} from 'vue';
 import { createChart, ColorType } from 'lightweight-charts';
-import LoadingOverlay from 'vue-loading-overlay';
 import { useStore } from 'vuex';
 import NotificationPopup from '@/components/NotificationPopup.vue';
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
@@ -6061,6 +6102,10 @@ function formatValue(item) {
   }
 }
 
+const selected = ref('filters')
+function select(option) {
+  selected.value = option
+}
 </script>
 
 <style lang="scss" scoped>
@@ -7058,7 +7103,7 @@ input:checked+.slider:before {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  height: 24.5px;
+  height: 35px;
   border-right: solid 1px var(--base1);
   z-index: 1000;
 }
@@ -7606,5 +7651,159 @@ input[type="date"]{
 .btnlabel{
   margin-left: 3px; 
   cursor: inherit;
+}
+
+.mobilenav {
+  display: none;
+}
+
+.navmenu-mobile{
+  display: none;
+}
+
+
+
+@media (min-width: 1151px) {
+  #filters,
+  #resultsDiv,
+  #sidebar-r {
+    display: block !important;
+  }
+}
+
+/* Mobile version */
+@media (max-width: 1150px) {
+
+/* Hide sections that have the 'hidden-mobile' class */
+  .hidden-mobile {
+    display: none !important;
+  }
+
+  .navmenu{
+  display: none;
+}
+
+.navmenu-mobile{
+  display: flex;
+}
+
+.mobilenav{
+  display: flex;
+  flex-direction: row;
+  gap: 12px; /* space between buttons */
+  padding: 8px 12px;
+  background-color: rgba(var(--base4), 0.1); /* subtle transparent background */
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.mnavbtn{
+  margin-top: 5px;
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  background-color: var(--base2);
+  padding: 10px 30px;
+  color: var(--text1);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
+  opacity: 0.85;
+  height: 3rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  user-select: none;
+  border: transparent;
+}
+
+.mnavbtn:hover {
+  background-color: var(--accent1);
+  opacity: 1;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.mnavbtn.selected {
+  background-color: var(--accent1);
+  opacity: 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#main {
+  position: relative;
+  display: flex;
+}
+
+#filters {
+  flex: 0 0 100%;
+  flex-direction: column;
+  background-color: var(--base4);
+}
+
+#resultsDiv {
+  flex: 0 0 100%;
+  width: 100%;
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
+#sidebar-r {
+  width: 100%;
+  background-color: var(--base4);
+  z-index: 1000;
+}
+
+#filters {
+  background-color: var(--base4);
+  display: flexbox;
+  color: var(--text1);
+  height: 100%;
+  text-align: center;
+}
+
+.snavbtn {
+   display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 5px;
+  padding: 5px 8px;
+  cursor: pointer;
+  text-decoration: none;
+  color:var(--text1);
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.snavbtn span {
+  font-size: 14px;
+  user-select: none;
+  transition: color 0.3s ease;
+}
+
+.snavbtn:hover,
+.snavbtn.active {
+  background-color: var(--base3);
+}
+
+.snavbtn.active span,
+.activeText {
+  color:  var(--accent1);
+}
+
+.snavbtnslct{
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 5px;
+  padding: 5px 8px;
+  cursor: pointer;
+  text-decoration: none;
+  color:var(--text1);
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  background-color: var(--accent1);
+}
 }
 </style>
