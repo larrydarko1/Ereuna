@@ -3,6 +3,7 @@ v1.0.3
 - introduced themes 
 - fixed toggled password bug in dashboard for changing password tab
 - elements tweaks and adjustements
+- removed dependencies from vue-loader and used a native component
 -----
 v1.0.2
 - renamed index names from index funds with proper index (but kept index fund data which closely resembles indexes)

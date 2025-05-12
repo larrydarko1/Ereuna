@@ -1991,18 +1991,18 @@ l-240 1 -90 -57z"/>
       <div id="sidebar-r">
         <h1 class="title3">WEEKLY CHART</h1>
         <div class="loading-container1" v-if="isChartLoading1">
-      <LoadingOverlay :active="true" color="var(--accent1)" opacity="1" loader="spinner" size="32" />
+      <Loader />
     </div>
     <div class="loading-container1" v-if="isLoading1">
-      <LoadingOverlay :active="true" color="var(--accent1)" opacity="1" loader="spinner" size="32" />
+      <Loader />
     </div>
         <div id="wk-chart"></div>
         <h1 class="title3">DAILY CHART</h1>
         <div class="loading-container2" v-if="isChartLoading2">
-      <LoadingOverlay :active="true" color="var(--accent1)" opacity="1" loader="spinner" size="32" />
+      <Loader />
     </div>
     <div class="loading-container2" v-if="isLoading2">
-      <LoadingOverlay :active="true" color="var(--accent1)" opacity="1" loader="spinner" size="32" />
+      <Loader />
     </div>
         <div id="dl-chart"></div>
         <h1 class="title3">SUMMARY</h1>
@@ -2030,6 +2030,7 @@ l-240 1 -90 -57z"/>
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
+import Loader from '@/components/loader.vue'
 import { computed, onMounted, ref, watch, nextTick, reactive, toRef} from 'vue';
 import { createChart, ColorType } from 'lightweight-charts';
 import LoadingOverlay from 'vue-loading-overlay';
