@@ -908,22 +908,51 @@ const themeDisplayNames = {
   catpuccin: 'Catpuccin',
 };
 
-function setTheme(newTheme) {
+async function setTheme(newTheme) {
   const root = document.documentElement;
   root.classList.remove(...themes);
   root.classList.add(newTheme);
   localStorage.setItem('user-theme', newTheme);
-  currentTheme.value = newTheme;
-}
-
-function loadTheme() {
-  const savedTheme = localStorage.getItem('user-theme');
-  if (themes.includes(savedTheme)) {
-    setTheme(savedTheme);
-  } else {
-    setTheme('default');
+  try {
+    const response = await fetch('/api/theme', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({ theme: newTheme, username: user }),
+    });
+    const data = await response.json();
+    if (data.message === 'Theme updated') {
+      currentTheme.value = newTheme;
+    } else {
+      error.value = data.message;
+    }
+  } catch (error) {
+    error.value = error.message;
   }
 }
+
+async function loadTheme() {
+    try {
+      const response = await fetch('/api/load-theme', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': apiKey,
+        },
+        body: JSON.stringify({ username: user }),
+      });
+      const data = await response.json();
+      if (data.theme) {
+        setTheme(data.theme);
+      } else {
+        setTheme('default');
+      }
+    } catch (error) {
+      setTheme('default');
+    }
+  }
 
 loadTheme()
 
