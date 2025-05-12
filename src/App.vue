@@ -16,6 +16,27 @@ const numberClass = computed(() => {
   return number.value > 0 ? 'positive' : 'negative';
 });
 
+const themes = ['default', 'fuckmyeyes', 'colorblind'];
+const currentTheme = ref('default');
+function setTheme(newTheme) {
+  const root = document.documentElement;
+  root.classList.remove(...themes);
+  root.classList.add(newTheme);
+  localStorage.setItem('user-theme', newTheme);
+  currentTheme.value = newTheme;
+}
+
+function loadTheme() {
+  const savedTheme = localStorage.getItem('user-theme');
+  if (themes.includes(savedTheme)) {
+    setTheme(savedTheme);
+  } else {
+    setTheme('default');
+  }
+}
+
+loadTheme()
+
 /* 
 // Reactive variable to detect if screen width is less than mobile threshold
 const isMobile = ref(false);
@@ -43,7 +64,7 @@ onUnmounted(() => {
 }
 
 body {
-  background-color: $base1;
+  background-color: var(--base1);
   padding: 0%;
   margin: 0%;
   display: flex;
@@ -52,11 +73,11 @@ body {
 }
 
 .positive {
-  color: #4caf50;
+  color: var(--positive);
 }
 
 .negative {
-  color: #90bff9;
+  color: var(--negative);
 }
 
 .mobile-message {
@@ -65,10 +86,10 @@ body {
   align-items: center;
   height: 100vh;
   font-size: 16px;
-  color: $text2;
+  color: var(--text2);
   padding: 20px;
   text-align: center;
-  background-color: $base1;
+  background-color: var(--base1);
   font-weight: bold;
 }
 </style>

@@ -9,13 +9,41 @@
       </div>
       <div class="menu-wrapper">
         <div class="menu selected" @click="selectMenu($event, 0)">
-        <img src="@/assets/icons/username2.png" alt="Icon" class="icon">Account Settings
-      </div>
-      <div class="menu" @click="selectMenu($event, 1)">
-        <img src="@/assets/icons/payment.png" alt="Icon" class="icon">Subscription
-      </div>
-      <div class="menu" @click="selectMenu($event, 2)">
-        <img src="@/assets/icons/password2.png" alt="Icon" class="icon">Security / 2FA
+    <svg
+      class="icon"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      aria-hidden="true"
+      focusable="false"
+      >
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+    </svg>
+    Account Settings
+  </div>
+  <div class="menu" @click="selectMenu($event, 1)">
+    <svg
+      class="icon"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      aria-hidden="true"
+      focusable="false"
+      >
+      <path d="M20 4H4c-1.1 0-2 .9-2 2v2h20V6c0-1.1-.9-2-2-2zM2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-6H2v6zm4-3h4v2H6v-2z"/>
+    </svg>
+    Subscription
+  </div>
+  <div class="menu" @click="selectMenu($event, 2)">
+    <svg class="icon" version="1.1" id="_x32_" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" fill="currentColor"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path class="st0" d="M101.242,211.431l46.048-46.052c6.289-22.429,0.634-47.502-17.009-65.136 c-28.05-28.055-64.667-32.42-96.856-53.894c-11.61-7.742-15.107-12.099-15.107-12.099c-28.569,39.99-24.516,117.869,17.788,160.173 C53.744,212.057,78.817,217.723,101.242,211.431z"></path> <path class="st0" d="M127.019,208.218c-5.296,5.304-7.29,17.973-3.278,32.668c3.727,13.689,15.25,30.196,31.646,48.029 c10.605-11.902,20.777-23.005,29.957-32.56c13.348-15.32,25.703-28.269,37.14-38.911c-16.956-15.288-32.643-25.996-45.731-29.562 c-14.699-4.012-27.375-2.018-32.672,3.278L127.019,208.218z"></path> <path class="st0" d="M309.292,310.421c-10.057,10.543-22.009,21.844-35.921,33.969c-8.681,8.343-18.656,17.511-29.335,27.074 c51.55,45.047,111.362,93.381,125.768,104.806c21.375,17.372,41.542,22.578,53.226,10.898c11.684-11.68,6.466-31.844-10.901-53.227 C400.869,419.748,353.766,361.456,309.292,310.421z"></path> <path class="st0" d="M333.228,248.2l-51.707-51.694c-22.664,6.177-53.276,34.265-84.695,70.359 C146.985,318.658,66.923,417.615,51.941,436.51c-16.943,20.848-22.026,40.517-10.634,51.908c11.4,11.4,31.065,6.31,51.917-10.625 c18.89-14.992,117.848-95.054,169.641-144.886C298.959,301.483,327.046,270.868,333.228,248.2z"></path> <polygon class="st0" points="371.2,211.406 318.056,158.27 291.48,184.842 344.623,237.986 "></polygon> <path class="st0" d="M507.503,96.296l-74.342-74.329c-6-6.004-15.728-6.004-21.725,0L370.31,63.085l96.066,96.066l41.126-41.126 C513.499,112.028,513.499,102.301,507.503,96.296z"></path> <path class="st0" d="M349.734,83.66c-32.194,32.198-6.132,49.06-21.46,64.388l53.14,53.144 c15.332-15.329,32.194,10.733,64.383-21.456l9.715-9.72L359.446,73.95L349.734,83.66z"></path> </g> </g></svg>
+    Themes
+  </div>
+      <div class="menu" @click="selectMenu($event, 3)">
+        <svg class="icon" version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64 64" enable-background="new 0 0 64 64" xml:space="preserve" fill="currentColor"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="currentColor" d="M52,24h-4v-8c0-8.836-7.164-16-16-16S16,7.164,16,16v8h-4c-2.211,0-4,1.789-4,4v32c0,2.211,1.789,4,4,4h40 c2.211,0,4-1.789,4-4V28C56,25.789,54.211,24,52,24z M32,48c-2.211,0-4-1.789-4-4s1.789-4,4-4s4,1.789,4,4S34.211,48,32,48z M40,24 H24v-8c0-4.418,3.582-8,8-8s8,3.582,8,8V24z"></path> </g></svg>Security / 2FA
       </div>
       </div>
       </div>
@@ -24,8 +52,18 @@
       <div v-if="selectedIndex === 0">
         <div>
         <div class="userdiv">
-          <h2 style="display: flex; align-items: center; justify-content: center;">
-            <img src="@/assets/icons/username2.png" alt="Icon" style="width:15px; height: 15px; margin-right: 7px;">
+          <h2 style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+            <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      aria-hidden="true"
+      focusable="false"
+      >
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+    </svg>
       Change Username
     </h2>
         <div style="display: flex; justify-content: center;">
@@ -41,8 +79,8 @@
 </div>
 <div>
   <div class="userdiv">
-    <h2 style="display: flex; align-items: center; justify-content: center;">
-            <img src="@/assets/icons/password2.png" alt="Icon" style="width:15px; height: 15px; margin-right: 7px;">
+    <h2 style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+      <svg width='15px' height='15px' version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64 64" enable-background="new 0 0 64 64" xml:space="preserve" fill="currentColor"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="currentColor" d="M52,24h-4v-8c0-8.836-7.164-16-16-16S16,7.164,16,16v8h-4c-2.211,0-4,1.789-4,4v32c0,2.211,1.789,4,4,4h40 c2.211,0,4-1.789,4-4V28C56,25.789,54.211,24,52,24z M32,48c-2.211,0-4-1.789-4-4s1.789-4,4-4s4,1.789,4,4S34.211,48,32,48z M40,24 H24v-8c0-4.418,3.582-8,8-8s8,3.582,8,8V24z"></path> </g></svg>
       Change Password
     </h2>
   <div style="display: flex; justify-content: center; ">
@@ -59,10 +97,27 @@
     type="button"
     class="password-toggle"
   >
-    <img class="toggle-icon"
-      :src="showOldPassword ? hideIcon : showIcon" 
-      alt="Toggle Password Visibility"
-    />
+  <svg v-if="showOldPassword" class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier"> 
+        <path d="M0 0h48v48H0z" fill="none"></path> 
+        <g id="Shopicon"> 
+          <circle cx="24" cy="24" r="4"></circle> 
+          <path d="M24,38c12,0,20-14,20-14s-8-14-20-14S4,24,4,24S12,38,24,38z M24,16c4.418,0,8,3.582,8,8s-3.582,8-8,8s-8-3.582-8-8 S19.582,16,24,16z"></path> 
+        </g> 
+      </g>
+    </svg>
+    <svg v-else class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier"> 
+        <path d="M0 0h48v48H0z" fill="none"></path> 
+        <g id="Shopicon"> 
+          <path d="M11.957,33.214L7.171,38L10,40.828l5.305-5.305C17.867,36.992,20.788,38,24,38c12,0,20-14,20-14s-2.953-5.159-7.957-9.214 L40.829,10L38,7.172l-5.305,5.305C30.133,11.008,27.212,10,24,10C12,10,4,24,4,24S6.953,29.159,11.957,33.214z M16,24 c0-4.418,3.582-8,8-8c1.483,0,2.867,0.411,4.058,1.114l-3.035,3.035C24.694,20.062,24.356,20,24,20c-2.206,0-4,1.794-4,4 c0,0.356,0.062,0.694,0.149,1.023l-3.035,3.035C16.411,26.867,16,25.483,16,24z M32,24c0,4.418-3.582,8-8,8 c-1.483,0-2.867-0.411-4.058-1.114l3.035-3.035C23.306,27.938,23.644,28,24,28c2.206,0,4-1.794,4-4 c0-0.356-0.062-0.694-0.149-1.023l3.035-3.035C31.589,21.133,32,22.517,32,24z"></path> 
+        </g> 
+      </g>
+    </svg>
   </button>
 </div>
 </div>
@@ -79,10 +134,27 @@
     type="button"
     class="password-toggle"
   >
-    <img class="toggle-icon"
-      :src="showNewPassword ? hideIcon : showIcon" 
-      alt="Toggle Password Visibility"
-    />
+   <svg v-if="showNewPassword" class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier"> 
+        <path d="M0 0h48v48H0z" fill="none"></path> 
+        <g id="Shopicon"> 
+          <circle cx="24" cy="24" r="4"></circle> 
+          <path d="M24,38c12,0,20-14,20-14s-8-14-20-14S4,24,4,24S12,38,24,38z M24,16c4.418,0,8,3.582,8,8s-3.582,8-8,8s-8-3.582-8-8 S19.582,16,24,16z"></path> 
+        </g> 
+      </g>
+    </svg>
+    <svg v-else class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier"> 
+        <path d="M0 0h48v48H0z" fill="none"></path> 
+        <g id="Shopicon"> 
+          <path d="M11.957,33.214L7.171,38L10,40.828l5.305-5.305C17.867,36.992,20.788,38,24,38c12,0,20-14,20-14s-2.953-5.159-7.957-9.214 L40.829,10L38,7.172l-5.305,5.305C30.133,11.008,27.212,10,24,10C12,10,4,24,4,24S6.953,29.159,11.957,33.214z M16,24 c0-4.418,3.582-8,8-8c1.483,0,2.867,0.411,4.058,1.114l-3.035,3.035C24.694,20.062,24.356,20,24,20c-2.206,0-4,1.794-4,4 c0,0.356,0.062,0.694,0.149,1.023l-3.035,3.035C16.411,26.867,16,25.483,16,24z M32,24c0,4.418-3.582,8-8,8 c-1.483,0-2.867-0.411-4.058-1.114l3.035-3.035C23.306,27.938,23.644,28,24,28c2.206,0,4-1.794,4-4 c0-0.356-0.062-0.694-0.149-1.023l3.035-3.035C31.589,21.133,32,22.517,32,24z"></path> 
+        </g> 
+      </g>
+    </svg>
   </button>
 </div>
 </div>
@@ -99,10 +171,27 @@
     type="button"
     class="password-toggle"
   >
-    <img class="toggle-icon"
-      :src="showConfirmPassword ? hideIcon : showIcon" 
-      alt="Toggle Password Visibility"
-    />
+    <svg v-if="showConfirmPassword" class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier"> 
+        <path d="M0 0h48v48H0z" fill="none"></path> 
+        <g id="Shopicon"> 
+          <circle cx="24" cy="24" r="4"></circle> 
+          <path d="M24,38c12,0,20-14,20-14s-8-14-20-14S4,24,4,24S12,38,24,38z M24,16c4.418,0,8,3.582,8,8s-3.582,8-8,8s-8-3.582-8-8 S19.582,16,24,16z"></path> 
+        </g> 
+      </g>
+    </svg>
+    <svg v-else class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier"> 
+        <path d="M0 0h48v48H0z" fill="none"></path> 
+        <g id="Shopicon"> 
+          <path d="M11.957,33.214L7.171,38L10,40.828l5.305-5.305C17.867,36.992,20.788,38,24,38c12,0,20-14,20-14s-2.953-5.159-7.957-9.214 L40.829,10L38,7.172l-5.305,5.305C30.133,11.008,27.212,10,24,10C12,10,4,24,4,24S6.953,29.159,11.957,33.214z M16,24 c0-4.418,3.582-8,8-8c1.483,0,2.867,0.411,4.058,1.114l-3.035,3.035C24.694,20.062,24.356,20,24,20c-2.206,0-4,1.794-4,4 c0,0.356,0.062,0.694,0.149,1.023l-3.035,3.035C16.411,26.867,16,25.483,16,24z M32,24c0,4.418-3.582,8-8,8 c-1.483,0-2.867-0.411-4.058-1.114l3.035-3.035C23.306,27.938,23.644,28,24,28c2.206,0,4-1.794,4-4 c0-0.356-0.062-0.694-0.149-1.023l3.035-3.035C31.589,21.133,32,22.517,32,24z"></path> 
+        </g> 
+      </g>
+    </svg>
   </button>
 </div>
 </div>
@@ -118,8 +207,8 @@
 </div>
 <div>
   <div class="userdiv">
-    <h2 style="display: flex; align-items: center; justify-content: center;">
-            <img src="@/assets/icons/forgot.png" alt="Icon" style="width:15px; height: 15px; margin-right: 7px;">
+    <h2 style="display: flex; align-items: center; justify-content: center; gap: 3px;">
+      <svg viewBox="0 0 1024.00 1024.00" height="20" width="20" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="currentColor" stroke-width="17.408" transform="matrix(1, 0, 0, 1, 0, 0)rotate(45)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor" stroke-width="2.048"></g><g id="SVGRepo_iconCarrier"><path d="M529.216 481.664V315.648H593.28a32.832 32.832 0 0 0 0-65.6H529.216v-48.96H593.28a32.832 32.832 0 0 0 0-65.6H529.216v-38.656a32.832 32.832 0 0 0-65.6 0v384.832A240.704 240.704 0 0 0 256 719.616 240.512 240.512 0 0 0 496.384 960a240.512 240.512 0 0 0 240.448-240.384 240.704 240.704 0 0 0-207.616-237.952z m-32.832 412.736a174.912 174.912 0 0 1-174.72-174.784 174.912 174.912 0 0 1 174.72-174.784 174.912 174.912 0 0 1 174.784 174.72 174.592 174.592 0 0 1-174.72 174.848z" fill="currentColor"></path></g></svg>
      Recovery / Authentication Key
     </h2>
          <div style="position: relative;">
@@ -135,10 +224,27 @@
     type="button"
     class="password-toggle3"
   >
-    <img class="toggle-icon"
-      :src="showPswauth ? hideIcon : showIcon" 
-      alt="Toggle Password Visibility"
-    />
+   <svg v-if="showPswauth" class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier"> 
+        <path d="M0 0h48v48H0z" fill="none"></path> 
+        <g id="Shopicon"> 
+          <circle cx="24" cy="24" r="4"></circle> 
+          <path d="M24,38c12,0,20-14,20-14s-8-14-20-14S4,24,4,24S12,38,24,38z M24,16c4.418,0,8,3.582,8,8s-3.582,8-8,8s-8-3.582-8-8 S19.582,16,24,16z"></path> 
+        </g> 
+      </g>
+    </svg>
+    <svg v-else class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier"> 
+        <path d="M0 0h48v48H0z" fill="none"></path> 
+        <g id="Shopicon"> 
+          <path d="M11.957,33.214L7.171,38L10,40.828l5.305-5.305C17.867,36.992,20.788,38,24,38c12,0,20-14,20-14s-2.953-5.159-7.957-9.214 L40.829,10L38,7.172l-5.305,5.305C30.133,11.008,27.212,10,24,10C12,10,4,24,4,24S6.953,29.159,11.957,33.214z M16,24 c0-4.418,3.582-8,8-8c1.483,0,2.867,0.411,4.058,1.114l-3.035,3.035C24.694,20.062,24.356,20,24,20c-2.206,0-4,1.794-4,4 c0,0.356,0.062,0.694,0.149,1.023l-3.035,3.035C16.411,26.867,16,25.483,16,24z M32,24c0,4.418-3.582,8-8,8 c-1.483,0-2.867-0.411-4.058-1.114l3.035-3.035C23.306,27.938,23.644,28,24,28c2.206,0,4-1.794,4-4 c0-0.356-0.062-0.694-0.149-1.023l3.035-3.035C31.589,21.133,32,22.517,32,24z"></path> 
+        </g> 
+      </g>
+    </svg>
   </button>
 </div>
 </div>
@@ -153,8 +259,8 @@
 
       </div>
       <div class="userdiv">
-    <h2 style="display: flex; align-items: center; justify-content: center;">
-            <img src="@/assets/icons/delete-account.png" alt="Icon" style="width:15px; height: 15px; margin-right: 7px;">
+    <h2 style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+      <svg width="20" height="20" fill="currentColor" viewBox="-1.7 0 20.4 20.4" xmlns="http://www.w3.org/2000/svg" class="cf-icon-svg" transform="rotate(0)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M16.417 10.283A7.917 7.917 0 1 1 8.5 2.366a7.916 7.916 0 0 1 7.917 7.917zm-6.804.01 3.032-3.033a.792.792 0 0 0-1.12-1.12L8.494 9.173 5.46 6.14a.792.792 0 0 0-1.12 1.12l3.034 3.033-3.033 3.033a.792.792 0 0 0 1.12 1.119l3.032-3.033 3.033 3.033a.792.792 0 0 0 1.12-1.12z"></path></g></svg>
       Delete Account
     </h2>
          <p>To delete your account, type your Password</p>
@@ -169,10 +275,27 @@
     type="button"
     class="password-toggle3"
   >
-    <img class="toggle-icon"
-      :src="showPswDelete ? hideIcon : showIcon" 
-      alt="Toggle Password Visibility"
-    />
+   <svg v-if="showPswDelete" class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier"> 
+        <path d="M0 0h48v48H0z" fill="none"></path> 
+        <g id="Shopicon"> 
+          <circle cx="24" cy="24" r="4"></circle> 
+          <path d="M24,38c12,0,20-14,20-14s-8-14-20-14S4,24,4,24S12,38,24,38z M24,16c4.418,0,8,3.582,8,8s-3.582,8-8,8s-8-3.582-8-8 S19.582,16,24,16z"></path> 
+        </g> 
+      </g>
+    </svg>
+    <svg v-else class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier"> 
+        <path d="M0 0h48v48H0z" fill="none"></path> 
+        <g id="Shopicon"> 
+          <path d="M11.957,33.214L7.171,38L10,40.828l5.305-5.305C17.867,36.992,20.788,38,24,38c12,0,20-14,20-14s-2.953-5.159-7.957-9.214 L40.829,10L38,7.172l-5.305,5.305C30.133,11.008,27.212,10,24,10C12,10,4,24,4,24S6.953,29.159,11.957,33.214z M16,24 c0-4.418,3.582-8,8-8c1.483,0,2.867,0.411,4.058,1.114l-3.035,3.035C24.694,20.062,24.356,20,24,20c-2.206,0-4,1.794-4,4 c0,0.356,0.062,0.694,0.149,1.023l-3.035,3.035C16.411,26.867,16,25.483,16,24z M32,24c0,4.418-3.582,8-8,8 c-1.483,0-2.867-0.411-4.058-1.114l3.035-3.035C23.306,27.938,23.644,28,24,28c2.206,0,4-1.794,4-4 c0-0.356-0.062-0.694-0.149-1.023l3.035-3.035C31.589,21.133,32,22.517,32,24z"></path> 
+        </g> 
+      </g>
+    </svg>
   </button>
 </div>
          <p>By proceeding with the deletion of your account, you acknowledge and understand that this action is irreversible. Once your account is deleted, you will permanently lose access to your account and all associated data, including but not limited to personal information, settings, and any content you have created or stored.
@@ -271,7 +394,17 @@ Thank you for your understanding.</p>
   <p style="flex:1; text-align: center;">{{ (receipt.Amount) / 100 }}€</p>
   <p style="flex:1; text-align: center;">{{ receipt.Method }}</p>
   <p style="flex:1; text-align: center;">{{ formatSubscription(receipt.Subscription) }}</p>
-  <div style="flex:1;"><button @click="Download(receipt)" class="downloadbtn"> <img src="@/assets/icons/download.png" alt="Download" class="icon3"></button></div>
+  <div style="flex:1;"><button @click="Download(receipt)" class="downloadbtn"> 
+  <svg class="icon3" viewBox="0 0 24.00 24.00" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="0.696">
+    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+    <g id="SVGRepo_iconCarrier"> 
+      <path d="M12.5535 16.5061C12.4114 16.6615 12.2106 16.75 12 16.75C11.7894 16.75 11.5886 16.6615 11.4465 16.5061L7.44648 12.1311C7.16698 11.8254 7.18822 11.351 7.49392 11.0715C7.79963 10.792 8.27402 10.8132 8.55352 11.1189L11.25 14.0682V3C11.25 2.58579 11.5858 2.25 12 2.25C12.4142 2.25 12.75 2.58579 12.75 3V14.0682L15.4465 11.1189C15.726 10.8132 16.2004 10.792 16.5061 11.0715C16.8118 11.351 16.833 11.8254 16.5535 12.1311L12.5535 16.5061Z" fill="var(--text1)"></path> 
+      <path d="M3.75 15C3.75 14.5858 3.41422 14.25 3 14.25C2.58579 14.25 2.25 14.5858 2.25 15V15.0549C2.24998 16.4225 2.24996 17.5248 2.36652 18.3918C2.48754 19.2919 2.74643 20.0497 3.34835 20.6516C3.95027 21.2536 4.70814 21.5125 5.60825 21.6335C6.47522 21.75 7.57754 21.75 8.94513 21.75H15.0549C16.4225 21.75 17.5248 21.75 18.3918 21.6335C19.2919 21.5125 20.0497 21.2536 20.6517 20.6516C21.2536 20.0497 21.5125 19.2919 21.6335 18.3918C21.75 17.5248 21.75 16.4225 21.75 15.0549V15C21.75 14.5858 21.4142 14.25 21 14.25C20.5858 14.25 20.25 14.5858 20.25 15C20.25 16.4354 20.2484 17.4365 20.1469 18.1919C20.0482 18.9257 19.8678 19.3142 19.591 19.591C19.3142 19.8678 18.9257 20.0482 18.1919 20.1469C17.4365 20.2484 16.4354 20.25 15 20.25H9C7.56459 20.25 6.56347 20.2484 5.80812 20.1469C5.07435 20.0482 4.68577 19.8678 4.40901 19.591C4.13225 19.3142 3.9518 18.9257 3.85315 18.1919C3.75159 17.4365 3.75 16.4354 3.75 15Z" fill="var(--text1)"></path> 
+    </g>
+  </svg>
+</button>
+</div>
 </div>
 
   </div>
@@ -280,6 +413,11 @@ Thank you for your understanding.</p>
         <div style="height: 100px"></div>
       </div>
       <div v-if="selectedIndex === 2">
+        <div class="theme-buttons">
+      <button v-for="(theme, index) in themes" :key="index" @click="setTheme(theme)" :class="{ active: currentTheme === theme }">{{ theme }}</button>
+    </div>
+      </div>
+      <div v-if="selectedIndex === 3">
   <div class="twofa-container">
     <h1 class="twofa-title">Two-Factor Authentication</h1>
     <p class="twofa-instruction">
@@ -361,6 +499,9 @@ function selectMenu(event, index) {
 let oldPassword = ref('');
 let newPassword = ref('');
 let confirmPassword = ref('');
+const showOldPassword = ref(false);
+const showNewPassword = ref(false);
+const showConfirmPassword = ref(false);
 const showPswDelete = ref(false);
 const showPswauth = ref(false);
 
@@ -750,6 +891,32 @@ async function toggleTwoFa() {
   }
 }
 
+const themes = ['default', 'fuckmyeyes', 'colorblind'];
+const currentTheme = ref('default');
+function setTheme(newTheme) {
+  const root = document.documentElement;
+  root.classList.remove(...themes);
+  root.classList.add(newTheme);
+  localStorage.setItem('user-theme', newTheme);
+  currentTheme.value = newTheme;
+}
+
+function loadTheme() {
+  const savedTheme = localStorage.getItem('user-theme');
+  if (themes.includes(savedTheme)) {
+    setTheme(savedTheme);
+  } else {
+    setTheme('default');
+  }
+}
+
+loadTheme()
+
+defineExpose({
+  loadTheme,
+});
+
+
 </script>
 
 <style lang="scss" scoped>
@@ -769,40 +936,41 @@ async function toggleTwoFa() {
   flex-direction: column;
   width: 15%;
   padding: 20px;
-  background-color: $base2;
+  background-color: var(--base2);
   overflow-y: auto; 
 }
 
 .content {
   display: flex;
+  position: relative;
   flex-direction: column;
   width: 85%;
-  background-color: $base4;
+  background-color: var(--base4);
   padding: 20px;
   text-align: center;
   overflow-y: auto; 
 }
 
 h1 {
-  color: $accent3;
+  color: var(--accent3);
   font-size: 30px;
   margin-bottom: 0;
 }
 
 .user {
-  color: $accent3;
+  color: var(--accent3);
   font-size: 23px;
   margin-bottom: 0;
 }
 
 .subscription-remaining{
-  color: $text2;
+  color: var(--text2);
   font-size: 12px;
   margin-bottom: 30px;
 }
 
 h2 {
-  color: $text1;
+  color: var(--text1);
   font-size: 15px;
 }
 
@@ -817,9 +985,9 @@ h2 {
   display: flex;
   align-items: center;
   width: 90%;
-  background-color: rgba($base4, 0.9);
+  background-color: rgba(var(--base4), 0.9);
   padding: 10px;
-  color: $text1;
+  color: var(--text1);
   font-size: 15px;
   cursor: pointer;
   border-radius: 5px;
@@ -829,12 +997,12 @@ h2 {
 
 .menu:hover{
   cursor: pointer;
-  background-color: $accent1;
+  background-color: var(--accent1);
   opacity: 1;
 }
 
 .menu.selected {
-  background-color: $accent1;
+  background-color: var(--accent1);
   opacity: 1;
 }
 
@@ -857,7 +1025,7 @@ h2 {
 }
 
 p{
-  color: $text1;
+  color: var(--text1);
 }
 
 .error-input {
@@ -882,8 +1050,8 @@ p{
 
 /* buttons for settings */
 .userbtn {
-  background-color: $accent1;;
-  color: $text1;
+  background-color: var(--accent1);
+  color: var(--text1);
   border-radius: 5px;
   border: none;
   outline: none;
@@ -895,7 +1063,7 @@ p{
 }
 
 .userbtn:hover {
-    background-color: $accent2; /* Background color on hover */
+    background-color: var(--accent2); /* Background color on hover */
 }
 
 /* inputs for settings */
@@ -905,14 +1073,14 @@ p{
   margin: 7px;
   width: 160px;
   outline: none;
-  color: $base3; /* Dark text color */
+  color: var(--base3); /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
-  border: solid 1px $base4;
-  background-color:$base4;
+  border: solid 1px var(--base4);
+  background-color:var(--base4);
 }
 
 .userinput:focus{
-  border-color: $accent1; /* Change border color on focus */
+  border-color: var(--accent1);; /* Change border color on focus */
   box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
   outline: none; /* Remove default outline */
 }
@@ -943,7 +1111,7 @@ p{
     opacity: 0.80;
     width: 100px;
     justify-content: center;
-    color: $text1;
+    color:  var(--text1);
     position: relative; /* Position relative for pseudo-element */
     overflow: hidden; /* Hide overflow */
 }
@@ -985,7 +1153,7 @@ p{
     opacity: 0.80;
     width: 100px;
     justify-content: center;
-    color: $text1;
+    color: var(--text1);
     position: relative; /* Position relative for pseudo-element */
     overflow: hidden; /* Hide overflow */
     cursor: default
@@ -1020,7 +1188,7 @@ p{
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: $base2;
+  background-color: var(--base2);
   padding: 20px;
   border: none;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -1045,7 +1213,7 @@ p{
   position: relative; 
   overflow: hidden;
   justify-content: center;
-  color: $text1;
+  color: var(--text1);
 }
 
 .sub-option::before {
@@ -1106,12 +1274,12 @@ p{
 .sub-option:hover {
   opacity: 1;
   cursor: pointer;
-  background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
+  background: var(--accent1);
 }
 
 .select {
     border:none;
-    background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9);
+    background: var(--accent1);
     animation: border-animation 5s linear infinite; /* Animation */
     background-size: 300% 300%; /* Allow for smooth animation */
 }
@@ -1132,8 +1300,8 @@ p{
   position: absolute;
   top: 20px;          /* Reduced from 20px */
   right: -25px;       /* Changed from -35px */
-  background-color: $accent1;  /* Your purple color */
-  color: $text1;
+  background-color: var(--accent1);  /* Your purple color */
+  color: var(--text1);
   padding-left: 10px;  /* Reduced padding */
   padding: 1px;
   font-size: 12px;    /* You can make this smaller if needed, like 10px */
@@ -1149,8 +1317,8 @@ p{
   position: absolute;
   top: 20px;          /* Reduced from 20px */
   right: -35px;       /* Changed from -35px */
-  background-color: $accent1;  /* Your purple color */
-  color: $text1;
+  background-color: var(--accent1);  /* Your purple color */
+  color: var(--text1);
   padding-left: 10px;  /* Reduced padding */
   padding: 1px;
   font-size: 12px;    /* You can make this smaller if needed, like 10px */
@@ -1164,7 +1332,7 @@ p{
 }
 
 .card-element-container {
-  background-color: $base2;
+  background-color: var(--base2);
   padding: 20px;
   border-radius: 4px;
   margin: 20px 0;
@@ -1175,9 +1343,9 @@ p{
 
 #card-element {
   padding: 10px;
-  border: 1px solid $base4;
+  border: 1px solid var(--base4);
   border-radius: 4px;
-  background-color: $base4;
+  background-color: var(--base4);
 }
 
 #card-errors {
@@ -1188,7 +1356,7 @@ p{
 }
 
 p{
-  color: $text1;
+  color: var(--text1);
 }
 
 .price{
@@ -1206,7 +1374,7 @@ p{
 }
 
 .receipt-item {
-  background-color: $base2; 
+  background-color: var(--base2); 
   padding: 3px;
   display: flex;
   justify-content: space-between;
@@ -1215,7 +1383,7 @@ p{
 }
 
 .receipt-header {
-  background-color: $base1; 
+  background-color: var(--base1); 
   padding: 3px;
   display: flex;
   justify-content: space-between;
@@ -1247,7 +1415,7 @@ p{
   border: none;
   cursor: pointer;
   font-size: 10px;
-  color: $text1;
+  color: var(--text1);
   opacity: 0.60;
 }
 
@@ -1260,7 +1428,7 @@ p{
   border: none;
   cursor: pointer;
   font-size: 10px;
-  color: $text1;
+  color: var(--text1);
   opacity: 0.60;
 }
 
@@ -1273,7 +1441,7 @@ p{
   border: none;
   cursor: pointer;
   font-size: 10px;
-  color: $text1;
+  color: var(--text1);
   opacity: 0.60;
 }
 
@@ -1281,8 +1449,8 @@ p{
   max-width: 400px;
   margin: 40px auto;
   padding: 20px;
-  background-color: $base2;
-  border: 1px solid #ddd;
+  background-color: var(--base2);
+  border: 1px solid var(--text2);
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
@@ -1295,7 +1463,7 @@ p{
 
 .twofa-instruction {
   font-size: 14px;
-  color: $text1;
+  color: var(--text1);
   margin-bottom: 20px;
 }
 
@@ -1315,7 +1483,7 @@ p{
   display: inline-block;
   width: 40px;
   height: 20px;
-  background-color: rgba($text1, 0.50);
+  background-color: var(--text1);
   border-radius: 10px;
   transition: background-color 0.3s;
   cursor: pointer;
@@ -1326,7 +1494,7 @@ p{
   position: absolute;
   width: 18px;
   height: 18px;
-  background-color: $text1;
+  background-color: var(--base1);
   border-radius: 50%;
   top: 1px;
   left: 1px;
@@ -1334,7 +1502,7 @@ p{
 }
 
 .twofa-toggle-switch-checked {
-  background-color: $accent1;
+  background-color: var(--accent1);
 }
 
 .twofa-toggle-switch-checked::before {
@@ -1345,7 +1513,7 @@ p{
   font-size: 14px;
   margin-left: 10px;
   margin-bottom: 2px;
-  color: $text2;
+  color: var(--accent1);
 }
 
 .qr{
@@ -1354,7 +1522,7 @@ p{
 }
 
 .userdiv{
-  background-color: $base2;
+  background-color: var(--base2);
   width: 80%;
   border-radius: 10px;
   padding: 15px;
@@ -1365,6 +1533,32 @@ p{
 .toggle-icon {
   width: 15px; /* Adjust the size as needed */
   cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+.theme-buttons {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 10px;
+}
+
+.theme-buttons button {
+  width: 150px;
+  height: 150px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: var(--base2);
+}
+
+.theme-buttons button.active {
+  background-color: var(--accent1);
+  color: var(--text1);
+}
+.theme-buttons button:hover {
+  background-color: var(--accent2);
 }
 
 
@@ -1386,7 +1580,7 @@ p{
   justify-content: center;
   height: 15%;
   width: 100%;
-  background-color: $base2;
+  background-color: var(--base2);
   padding: 0;
 }
 
@@ -1395,7 +1589,7 @@ p{
   flex-direction: row;
   height: 85%;
   width: 100%;
-  background-color: $base4;
+  background-color: var(--base4);
   padding: 20px;
   text-align: center;
 }
@@ -1411,14 +1605,14 @@ p{
 }
 
 .user {
-  color: $accent3;
+  color: var(--accent3);
   font-size: 2.5rem;
   margin: 0;
   padding:0;
 }
 
 .subscription-remaining{
-  color: $text2;
+  color: var(--text2);
   font-size: 1.2rem;
   margin: 0;
   padding:0;
@@ -1437,9 +1631,9 @@ p{
   display: flex;
   justify-content: center; /* added justify-content: center */
   align-items: center; /* already present */
-  background-color: rgba($base4, 0.9);
+  background-color: rgba(var(--base4), 0.9);
   padding: 10px;
-  color: $text1;
+  color: var(--text1);
   font-size: 1rem;
   cursor: pointer;
   border-radius: 5px;
@@ -1449,12 +1643,12 @@ p{
 }
 
 .menu:hover{
-  background-color: $accent1;
+  background-color: var(--accent1);
   opacity: 1;
 }
 
 .menu.selected {
-  background-color: $accent1;
+  background-color: var(--accent1);
   opacity: 1;
 }
 

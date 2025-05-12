@@ -21,15 +21,15 @@ footer {
   left: 0;
   bottom: 0;
   width: 100%;
-  background-color: $base1;
-  color: $text1;
+  background-color: var(--base1);
+  color: var(--text1);
   padding: 10px;
   z-index: 1000;
   //min-width: 1400px;
 }
 
 .left, .right {
-  color: #cdcdcd7b;
+  color: var(--text2);
   opacity: 1;
   font-size: 12px;
   border: none;
@@ -37,7 +37,7 @@ footer {
 }
 
 .link{
-  color: #cdcdcd7b;
+  color: var(--text2);
   opacity: 1;
   font-size: 12px;
   border: none;
@@ -46,7 +46,7 @@ footer {
 
 
 .link:hover{
-  color: $accent2;
+  color: var(--accent2);
 }
 
 .left {
@@ -66,8 +66,8 @@ footer {
   left: 0;
   bottom: 0;
   width: 100%;
-  background-color: $base1;
-  color: $text1;
+  background-color: var(--base1);
+  color: var(--text1);
   padding: 10px;
   z-index: 1000;
   //min-width: 1400px;

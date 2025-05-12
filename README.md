@@ -1,5 +1,8 @@
 v1.0.3
-- introduced mobile optmization and light/dark mode.
+- introduced mobile optimization
+- introduced themes 
+- fixed toggled password bug in dashboard for changing password tab
+- elements tweaks and adjustements
 -----
 v1.0.2
 - renamed index names from index funds with proper index (but kept index fund data which closely resembles indexes)

@@ -36,14 +36,13 @@ defineExpose({ show });
   position: fixed;
   top: 20px;
   right: 20px;
-  background: rgba($accent1, 0.2); // Original background color with 20% opacity
-  border: 1px solid rgba($accent2, 0.5); // Original border color with 50% opacity
+  background: var(--accent1); 
   border-radius: 5px;
   padding: 10px;
   z-index: 1000;
   transition: opacity 0.3s ease;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); // Add a subtle shadow
-  color: $text2; // Keep the original text color
+  color: var(--text1); 
 }
 
 .notification-content {
@@ -76,6 +75,6 @@ defineExpose({ show });
 }
 
 p{
-  color: $text2;
+  color: var(--text1);
 }
 </style>

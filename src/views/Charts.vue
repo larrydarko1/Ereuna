@@ -11,36 +11,45 @@
         <br>
         <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
         <br>
-        <p style="font-size: 9px; padding: 0; color: whitesmoke; opacity: 0.60; margin: 5px;">350 characters max / 10
+        <p style="font-size: 9px; padding: 0; color: var(--text1); opacity: 0.60; margin: 5px;">350 characters max / 10
           notes limit for each symbol</p>
         <textarea id="notes-container" placeholder="write notes here" :class="{ error: characterCount > 350 }"
           v-model="noteContent" @input="updateCharacterCount"></textarea>
         <div class="inner">
-          <button @click="showCreateNote = false"><img class="imgbtn" src="@/assets/icons/back-arrow.png"
-              alt=""></button>
-          <button @click="sendNote()"><img class="imgbtn" src="@/assets/icons/submit.png" alt=""></button>
+          <button @click="showCreateNote = false">
+           <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve" transform="rotate(180)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z"></path> </g> </g></svg>
+          </button>
+          <button @click="sendNote()">
+           <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z" fill="var(--text1)"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z" fill="var(--text1)"></path> </g></svg>
+          </button>
         </div>
       </div>
       <div v-if="showCreateWatchlist" class="CreateWatchlist">
         <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
-        <h3 class="title">Create Watchlist</h3>
+        <h3 class="title" style="color:var(--text1)">Create Watchlist</h3>
         <input id="inputcreate" placeholder="Enter Watchlist Name" type="text" v-model="watchlistName"
           :class="{ 'input-error': watchlistName.length > 20 }" />
         <div class="inner">
-          <button @click="showCreateWatchlist = false"><img class="imgbtn" src="@/assets/icons/back-arrow.png"
-              alt=""></button>
-          <button @click="CreateWatchlist()"><img class="imgbtn" src="@/assets/icons/submit.png" alt=""></button>
+          <button @click="showCreateWatchlist = false">
+            <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve" transform="rotate(180)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z"></path> </g> </g></svg>
+            </button>
+          <button @click="CreateWatchlist()">
+           <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z" fill="var(--text1)"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z" fill="var(--text1)"></path> </g></svg>
+          </button>
         </div>
       </div>
       <div v-if="showRenameWatchlist" class="RenameWatchlist">
         <img class="inner-logo" src="@/assets/icons/owl.png" alt="">
-        <h3 class="title">Rename Watchlist</h3>
+        <h3 class="title" style="color:var(--text1)">Rename Watchlist</h3>
         <input id="inputrename" placeholder="Enter Watchlist Name" type="text" v-model="watchlistName"
           :class="{ 'input-error': watchlistName.length > 20 }" />
         <div class="inner">
-          <button @click="showRenameWatchlist = false"><img class="imgbtn" src="@/assets/icons/back-arrow.png"
-              alt=""></button>
-          <button @click="UpdateWatchlist()"><img class="imgbtn" src="@/assets/icons/submit.png" alt=""></button>
+          <button @click="showRenameWatchlist = false">
+            <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve" transform="rotate(180)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z"></path> </g> </g></svg>
+            </button>
+          <button @click="UpdateWatchlist()">
+           <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z" fill="var(--text1)"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z" fill="var(--text1)"></path> </g></svg>
+          </button>
         </div>
       </div>
       <div id="sidebar-left">
@@ -186,20 +195,18 @@
                   <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
                 </div>
                 <div class="eps-cell" style="flex: 0 0 10%;" v-else>
-                  <img v-if="getQoQClass(calculateQoQ1(earnings.reportedEPS)) === 'green'"
-                    src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-                  <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-                </div>
+  <span v-if="getQoQClass(calculateQoQ1(earnings.reportedEPS)) === 'green'" class="sphere green-sphere"></span>
+  <span v-else class="sphere red-sphere"></span>
+</div>
 
                 <div class="eps-cell" style="flex: 0 0 10%;"
                   v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
                   <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
                 </div>
                 <div class="eps-cell" style="flex: 0 0 10%;" v-else>
-                  <img v-if="getYoYClass(calculateYoY1(earnings.reportedEPS)) === 'green'"
-                    src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-                  <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-                </div>
+  <span v-if="getYoYClass(calculateYoY1(earnings.reportedEPS)) === 'green'" class="sphere green-sphere"></span>
+  <span v-else class="sphere red-sphere"></span>
+</div>
               </div>
             </div>
           </div>
@@ -239,20 +246,18 @@
                   <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
                 </div>
                 <div class="earn-cell" style="flex: 0 0 10%;" v-else>
-                  <img v-if="getQoQClass(calculateQoQ2(quarterlyReport.netIncome)) === 'green'"
-                    src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-                  <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-                </div>
+  <span v-if="getQoQClass(calculateQoQ2(quarterlyReport.netIncome)) === 'green'" class="sphere green-sphere"></span>
+  <span v-else class="sphere red-sphere"></span>
+</div>
 
                 <div class="earn-cell" style="flex: 0 0 10%;"
                   v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
                   <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
                 </div>
                 <div class="earn-cell" style="flex: 0 0 10%;" v-else>
-                  <img v-if="getYoYClass(calculateYoY2(quarterlyReport.netIncome)) === 'green'"
-                    src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-                  <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-                </div>
+  <span v-if="getYoYClass(calculateYoY2(quarterlyReport.netIncome)) === 'green'" class="sphere green-sphere"></span>
+  <span v-else class="sphere red-sphere"></span>
+</div>
               </div>
             </div>
           </div>
@@ -292,20 +297,18 @@
                   <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
                 </div>
                 <div class="sales-cell" style="flex: 0 0 10%;" v-else>
-                  <img v-if="getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'"
-                    src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-                  <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-                </div>
+  <span v-if="getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'" class="sphere green-sphere"></span>
+  <span v-else class="sphere red-sphere"></span>
+</div>
 
                 <div class="sales-cell" style="flex: 0 0 10%;"
                   v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
                   <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
                 </div>
                 <div class="sales-cell" style="flex: 0 0 10%;" v-else>
-                  <img v-if="getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'"
-                    src="@/assets/icons/green.png" alt="green" width="10" height="10" style="border: none;">
-                  <img v-else src="@/assets/icons/red.png" alt="red" width="10" height="10" style="border: none;">
-                </div>
+  <span v-if="getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'" class="sphere green-sphere"></span>
+  <span v-else class="sphere red-sphere"></span>
+</div>
               </div>
             </div>
           </div>
@@ -365,24 +368,31 @@
               <div
                 v-for="(attribute, index) in Object.keys(currentFinancials[0]).filter(attr => attr !== 'fiscalDateEnding')"
                 :key="index" class='financials-row'>
-                <div class="attribute-name" style="display: grid; grid-template-columns: 1fr auto;">
+             <div class="attribute-name" style="display: grid; grid-template-columns: 1fr auto;">
   {{ attributeMap[attribute] || attribute }}
-  <img class="question-img"
-       src="@/assets/icons/question.png" alt="Question mark"
-       @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut" />
+  <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+       @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut">
+    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+    <g id="SVGRepo_iconCarrier">
+      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+    </g>
+  </svg>
 </div>
                 <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="financial-value">
                   {{ isNaN(parseInt(financial[attribute])) ? '-' : parseInt(financial[attribute]).toLocaleString() }}
                   <div class="percentage-box"
-                    :class="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0 ? 'positive' : 'negative'">
-                    {{ isNaN(parseFloat(getPercentageDifference(financial, attribute))) ? '-' :
-                      getPercentageDifference(financial, attribute) }}
-                    <img
-                      v-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0"
-                      src="@/assets/icons/positive.png" alt="Up" width="10" height="10">
-                    <img v-else-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute)))"
-                      src="@/assets/icons/negative.png" alt="Down" width="10" height="10">
-                  </div>
+  :class="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0 ? 'positive' : 'negative'">
+  {{ isNaN(parseFloat(getPercentageDifference(financial, attribute))) ? '-' :
+    getPercentageDifference(financial, attribute) }}
+  <span
+    v-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0"
+    class="arrow-up"></span>
+  <span v-else-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute)))"
+    class="arrow-down"></span>
+</div>
                 </div>
               </div>
             </div>
@@ -408,16 +418,15 @@
       </div>
       <div id="center">
         <div class="indexes">
-          <button v-for="(index, i) in Indexes" :key="i" :class="{ active: activeIndex === i, 'index-btn': true }"
-            @click="seeIndex(i)">
-            {{ symbolMapping[index.Symbol] }} <span
-              :class="parseFloat(index.percentageReturn) > 0 ? 'positive' : 'negative'">{{ index.percentageReturn
-              }}</span>
-            <img style="margin-left: 5px;" v-if="parseFloat(index.percentageReturn) > 0"
-              src="@/assets/icons/positive.png" alt="Up" width="10" height="10">
-            <img style="margin-left: 5px;" v-else src="@/assets/icons/negative.png" alt="Down" width="10" height="10">
-          </button>
-        </div>
+  <button v-for="(index, i) in Indexes" :key="i" :class="{ active: activeIndex === i, 'index-btn': true }"
+    @click="seeIndex(i)">
+    {{ symbolMapping[index.Symbol] }} <span
+      :class="parseFloat(index.percentageReturn) > 0 ? 'positive' : 'negative'">{{ index.percentageReturn
+      }}</span>
+    <span v-if="parseFloat(index.percentageReturn) > 0" class="arrow-up"></span>
+    <span v-else class="arrow-down"></span>
+  </button>
+</div>
         <div id="chart-container">
           <div id="legend"></div>
           <div id="legend2">
@@ -433,8 +442,7 @@
             <p class="ticker">{{ assetInfo.Symbol }} </p>
             <p class="name"> - {{ assetInfo.Name }}</p>
             <div v-if="isInHiddenList(selectedItem)" class="hidden-message">
-              <img class="chart-img2" src="@/assets/icons/hide.png" alt="">
-              <p>This Asset Is In Your Hidden List</p>
+              <p>HIDDEN LIST</p>
             </div>
           </div>
           <div id="chartdiv"></div>
@@ -459,52 +467,68 @@
           <div id="searchtable">
             <input type="text" id="searchbar" name="search" placeholder="Search Ticker" v-model="searchQuery"
               @input="toUpperCase" @keydown.enter="searchTicker()">
-            <button class="wlbtn2" id="searchBtn" @click="searchTicker()" v-b-tooltip.hover title="Search Symbol"><img
-                class="img" src="@/assets/icons/search.png" alt=""></button>
+            <button class="wlbtn2" id="searchBtn" @click="searchTicker()" v-b-tooltip.hover title="Search Symbol">
+             <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg></button>
           </div>
           <div id="wlnav">
   <div id="realwatchlist" class="select-container" @mouseover="showDropdown = true"
     @mouseout="showDropdown = false">
-    <img :src="downIcon" alt="Dropdown Icon" class="dropdown-icon"
-      :class="{ 'dropdown-icon-hover': showDropdown }" />
+    <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" 
+      :class="{ 'dropdown-icon-hover': showDropdown }" 
+      v-if="!showDropdown">
+  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+  <g id="SVGRepo_iconCarrier"> 
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z" fill="var(--text1)"></path> 
+  </g>
+</svg>
+<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" 
+      :class="{ 'dropdown-icon': showDropdown }" 
+      v-else transform="matrix(1, 0, 0, 1, 0, 0)rotate(180)">
+  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+  <g id="SVGRepo_iconCarrier"> 
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z" fill="var(--text1)"></path> 
+  </g>
+</svg>
     <p style="font-weight: bold;" class="selected-value" @click.stop="">{{ selectedWatchlist ? selectedWatchlist.Name : (watchlist && watchlist.tickers && watchlist.tickers.length > 0 ? 'Select a watch' : 'No Watchlists') }}</p>
     <div class="dropdown-container" v-if="watchlist && watchlist.tickers && watchlist.tickers.length > 0">
       <div class="watchlist-dropdown-menu">
-        <div v-for="watch in watchlist.tickers" :key="watch.Name"
+        <div class="watchlist-item" v-for="watch in watchlist.tickers" :key="watch.Name"
           :class="{ 'selected': selectedWatchlist && selectedWatchlist.Name === watch.Name }"
           @click="filterWatchlist(watch)">
           {{ watch.Name }}
           <span class="badge">{{ watch.List.length }}</span>
           <button class="icondlt" id="watchlistDelete" @click.stop="DeleteWatchlist(watch)" v-b-tooltip.hover
             title="Delete Watchlist">
-            <img class="img" src="@/assets/icons/close.png" alt="delete watchlist">
+           <svg class="imgm" viewBox="0 0 16 16" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" version="1.1" id="svg8" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><metadata id="metadata5"><rdf:rdf><cc:work><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type><dc:title></dc:title><dc:date>2021</dc:date><dc:creator><cc:agent><dc:title>Timothée Giet</dc:title></cc:agent></dc:creator><cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"></cc:license></cc:work><cc:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/"><cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"></cc:permits><cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"></cc:permits><cc:requires rdf:resource="http://creativecommons.org/ns#Notice"></cc:requires><cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"></cc:requires><cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"></cc:permits><cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"></cc:requires></cc:license></rdf:rdf></metadata><rect transform="rotate(45)" ry="0" y="-1" x="4.3137083" height="2" width="14" id="rect1006" style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1"></rect><rect transform="rotate(-45)" ry="0" y="10.313708" x="-7" height="2" width="14" id="rect1006-5" style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1"></rect></g></svg>
           </button>
         </div>
       </div>
     </div>
   </div>
             <button class="navbtn" @click="addWatchlist()" v-b-tooltip.hover title="Add ticker to watchlist">
-              <img class="img" src="@/assets/icons/plus.png" alt="add to watchlist"> Add Symbol
+              <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M4 12H20M12 4V20" stroke="var(--text1)" stroke-width="1.9440000000000002" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg> Add Symbol
             </button>
             <div class="wlnav-dropdown">
               <button class="dropdown-toggle wlbtn" v-b-tooltip.hover title="More Options">
-                <img class="img" src="@/assets/icons/dots.png" alt="more options">
+               <svg class="img" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--text1)"></path> <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--text1)"></path> <path d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z" fill="var(--text1)"></path> </g></svg>
               </button>
               <div class="dropdown-vnav">
                 <div class="watchlist-dropdown-menu2">
                   <button class="dropdown-item" @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Watchlist">
-                    <img class="img" src="@/assets/icons/play.png" alt="autoplay watchlist"> Autoplay
+                    <svg class="img4" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="var(--text1)" fill-rule="evenodd" d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z"></path> </g></svg> Autoplay
                   </button>
                   <button class="dropdown-item" @click="showCreateNote = true" v-b-tooltip.hover title="Create a Note">
-                    <img class="img" src="@/assets/icons/note.png" alt=""> Create Note
+                   <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="File / Note_Edit"> <path id="Vector" d="M10.0002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2839 19.7822 18.9076C20 18.4802 20 17.921 20 16.8031V14M16 5L10 11V14H13L19 8M16 5L19 2L22 5L19 8M16 5L19 8" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg> Create Note
                   </button>
                   <button class="dropdown-item" @click="showCreateWatchlist = true" v-b-tooltip.hover
                     title="Create New Watchlist">
-                    <img class="img" src="@/assets/icons/add.png" alt="create new watchlist"> New Watchlist
+                   <svg class="img4" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32.219 32.219" xml:space="preserve" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path style="fill:var(--text1);" d="M32.144,12.402c-0.493-1.545-3.213-1.898-6.09-2.277c-1.578-0.209-3.373-0.445-3.914-0.844 c-0.543-0.398-1.304-2.035-1.978-3.482C18.94,3.17,17.786,0.686,16.166,0.68l-0.03-0.003c-1.604,0.027-2.773,2.479-4.016,5.082 c-0.684,1.439-1.463,3.07-2.005,3.463c-0.551,0.394-2.342,0.613-3.927,0.803c-2.877,0.352-5.598,0.68-6.108,2.217 c-0.507,1.539,1.48,3.424,3.587,5.424c1.156,1.094,2.465,2.34,2.67,2.98c0.205,0.639-0.143,2.414-0.448,3.977 c-0.557,2.844-1.084,5.535,0.219,6.5c0.312,0.225,0.704,0.338,1.167,0.328c1.331-0.023,3.247-1.059,5.096-2.062 c1.387-0.758,2.961-1.611,3.661-1.621c0.675,0.002,2.255,0.881,3.647,1.654c1.891,1.051,3.852,2.139,5.185,2.119 c0.414-0.01,0.771-0.117,1.06-0.322c1.312-0.947,0.814-3.639,0.285-6.494c-0.289-1.564-0.615-3.344-0.409-3.982 c0.213-0.639,1.537-1.867,2.702-2.955C30.628,15.808,32.634,13.945,32.144,12.402z M21.473,19.355h-3.722v3.797h-3.237v-3.797 h-3.768v-3.238h3.768v-3.691h3.237v3.691h3.722V19.355z"></path> </g> </g></svg> New Watchlist
                   </button>
                   <button class="dropdown-item" @click="showRenameWatchlist = true" v-b-tooltip.hover
                     title="Rename Watchlist">
-                    <img class="img" src="@/assets/icons/edit2.png" alt="edit watchlist name"> Rename Watchlist
+                   <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path> <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path> <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path> </g></svg> Rename Watchlist
                   </button>
                 </div>
               </div>
@@ -513,14 +537,14 @@
           <div id="watch-container">
             <div class="ntbl" style="flex: 0.5"></div>
             <div class="ntbl" style="flex: 1"></div>
-            <div class="tbl" style="flex: 1" @click="sortTable('ticker')"><img class="img2"
-                src="@/assets/icons/sort.png" alt="sort">Ticker</div>
-            <div class="tbl" style="flex: 1" @click="sortTable('last')"><img class="img2" src="@/assets/icons/sort.png"
-                alt="sort">Last</div>
-            <div class="tbl" style="flex: 1" @click="sortTable('chg')"><img class="img2" src="@/assets/icons/sort.png"
-                alt="sort">Chg</div>
-            <div class="tbl" style="flex: 1" @click="sortTable('perc')"><img class="img2" src="@/assets/icons/sort.png"
-                alt="sort">%</div>
+            <div class="tbl" style="flex: 1" @click="sortTable('ticker')">
+              <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M16 5.25C16.2029 5.25 16.3972 5.33222 16.5384 5.47789L20.5384 9.60289C20.8268 9.90025 20.8195 10.3751 20.5221 10.6634C20.2247 10.9518 19.7499 10.9445 19.4616 10.6471L16.75 7.8508L16.75 18C16.75 18.4142 16.4142 18.75 16 18.75C15.5858 18.75 15.25 18.4142 15.25 18L15.25 7.8508L12.5384 10.6471C12.2501 10.9445 11.7753 10.9518 11.4779 10.6634C11.1805 10.3751 11.1732 9.90025 11.4616 9.60289L15.4616 5.47789C15.6028 5.33222 15.7971 5.25 16 5.25ZM8 5.25C8.41421 5.25 8.75 5.58579 8.75 6L8.75 16.1492L11.4616 13.3529C11.7499 13.0555 12.2247 13.0482 12.5221 13.3366C12.8195 13.6249 12.8268 14.0997 12.5384 14.3971L8.53843 18.5221C8.39717 18.6678 8.20291 18.75 8 18.75C7.79709 18.75 7.60283 18.6678 7.46158 18.5221L3.46158 14.3971C3.17322 14.0997 3.18053 13.6249 3.47789 13.3366C3.77526 13.0482 4.25007 13.0555 4.53843 13.3529L7.25 16.1492L7.25 6C7.25 5.58579 7.58579 5.25 8 5.25Z" fill="var(--text1)"></path> </g></svg> Ticker</div>
+            <div class="tbl" style="flex: 1" @click="sortTable('last')">
+              <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M16 5.25C16.2029 5.25 16.3972 5.33222 16.5384 5.47789L20.5384 9.60289C20.8268 9.90025 20.8195 10.3751 20.5221 10.6634C20.2247 10.9518 19.7499 10.9445 19.4616 10.6471L16.75 7.8508L16.75 18C16.75 18.4142 16.4142 18.75 16 18.75C15.5858 18.75 15.25 18.4142 15.25 18L15.25 7.8508L12.5384 10.6471C12.2501 10.9445 11.7753 10.9518 11.4779 10.6634C11.1805 10.3751 11.1732 9.90025 11.4616 9.60289L15.4616 5.47789C15.6028 5.33222 15.7971 5.25 16 5.25ZM8 5.25C8.41421 5.25 8.75 5.58579 8.75 6L8.75 16.1492L11.4616 13.3529C11.7499 13.0555 12.2247 13.0482 12.5221 13.3366C12.8195 13.6249 12.8268 14.0997 12.5384 14.3971L8.53843 18.5221C8.39717 18.6678 8.20291 18.75 8 18.75C7.79709 18.75 7.60283 18.6678 7.46158 18.5221L3.46158 14.3971C3.17322 14.0997 3.18053 13.6249 3.47789 13.3366C3.77526 13.0482 4.25007 13.0555 4.53843 13.3529L7.25 16.1492L7.25 6C7.25 5.58579 7.58579 5.25 8 5.25Z" fill="var(--text1)"></path> </g></svg>Last</div>
+            <div class="tbl" style="flex: 1" @click="sortTable('chg')">
+              <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M16 5.25C16.2029 5.25 16.3972 5.33222 16.5384 5.47789L20.5384 9.60289C20.8268 9.90025 20.8195 10.3751 20.5221 10.6634C20.2247 10.9518 19.7499 10.9445 19.4616 10.6471L16.75 7.8508L16.75 18C16.75 18.4142 16.4142 18.75 16 18.75C15.5858 18.75 15.25 18.4142 15.25 18L15.25 7.8508L12.5384 10.6471C12.2501 10.9445 11.7753 10.9518 11.4779 10.6634C11.1805 10.3751 11.1732 9.90025 11.4616 9.60289L15.4616 5.47789C15.6028 5.33222 15.7971 5.25 16 5.25ZM8 5.25C8.41421 5.25 8.75 5.58579 8.75 6L8.75 16.1492L11.4616 13.3529C11.7499 13.0555 12.2247 13.0482 12.5221 13.3366C12.8195 13.6249 12.8268 14.0997 12.5384 14.3971L8.53843 18.5221C8.39717 18.6678 8.20291 18.75 8 18.75C7.79709 18.75 7.60283 18.6678 7.46158 18.5221L3.46158 14.3971C3.17322 14.0997 3.18053 13.6249 3.47789 13.3366C3.77526 13.0482 4.25007 13.0555 4.53843 13.3529L7.25 16.1492L7.25 6C7.25 5.58579 7.58579 5.25 8 5.25Z" fill="var(--text1)"></path> </g></svg>Chg</div>
+            <div class="tbl" style="flex: 1" @click="sortTable('perc')">
+              <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M16 5.25C16.2029 5.25 16.3972 5.33222 16.5384 5.47789L20.5384 9.60289C20.8268 9.90025 20.8195 10.3751 20.5221 10.6634C20.2247 10.9518 19.7499 10.9445 19.4616 10.6471L16.75 7.8508L16.75 18C16.75 18.4142 16.4142 18.75 16 18.75C15.5858 18.75 15.25 18.4142 15.25 18L15.25 7.8508L12.5384 10.6471C12.2501 10.9445 11.7753 10.9518 11.4779 10.6634C11.1805 10.3751 11.1732 9.90025 11.4616 9.60289L15.4616 5.47789C15.6028 5.33222 15.7971 5.25 16 5.25ZM8 5.25C8.41421 5.25 8.75 5.58579 8.75 6L8.75 16.1492L11.4616 13.3529C11.7499 13.0555 12.2247 13.0482 12.5221 13.3366C12.8195 13.6249 12.8268 14.0997 12.5384 14.3971L8.53843 18.5221C8.39717 18.6678 8.20291 18.75 8 18.75C7.79709 18.75 7.60283 18.6678 7.46158 18.5221L3.46158 14.3971C3.17322 14.0997 3.18053 13.6249 3.47789 13.3366C3.77526 13.0482 4.25007 13.0555 4.53843 13.3529L7.25 16.1492L7.25 6C7.25 5.58579 7.58579 5.25 8 5.25Z" fill="var(--text1)"></path> </g></svg>%</div>
           </div>
         </div>
         <div v-if="isLoading2" style="position: relative; height: 100%;">
@@ -536,15 +560,32 @@
           :class="{ 'selected': selectedItem === item, 'wlist': true }" @click="selectRow(item)">
           <div style="flex: 0.5; position: relative;">
             <button class="dropdown-btn">
-              <img class="imgm" src="@/assets/icons/dots.png" alt="" style="border: none;">
+              <svg class="imgm" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--text1)"></path> <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--text1)"></path> <path d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z" fill="var(--text1)"></path> </g></svg>
             </button>
             <div class="dropdown-menu">
               <div class="watchlist-dropdown-menu3">
                 <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
                   <label :for="'watchlist-' + index" class="checkbox-label">
-                    <div @click.stop="toggleWatchlist(ticker, item)" style="cursor: pointer;">
-                      <img class="watchlist-icon" :src="getWatchlistIcon(ticker, item)" alt="Toggle Watchlist" />
-                    </div>
+                   <div @click.stop="toggleWatchlist(ticker, item)" style="cursor: pointer;">
+  <svg width="24" height="24" v-if="isAssetInWatchlist(ticker.Name, item)" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+    <g id="SVGRepo_iconCarrier"> 
+      <g id="Interface / Checkbox_Check"> 
+        <path id="Vector" d="M8 12L11 15L16 9M4 16.8002V7.2002C4 6.08009 4 5.51962 4.21799 5.0918C4.40973 4.71547 4.71547 4.40973 5.0918 4.21799C5.51962 4 6.08009 4 7.2002 4H16.8002C17.9203 4 18.4796 4 18.9074 4.21799C19.2837 4.40973 19.5905 4.71547 19.7822 5.0918C20 5.5192 20 6.07899 20 7.19691V16.8036C20 17.9215 20 18.4805 19.7822 18.9079C19.5905 19.2842 19.2837 19.5905 18.9074 19.7822C18.48 20 17.921 20 16.8031 20H7.19691C6.07899 20 5.5192 20 5.0918 19.7822C4.71547 19.5905 4.40973 19.2842 4.21799 18.9079C4 18.4801 4 17.9203 4 16.8002Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> 
+      </g> 
+    </g>
+  </svg>
+  <svg width="24" height="24" v-else viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+    <g id="SVGRepo_iconCarrier"> 
+      <g id="Interface / Checkbox_Unchecked"> 
+        <path id="Vector" d="M4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2842 19.7822 18.9079C20 18.4805 20 17.9215 20 16.8036V7.19691C20 6.07899 20 5.5192 19.7822 5.0918C19.5905 4.71547 19.2837 4.40973 18.9074 4.21799C18.4796 4 17.9203 4 16.8002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> 
+      </g> 
+    </g>
+  </svg>
+</div>
                     <span class="checkmark"></span>
                     {{ ticker.Name }}
                   </label>
@@ -563,7 +604,7 @@
             perc[item] }}%</div>
           <div class="delete-cell" style="position: relative;">
             <button class="dbtn" @click="deleteTicker(item)" style="position: absolute; right: 0;"
-              @click.stop>╳</button>
+              @click.stop> <svg class="imgm" viewBox="0 0 16 16" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" version="1.1" id="svg8" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><metadata id="metadata5"><rdf:rdf><cc:work><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type><dc:title></dc:title><dc:date>2021</dc:date><dc:creator><cc:agent><dc:title>Timothée Giet</dc:title></cc:agent></dc:creator><cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"></cc:license></cc:work><cc:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/"><cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"></cc:permits><cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"></cc:permits><cc:requires rdf:resource="http://creativecommons.org/ns#Notice"></cc:requires><cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"></cc:requires><cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"></cc:permits><cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"></cc:requires></cc:license></rdf:rdf></metadata><rect transform="rotate(45)" ry="0" y="-1" x="4.3137083" height="2" width="14" id="rect1006" style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1"></rect><rect transform="rotate(-45)" ry="0" y="10.313708" x="-7" height="2" width="14" id="rect1006-5" style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1"></rect></g></svg></button>
           </div>
         </div>
       </div>
@@ -1673,6 +1714,29 @@ const toggleChartType = () => {
   charttype.value = isBarChart.value ? 'Bar' : 'Candlestick';
 };
 
+const defaultStyles = getComputedStyle(document.documentElement);
+const theme = {
+  accent1: defaultStyles.getPropertyValue('--accent1'),
+  accent2: defaultStyles.getPropertyValue('--accent2'),
+  accent3: defaultStyles.getPropertyValue('--accent3'),
+  accent4: defaultStyles.getPropertyValue('--accent4'),
+  text1: defaultStyles.getPropertyValue('--text1'),
+  text2: defaultStyles.getPropertyValue('--text2'),
+  text3: defaultStyles.getPropertyValue('--text3'),
+  base1: defaultStyles.getPropertyValue('--base1'),
+  base2: defaultStyles.getPropertyValue('--base2'),
+  base3: defaultStyles.getPropertyValue('--base3'),
+  base4: defaultStyles.getPropertyValue('--base4'),
+  positive: defaultStyles.getPropertyValue('--positive'),
+  negative: defaultStyles.getPropertyValue('--negative'),
+  volume: defaultStyles.getPropertyValue('--volume'),
+  ma1: defaultStyles.getPropertyValue('--ma1'),
+  ma2: defaultStyles.getPropertyValue('--ma2'),
+  ma3: defaultStyles.getPropertyValue('--ma3'),
+  ma4: defaultStyles.getPropertyValue('--ma4'),
+};
+
+
 // mounts chart (including volume)
 onMounted(async () => {
   try {
@@ -1691,9 +1755,9 @@ onMounted(async () => {
       layout: {
         background: {
           type: ColorType.Solid,
-          color: '#181926',
+          color: theme.base1,
         },
-        textColor: '#ffffff',
+        textColor: theme.text1,
       },
       grid: {
         vertLines: {
@@ -1705,12 +1769,12 @@ onMounted(async () => {
       }, crosshair: {
         mode: CrosshairMode.Normal,
         vertLine: {
-          color: "#8c8dfe",
-          labelBackgroundColor: "#8c8dfe",
+          color: theme.accent1,
+          labelBackgroundColor: theme.accent1,
         },
         horzLine: {
-          color: "#8c8dfe",
-          labelBackgroundColor: "#8c8dfe",
+          color: theme.accent1,
+          labelBackgroundColor: theme.accent1,
         },
       },
       timeScale: {
@@ -1721,12 +1785,12 @@ onMounted(async () => {
     });
 
     let barSeries = chart.addCandlestickSeries({
-      downColor: '#90bff9',
-      upColor: '#4caf50',
-      borderDownColor: '#90bff9',
-      borderUpColor: '#4caf50',
-      wickDownColor: '#90bff9',
-      wickUpColor: '#4caf50',
+      downColor: theme.negative,
+      upColor: theme.positive,
+      borderDownColor: theme.negative,
+      borderUpColor: theme.positive,
+      wickDownColor: theme.negative,
+      wickUpColor: theme.positive,
       priceLineVisible: true,
     });
 
@@ -1737,19 +1801,19 @@ onMounted(async () => {
       if (isBarChart.value) {
         // Create a bar series
         barSeries = chart.addBarSeries({
-          downColor: '#90bff9',
-          upColor: '#4caf50',
+          downColor: theme.negative,
+          upColor: theme.positive,
           priceLineVisible: true,
         });
       } else {
         // Create a candlestick series
         barSeries = chart.addCandlestickSeries({
-          downColor: '#90bff9',
-          upColor: '#4caf50',
-          borderDownColor: '#90bff9',
-          borderUpColor: '#4caf50',
-          wickDownColor: '#90bff9',
-          wickUpColor: '#4caf50',
+          downColor: theme.negative,
+          upColor: theme.positive,
+          borderDownColor: theme.negative,
+          borderUpColor: theme.positive,
+          wickDownColor: theme.negative,
+          wickUpColor: theme.positive,
           priceLineVisible: true,
         });
       }
@@ -1789,7 +1853,7 @@ onMounted(async () => {
     }
 
     const Histogram = chart.addHistogramSeries({
-      color: '#4D4D4D',
+      color: theme.volume,
       priceLineVisible: true,
       priceFormat: {
         type: 'volume',
@@ -1798,7 +1862,7 @@ onMounted(async () => {
     });
 
     const MaSeries1 = chart.addLineSeries({
-      color: '#00bcd4',
+      color: theme.ma1,
       priceLineVisible: false,
       lastValueVisible: false,
       crosshairMarkerVisible: false,
@@ -1806,7 +1870,7 @@ onMounted(async () => {
     });
 
     const MaSeries2 = chart.addLineSeries({
-      color: '#2862ff',
+      color: theme.ma2,
       priceLineVisible: false,
       lastValueVisible: false,
       crosshairMarkerVisible: false,
@@ -1814,7 +1878,7 @@ onMounted(async () => {
     });
 
     const MaSeries3 = chart.addLineSeries({
-      color: '#ffeb3b',
+      color: theme.ma3,
       priceLineVisible: false,
       lastValueVisible: false,
       crosshairMarkerVisible: false,
@@ -1822,7 +1886,7 @@ onMounted(async () => {
     });
 
     const MaSeries4 = chart.addLineSeries({
-      color: '#4caf50',
+      color: theme.ma4,
       priceLineVisible: false,
       lastValueVisible: false,
       crosshairMarkerVisible: false,
@@ -1943,7 +2007,7 @@ onMounted(async () => {
       const relativeVolumeData = newData2.map((dataPoint, index) => {
         const averageVolume = calculateAverageVolume(newData2, index);
         const relativeVolume = dataPoint.value / averageVolume;
-        const color = relativeVolume > 2 ? '#8c8dfe' : '#4D4D4D';
+        const color = relativeVolume > 2 ? theme.accent1 : theme.volume;
         return {
           time: dataPoint.time,
           value: dataPoint.value,
@@ -2043,10 +2107,10 @@ onMounted(async () => {
           const className = isUp ? 'positive' : 'negative';
 
           firstRow.innerHTML = `
-        <strong class="${className}"><span style="color: white">Open:</span> ${priceOpen}</strong>
-        <strong class="${className}"><span style="color: white">High:</span> ${priceHigh}</strong>
-        <strong class="${className}"><span style="color: white">Low:</span> ${priceLow}</strong>
-        <strong class="${className}"><span style="color: white">Close:</span> ${priceClose}</strong>
+        <strong class="${className}"><span style="color: ${theme.text1}">Open:</span> ${priceOpen}</strong>
+        <strong class="${className}"><span style="color: ${theme.text1}">High:</span> ${priceHigh}</strong>
+        <strong class="${className}"><span style="color:${theme.text1}">Low:</span> ${priceLow}</strong>
+        <strong class="${className}"><span style="color: ${theme.text1}">Close:</span> ${priceClose}</strong>
         <strong class="${className}">${priceChange}</strong>
         <strong class="${className}">${changePerc}</strong>
       `;
@@ -2121,7 +2185,7 @@ onMounted(async () => {
         const className = isUp ? 'positive' : 'negative';
 
         html += `
-      <strong style="color: white">${period}: <span class="${className}">${returns[period]}</span></strong>
+      <strong style="color: ${theme.text1}">${period}: <span class="${className}">${returns[period]}</span></strong>
     `;
       });
 
@@ -3163,8 +3227,9 @@ function handleMouseOver(event, id) {
   showTooltip.value = true
   const element = event.target
   const rect = element.getBoundingClientRect()
-  tooltipTop.value = rect.top + window.scrollY + element.offsetHeight - 25;
-  tooltipLeft.value = rect.left + window.scrollX + element.offsetWidth + 10;
+  const svgRect = element.parentNode.getBoundingClientRect()
+  tooltipTop.value = svgRect.top + window.scrollY + svgRect.height - 25;
+  tooltipLeft.value = svgRect.left + window.scrollX + svgRect.width + 10;
   tooltipText.value = getTooltipText(id)
 }
 
@@ -3279,7 +3344,7 @@ function handleMouseOut() {
 #sidebar-left {
   flex: 1;
   flex-direction: column;
-  background-color: $base4;
+  background-color: var(--base4);
   overflow-y: scroll;
   overflow-x: hidden;
   min-width: 300px;
@@ -3309,31 +3374,31 @@ function handleMouseOut() {
 #chartdiv2 {
   padding: 10px;
   border: none;
-  background-color: $base2;
-  color: $text2;
+  background-color: var(--base2);
+  color: var(--text2);
 }
 
 #sidebar-right {
   display: flex;
   flex-direction: column;
-  background-color: $base4;
+  background-color: var(--base4);
   overflow-y: scroll;
   min-width: 300px;
 }
 
 #wlnav {
-  border-top: $base1 solid 1px;
+  border-top: var(--base1) solid 1px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: $base2;
+  background-color: var(--base2);
 }
 
 #realwatchlist {
   height: 20px;
   outline: none;
   border: none;
-  color: $text2;
+  color: var(--text2);
   text-align: center;
   flex-grow: 1;
   background-color: transparent;
@@ -3341,7 +3406,7 @@ function handleMouseOut() {
 
 .wlbtn {
   flex-shrink: 0;
-  color: $text1;
+  color: var(--text1);
   background-color: transparent;
   border: none;
   padding: 5px;
@@ -3364,7 +3429,7 @@ function handleMouseOut() {
 #searchtable {
   display: flex;
   align-items: center;
-  background-color: $base2;
+  background-color: var(--base2);
   position: relative;
 }
 
@@ -3376,18 +3441,18 @@ function handleMouseOut() {
   width: calc(100% - 30px);
   /* Make space for the button */
   outline: none;
-  color: $base3;
+  color: var(--base3);
   /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s;
   /* Smooth transition for focus effects */
-  border: solid 1px $base1;
-  background-color: $base4;
+  border: solid 1px var(--base1);
+  background-color: var(--base4);
 }
 
 #searchbar:focus {
-  border-color: $accent1;
+  border-color: var(--accent1);
   /* Change border color on focus */
-  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
+  //box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
   /* Subtle shadow effect */
   outline: none;
   /* Remove default outline */
@@ -3400,8 +3465,8 @@ function handleMouseOut() {
   right: 8px;
   transform: translateY(-50%);
   flex-shrink: 0;
-  color: #ffffff;
-  background-color: $accent1;
+  color: var(--text1);
+  background-color: var(--accent1);
   border: none;
   padding: 0;
   outline: none;
@@ -3416,28 +3481,28 @@ function handleMouseOut() {
 }
 
 .wlbtn2:hover {
-  background-color: $accent2;
+  background-color: var(--accent2);
   box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
   outline: none;
 }
 
 
 #notes-container {
-  background-color: $base4;
-  color: aliceblue;
+  background-color: var(--base4);
+  color: var(--text1);
   width: 300px;
   height: 80px;
   padding-left: 5px;
   padding-top: 5px;
   margin: 5px;
-  border: 1px solid $base4;
+  border: 1px solid var(--base4);
   border-radius: 5px;
   outline: none;
   resize: none;
 }
 
 #idSummary {
-  color: $text1;
+  color: var(--text1);
 }
 
 .description {
@@ -3458,7 +3523,7 @@ function handleMouseOut() {
 }
 
 .category{
-  color: $text1;
+  color: var(--text1);
 }
 
 .response {
@@ -3468,8 +3533,8 @@ function handleMouseOut() {
 
 /* note section */
 .title {
-  background-color: $base1;
-  color: $text1;
+  background-color: var(--base1);
+  color: var(--text1);
   text-align: center;
   padding: 3.5px;
   border: none;
@@ -3477,8 +3542,8 @@ function handleMouseOut() {
 }
 
 .note {
-  background-color: $accent1;
-  color: $text2;
+  background-color: var(--accent1);
+  color: var(--text2);
   padding: 10px;
   border: none;
   box-sizing: border-box;
@@ -3490,7 +3555,7 @@ function handleMouseOut() {
 .notebtn {
   background-color: transparent;
   border: none;
-  color: $text2;
+  color: var(--text2);
   cursor: pointer;
   position: absolute;
   top: 5px;
@@ -3507,8 +3572,16 @@ function handleMouseOut() {
 }
 
 .img2 {
-  width: 8px;
-  height: 8px;
+  width: 15px;
+  height: 15px;
+  border: none;
+}
+
+.img4 {
+  width: 15px;
+  height: 15px;
+  float: left;
+  margin-right: 1rem;
   border: none;
 }
 
@@ -3518,7 +3591,7 @@ function handleMouseOut() {
 }
 
 .note-msg {
-  color: $text2;
+  color: var(--text2);
   border: none;
   margin-top: 0;
   padding-top: 0;
@@ -3530,7 +3603,7 @@ function handleMouseOut() {
 }
 
 .note-msg-date {
-  color: $base2;
+  color: var(--base2);
   border: none;
   bottom: 11.5px;
   left: 14px;
@@ -3539,30 +3612,35 @@ function handleMouseOut() {
 
 .tbl {
   text-align: center;
-  background-color: $base1;
+  display: flex;
+  flex-direction: row;
+  background-color: var(--base1);
   border: none;
-  color: whitesmoke;
+  color: var(--text1);
   cursor: pointer;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
 }
 
 .tbl:hover {
-  background-color: $base2;
+  background-color: var(--base2);
 }
 
 .ntbl {
   text-align: center;
-  background-color: $base1;
+  background-color: var(--base1);
   border: none;
-  color: $text2;
+  color: var(--text2);
 }
 
 #title2 {
-  color: $text2;
+  color: var(--text2);
   text-align: center;
   padding: 3.5px;
   border: none;
   margin: 0px;
-  background-color: $base4;
+  background-color: var(--base4);
 }
 
 .btn {
@@ -3602,7 +3680,7 @@ function handleMouseOut() {
   left: 0;
   z-index: 1000;
   background-color: transparent;
-  color: $text2;
+  color: var(--text2);
   border: none;
   margin-top: 10px;
   margin-left: 12px;
@@ -3614,7 +3692,7 @@ function handleMouseOut() {
   left: 0;
   z-index: 1000;
   background-color: transparent;
-  color: $text2;
+  color: var(--text2);
   border: none;
   margin-top: 25px;
   margin-left: 12px;
@@ -3630,7 +3708,7 @@ function handleMouseOut() {
   left: 0;
   z-index: 1000;
   background-color: transparent;
-  color: $text2;
+  color: var(--text2);
   border: none;
   margin-top: 20px;
   margin-left: 12px;
@@ -3642,14 +3720,14 @@ function handleMouseOut() {
 }
 
 .ticker {
-  color: $text1;
+  color: var(--text1);
   font-size: 20px;
   font-weight: bold;
   opacity: 1;
 }
 
 .name {
-  color: $text1;
+  color: var(--text1);
   font-size: 15px;
   font-weight: bold;
   opacity: 1;
@@ -3664,7 +3742,7 @@ function handleMouseOut() {
 .dbtn {
   background-color: transparent;
   border: none;
-  color: $text2;
+  color: var(--text2);
   cursor: pointer;
 }
 
@@ -3674,7 +3752,7 @@ function handleMouseOut() {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: $base2;
+  background-color: var(--base2);
   width: 300px;
   height: 150px;
   display: flex;
@@ -3686,7 +3764,7 @@ function handleMouseOut() {
   backdrop-filter: blur(10px);
   z-index: 1000;
   padding: 10px;
-  border: 2px solid $accent3;
+  border: 2px solid var(--accent3);
 }
 
 .CreateNote {
@@ -3694,7 +3772,7 @@ function handleMouseOut() {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: $base2;
+  background-color: var(--base2);
   width: 350px;
   height: 200px;
   display: flex;
@@ -3706,14 +3784,14 @@ function handleMouseOut() {
   backdrop-filter: blur(10px);
   z-index: 1000;
   padding: 10px;
-  border: 2px solid $accent3;
+  border: 2px solid var(--accent3);
 }
 
 .RenameWatchlist h3,
 .CreateWatchlist h3,
 .CreateNote h3 {
   background-color: transparent;
-  color: rgba($text1, 0.50);
+  color: rgba(var(--text1), 0.50);
   border: none;
   margin-top: 10px;
 }
@@ -3725,18 +3803,18 @@ function handleMouseOut() {
   margin: 7px;
   width: 160px;
   outline: none;
-  color: $base3;
+  color: var(--base3);
   /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s;
   /* Smooth transition for focus effects */
-  border: solid 1px $base4;
-  background-color: $base4;
+  border: solid 1px var(--base4);
+  background-color: var(--base4);
 }
 
 .RenameWatchlist input:focus,
 .CreateWatchlist input:focus {
-  border-color: $accent1;
-  box-shadow: 0 0 5px rgba($accent3, 0.5);
+  border-color: var(--accent1);
+  box-shadow: 0 0 5px rgba(var(--accent3), 0.5);
   outline: none;
 }
 
@@ -3797,18 +3875,23 @@ function handleMouseOut() {
   border: none;
   cursor: pointer;
   opacity: 0.80;
-  color: $text1;
+  color: var(--text1);
   transition: opacity 0.2s ease;
   padding: 5px;
   margin: 5px;
 }
 
-.navbtn img {
+.navbtn:hover {
+  background-color: var(--base1);
+  border-radius: 5px;
+}
+
+.navbtn svg {
   transition: all 0.3s ease;
   margin-right: 3px;
 }
 
-.navbtn:hover img {
+.navbtn:hover svg {
   animation: hoverAnim 0.3s ease;
 }
 
@@ -3827,19 +3910,19 @@ function handleMouseOut() {
 
 
 .wlist {
-  background-color: $base2;
+  background-color: var(--base2);
   height: 27px;
   margin-top: 2px;
-  border-left: $base4 solid 1px;
+  border-left: var(--base4) solid 1px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: $text1;
+  color: var(--text1);
 }
 
 .wlist:hover {
   cursor: pointer;
-  background-color: rgba($base2, 0.80);
+  background-color: rgba(var(--base2), 0.80);
 }
 
 .wlist .dbtn {
@@ -3852,30 +3935,15 @@ function handleMouseOut() {
 }
 
 .wlist.selected {
-  background-image: linear-gradient(to right, rgba($accent1, 0.2), rgba($accent2, 0.2), rgba($accent3, 0.2), rgba($accent2, 0.2), rgba($accent1, 0.2)) !important;
-  background-size: 400% 100% !important;
-  border-left-color: $accent1 !important;
-  border-left-width: 2px !important;
-  color: $text1;
-  animation: gradient 10s ease infinite;
-}
-
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
+  background-color: var(--base4);
+  background-size: 400% 100% ;
+  border-left-color: var(--accent1) ;
+  border-left-width: 2px;
+  color: var(--text1);
 }
 
 .results {
-  background-color: $base4;
+  background-color: var(--base4);
   text-align: center;
   align-items: center;
   padding: 10px;
@@ -3884,7 +3952,7 @@ function handleMouseOut() {
 }
 
 .results2 {
-  background-color: $base4;
+  background-color: var(--base4);
   text-align: center;
   align-items: center;
   padding: 100px;
@@ -3923,7 +3991,7 @@ function handleMouseOut() {
 
 .select-container .dropdown-container div {
   display: none;
-  background-color: $base4;
+  background-color: var(--base4);
   max-height: 200px;
   overflow-y: scroll;
   border: none;
@@ -3936,14 +4004,14 @@ function handleMouseOut() {
 }
 
 .watchlist-dropdown-menu {
-  background-color: $base4;
+  background-color: var(--base4);
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .select-container .watchlist-dropdown-menu div:hover {
-  background-color: $accent2;
+  background-color: var(--accent2);
   border-radius: 5px;
 }
 
@@ -3963,47 +4031,47 @@ function handleMouseOut() {
 /* */
 
 .financialbtn {
-  background-color: $accent1;
+  background-color: var(--accent1);
   border: none;
   cursor: pointer;
   width: 100%;
   padding: 10px;
-  color: $text1;
+  color: var(--text1);
   transition: background-color 0.5s ease-in-out;
 }
 
 .financialbtn:hover {
-  background-color: $accent2;
+  background-color: var(--accent2);
 }
 
 .toggle-btn {
-  background-color: $accent1;
+  background-color: var(--accent1);
   border: none;
   cursor: pointer;
   width: 100%;
-  color: $text1;
+  color: var(--text1);
   transition: background-color 0.5s ease-in-out;
 }
 
 .toggle-btn:hover {
-  background-color: $accent2;
+  background-color: var(--accent2);
 }
 
 .no-data {
   padding: 20px;
   text-align: center;
-  background-color: $base2;
-  color: rgba($text2, 0.40);
+  background-color: var(--base2);
+  color: rgba(var(--text2), 0.40);
 }
 
 /* buttons inside chart, top right */
 .navbtng {
   background-color: transparent;
-  color: $text1;
+  color: var(--text1);
   text-align: center;
   justify-content: center;
   cursor: pointer;
-  border: solid $text2 1px;
+  border: solid var(--text2) 1px;
   border-radius: 25px;
   padding: 15px;
   opacity: 0.60;
@@ -4031,7 +4099,7 @@ function handleMouseOut() {
   left: 80%;
   z-index: 1000;
   background-color: transparent;
-  color: $text1;
+  color: var(--text1);
   border: none;
   flex-direction: row;
   display: flex;
@@ -4081,7 +4149,7 @@ function handleMouseOut() {
 }
 
 .watchlist-dropdown-menu3 {
-  background-color: $base4;
+  background-color: var(--base4);
   padding: 7px;
   display: flex;
   flex-direction: column;
@@ -4090,7 +4158,7 @@ function handleMouseOut() {
 }
 
 .watchlist-dropdown-menu3>div {
-  background-color: $base4;
+  background-color: var(--base4);
   padding: 1px;
   height: 28px;
   display: flex;
@@ -4098,7 +4166,7 @@ function handleMouseOut() {
 }
 
 .watchlist-dropdown-menu3>div:hover {
-  background-color: $accent2;
+  background-color: var(--accent2);
   border-radius: 5px;
 }
 
@@ -4130,22 +4198,22 @@ function handleMouseOut() {
   align-items: center;
   width: 100%;
   padding: 10px;
-  background-color: $base4;
+  background-color: var(--base4);
   border: none;
-  color: $text1;
+  color: var(--text1);
   text-align: left;
   cursor: pointer;
 }
 
 .watchlist-dropdown-menu2 {
-  background-color: $base4;
+  background-color: var(--base4);
   padding: 5px;
   border-radius: 5px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .dropdown-item:hover {
-  background-color: $accent2;
+  background-color: var(--accent2);
   border-radius: 5px;
 }
 
@@ -4169,7 +4237,7 @@ function handleMouseOut() {
 .summary-container {
   display: flex;
   flex-direction: column;
-  color: $text2;
+  color: var(--text2);
   border: none;
 }
 
@@ -4183,7 +4251,7 @@ function handleMouseOut() {
   padding-bottom: 5px;
   align-items: center;
   justify-content: center;
-  background-color: $base2;
+  background-color: var(--base2);
   letter-spacing: 0.3px;
 }
 
@@ -4197,7 +4265,7 @@ function handleMouseOut() {
   padding-bottom: 5px;
   align-items: center;
   justify-content: center;
-  background-color: $base4;
+  background-color: var(--base4);
 }
 
 .summary-row:last-child {
@@ -4220,9 +4288,9 @@ function handleMouseOut() {
 .splits-header {
   display: flex;
   font-weight: bold;
-  background-color: $base1;
+  background-color: var(--base1);
   text-align: center;
-  color: $text1;
+  color: var(--text1);
   height: 20px;
   justify-content: center;
   align-items: center;
@@ -4236,7 +4304,7 @@ function handleMouseOut() {
   display: flex;
   flex-direction: column;
   text-align: center;
-  color: $text2;
+  color: var(--text2);
 }
 
 .dividends-row,
@@ -4250,7 +4318,7 @@ function handleMouseOut() {
   margin-bottom: 1px;
   justify-content: center;
   align-items: center;
-  background-color: $base2;
+  background-color: var(--base2);
   font-weight: bold;
 }
 
@@ -4265,6 +4333,44 @@ function handleMouseOut() {
   padding-bottom: 4px;
 }
 
+.arrow-up {
+  font-size: 1em;
+  line-height: 0.8em;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  color: var(--positive);
+  margin-left: 7px;
+}
+.arrow-up::after {
+  content: "\25B2";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--positive);
+}
+
+.arrow-down {
+  font-size: 1em;
+  line-height: 0.1em;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  color: var(--negative);
+  margin-left: 7px;
+}
+
+.arrow-down::after {
+  content: "\25BC";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--negative);
+}
+
+
 .chart-img {
   width: 20px;
   height: 20px;
@@ -4278,13 +4384,18 @@ function handleMouseOut() {
 }
 
 .hidden-message {
-  display: flex;
-  /* Use flexbox for alignment */
-  align-items: center;
-  /* Center items vertically */
-  justify-content: center;
-  margin-left: 10px;
-  opacity: 0.60;
+  display: inline-block;
+  background-color: transparent;
+  color: var(--text1);
+  border: solid 1px var(--text1);
+  border-radius: 2.5px; 
+  margin-left: 5px;
+  opacity: 0.85;
+  user-select: none;
+  text-align: center;
+  padding: 0px 4px; /* minimal padding */
+  font-size: 0.175rem; /* extremely small font size */
+  line-height: 0.5;
 }
 
 /* the sphere thingy neat watchlist, counts how many elements are inside it */
@@ -4292,11 +4403,11 @@ function handleMouseOut() {
   display: inline-block;
   padding: 2px 5px;
   font-weight: bold;
-  color: $base4;
+  color: var(--base4);
   text-align: center;
   vertical-align: baseline;
   border-radius: 25px;
-  background-color: $text1;
+  background-color: var(--text1);
 }
 
 /* related to dropdown menu for watchlist */
@@ -4308,16 +4419,10 @@ function handleMouseOut() {
 }
 
 .dropdown-icon {
-  content: url('@/assets/icons/down.png');
-  width: 10px;
+  width: 20px;
   position: absolute;
   left: 0;
   margin: 3%;
-}
-
-.dropdown-icon-hover {
-  content: url('@/assets/icons/up.png');
-  width: 10px;
 }
 
 #list:focus {
@@ -4330,7 +4435,7 @@ function handleMouseOut() {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--base1);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -4338,21 +4443,21 @@ function handleMouseOut() {
 }
 
 .popup-content {
-  background-color: $base2;
+  background-color: var(--base2);
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   width: 70%;
   height: 60%;
   overflow: scroll;
-  color: rgba($text1, 0.70);
+  color: rgba(var(--text1), 0.70);
 }
 
 .financials-header {
   display: flex;
   align-items: center;
   padding: 10px;
-  color: $text1;
+  color: var(--text1);
   border-radius: 5px;
   min-width: 100px;
 }
@@ -4360,17 +4465,17 @@ function handleMouseOut() {
 .attribute-name {
   text-align: left;
   min-width: 270px;
-  background-color: $base1;
+  background-color: var(--base1);
   padding: 10px 5px;
   border-radius: 5px;
   margin-right: 5px;
-  color: $text1;
+  color: var(--text1);
 }
 
 .fiscal-year {
   text-align: center;
   min-width: 100px;
-  background-color: $base1;
+  background-color: var(--base1);
   padding: 10px 0;
   border-radius: 5px;
   margin-right: 5px;
@@ -4385,12 +4490,13 @@ function handleMouseOut() {
 .financial-value {
   text-align: center;
   min-width: 100px;
-  border-bottom: 1px solid $base1;
+  border-bottom: 1px solid var(--base1);
   padding-bottom: 10px;
   padding-top: 10px;
+  color: var(--text1);
   border-radius: 5px;
   margin-right: 5px;
-  background-color: rgba($base3, 0.15);
+  background-color: rgba(var(--base3), 0.15);
   position: relative;
 }
 
@@ -4399,20 +4505,20 @@ function handleMouseOut() {
   padding: 5px;
   border: none;
   border-radius: 5px;
-  background-color: $accent1;
-  color: $text1;
+  background-color: var(--accent1);
+  color: var(--text1);
   transition: background-color 0.5s ease-in-out;
 }
 
 .toggle-button:hover {
   cursor: pointer;
-  background-color: $accent2;
+  background-color: var(--accent2);
 }
 
 .indexes {
-  background-color: $base2;
+  background-color: var(--base2);
   height: 20px;
-  color: $text1;
+  color: var(--text1);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -4420,22 +4526,23 @@ function handleMouseOut() {
 }
 
 .index-btn {
-  background-color: $base2;
-  color: $text1;
+  background-color: var(--base2);
+  color: var(--text1);
   border-radius: 5px;
   border-color: transparent;
   letter-spacing: 0.2px;
+  cursor: pointer;
 }
 
 .index-btn:hover {
-  background-color: $base4;
-  color: $text1;
+  background-color: var(--base4);
+  color: var(--text1);
 }
 
 .index-btn.active {
-  background-color: rgba($accent1, 0.30);
+  background-color: rgba(var(--accent1), 0.30);
   /* color when active */
-  color: $text1;
+  color: var(--text1);
 }
 
 .percentage-box {
@@ -4447,8 +4554,8 @@ function handleMouseOut() {
 
 .tooltip {
   position: absolute;
-  background-color: $base1;
-  border: 1px solid $accent3;
+  background-color: var(--base1);
+  border: 1px solid var(--accent3);
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -4457,7 +4564,7 @@ function handleMouseOut() {
 }
 
 .tooltip-text {
-  color: $text1;
+  color: var(--text1);
 }
 
 .question-img {
@@ -4469,7 +4576,7 @@ function handleMouseOut() {
 .empty-list-message {
   text-align: center;
   padding: 20px;
-  color: white;
+  color: var(--text1);
   opacity: 0.70;
   display: flex;
   flex-direction: row;
@@ -4482,5 +4589,20 @@ function handleMouseOut() {
   margin-left: 10px;
 }
 
+.sphere {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-left: 4px;
+  border: none;
+}
+.green-sphere {
+  background-color: var(--positive); /* default green */
+}
+.red-sphere {
+  background-color: var(--negative); /* default red */
+}
 
 </style>
