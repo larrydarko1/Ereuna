@@ -21,7 +21,7 @@
       >
       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
     </svg>
-    Account Settings
+    Account
   </div>
   <div class="menu" @click="selectMenu($event, 1)">
     <svg
@@ -43,7 +43,7 @@
     Themes
   </div>
       <div class="menu" @click="selectMenu($event, 3)">
-        <svg class="icon" version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64 64" enable-background="new 0 0 64 64" xml:space="preserve" fill="currentColor"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="currentColor" d="M52,24h-4v-8c0-8.836-7.164-16-16-16S16,7.164,16,16v8h-4c-2.211,0-4,1.789-4,4v32c0,2.211,1.789,4,4,4h40 c2.211,0,4-1.789,4-4V28C56,25.789,54.211,24,52,24z M32,48c-2.211,0-4-1.789-4-4s1.789-4,4-4s4,1.789,4,4S34.211,48,32,48z M40,24 H24v-8c0-4.418,3.582-8,8-8s8,3.582,8,8V24z"></path> </g></svg>Security / 2FA
+        <svg class="icon" version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64 64" enable-background="new 0 0 64 64" xml:space="preserve" fill="currentColor"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="currentColor" d="M52,24h-4v-8c0-8.836-7.164-16-16-16S16,7.164,16,16v8h-4c-2.211,0-4,1.789-4,4v32c0,2.211,1.789,4,4,4h40 c2.211,0,4-1.789,4-4V28C56,25.789,54.211,24,52,24z M32,48c-2.211,0-4-1.789-4-4s1.789-4,4-4s4,1.789,4,4S34.211,48,32,48z M40,24 H24v-8c0-4.418,3.582-8,8-8s8,3.582,8,8V24z"></path> </g></svg>Security
       </div>
       </div>
       </div>
@@ -83,7 +83,7 @@
       <svg width='15px' height='15px' version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64 64" enable-background="new 0 0 64 64" xml:space="preserve" fill="currentColor"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="currentColor" d="M52,24h-4v-8c0-8.836-7.164-16-16-16S16,7.164,16,16v8h-4c-2.211,0-4,1.789-4,4v32c0,2.211,1.789,4,4,4h40 c2.211,0,4-1.789,4-4V28C56,25.789,54.211,24,52,24z M32,48c-2.211,0-4-1.789-4-4s1.789-4,4-4s4,1.789,4,4S34.211,48,32,48z M40,24 H24v-8c0-4.418,3.582-8,8-8s8,3.582,8,8V24z"></path> </g></svg>
       Change Password
     </h2>
-  <div style="display: flex; justify-content: center; ">
+  <div class="changepassword">
   <div style="margin-right: 3px;">
     <div style="position: relative;">
   <input 
@@ -1143,6 +1143,11 @@ p{
     border: none;
 }
 
+.changepassword{
+  display: flex; 
+  justify-content: center; 
+}
+
 .square {
     align-items: center;
     display: inline-flex;
@@ -1624,7 +1629,7 @@ p{
   display: flex;
   flex-direction: row;
   justify-content: center;
-  height: 15%;
+  height: 20%;
   width: 100%;
   background-color: var(--base2);
   padding: 0;
@@ -1633,10 +1638,9 @@ p{
 .content {
   display: flex;
   flex-direction: row;
-  height: 85%;
+  height: 80%;
   width: 100%;
   background-color: var(--base4);
-  padding: 20px;
   text-align: center;
 }
 
@@ -1648,6 +1652,7 @@ p{
   align-content: center;
   width: 90vw; /* 70% of the viewport width */
   margin: 0 auto;
+  padding: 1.5rem;
 }
 
 .user {
@@ -1680,7 +1685,7 @@ p{
   background-color: rgba(var(--base4), 0.9);
   padding: 10px;
   color: var(--text1);
-  font-size: 1rem;
+  font-size: 1.2rem;
   cursor: pointer;
   border-radius: 5px;
   transition: background-color 0.3s ease-in-out;
@@ -1705,6 +1710,96 @@ flex-direction: column;}
   width: 15px;
   height: 15px;
   margin-right: 7px;
+}
+
+.userdiv{
+  background-color: var(--base2);
+  width: 80%;
+  border-radius: 10px;
+  margin-right: 11%
+}
+
+/* buttons for settings */
+.userbtn {
+  background-color: var(--accent1);
+  color: var(--text1);
+  border-radius: 5px;
+  border: none;
+  outline: none;
+  padding: 5px;
+  margin: 5px;
+  width: 30%;
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: all 0.3s ease; /* Smooth transition for hover effects */
+}
+
+.userbtn:hover {
+    background-color: var(--accent2); /* Background color on hover */
+}
+
+/* inputs for settings */
+.userinput{
+  border-radius: 5px;
+  position: relative;
+  padding: 5px 5px 5px 15px;
+  margin: 7px;
+  width: 50%;
+  outline: none;
+  color: var(--base3); /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
+  border: solid 1px var(--base4);
+  background-color:var(--base4);
+}
+
+.userinput:focus{
+  border-color: var(--accent1);; /* Change border color on focus */
+  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
+  outline: none; /* Remove default outline */
+}
+
+.changepassword{
+  display: flex; 
+  justify-content: center; 
+  flex-direction: column;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 25%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--text1);
+  opacity: 0.60;
+}
+
+.password-toggle2 {
+  position: absolute;
+  right: 15%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--text1);
+  opacity: 0.60;
+}
+
+.password-toggle3 {
+  position: absolute;
+  right: 15%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--text1);
+  opacity: 0.60;
 }
 
 }
