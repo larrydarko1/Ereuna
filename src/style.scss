@@ -1,22 +1,87 @@
-/** Dark theme primary colors */
+:root {
+    font-family: Helvetica Neue, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    color-scheme: light dark;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
 
-/* main accent */
+// THEMES for app proper
+
+.default {
+    --accent1: #8c8dfe;
+    --accent2: #a9a5ff;
+    --accent3: #cfcbff;
+    --accent4: #a9a5ff53; //just for selected overlay screener 
+    --text1: #ffffff;
+    --text2: #cad3f5;
+    --text3: #000000;
+    --base1: #181926;
+    --base2: #25273a;
+    --base3: #8a8a90;
+    --base4: #1e2030;
+    --positive: #4caf50;
+    --negative: #90bff9;
+    --volume: #4d4d4d;
+    --ma4: #4caf50; //200MA
+    --ma3: #ffeb3b; //50MA
+    --ma2: #2862ff; //20MA
+    --ma1: #00bcd4; //10MA
+}
+
+.fuckmyeyes {
+    --accent1: #8c8dfe;
+    --accent2: #a9a5ff;
+    --accent3: #63607a;
+    --accent4: #a9a5ff;
+    --text1: #000000;
+    --text2: #4a4a4a;
+    --text3: #cdcdcd;
+    --base1: #e8e8e8;
+    --base2: #cdcdcd;
+    --base3: #000000;
+    --base4: #ffffff;
+    --positive: #007404;
+    --negative: #ff0000;
+    --volume: #4d4d4d;
+    --ma4: #4caf50; //200MA
+    --ma3: #ffeb3b; //50MA
+    --ma2: #2862ff; //20MA
+    --ma1: #00bcd4; //10MA
+}
+
+.colorblind {
+    --accent1: #0072B5;
+    --accent2: #56B1F4;
+    --accent3: #B3CDE0;
+    --accent4: #0073b54f;
+    --text1: #ffffff;
+    --text2: #cdcdcd;
+    --text3: #999999;
+    --base1: #F0F0F0;
+    --base2: #000000;
+    --base3: #CCCCCC;
+    --base4: #FFFFFF;
+    --positive: #4caf50;
+    --negative: #e5ff00;
+    --volume: #4d4d4d;
+    --ma4: #4caf50; //200MA
+    --ma3: #ffeb3b; //50MA
+    --ma2: #2862ff; //20MA
+    --ma1: #00bcd4; //10MA
+}
+
+// default theme for overall site / DON'T TOUCH THESE SASS ELEMENTS!!!
 $accent1: #8c8dfe;
-/* lighter accent, mainly for hover effects */
 $accent2: #a9a5ff;
-/* maybe for text?  */
 $accent3: #cfcbff;
-/* main text */
 $text1: #ffffff;
-/* darker text */
 $text2: #cad3f5;
-/* even darker text */
 $text3: #a4adcb;
-/* background body */
 $base1: #181926;
-/* mid tone */
 $base2: #25273a;
-/* text for forms, not exactly a base */
 $base3: #8a8a90;
-/* background contrast  */
 $base4: #1e2030;

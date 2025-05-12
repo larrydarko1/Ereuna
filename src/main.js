@@ -4,6 +4,7 @@ import App from './App.vue';
 import router from './router';
 import store from './store/store';
 import authPlugin from './auth-plugin';
+import './style.scss'
 import { useMaintenanceStore } from './store/maintenance';
 
 const app = createApp(App);
