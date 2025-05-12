@@ -868,13 +868,6 @@ const showNotification = () => {
   notification.value.show('This is a custom notification message!');
 };
 
-// shows icons for toggle watchlist (the thing that adds / removes dropdown menu, the damn checkboxes)
-function getWatchlistIcon(ticker, item) {
-  return isAssetInWatchlist(ticker.Name, item)
-    ? new URL('@/assets/icons/checked.png', import.meta.url).href
-    : new URL('@/assets/icons/unchecked.png', import.meta.url).href;
-}
-
 const showDropdown = ref(false);
 const showPopup = ref(false) // div for financial statements
 

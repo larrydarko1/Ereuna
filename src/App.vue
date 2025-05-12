@@ -1,14 +1,11 @@
 <template>
-  <div>
-    <div v-if="isMobile" class="mobile-message">
-      Looks like you're tying to access this web application using a mobile device, Please switch to a desktop or larger screen to view this website.
-    </div>
-    <router-view v-else></router-view>
-  </div>
+    <router-view></router-view>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+
+const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 const number = ref(0); // Replace this with your actual number variable
 
@@ -16,43 +13,6 @@ const numberClass = computed(() => {
   return number.value > 0 ? 'positive' : 'negative';
 });
 
-const themes = ['default', 'fuckmyeyes', 'colorblind'];
-const currentTheme = ref('default');
-function setTheme(newTheme) {
-  const root = document.documentElement;
-  root.classList.remove(...themes);
-  root.classList.add(newTheme);
-  localStorage.setItem('user-theme', newTheme);
-  currentTheme.value = newTheme;
-}
-
-function loadTheme() {
-  const savedTheme = localStorage.getItem('user-theme');
-  if (themes.includes(savedTheme)) {
-    setTheme(savedTheme);
-  } else {
-    setTheme('default');
-  }
-}
-
-loadTheme()
-
-/* 
-// Reactive variable to detect if screen width is less than mobile threshold
-const isMobile = ref(false);
-
-function checkScreen() {
-  isMobile.value = window.innerWidth < 1100;
-}
-
-onMounted(() => {
-  checkScreen();
-  window.addEventListener('resize', checkScreen);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', checkScreen);
-});*/
 </script>
 
 <style lang="scss">

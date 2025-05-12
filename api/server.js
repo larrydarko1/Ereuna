@@ -14701,3 +14701,92 @@ app.post('/trial', validate([
     if (client) await client.close();
   }
 });
+
+
+app.post('/theme', validate([
+  validationSchemas.theme(),
+  validationSchemas.username()
+]), async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
+    }
+    const { theme, username } = req.body;
+    const sanitizedUser = sanitizeInput(username);
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+
+    const userDocument = await usersCollection.findOne({ Username: sanitizedUser });
+    if (!userDocument) {
+      return res.status(404).json({ message: 'User  not found' });
+    }
+    await usersCollection.updateOne({ Username: sanitizedUser }, { $set: { theme } });
+    return res.status(200).json({ message: 'Theme updated' });
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      const validationErrors = error.errors.map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+      return res.status(400).json({ errors: validationErrors });
+    }
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred while updating theme' });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
+app.post('/load-theme', validate([
+  validationSchemas.username()
+]), async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
+    }
+    const { username } = req.body;
+    const sanitizedUser = sanitizeInput(username);
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+    const userDocument = await usersCollection.findOne({ Username: sanitizedUser });
+    if (!userDocument) {
+      return res.status(404).json({ message: 'User  not found' });
+    }
+    const theme = userDocument.theme;
+    return res.status(200).json({ theme });
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      const validationErrors = error.errors.map(err => ({
+        field: err.path,
+        message: err.message
+      }));
+      return res.status(400).json({ errors: validationErrors });
+    }
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred while loading theme' });
+  } finally {
+    if (client) await client.close();
+  }
+});

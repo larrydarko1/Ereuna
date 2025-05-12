@@ -231,7 +231,7 @@ async function login() {
         localStorage.setItem('token', token);
         welcomeMessage.value = `Welcome ${username}!`;
         welcomePopup.value = true;
-        router.push({ name: 'Charts' });
+        router.push({ name: 'Dashboard' });
       }
     } else {
       // Use exact string matching

@@ -223,6 +223,13 @@ const validationSchemas = {
         .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
         .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
 
+    theme: () => body('theme')
+        .trim()
+        .isLength({ min: 1, max: 20 })
+        .withMessage('Theme must be between 1 and 20 characters')
+        .isIn(['default', 'ihatemyeyes', 'colorblind', 'catpuccin'])
+        .withMessage('Invalid theme. Must be one of: default, ihatemyeyes, colorblind, catpuccin'),
+
     minPrice: () =>
         body('minPrice')
             .optional({ nullable: true }) // Allow null values
