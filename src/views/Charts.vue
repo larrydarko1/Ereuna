@@ -1,6 +1,11 @@
 <template>
   <body>
     <Header />
+    <div class="mobilenav">
+<button class="mnavbtn">Info</button>
+<button class="mnavbtn">Chart</button>
+<button class="mnavbtn">Watchlists</button>
+    </div>
     <div id="main">
       <div class="tooltip-container">
         <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
@@ -4814,5 +4819,87 @@ function handleMouseOut() {
 .red-sphere {
   background-color: var(--negative); /* default red */
 }
+
+.mobilenav{
+  display: none;
+}
+
+/* Mobile version */
+@media (max-width: 1150px) {
+#main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  //max-height: 760px;
+}
+
+#sidebar-left {
+  flex-direction: column;
+  background-color: var(--base4);
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+#chart-container {
+  display: none;
+}
+
+#sidebar-right {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--base4);
+  overflow-y: scroll;
+}
+
+.indexes{
+  display: none;
+}
+
+.mobilenav{
+  display: flex;
+  flex-direction: row;
+  gap: 12px; /* space between buttons */
+  padding: 8px 12px;
+  background-color: rgba(var(--base4), 0.1); /* subtle transparent background */
+  border-radius: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.mnavbtn{
+  margin-top: 5px;
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  background-color: var(--base2);
+  padding: 0 18px;
+  color: var(--text1);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
+  opacity: 0.85;
+  height: 3rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  user-select: none;
+  border: transparent;
+}
+
+.mnavbtn:hover {
+  background-color: var(--accent1);
+  opacity: 1;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.mnavbtn.selected {
+  background-color: var(--accent1);
+  opacity: 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+}
+
 
 </style>
