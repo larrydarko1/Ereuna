@@ -17,31 +17,30 @@ app.use(authPlugin);
 
 // Maintain the navigation guard here
 router.beforeEach(async (to, from, next) => {
-    const maintenanceStore = useMaintenanceStore();
-    await maintenanceStore.checkMaintenanceStatus();
-
-    // Give maintenance check absolute priority
-    if (maintenanceStore.isUnderMaintenance === true) {
-        // Allow only Upload page during maintenance
-        if (to.name === 'Upload') {
-            next();
-        } else {
-            next({ name: 'Upload' });
-        }
-        return; // Important: stop here and don't check authentication
-    }
-
-    // Only check authentication if NOT in maintenance mode
     const token = localStorage.getItem('token');
-
-    if (!token && (to.name !== 'Login' && to.name !== 'SignUp' && to.name !== 'PaymentRenew' && to.name !== 'Recovery' && to.name !== 'Home')) {
+    // List of public routes that do not require authentication
+    const publicPages = ['Login', 'SignUp', 'PaymentRenew', 'Recovery', 'Home'];
+    // If no token and trying to access protected page, redirect to Login and clear caches
+    if (!token && !publicPages.includes(to.name)) {
         await caches.keys().then(cacheNames => {
             cacheNames.forEach(cacheName => caches.delete(cacheName));
         });
         next({ name: 'Login' });
-    } else {
-        next();
+        return;
     }
+
+    // At this point, user is authenticated or accessing public pages
+    const maintenanceStore = useMaintenanceStore();
+    await maintenanceStore.checkMaintenanceStatus();
+    if (token && maintenanceStore.isUnderMaintenance === true) {
+        // If trying to access restricted pages during maintenance, redirect to Upload
+        if (['Charts', 'Screener', 'Dashboard'].includes(to.name)) {
+            next({ name: 'Upload' });
+            return;
+        }
+    }
+    // Otherwise allow navigation
+    next();
 });
 
 app.mount('#app');

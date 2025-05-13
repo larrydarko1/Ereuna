@@ -292,6 +292,7 @@ l-240 1 -90 -57z"/>
           </div>
         </div>
         <div v-else style="border:none">
+        
           <div class="summary-container">
             <div class="summary-row">
               <div class="category">Exchange</div>
@@ -849,7 +850,7 @@ l-240 1 -90 -57z"/>
       </div>
     </div>
     <div v-else class="empty-list-message">
-      <img style="height: 30px;" src="@/assets/icons/null.png" alt="">
+      <svg fill="var(--text1)" height="20px" width="20px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M493.297,159.693c-12.477-30.878-31.231-59.828-56.199-84.792c-24.964-24.967-53.914-43.722-84.793-56.199 C321.426,6.222,288.617,0,255.823,0c-32.748,0-65.497,6.249-96.315,18.743c-30.814,12.491-59.695,31.244-84.607,56.159 c-24.915,24.912-43.668,53.793-56.158,84.607C6.25,190.325,0.001,223.073,0.001,255.823c0,32.794,6.222,65.602,18.701,96.484 c12.477,30.878,31.231,59.828,56.199,84.793c24.964,24.967,53.914,43.722,84.792,56.199c30.882,12.48,63.69,18.701,96.484,18.701 c32.748,0,65.497-6.249,96.314-18.743c30.814-12.49,59.695-31.242,84.607-56.158c24.917-24.913,43.67-53.794,56.16-84.608 c12.493-30.817,18.743-63.566,18.743-96.315C511.999,223.383,505.778,190.575,493.297,159.693z M461.611,339.661 c-10.821,26.683-27.019,51.648-48.659,73.291c-21.643,21.64-46.608,37.837-73.292,48.657 c-26.679,10.818-55.078,16.241-83.484,16.241c-28.477,0-56.947-5.405-83.688-16.213c-26.744-10.813-51.76-27.007-73.441-48.685 c-21.678-21.682-37.873-46.697-48.685-73.441C39.554,312.77,34.149,284.3,34.149,255.823c0-28.406,5.423-56.804,16.241-83.484 c10.821-26.683,27.018-51.648,48.659-73.291c21.643-21.64,46.608-37.837,73.291-48.659c26.679-10.818,55.078-16.241,83.484-16.241 c28.477,0,56.947,5.405,83.688,16.214c26.744,10.813,51.76,27.008,73.441,48.685c21.677,21.681,37.873,46.697,48.685,73.441 c10.808,26.741,16.214,55.211,16.214,83.688C477.852,284.583,472.429,312.981,461.611,339.661z"></path> </g> </g> <g> <g> <path d="M385.946,126.055c-6.524-6.525-17.102-6.525-23.626,0l-36.278,36.278c-7.82-5.861-16.298-10.691-25.249-14.389 c-14.036-5.803-29.225-8.832-44.792-8.83c-15.572-0.002-30.761,3.027-44.797,8.83c-14.037,5.799-26.917,14.372-37.901,25.36 c-11.376,11.375-19.956,24.598-25.656,38.689c-5.704,14.094-8.547,29.054-8.548,44.007c0,14.954,2.843,29.914,8.548,44.007 c3.693,9.131,8.603,17.892,14.691,26.027l-36.285,36.285c-6.524,6.524-6.524,17.102,0,23.627c6.525,6.524,17.102,6.524,23.627,0 l36.278-36.278c7.82,5.861,16.298,10.691,25.249,14.389c14.036,5.803,29.225,8.832,44.792,8.83 c15.572,0.002,30.761-3.027,44.797-8.83c14.037-5.799,26.917-14.372,37.901-25.359c11.376-11.375,19.955-24.599,25.656-38.689 c5.704-14.094,8.547-29.054,8.548-44.007c0-14.954-2.843-29.914-8.548-44.008c-3.693-9.131-8.603-17.892-14.691-26.027 l36.285-36.285C392.47,143.157,392.47,132.579,385.946,126.055z M178.621,287.472c-4.066-10.044-6.108-20.754-6.107-31.471 c0-10.717,2.042-21.428,6.107-31.472c4.07-10.047,10.146-19.431,18.31-27.599c7.908-7.906,17.06-13.98,27.036-18.106 c9.978-4.122,20.783-6.295,32.033-6.296c11.245,0.002,22.051,2.174,32.03,6.297c4.897,2.025,9.593,4.525,14.044,7.476 L186.305,302.069C183.229,297.418,180.669,292.53,178.621,287.472z M333.38,287.472c-4.07,10.047-10.146,19.431-18.31,27.599 c-7.908,7.906-17.06,13.98-27.036,18.106c-9.978,4.122-20.783,6.295-32.033,6.296c-11.245-0.002-22.05-2.174-32.03-6.297 c-4.897-2.025-9.593-4.526-14.044-7.476l115.769-115.769c3.076,4.651,5.636,9.539,7.684,14.597 c4.066,10.044,6.108,20.754,6.107,31.472C339.488,266.717,337.446,277.427,333.38,287.472z"></path> </g> </g> </g></svg>
       <p>This list is empty</p>
     </div>
   </div>
@@ -866,6 +867,7 @@ l-240 1 -90 -57z"/>
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
+import Panel from '@/components/panel.vue'
 import { reactive, onMounted, ref, watch, computed, nextTick } from 'vue';
 import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
 import Loader from '@/components/loader.vue';
@@ -3567,6 +3569,71 @@ const selected = ref('info')
 function select(option) {
   selected.value = option
 }
+
+const showPanel = ref(false);
+
+
+const themes = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
+const currentTheme = ref('default');
+
+const themeDisplayNames = {
+  default: 'Default Theme (Dark)',
+  ihatemyeyes: 'I Hate My Eyes (light-mode)',
+  colorblind: "I'm Colorblind",
+  catpuccin: 'Catpuccin',
+};
+
+async function setTheme(newTheme) {
+  const root = document.documentElement;
+  root.classList.remove(...themes);
+  root.classList.add(newTheme);
+  localStorage.setItem('user-theme', newTheme);
+  try {
+    const response = await fetch('/api/theme', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({ theme: newTheme, username: user }),
+    });
+    const data = await response.json();
+    if (data.message === 'Theme updated') {
+      currentTheme.value = newTheme;
+    } else {
+      error.value = data.message;
+    }
+  } catch (error) {
+    error.value = error.message;
+  }
+}
+
+async function loadTheme() {
+    try {
+      const response = await fetch('/api/load-theme', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': apiKey,
+        },
+        body: JSON.stringify({ username: user }),
+      });
+      const data = await response.json();
+      if (data.theme) {
+        setTheme(data.theme);
+      } else {
+        setTheme('default');
+      }
+    } catch (error) {
+      setTheme('default');
+    }
+  }
+
+loadTheme()
+
+defineExpose({
+  loadTheme,
+});
 </script>
 
 <style lang="scss" scoped>
@@ -4267,6 +4334,25 @@ function select(option) {
 
 /* */
 
+.editbtn{
+  background-color: var(--base4);
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  padding: 5px;
+  color: var(--text1);
+  transition: background-color 0.5s ease-in-out;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+
+.editbtn:hover {
+  background-color: var(--base2);
+}
+
 .financialbtn {
   background-color: var(--accent1);
   border: none;
@@ -4282,16 +4368,17 @@ function select(option) {
 }
 
 .toggle-btn {
-  background-color: var(--accent1);
+  background-color: var(--base2);
   border: none;
   cursor: pointer;
   width: 100%;
   color: var(--text1);
+  padding: 5px;
   transition: background-color 0.5s ease-in-out;
 }
 
 .toggle-btn:hover {
-  background-color: var(--accent2);
+  background-color: var(--base4);
 }
 
 .no-data {
@@ -4846,6 +4933,14 @@ function select(option) {
   display: none;
 }
 
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
 @media (min-width: 1151px) {
   #sidebar-left,
   #chart-container,
@@ -4853,6 +4948,8 @@ function select(option) {
     display: block !important;
   }
 }
+
+
 
 /* Mobile version */
 @media (max-width: 1150px) {
@@ -4926,6 +5023,161 @@ function select(option) {
   background-color: var(--accent1);
   opacity: 1;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.empty-list-message{
+  position: absolute;
+  top: 50%;
+  left: 40%;
+  transform: translate(-50%, -50%);
+}
+
+.editbtn{
+  background-color: var(--base4);
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  padding: 15px;
+  color: var(--text1);
+  transition: background-color 0.5s ease-in-out;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+
+.financialbtn {
+  background-color: var(--accent1);
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  padding: 15px;
+  color: var(--text1);
+  transition: background-color 0.5s ease-in-out;
+  font-size: 2rem;
+}
+
+.summary-row .category {
+  flex: 0 0 50%;
+  font-weight: 400;
+  font-size: 1.5rem;
+}
+
+.summary-row .response {
+  flex: 0 0 50%;
+  font-size: 1.5rem;
+}
+
+.summary-row2 {
+  display: flex;
+  height: fit-content;
+  padding-left: 5px;
+  padding-right: 5px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--base4);
+}
+
+.description {
+  border: none;
+  text-align: center;
+  overflow: hidden;
+  /* Hide overflow when not expanded */
+  transition: height 0.3s ease;
+  /* Smooth transition for height */
+  /* Set a fixed height when not expanded */
+  height: 50px;
+  font-size: 1.5rem;
+  /* This should match your minHeight */
+}
+
+.toggle-btn {
+  background-color: var(--base2);
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  color: var(--text1);
+  padding: 10px;
+  font-size: 1.5rem;
+  transition: background-color 0.5s ease-in-out;
+}
+
+.toggle-btn:hover {
+  background-color: var(--base4);
+}
+
+.dividends-header,
+.eps-header,
+.earn-header,
+.sales-header,
+.splits-header {
+  display: flex;
+  font-weight: bold;
+  background-color: var(--base1);
+  text-align: center;
+  color: var(--text1);
+  height: 40px;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+}
+
+.dividends-row,
+.eps-row,
+.earn-row,
+.sales-row,
+.splits-row {
+  display: flex;
+  height: 40px;
+  text-align: center;
+  margin-bottom: 1px;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--base2);
+  font-weight: bold;
+  font-size: 2rem;
+}
+
+.title {
+  background-color: var(--base1);
+  color: var(--text1);
+  text-align: center;
+  padding: 15px;
+  font-size: 1.5rem;
+  border: none;
+  margin: 0;
+}
+
+#chartdiv {
+  border: none;
+}
+
+#chart-container {
+  position: relative;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  background-repeat: no-repeat;
+  width: 100%;;
+}
+
+#legend {
+  display: none;
+}
+
+#legend2 {
+  display: none;
+}
+
+#legend3 {
+  display: none;
+}
+
+#legend4 {
+  display: none;
 }
 
 }
