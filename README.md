@@ -4,6 +4,7 @@ v1.0.3
 - fixed toggled password bug in dashboard for changing password tab
 - elements tweaks and adjustements
 - removed dependencies from vue-loader and used a native component
+- maintenance mode now only works inside app and not the entire website
 -----
 v1.0.2
 - renamed index names from index funds with proper index (but kept index fund data which closely resembles indexes)

@@ -312,7 +312,7 @@ async function verifyMfa() {
 
 .signbtn {
   background-color: transparent;
-  color: whitesmoke;
+  color: $text1;
   border-radius: 10px;
   outline: none;
   border: solid 2px $accent1;
