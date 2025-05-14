@@ -112,6 +112,12 @@ const validationSchemas = {
         .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
         .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
 
+    usernameQuery: (fieldName = 'username') => query(fieldName)
+        .trim()
+        .notEmpty().withMessage('Username is required')
+        .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+        .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
+
     chartData: (fieldName = 'ticker') => param(fieldName)
         .trim()
         .notEmpty().withMessage('Ticker symbol is required')
@@ -326,7 +332,9 @@ const validationSchemas = {
         .trim()
         .notEmpty().withMessage('Average Volume Option is required')
         .isIn(['-', '1W', '1M', '6M', '1Y']).withMessage('Invalid Average Volume Option'),
+
 };
+
 
 // Validation Middleware
 const validate = (validations) => {
@@ -396,7 +404,7 @@ const validationSets = {
         validationSchemas.relativeVolumeOption(),
         validationSchemas.averageVolumeOption(),
         ...validationSchemas.volumeValues()
-    ]
+    ],
 };
 
 export {
