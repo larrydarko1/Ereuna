@@ -2055,7 +2055,7 @@ def ExMachina():
     
 #run every day
 def Daily():
-    song_path = '/Users/lorenzomazzola/Desktop/Ereuna Dev/server/song.mp3'
+    song_path = '/Users/lorenzomazzola/Desktop/Startup/Ereuna Dev/server/song.mp3'
     song_thread = threading.Thread(target=play_song, args=(song_path,))
     song_thread.daemon = True  # set as daemon so it stops when main thread stops
     song_thread.start()

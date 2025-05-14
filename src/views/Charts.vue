@@ -315,298 +315,70 @@ l-240 1 -90 -57z"/>
   <Panel v-if="showPanel" @close="showPanel = false" />
 </transition>
 </div>
-          <div class="summary-container">
-            <div class="summary-row">
-              <div class="category">Exchange</div>
-              <div class="response">
-                {{ assetInfo.Exchange }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">ISIN</div>
-              <div class="response">{{ assetInfo.ISIN }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">IPO Date</div>
-              <div class="response">{{ formatDate(assetInfo.IPO) }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Sector</div>
-              <div class="response">
-                {{ assetInfo.Sector.charAt(0).toUpperCase() + assetInfo.Sector.slice(1).toLowerCase() }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Industry</div>
-              <div class="response">
-                {{ assetInfo.Industry.charAt(0).toUpperCase() + assetInfo.Industry.slice(1).toLowerCase() }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Reported Currency</div>
-              <div class="response">{{ assetInfo.Currency.toUpperCase() }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Technical Score (1W)</div>
-              <div class="response">{{ assetInfo.RSScore1W }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Technical Score (1M)</div>
-              <div class="response">{{ assetInfo.RSScore1M }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Technical Score (4M)</div>
-              <div class="response">{{ assetInfo.RSScore4M }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Market Cap</div>
-              <div class="response">{{ parseInt(assetInfo.MarketCapitalization).toLocaleString() }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Shares Outstanding</div>
-              <div class="response">{{ parseInt(assetInfo.SharesOutstanding).toLocaleString() }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Location</div>
-              <div class="response">{{ assetInfo.Address }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Dividend Date</div>
-              <div class="response">
-                {{
-                  (assetInfo.DividendDate !== 'Invalid Date' && assetInfo.DividendDate != null &&
-                    !isNaN(Date.parse(assetInfo.DividendDate)))
-                    ? formatDate(assetInfo.DividendDate)
-                    : '-'
-                }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Dividend Yield</div>
-              <div class="response">
-                {{ (assetInfo.DividendYield != null && !isNaN(assetInfo.DividendYield)) ?
-                  (parseFloat(assetInfo.DividendYield) * 100).toFixed(2) + '%' : '-' }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Book Value</div>
-              <div class="response">
-                {{ (assetInfo.BookValue != null && !isNaN(assetInfo.BookValue)) ? parseFloat(assetInfo.BookValue) : '-'
-                }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">PEG Ratio</div>
-              <div class="response">
-                {{ (assetInfo.PEGRatio != null && !isNaN(assetInfo.PEGRatio) && assetInfo.PEGRatio >= 0) ?
-                  parseInt(assetInfo.PEGRatio) : '-' }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">PE Ratio</div>
-              <div class="response">
-                {{ (assetInfo.PERatio != null && !isNaN(assetInfo.PERatio) && assetInfo.PERatio >= 0) ?
-                  parseInt(assetInfo.PERatio) : '-' }}
-              </div>
-            </div>
-            <div class="summary-row2">
-              <div :class="['description', { 'expanded': showAllDescription }]"
-                :style="{ height: showAllDescription ? 'auto' : minHeight }">
-                {{ assetInfo.Description }}
-              </div>
-            </div>
-            <button @click="showAllDescription = !showAllDescription" class="toggle-btn">
-              {{ showAllDescription ? 'Show Less' : 'Show All' }}
-            </button>
-          </div>
-          <div v-if="displayedEPSItems.length > 0" id="EPStable">
-            <div class="eps-header">
-              <div class="eps-cell" style="flex: 0 0 20%;">Reported</div>
-              <div class="eps-cell" style="flex: 0 0 40%;">EPS</div>
-              <div class="eps-cell" style="flex: 0 0 20%;">Chg (%)</div>
-              <div class="eps-cell" style="flex: 0 0 10%;">QoQ</div>
-              <div class="eps-cell" style="flex: 0 0 10%;">YoY</div>
-            </div>
-            <div class="eps-body">
-              <div v-for="(earnings, index) in displayedEPSItems" :key="earnings.fiscalDateEnding" class="eps-row">
-                <div class="eps-cell" style="flex: 0 0 20%;">{{ formatDate(earnings.fiscalDateEnding) }}</div>
-                <div class="eps-cell" style="flex: 0 0 40%;">{{ parseFloat(earnings.reportedEPS).toFixed(2) }}</div>
-
-                <!-- Change here: Check if there are fewer than 4 items -->
-                <div class="eps-cell" style="flex: 0 0 20%;"
-                  v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
-                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-                </div>
-                <div class="eps-cell" style="flex: 0 0 20%;" v-else
-                  :class="calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0) > 0 ? 'positive' : 'negative'">
-                  {{ isNaN(calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index +
-                    1]?.reportedEPS || 0)) || !isFinite(calculatePercentageChange(earnings.reportedEPS,
-                      assetInfo.quarterlyEarnings[index + 1]?.reportedEPS || 0)) ? '-' :
-                    calculatePercentageChange(earnings.reportedEPS, assetInfo.quarterlyEarnings[index + 1]?.reportedEPS ||
-                      0) + '%' }}
-                </div>
-
-                <div class="eps-cell" style="flex: 0 0 10%;"
-                  v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
-                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-                </div>
-                <div class="eps-cell" style="flex: 0 0 10%;" v-else>
-  <span v-if="getQoQClass(calculateQoQ1(earnings.reportedEPS)) === 'green'" class="sphere green-sphere"></span>
-  <span v-else class="sphere red-sphere"></span>
-</div>
-
-                <div class="eps-cell" style="flex: 0 0 10%;"
-                  v-if="(displayedEPSItems.length < 4 && index === displayedEPSItems.length - 1) || (showAllEPS && index === displayedEPSItems.length - 1)">
-                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-                </div>
-                <div class="eps-cell" style="flex: 0 0 10%;" v-else>
-  <span v-if="getYoYClass(calculateYoY1(earnings.reportedEPS)) === 'green'" class="sphere green-sphere"></span>
-  <span v-else class="sphere red-sphere"></span>
-</div>
-              </div>
-            </div>
-          </div>
-          <div v-if="displayedEPSItems.length === 0" class="no-data">No Quarterly EPS data available</div>
-          <button v-if="showEPSButton" @click="showAllEPS = !showAllEPS" class="toggle-btn">
-            {{ showAllEPS ? 'Show Less' : 'Show All' }}
-          </button>
-          <div v-if="displayedEarningsItems.length > 0" id="Earntable">
-            <div class="earn-header">
-              <div class="earn-cell" style="flex: 0 0 20%;">Reported</div>
-              <div class="earn-cell" style="flex: 0 0 40%;">Earnings</div>
-              <div class="earn-cell" style="flex: 0 0 20%;">Chg (%)</div>
-              <div class="earn-cell" style="flex: 0 0 10%;">QoQ</div>
-              <div class="earn-cell" style="flex: 0 0 10%;">YoY</div>
-            </div>
-            <div class="earn-body">
-              <div v-for="(quarterlyReport, index) in displayedEarningsItems" :key="quarterlyReport.fiscalDateEnding"
-                class="earn-row">
-                <div class="earn-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
-                <div class="earn-cell" style="flex: 0 0 40%;">{{ parseInt(quarterlyReport.netIncome).toLocaleString() }}
-                </div>
-
-                <!-- Change here: Check if there are fewer than 4 items -->
-                <div class="earn-cell" style="flex: 0 0 20%;"
-                  v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
-                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-                </div>
-                <div class="earn-cell" style="flex: 0 0 20%;" v-else
-                  :class="calculateNet(quarterlyReport.netIncome) > 0 ? 'positive' : 'negative'">
-                  {{ isNaN(calculateNet(quarterlyReport.netIncome)) ||
-                    !isFinite(calculateNet(quarterlyReport.netIncome)) || calculateNet(quarterlyReport.netIncome) === null
-                    ? '-' : calculateNet(quarterlyReport.netIncome) + '%' }}
-                </div>
-
-                <div class="earn-cell" style="flex: 0 0 10%;"
-                  v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
-                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-                </div>
-                <div class="earn-cell" style="flex: 0 0 10%;" v-else>
-  <span v-if="getQoQClass(calculateQoQ2(quarterlyReport.netIncome)) === 'green'" class="sphere green-sphere"></span>
-  <span v-else class="sphere red-sphere"></span>
-</div>
-
-                <div class="earn-cell" style="flex: 0 0 10%;"
-                  v-if="(displayedEarningsItems.length < 4 && index === displayedEarningsItems.length - 1) || (showAllEarnings && quarterlyReport === displayedEarningsItems[displayedEarningsItems.length - 1])">
-                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-                </div>
-                <div class="earn-cell" style="flex: 0 0 10%;" v-else>
-  <span v-if="getYoYClass(calculateYoY2(quarterlyReport.netIncome)) === 'green'" class="sphere green-sphere"></span>
-  <span v-else class="sphere red-sphere"></span>
-</div>
-              </div>
-            </div>
-          </div>
-          <div v-if="displayedEarningsItems.length === 0" class="no-data">No Quarterly earnings data available</div>
-          <button v-if="showEarningsButton" @click="showAllEarnings = !showAllEarnings" class="toggle-btn">
-            {{ showAllEarnings ? 'Show Less' : 'Show All' }}
-          </button>
-          <div v-if="displayedSalesItems.length > 0" id="Salestable">
-            <div class="sales-header">
-              <div class="sales-cell" style="flex: 0 0 20%;">Reported</div>
-              <div class="sales-cell" style="flex: 0 0 40%;">Sales</div>
-              <div class="sales-cell" style="flex: 0 0 20%;">Chg (%)</div>
-              <div class="sales-cell" style="flex: 0 0 10%;">QoQ</div>
-              <div class="sales-cell" style="flex: 0 0 10%;">YoY</div>
-            </div>
-            <div class="sales-body">
-              <div v-for="(quarterlyReport, index) in displayedSalesItems" :key="quarterlyReport.fiscalDateEnding"
-                class="sales-row">
-                <div class="sales-cell" style="flex: 0 0 20%;">{{ formatDate(quarterlyReport.fiscalDateEnding) }}</div>
-                <div class="sales-cell" style="flex: 0 0 40%;">{{
-                  parseInt(quarterlyReport.totalRevenue).toLocaleString() }}</div>
-
-                <!-- Change here: Check if there are fewer than 4 items -->
-                <div class="sales-cell" style="flex: 0 0 20%;"
-                  v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
-                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-                </div>
-                <div class="sales-cell" style="flex: 0 0 20%;" v-else
-                  :class="calculateRev(quarterlyReport.totalRevenue) > 0 ? 'positive' : 'negative'">
-                  {{ isNaN(calculateRev(quarterlyReport.totalRevenue)) ||
-                    !isFinite(calculateRev(quarterlyReport.totalRevenue)) || calculateRev(quarterlyReport.totalRevenue)
-                    === null ? '-' : calculateRev(quarterlyReport.totalRevenue) + '%' }}
-                </div>
-
-                <div class="sales-cell" style="flex: 0 0 10%;"
-                  v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
-                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-                </div>
-                <div class="sales-cell" style="flex: 0 0 10%;" v-else>
-  <span v-if="getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'" class="sphere green-sphere"></span>
-  <span v-else class="sphere red-sphere"></span>
-</div>
-
-                <div class="sales-cell" style="flex: 0 0 10%;"
-                  v-if="(displayedSalesItems.length < 4 && index === displayedSalesItems.length - 1) || (showAllSales && quarterlyReport === displayedSalesItems[displayedSalesItems.length - 1])">
-                  <!-- Leave this cell blank for the last item when showing all or if there are fewer than 4 -->
-                </div>
-                <div class="sales-cell" style="flex: 0 0 10%;" v-else>
-  <span v-if="getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'" class="sphere green-sphere"></span>
-  <span v-else class="sphere red-sphere"></span>
-</div>
-              </div>
-            </div>
-          </div>
-          <div v-if="displayedSalesItems.length === 0" class="no-data">No Quarterly sales data available</div>
-          <button v-if="showSalesButton" @click="showAllSales = !showAllSales" class="toggle-btn">
-            {{ showAllSales ? 'Show Less' : 'Show All' }}
-          </button>
-          <div v-if="displayedDividendsItems.length > 0" id="DividendsTable">
-            <div class="dividends-header">
-              <div class="dividends-cell" style="flex: 0 0 50%;">Reported</div>
-              <div class="dividends-cell" style="flex: 0 0 50%;">Dividends</div>
-            </div>
-            <div class="dividends-body">
-              <div v-for="(dividend, index) in displayedDividendsItems" :key="index" class="dividends-row">
-                <div class="dividends-cell" style="flex: 0 0 50%;">{{ formatDate(dividend.payment_date) }}</div>
-                <div class="dividends-cell" style="flex: 0 0 50%;">{{ parseFloat(dividend.amount).toLocaleString() }}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-if="displayedDividendsItems.length === 0" class="no-data">No dividend data available</div>
-          <button v-if="showDividendsButton" @click="showAllDividends = !showAllDividends" class="toggle-btn">
-            {{ showAllDividends ? 'Show Less' : 'Show All' }}
-          </button>
-          <div v-if="displayedSplitsItems.length > 0" id="SplitsTable">
-            <div class="splits-header">
-              <div class="splits-cell" style="flex: 0 0 50%;">Reported</div>
-              <div class="splits-cell" style="flex: 0 0 50%;">Split</div>
-            </div>
-            <div class="splits-body">
-              <div v-for="(split, index) in displayedSplitsItems" :key="index" class="splits-row">
-                <div class="splits-cell" style="flex: 0 0 50%;">{{ formatDate(split.effective_date) }}</div>
-                <div class="splits-cell" style="flex: 0 0 50%;">{{ parseInt(split.split_factor) }}</div>
-              </div>
-            </div>
-          </div>
-          <div v-if="displayedSplitsItems.length === 0" class="no-data">No splits data available</div>
-          <button v-if="showSplitsButton" @click="showAllSplits = !showAllSplits" class="toggle-btn">
-            {{ showAllSplits ? 'Show Less' : 'Show All' }}
-          </button>
-          <button class="financialbtn" @click="showPopup = true">View Financial Statements</button>
-          <div v-if="showPopup" class="popup">
+        <Summary
+    :assetInfo="assetInfo"
+    :formatDate="formatDate"
+    :showAllDescription="showAllDescription"
+    @toggle-description="showAllDescription = !showAllDescription"
+  />
+    <EpsTable
+  :displayedEPSItems="displayedEPSItems"
+  :formatDate="formatDate"
+  :showAllEPS="showAllEPS"
+  :showEPSButton="showEPSButton" 
+  :assetInfo="assetInfo"
+  :calculatePercentageChange="calculatePercentageChange"
+  :calculateQoQ1="calculateQoQ1"
+  :calculateYoY1="calculateYoY1"
+  :getQoQClass="getQoQClass"
+  :getYoYClass="getYoYClass"
+  @toggle-eps="showAllEPS = !showAllEPS"
+/>
+         <EarnTable
+  :displayedEarningsItems="displayedEarningsItems"
+  :formatDate="formatDate"
+  :showAllEarnings="showAllEarnings"
+  :showEarningsButton="showEarningsButton"
+  :calculateNet="calculateNet"
+  :calculateQoQ2="calculateQoQ2"
+  :calculateYoY2="calculateYoY2"
+  :getQoQClass="getQoQClass"
+  :getYoYClass="getYoYClass"
+  @toggle-earnings="showAllEarnings = !showAllEarnings"
+/>
+          <SalesTable
+  :displayedSalesItems="displayedSalesItems"
+  :formatDate="formatDate"
+  :showAllSales="showAllSales"
+  :showSalesButton="showSalesButton"
+  :calculateRev="calculateRev"
+  :calculateQoQ3="calculateQoQ3"
+  :calculateYoY3="calculateYoY3"
+  :getQoQClass="getQoQClass"
+  :getYoYClass="getYoYClass"
+  @toggle-sales="showAllSales = !showAllSales"
+/>
+         <DividendsTable
+  :displayedDividendsItems="displayedDividendsItems"
+  :formatDate="formatDate"
+  :showAllDividends="showAllDividends"
+  :showDividendsButton="showDividendsButton"
+  @toggle-dividends="showAllDividends = !showAllDividends"
+/>
+         <SplitsTable
+  :displayedSplitsItems="displayedSplitsItems"
+  :formatDate="formatDate"
+  :showAllSplits="showAllSplits"
+  :showSplitsButton="showSplitsButton"
+  @toggle-splits="showAllSplits = !showAllSplits"
+/>
+          <FinancialBtn @show-popup="showPopup = true" />
+         <NotesTable
+  :BeautifulNotes="BeautifulNotes"
+  :formatDate="formatDate"
+  @remove-note="removeNote"
+/>
+<div v-if="showPopup" class="popup">
             <div class="popup-content">
               <div class="toggle-button-container">
                 <button @click="toggleFinancials" class="toggle-button">
@@ -652,22 +424,6 @@ l-240 1 -90 -57z"/>
                 </div>
               </div>
             </div>
-          </div>
-          <h3 class="title">Notes Container</h3>
-          <div v-if="BeautifulNotes.length > 0">
-            <div class="note" v-for="note in BeautifulNotes" :key="note.Date">
-              <div class="inline-note">
-                <img class="img" src="@/assets/icons/note.png" alt="">
-              </div>
-              <button class="notebtn" @click="removeNote(note._id)">
-                <img class="imgdlt" src="@/assets/icons/close.png" alt="">
-              </button>
-              <p class="note-msg-date" style="color: whitesmoke; opacity: 0.60;">Created: {{ formatDate(note.Date) }}
-              </p>
-              <p class="note-msg">{{ note.Message }}</p>
-            </div>
-          </div>
-          <div v-else>
           </div>
           <div class="results"></div>
         </div>
@@ -890,7 +646,14 @@ l-240 1 -90 -57z"/>
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import Panel from '@/components/panel.vue'
-import Summary from '@/components/summary.vue'
+import Summary from '@/components/sidebar/summary.vue'
+import EpsTable from '@/components/sidebar/eps.vue'
+import EarnTable from '@/components/sidebar/earn.vue'
+import SalesTable from '@/components/sidebar/sales.vue'
+import DividendsTable from '@/components/sidebar/dividends.vue'
+import SplitsTable from '@/components/sidebar/splits.vue'
+import FinancialBtn from '@/components/sidebar/financialbtn.vue'
+import NotesTable from '@/components/notes.vue'
 import { reactive, onMounted, ref, watch, computed, nextTick } from 'vue';
 import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
 import Loader from '@/components/loader.vue';
@@ -3426,7 +3189,6 @@ async function seeIndex(index) {
 
 
 let Indexes = ref([]); // Define the Indexes list
-let panelData = ref([]); // Left Panel section 
 
 // Function to fetch markets data
 async function fetchMarkets() {
@@ -3451,6 +3213,8 @@ async function fetchMarkets() {
     }
   }
 }
+
+let panelData = ref([]); // Left Panel section 
 
 // function to retrieve the panel data for each user
 async function fetchPanel() {
@@ -3687,7 +3451,7 @@ defineExpose({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @use '../style.scss' as *;
 
 #main {
@@ -3897,8 +3661,8 @@ defineExpose({
 }
 
 .note {
-  background-color: var(--accent1);
-  color: var(--text2);
+  background-color: var(--accent4);
+  color: var(--base4);
   padding: 10px;
   border: none;
   box-sizing: border-box;
@@ -3946,7 +3710,7 @@ defineExpose({
 }
 
 .note-msg {
-  color: var(--text2);
+  color: var(--text1);
   border: none;
   margin-top: 0;
   padding-top: 0;
@@ -3958,7 +3722,7 @@ defineExpose({
 }
 
 .note-msg-date {
-  color: var(--base2);
+  color: var(--text1);
   border: none;
   bottom: 11.5px;
   left: 14px;
@@ -4290,10 +4054,8 @@ defineExpose({
 }
 
 .wlist.selected {
-  background-color: var(--base4);
+  background-color: var(--accent4);
   background-size: 400% 100% ;
-  border-left-color: var(--accent1) ;
-  border-left-width: 2px;
   color: var(--text1);
 }
 

@@ -2,7 +2,7 @@
   <Header />
   <div id="main">
     <div class="sidebar">
-      <div class="inner">
+      <div class="inner2">
          <div class="user-wrapper">
         <h1 class="user">{{ user }}</h1>
       <h2 class="subscription-remaining">{{ expirationDays !== null ? expirationDays + ' subscription days remaining' : 'Loading...' }}</h2> 

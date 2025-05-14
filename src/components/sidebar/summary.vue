@@ -99,16 +99,16 @@
                 {{ assetInfo.Description }}
               </div>
             </div>
-            <button @click="showAllDescription = !showAllDescription" class="toggle-btn">
-              {{ showAllDescription ? 'Show Less' : 'Show All' }}
-            </button>
+           <button @click="$emit('toggle-description')" class="toggle-btn">
+      {{ showAllDescription ? 'Show Less' : 'Show All' }}
+    </button>
           </div>
 </template>
 
 <script setup>
-
+defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 
 </style>
