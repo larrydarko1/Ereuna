@@ -14790,3 +14790,111 @@ app.post('/load-theme', validate([
     if (client) await client.close();
   }
 });
+
+app.post('/panel', validate([
+  validationSchemas.username(),
+  body('newListOrder')
+    .isArray({ min: 1, max: 8 })
+    .withMessage('Panel list must contain between 1 and 8 items'),
+  body('newListOrder.*.order')
+    .isInt({ min: 1, max: 8 })
+    .withMessage('Order must be an integer between 1 and 8'),
+  body('newListOrder.*.tag')
+    .isIn(['Summary', 'EPS', 'Earnings', 'Sales', 'Dividend', 'Split', 'Financials', 'Notes'])
+    .withMessage('Invalid tag'),
+  body('newListOrder.*.name')
+    .isString()
+    .withMessage('Name must be a string'),
+  body('newListOrder.*.hidden')
+    .isBoolean()
+    .withMessage('Hidden must be a boolean'),
+]), async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
+    }
+    const { username, newListOrder } = req.body;
+    const sanitizedUser = sanitizeInput(username);
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+    const userDocument = await usersCollection.findOne({ Username: sanitizedUser });
+    if (!userDocument) {
+      return res.status(404).json({ message: 'User  not found' });
+    }
+    // Update or create the panel list
+    const updateResult = await usersCollection.updateOne(
+      { Username: sanitizedUser },
+      {
+        $set: {
+          panel: newListOrder
+        }
+      },
+      {
+        upsert: true
+      }
+    );
+    if (updateResult.matchedCount === 0 && updateResult.upsertedCount === 1) {
+      return res.status(201).json({ message: 'Panel list created' });
+    } else {
+      return res.status(200).json({ message: 'Panel list updated' });
+    }
+  } catch (error) {
+    if (error.errors) {
+      const validationErrors = error.errors.map(err => ({
+        field: err.param,
+        message: err.msg
+      }));
+      return res.status(400).json({ errors: validationErrors });
+    }
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred while updating panel list' });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
+app.get('/panel', validate([
+  validationSchemas.usernameQuery()
+]), async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
+    }
+    const { username } = req.query;
+    const sanitizedUser = sanitizeInput(username);
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+    const userDocument = await usersCollection.findOne({ Username: sanitizedUser }, { projection: { panel: 1 } });
+    if (!userDocument) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    return res.status(200).json({ panel: userDocument.panel || [] });
+  } catch (error) {
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred while retrieving the panel list' });
+  } finally {
+    if (client) await client.close();
+  }
+});

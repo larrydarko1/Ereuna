@@ -1,43 +1,108 @@
 <template>
   <div class="panel-menu">
-   <div v-for="(section, index) in sections" :key="index" class="section-mini" :class="{ 'hidden-section': section.hidden }" draggable="true" @dragstart="dragStart($event, index)" @dragover="dragOver($event)" @drop="drop($event, index)">
-      <button class="hide-button" @click="toggleHidden(index)">Hide</button>
+    <div v-for="(section, index) in sections" :key="index" class="section-mini" :class="{ 'hidden-section': section.hidden }" draggable="true" @dragstart="dragStart($event, index)" @dragover="dragOver($event)" @drop="drop($event, index)">
+      <button class="hide-button" :class="{ 'hidden-button': section.hidden }" @click="toggleHidden(index)">
+        {{ section.hidden ? 'Add' : 'Remove' }}
+      </button>
       {{ section.name }}
     </div>
     <div class="nav-buttons">
-      <button class="nav-button">Submit</button>
+      <button class="nav-button" @click="resetOrder">Reset</button>
+      <button class="nav-button" @click="updatePanel">Submit</button>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import { useStore } from 'vuex';
+
+const store = useStore();
+let user = store.getters.getUser;
+const apiKey = import.meta.env.VITE_EREUNA_KEY;
+
 const sections = ref([
-  { name: 'Summary', hidden: false },
-  { name: 'EPS Growth Table', hidden: false },
-  { name: 'Earnings Growth Table', hidden: false },
-  { name: 'Sales Growth Table', hidden: false },
-  { name: 'Dividend Table', hidden: false },
-  { name: 'Split Table', hidden: false },
-  { name: 'Financial Statements', hidden: false },
-  { name: 'Notes', hidden: false },
+  { order: 1, tag: 'Summary', name: 'Summary', hidden: false },
+  { order: 2, tag: 'EPS', name: 'EPS Growth Table', hidden: false },
+  { order: 3, tag: 'Earnings', name: 'Earnings Growth Table', hidden: false },
+  { order: 4, tag: 'Sales', name: 'Sales Growth Table', hidden: false },
+  { order: 5, tag: 'Dividend', name: 'Dividend Table', hidden: false },
+  { order: 6, tag: 'Split', name: 'Split Table', hidden: false },
+  { order: 7, tag: 'Financials', name: 'Financial Statements', hidden: false },
+  { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
+]);
+
+const originalOrder = ref([
+  { order: 1, tag: 'Summary', name: 'Summary', hidden: false },
+  { order: 2, tag: 'EPS', name: 'EPS Growth Table', hidden: false },
+  { order: 3, tag: 'Earnings', name: 'Earnings Growth Table', hidden: false },
+  { order: 4, tag: 'Sales', name: 'Sales Growth Table', hidden: false },
+  { order: 5, tag: 'Dividend', name: 'Dividend Table', hidden: false },
+  { order: 6, tag: 'Split', name: 'Split Table', hidden: false },
+  { order: 7, tag: 'Financials', name: 'Financial Statements', hidden: false },
+  { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
 ]);
 
 function dragStart(event, index) {
   event.dataTransfer.setData('index', index);
+  event.dataTransfer.effectAllowed = 'move';
 }
 function dragOver(event) {
   event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
 }
+
 function drop(event, index) {
   const draggedIndex = event.dataTransfer.getData('index');
   const draggedSection = sections.value[draggedIndex];
   sections.value.splice(draggedIndex, 1);
   sections.value.splice(index, 0, draggedSection);
+  updateOrder();
 }
 
 function toggleHidden(index) {
   sections.value[index].hidden = !sections.value[index].hidden;
+}
+
+function updateOrder() {
+  sections.value.forEach((section, index) => {
+    section.order = index + 1;
+  });
+}
+
+function resetOrder() {
+  sections.value = originalOrder.value.map(section => ({ ...section }));
+  updateOrder();
+}
+
+async function updatePanel() {
+  try {
+    const newListOrder = sections.value.map((section, index) => ({
+      order: index + 1,
+      tag: section.tag,
+      name: section.name,
+      hidden: section.hidden,
+    }));
+    const requestBody = {
+      username: user,
+      newListOrder,
+    };
+
+    const response = await fetch('/api/panel', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify(requestBody),
+    });
+    if (!response.ok) {
+      throw new Error(`Error updating panel order: ${response.status}`);
+    }
+
+  } catch (error) {
+    
+  }
 }
 
 </script>
@@ -46,8 +111,6 @@ function toggleHidden(index) {
 @use '../style.scss' as *;
 
 .panel-menu {
-  max-width: 600px;
-  max-height: 600px;
   background-color: var(--base2);
   color: var(--text1);
   font-weight: 600;
@@ -82,10 +145,17 @@ function toggleHidden(index) {
     display: flex;
     align-items: center;
     gap: 10px;
+    cursor: grab;
 }
+
+.section-mini:active {
+  cursor: grabbing;
+}
+
 .hidden-section {
-  background-color: var(--base2); // assign a different color
+  background-color: transparent;
   color: var(--text2);
+  border: none;
 }
 
 .hide-button {
@@ -96,13 +166,30 @@ function toggleHidden(index) {
   cursor: pointer;
 }
 
+.hidden-button {
+  background-color: transparent;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  color: var(--text2);
+}
+
+.hide-button {
+  background-color: var(--base1);
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
 .nav-buttons {
   display: flex;
   gap: 10px;
   margin-top: 10px;
 }
+
 .nav-button {
-  background-color: var(--base1);
+  background-color: var(--accent1);
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
