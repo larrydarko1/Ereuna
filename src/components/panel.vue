@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref, defineEmits, onMounted } from 'vue';
 const emit = defineEmits(['updated']);
 import { useStore } from 'vuex';
 
@@ -22,16 +22,35 @@ const store = useStore();
 let user = store.getters.getUser;
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
-const sections = ref([
-  { order: 1, tag: 'Summary', name: 'Summary', hidden: false },
-  { order: 2, tag: 'EpsTable', name: 'EPS Growth Table', hidden: false },
-  { order: 3, tag: 'EarnTable', name: 'Earnings Growth Table', hidden: false },
-  { order: 4, tag: 'SalesTable', name: 'Sales Growth Table', hidden: false },
-  { order: 5, tag: 'DividendsTable', name: 'Dividend Table', hidden: false },
-  { order: 6, tag: 'SplitsTable', name: 'Split Table', hidden: false },
-  { order: 7, tag: 'Financials', name: 'Financial Statements', hidden: false },
-  { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
-]);
+const sections = ref([]); // Start empty, fill from backend
+
+async function fetchPanel() {
+  try {
+    const headers = { 'X-API-KEY': apiKey };
+    const response = await fetch(`/api/panel?username=${user}`, { headers });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const newPanel = await response.json();
+    // Defensive: fallback to default if empty
+    sections.value = (newPanel.panel && newPanel.panel.length)
+      ? newPanel.panel
+      : [
+          { order: 1, tag: 'Summary', name: 'Summary', hidden: false },
+          { order: 2, tag: 'EpsTable', name: 'EPS Growth Table', hidden: false },
+          { order: 3, tag: 'EarnTable', name: 'Earnings Growth Table', hidden: false },
+          { order: 4, tag: 'SalesTable', name: 'Sales Growth Table', hidden: false },
+          { order: 5, tag: 'DividendsTable', name: 'Dividend Table', hidden: false },
+          { order: 6, tag: 'SplitsTable', name: 'Split Table', hidden: false },
+          { order: 7, tag: 'Financials', name: 'Financial Statements', hidden: false },
+          { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
+        ];
+  } catch (error) {
+    console.error('Error fetching panel data:', error);
+  }
+}
+
+onMounted(() => {
+  fetchPanel();
+});
 
 const originalOrder = ref([
   { order: 1, tag: 'Summary', name: 'Summary', hidden: false },
