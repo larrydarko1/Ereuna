@@ -14800,7 +14800,7 @@ app.post('/panel', validate([
     .isInt({ min: 1, max: 8 })
     .withMessage('Order must be an integer between 1 and 8'),
   body('newListOrder.*.tag')
-    .isIn(['Summary', 'EPS', 'Earnings', 'Sales', 'Dividend', 'Split', 'Financials', 'Notes'])
+    .isIn(['Summary', 'EpsTable', 'EarnTable', 'SalesTable', 'DividendsTable', 'SplitsTable', 'Financials', 'Notes'])
     .withMessage('Invalid tag'),
   body('newListOrder.*.name')
     .isString()

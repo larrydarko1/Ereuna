@@ -315,69 +315,21 @@ l-240 1 -90 -57z"/>
   <Panel v-if="showPanel" @close="showPanel = false" />
 </transition>
 </div>
-        <Summary
-    :assetInfo="assetInfo"
-    :formatDate="formatDate"
-    :showAllDescription="showAllDescription"
+ <component
+    v-for="(item, idx) in panelData"
+    :key="idx"
+    :is="sidebarComponentMap[item.tag]"
+    v-show="!item.hidden"
+    v-bind="getSidebarProps(item.tag)"
+    @show-popup="showPopup = true"
     @toggle-description="showAllDescription = !showAllDescription"
+    @toggle-eps="showAllEPS = !showAllEPS"
+    @toggle-earnings="showAllEarnings = !showAllEarnings"
+    @toggle-sales="showAllSales = !showAllSales"
+    @toggle-dividends="showAllDividends = !showAllDividends"
+    @toggle-splits="showAllSplits = !showAllSplits"
+    @remove-note="removeNote"
   />
-    <EpsTable
-  :displayedEPSItems="displayedEPSItems"
-  :formatDate="formatDate"
-  :showAllEPS="showAllEPS"
-  :showEPSButton="showEPSButton" 
-  :assetInfo="assetInfo"
-  :calculatePercentageChange="calculatePercentageChange"
-  :calculateQoQ1="calculateQoQ1"
-  :calculateYoY1="calculateYoY1"
-  :getQoQClass="getQoQClass"
-  :getYoYClass="getYoYClass"
-  @toggle-eps="showAllEPS = !showAllEPS"
-/>
-         <EarnTable
-  :displayedEarningsItems="displayedEarningsItems"
-  :formatDate="formatDate"
-  :showAllEarnings="showAllEarnings"
-  :showEarningsButton="showEarningsButton"
-  :calculateNet="calculateNet"
-  :calculateQoQ2="calculateQoQ2"
-  :calculateYoY2="calculateYoY2"
-  :getQoQClass="getQoQClass"
-  :getYoYClass="getYoYClass"
-  @toggle-earnings="showAllEarnings = !showAllEarnings"
-/>
-          <SalesTable
-  :displayedSalesItems="displayedSalesItems"
-  :formatDate="formatDate"
-  :showAllSales="showAllSales"
-  :showSalesButton="showSalesButton"
-  :calculateRev="calculateRev"
-  :calculateQoQ3="calculateQoQ3"
-  :calculateYoY3="calculateYoY3"
-  :getQoQClass="getQoQClass"
-  :getYoYClass="getYoYClass"
-  @toggle-sales="showAllSales = !showAllSales"
-/>
-         <DividendsTable
-  :displayedDividendsItems="displayedDividendsItems"
-  :formatDate="formatDate"
-  :showAllDividends="showAllDividends"
-  :showDividendsButton="showDividendsButton"
-  @toggle-dividends="showAllDividends = !showAllDividends"
-/>
-         <SplitsTable
-  :displayedSplitsItems="displayedSplitsItems"
-  :formatDate="formatDate"
-  :showAllSplits="showAllSplits"
-  :showSplitsButton="showSplitsButton"
-  @toggle-splits="showAllSplits = !showAllSplits"
-/>
-          <FinancialBtn @show-popup="showPopup = true" />
-         <NotesTable
-  :BeautifulNotes="BeautifulNotes"
-  :formatDate="formatDate"
-  @remove-note="removeNote"
-/>
 <div v-if="showPopup" class="popup">
             <div class="popup-content">
               <div class="toggle-button-container">
@@ -652,8 +604,8 @@ import EarnTable from '@/components/sidebar/earn.vue'
 import SalesTable from '@/components/sidebar/sales.vue'
 import DividendsTable from '@/components/sidebar/dividends.vue'
 import SplitsTable from '@/components/sidebar/splits.vue'
-import FinancialBtn from '@/components/sidebar/financialbtn.vue'
-import NotesTable from '@/components/notes.vue'
+import Financials from '@/components/sidebar/financialbtn.vue'
+import Notes from '@/components/notes.vue'
 import { reactive, onMounted, ref, watch, computed, nextTick } from 'vue';
 import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
 import Loader from '@/components/loader.vue';
@@ -3450,6 +3402,90 @@ async function fetchPanel() {
 onMounted(() => {
   fetchMarkets();
 });
+
+
+const sidebarComponentMap = {
+  Summary,
+  EpsTable,
+  EarnTable,
+  SalesTable,
+  DividendsTable,
+  SplitsTable,
+  Financials,
+  Notes,
+};
+
+function getSidebarProps(tag) {
+  switch (tag) {
+    case 'Summary':
+      return {
+        assetInfo,
+        formatDate,
+        showAllDescription: showAllDescription.value,
+      };
+    case 'EpsTable':
+      return {
+        displayedEPSItems: displayedEPSItems.value,
+        formatDate,
+        showAllEPS: showAllEPS.value,
+        showEPSButton: showEPSButton.value,
+        assetInfo,
+        calculatePercentageChange,
+        calculateQoQ1,
+        calculateYoY1,
+        getQoQClass,
+        getYoYClass,
+      };
+    case 'EarnTable':
+      return {
+        displayedEarningsItems: displayedEarningsItems.value,
+        formatDate,
+        showAllEarnings: showAllEarnings.value,
+        showEarningsButton: showEarningsButton.value,
+        calculateNet,
+        calculateQoQ2,
+        calculateYoY2,
+        getQoQClass,
+        getYoYClass,
+      };
+    case 'SalesTable':
+      return {
+        displayedSalesItems: displayedSalesItems.value,
+        formatDate,
+        showAllSales: showAllSales.value,
+        showSalesButton: showSalesButton.value,
+        calculateRev,
+        calculateQoQ3,
+        calculateYoY3,
+        getQoQClass,
+        getYoYClass,
+      };
+    case 'DividendsTable':
+      return {
+        displayedDividendsItems: displayedDividendsItems.value,
+        formatDate,
+        showAllDividends: showAllDividends.value,
+        showDividendsButton: showDividendsButton.value,
+      };
+    case 'SplitsTable':
+      return {
+        displayedSplitsItems: displayedSplitsItems.value,
+        formatDate,
+        showAllSplits: showAllSplits.value,
+        showSplitsButton: showSplitsButton.value,
+      };
+    case 'Financials':
+      return {};
+    case 'Notes':
+      return {
+        BeautifulNotes: BeautifulNotes.value,
+        formatDate,
+      };
+    default:
+      return {};
+  }
+}
+
 </script>
 
 <style lang="scss">
