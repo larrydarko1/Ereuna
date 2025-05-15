@@ -415,7 +415,7 @@ l-240 1 -90 -57z"/>
               <p>HIDDEN LIST</p>
             </div>
           </div>
-          <div id="chartdiv"></div>
+          <div id="chartdiv" ref="mainchart"></div>
           <div class="loading-container" v-if="isChartLoading">
             <Loader />
           </div>
@@ -1708,6 +1708,7 @@ const theme = {
   ma4: defaultStyles.getPropertyValue('--ma4'),
 };
 
+const mainchart = ref(null);
 
 // mounts chart (including volume)
 onMounted(async () => {
@@ -1722,8 +1723,13 @@ onMounted(async () => {
     }
     await showTicker();
     await nextTick()
-    const chartDiv = document.getElementById('chartdiv');
+    const chartDiv = mainchart.value;
+    const rect = chartDiv.getBoundingClientRect();
+  const width = window.innerWidth <= 1150 ? 500 : rect.width;
+  const height = rect.height <= 1150 ? 550 : rect.width;
     const chart = createChart(chartDiv, {
+       height: height,
+    width: width,
       layout: {
         background: {
           type: ColorType.Solid,

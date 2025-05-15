@@ -2038,7 +2038,7 @@ l-240 1 -90 -57z"/>
     <div class="loading-container1" v-if="isLoading1">
       <Loader />
     </div>
-        <div id="wk-chart"></div>
+        <div id="wk-chart" ref="wkchart" style="width: 100%; height: 250px;"></div>
         <h1 class="title3">DAILY CHART</h1>
         <div class="loading-container2" v-if="isChartLoading2">
       <Loader />
@@ -2046,7 +2046,7 @@ l-240 1 -90 -57z"/>
     <div class="loading-container2" v-if="isLoading2">
       <Loader />
     </div>
-        <div id="dl-chart"></div>
+        <div id="dl-chart" ref="dlchart" style="width: 100%; height: 250px;"></div>
         <h1 class="title3">SUMMARY</h1>
         <div style="padding-top: 5px; border:none" id="summary">
           <div style="color: whitesmoke; text-align: center; border: none; overflow: scroll">
@@ -2767,6 +2767,9 @@ const theme = {
   ma4: defaultStyles.getPropertyValue('--ma4'),
 };
 
+const dlchart = ref(null);
+const wkchart = ref(null);
+
 // mounts daily chart (including volume)
 onMounted(async () => {
 
@@ -2774,9 +2777,13 @@ onMounted(async () => {
   
   nextTick();
 
-  const chartDiv = document.getElementById('dl-chart');
+const chartDiv = dlchart.value;
+const rect = chartDiv.getBoundingClientRect();
+  const width = window.innerWidth <= 1150 ? 500 : rect.width;
+  const height = rect.height <= 1150 ? 250 : rect.width;
   const chart = createChart(chartDiv, {
-    height: 250,
+    height: height,
+    width: width,
     layout: {
       background: {
         type: ColorType.Solid,
@@ -2952,9 +2959,13 @@ watch(data6, (newData6) => {
 // mounts Weekly chart (including volume)
 onMounted(async () => {
 
-  const chartDiv = document.getElementById('wk-chart');
+  const chartDiv = wkchart.value;
+const rect = chartDiv.getBoundingClientRect();
+  const width = window.innerWidth <= 1150 ? 500 : rect.width;
+  const height = rect.height <= 1150 ? 250 : rect.width;
   const chart = createChart(chartDiv, {
-    height: 250,
+    height: height,
+    width: width,
     layout: {
       background: {
         type: ColorType.Solid,
@@ -7814,7 +7825,6 @@ input[type="date"]{
 #sidebar-r {
   width: 100%;
   background-color: var(--base4);
-  z-index: 1000;
 }
 
 #filters {
@@ -7867,5 +7877,11 @@ input[type="date"]{
   transition: background-color 0.3s ease;
   background-color: var(--accent1);
 }
+
+#wk-chart,
+#dl-chart {
+  background-repeat: no-repeat;
+}
+
 }
 </style>
