@@ -5,6 +5,7 @@ v1.0.3
 - elements tweaks and adjustements
 - removed dependencies from vue-loader and used a native component
 - maintenance mode now only works inside app and not the entire website
+- flexible summary panel in charts (you can now choose which components to views and in which order)
 -----
 v1.0.2
 - renamed index names from index funds with proper index (but kept index fund data which closely resembles indexes)
