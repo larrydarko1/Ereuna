@@ -24,7 +24,7 @@
       Charts
     </button>
   </div>
-    <div id="main">
+    <div id="main2">
       <div class="tooltip-container" style="position: relative;">
   <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
     <span class="tooltip-text">{{ tooltipText }}</span>
@@ -6184,10 +6184,10 @@ defineExpose({
 <style lang="scss" scoped>
 @use '../style.scss' as *;
 
-#main {
+#main2 {
   position: relative;
   display: flex;
-  max-height: 800px;
+  max-height: 850px;
 }
 
 #filters {
@@ -6203,7 +6203,7 @@ defineExpose({
   width: 100vw;
   overflow-x: scroll;
   overflow-y: hidden;
-  max-height: 800px;
+  max-height: 850px;
 }
 
 #sidebar-r {
@@ -7804,7 +7804,7 @@ input[type="date"]{
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-#main {
+#main2 {
   position: relative;
   display: flex;
 }

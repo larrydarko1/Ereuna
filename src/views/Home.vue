@@ -307,7 +307,7 @@ function closeTermsModal() {
   align-items: center;
   position: absolute;
   width: 100%;
-  background-color: $base1;
+  background-color: transparent;
   color: $text1;
 }
 
