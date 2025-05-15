@@ -322,7 +322,17 @@ async function createUser(collection, username, hashedPassword, expirationDate, 
     defaultSymbol: 'NVDA',
     PROMOCODE: promoCode,
     HashedAuthKey: await argon2.hash(rawAuthKey),
-    MFA: false
+    MFA: false,
+    panel: [
+      { order: 1, tag: 'Summary', name: 'Summary', hidden: false },
+      { order: 2, tag: 'EpsTable', name: 'EPS Growth Table', hidden: false },
+      { order: 3, tag: 'EarnTable', name: 'Earnings Growth Table', hidden: false },
+      { order: 4, tag: 'SalesTable', name: 'Sales Growth Table', hidden: false },
+      { order: 5, tag: 'DividendsTable', name: 'Dividend Table', hidden: false },
+      { order: 6, tag: 'SplitsTable', name: 'Split Table', hidden: false },
+      { order: 7, tag: 'Financials', name: 'Financial Statements', hidden: false },
+      { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
+    ]
   };
 
   try {

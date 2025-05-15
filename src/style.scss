@@ -16,12 +16,12 @@
     --accent3: #cfcbff;
     --accent4: #a9a5ff53; //just for selected overlay screener 
     --text1: #ffffff;
-    --text2: #cdcdcd;
-    --text3: #3f3f3f;
-    --base1: #0f0f1b;
-    --base2: #303042;
+    --text2: #cad3f5;
+    --text3: #000000;
+    --base1: #181926;
+    --base2: #25273a;
     --base3: #8a8a90;
-    --base4: #1a1b2e;
+    --base4: #1e2030;
     --positive: #4caf50;
     --negative: #90bff9;
     --volume: #4d4d4d;
@@ -53,46 +53,48 @@
 }
 
 .colorblind {
-    --accent1: #0072B5;
-    --accent2: #56B1F4;
-    --accent3: #B3CDE0;
-    --accent4: #0073b54f;
-    --text1: #ffffff;
-    --text2: #cdcdcd;
-    --text3: #999999;
-    --base1: #F0F0F0;
-    --base2: #000000;
-    --base3: #CCCCCC;
-    --base4: #FFFFFF;
-    --positive: #4caf50;
-    --negative: #e5ff00;
-    --volume: #4d4d4d;
-    --ma4: #4caf50; //200MA
-    --ma3: #ffeb3b; //50MA
-    --ma2: #2862ff; //20MA
-    --ma1: #00bcd4; //10MA
+    --accent1: #0072B5; // strong blue
+    --accent2: #E69F00; // orange, colorblind-safe
+    --accent3: #009E73; // green, colorblind-safe
+    --accent4: #56B4E950; // semi-transparent blue for overlays
+    --text1: #F7F7F7; // light text for dark backgrounds
+    --text2: #BDBDBD; // medium gray
+    --text3: #E69F00; // orange for highlights
+    --base1: #181926; // very dark gray background
+    --base2: #23243a; // dark gray
+    --base3: #313244; // medium-dark gray
+    --base4: #1e2030; // near-black
+    --positive: #009E73; // green, colorblind-safe
+    --negative: #E69F00; // orange, colorblind-safe
+    --volume: #56B4E9; // blue, colorblind-safe
+    --ma4: #009E73; // 200MA, green
+    --ma3: #E69F00; // 50MA, orange
+    --ma2: #0072B5; // 20MA, blue
+    --ma1: #CC79A7; // 10MA, purple, colorblind-safe
 }
 
 .catpuccin {
-    --accent1: #8c8dfe;
-    --accent2: #a9a5ff;
-    --accent3: #cfcbff;
-    --accent4: #a9a5ff53; //just for selected overlay screener 
-    --text1: #ffffff;
-    --text2: #cad3f5;
-    --text3: #000000;
-    --base1: #181926;
-    --base2: #25273a;
-    --base3: #8a8a90;
-    --base4: #1e2030;
-    --positive: #4caf50;
-    --negative: #90bff9;
-    --volume: #4d4d4d;
-    --ma4: #4caf50; //200MA
-    --ma3: #ffeb3b; //50MA
-    --ma2: #2862ff; //20MA
-    --ma1: #00bcd4; //10MA
+    --accent1: #729e6e;
+    --accent2: #ba93af;
+    --accent3: #7b9c97;
+    --accent4: #f5c2e753; // just for selected overlay screener
+    --text1: #cdd6f4;
+    --text2: #bac2de;
+    --text3: #f38ba8;
+    --base1: #1e1e2e;
+    --base2: #181825;
+    --base3: #313244;
+    --base4: #45475a;
+    --positive: #a6e3a1;
+    --negative: #f38ba8;
+    --volume: #f9e2af;
+    --ma4: #a6e3a1; //200MA
+    --ma3: #f9e2af; //50MA
+    --ma2: #89b4fa; //20MA
+    --ma1: #f5c2e7; //10MA
 }
+
+
 
 // default theme for overall site / DON'T TOUCH THESE SASS ELEMENTS!!!
 $accent1: #8c8dfe;
