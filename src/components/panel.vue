@@ -23,22 +23,22 @@ const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 const sections = ref([
   { order: 1, tag: 'Summary', name: 'Summary', hidden: false },
-  { order: 2, tag: 'EPS', name: 'EPS Growth Table', hidden: false },
-  { order: 3, tag: 'Earnings', name: 'Earnings Growth Table', hidden: false },
-  { order: 4, tag: 'Sales', name: 'Sales Growth Table', hidden: false },
-  { order: 5, tag: 'Dividend', name: 'Dividend Table', hidden: false },
-  { order: 6, tag: 'Split', name: 'Split Table', hidden: false },
+  { order: 2, tag: 'EpsTable', name: 'EPS Growth Table', hidden: false },
+  { order: 3, tag: 'EarnTable', name: 'Earnings Growth Table', hidden: false },
+  { order: 4, tag: 'SalesTable', name: 'Sales Growth Table', hidden: false },
+  { order: 5, tag: 'DividendsTable', name: 'Dividend Table', hidden: false },
+  { order: 6, tag: 'SplitsTable', name: 'Split Table', hidden: false },
   { order: 7, tag: 'Financials', name: 'Financial Statements', hidden: false },
   { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
 ]);
 
 const originalOrder = ref([
   { order: 1, tag: 'Summary', name: 'Summary', hidden: false },
-  { order: 2, tag: 'EPS', name: 'EPS Growth Table', hidden: false },
-  { order: 3, tag: 'Earnings', name: 'Earnings Growth Table', hidden: false },
-  { order: 4, tag: 'Sales', name: 'Sales Growth Table', hidden: false },
-  { order: 5, tag: 'Dividend', name: 'Dividend Table', hidden: false },
-  { order: 6, tag: 'Split', name: 'Split Table', hidden: false },
+  { order: 2, tag: 'EpsTable', name: 'EPS Growth Table', hidden: false },
+  { order: 3, tag: 'EarnTable', name: 'Earnings Growth Table', hidden: false },
+  { order: 4, tag: 'SalesTable', name: 'Sales Growth Table', hidden: false },
+  { order: 5, tag: 'DividendsTable', name: 'Dividend Table', hidden: false },
+  { order: 6, tag: 'SplitsTable', name: 'Split Table', hidden: false },
   { order: 7, tag: 'Financials', name: 'Financial Statements', hidden: false },
   { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
 ]);
@@ -77,6 +77,8 @@ function resetOrder() {
 
 async function updatePanel() {
   try {
+    sections.value.sort((a, b) => a.order - b.order);
+
     const newListOrder = sections.value.map((section, index) => ({
       order: index + 1,
       tag: section.tag,
@@ -96,12 +98,12 @@ async function updatePanel() {
       },
       body: JSON.stringify(requestBody),
     });
-    if (!response.ok) {
+     if (!response.ok) {
       throw new Error(`Error updating panel order: ${response.status}`);
     }
 
   } catch (error) {
-    
+    // handle error if needed
   }
 }
 
