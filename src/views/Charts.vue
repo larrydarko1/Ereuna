@@ -725,7 +725,8 @@ async function initializeComponent() {
     await Promise.all([
       await searchTicker(),
       await searchNotes(),
-      await fetchHiddenList()
+      await fetchHiddenList(),
+      await fetchPanel(),
     ]);
 
     isLoading2.value = false;
@@ -3214,39 +3215,6 @@ async function fetchMarkets() {
   }
 }
 
-let panelData = ref([]); // Left Panel section 
-
-// function to retrieve the panel data for each user
-async function fetchPanel() {
-  try {
-    const headers = {
-      'x-api-key': apiKey
-    };
-
-    const response = await fetch(`/api/panel?username=${user}`, {
-      headers: headers
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newPanel = await response.json();
-    panelData.value = newPanel.panel || []; // Assign the panel array
-
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    console.error('Error fetching panel data:', error);
-  }
-}
-
-onMounted(() => {
-  fetchMarkets();
-  fetchPanel(); 
-});
-
 const getPercentageDifference = (financial, attribute) => {
   const currentIndex = currentFinancials.value.indexOf(financial);
   if (currentIndex < currentFinancials.value.length - 1) {
@@ -3448,6 +3416,39 @@ loadTheme()
 
 defineExpose({
   loadTheme,
+});
+
+
+let panelData = ref([]); // Left Panel section 
+
+// function to retrieve the panel data for each user
+async function fetchPanel() {
+  try {
+    const headers = {
+      'x-api-key': apiKey
+    };
+
+    const response = await fetch(`/api/panel?username=${user}`, {
+      headers: headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const newPanel = await response.json();
+    panelData.value = newPanel.panel || []; // Assign the panel array
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+    console.error('Error fetching panel data:', error);
+  }
+}
+
+onMounted(() => {
+  fetchMarkets();
 });
 </script>
 
