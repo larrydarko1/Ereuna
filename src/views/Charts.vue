@@ -312,7 +312,7 @@ l-240 1 -90 -57z"/>
   {{ showPanel ? 'Close Popup' : 'Edit Panel' }}
 </div>
 <transition name="fade">
-  <Panel v-if="showPanel" @close="showPanel = false" />
+  <Panel v-if="showPanel" @close="showPanel = false" @updated="fetchPanel" />
 </transition>
 </div>
  <component

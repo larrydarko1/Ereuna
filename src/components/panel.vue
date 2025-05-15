@@ -14,7 +14,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, defineEmits } from 'vue';
+const emit = defineEmits(['updated']);
 import { useStore } from 'vuex';
 
 const store = useStore();
@@ -101,6 +102,7 @@ async function updatePanel() {
      if (!response.ok) {
       throw new Error(`Error updating panel order: ${response.status}`);
     }
+     emit('updated');
 
   } catch (error) {
     // handle error if needed
