@@ -6179,6 +6179,37 @@ loadTheme()
 defineExpose({
   loadTheme,
 });
+
+let Tier = ref(); // user tier
+
+// function to retrieve tier for each user
+async function fetchTier() {
+  try {
+    const headers = {
+      'x-api-key': apiKey
+    };
+
+    const response = await fetch(`/api/tier?username=${user}`, {
+      headers: headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const newTier = await response.json();
+    Tier.value = newTier.Tier;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+    console.error('Error fetching tier:', error);
+  }
+}
+
+fetchTier()
+
 </script>
 
 <style lang="scss" scoped>

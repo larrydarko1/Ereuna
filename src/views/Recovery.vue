@@ -240,12 +240,19 @@ button:active {
   border: solid 3px #8c8dfe;
   padding: 10px;
   margin: 10px;
-  width: 300px;
+  width: 200px;
   cursor: pointer;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   font-size: 16px;
   font-weight: 500;
+}
+
+.logo {
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  margin: 10px;
 }
 
 .input {
@@ -254,7 +261,7 @@ button:active {
   background-color: #2c2b3e;
   padding: 1.5rem;
   font-size: 1.2rem;
-  width: 350px;
+  width: 300px;
   color: #f5f5f5;
   transition: border 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }

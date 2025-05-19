@@ -71,6 +71,7 @@ footer {
   padding: 10px;
   z-index: 1000;
   //min-width: 1400px;
+  display: none;
 }
 
 .left {

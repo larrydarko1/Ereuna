@@ -415,6 +415,24 @@ l-240 1 -90 -57z"/>
               <p>HIDDEN LIST</p>
             </div>
           </div>
+         <div id="legend5">
+  <span
+    :style="{ color: 'var(--ma4)', cursor: 'pointer', opacity: showMA4 ? 1 : 0.3 }"
+    @click="showMA4 = !showMA4"
+  >-- 200SMA</span>
+  <span
+    :style="{ color: 'var(--ma3)', cursor: 'pointer', opacity: showMA3 ? 1 : 0.3 }"
+    @click="showMA3 = !showMA3"
+  >-- 50SMA</span>
+  <span
+    :style="{ color: 'var(--ma2)', cursor: 'pointer', opacity: showMA2 ? 1 : 0.3 }"
+    @click="showMA2 = !showMA2"
+  >-- 20SMA</span>
+  <span
+    :style="{ color: 'var(--ma1)', cursor: 'pointer', opacity: showMA1 ? 1 : 0.3 }"
+    @click="showMA1 = !showMA1"
+  >-- 10SMA</span>
+</div>
           <div id="chartdiv" ref="mainchart"></div>
           <div class="loading-container" v-if="isChartLoading">
             <Loader />
@@ -666,7 +684,8 @@ async function initializeComponent() {
     await Promise.all([
       getWatchlists(),
       filterWatchlist(),
-      fetchSymbolsAndExchanges()
+      fetchSymbolsAndExchanges(),
+      fetchMarkets(),
     ]);
 
     if (watchlist2.tickers && watchlist2.tickers.length > 0) {
@@ -679,6 +698,8 @@ async function initializeComponent() {
       await searchNotes(),
       await fetchHiddenList(),
       await fetchPanel(),
+      await fetchTier(),
+
     ]);
 
     isLoading2.value = false;
@@ -1709,6 +1730,10 @@ const theme = {
 };
 
 const mainchart = ref(null);
+const showMA1 = ref(true);
+const showMA2 = ref(true);
+const showMA3 = ref(true);
+const showMA4 = ref(true);
 
 // mounts chart (including volume)
 onMounted(async () => {
@@ -1994,6 +2019,29 @@ onMounted(async () => {
       });
       Histogram.setData(relativeVolumeData);
     });
+
+    // ...existing code...
+
+// Watch for visibility changes and set series visibility
+watch(showMA1, (visible) => {
+  MaSeries1.applyOptions({ visible });
+});
+watch(showMA2, (visible) => {
+  MaSeries2.applyOptions({ visible });
+});
+watch(showMA3, (visible) => {
+  MaSeries3.applyOptions({ visible });
+});
+watch(showMA4, (visible) => {
+  MaSeries4.applyOptions({ visible });
+});
+
+// Set initial visibility
+MaSeries1.applyOptions({ visible: showMA1.value });
+MaSeries2.applyOptions({ visible: showMA2.value });
+MaSeries3.applyOptions({ visible: showMA3.value });
+MaSeries4.applyOptions({ visible: showMA4.value });
+
 
     function calculateChanges(dataPoints) {
       const changes = [];
@@ -3405,10 +3453,33 @@ async function fetchPanel() {
   }
 }
 
-onMounted(() => {
-  fetchMarkets();
-});
+let Tier = ref(); // user tier
 
+// function to retrieve the tier for each user
+async function fetchTier() {
+  try {
+    const headers = {
+      'x-api-key': apiKey
+    };
+
+    const response = await fetch(`/api/tier?username=${user}`, {
+      headers: headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const newTier = await response.json();
+    Tier.value = newTier.Tier;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+    console.error('Error fetching tier:', error);
+  }
+}
 
 const sidebarComponentMap = {
   Summary,
@@ -3878,6 +3949,23 @@ function getSidebarProps(tag) {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  gap: 2px;
+}
+
+#legend5 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  background-color: transparent;
+  color: var(--text2);
+  border: none;
+  margin-top: 70px;
+  margin-left: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: left;
   gap: 2px;
 }
 
