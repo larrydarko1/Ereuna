@@ -427,7 +427,7 @@ h1{
     border: none;
     border-radius: 15px;
     padding: 30px;
-    width: 400px;
+    width: 300px;
     margin: 50px auto;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     text-align: center;
@@ -441,7 +441,7 @@ h1{
     background-color:#2c2b3e;;
     padding: 1.5rem;
     font-size: 1.2rem;
-    width: 320px;
+    width: 240px;
     color: #f5f5f5;
     transition: border 150ms cubic-bezier(0.4,0,0.2,1);
   }
@@ -454,7 +454,7 @@ h1{
   border: solid 3px #8c8dfe;
   padding: 10px;
   margin: 10px;
-  width: 300px;
+  width: 225px;
   cursor: pointer;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
@@ -465,7 +465,7 @@ h1{
 .user-label {
     text-align: center;
     position: absolute;
-    left: 50px;
+    left: 37.5px;
     bottom: 45px;
     color: #cdcdcd;
     pointer-events: none;
@@ -488,6 +488,16 @@ h1{
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
   z-index: 1000;
   width: 300px;
+}
+
+.checkmark {
+  width: 12px; /* Smaller width */
+  height: 6px; /* Smaller height */
+  background-color: whitesmoke;
+  border-radius: 50%; /* Make it circular */
+  margin-right: 10px;
+  display: inline-block;
+  transition: background-color 0.3s, border-color 0.3s; /* Add transition for border color */
 }
 
 }

@@ -218,4 +218,18 @@ async function updatePanel() {
   border-radius: 5px;
   cursor: pointer;
 }
+
+/* Mobile version */
+@media (max-width: 1150px) {
+  .panel-menu {
+    width: 90%;
+    height: 80%;
+    padding: 10px;
+    font-size: 1rem;
+  }
+  .section-mini {
+    width: 90%;
+    font-size: 0.9rem;
+  }
+}
 </style>

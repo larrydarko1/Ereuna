@@ -13,7 +13,7 @@
   <div class="nav-links">
     <div class="navbtn" @click="scrollToSection('features')">Features</div>
     <div class="navbtn" @click="scrollToSection('pricing')">Pricing</div>
-    <div class="navbtn" @click="scrollToSection('about')">About</div>
+    <!-- <div class="navbtn" @click="scrollToSection('about')">About</div> -->
     <div class="navbtn">
       <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 12px;">Sign Up</router-link>
     </div>
@@ -22,7 +22,7 @@
     </div>
     <div class="navbtn-mobile" @click="scrollToSection('features')">Features</div>
     <div class="navbtn-mobile" @click="scrollToSection('pricing')">Pricing</div>
-    <div class="navbtn-mobile" @click="scrollToSection('about')">About</div>
+     <!-- <div class="navbtn-mobile" @click="scrollToSection('about')">About</div> -->
     <div class="navbtn-mobile" @click="$router.push('/signup')">
   <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 14px;">Sign Up</router-link>
 </div>
@@ -34,11 +34,19 @@
   <div class="hero">
     <div class="content">
       <p class="description">Unlock Smarter Investing with <span style="color: #8c8dfe; font-size: inherit ;">Ereuna</span></p> 
-      <p class="call-to-action">Essential features and data for mid-to-long term investors, all at a fraction of the cost of traditional solutions. Join the beta program by clicking this <a href="/signup" style="font-size: inherit;">link</a> to create a free account</p>
+      <p class="call-to-action">Essential features and data for mid-to-long term investors, all at a fraction of the cost of traditional solutions.</p>
       <br>
       <br>
+      <div style="display: flex; flex-direction: row ;gap: 20px;">
+        <div style="flex-direction: column;">
+          <span class="join">Join the beta program</span>
+      <button class="sign-button" @click="redirectToSign">Free Trial</button>
+        </div>
+ <div>
       <span class="already-have-invite">Already have an account?</span>
       <button class="login-button" @click="redirectToLogin">Login Now &rarr;</button>
+ </div>
+      </div>
     </div>
     <div class="video-container">
       <img class="hero-video" src="@/assets/videos/heroAnimation.gif" alt="Hero Animation">
@@ -62,15 +70,33 @@
       <br>
       <h2>FEATURES</h2>
       <div class="feature-cards">
-  <div class="feature-card">
-    <h3 class="feature">Data, Simplified</h3>
-    <p class="bullet"><span class="bullet" style="font-size: 15px; color: white; display: flex; align-items: center;"><img style="width: 20px; margin-right: 5px;" src="@/assets/icons/settings.png" alt="">Personalized Stock Universe</span> <br>you can customize your stock universe by hiding stocks that are irrelevant to your workflow and investment criteria, tailoring the data to your individual investment needs and preferences.</p>
-    <p class="bullet"><span class="bullet" style="font-size: 15px; color: white; display: flex; align-items: center;"><img style="width: 20px; margin-right: 5px;" src="@/assets/icons/intersect.png" alt="">One-Click Multi-Screener Analysis</span> <br>you can run multiple screeners simultaneously, providing a comprehensive view of your desired stocks in a single click.</p>
+   <div class="feature-card">
+    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/settings.png" alt="">
+    <div class="feature-title">Personalized Stock Universe</div>
+    <div class="feature-desc">
+      You can customize your stock universe by hiding stocks that are irrelevant to your workflow and investment criteria, tailoring the data to your individual investment needs and preferences.
+    </div>
   </div>
   <div class="feature-card">
-    <h3 class="feature2">Unbeatable Pricing</h3>
-    <p class="bullet"><span class="bullet" style="font-size: 15px; color: white; display: flex; align-items: center;"><img style="width: 20px; margin-right: 5px;" src="@/assets/icons/savings.png" alt="">Unbeatable Value</span> <br>this platform offers the cheapest and most affordable professional stock screening and research solution on the market, focusing on essential EOD and core fundamental data that drives informed decision-making.</p>
-    <p class="bullet"><span class="bullet" style="font-size: 15px; color: white; display: flex; align-items: center;"><img style="width: 20px; margin-right: 5px;" src="@/assets/icons/discount.png" alt="">Up to 96% Cost Savings</span> <br>by stripping away expensive features like integrated news APIs and real-time/intraday data, this platform provides professional-grade tools at a significantly lower cost, making it up to 96% cheaper than other platforms.</p>
+    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/intersect.png" alt="">
+    <div class="feature-title">One-Click Multi-Screener</div>
+    <div class="feature-desc">
+      You can run multiple screeners simultaneously, providing a comprehensive view of your desired stocks in a single click.
+    </div>
+  </div>
+  <div class="feature-card">
+    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/savings.png" alt="">
+    <div class="feature-title">Unbeatable Value</div>
+    <div class="feature-desc">
+      This platform offers the cheapest and most affordable professional stock screening and research solution on the market, focusing on essential EOD and core fundamental data that drives informed decision-making.
+    </div>
+  </div>
+  <div class="feature-card">
+    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/discount.png" alt="">
+    <div class="feature-title">Up to 96% Cost Savings</div>
+    <div class="feature-desc">
+      By stripping away expensive features like integrated news APIs and real-time/intraday data, this platform provides professional-grade tools at a significantly lower cost, making it up to 96% cheaper than other platforms.
+    </div>
   </div>
 </div>
    <!-- Tradeoff Section -->
@@ -79,36 +105,43 @@
   <div class="comparison-table">
     <div class="table-header">
       <div class="table-cell" style="font-size: 16px;">Feature</div>
-      <div class="table-cell" style="font-size: 16px;">Ereuna</div>
+      <div class="table-cell" style="font-size: 16px;">Ereuna (Core)</div>
+      <div class="table-cell" style="font-size: 16px;">Ereuna (Premium)</div>
       <div class="table-cell" style="font-size: 16px;">Other Platforms</div>
     </div>
     <div class="table-row">
       <div class="table-cell" style="font-weight: bold; font-size: 14px;">Price</div>
       <div class="table-cell" style="font-size: 12px;">5.99€ / Month</div>
+      <div class="table-cell" style="font-size: 12px;">14.99€ / Month</div>
       <div class="table-cell" style="font-size: 12px;">40€ / Month (up to 150€+)</div>
     </div>
     <div class="table-row">
       <div class="table-cell" style="font-weight: bold; font-size: 14px;">Intraday / Real Time Data</div>
       <div class="table-cell" style="font-size: 12px;">EOD Only</div>
       <div class="table-cell" style="font-size: 12px;">Yes</div>
+      <div class="table-cell" style="font-size: 12px;">Yes</div>
     </div>
     <div class="table-row">
       <div class="table-cell" style="font-weight: bold; font-size: 14px;">Fundamental Data</div>
+      <div class="table-cell" style="font-size: 12px;">Yes</div>
       <div class="table-cell" style="font-size: 12px;">Yes</div>
       <div class="table-cell" style="font-size: 12px;">Yes</div>
     </div>
     <div class="table-row">
       <div class="table-cell" style="font-weight: bold; font-size: 14px;">Financial Instruments / Coverage </div>
       <div class="table-cell" style="font-size: 12px;">US Equity Only (for now)</div>
+      <div class="table-cell" style="font-size: 12px;">US Equity Only (for now)</div>
       <div class="table-cell" style="font-size: 12px;">It varies</div>
     </div>
     <div class="table-row">
       <div class="table-cell" style="font-weight: bold; font-size: 14px;">Integrated Market News</div>
       <div class="table-cell" style="font-size: 12px;">No</div>
+      <div class="table-cell" style="font-size: 12px;">No</div>
       <div class="table-cell" style="font-size: 12px;">It varies</div>
     </div>
     <div class="table-row">
       <div class="table-cell" style="font-weight: bold; font-size: 14px;">Alerts</div>
+      <div class="table-cell" style="font-size: 12px;">No</div>
       <div class="table-cell" style="font-size: 12px;">No</div>
       <div class="table-cell" style="font-size: 12px;">Yes</div>
     </div>
@@ -249,6 +282,11 @@ const router = useRouter();
 function redirectToLogin() {
   router.push('/login');
 }
+
+function redirectToSign() {
+  router.push('/signup');
+}
+
 
 const faqs = ref([
 { 
@@ -407,6 +445,24 @@ function closeTermsModal() {
   &:hover {
     background-color: $accent1;
   }
+}
+
+.join {
+  font-size: 12px;
+  margin-bottom: 10px;
+  display: block;
+  color: #dcdcdc;
+}
+
+.sign-button {
+  background-color: transparent;
+  color: $text1;
+  border: solid 2px $text2;
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
 }
 
 .icon {
@@ -792,9 +848,20 @@ a:hover{
   margin: 5%;
   border-radius: 10px;
   text-align: center;
-  height: 300px;
   border: solid 1px $accent2;
   color: #dcdcdc;
+}
+
+.feature-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.feature-desc {
+  font-size: 14px;
+  color: #dcdcdc;
+  text-align: left;
 }
 
 .cta-section {
@@ -862,6 +929,7 @@ h2{
   justify-content: center; /* Center horizontally */
   flex-direction: column; /* Stack child elements vertically (optional) */
   margin: 60px;
+  display: none; //temporary disable 
 }
 
 .social-links {
@@ -956,6 +1024,22 @@ h2{
   opacity: 0.90;
 }
 
+.join {
+  font-size: 12px;
+  margin-bottom: 20px;
+  display: block;
+  color: #dcdcdc;
+}
+
+.features{
+  background-color: transparent;
+  width: 100%;
+  z-index: 2px;
+  position: absolute;
+  top: 100%;
+  margin-top: 40%;
+}
+
 .nav-links {
     position: absolute;
     top: 60px; /* below navbar */
@@ -979,11 +1063,15 @@ h2{
     opacity: 1;
     font-size: 14px;
     border-radius: 10px;
-    background-color: transparent;
+    background-color: #25273a;;
     color: whitesmoke;
     transition: background-color 0.3s ease;
     width: 100%; /* take full width */
   }
+
+    .navbar {
+  opacity: 1;
+}
 
   .navbtn-mobile{
     padding: 10px 0px;
@@ -991,7 +1079,7 @@ h2{
     opacity: 1;
     font-size: 14px;
     border-radius: 10px;
-    background-color: transparent;
+    background-color: #25273a;;
     color: whitesmoke;
     transition: background-color 0.3s ease;
     width: 100%; /* take full width */
@@ -1006,6 +1094,7 @@ h2{
   .nav-toggle-label {
     display: flex;
   }
+
 
   /* Hide original nav-links by default */
   .nav-links {
@@ -1030,7 +1119,7 @@ h2{
     display: flex;
     flex-direction: column;
     align-items: center; /* Center content horizontally */
-    margin-top: 10%;
+    margin-bottom: 10%;
   }
 
   .content {
@@ -1132,6 +1221,7 @@ h2{
 #about {
   color: #dcdcdc;
   padding: 2%;
+  margin: 5%;
   background-color: transparent;
   border: 2px solid $accent1; /* Add border style and color */
   border-radius: 10px;
@@ -1139,6 +1229,7 @@ h2{
   align-items: center; /* Center vertically */
   justify-content: center; /* Center horizontally */
   flex-direction: column; /* Stack child elements vertically (optional) */
+  display: none;
 }
 
 .text{
@@ -1166,6 +1257,14 @@ h2{
   border-radius: 15px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   z-index: 1000;
+}
+
+.navbtn3 {
+  background-color: $accent1; 
+}
+
+#tradeoff{
+  padding: 20px;
 }
 
 }

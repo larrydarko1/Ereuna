@@ -310,25 +310,6 @@ async function verifyMfa() {
   margin: 10px;
 }
 
-.signbtn {
-  background-color: transparent;
-  color: $text1;
-  border-radius: 10px;
-  outline: none;
-  border: solid 2px $accent1;
-  padding: 5px;
-  margin: 5px;
-  width: 100%;
-  cursor: pointer; /* Pointer cursor on hover */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-  transition: all 0.3s ease; /* Smooth transition for hover effects */
-}
-
-.signbtn:hover {
-  background-color: $accent1; /* Background color on hover */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
-}
-
 .toggle-password {
   position: absolute;
   right: 5%;
@@ -340,53 +321,6 @@ async function verifyMfa() {
   font-size: 10px;
   color: black;
   opacity: 0.60;
-}
-
-.input-with-icon {
-  position: relative;
-  width: 100%;
-  margin-right: 50px;
-}
-
-.icon {
-  position: absolute;
-  top: 30%;
-  left: 7%;
-  opacity: 0.3;
-  border: none;
-  width: 12px;
-  height: 12px;
-  pointer-events: none;
-  margin: 0;
-  padding: 0;
-}
-
-.remember-me {
-  display: flex;
-  flex-direction: row;
-  margin-left: -17px;
-  margin-right: auto;
-}
-
-.welcome-popup {
-  position: absolute;
-  bottom: 100px;
-  left: 0;
-  right: 0;
-  margin: auto;
-  border: 2px solid green;
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  max-width: 500px;
-}
-
-.welcome-popup h3 {
-  color: green;
-  font-size: 16px;
-  margin-left: 20px;
 }
 
 .forgot-password {
@@ -403,13 +337,13 @@ async function verifyMfa() {
 }
 
 .forgot-password span {
-  margin-right: 5px; /* Adds a bit more space before the link */
+  margin-right: 5px;
   color: $text2;
   font-size: 1.2rem;
 }
 
 .forgot-password a:hover {
-  text-decoration: underline; /* Adds underline on hover */
+  text-decoration: underline;
 }
 
 .custom-checkbox {
@@ -421,35 +355,35 @@ async function verifyMfa() {
 }
 
 .checkmark {
-  width: 8px; /* Smaller width */
-  height: 8px; /* Smaller height */
+  width: 8px;
+  height: 8px;
   background-color: whitesmoke;
-  border-radius: 50%; /* Make it circular */
+  border-radius: 50%;
   margin-right: 5px;
   display: inline-block;
-  transition: background-color 0.3s, border-color 0.3s; /* Add transition for border color */
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .custom-checkbox.checked .checkmark {
-  background-color: #8c8dfe; /* Change to your desired color */
-  border-color: #8c8dfe; /* Change to your desired border color */
+  background-color: #8c8dfe;
+  border-color: #8c8dfe;
 }
 
 .label-text {
-  opacity: 0.7; /* Initial opacity */
-  transition: opacity 0.3s; /* Smooth transition for opacity */
+  opacity: 0.7;
+  transition: opacity 0.3s;
   color: whitesmoke;
   font-size: 12px;
 }
 
 .custom-checkbox.checked .label-text {
-  opacity: 1; /* Full opacity when checked */
+  opacity: 1;
   color: whitesmoke;
 }
 
 .toggle-icon {
-  width: 30px; /* Adjust the size as needed */
-  cursor: pointer; /* Change cursor to pointer on hover */
+  width: 30px;
+  cursor: pointer;
 }
 
 .mfa-popup {
@@ -483,7 +417,7 @@ async function verifyMfa() {
 
 .mfa-popup input:focus {
   border: 1px solid $accent1;
-  outline: none; /* Remove the default outline */
+  outline: none;
 }
 
 .mfa-popup button {
@@ -525,51 +459,7 @@ async function verifyMfa() {
   font-size: 16px;
 }
 
-.loader {
-    --size-loader: 20px;
-    --size-orbe: 2px;
-    width: var(--size-loader);
-    height: var(--size-loader);
-    position: relative;
-    transform: rotate(45deg);
-    margin-top: 12px;
-  }
-
-  .orbe {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    --delay: calc(var(--index) * 0.1s);
-    animation: orbit7456 ease-in-out 1.5s var(--delay) infinite;
-    opacity: calc(1 - calc(0.2 * var(--index)));
-  }
-
-  .orbe::after {
-    position: absolute;
-    content: '';
-    top: 0;
-    left: 0;
-    width: var(--size-orbe);
-    height: var(--size-orbe);
-    background-color: #3ae374;
-    box-shadow: 0px 0px 20px 2px #3ae374;
-    border-radius: 50%;
-  }
-
-  @keyframes orbit7456 {
-    0% {
-    }
-
-    80% {
-      transform: rotate(360deg);
-    }
-
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-
-  .container {
+.container {
   display: grid;
   grid-template-columns: 60% 40%;
   height: 100vh;
@@ -587,16 +477,6 @@ async function verifyMfa() {
   left: 0;
   margin: 10px;
   color: $text2;
-  z-index: 100;
-}
-
-.image-background h2 {
-  position: absolute;
-  top: 0;
-  left: 0;
-  margin: 10px;
-  color: $text2;
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   z-index: 100;
 }
 
@@ -642,50 +522,50 @@ async function verifyMfa() {
 }
 
 .input-group {
-    position: relative;
-    padding: 1rem;
-  }
+  position: relative;
+  padding: 1rem;
+}
 
-  p{
-    color: $text2;
-    font-size: 1.2rem;
-  }
+p{
+  color: $text2;
+  font-size: 1.2rem;
+}
 
-  .form-input {
-    border: solid 2px transparent;
-    border-radius: 1.5rem;
-    background-color:#2c2b3e;;
-    padding: 1.5rem;
-    font-size: 1.2rem;
-    width: 400px;
-    color: #f5f5f5;
-    transition: border 150ms cubic-bezier(0.4,0,0.2,1);
-  }
+.form-input {
+  border: solid 2px transparent;
+  border-radius: 1.5rem;
+  background-color:#2c2b3e;
+  padding: 1.5rem;
+  font-size: 1.2rem;
+  width: 400px;
+  color: #f5f5f5;
+  transition: border 150ms cubic-bezier(0.4,0,0.2,1);
+}
 
-  .user-label {
-    text-align: center;
-    position: absolute;
-    left: 30px;
-    bottom: 45px;
-    color: #cdcdcd;
-    pointer-events: none;
-    transform: translateY(1.5rem);
-    transition: 150ms cubic-bezier(0.4,0,0.2,1);
-  }
+.user-label {
+  text-align: center;
+  position: absolute;
+  left: 30px;
+  bottom: 45px;
+  color: #cdcdcd;
+  pointer-events: none;
+  transform: translateY(1.5rem);
+  transition: 150ms cubic-bezier(0.4,0,0.2,1);
+}
 
-  .form-input:focus, .form-input:valid {
-    outline: none;
-    border: 2px solid #8c8dfe;
-  }
+.form-input:focus, .form-input:valid {
+  outline: none;
+  border: 2px solid #8c8dfe;
+}
 
-  .form-input:focus ~ label, .form-input:valid ~ label {
-    transform: translateY(-50%) scale(0.8);
-    background-color: #212121;
-    padding: 0 .4em;
-    color: #8c8dfe;
-  }
+.form-input:focus ~ label, .form-input:valid ~ label {
+  transform: translateY(-50%) scale(0.8);
+  background-color: #212121;
+  padding: 0 .4em;
+  color: #8c8dfe;
+}
 
-  .userbtn {
+.userbtn {
   background-color: transparent;
   text-align: center;
   display: flex;
@@ -703,22 +583,22 @@ async function verifyMfa() {
   cursor: pointer;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
-  font-size: 16px; /* Added font size for better readability */
-  font-weight: 500; /* Added font weight for better typography */
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .userbtn:hover {
   background-color: #8c8dfe;
   color: white;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  transform: scale(1.05); /* New animation: scale up on hover */
-  transition: all 0.3s ease-in-out; /* Changed transition timing function for smoother animation */
+  transform: scale(1.05);
+  transition: all 0.3s ease-in-out;
 }
 
 .userbtn:active {
-  transform: scale(0.95); /* New animation: scale down on click */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Reduced shadow on click */
-  transition: all 0.1s ease-out; /* Faster transition on click */
+  transform: scale(0.95);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.1s ease-out;
   background-color: #8c8dfe;
 }
 
@@ -765,13 +645,13 @@ async function verifyMfa() {
 }
 
 a{
-    color: $accent1;
-    font-size: 1.2rem;
+  color: $accent1;
+  font-size: 1.2rem;
 }
 
 a:hover{
-    color: $accent2;
-    cursor: pointer;
+  color: $accent2;
+  cursor: pointer;
 }
 
 .bg {
@@ -782,24 +662,38 @@ a:hover{
   opacity: 0.20;
 }
 
+.error{
+  border-color: red;
+}
+
+.footnote{
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
 /* Mobile version */
 @media (max-width: 1150px) {
   .container {
-    grid-template-columns: 100%;
+    grid-template-columns: 1fr;
+    height: auto;
+    width: 100%;
+    min-width: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
 
-  .login-container {
-    height: 100vh;
+  .footnote{
+    display: none;
   }
 
-  .login-form {
-    position: relative;
-    top: auto;
-    left: auto;
-    transform: none;
+  .image-background {
+   display: none;
   }
 
-  .image-background .quote  {
+  .image-background .quote,
+  .image-background .author {
     display: none;
   }
 
@@ -808,40 +702,77 @@ a:hover{
   }
 
   .logo {
-    width: 8rem; // Increase logo size
-    margin: 0.5rem;
+    width: 8rem;
+    margin: 1rem auto;
+    display: block;
+  }
+
+  .login-container {
+    height: auto;
+    min-height: 0;
+    width: 100vw;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    justify-content: flex-start;
+  }
+
+  .login-form {
+    position: static;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
+    padding: 1rem 0.5rem;
+    box-sizing: border-box;
+  }
+
+  .input-group {
+    width: 80%;
+    padding: 0.5rem 0;
+    box-sizing: border-box;
   }
 
   .form-input {
-    width: 30rem; // Increase form input width
-    padding: 1.5rem;
-    font-size: 1.2rem;
+    width: 100%;
+    min-width: 0;
+    padding: 1rem;
+    font-size: 1.3rem;
+    box-sizing: border-box;
   }
 
   .user-label {
-    font-size: 1.2rem;
+    font-size: 1rem;
+    left: 20px;
+    bottom: 35px;
   }
 
   .userbtn {
-    width: 30rem; // Increase button width
+    width: 70%;
     padding: 1rem;
-    font-size: 1.4rem;
+    font-size: 1.1rem;
+    margin: 1rem 0;
+    box-sizing: border-box;
   }
 
   .toggle-password {
     font-size: 1rem;
+    right: 10px;
   }
 
   .toggle-icon {
-    width: 2.5rem; // Increase toggle icon size
+    width: 2rem;
   }
 
   .custom-checkbox {
     padding: 0.5rem;
+    margin-left: 0;
+    width: 70%;
+    justify-content: flex-end;
   }
 
   .checkmark {
-    width: 1rem; // Increase checkmark size
+    width: 1rem;
     height: 1rem;
   }
 
@@ -850,28 +781,32 @@ a:hover{
   }
 
   .forgot-password {
-    font-size: 1.2rem;
+    font-size: 1rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin: 0.5rem 0;
   }
 
   .forgot-password img {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.2rem;
+    height: 1.2rem;
   }
 
   .beta {
-    font-size: 1.4rem;
-    width: 15rem;
-    margin-top: 7.5rem;
+    font-size: 1rem;
+    width: 10rem;
+    margin-top: 7rem;
+    left: 50%;
+    transform: translateX(-50%) rotate(-5deg);
+  }
+
+  .mfa-popup {
+    width: 90vw;
+    min-width: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 1rem;
   }
 }
-
-.error{
-    border-color: red;
-}
-
-.footnote{
-  font-weight: bold;
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* subtle drop shadow */
-}
-
 </style>
