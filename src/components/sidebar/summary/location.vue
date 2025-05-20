@@ -1,0 +1,14 @@
+<template>
+ <div class="summary-row">
+              <div class="category">Location</div>
+              <div class="response">{{ assetInfo.Address }}</div>
+            </div>
+</template>
+
+<script setup>
+defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
+</script>
+
+<style lang="scss">
+
+</style>

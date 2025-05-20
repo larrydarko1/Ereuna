@@ -1357,8 +1357,8 @@ def calculateAlltimehighlowandperc52wk():
                 alltime_low = 0
                 recent_close = 0
 
-            fifty_two_week_high = asset_info.get('52WeekHigh', 0)
-            fifty_two_week_low = asset_info.get('52WeekLow', 0)
+            fifty_two_week_high = asset_info.get('fiftytwoWeekHigh', 0)
+            fifty_two_week_low = asset_info.get('fiftytwoWeekLow', 0)
             if fifty_two_week_high != 0:
                 perc_off_52_week_high = ((recent_close - fifty_two_week_high) / fifty_two_week_high) 
             else:
@@ -2208,6 +2208,49 @@ def rename_volatility_fields():
     # Print the result
     print(f"Updated {result.modified_count} documents")
     
-rename_volatility_fields()'''
+rename_volatility_fields()
+
+def updateAssetInfoAttributeNames():
+    asset_info_collection = db['AssetInfo']
+    updates = []
+
+    print("Updating attribute names in AssetInfo collection...")
+    for i, asset_info in enumerate(asset_info_collection.find()):
+        ticker = asset_info['Symbol']
+        try:
+            # Prepare the update operation
+            updates.append(
+                UpdateOne(
+                    {'Symbol': ticker},
+                    {'$set': {
+                        'fiftytwoWeekHigh': asset_info.get('52WeekHigh', None),
+                        'fiftytwoWeekLow': asset_info.get('52WeekLow', None)
+                    }}
+                )
+            )
+            # Prepare the unset operation
+            updates.append(
+                UpdateOne(
+                    {'Symbol': ticker},
+                    {'$unset': {
+                        '52WeekHigh': "",
+                        '52WeekLow': ""
+                    }}
+                )
+            )
+            print(f"Processed {i+1} out of {asset_info_collection.count_documents({})} stocks")
+        except Exception as e:
+            print(f"Error processing {ticker}: {e}")
+
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
+
+# Call the function to execute the updates
+updateAssetInfoAttributeNames()
+'''
 
 Daily()

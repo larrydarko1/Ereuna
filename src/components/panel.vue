@@ -1,28 +1,55 @@
 <template>
   <div class="panel-menu">
-    <div v-for="(section, index) in sections" :key="index" class="section-mini" :class="{ 'hidden-section': section.hidden }" draggable="true" @dragstart="dragStart($event, index)" @dragover="dragOver($event)" @drop="drop($event, index)">
-      <button class="hide-button" :class="{ 'hidden-button': section.hidden }" @click="toggleHidden(index)">
+    <div
+      v-for="(section, index) in sections"
+      :key="index"
+      class="section-mini"
+      :class="{ 'hidden-section': section.hidden }"
+      draggable="true"
+      @dragstart="dragStart($event, index)"
+      @dragover="dragOver($event)"
+      @drop="drop($event, index)"
+    >
+      <button
+        class="hide-button"
+        :class="{ 'hidden-button': section.hidden }"
+        @click="toggleHidden(index)"
+      >
         {{ section.hidden ? 'Add' : 'Remove' }}
       </button>
-      {{ section.name }}
+       {{ section.name }}
+      <!-- Edit Summary Button -->
+      <button
+        v-if="section.tag === 'Summary'"
+        class="edit-summary-btn"
+        @click="showEditSummary = true"
+      >
+        Edit Summary
+      </button>
     </div>
     <div class="nav-buttons">
+      <button class="nav-button" @click="$emit('close')">Close</button>
       <button class="nav-button" @click="resetOrder">Reset</button>
       <button class="nav-button" @click="updatePanel">Submit</button>
     </div>
+    <!-- Edit Summary Popup -->
+    <Panel2 v-if="showEditSummary" @close="showEditSummary = false" />
   </div>
 </template>
+
 
 <script setup>
 import { ref, defineEmits, onMounted } from 'vue';
 const emit = defineEmits(['updated']);
 import { useStore } from 'vuex';
+import Panel2 from '@/components/panel2.vue'; 
 
 const store = useStore();
 let user = store.getters.getUser;
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 const sections = ref([]); // Start empty, fill from backend
+const showEditSummary = ref(false);
 
 async function fetchPanel() {
   try {
@@ -138,7 +165,7 @@ async function updatePanel() {
   color: var(--text1);
   font-weight: 600;
   font-size: 1.2rem;
-  padding: 20px;
+  padding: 10px;
   border-radius: 8px;
   text-align: center;
   user-select: none;
@@ -147,7 +174,7 @@ async function updatePanel() {
   align-items: center;
   justify-content: center;
   height: 70%;
-  width: 40%;
+  width: 300px;
   box-sizing: border-box;
   margin: 0 auto;
    position: fixed;
@@ -164,7 +191,7 @@ async function updatePanel() {
     background-color: var(--base1);
     padding: 10px;
     border-radius: 10px;
-    width: 50%;
+    width: 90%;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -182,28 +209,32 @@ async function updatePanel() {
 }
 
 .hide-button {
-  background-color: var(--base1);
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
+  background: transparent;
+  border: 1px solid var(--accent1);
+  color: var(--accent1);
+  border-radius: 3px;
   cursor: pointer;
+  padding: 3px 7px;
+  font-size: 12px;
+  user-select: none;
+  flex-shrink: 0;
+  transition: background-color 0.3s ease;
+}
+
+.hide-button:hover {
+  background-color: var(--accent1);
+  color: var(--base2);
 }
 
 .hidden-button {
-  background-color: transparent;
+  background-color: var(--accent1);
+  color: var(--base2);
   border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  color: var(--text2);
 }
 
-.hide-button {
-  background-color: var(--base1);
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
+.hidden-section {
+  opacity: 0.5;
+  text-decoration: line-through;
 }
 .nav-buttons {
   display: flex;
@@ -217,6 +248,17 @@ async function updatePanel() {
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
+}
+
+.edit-summary-btn {
+  margin-left: auto;
+  background-color: var(--accent2);
+  color: var(--text1);
+  border: none;
+  padding: 5px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.95em;
 }
 
 /* Mobile version */

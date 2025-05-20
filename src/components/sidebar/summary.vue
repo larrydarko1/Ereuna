@@ -1,114 +1,219 @@
 <template>
   <div class="summary-container">
-            <div class="summary-row">
-              <div class="category">Exchange</div>
-              <div class="response">
-                {{ assetInfo.Exchange }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">ISIN</div>
-              <div class="response">{{ assetInfo.ISIN }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">IPO Date</div>
-              <div class="response">{{ formatDate(assetInfo.IPO) }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Sector</div>
-              <div class="response">
-                {{ assetInfo.Sector.charAt(0).toUpperCase() + assetInfo.Sector.slice(1).toLowerCase() }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Industry</div>
-              <div class="response">
-                {{ assetInfo.Industry.charAt(0).toUpperCase() + assetInfo.Industry.slice(1).toLowerCase() }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Reported Currency</div>
-              <div class="response">{{ assetInfo.Currency.toUpperCase() }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Technical Score (1W)</div>
-              <div class="response">{{ assetInfo.RSScore1W }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Technical Score (1M)</div>
-              <div class="response">{{ assetInfo.RSScore1M }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Technical Score (4M)</div>
-              <div class="response">{{ assetInfo.RSScore4M }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Market Cap</div>
-              <div class="response">{{ parseInt(assetInfo.MarketCapitalization).toLocaleString() }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Shares Outstanding</div>
-              <div class="response">{{ parseInt(assetInfo.SharesOutstanding).toLocaleString() }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Location</div>
-              <div class="response">{{ assetInfo.Address }}</div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Dividend Date</div>
-              <div class="response">
-                {{
-                  (assetInfo.DividendDate !== 'Invalid Date' && assetInfo.DividendDate != null &&
-                    !isNaN(Date.parse(assetInfo.DividendDate)))
-                    ? formatDate(assetInfo.DividendDate)
-                    : '-'
-                }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Dividend Yield</div>
-              <div class="response">
-                {{ (assetInfo.DividendYield != null && !isNaN(assetInfo.DividendYield)) ?
-                  (parseFloat(assetInfo.DividendYield) * 100).toFixed(2) + '%' : '-' }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">Book Value</div>
-              <div class="response">
-                {{ (assetInfo.BookValue != null && !isNaN(assetInfo.BookValue)) ? parseFloat(assetInfo.BookValue) : '-'
-                }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">PEG Ratio</div>
-              <div class="response">
-                {{ (assetInfo.PEGRatio != null && !isNaN(assetInfo.PEGRatio) && assetInfo.PEGRatio >= 0) ?
-                  parseInt(assetInfo.PEGRatio) : '-' }}
-              </div>
-            </div>
-            <div class="summary-row">
-              <div class="category">PE Ratio</div>
-              <div class="response">
-                {{ (assetInfo.PERatio != null && !isNaN(assetInfo.PERatio) && assetInfo.PERatio >= 0) ?
-                  parseInt(assetInfo.PERatio) : '-' }}
-              </div>
-            </div>
-            <div class="summary-row2">
-              <div :class="['description', { 'expanded': showAllDescription }]"
-                :style="{ height: showAllDescription ? 'auto' : minHeight }">
-                {{ assetInfo.Description }}
-              </div>
-            </div>
-           <button @click="$emit('toggle-description')" class="toggle-btn">
+    <component
+      v-for="(item, idx) in sortedFields"
+      :key="idx"
+      :is="sidebarComponentMap[item.tag]"
+      v-show="!item.hidden"
+      v-bind="getSidebarProps(item.tag)"
+      @show-popup="showPopup = true"
+      @toggle-description="showAllDescription = !showAllDescription"
+      @toggle-eps="showAllEPS = !showAllEPS"
+      @toggle-earnings="showAllEarnings = !showAllEarnings"
+      @toggle-sales="showAllSales = !showAllSales"
+      @toggle-dividends="showAllDividends = !showAllDividends"
+      @toggle-splits="showAllSplits = !showAllSplits"
+      @remove-note="removeNote"
+    />
+    <button @click="$emit('toggle-description')" class="toggle-btn">
       {{ showAllDescription ? 'Show Less' : 'Show All' }}
     </button>
-          </div>
+  </div>
 </template>
 
 <script setup>
-defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
-</script>
+import { ref, computed, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import Symbol from '@/components/sidebar/summary/ticker.vue';
+import Name from '@/components/sidebar/summary/name.vue';
+import AssetType from '@/components/sidebar/summary/AssetType.vue';
+import Exchange from '@/components/sidebar/summary/exchange.vue';
+import ISIN from '@/components/sidebar/summary/ISIN.vue';
+import IPO from '@/components/sidebar/summary/IPO.vue';
+import Sector from '@/components/sidebar/summary/sector.vue';
+import Industry from '@/components/sidebar/summary/industry.vue';
+import Currency from '@/components/sidebar/summary/currency.vue';
+import RS1 from '@/components/sidebar/summary/RS1.vue';
+import RS2 from '@/components/sidebar/summary/RS2.vue';
+import RS3 from '@/components/sidebar/summary/RS3.vue';
+import MarketCap from '@/components/sidebar/summary/marketcap.vue';
+import SharesOutstanding from '@/components/sidebar/summary/shares.vue';
+import Location from '@/components/sidebar/summary/location.vue';
+import DivDate from '@/components/sidebar/summary/divdate.vue';
+import DivYield from '@/components/sidebar/summary/divyield.vue';
+import BookValue from '@/components/sidebar/summary/bookvalue.vue';
+import PEG from '@/components/sidebar/summary/peg.vue';
+import PE from '@/components/sidebar/summary/pe.vue';
+import PS from '@/components/sidebar/summary/ps.vue';
+import AllTimeHigh from '@/components/sidebar/summary/alltimehigh.vue';
+import AllTimeLow from '@/components/sidebar/summary/alltimelow.vue';
+import FiftyTwoWeekHigh from '@/components/sidebar/summary/52wkhigh.vue';
+import FiftyTwoWeekLow from '@/components/sidebar/summary/52wklow.vue';
+import Percoffweekhigh from '@/components/sidebar/summary/percoffweekhigh.vue';
+import Percoffweeklow from '@/components/sidebar/summary/percoffweeklow.vue';
+import RSI from '@/components/sidebar/summary/rsi.vue';
+import Gap from '@/components/sidebar/summary/gap.vue';
+import ADV1 from '@/components/sidebar/summary/adv1.vue';
+import ADV2 from '@/components/sidebar/summary/adv2.vue';
+import ADV3 from '@/components/sidebar/summary/adv3.vue';
+import ADV4 from '@/components/sidebar/summary/adv4.vue';
+import RV1 from '@/components/sidebar/summary/RV1.vue';
+import RV2 from '@/components/sidebar/summary/RV2.vue';
+import RV3 from '@/components/sidebar/summary/RV3.vue';
+import RV4 from '@/components/sidebar/summary/RV4.vue';
+import AV1 from '@/components/sidebar/summary/AV1.vue';
+import AV2 from '@/components/sidebar/summary/AV2.vue';
+import AV3 from '@/components/sidebar/summary/AV3.vue';
+import AV4 from '@/components/sidebar/summary/AV4.vue';
+import Description from '@/components/sidebar/summary/description.vue';
 
+// access user from store 
+const store = useStore();
+let user = store.getters.getUser;
+const apiKey = import.meta.env.VITE_EREUNA_KEY;
+
+const props = defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
+const emit = defineEmits();
+
+// Define the mapping of tags to components
+const sidebarComponentMap = {
+  Symbol,
+  CompanyName: Name,
+  AssetType,
+  Exchange,
+  ISIN,
+  IPODate: IPO,
+  Sector,
+  Industry,
+  ReportedCurrency: Currency,
+  TechnicalScore1W: RS1,
+  TechnicalScore1M: RS2,
+  TechnicalScore4M: RS3,
+  MarketCap,
+  SharesOutstanding,
+  Location,
+  DividendDate: DivDate,
+  DividendYieldTTM: DivYield,
+  BookValue,
+  PEGRatio: PEG,
+  PERatio: PE,
+  PSRatio: PS,
+  AllTimeHigh,
+  AllTimeLow,
+  fiftytwoWeekHigh: FiftyTwoWeekHigh,
+  fiftytwoWeekLow: FiftyTwoWeekLow,
+  PercentageOff52wkHigh: Percoffweekhigh,
+  PercentageOff52wkLow: Percoffweeklow,
+  RSI,
+  Gap,
+  ADV1W: ADV1,
+  ADV1M: ADV2,
+  ADV4M: ADV4,
+  ADV1Y: ADV3,
+  RelativeVolume1W: RV1,
+  RelativeVolume1M: RV2,
+  RelativeVolume6M: RV3,
+  RelativeVolume1Y: RV4,
+  AverageVolume1W: AV1,
+  AverageVolume1M: AV2,
+  AverageVolume6M: AV3,
+  AverageVolume1Y: AV4,
+  Description,
+};
+
+// Reactive variable to hold the fetched panel data
+const summaryFields = ref([]);
+
+// Initial fields array
+const initialFields = [
+  { order: 1, tag: 'Symbol', name: 'Symbol', hidden: false },
+  { order: 2, tag: 'CompanyName', name: 'Company Name', hidden: false },
+  { order: 3, tag: 'AssetType', name: 'Asset Type', hidden: false },
+  { order: 4, tag: 'Exchange', name: 'Exchange', hidden: false },
+  { order: 5, tag: 'ISIN', name: 'ISIN', hidden: false },
+  { order: 6, tag: 'IPODate', name: 'IPO Date', hidden: false },
+  { order: 7, tag: 'Sector', name: 'Sector', hidden: false },
+  { order: 8, tag: 'Industry', name: 'Industry', hidden: false },
+  { order: 9, tag: 'ReportedCurrency', name: 'Reported Currency', hidden: false },
+  { order: 10, tag: 'TechnicalScore1W', name: 'Technical Score (1W)', hidden: false },
+  { order: 11, tag: 'TechnicalScore1M', name: 'Technical Score (1M)', hidden: false },
+  { order: 12, tag: 'TechnicalScore4M', name: 'Technical Score (4M)', hidden: false },
+  { order: 13, tag: 'MarketCap', name: 'Market Cap', hidden: false },
+  { order: 14, tag: 'SharesOutstanding', name: 'Shares Outstanding', hidden: false },
+  { order: 15, tag: 'Location', name: 'Location', hidden: false },
+  { order: 16, tag: 'DividendDate', name: 'Dividend Date', hidden: false },
+  { order: 17, tag: 'DividendYieldTTM', name: 'Dividend Yield TTM', hidden: false },
+  { order: 18, tag: 'BookValue', name: 'Book Value', hidden: false },
+  { order: 19, tag: 'PEGRatio', name: 'PEG Ratio', hidden: false },
+  { order: 20, tag: 'PERatio', name: 'PE Ratio', hidden: false },
+  { order: 21, tag: 'PSRatio', name: 'PS Ratio', hidden: false },
+  { order: 22, tag: 'AllTimeHigh', name: 'All Time High', hidden: false },
+  { order: 23, tag: 'AllTimeLow', name: 'All Time Low', hidden: false },
+  { order: 24, tag: 'fiftytwoWeekHigh', name: '52wk High', hidden: false },
+  { order: 25, tag: 'fiftytwoWeekLow', name: '52wk Low', hidden: false },
+  { order: 26, tag: 'PercentageOff52wkHigh', name: 'Percentage off 52wk High', hidden: false },
+  { order: 27, tag: 'PercentageOff52wkLow', name: 'Percentage off 52wk Low', hidden: false },
+  { order: 28, tag: 'RSI', name: 'RSI', hidden: false },
+  { order: 29, tag: 'Gap', name: 'Gap (%)', hidden: false },
+  { order: 30, tag: 'ADV1W', name: 'ADV 1W', hidden: false },
+  { order: 31, tag: 'ADV1M', name: 'ADV 1M', hidden: false },
+  { order: 32, tag: 'ADV4M', name: 'ADV 4M', hidden: false },
+  { order: 33, tag: 'ADV1Y', name: 'ADV 1Y', hidden: false },
+  { order: 34, tag: 'RelativeVolume1W', name: 'Relative Volume 1W', hidden: false },
+  { order: 35, tag: 'RelativeVolume1M', name: 'Relative Volume 1M', hidden: false },
+  { order: 36, tag: 'RelativeVolume6M', name: 'Relative Volume 6M', hidden: false },
+  { order: 37, tag: 'RelativeVolume1Y', name: 'Relative Volume 1Y', hidden: false },
+  { order: 38, tag: 'AverageVolume1W', name: 'Average Volume 1W', hidden: false },
+  { order: 39, tag: 'AverageVolume1M', name: 'Average Volume 1M', hidden: false },
+  { order: 40, tag: 'AverageVolume6M', name: 'Average Volume 6M', hidden: false },
+  { order: 41, tag: 'AverageVolume1Y', name: 'Average Volume 1Y', hidden: false },
+  { order: 42, tag: 'Description', name: 'Description', hidden: false },
+];
+
+// Fetch panel data
+async function fetchPanel2() {
+  try {
+    const headers = { 'X-API-KEY': apiKey };
+    const response = await fetch(`/api/panel2?username=${user}`, { headers });
+    
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    
+    const newPanel = await response.json();
+    console.log('Fetched panel data:', newPanel); // Debugging log
+
+    // Defensive: fallback to default if empty
+    summaryFields.value = (newPanel.panel2 && newPanel.panel2.length)
+      ? newPanel.panel2
+      : initialFields.map(field => ({ ...field }));
+
+    console.log('Updated summaryFields:', summaryFields.value); // Debugging log
+  } catch (error) {
+    console.error('Error fetching panel data:', error);
+    // Fallback to initial fields in case of error
+    summaryFields.value = initialFields.map(field => ({ ...field }));
+  }
+}
+
+// Call fetchPanel2 on component mount
+onMounted(() => {
+  fetchPanel2();
+});
+
+// Sort the fields based on the order attribute
+const sortedFields = computed(() => {
+  return summaryFields.value.sort((a, b) => a.order - b.order);
+});
+
+// Function to get props for the sidebar components
+const getSidebarProps = (tag) => {
+  return {
+    assetInfo: props.assetInfo,
+    formatDate: props.formatDate,
+    showAllDescription: props.showAllDescription,
+  };
+};
+
+</script>
 <style lang="scss">
 
 </style>
