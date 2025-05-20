@@ -403,7 +403,7 @@ l-240 1 -90 -57z"/>
     @click="toggleChartType"
     aria-label="Toggle chart type"
   >
-    {{ isBarChart ? 'C' : 'B' }}
+    {{ isBarChart ? 'Candlestick' : 'Bar' }}
   </button>
           </div>
           <div id="legend3"></div>
@@ -624,7 +624,7 @@ import DividendsTable from '@/components/sidebar/dividends.vue'
 import SplitsTable from '@/components/sidebar/splits.vue'
 import Financials from '@/components/sidebar/financialbtn.vue'
 import Notes from '@/components/notes.vue'
-import { reactive, onMounted, ref, watch, computed, nextTick } from 'vue';
+import { reactive, onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from 'vue';
 import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
 import Loader from '@/components/loader.vue';
 import Sortable from 'sortablejs';
@@ -699,7 +699,6 @@ async function initializeComponent() {
       await fetchHiddenList(),
       await fetchPanel(),
       await fetchTier(),
-
     ]);
 
     isLoading2.value = false;
@@ -871,6 +870,7 @@ async function searchTicker(providedSymbol) {
       assetInfo.Name = data.Name;
       assetInfo.ISIN = data.ISIN;
       assetInfo.Symbol = data.Symbol;
+      assetInfo.AssetType = data.AssetType;
       assetInfo.Sector = data.Sector;
       assetInfo.Industry = data.Industry;
       assetInfo.MarketCapitalization = data.MarketCapitalization;
@@ -900,6 +900,27 @@ async function searchTicker(providedSymbol) {
       assetInfo.RSScore4M = data.RSScore4M;
       assetInfo.IPO = data.IPO;
       assetInfo.Description = data.Description;
+      assetInfo.RSI = data.RSI;
+      assetInfo.Gap = data.Gap;
+      assetInfo.ADV1W = data.ADV1W;
+      assetInfo.ADV1M = data.ADV1M;
+      assetInfo.ADV4M = data.ADV4M;
+      assetInfo.ADV1Y = data.ADV1Y;
+      assetInfo.PriceToSalesRatio = data.PriceToSalesRatio;
+      assetInfo.AlltimeLow = data.AlltimeLow;
+      assetInfo.AlltimeHigh = data.AlltimeHigh;
+      assetInfo.percoff52WeekLow = data.percoff52WeekLow;
+      assetInfo.percoff52WeekHigh = data.percoff52WeekHigh;
+      assetInfo.fiftytwoWeekLow = data.fiftytwoWeekLow;
+      assetInfo.fiftytwoWeekHigh = data.fiftytwoWeekHigh;
+      assetInfo.RelVolume6M = data.RelVolume6M;
+      assetInfo.RelVolume1Y = data.RelVolume1Y;
+      assetInfo.RelVolume1M = data.RelVolume1M;
+      assetInfo.RelVolume1W = data.RelVolume1W;
+      assetInfo.AvgVolume6M = data.AvgVolume6M;
+      assetInfo.AvgVolume1Y = data.AvgVolume1Y;
+      assetInfo.AvgVolume1M = data.AvgVolume1M;
+      assetInfo.AvgVolume1W = data.AvgVolume1W;
     }
   } catch (err) {
     isChartLoading.value = false;
@@ -931,6 +952,7 @@ const isInitializing = ref(true);
 const assetInfo = reactive({
   Name: '',
   ISIN: '',
+  AssetType: '',
   Sector: '',
   Exchange: '',
   Industry: '',
@@ -959,6 +981,27 @@ const assetInfo = reactive({
   RSScore4M: '',
   IPO: '',
   Description: '',
+  RSI: '',
+  Gap: '',
+  ADV1W: '',
+  ADV1M: '',
+  ADV4M: '',
+  ADV1Y: '',
+  PriceToSalesRatio: '',
+  AlltimeLow: '',
+  AlltimeHigh: '',
+  percoff52WeekLow: '',
+  percoff52WeekHigh: '',
+  fiftytwoWeekLow: '',
+  fiftytwoWeekHigh: '',
+  RelVolume6M: '',
+  RelVolume1Y: '',
+  RelVolume1M: '',
+  RelVolume1W: '',
+  AvgVolume6M: '',
+  AvgVolume1Y: '',
+  AvgVolume1M: '',
+  AvgVolume1W: '',
 });
 
 //takes date strings inside database and converts them into actual date, in italian format
@@ -1693,7 +1736,7 @@ async function fetchData12() {
   }
 }
 
-let chartView = ref('D')
+let chartView = ref('Daily Chart');
 let useAlternateData = false;
 const isLoading = ref(true)
 const charttype = ref('Candlestick')
@@ -1730,10 +1773,27 @@ const theme = {
 };
 
 const mainchart = ref(null);
+const chartInstance = ref(null);
 const showMA1 = ref(true);
 const showMA2 = ref(true);
 const showMA3 = ref(true);
 const showMA4 = ref(true);
+
+function getChartDimensions() {
+  const chartDiv = mainchart.value;
+  if (!chartDiv) return { width: 500, height: 550 };
+  const rect = chartDiv.getBoundingClientRect();
+  const width = window.innerWidth <= 1150 ? 500 : rect.width;
+  const height = rect.height <= 1150 ? 550 : rect.width;
+  return { width, height };
+}
+
+function resizeChart() {
+  if (chartInstance.value) {
+    const { width, height } = getChartDimensions();
+    chartInstance.value.applyOptions({ width, height });
+  }
+}
 
 // mounts chart (including volume)
 onMounted(async () => {
@@ -1749,12 +1809,10 @@ onMounted(async () => {
     await showTicker();
     await nextTick()
     const chartDiv = mainchart.value;
-    const rect = chartDiv.getBoundingClientRect();
-  const width = window.innerWidth <= 1150 ? 500 : rect.width;
-  const height = rect.height <= 1150 ? 550 : rect.width;
+    const { width, height } = getChartDimensions();
     const chart = createChart(chartDiv, {
-       height: height,
-    width: width,
+    height,
+    width,
       layout: {
         background: {
           type: ColorType.Solid,
@@ -1786,6 +1844,7 @@ onMounted(async () => {
         rightOffset: 20,
       },
     });
+    chartInstance.value = chart;
 
     let barSeries = chart.addCandlestickSeries({
       downColor: theme.negative,
@@ -2113,9 +2172,9 @@ MaSeries4.applyOptions({ visible: showMA4.value });
     chart.subscribeCrosshairMove(param => {
       if (param.time) {
         let changes;
-        if (chartView.value === 'D') {
+        if (chartView.value === 'Daily Chart') {
           changes = calculateChanges(data.value);
-        } else if (chartView.value === 'W') {
+        } else if (chartView.value === 'Weekly Chart') {
           changes = calculateChanges(data7.value); // Use weekly data for weekly chart view
         }
 
@@ -2242,11 +2301,13 @@ MaSeries4.applyOptions({ visible: showMA4.value });
     isInitializing.value = false;
   }
 
+   window.addEventListener('resize', resizeChart);
+
 });
 
 async function toggleChartView() {
   isLoading.value = true;
-  chartView.value = chartView.value === 'D' ? 'W' : 'D';
+  chartView.value = chartView.value === 'Daily Chart' ? 'Weekly Chart' : 'Daily Chart';
   useAlternateData = !useAlternateData;
   await fetchData();
   await fetchData2();
@@ -2278,6 +2339,10 @@ function updateSelectedWatchlist(watch) {
 const showCreateWatchlist = ref(false)
 const showRenameWatchlist = ref(false)
 const showCreateNote = ref(false)
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', resizeChart);
+});
 
 // generates all watchlist names 
 async function getWatchlists() {
@@ -3590,18 +3655,11 @@ function getSidebarProps(tag) {
   height: 100%;
   flex-direction: column;
   background-repeat: no-repeat;
-  min-width: 800px;
-  max-width: 800px;
-  max-height: 800px;
 }
 
 #chartdiv {
   flex: 1;
   border: none;
-  min-width: 800px;
-  max-width: 800px;
-  max-height: 580px;
-  min-height: 580px;
 }
 
 #chartdiv2 {
@@ -4340,10 +4398,10 @@ function getSidebarProps(tag) {
   justify-content: center;
   cursor: pointer;
   border: solid var(--text2) 1px;
-  border-radius: 25px;
+  border-radius: 5px;
   padding: 15px;
   opacity: 0.60;
-  width: 25px;
+  width: 95px;
   height: 25px;
   align-items: center;
   margin: 2px;
@@ -4364,12 +4422,12 @@ function getSidebarProps(tag) {
 #legend2 {
   position: absolute;
   top: 2%;
-  left: 80%;
+  right: 10%;
   z-index: 1000;
   background-color: transparent;
   color: var(--text1);
   border: none;
-  flex-direction: row;
+  flex-direction: column;
   display: flex;
 }
 
@@ -5102,10 +5160,8 @@ function getSidebarProps(tag) {
 #chart-container {
   position: relative;
   display: flex;
-  height: 100%;
   flex-direction: column;
   background-repeat: no-repeat;
-  width: 100%;;
 }
 
 #legend {

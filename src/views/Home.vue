@@ -837,7 +837,7 @@ a:hover{
 .feature-cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(300px, 1fr));
-  gap: 30px;
+  gap: 15px;
   margin-top: 20px;
   justify-content: center;
 }
