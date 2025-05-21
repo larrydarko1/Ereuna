@@ -33,16 +33,21 @@
       <button class="nav-button" @click="updatePanel">Submit</button>
     </div>
     <!-- Edit Summary Popup -->
-    <Panel2 v-if="showEditSummary" @close="showEditSummary = false" />
+    <Panel2 v-if="showEditSummary" @close="showEditSummary = false" @panel-updated="onPanelUpdated" />
   </div>
 </template>
 
 
 <script setup>
 import { ref, defineEmits, onMounted } from 'vue';
-const emit = defineEmits(['updated']);
+const emit = defineEmits(['updated', 'panel-updated']);
 import { useStore } from 'vuex';
 import Panel2 from '@/components/panel2.vue'; 
+
+function onPanelUpdated() {
+  // Propagate event upward
+  emit('panel-updated');
+}
 
 const store = useStore();
 let user = store.getters.getUser;

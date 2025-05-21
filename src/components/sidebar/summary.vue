@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import Symbol from '@/components/sidebar/summary/ticker.vue';
 import Name from '@/components/sidebar/summary/name.vue';
@@ -72,7 +72,7 @@ const store = useStore();
 let user = store.getters.getUser;
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
-const props = defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
+const props = defineProps(['assetInfo', 'formatDate', 'showAllDescription', 'refreshKey']);
 const emit = defineEmits();
 
 // Define the mapping of tags to components
@@ -170,32 +170,34 @@ const initialFields = [
   { order: 42, tag: 'Description', name: 'Description', hidden: false },
 ];
 
-// Fetch panel data
 async function fetchPanel2() {
   try {
     const headers = { 'X-API-KEY': apiKey };
     const response = await fetch(`/api/panel2?username=${user}`, { headers });
-    
+
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    
+
     const newPanel = await response.json();
-    console.log('Fetched panel data:', newPanel); // Debugging log
 
     // Defensive: fallback to default if empty
     summaryFields.value = (newPanel.panel2 && newPanel.panel2.length)
       ? newPanel.panel2
       : initialFields.map(field => ({ ...field }));
-
-    console.log('Updated summaryFields:', summaryFields.value); // Debugging log
   } catch (error) {
-    console.error('Error fetching panel data:', error);
-    // Fallback to initial fields in case of error
     summaryFields.value = initialFields.map(field => ({ ...field }));
   }
 }
 
-// Call fetchPanel2 on component mount
+// Expose fetchPanel2 for parent calls
+defineExpose({ fetchPanel2 });
+
+// Call fetchPanel2 on mounted
 onMounted(() => {
+  fetchPanel2();
+});
+
+// Watch for refreshKey changes to re-fetch fields
+watch(() => props.refreshKey, () => {
   fetchPanel2();
 });
 
