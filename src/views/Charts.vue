@@ -312,24 +312,25 @@ l-240 1 -90 -57z"/>
   {{ showPanel ? 'Close Popup' : 'Edit Panel' }}
 </div>
 <transition name="fade">
-  <Panel v-if="showPanel" @close="showPanel = false" @updated="fetchPanel" />
+  <Panel v-if="showPanel" @close="showPanel = false" @updated="fetchPanel" @panel-updated="handlePanelUpdated" />
 </transition>
 </div>
  <component
-    v-for="(item, idx) in panelData"
-    :key="idx"
-    :is="sidebarComponentMap[item.tag]"
-    v-show="!item.hidden"
-    v-bind="getSidebarProps(item.tag)"
-    @show-popup="showPopup = true"
-    @toggle-description="showAllDescription = !showAllDescription"
-    @toggle-eps="showAllEPS = !showAllEPS"
-    @toggle-earnings="showAllEarnings = !showAllEarnings"
-    @toggle-sales="showAllSales = !showAllSales"
-    @toggle-dividends="showAllDividends = !showAllDividends"
-    @toggle-splits="showAllSplits = !showAllSplits"
-    @remove-note="removeNote"
-  />
+  v-for="(item, idx) in panelData"
+  :key="idx"
+  :is="sidebarComponentMap[item.tag]"
+  v-show="!item.hidden"
+  v-bind="getSidebarProps(item.tag)"
+  :refresh-key="item.tag === 'Summary' ? summaryRefreshKey : undefined"
+  @show-popup="showPopup = true"
+  @toggle-description="showAllDescription = !showAllDescription"
+  @toggle-eps="showAllEPS = !showAllEPS"
+  @toggle-earnings="showAllEarnings = !showAllEarnings"
+  @toggle-sales="showAllSales = !showAllSales"
+  @toggle-dividends="showAllDividends = !showAllDividends"
+  @toggle-splits="showAllSplits = !showAllSplits"
+  @remove-note="removeNote"
+/>
 <div v-if="showPopup" class="popup">
             <div class="popup-content">
               <div class="toggle-button-container">
@@ -642,6 +643,13 @@ const apiKey = import.meta.env.VITE_EREUNA_KEY;
 const isLoading2 = ref(true);
 const isLoading3 = ref(true);
 let isChartLoading = ref(false);
+
+const summaryRefreshKey = ref(0);
+
+function handlePanelUpdated() {
+  summaryRefreshKey.value++; // This will trigger a prop change
+  fetchPanel(); // Also refresh the panel sections if needed
+}
 
 // for popup notifications
 const notification = ref(null);

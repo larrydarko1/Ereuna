@@ -38,7 +38,7 @@ import { useStore } from 'vuex';
 const store = useStore();
 let user = store.getters.getUser;
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
-const emit = defineEmits(['close', 'updated']);
+const emit = defineEmits(['close', 'updated', 'panel-updated']);
 
 const initialFields = [
   { order: 1, tag: 'Symbol', name: 'Symbol', hidden: false },
@@ -145,12 +145,15 @@ async function updatePanel2() {
       },
       body: JSON.stringify(requestBody),
     });
-     if (!response.ok) {
+
+    if (!response.ok) {
       throw new Error(`Error updating panel order: ${response.status}`);
     }
-     emit('updated');
+
+    // Emit event to inform parent that panel was updated
+    emit('panel-updated');
   } catch (error) {
-    // handle error if needed
+    // error handling if needed
   }
 }
 
