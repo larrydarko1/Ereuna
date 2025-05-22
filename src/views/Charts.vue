@@ -11,13 +11,6 @@
     </button>
     <button
       class="mnavbtn"
-      :class="{ selected: selected === 'chart' }"
-      @click="select('chart')"
-    >
-      Chart
-    </button>
-    <button
-      class="mnavbtn"
       :class="{ selected: selected === 'watchlists' }"
       @click="select('watchlists')"
     >
@@ -1972,14 +1965,14 @@ onMounted(async () => {
 
     let lastRecordedValue = null;
 
-    function updateLastRecordedValue(changes) {
-      if (chartView.value === 'D') {
-        lastRecordedValue = changes[changes.length - 1];
-      } else if (chartView.value === 'W') {
-        lastRecordedValue = changes[changes.length - 1];
-      }
-      updateFirstRow(lastRecordedValue);
-    }
+ function updateLastRecordedValue(changes) {
+  if (chartView.value === 'Daily Chart') {
+    lastRecordedValue = changes[changes.length - 1];
+  } else if (chartView.value === 'Weekly Chart') {
+    lastRecordedValue = changes[changes.length - 1];
+  }
+  updateFirstRow(lastRecordedValue);
+}
 
     watch(data, (newData) => {
       const changes = calculateChanges(newData);
@@ -2086,8 +2079,6 @@ onMounted(async () => {
       });
       Histogram.setData(relativeVolumeData);
     });
-
-    // ...existing code...
 
 // Watch for visibility changes and set series visibility
 watch(showMA1, (visible) => {
@@ -4987,6 +4978,10 @@ function getSidebarProps(tag) {
   background-color: var(--base4);
 }
 
+#chart-container {
+  display:none;
+}
+
 .indexes{
   display: none;
 }
@@ -5163,13 +5158,6 @@ function getSidebarProps(tag) {
 
 #chartdiv {
   border: none;
-}
-
-#chart-container {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  background-repeat: no-repeat;
 }
 
 #legend {
