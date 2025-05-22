@@ -1328,12 +1328,13 @@ def calculateAlltimehighlowandperc52wk():
     asset_info_collection = db['AssetInfo']
     updates = []
 
-    print("Calculating All-Time Highs, Lows, and Percentages...")
+    print("Calculating All-Time Highs, Lows, 52-Week Highs/Lows, and Percentages...")
     for i, asset_info in enumerate(asset_info_collection.find()):
         ticker = asset_info['Symbol']
         try:
             pipeline = [
                 {'$match': {'tickerID': ticker}},
+                {'$sort': {'timestamp': -1}},
                 {'$project': {'_id': 0, 'close': 1}}
             ]
             documents = list(ohclv_data_collection.aggregate(pipeline))
@@ -1345,34 +1346,39 @@ def calculateAlltimehighlowandperc52wk():
                     close_value = float(close_value)
                     close_values.append(close_value)
                 except ValueError:
-                    # Handle non-numeric values (e.g., log a warning, skip the value, etc.)
                     print(f"Warning: Non-numeric value '{close_value}' found in 'close' field for ticker {ticker}")
 
             if close_values:
                 alltime_high = max(close_values)
                 alltime_low = min(close_values)
                 recent_close = close_values[0]
+                closes_52wk = close_values[:252]  # Most recent 252 closes (approx 1 year)
+                fiftytwo_week_high = max(closes_52wk) if closes_52wk else 0
+                fiftytwo_week_low = min(closes_52wk) if closes_52wk else 0
             else:
                 alltime_high = 0
                 alltime_low = 0
                 recent_close = 0
+                fiftytwo_week_high = 0
+                fiftytwo_week_low = 0
 
-            fifty_two_week_high = asset_info.get('fiftytwoWeekHigh', 0)
-            fifty_two_week_low = asset_info.get('fiftytwoWeekLow', 0)
-            if fifty_two_week_high != 0:
-                perc_off_52_week_high = ((recent_close - fifty_two_week_high) / fifty_two_week_high) 
+            if fiftytwo_week_high != 0:
+                perc_off_52_week_high = ((recent_close - fiftytwo_week_high) / fiftytwo_week_high)
             else:
                 perc_off_52_week_high = 0
-            if fifty_two_week_low != 0:
-                perc_off_52_week_low = ((recent_close - fifty_two_week_low) / fifty_two_week_low) 
+            if fiftytwo_week_low != 0:
+                perc_off_52_week_low = ((recent_close - fiftytwo_week_low) / fiftytwo_week_low)
             else:
                 perc_off_52_week_low = 0
+
             updates.append(
                 UpdateOne(
                     {'Symbol': ticker},
                     {'$set': {
                         'AlltimeHigh': alltime_high,
                         'AlltimeLow': alltime_low,
+                        'fiftytwoWeekHigh': fiftytwo_week_high,
+                        'fiftytwoWeekLow': fiftytwo_week_low,
                         'percoff52WeekHigh': perc_off_52_week_high,
                         'percoff52WeekLow': perc_off_52_week_low
                     }}
@@ -2253,4 +2259,85 @@ def updateAssetInfoAttributeNames():
 updateAssetInfoAttributeNames()
 '''
 
+# get the OHCLV for IEX throught tiingo rest api, and updates database before tiingo aggregation, if successfull, it saves us 3 hours 
+def getIEXPrice():
+    daily_collection = db["OHCLVData"]
+    weekly_collection = db["OHCLVData2"]
+    asset_info_collection = db["AssetInfo"]
+
+    # Fetch all data at once from the IEX REST endpoint
+    url = f'https://api.tiingo.com/iex'
+    params = {"token": api_key}
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        data = response.json()
+
+        # Get symbols from AssetInfo collection
+        symbols = [doc['Symbol'] for doc in asset_info_collection.find()]
+
+        # Filter data based on ticker
+        filtered_data = [doc for doc in data if doc['ticker'].lower() in [symbol.lower() for symbol in symbols]]
+
+        if filtered_data:
+            # Convert to DataFrame for easier processing
+            df = pd.DataFrame(filtered_data)
+            # These are the typical fields from the IEX endpoint
+            # Adjust columns if needed based on actual API response
+            df.columns = [
+                'ticker', 'timestamp', 'lastSaleTimestamp', 'quoteTimestamp', 'open', 'high', 'low', 'mid', 'tngoLast',
+                'last', 'lastSize', 'bidSize', 'bidPrice', 'askPrice', 'askSize', 'prevClose', 'volume'
+            ][:len(df.columns)]
+
+            # Convert NumPy types to Python native types
+            def convert_numpy_types(doc):
+                return {
+                    k: (int(v) if isinstance(v, np.integer) else 
+                        float(v) if isinstance(v, np.floating) else 
+                        v) for k, v in doc.items()
+                }
+
+            # Convert dataframe to list of dictionaries
+            daily_data_dict = df.to_dict(orient='records')
+            daily_data_dict = [convert_numpy_types(doc) for doc in daily_data_dict]
+
+            # Rename fields and parse timestamp
+            for doc in daily_data_dict:
+                doc['tickerID'] = doc.pop('ticker').upper()
+                # Parse timestamp to datetime
+                if 'timestamp' in doc and doc['timestamp']:
+                    try:
+                        doc['timestamp'] = dt.datetime.fromisoformat(doc['timestamp'].replace('Z', '+00:00'))
+                    except Exception as e:
+                        print(f"Error parsing timestamp for {doc['tickerID']}: {e}")
+                        continue
+
+            # Insert daily documents, preventing duplicates
+            for daily_doc in daily_data_dict:
+                existing_daily_doc = daily_collection.find_one({
+                    'tickerID': daily_doc['tickerID'], 
+                    'timestamp': daily_doc['timestamp']
+                })
+                if not existing_daily_doc:
+                    daily_collection.insert_one(daily_doc)
+                    print(f"Inserted IEX daily doc for {daily_doc['tickerID']} on {daily_doc['timestamp']}")
+                else:
+                    print(f"IEX daily doc for {daily_doc['tickerID']} on {daily_doc['timestamp']} already exists")
+
+            # Insert into weekly collection (optional, similar to getPrice)
+            for daily_doc in daily_data_dict:
+                weekly_timestamp = getMonday(daily_doc['timestamp'])
+                existing_weekly_doc = weekly_collection.find_one({
+                    'tickerID': daily_doc['tickerID'], 
+                    'timestamp': weekly_timestamp
+                })
+                if not existing_weekly_doc:
+                    weekly_collection.insert_one(daily_doc)
+                    print(f"Inserted IEX weekly doc for {daily_doc['tickerID']} on {weekly_timestamp}")
+
+        else:
+            print("No data found for the specified tickers.")
+    else:
+        print(f"Error: {response.status_code} - {response.text}")
+        
 Daily()

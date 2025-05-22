@@ -3,7 +3,7 @@
               <div class="category">% Off 52Wk Low</div>
                <div class="response">
                 {{ (assetInfo.percoff52WeekLow != null && !isNaN(assetInfo.percoff52WeekLow)) ?
-                  (parseFloat(assetInfo.percoff52WeekLow)).toFixed(2) + '%' : '-' }}
+                  (parseFloat(assetInfo.percoff52WeekLow) * 100).toFixed(2) + '%' : '-' }}
               </div>
             </div>
 </template>
