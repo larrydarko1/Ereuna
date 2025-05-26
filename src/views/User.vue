@@ -1896,9 +1896,9 @@ p {
     border-radius: 5px;
     border: none;
     outline: none;
-    padding: 5px;
+    padding: 10px;
     margin: 5px;
-    width: 30%;
+    width: 40%;
     cursor: pointer;
     /* Pointer cursor on hover */
     transition: all 0.3s ease;
@@ -1914,7 +1914,7 @@ p {
   .userinput {
     border-radius: 5px;
     position: relative;
-    padding: 5px 5px 5px 15px;
+    padding: 10px 10px 10px 15px;
     margin: 7px;
     width: 50%;
     outline: none;
@@ -1985,6 +1985,112 @@ p {
     display: flex;
     flex-direction: column;
   }
+
+  .theme-buttons {
+  position: absolute;
+  top: 50%;
+  left: 46%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 70%;
+}
+
+.theme-buttons button {
+  height: 70px;
+  font-size: 1.5rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: var(--base2);
+}
+
+.theme-buttons button.active {
+  background-color: var(--accent1);
+  color: var(--text1);
+}
+
+.theme-buttons button:hover {
+  background-color: var(--accent2);
+}
+
+.twofa-container {
+  max-width: 400px;
+  width: 30rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 40px auto;
+  padding: 20px;
+  background-color: var(--base2);
+  border: 1px solid var(--text2);
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.twofa-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.twofa-instruction {
+  font-size: 14px;
+  color: var(--text1);
+  margin-bottom: 20px;
+}
+
+.twofa-toggle {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.twofa-toggle-switch,
+.twofa-toggle-label {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.twofa-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  background-color: var(--text1);
+  border-radius: 10px;
+  transition: background-color 0.3s;
+  cursor: pointer;
+}
+
+.twofa-toggle-switch::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background-color: var(--base1);
+  border-radius: 50%;
+  top: 1px;
+  left: 1px;
+  transition: transform 0.3s;
+}
+
+.twofa-toggle-switch-checked {
+  background-color: var(--accent1);
+}
+
+.twofa-toggle-switch-checked::before {
+  transform: translateX(20px);
+}
+
+.twofa-toggle-label {
+  font-size: 14px;
+  margin-left: 10px;
+  margin-bottom: 2px;
+  color: var(--accent1);
+}
 
 }
 </style>
