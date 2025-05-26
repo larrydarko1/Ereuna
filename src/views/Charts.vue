@@ -446,6 +446,12 @@ l-240 1 -90 -57z"/>
       </div>
       <div id="sidebar-right" :class="{ 'hidden-mobile': selected !== 'watchlists' }">
         <div style="position: sticky; top: 0; z-index: 1000;">
+           <div
+  id="chartdiv-mobile"
+  ref="mainchartMobile"
+  class="mobile-chart"
+  v-show="isMobile"
+></div>
           <div id="searchtable">
             <input type="text" id="searchbar" name="search" placeholder="Search Ticker" v-model="searchQuery"
               @input="toUpperCase" @keydown.enter="searchTicker()">
@@ -1775,6 +1781,7 @@ const theme = {
 
 const mainchart = ref(null);
 const chartInstance = ref(null);
+const isMobile = ref(window.innerWidth <= 1150);
 const showMA1 = ref(true);
 const showMA2 = ref(true);
 const showMA3 = ref(true);
@@ -4942,6 +4949,10 @@ function getSidebarProps(tag) {
   opacity: 0;
 }
 
+#chartdiv-mobile.mobile-chart {
+  display: none;
+}
+
 @media (min-width: 1151px) {
   #sidebar-left,
   #chart-container,
@@ -4949,8 +4960,6 @@ function getSidebarProps(tag) {
     display: block !important;
   }
 }
-
-
 
 /* Mobile version */
 @media (max-width: 1150px) {
@@ -5175,6 +5184,16 @@ function getSidebarProps(tag) {
 #legend4 {
   display: none;
 }
+
+#chartdiv-mobile.mobile-chart {
+    display: block;
+    width: 400px !important;
+    height: 200px !important;
+    margin: 0 auto;
+  }
+  #chartdiv {
+    display: none !important;
+  }
 
 }
 

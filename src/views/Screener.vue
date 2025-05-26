@@ -2779,7 +2779,7 @@ onMounted(async () => {
 
 const chartDiv = dlchart.value;
 const rect = chartDiv.getBoundingClientRect();
-  const width = window.innerWidth <= 1150 ? 500 : rect.width;
+  const width = window.innerWidth <= 1150 ? 400 : rect.width;
   const height = rect.height <= 1150 ? 250 : rect.width;
   const chart = createChart(chartDiv, {
     height: height,
@@ -2961,7 +2961,7 @@ onMounted(async () => {
 
   const chartDiv = wkchart.value;
 const rect = chartDiv.getBoundingClientRect();
-  const width = window.innerWidth <= 1150 ? 500 : rect.width;
+  const width = window.innerWidth <= 1150 ? 400 : rect.width;
   const height = rect.height <= 1150 ? 250 : rect.width;
   const chart = createChart(chartDiv, {
     height: height,
