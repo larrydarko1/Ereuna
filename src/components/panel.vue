@@ -10,6 +10,21 @@
       @dragover="dragOver($event)"
       @drop="drop($event, index)"
     >
+      <!-- Mobile-only up/down arrows -->
+      <span class="mobile-arrows">
+        <button
+          class="arrow-btn"
+          :disabled="index === 0"
+          @click="moveSectionUp(index)"
+          aria-label="Move up"
+        >▲</button>
+        <button
+          class="arrow-btn"
+          :disabled="index === sections.length - 1"
+          @click="moveSectionDown(index)"
+          aria-label="Move down"
+        >▼</button>
+      </span>
       <button
         class="hide-button"
         :class="{ 'hidden-button': section.hidden }"
@@ -160,6 +175,24 @@ async function updatePanel() {
   }
 }
 
+function moveSectionUp(index) {
+  if (index > 0) {
+    const temp = sections.value[index - 1];
+    sections.value[index - 1] = sections.value[index];
+    sections.value[index] = temp;
+    updateOrder();
+  }
+}
+
+function moveSectionDown(index) {
+  if (index < sections.value.length - 1) {
+    const temp = sections.value[index + 1];
+    sections.value[index + 1] = sections.value[index];
+    sections.value[index] = temp;
+    updateOrder();
+  }
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -266,6 +299,31 @@ async function updatePanel() {
   font-size: 0.95em;
 }
 
+.mobile-arrows {
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  margin-right: 6px;
+}
+
+.arrow-btn {
+  background: var(--base2);
+  border: 1px solid var(--accent2);
+  color: var(--accent2);
+  border-radius: 3px;
+  font-size: 1em;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.arrow-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Mobile version */
 @media (max-width: 1150px) {
   .panel-menu {
@@ -275,8 +333,32 @@ async function updatePanel() {
     font-size: 1rem;
   }
   .section-mini {
-    width: 90%;
-    font-size: 0.9rem;
+    width: 95%;
+    font-size: 0.85rem;
+    padding: 6px 4px;
+    border-radius: 7px;
+    gap: 6px;
+    min-height: 32px;
+  }
+  .hide-button,
+  .edit-summary-btn,
+  .arrow-btn {
+    font-size: 0.8em;
+    padding: 3px 7px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 4px;
+  }
+  .arrow-btn {
+    width: 20px;
+    height: 20px;
+    font-size: 0.9em;
+    padding: 0;
+  }
+  .mobile-arrows {
+    display: flex;
+    gap: 1px;
+    margin-right: 2px;
   }
 }
 </style>

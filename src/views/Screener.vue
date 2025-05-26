@@ -1585,7 +1585,7 @@ l-240 1 -90 -57z"/>
            <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z"></path> </g></svg>
             <label class=btnlabel>Multi-Screener</label>
           </button>
-          <button class="snavbtn" :class="{ 'snavbtnslct': showSearch }" id="showSearch" @click="showSearch = !showSearch" v-b-tooltip.hover title="Search">
+          <button style="display: none;" class="snavbtn" :class="{ 'snavbtnslct': showSearch }" id="showSearch" @click="showSearch = !showSearch" v-b-tooltip.hover title="Search">
            <svg class="img2" fill="var(--text1)" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12.027 9.92L16 13.95 14 16l-4.075-3.976A6.465 6.465 0 0 1 6.5 13C2.91 13 0 10.083 0 6.5 0 2.91 2.917 0 6.5 0 10.09 0 13 2.917 13 6.5a6.463 6.463 0 0 1-.973 3.42zM1.997 6.452c0 2.48 2.014 4.5 4.5 4.5 2.48 0 4.5-2.015 4.5-4.5 0-2.48-2.015-4.5-4.5-4.5-2.48 0-4.5 2.014-4.5 4.5z" fill-rule="evenodd"></path> </g></svg>
             <label class=btnlabel>Search</label></button>
         </div>
@@ -6656,7 +6656,7 @@ fetchTier()
   background-color: var(--accent1);
 }
 
-.left {
+.left{
   border: none;
   outline: none;
   display: inline-flex;
@@ -7473,7 +7473,7 @@ input:checked+.slider:before {
 }
 
 .input{
-  border-radius: 25px;
+  border-radius: 5px;
   padding: 5px 5px 5px 15px;
   margin: 7px;
   width: 160px;
@@ -7486,7 +7486,6 @@ input:checked+.slider:before {
 
 .input:focus{
   border-color: var(--accent1); /* Change border color on focus */
-  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5); /* Subtle shadow effect */
   outline: none; /* Remove default outline */
 }
 
@@ -7531,7 +7530,7 @@ input[type="date"]{
   justify-content: center;
   width: 20px;
   height: 5px;
-  border-radius: 15px;
+  border-radius: 5px;
   margin-left: 4px;
   padding: 7px;
   z-index: 1000;
@@ -7580,7 +7579,7 @@ input[type="date"]{
   justify-content: center;
   width: 40px;
   height: 5px;
-  border-radius: 15px;
+  border-radius: 5px;
   margin-left: 4px;
   padding: 7px;
   border: solid 2px var(--base1);
@@ -7634,7 +7633,7 @@ input[type="date"]{
   justify-content: center;
   width: 40px;
   height: 5px;
-  border-radius: 15px;
+  border-radius: 5px;
   margin-left: 4px;
   padding: 7px;
   border: solid 2px var(--base1);
@@ -7912,6 +7911,19 @@ input[type="date"]{
 #wk-chart,
 #dl-chart {
   background-repeat: no-repeat;
+}
+
+.input{
+  border-radius: 5px;
+  padding: 5px 5px 5px 15px;
+  margin: 7px;
+  width: 200px;
+  outline: none;
+  color: var(--text1); /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
+  border: solid 1px var(--base4);
+  background-color:var(--base4);
+  text-align: left;
 }
 
 }
