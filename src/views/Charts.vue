@@ -375,6 +375,7 @@ l-240 1 -90 -57z"/>
         </div>
       </div>
       <div id="center" :class="{ 'hidden-mobile': selected !== 'chart' }">
+        
         <div class="indexes">
   <button v-for="(index, i) in Indexes" :key="i" :class="{ active: activeIndex === i, 'index-btn': true }"
     @click="seeIndex(i)">
@@ -434,7 +435,9 @@ l-240 1 -90 -57z"/>
           <div class="loading-container" v-if="isLoading">
             <Loader />
           </div>
-          <div id="chartdiv2" style="padding: 15px;">
+        
+        </div>
+         <div id="chartdiv2">
             <img src="@/assets/images/logos/tiingo.png" alt="Image"
               style="height: 15px; margin-right: 10px; margin-bottom: 7px;">
             <p style="margin: 0; font-size: 10px;">Core financial data provided by Tiingo.com as of {{ currentDate }} -
@@ -442,7 +445,6 @@ l-240 1 -90 -57z"/>
               End-of-day (EOD) data updates occur daily, Monday through Friday, between 6:00 PM and 6:30 PM ET, subject
               to Tiingo's data availability.</p>
           </div>
-        </div>
       </div>
       <div id="sidebar-right" :class="{ 'hidden-mobile': selected !== 'watchlists' }">
         <div style="position: sticky; top: 0; z-index: 1000;">
@@ -452,6 +454,12 @@ l-240 1 -90 -57z"/>
   class="mobile-chart"
   v-show="isMobile"
 ></div>
+ <div class="loading-container2" v-if="isChartLoading">
+            <Loader />
+          </div>
+          <div class="loading-container2" v-if="isLoading">
+            <Loader />
+          </div>
           <div id="searchtable">
             <input type="text" id="searchbar" name="search" placeholder="Search Ticker" v-model="searchQuery"
               @input="toUpperCase" @keydown.enter="searchTicker()">
@@ -496,7 +504,8 @@ l-240 1 -90 -57z"/>
     </div>
   </div>
             <button class="navbtn" @click="addWatchlist()" v-b-tooltip.hover title="Add ticker to watchlist">
-              <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M4 12H20M12 4V20" stroke="var(--text1)" stroke-width="1.9440000000000002" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg> Add Symbol
+              <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M4 12H20M12 4V20" stroke="var(--text1)" stroke-width="1.9440000000000002" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg> 
+              <span>Add Symbol</span>
             </button>
             <div class="wlnav-dropdown">
               <button class="dropdown-toggle wlbtn" v-b-tooltip.hover title="More Options">
@@ -1781,6 +1790,7 @@ const theme = {
 
 const mainchart = ref(null);
 const chartInstance = ref(null);
+const mainchartMobile = ref(null);
 const isMobile = ref(window.innerWidth <= 1150);
 const showMA1 = ref(true);
 const showMA2 = ref(true);
@@ -1788,12 +1798,9 @@ const showMA3 = ref(true);
 const showMA4 = ref(true);
 
 function getChartDimensions() {
-  const chartDiv = mainchart.value;
-  if (!chartDiv) return { width: 500, height: 550 };
-  const rect = chartDiv.getBoundingClientRect();
-  const width = window.innerWidth <= 1150 ? 500 : rect.width;
-  const height = rect.height <= 1150 ? 550 : rect.width;
-  return { width, height };
+  return isMobile.value
+    ? { width: mainchartMobile.value?.offsetWidth || 400, height: 200 }
+    : { width: mainchart.value?.offsetWidth || 500, height: mainchart.value?.offsetHeight || 550 };
 }
 
 function resizeChart() {
@@ -1816,7 +1823,7 @@ onMounted(async () => {
     }
     await showTicker();
     await nextTick()
-    const chartDiv = mainchart.value;
+   const chartDiv = isMobile.value ? mainchartMobile.value : mainchart.value;
     const { width, height } = getChartDimensions();
     const chart = createChart(chartDiv, {
     height,
@@ -3655,24 +3662,27 @@ function getSidebarProps(tag) {
 }
 
 #chart-container {
-  position: relative;
-  flex: 3;
   display: flex;
-  height: 100%;
   flex-direction: column;
+  position: relative;
   background-repeat: no-repeat;
 }
 
 #chartdiv {
-  flex: 1;
+  flex: 1 1 auto;
   border: none;
+  min-height: 500px; // ensures it shrinks properly
 }
 
 #chartdiv2 {
-  padding: 10px;
+  flex-shrink: 0;
+  padding: 15px 10px 10px 10px;
   border: none;
   background-color: var(--base2);
   color: var(--text2);
+  z-index: 10;
+  margin: 2px;
+  box-sizing: border-box;
 }
 
 #sidebar-right {
@@ -3770,7 +3780,10 @@ function getSidebarProps(tag) {
   cursor: pointer;
   height: 22px;
   width: 22px;
-  border-radius: 5px;
+   border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -3810,7 +3823,7 @@ function getSidebarProps(tag) {
   transition: height 0.3s ease;
   /* Smooth transition for height */
   /* Set a fixed height when not expanded */
-  height: 50px;
+  height: 20px;
   /* This should match your minHeight */
 }
 
@@ -4284,6 +4297,11 @@ function getSidebarProps(tag) {
   z-index: 1000;
   border: none;
 }
+
+.loading-container2 {
+  display: none;
+}
+
 
 /* watchlist selector dropdow menu */
 .select-container {
@@ -5187,7 +5205,7 @@ function getSidebarProps(tag) {
 
 #chartdiv-mobile.mobile-chart {
     display: block;
-    width: 400px !important;
+    width: 100% !important;
     height: 200px !important;
     margin: 0 auto;
   }
@@ -5195,7 +5213,130 @@ function getSidebarProps(tag) {
     display: none !important;
   }
 
+  /* input for searching symbols */
+#searchbar {
+  border-radius: 5px;
+  padding: 15px 15px 15px 15px;
+  margin: 7px;
+  width: calc(100% - 30px);
+  /* Make space for the button */
+  outline: none;
+  color: var(--base3);
+  /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s;
+  /* Smooth transition for focus effects */
+  border: solid 1px var(--base1);
+  background-color: var(--base4);
 }
+
+#searchbar:focus {
+  border-color: var(--accent1);
+  /* Change border color on focus */
+  //box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
+  /* Subtle shadow effect */
+  outline: none;
+  /* Remove default outline */
+}
+
+/* button for searching symbols, inside searchbar */
+.wlbtn2 {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  flex-shrink: 0;
+  color: var(--text1);
+  background-color: var(--accent1);
+  border: none;
+  padding: 0;
+  outline: none;
+  cursor: pointer;
+  height: 41px;
+  width: 41px;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.wlbtn2:hover {
+  background-color: var(--accent2);
+  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
+  outline: none;
+}
+
+.img {
+  width: 20px;
+  height: 20px;
+  border: none;
+}
+
+.wlist {
+  background-color: var(--base2);
+  height: 35px;
+  margin-top: 2px;
+  border-left: var(--base4) solid 1px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text1);
+}
+
+.img2 {
+  width: 20px;
+  height: 20px;
+  border: none;
+}
+
+.tbl{
+  font-size: 1.3rem;
+}
+
+.navbtn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0.80;
+  color: var(--text1);
+  transition: opacity 0.2s ease;
+  padding: 5px;
+  margin: 5px;
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.navbtn span {
+  margin-left: 5px;
+  font-size: 1.2rem;
+}
+
+.loading-container2 {
+  position: absolute;
+  bottom: 25%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  border: none;
+}
+
+.dbtn{
+  opacity: 1;
+}
+
+
+
+}
+
 
 
 </style>
