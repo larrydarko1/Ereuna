@@ -10,7 +10,7 @@
       >
         {{ item }}
       </p>
-      <span>Ereuna v1.0.4</span>
+      <span class="version">Ereuna v1.0.4</span>
     </div>
   <div class="side2">
   <p
@@ -256,4 +256,72 @@ function getComponentName(item) {
   overflow-y: scroll;
   max-width: 700px;
 }
+
+//mobile version
+@media (max-width: 768px) {
+  .documentation {
+    flex-direction: column;
+    height: auto;
+  }
+  .side1,
+  .side2,
+  .main {
+    max-width: 100vw;
+    width: 100vw;
+    min-width: 0;
+    height: auto;
+    position: static;
+    z-index: auto;
+    padding: 0;
+    margin: 0;
+  }
+
+  .main {
+    padding: 1rem;
+    overflow-y: auto;
+    max-height: calc(100vh - 60px); // Adjust for mobile header
+  }
+
+  .side1.mobile,
+  .side2.mobile {
+    display: block;
+    background: $base2;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-radius: 0;
+    padding: 0.5rem 0;
+  }
+
+   .side1.hidden,
+  .side2.hidden {
+    display: none !important;
+  }
+  .main.mobile {
+    padding: 1rem;
+    max-width: 100vw;
+    overflow-y: visible;
+  }
+  .mobile-nav {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: $base4;
+    justify-content: flex-start;
+    align-items: center;
+    border-bottom: 1px solid $base2;
+    button {
+      font-size: 1.1rem;
+      background: $base2;
+      color: $text1;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+    }
+  }
+
+  .version{
+    display:none;
+  }
+}
+
 </style>
