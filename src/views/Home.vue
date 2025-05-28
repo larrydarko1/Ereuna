@@ -1,7 +1,7 @@
 <template>
   <div class="landingPage">
     <div id="navbar" class="navbar">
-  <img class="icon" src="@/assets/icons/ereuna.png" alt="Owl Icon">
+  <img class="icon" src="@/assets/icons/ereuna.png" alt="Owl Icon" >
 
   <!-- Hidden checkbox toggler for mobile dropdown -->
   <input type="checkbox" id="nav-toggle" class="nav-toggle" />
@@ -14,6 +14,9 @@
     <div class="navbtn" @click="scrollToSection('features')">Features</div>
     <div class="navbtn" @click="scrollToSection('pricing')">Pricing</div>
     <!-- <div class="navbtn" @click="scrollToSection('about')">About</div> -->
+   <div class="navbtn">
+      <router-link to="/documentation" style="color: whitesmoke; text-decoration: none; font-size: 12px;">Documentation</router-link>
+    </div>
     <div class="navbtn">
       <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 12px;">Sign Up</router-link>
     </div>
@@ -88,7 +91,7 @@
     <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/savings.png" alt="">
     <div class="feature-title">Unbeatable Value</div>
     <div class="feature-desc">
-      This platform offers the cheapest and most affordable professional stock screening and research solution on the market, focusing on essential EOD and core fundamental data that drives informed decision-making.
+      This platform offers one of the cheapest and most affordable professional stock screening and research solution on the market, focusing on essential EOD and core fundamental data that drives informed decision-making.
     </div>
   </div>
   <div class="feature-card">
@@ -151,29 +154,66 @@
     <!-- Pricing Section -->
     <div class="content-section" id="pricing">
       <h2 style="text-align: center; font-size: 20px; color: whitesmoke;">PRICING</h2>
-        <div class="pricing-card">
-          <h3 style="font-size: 16px;">ALL FEATURES, ONE TIER</h3>
-         <div class="price-container">
-          <p><span class="feature" style="font-size: 50px;">5.99€</span></p>
-         <p class="price-container2">+ VAT / Month</p> 
-         </div> 
-         <div class="bullet-list">
-          <br>
-          <p>&bull; Coverage of 5000+ Stocks listed on NYSE and Nasdaq</p> 
-          <p>&bull; 35+ years of EOD price data (Daily and Weekly), 20+ years of financial statements</p> 
-          <p>&bull; One-Click Multi-Screener and other time saving features, 50+ screening parameters</p> 
-          <p>&bull; No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days</p> 
-         <br>
-         <br>
-         <br>
-         <br>
-         <br>
-         <br>
-        </div>
-         <div class="payme">
-         
-         </div>
-      </div>
+       <div class="pricing-cards">
+     <div class="pricing-card">
+<div class="pricing-header">
+  <h3>CORE</h3>
+  <div class="price-container">
+    <span class="feature">5.99€</span>
+  </div>
+</div>
+  <div class="feature-list">
+    <div class="feature-item">
+      <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      Coverage of 5000+ Stocks listed on NYSE and Nasdaq
+    </div>
+    <div class="feature-item">
+      <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      35+ years of EOD price data (Daily and Weekly), 20+ years of financial statements
+    </div>
+    <div class="feature-item">
+      <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      One-Click Multi-Screener and other time saving features, 50+ screening parameters
+    </div>
+    <div class="feature-item">
+      <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days
+    </div>
+  </div>
+<!--<button class="pricebtn full-width">Get Started</button>-->  
+</div>
+      <div class="pricing-card">
+<div class="pricing-header">
+  <h3>PREMIUM</h3>
+  <div class="price-container">
+    <span class="feature">14.99€</span>
+  </div>
+</div>
+  <div class="feature-list">
+     <div class="feature-item">
+      <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      Intraday / Real-time Data Support
+    </div>
+    <div class="feature-item">
+      <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      Coverage of 5000+ Stocks listed on NYSE and Nasdaq
+    </div>
+    <div class="feature-item">
+      <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      35+ years of EOD price data (Daily and Weekly), 20+ years of financial statements
+    </div>
+    <div class="feature-item">
+      <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      One-Click Multi-Screener and other time saving features, 50+ screening parameters
+    </div>
+    <div class="feature-item">
+      <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days
+    </div>
+  </div>
+ 
+</div>
+</div>
     </div>
 
    <!-- Call-to-Action Section -->
@@ -301,6 +341,7 @@ const faqs = ref([
   },
   { question: 'What is the payment method?', answer: 'Credit Card via Stripe, cryptocurrencies will be added in the future.', show: true },
   { question: 'Is there a refund policy?', answer: 'Yes, you are eligible for refunds the first 15 days of registration. you have to write to contact@ereuna.io and provide your Username and invoice id, refunds will be processed within 5 business days', show: true },
+  { question: 'Can I use Ereuna on mobile?', answer: 'Yes, Ereuna has a mobile version available. However, please note that while we strive to make our website accessible and usable on all devices, the mobile experience is not yet as optimized as the desktop version. Some features may not work properly or may behave differently due to the smaller screen size and touch input. We are actively working on improving and refining the mobile experience, so some issues will be addressed in future updates.', show: true },
   { question: 'Is there a commitment or contract?', answer: 'No, there is no commitment or contract. It\'s recharge based, no automatic / recurring charges. you can add more days to your subscription in the Dashboard session', show: true },
 ]);
 
@@ -377,6 +418,13 @@ function closeTermsModal() {
   font-size: 20px;
 }
 
+.pricing-cards {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+  padding: 30px;
+}
+
 .sphere-gradient {
   position: fixed;
   top: 110%;
@@ -411,6 +459,11 @@ function closeTermsModal() {
   font-size: 40px;
   font-weight: bold;
   margin: 0;
+}
+
+.pricing-card h3 {
+  color: $accent2;
+  margin-bottom: 10px;
 }
 
 .call-to-action {
@@ -645,17 +698,6 @@ a:hover{
   padding: 0; /* Remove padding to fill the entire button */
 }
 
-.feature{
-  font-size: 25px;
-  background: linear-gradient(270deg, #8c8dfe, #7273b8, #5557b7);
-  background-size: 400% 400%;
-  background-clip: text; /* Standard property */
-  -webkit-background-clip: text; /* Safari */
-  -moz-background-clip: text; /* Firefox (not widely supported) */
-  -webkit-text-fill-color: transparent; /* Safari */
-  animation: border-animation 2s ease infinite;
-}
-
 .feature2{
   font-size: 25px;
   background: linear-gradient(270deg, #8c8dfe, #7273b8, #5557b7);
@@ -785,33 +827,14 @@ a:hover{
 
 .pricing-card{
   background-color: $base4;
-  display: flexbox;
   border-radius: 10px;
   align-items: center;
   text-align: center;
-  padding: 10px;
-  max-width: 300px;
+  padding: 20px;
   color: $text1;
   align-items: center;
   margin: 0 auto;
   border: solid 1px $accent3;
-}
-
-.price-container {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.price-container2 {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%) rotate(-5deg);
-  font-size: 20px;
-  margin-top: 55px;
-  margin-left: 25px;
 }
 
 .bullet-list{
@@ -907,6 +930,78 @@ h2{
   text-align: center;
 }
 
+// ...existing code...
+
+.pricing-header {
+  display: flex;
+  flex-direction: column; // stack vertically
+  align-items: flex-start; // align left
+  justify-content: flex-start;
+  margin-bottom: 20px;
+  padding: 0; // remove extra padding
+}
+
+.feature{
+  color: $text1;
+  font-size: 5rem;
+}
+
+.pricing-header h3 {
+  margin: 0 0 8px 0; // bottom margin for spacing
+  font-size: 2rem;
+  color: $accent2;
+  float: none; // remove float
+  text-align: left;
+}
+
+.price-container {
+  margin: 0;
+  text-align: left; // ensure left alignment
+  padding: 0;
+  width: 100%;
+}
+
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: $text2;
+  gap: 10px;
+}
+
+.verified-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.pricebtn.full-width {
+  width: 100%;
+  display: block;
+  margin-top: 20px;
+  font-size: 18px;
+  padding: 12px 0;
+  border-radius: 8px;
+  background: $accent1;
+  color: $text4;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pricebtn.full-width:hover {
+  background: $accent2;
+}
+
+// ...existing code...
+
 .back-to-top:hover {
   opacity: 1;
 }
@@ -1000,13 +1095,13 @@ h2{
   transform: rotate(-45deg);
 }
 //hide second set of button from desktop
-  @media (min-width: 1150px) {
+  @media (min-width: 950px) {
   .navbtn-mobile{
   display: none;
 }}
 
 /* Mobile version */
-@media (max-width: 1150px) {
+@media (max-width: 950px) {
 
   .navbar {
   display: flex;
@@ -1265,6 +1360,12 @@ h2{
 
 #tradeoff{
   padding: 20px;
+}
+
+.pricing-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 }

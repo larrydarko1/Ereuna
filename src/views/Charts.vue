@@ -2889,7 +2889,7 @@ function logElement() {
   }
 
   autoplayIndex++;
-  autoplayTimeoutId = setTimeout(logElement, 5000); // 7 seconds
+  autoplayTimeoutId = setTimeout(logElement, 5000); // 5 seconds
 }
 
 // updates the order of the watchlist, triggered by drag and drop 

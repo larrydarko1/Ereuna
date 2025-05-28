@@ -22,8 +22,8 @@ const routes = [
     component: () => import('../views/Login.vue')
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard',
+    path: '/account',
+    name: 'Account',
     component: () => import('../views/User.vue')
   },
   {
@@ -50,6 +50,11 @@ const routes = [
     path: '/recovery',
     name: 'Recovery',
     component: () => import('../views/Recovery.vue')
+  },
+  {
+    path: '/documentation',
+    name: 'Documentation',
+    component: () => import('../views/Documentation.vue')
   },
 ]
 
