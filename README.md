@@ -1,8 +1,9 @@
 v1.0.4
 - you can toggle visibility of moving averages on charts
 - you can also edit summary component even further by chooshing the elements (left panel 100% customizable)
-- new premium tier added, and real-time data with websocket 
+- new premium tier added, but not operational yet, all users are default Core
 - more mobile optimization
+- added documentation
 -----
 v1.0.3
 - introduced mobile optimization
