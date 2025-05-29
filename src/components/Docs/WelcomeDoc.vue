@@ -18,6 +18,7 @@
     align-items: center;
     text-align: center;
     width: 100%;
+    min-width: 650px;
 }
 
 .center-container h1 {
@@ -44,6 +45,7 @@
 @media (max-width: 768px) {
    .center-container {
     margin-left: 0;
+    min-width: 10px;
 }
 }
 

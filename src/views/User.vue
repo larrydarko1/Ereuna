@@ -432,7 +432,7 @@
                 <p style="flex:1; text-align: center;">{{ (receipt.Amount) / 100 }}€</p>
                 <p style="flex:1; text-align: center;">{{ receipt.Method }}</p>
                 <p style="flex:1; text-align: center;">{{ formatSubscription(receipt.Subscription) }}</p>
-                <div style="flex:1;"><button @click="Download(receipt)" class="downloadbtn">
+                <div style="flex:1;"><button class="downloadbtn">
                     <svg class="icon3" viewBox="0 0 24.00 24.00" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg"
                       stroke="var(--text1)" stroke-width="0.696">
                       <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -502,7 +502,6 @@ import Footer from '@/components/Footer.vue'
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { ref, onMounted } from 'vue';
-import { jsPDF } from "jspdf";
 import owlImage from '@/assets/icons/owl3.png';
 import QrcodeVue from 'qrcode.vue'
 import hideIcon from '@/assets/icons/hide.png';
@@ -851,6 +850,7 @@ function formatSubscription(subscriptionValue) {
   return subscriptionMap[subscriptionValue] || 'Unknown';
 }
 
+/*
 const Download = async (receipt) => {
   const doc = new jsPDF();
 
@@ -908,6 +908,8 @@ const Download = async (receipt) => {
     console.error("Error adding image to PDF:", error);
   }
 };
+
+*/
 
 const isTwoFaEnabled = ref(false);
 const qrCode = ref('');
@@ -1172,7 +1174,7 @@ p {
   border-radius: 5px;
   border: none;
   outline: none;
-  padding: 5px;
+  padding: 10px;
   margin: 5px;
   width: 150px;
   cursor: pointer;
@@ -1189,7 +1191,7 @@ p {
 /* inputs for settings */
 .userinput {
   border-radius: 5px;
-  padding: 5px 5px 5px 15px;
+  padding: 10px 10px 10px 15px;
   margin: 7px;
   width: 160px;
   outline: none;
@@ -1203,12 +1205,7 @@ p {
 
 .userinput:focus {
   border-color: var(--accent1);
-  ;
-  /* Change border color on focus */
-  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
-  /* Subtle shadow effect */
   outline: none;
-  /* Remove default outline */
 }
 
 .title {
