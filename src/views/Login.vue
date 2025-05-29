@@ -66,7 +66,7 @@
       />
     </svg>
   </span>
-  {{ isLogged ? 'Welcome!' : 'Login' }}
+  {{ isLogged ? 'Welcome!' : 'Log In' }}
 </div>
     <br>
     <p class="text">Don't have an account? <router-link to="/signup" class="text">Sign Up</router-link></p>
@@ -566,7 +566,7 @@ p{
 }
 
 .userbtn {
-  background-color: transparent;
+  background-color: $accent1;
   text-align: center;
   display: flex;
   flex-direction: row;
@@ -576,30 +576,27 @@ p{
   color: $text1;
   border-radius: 10px;
   outline: none;
-  border: solid 3px #8c8dfe;
+  border: none;
   padding: 10px;
   margin: 10px;
   width: 400px;
   cursor: pointer;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   font-size: 16px;
   font-weight: 500;
 }
 
 .userbtn:hover {
-  background-color: #8c8dfe;
-  color: white;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  background-color: $accent2;
+  color: $text1;
   transform: scale(1.05);
   transition: all 0.3s ease-in-out;
 }
 
 .userbtn:active {
   transform: scale(0.95);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: all 0.1s ease-out;
-  background-color: #8c8dfe;
+  background-color: $accent1;
 }
 
 .loader4 {

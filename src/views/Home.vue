@@ -13,19 +13,22 @@
   <div class="nav-links">
     <div class="navbtn" @click="scrollToSection('features')">Features</div>
     <div class="navbtn" @click="scrollToSection('pricing')">Pricing</div>
-    <!-- <div class="navbtn" @click="scrollToSection('about')">About</div> -->
    <div class="navbtn">
-      <router-link to="/documentation" style="color: whitesmoke; text-decoration: none; font-size: 12px;">Documentation</router-link>
+      <router-link class="navbtn" to="/documentation" style="text-decoration: none;">Documentation</router-link>
     </div>
     <div class="navbtn">
-      <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 12px;">Sign Up</router-link>
+      <router-link class="navbtn" to="/signup" style="text-decoration: none;">Sign Up</router-link>
     </div>
-    <div class="navbtn2" @click="$router.push('/login')">
-      <router-link to="/login" style="color: whitesmoke; text-decoration: none; font-size: 12px; background-color: transparent;">Login</router-link>
-    </div>
+   
+      <router-link class="navbtn" to="/login" style="text-decoration: none; background-color: transparent;">
+        <div class="navbtn2" @click="$router.push('/login')"> Login</div>
+      </router-link>
+    
     <div class="navbtn-mobile" @click="scrollToSection('features')">Features</div>
     <div class="navbtn-mobile" @click="scrollToSection('pricing')">Pricing</div>
-     <!-- <div class="navbtn-mobile" @click="scrollToSection('about')">About</div> -->
+     <div class="navbtn-mobile" @click="$router.push('/documentation')">
+  <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 14px;">Docs</router-link>
+</div>
     <div class="navbtn-mobile" @click="$router.push('/signup')">
   <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 14px;">Sign Up</router-link>
 </div>
@@ -560,7 +563,7 @@ a:hover{
     background-color: transparent;
     color: whitesmoke;
     opacity: 0.70;
-    font-size: 12px;
+    font-size: 1.5rem;
   }
 
   .navbtn:hover{
@@ -575,7 +578,7 @@ a:hover{
   background-color: transparent; /* Button background color */
   color: whitesmoke; /* Text color */
   padding: 10px 20px; /* Padding for better spacing */
-  font-size: 16px; /* Font size */
+  font-size: 1.5rem; /* Font size */
   cursor: pointer; /* Pointer cursor on hover */
   position: relative; /* For pseudo-element positioning */
   overflow: hidden; /* Hide overflow for pseudo-element */

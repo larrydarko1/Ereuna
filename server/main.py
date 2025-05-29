@@ -2340,4 +2340,66 @@ def getIEXPrice():
     else:
         print(f"Error: {response.status_code} - {response.text}")
         
-Daily()
+#Daily()
+
+def clone_user_documents():
+    # List of new usernames
+    new_usernames = [
+        "LunaNight",
+        "Kairos23",
+        "AuroraSky",
+        "NovaSparks",
+        "RivenBlack",
+        "LilaMoon",
+        "SageWinds",
+        "CaelumBlue",
+        "PiperRise"
+    ]
+
+    # Connect to collections
+    watchlists_collection = db["Watchlists"]
+    screeners_collection = db["Screeners"]
+    users_collection = db["Users"]
+
+    # Query for ZephyrStar's documents
+    zephyr_watchlists = list(watchlists_collection.find({"UsernameID": "ZephyrStar"}))
+    zephyr_screeners = list(screeners_collection.find({"UsernameID": "ZephyrStar"}))
+    zephyr_user = users_collection.find_one({"Username": "ZephyrStar"})
+    panel = zephyr_user.get("panel", []) if zephyr_user else []
+    panel2 = zephyr_user.get("panel2", []) if zephyr_user else []
+
+    # Helper to clone docs with new UsernameID, skipping if already exists
+    def clone_docs(docs, username, collection):
+        cloned = []
+        for doc in docs:
+            doc_copy = doc.copy()
+            doc_copy.pop("_id", None)
+            doc_copy["UsernameID"] = username
+            # Check for existence by a unique field (e.g. Name or Title, plus UsernameID)
+            query = {"UsernameID": username}
+            if "Name" in doc_copy:
+                query["Name"] = doc_copy["Name"]
+            else:
+                # fallback: use all fields except _id
+                query.update({k: v for k, v in doc_copy.items() if k != "_id"})
+            if not collection.find_one(query):
+                cloned.append(doc_copy)
+        return cloned
+
+    # Insert cloned docs for each username and update Users panel/panel2
+    for username in new_usernames:
+        new_watchlists = clone_docs(zephyr_watchlists, username, watchlists_collection)
+        if new_watchlists:
+            watchlists_collection.insert_many(new_watchlists)
+        new_screeners = clone_docs(zephyr_screeners, username, screeners_collection)
+        if new_screeners:
+            screeners_collection.insert_many(new_screeners)
+        users_collection.update_one(
+            {"Username": username},
+            {"$set": {"panel": panel, "panel2": panel2}},
+            upsert=True
+        )
+        print(f"Cloned documents and updated panels for {username}")
+
+# Usage:
+#clone_user_documents()

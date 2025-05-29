@@ -189,11 +189,11 @@ const changePassword = async () => {
 }
 
 button {
-  background-color: transparent;
+  background-color: $accent1;
   color: $text1;
   border-radius: 10px;
   outline: none;
-  border: solid 3px #8c8dfe;
+  border: none;
   padding: 10px;
   margin: 10px;
   width: 400px;
@@ -205,8 +205,8 @@ button {
 }
 
 button:hover {
-  background-color: #8c8dfe;
-  color: white;
+  background-color: $accent2;
+  color: $text1;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
   transform: scale(1.05);
   transition: all 0.3s ease-in-out;
