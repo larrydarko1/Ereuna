@@ -29,7 +29,7 @@ const routes = [
   {
     path: '/signup',
     name: 'SignUp',
-    component: () => import('../views/blocked.vue')
+    component: () => import('../views/conversion.vue')
   },
   {
     path: '/upload',

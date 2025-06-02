@@ -231,10 +231,21 @@ const validationSchemas = {
 
     theme: () => body('theme')
         .trim()
-        .isLength({ min: 1, max: 20 })
-        .withMessage('Theme must be between 1 and 20 characters')
-        .isIn(['default', 'ihatemyeyes', 'colorblind', 'catpuccin'])
-        .withMessage('Invalid theme. Must be one of: default, ihatemyeyes, colorblind, catpuccin'),
+        .isLength({ min: 1, max: 30 })
+        .withMessage('Theme must be between 1 and 30 characters')
+        .isIn([
+            'default', 'ihatemyeyes', 'colorblind', 'catpuccin', 'black',
+            'nord', 'dracula', 'gruvbox', 'tokyo-night', 'solarized',
+            'synthwave', 'github-dark', 'everforest', 'ayu-dark', 'rose-pine',
+            'material', 'one-dark', 'night-owl', 'panda', 'monokai-pro',
+            'tomorrow-night', 'oceanic-next', 'palenight', 'cobalt', 'poimandres',
+            'github-light', 'neon', 'moonlight', 'nightfox', 'spacemacs',
+            'borland', 'amber', 'cyberpunk', 'matrix', 'sunset',
+            'deep-ocean', 'gotham', 'retro', 'spotify', 'autumn',
+            'noctis', 'iceberg', 'tango', 'horizon', 'railscasts',
+            'vscode-dark', 'slack-dark', 'mintty', 'atom-one', 'light-owl'
+        ])
+        .withMessage('Invalid theme.'),
 
     minPrice: () =>
         body('minPrice')

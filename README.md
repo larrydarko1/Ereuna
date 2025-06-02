@@ -1,3 +1,8 @@
+v1.0.5
+- added 45 new themes
+- refactored screener code (you can now customize what elements you see in the table and in what order)
+- 
+----
 v1.0.4
 - you can toggle visibility of moving averages on charts
 - you can also edit summary component even further by chooshing the elements (left panel 100% customizable)
