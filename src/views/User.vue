@@ -5,10 +5,11 @@
       <div class="inner2">
         <div class="user-wrapper">
           <div class="user-wrapper2">
- <h1 class="user">{{ user }}</h1>
-          <h2 class="tier">{{ Tier }}</h2>
+            <h1 class="user">{{ user }}</h1>
+            <h2 class="tier">{{ Tier }}</h2>
           </div>
-          <h2 class="subscription-remaining">{{ expirationDays !== null ? expirationDays + ' subscription days remaining' : 'Loading...' }}</h2>
+          <h2 class="subscription-remaining">{{ expirationDays !== null ? expirationDays + ' subscription daysremaining'
+            : 'Loading...' }}</h2>
         </div>
         <div class="menu-wrapper">
           <div class="menu selected" @click="selectMenu($event, 0)">
@@ -455,13 +456,13 @@
         </div>
         <div style="height: 100px"></div>
       </div>
-      <div v-if="selectedIndex === 2">
-        <div class="theme-buttons">
-          <button v-for="(theme, index) in themes" :key="index" @click="setTheme(theme)"
-            :class="{ active: currentTheme === theme }">
-            {{ themeDisplayNames[theme] }}
-          </button>
-        </div>
+      <div class="theme-buttons" v-if="selectedIndex === 2">
+        <button v-for="(theme, index) in themes" :key="index" @click="setTheme(theme)"
+          :class="{ active: currentTheme === theme }">
+          {{ themeDisplayNames[theme] }}
+        </button>
+        <!-- Add an empty div for extra space at the bottom -->
+        <div class="theme-spacer"></div>
       </div>
       <div v-if="selectedIndex === 3">
         <div class="twofa-container">
@@ -944,7 +945,18 @@ async function toggleTwoFa() {
   }
 }
 
-const themes = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
+const themes = [
+  'default', 'ihatemyeyes', 'colorblind', 'catpuccin', 'black',
+  'nord', 'dracula', 'gruvbox', 'tokyo-night', 'solarized',
+  'synthwave', 'github-dark', 'everforest', 'ayu-dark', 'rose-pine',
+  'material', 'one-dark', 'night-owl', 'panda', 'monokai-pro',
+  'tomorrow-night', 'oceanic-next', 'palenight', 'cobalt', 'poimandres',
+  'github-light', 'neon', 'moonlight', 'nightfox', 'spacemacs',
+  'borland', 'amber', 'cyberpunk', 'matrix', 'sunset',
+  'deep-ocean', 'gotham', 'retro', 'spotify', 'autumn',
+  'noctis', 'iceberg', 'tango', 'horizon', 'railscasts',
+  'vscode-dark', 'slack-dark', 'mintty', 'atom-one', 'light-owl'
+];
 const currentTheme = ref('default');
 
 const themeDisplayNames = {
@@ -952,6 +964,52 @@ const themeDisplayNames = {
   ihatemyeyes: 'I Hate My Eyes (light-mode)',
   colorblind: "I'm Colorblind",
   catpuccin: 'Catpuccin',
+  black: 'Black',
+  nord: 'Nord',
+  dracula: 'Dracula',
+  gruvbox: 'Gruvbox',
+  'tokyo-night': 'Tokyo Night',
+  solarized: 'Solarized Dark',
+  synthwave: 'Synthwave',
+  'github-dark': 'GitHub Dark',
+  everforest: 'Everforest',
+  'ayu-dark': 'Ayu Dark',
+  'rose-pine': 'Rose Pine',
+  material: 'Material',
+  'one-dark': 'One Dark',
+  'night-owl': 'Night Owl',
+  panda: 'Panda',
+  'monokai-pro': 'Monokai Pro',
+  'tomorrow-night': 'Tomorrow Night',
+  'oceanic-next': 'Oceanic Next',
+  'palenight': 'Palenight',
+  'cobalt': 'Cobalt',
+  'poimandres': 'Poimandres',
+  'github-light': 'GitHub Light',
+  'neon': 'Neon',
+  'moonlight': 'Moonlight',
+  'nightfox': 'Nightfox',
+  'spacemacs': 'Spacemacs',
+  'borland': 'Borland',
+  'amber': 'Amber',
+  'cyberpunk': 'Cyberpunk',
+  'matrix': 'Matrix',
+  'sunset': 'Sunset',
+  'deep-ocean': 'Deep Ocean',
+  'gotham': 'Gotham',
+  'retro': 'Retro',
+  'spotify': 'Spotify',
+  'autumn': 'Autumn',
+  'noctis': 'Noctis',
+  'iceberg': 'Iceberg',
+  'tango': 'Tango',
+  'horizon': 'Horizon',
+  'railscasts': 'Railscasts',
+  'vscode-dark': 'VS Code Dark',
+  'slack-dark': 'Slack Dark',
+  'mintty': 'Mintty',
+  'atom-one': 'Atom One',
+  'light-owl': 'Light Owl'
 };
 
 async function setTheme(newTheme) {
@@ -1729,14 +1787,19 @@ p {
 }
 
 .theme-buttons {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  width: 70%;
+  gap: 5px;
+  width: 100%;
+  height: 3000px;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.theme-spacer {
+  height: 100px;
+  width: 100%;
 }
 
 .theme-buttons button {
@@ -1802,7 +1865,7 @@ p {
     width: 100%;
     background-color: var(--base4);
     text-align: center;
-    
+
   }
 
   .user-wrapper {
@@ -1984,110 +2047,109 @@ p {
   }
 
   .theme-buttons {
-  position: absolute;
-  top: 50%;
-  left: 46%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 70%;
-}
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 90%;
+    height: 3000px;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
 
-.theme-buttons button {
-  height: 70px;
-  font-size: 1.5rem;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  background-color: var(--base2);
-}
+  .theme-buttons button {
+    font-size: 1.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: var(--base2);
+  }
 
-.theme-buttons button.active {
-  background-color: var(--accent1);
-  color: var(--text1);
-}
+  .theme-buttons button.active {
+    background-color: var(--accent1);
+    color: var(--text1);
+  }
 
-.theme-buttons button:hover {
-  background-color: var(--accent2);
-}
+  .theme-buttons button:hover {
+    background-color: var(--accent2);
+  }
 
-.twofa-container {
-  max-width: 400px;
-  width: 30rem;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  margin: 40px auto;
-  padding: 20px;
-  background-color: var(--base2);
-  border: 1px solid var(--text2);
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
+  .twofa-container {
+    max-width: 400px;
+    width: 30rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 40px auto;
+    padding: 20px;
+    background-color: var(--base2);
+    border: 1px solid var(--text2);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
 
-.twofa-title {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
+  .twofa-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
 
-.twofa-instruction {
-  font-size: 14px;
-  color: var(--text1);
-  margin-bottom: 20px;
-}
+  .twofa-instruction {
+    font-size: 14px;
+    color: var(--text1);
+    margin-bottom: 20px;
+  }
 
-.twofa-toggle {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-}
+  .twofa-toggle {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
 
-.twofa-toggle-switch,
-.twofa-toggle-label {
-  display: inline-block;
-  vertical-align: middle;
-}
+  .twofa-toggle-switch,
+  .twofa-toggle-label {
+    display: inline-block;
+    vertical-align: middle;
+  }
 
-.twofa-toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 20px;
-  background-color: var(--text1);
-  border-radius: 10px;
-  transition: background-color 0.3s;
-  cursor: pointer;
-}
+  .twofa-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+    background-color: var(--text1);
+    border-radius: 10px;
+    transition: background-color 0.3s;
+    cursor: pointer;
+  }
 
-.twofa-toggle-switch::before {
-  content: "";
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  background-color: var(--base1);
-  border-radius: 50%;
-  top: 1px;
-  left: 1px;
-  transition: transform 0.3s;
-}
+  .twofa-toggle-switch::before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background-color: var(--base1);
+    border-radius: 50%;
+    top: 1px;
+    left: 1px;
+    transition: transform 0.3s;
+  }
 
-.twofa-toggle-switch-checked {
-  background-color: var(--accent1);
-}
+  .twofa-toggle-switch-checked {
+    background-color: var(--accent1);
+  }
 
-.twofa-toggle-switch-checked::before {
-  transform: translateX(20px);
-}
+  .twofa-toggle-switch-checked::before {
+    transform: translateX(20px);
+  }
 
-.twofa-toggle-label {
-  font-size: 14px;
-  margin-left: 10px;
-  margin-bottom: 2px;
-  color: var(--accent1);
-}
+  .twofa-toggle-label {
+    font-size: 14px;
+    margin-left: 10px;
+    margin-bottom: 2px;
+    color: var(--accent1);
+  }
 
 }
 </style>

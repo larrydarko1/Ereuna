@@ -94,7 +94,1034 @@
     --ma1: #f5c2e7; //10MA
 }
 
+.black {
+    --accent1: #8c8dfe;
+    --accent2: #a9a5ff;
+    --accent3: #cfcbff;
+    --accent4: #a9a5ff53; //just for selected overlay screener 
+    --text1: #ffffff;
+    --text2: #cad3f5;
+    --text3: #000000;
+    --base1: #000000;
+    --base2: #010B13;
+    --base3: #8a8a90;
+    --base4: #000000;
+    --positive: #4caf50;
+    --negative: #90bff9;
+    --volume: #4d4d4d;
+    --ma4: #4caf50; //200MA
+    --ma3: #ffeb3b; //50MA
+    --ma2: #2862ff; //20MA
+    --ma1: #00bcd4; //10MA
+}
 
+.nord {
+    --accent1: #88c0d0;
+    --accent2: #81a1c1;
+    --accent3: #5e81ac;
+    --accent4: #88c0d053; // semi-transparent overlay
+    --text1: #eceff4;
+    --text2: #e5e9f0;
+    --text3: #d8dee9;
+    --base1: #2e3440;
+    --base2: #3b4252;
+    --base3: #434c5e;
+    --base4: #4c566a;
+    --positive: #a3be8c;
+    --negative: #bf616a;
+    --volume: #d08770;
+    --ma4: #a3be8c; // 200MA
+    --ma3: #ebcb8b; // 50MA
+    --ma2: #81a1c1; // 20MA
+    --ma1: #b48ead; // 10MA
+}
+
+.dracula {
+    --accent1: #bd93f9;
+    --accent2: #ff79c6;
+    --accent3: #8be9fd;
+    --accent4: #bd93f950; // semi-transparent overlay
+    --text1: #f8f8f2;
+    --text2: #f1fa8c;
+    --text3: #6272a4;
+    --base1: #282a36;
+    --base2: #44475a;
+    --base3: #6272a4;
+    --base4: #21222c;
+    --positive: #50fa7b;
+    --negative: #ff5555;
+    --volume: #ffb86c;
+    --ma4: #50fa7b; // 200MA
+    --ma3: #f1fa8c; // 50MA
+    --ma2: #8be9fd; // 20MA
+    --ma1: #ff79c6; // 10MA
+}
+
+.gruvbox {
+    --accent1: #fe8019;
+    --accent2: #fabd2f;
+    --accent3: #b8bb26;
+    --accent4: #fe801950; // semi-transparent overlay
+    --text1: #ebdbb2;
+    --text2: #d5c4a1;
+    --text3: #bdae93;
+    --base1: #282828;
+    --base2: #3c3836;
+    --base3: #504945;
+    --base4: #1d2021;
+    --positive: #b8bb26;
+    --negative: #fb4934;
+    --volume: #d3869b;
+    --ma4: #b8bb26; // 200MA
+    --ma3: #fabd2f; // 50MA
+    --ma2: #83a598; // 20MA
+    --ma1: #d3869b; // 10MA
+}
+
+.tokyo-night {
+    --accent1: #7aa2f7;
+    --accent2: #bb9af7;
+    --accent3: #7dcfff;
+    --accent4: #7aa2f750; // semi-transparent overlay
+    --text1: #c0caf5;
+    --text2: #a9b1d6;
+    --text3: #9aa5ce;
+    --base1: #1a1b26;
+    --base2: #24283b;
+    --base3: #414868;
+    --base4: #16161e;
+    --positive: #9ece6a;
+    --negative: #f7768e;
+    --volume: #ff9e64;
+    --ma4: #9ece6a; // 200MA
+    --ma3: #e0af68; // 50MA
+    --ma2: #7aa2f7; // 20MA
+    --ma1: #bb9af7; // 10MA
+}
+
+.solarized {
+    --accent1: #268bd2;
+    --accent2: #6c71c4;
+    --accent3: #2aa198;
+    --accent4: #268bd253; // semi-transparent overlay
+    --text1: #839496;
+    --text2: #93a1a1;
+    --text3: #657b83;
+    --base1: #002b36;
+    --base2: #073642;
+    --base3: #586e75;
+    --base4: #00212b;
+    --positive: #859900;
+    --negative: #dc322f;
+    --volume: #b58900;
+    --ma4: #859900; // 200MA
+    --ma3: #b58900; // 50MA
+    --ma2: #268bd2; // 20MA
+    --ma1: #d33682; // 10MA
+}
+
+.synthwave {
+    --accent1: #f92aad;
+    --accent2: #da1b60;
+    --accent3: #ff8a00;
+    --accent4: #f92aad53; // semi-transparent overlay
+    --text1: #fff;
+    --text2: #f2f2f2;
+    --text3: #72f1b8;
+    --base1: #2b213a;
+    --base2: #241b2f;
+    --base3: #34294f;
+    --base4: #1a1325;
+    --positive: #72f1b8;
+    --negative: #fe4450;
+    --volume: #03edf9;
+    --ma4: #72f1b8; // 200MA
+    --ma3: #ff8a00; // 50MA
+    --ma2: #03edf9; // 20MA
+    --ma1: #f92aad; // 10MA
+}
+
+.github-dark {
+    --accent1: #58a6ff;
+    --accent2: #79c0ff;
+    --accent3: #a5d6ff;
+    --accent4: #58a6ff53; // semi-transparent overlay
+    --text1: #c9d1d9;
+    --text2: #8b949e;
+    --text3: #6e7681;
+    --base1: #0d1117;
+    --base2: #161b22;
+    --base3: #30363d;
+    --base4: #21262d;
+    --positive: #56d364;
+    --negative: #f85149;
+    --volume: #d29922;
+    --ma4: #56d364; // 200MA
+    --ma3: #d29922; // 50MA
+    --ma2: #58a6ff; // 20MA
+    --ma1: #bc8cff; // 10MA
+}
+
+.everforest {
+    --accent1: #83c092;
+    --accent2: #dbbc7f;
+    --accent3: #a7c080;
+    --accent4: #83c09253; // semi-transparent overlay
+    --text1: #d3c6aa;
+    --text2: #a7c080;
+    --text3: #859289;
+    --base1: #2d353b;
+    --base2: #343f44;
+    --base3: #475258;
+    --base4: #232a2e;
+    --positive: #a7c080;
+    --negative: #e67e80;
+    --volume: #d699b6;
+    --ma4: #a7c080; // 200MA
+    --ma3: #dbbc7f; // 50MA
+    --ma2: #7fbbb3; // 20MA
+    --ma1: #d699b6; // 10MA
+}
+
+.ayu-dark {
+    --accent1: #ffb454;
+    --accent2: #ff8f40;
+    --accent3: #e6b450;
+    --accent4: #ffb45453; // semi-transparent overlay
+    --text1: #b3b1ad;
+    --text2: #e6b450;
+    --text3: #3e4b59;
+    --base1: #0a0e14;
+    --base2: #1f2430;
+    --base3: #33415e;
+    --base4: #11151c;
+    --positive: #a6cc70;
+    --negative: #f07178;
+    --volume: #95e6cb;
+    --ma4: #a6cc70; // 200MA
+    --ma3: #e6b450; // 50MA
+    --ma2: #39bae6; // 20MA
+    --ma1: #ffee99; // 10MA
+}
+
+.rose-pine {
+    --accent1: #ebbcba;
+    --accent2: #eb6f92;
+    --accent3: #f6c177;
+    --accent4: #ebbcba53; // semi-transparent overlay
+    --text1: #e0def4;
+    --text2: #9ccfd8;
+    --text3: #908caa;
+    --base1: #191724;
+    --base2: #1f1d2e;
+    --base3: #26233a;
+    --base4: #16141f;
+    --positive: #31748f;
+    --negative: #eb6f92;
+    --volume: #c4a7e7;
+    --ma4: #31748f; // 200MA
+    --ma3: #f6c177; // 50MA
+    --ma2: #9ccfd8; // 20MA
+    --ma1: #c4a7e7; // 10MA
+}
+
+.material {
+    --accent1: #82aaff;
+    --accent2: #89ddff;
+    --accent3: #c792ea;
+    --accent4: #82aaff53; // semi-transparent overlay
+    --text1: #eeffff;
+    --text2: #b2ccd6;
+    --text3: #697098;
+    --base1: #212121;
+    --base2: #2b2b2b;
+    --base3: #353535;
+    --base4: #181818;
+    --positive: #c3e88d;
+    --negative: #f07178;
+    --volume: #ffcb6b;
+    --ma4: #c3e88d; // 200MA
+    --ma3: #ffcb6b; // 50MA
+    --ma2: #82aaff; // 20MA
+    --ma1: #c792ea; // 10MA
+}
+
+.one-dark {
+    --accent1: #61afef;
+    --accent2: #56b6c2;
+    --accent3: #c678dd;
+    --accent4: #61afef53; // semi-transparent overlay
+    --text1: #abb2bf;
+    --text2: #5c6370;
+    --text3: #828997;
+    --base1: #282c34;
+    --base2: #353b45;
+    --base3: #3e4451;
+    --base4: #21252b;
+    --positive: #98c379;
+    --negative: #e06c75;
+    --volume: #e5c07b;
+    --ma4: #98c379; // 200MA
+    --ma3: #e5c07b; // 50MA
+    --ma2: #56b6c2; // 20MA
+    --ma1: #c678dd; // 10MA
+}
+
+.night-owl {
+    --accent1: #82aaff;
+    --accent2: #7fdbca;
+    --accent3: #c792ea;
+    --accent4: #82aaff53; // semi-transparent overlay
+    --text1: #d6deeb;
+    --text2: #c792ea;
+    --text3: #637777;
+    --base1: #011627;
+    --base2: #0e293f;
+    --base3: #1d3b53;
+    --base4: #010d18;
+    --positive: #addb67;
+    --negative: #ef5350;
+    --volume: #ffeb95;
+    --ma4: #addb67; // 200MA
+    --ma3: #ffeb95; // 50MA
+    --ma2: #7fdbca; // 20MA
+    --ma1: #c792ea; // 10MA
+}
+
+.panda {
+    --accent1: #ff75b5;
+    --accent2: #6fc1ff;
+    --accent3: #ffe27a;
+    --accent4: #ff75b553; // semi-transparent overlay
+    --text1: #e6e6e6;
+    --text2: #bfbfbf;
+    --text3: #727272;
+    --base1: #292a2b;
+    --base2: #1f2023;
+    --base3: #34353a;
+    --base4: #0f0f0f;
+    --positive: #19f9d8;
+    --negative: #ff2c6d;
+    --volume: #ffe27a;
+    --ma4: #19f9d8; // 200MA
+    --ma3: #ffe27a; // 50MA
+    --ma2: #6fc1ff; // 20MA
+    --ma1: #ff75b5; // 10MA
+}
+
+.monokai-pro {
+    --accent1: #ffd866;
+    --accent2: #fc9867;
+    --accent3: #ab9df2;
+    --accent4: #ffd86653; // semi-transparent overlay
+    --text1: #fcfcfa;
+    --text2: #939293;
+    --text3: #727072;
+    --base1: #2d2a2e;
+    --base2: #403e41;
+    --base3: #5b595c;
+    --base4: #221f22;
+    --positive: #a9dc76;
+    --negative: #ff6188;
+    --volume: #fc9867;
+    --ma4: #a9dc76; // 200MA
+    --ma3: #ffd866; // 50MA
+    --ma2: #78dce8; // 20MA
+    --ma1: #ab9df2; // 10MA
+}
+
+.tomorrow-night {
+    --accent1: #c66;
+    --accent2: #de935f;
+    --accent3: #f0c674;
+    --accent4: #c6666680; // semi-transparent overlay
+    --text1: #c5c8c6;
+    --text2: #b4b7b4;
+    --text3: #969896;
+    --base1: #1d1f21;
+    --base2: #282a2e;
+    --base3: #373b41;
+    --base4: #121416;
+    --positive: #b5bd68;
+    --negative: #cc6666;
+    --volume: #8abeb7;
+    --ma4: #b5bd68; // 200MA
+    --ma3: #f0c674; // 50MA
+    --ma2: #81a2be; // 20MA
+    --ma1: #b294bb; // 10MA
+}
+
+.oceanic-next {
+    --accent1: #6699cc;
+    --accent2: #5fb3b3;
+    --accent3: #99c794;
+    --accent4: #6699cc80; // semi-transparent overlay
+    --text1: #d8dee9;
+    --text2: #c0c5ce;
+    --text3: #65737e;
+    --base1: #1b2b34;
+    --base2: #343d46;
+    --base3: #4f5b66;
+    --base4: #0f1419;
+    --positive: #99c794;
+    --negative: #ec5f67;
+    --volume: #f99157;
+    --ma4: #99c794; // 200MA
+    --ma3: #fac863; // 50MA
+    --ma2: #6699cc; // 20MA
+    --ma1: #c594c5; // 10MA
+}
+
+.palenight {
+    --accent1: #82aaff;
+    --accent2: #c792ea;
+    --accent3: #89ddff;
+    --accent4: #82aaff80; // semi-transparent overlay
+    --text1: #a6accd;
+    --text2: #8796b0;
+    --text3: #676e95;
+    --base1: #292d3e;
+    --base2: #333747;
+    --base3: #444267;
+    --base4: #1c1f2b;
+    --positive: #c3e88d;
+    --negative: #ff5370;
+    --volume: #f78c6c;
+    --ma4: #c3e88d; // 200MA
+    --ma3: #ffcb6b; // 50MA
+    --ma2: #82aaff; // 20MA
+    --ma1: #c792ea; // 10MA
+}
+
+.cobalt {
+    --accent1: #3a9bfd;
+    --accent2: #99d9ff;
+    --accent3: #8ffdfd;
+    --accent4: #3a9bfd80; // semi-transparent overlay
+    --text1: #f8f8f2;
+    --text2: #e6e6e6;
+    --text3: #75878a;
+    --base1: #002240;
+    --base2: #0c3764;
+    --base3: #184a7b;
+    --base4: #001629;
+    --positive: #3ad900;
+    --negative: #ff2600;
+    --volume: #ffee99;
+    --ma4: #3ad900; // 200MA
+    --ma3: #ffee99; // 50MA
+    --ma2: #99d9ff; // 20MA
+    --ma1: #ff80e1; // 10MA
+}
+
+.poimandres {
+    --accent1: #7390aa;
+    --accent2: #a6accd;
+    --accent3: #91b4d5;
+    --accent4: #7390aa80; // semi-transparent overlay
+    --text1: #e4f0fb;
+    --text2: #a6accd;
+    --text3: #7390aa;
+    --base1: #1b1e28;
+    --base2: #272a34;
+    --base3: #303540;
+    --base4: #11131a;
+    --positive: #5de4c7;
+    --negative: #d0679d;
+    --volume: #8eb4f5;
+    --ma4: #5de4c7; // 200MA
+    --ma3: #8eb4f5; // 50MA
+    --ma2: #a6accd; // 20MA
+    --ma1: #d0679d; // 10MA
+}
+
+.github-light {
+    --accent1: #0550ae;
+    --accent2: #0969da;
+    --accent3: #218bff;
+    --accent4: #0550ae80; // semi-transparent overlay
+    --text1: #1f2328;
+    --text2: #656d76;
+    --text3: #8c959f;
+    --base1: #ffffff;
+    --base2: #f6f8fa;
+    --base3: #eaeef2;
+    --base4: #f8fafc;
+    --positive: #1a7f37;
+    --negative: #cf222e;
+    --volume: #9a6700;
+    --ma4: #1a7f37; // 200MA
+    --ma3: #9a6700; // 50MA
+    --ma2: #0969da; // 20MA
+    --ma1: #8250df; // 10MA
+}
+
+.neon {
+    --accent1: #00ffff;
+    --accent2: #ff00ff;
+    --accent3: #00ff00;
+    --accent4: #00ffff80; // semi-transparent overlay
+    --text1: #ffffff;
+    --text2: #dddddd;
+    --text3: #999999;
+    --base1: #000000;
+    --base2: #0a0a0a;
+    --base3: #1f1f1f;
+    --base4: #000000;
+    --positive: #00ff00;
+    --negative: #ff0055;
+    --volume: #ffd700;
+    --ma4: #00ff00; // 200MA
+    --ma3: #ffd700; // 50MA
+    --ma2: #00ffff; // 20MA
+    --ma1: #ff00ff; // 10MA
+}
+
+.moonlight {
+    --accent1: #82aaff;
+    --accent2: #c099ff;
+    --accent3: #86e1fc;
+    --accent4: #82aaff80; // semi-transparent overlay
+    --text1: #c8d3f5;
+    --text2: #a9b8e8;
+    --text3: #7a88cf;
+    --base1: #1e2030;
+    --base2: #222436;
+    --base3: #2f334d;
+    --base4: #191a2a;
+    --positive: #c3e88d;
+    --negative: #ff757f;
+    --volume: #ffc777;
+    --ma4: #c3e88d; // 200MA
+    --ma3: #ffc777; // 50MA
+    --ma2: #82aaff; // 20MA
+    --ma1: #c099ff; // 10MA
+}
+
+.nightfox {
+    --accent1: #719cd6;
+    --accent2: #9d79d6;
+    --accent3: #81b29a;
+    --accent4: #719cd680; // semi-transparent overlay
+    --text1: #cdcecf;
+    --text2: #aeafb0;
+    --text3: #71839b;
+    --base1: #192330;
+    --base2: #212e3f;
+    --base3: #29394f;
+    --base4: #131a24;
+    --positive: #81b29a;
+    --negative: #c94f6d;
+    --volume: #dbc074;
+    --ma4: #81b29a; // 200MA
+    --ma3: #dbc074; // 50MA
+    --ma2: #719cd6; // 20MA
+    --ma1: #9d79d6; // 10MA
+}
+
+.spacemacs {
+    --accent1: #4f97d7;
+    --accent2: #a45bad;
+    --accent3: #67b11d;
+    --accent4: #4f97d780; // semi-transparent overlay
+    --text1: #b2b2b2;
+    --text2: #a3a3a3;
+    --text3: #7a7a7a;
+    --base1: #292b2e;
+    --base2: #212026;
+    --base3: #5d4d7a;
+    --base4: #1f2022;
+    --positive: #67b11d;
+    --negative: #f2241f;
+    --volume: #b1951d;
+    --ma4: #67b11d; // 200MA
+    --ma3: #b1951d; // 50MA
+    --ma2: #4f97d7; // 20MA
+    --ma1: #a45bad; // 10MA
+}
+
+.borland {
+    --accent1: #ffff54;
+    --accent2: #00ffff;
+    --accent3: #ffa0a0;
+    --accent4: #ffff5480; // semi-transparent overlay
+    --text1: #ffffff;
+    --text2: #ffff54;
+    --text3: #aaaaaa;
+    --base1: #0000aa;
+    --base2: #000088;
+    --base3: #0055aa;
+    --base4: #000066;
+    --positive: #00ff00;
+    --negative: #ff0000;
+    --volume: #ffff54;
+    --ma4: #00ff00; // 200MA
+    --ma3: #ffff54; // 50MA
+    --ma2: #00ffff; // 20MA
+    --ma1: #ffa0a0; // 10MA
+}
+
+.amber {
+    --accent1: #ffb000;
+    --accent2: #ffd000;
+    --accent3: #ff8800;
+    --accent4: #ffb00080; // semi-transparent overlay
+    --text1: #ffb000;
+    --text2: #ffc000;
+    --text3: #ffd000;
+    --base1: #2c1700;
+    --base2: #402200;
+    --base3: #543000;
+    --base4: #1e1000;
+    --positive: #96ff00;
+    --negative: #ff3300;
+    --volume: #ffb000;
+    --ma4: #96ff00; // 200MA
+    --ma3: #ffb000; // 50MA
+    --ma2: #ffd000; // 20MA
+    --ma1: #ff8800; // 10MA
+}
+
+.cyberpunk {
+    --accent1: #f3e600;
+    --accent2: #ff0055;
+    --accent3: #0abdc6;
+    --accent4: #f3e60080; // semi-transparent overlay
+    --text1: #ffffff;
+    --text2: #f3e600;
+    --text3: #9e9e9e;
+    --base1: #1a1a2e;
+    --base2: #16213e;
+    --base3: #0f3460;
+    --base4: #0f0f1f;
+    --positive: #00ff9f;
+    --negative: #ff0055;
+    --volume: #0abdc6;
+    --ma4: #00ff9f; // 200MA
+    --ma3: #f3e600; // 50MA
+    --ma2: #0abdc6; // 20MA
+    --ma1: #ff0055; // 10MA
+}
+
+.matrix {
+    --accent1: #00ff41;
+    --accent2: #008f11;
+    --accent3: #003b00;
+    --accent4: #00ff4180; // semi-transparent overlay
+    --text1: #00ff41;
+    --text2: #00dd00;
+    --text3: #008f11;
+    --base1: #000000;
+    --base2: #001100;
+    --base3: #002200;
+    --base4: #000800;
+    --positive: #00ff41;
+    --negative: #ff0000;
+    --volume: #ffff00;
+    --ma4: #00ff41; // 200MA
+    --ma3: #ffff00; // 50MA
+    --ma2: #00dd00; // 20MA
+    --ma1: #00bb00; // 10MA
+}
+
+.sunset {
+    --accent1: #ff9e64;
+    --accent2: #ff7b72;
+    --accent3: #ffa8a8;
+    --accent4: #ff9e6480; // semi-transparent overlay
+    --text1: #e4e4e4;
+    --text2: #c0c0c0;
+    --text3: #9e9e9e;
+    --base1: #1c1c1c;
+    --base2: #2c2c2c;
+    --base3: #3c3c3c;
+    --base4: #0c0c0c;
+    --positive: #7eca9c;
+    --negative: #ff7b72;
+    --volume: #ff9e64;
+    --ma4: #7eca9c; // 200MA
+    --ma3: #ff9e64; // 50MA
+    --ma2: #79c0ff; // 20MA
+    --ma1: #ffa8a8; // 10MA
+}
+
+.deep-ocean {
+    --accent1: #84ffff;
+    --accent2: #80cbc4;
+    --accent3: #80deea;
+    --accent4: #84ffff80; // semi-transparent overlay
+    --text1: #eeffff;
+    --text2: #c3e1ea;
+    --text3: #8f93a2;
+    --base1: #0f111a;
+    --base2: #1f2233;
+    --base3: #2c3043;
+    --base4: #090b10;
+    --positive: #c3e88d;
+    --negative: #f07178;
+    --volume: #ffcb6b;
+    --ma4: #c3e88d; // 200MA
+    --ma3: #ffcb6b; // 50MA
+    --ma2: #82aaff; // 20MA
+    --ma1: #c792ea; // 10MA
+}
+
+.gotham {
+    --accent1: #599cab;
+    --accent2: #98d1ce;
+    --accent3: #d3ebe9;
+    --accent4: #599cab80; // semi-transparent overlay
+    --text1: #d3ebe9;
+    --text2: #98d1ce;
+    --text3: #599cab;
+    --base1: #0c1014;
+    --base2: #11151c;
+    --base3: #091f2e;
+    --base4: #0a0f14;
+    --positive: #33859e;
+    --negative: #c23127;
+    --volume: #edb443;
+    --ma4: #33859e; // 200MA
+    --ma3: #edb443; // 50MA
+    --ma2: #599cab; // 20MA
+    --ma1: #d26937; // 10MA
+}
+
+.retro {
+    --accent1: #ff8080;
+    --accent2: #97d7d9;
+    --accent3: #ffd700;
+    --accent4: #ff808080; // semi-transparent overlay
+    --text1: #f0e3ca;
+    --text2: #d9c8a9;
+    --text3: #90856c;
+    --base1: #2c2b2a;
+    --base2: #3c3b3a;
+    --base3: #4c4b4a;
+    --base4: #1c1b1a;
+    --positive: #a7d84b;
+    --negative: #ff6961;
+    --volume: #ffd700;
+    --ma4: #a7d84b; // 200MA
+    --ma3: #ffd700; // 50MA
+    --ma2: #97d7d9; // 20MA
+    --ma1: #ff8080; // 10MA
+}
+
+.spotify {
+    --accent1: #1db954;
+    --accent2: #1ed760;
+    --accent3: #1fdf64;
+    --accent4: #1db95480; // semi-transparent overlay
+    --text1: #ffffff;
+    --text2: #b3b3b3;
+    --text3: #7f7f7f;
+    --base1: #121212;
+    --base2: #181818;
+    --base3: #282828;
+    --base4: #070707;
+    --positive: #1db954;
+    --negative: #ff6961;
+    --volume: #ffca81;
+    --ma4: #1db954; // 200MA
+    --ma3: #ffca81; // 50MA
+    --ma2: #3ec6ff; // 20MA
+    --ma1: #d14fff; // 10MA
+}
+
+.autumn {
+    --accent1: #d08770;
+    --accent2: #ebcb8b;
+    --accent3: #a3be8c;
+    --accent4: #d0877080; // semi-transparent overlay
+    --text1: #d8dee9;
+    --text2: #e5e9f0;
+    --text3: #9a9a9a;
+    --base1: #2e2a24;
+    --base2: #3e3a34;
+    --base3: #4e4a44;
+    --base4: #1e1a14;
+    --positive: #a3be8c;
+    --negative: #bf616a;
+    --volume: #ebcb8b;
+    --ma4: #a3be8c; // 200MA
+    --ma3: #ebcb8b; // 50MA
+    --ma2: #8fbcbb; // 20MA
+    --ma1: #b48ead; // 10MA
+}
+
+.noctis {
+    --accent1: #7dcfff;
+    --accent2: #5bd9b5;
+    --accent3: #ff9d76;
+    --accent4: #7dcfff80; // semi-transparent overlay
+    --text1: #d3e8f8;
+    --text2: #a1b7d6;
+    --text3: #7a88a3;
+    --base1: #1c2431;
+    --base2: #263041;
+    --base3: #323c4d;
+    --base4: #121a24;
+    --positive: #5bd9b5;
+    --negative: #ff5458;
+    --volume: #ff9d76;
+    --ma4: #5bd9b5; // 200MA
+    --ma3: #ff9d76; // 50MA
+    --ma2: #7dcfff; // 20MA
+    --ma1: #c79dff; // 10MA
+}
+
+.iceberg {
+    --accent1: #84a0c6;
+    --accent2: #89b8c2;
+    --accent3: #adcbbc;
+    --accent4: #84a0c680; // semi-transparent overlay
+    --text1: #c6c8d1;
+    --text2: #a5b0c5;
+    --text3: #6b7089;
+    --base1: #161821;
+    --base2: #1e2132;
+    --base3: #262a3f;
+    --base4: #0f1017;
+    --positive: #b4be82;
+    --negative: #e27878;
+    --volume: #e2a478;
+    --ma4: #b4be82; // 200MA
+    --ma3: #e2a478; // 50MA
+    --ma2: #84a0c6; // 20MA
+    --ma1: #a093c7; // 10MA
+}
+
+.tango {
+    --accent1: #729fcf;
+    --accent2: #ad7fa8;
+    --accent3: #8ae234;
+    --accent4: #729fcf80; // semi-transparent overlay
+    --text1: #d3d7cf;
+    --text2: #babdb6;
+    --text3: #888a85;
+    --base1: #2e3436;
+    --base2: #3f4446;
+    --base3: #555753;
+    --base4: #1f2426;
+    --positive: #8ae234;
+    --negative: #ef2929;
+    --volume: #fce94f;
+    --ma4: #8ae234; // 200MA
+    --ma3: #fce94f; // 50MA
+    --ma2: #729fcf; // 20MA
+    --ma1: #ad7fa8; // 10MA
+}
+
+.horizon {
+    --accent1: #da103f;
+    --accent2: #f6661e;
+    --accent3: #fbe0dc;
+    --accent4: #da103f80; // semi-transparent overlay
+    --text1: #fdf0ed;
+    --text2: #fadad1;
+    --text3: #b877db;
+    --base1: #1c1e26;
+    --base2: #232530;
+    --base3: #2e303e;
+    --base4: #16161c;
+    --positive: #09f7a0;
+    --negative: #e95678;
+    --volume: #fab795;
+    --ma4: #09f7a0; // 200MA
+    --ma3: #fab795; // 50MA
+    --ma2: #21bfc2; // 20MA
+    --ma1: #b877db; // 10MA
+}
+
+.railscasts {
+    --accent1: #6d9cbe;
+    --accent2: #da4939;
+    --accent3: #a5c261;
+    --accent4: #6d9cbe80; // semi-transparent overlay
+    --text1: #e6e1dc;
+    --text2: #d0d0ff;
+    --text3: #5a647e;
+    --base1: #2b2b2b;
+    --base2: #333333;
+    --base3: #535353;
+    --base4: #1c1c1c;
+    --positive: #a5c261;
+    --negative: #da4939;
+    --volume: #ffc66d;
+    --ma4: #a5c261; // 200MA
+    --ma3: #ffc66d; // 50MA
+    --ma2: #6d9cbe; // 20MA
+    --ma1: #b6b3eb; // 10MA
+}
+
+.vscode-dark {
+    --accent1: #0078d4;
+    --accent2: #3794ff;
+    --accent3: #5bb3fd;
+    --accent4: #0078d480; // semi-transparent overlay
+    --text1: #d4d4d4;
+    --text2: #9cdcfe;
+    --text3: #6a9955;
+    --base1: #1e1e1e;
+    --base2: #252526;
+    --base3: #333333;
+    --base4: #141414;
+    --positive: #6a9955;
+    --negative: #f85149;
+    --volume: #dcdcaa;
+    --ma4: #6a9955; // 200MA
+    --ma3: #dcdcaa; // 50MA
+    --ma2: #4fc1ff; // 20MA
+    --ma1: #c586c0; // 10MA
+}
+
+.slack-dark {
+    --accent1: #2eb67d;
+    --accent2: #e01e5a;
+    --accent3: #ecb22e;
+    --accent4: #2eb67d80; // semi-transparent overlay
+    --text1: #e6e6e6;
+    --text2: #d1d2d3;
+    --text3: #9e9e9e;
+    --base1: #1a1d21;
+    --base2: #222529;
+    --base3: #363a3f;
+    --base4: #0b0c0d;
+    --positive: #2eb67d;
+    --negative: #e01e5a;
+    --volume: #ecb22e;
+    --ma4: #2eb67d; // 200MA
+    --ma3: #ecb22e; // 50MA
+    --ma2: #36c5f0; // 20MA
+    --ma1: #e01e5a; // 10MA
+}
+
+.mintty {
+    --accent1: #3e999f;
+    --accent2: #d33682;
+    --accent3: #2aa198;
+    --accent4: #3e999f80; // semi-transparent overlay
+    --text1: #c0c0c0;
+    --text2: #a0a0a0;
+    --text3: #808080;
+    --base1: #000000;
+    --base2: #1c1c1c;
+    --base3: #383838;
+    --base4: #000000;
+    --positive: #26a269;
+    --negative: #e01b24;
+    --volume: #e9ad0c;
+    --ma4: #26a269; // 200MA
+    --ma3: #e9ad0c; // 50MA
+    --ma2: #2a7bde; // 20MA
+    --ma1: #c061cb; // 10MA
+}
+
+.atom-one {
+    --accent1: #4d78cc;
+    --accent2: #61afef;
+    --accent3: #56b6c2;
+    --accent4: #4d78cc80; // semi-transparent overlay
+    --text1: #abb2bf;
+    --text2: #9da5b4;
+    --text3: #5c6370;
+    --base1: #282c34;
+    --base2: #2c313a;
+    --base3: #3b4048;
+    --base4: #21252b;
+    --positive: #98c379;
+    --negative: #e06c75;
+    --volume: #e5c07b;
+    --ma4: #98c379; // 200MA
+    --ma3: #e5c07b; // 50MA
+    --ma2: #56b6c2; // 20MA
+    --ma1: #c678dd; // 10MA
+}
+
+.jellybeans {
+    --accent1: #8197bf;
+    --accent2: #fad07a;
+    --accent3: #8fbfdc;
+    --accent4: #8197bf80; // semi-transparent overlay
+    --text1: #e8e8d3;
+    --text2: #b0b08a;
+    --text3: #888888;
+    --base1: #151515;
+    --base2: #1c1c1c;
+    --base3: #3b3b3b;
+    --base4: #101010;
+    --positive: #99ad6a;
+    --negative: #cf6a4c;
+    --volume: #fad07a;
+    --ma4: #99ad6a; // 200MA
+    --ma3: #fad07a; // 50MA
+    --ma2: #8fbfdc; // 20MA
+    --ma1: #c6b6ee; // 10MA
+}
+
+.falcon {
+    --accent1: #ff875f;
+    --accent2: #d7875f;
+    --accent3: #87afff;
+    --accent4: #ff875f80; // semi-transparent overlay
+    --text1: #d8d8d8;
+    --text2: #b2b2b2;
+    --text3: #767676;
+    --base1: #020221;
+    --base2: #0a0a2a;
+    --base3: #161636;
+    --base4: #000018;
+    --positive: #87d75f;
+    --negative: #ff5f5f;
+    --volume: #ffd75f;
+    --ma4: #87d75f; // 200MA
+    --ma3: #ffd75f; // 50MA
+    --ma2: #87afff; // 20MA
+    --ma1: #d787ff; // 10MA
+}
+
+.forest-night {
+    --accent1: #89b482;
+    --accent2: #7fbbb3;
+    --accent3: #a7c080;
+    --accent4: #89b48280; // semi-transparent overlay
+    --text1: #d3c6aa;
+    --text2: #b2a68d;
+    --text3: #9a8866;
+    --base1: #272e33;
+    --base2: #323c41;
+    --base3: #3d4a41;
+    --base4: #1e2326;
+    --positive: #a7c080;
+    --negative: #e67e80;
+    --volume: #dbbc7f;
+    --ma4: #a7c080; // 200MA
+    --ma3: #dbbc7f; // 50MA
+    --ma2: #7fbbb3; // 20MA
+    --ma1: #d699b6; // 10MA
+}
+
+.light-owl {
+    --accent1: #7e57c2;
+    --accent2: #2aa298;
+    --accent3: #1778aa;
+    --accent4: #7e57c280; // semi-transparent overlay
+    --text1: #403f53;
+    --text2: #674494;
+    --text3: #999999;
+    --base1: #fbfbfb;
+    --base2: #f0f0f0;
+    --base3: #d9d9d9;
+    --base4: #ffffff;
+    --positive: #007e33;
+    --negative: #d1242f;
+    --volume: #e09142;
+    --ma4: #007e33; // 200MA
+    --ma3: #e09142; // 50MA
+    --ma2: #1778aa; // 20MA
+    --ma1: #7e57c2; // 10MA
+}
 
 // default theme for overall site / DON'T TOUCH THESE SASS ELEMENTS!!!
 $accent1: #8c8dfe;

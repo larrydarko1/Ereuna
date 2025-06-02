@@ -1,7 +1,7 @@
 <template>
   <div class="landingPage">
     <div id="navbar" class="navbar">
-  <img class="icon" src="@/assets/icons/ereuna.png" alt="Owl Icon" >
+  <img class="icon" src="@/assets/icons/ereuna.png" alt="Owl Icon" draggable="false">
 
   <!-- Hidden checkbox toggler for mobile dropdown -->
   <input type="checkbox" id="nav-toggle" class="nav-toggle" />
@@ -14,13 +14,13 @@
     <div class="navbtn" @click="scrollToSection('features')">Features</div>
     <div class="navbtn" @click="scrollToSection('pricing')">Pricing</div>
    <div class="navbtn">
-      <router-link class="navbtn" to="/documentation" style="text-decoration: none;">Documentation</router-link>
+      <router-link class="navbtn" to="/documentation" style="opacity: 1; text-decoration: none;">Documentation</router-link>
     </div>
     <div class="navbtn">
-      <router-link class="navbtn" to="/signup" style="text-decoration: none;">Sign Up</router-link>
+      <router-link class="navbtn" to="/signup" style=" opacity: 1; text-decoration: none;">Sign Up</router-link>
     </div>
    
-      <router-link class="navbtn" to="/login" style="text-decoration: none; background-color: transparent;">
+      <router-link class="navbtn" to="/login" style=" opacity: 1;text-decoration: none; background-color: transparent;">
         <div class="navbtn2" @click="$router.push('/login')"> Login</div>
       </router-link>
     
@@ -39,24 +39,24 @@
 </div>
   <div class="hero">
     <div class="content">
-      <p class="description">Unlock Smarter Investing with <span style="color: #8c8dfe; font-size: inherit ;">Ereuna</span></p> 
-      <p class="call-to-action">Essential features and data for mid-to-long term investors, all at a fraction of the cost of traditional solutions.</p>
+      <p style="cursor: default;" class="description">Unlock Smarter Investing with <span style="color: #8c8dfe; font-size: inherit ;">Ereuna</span></p> 
+      <p style="cursor: default;" class="call-to-action">Essential features and data for mid-to-long term investors, all at a fraction of the cost of traditional solutions.</p>
       <br>
       <br>
       <div style="display: flex; flex-direction: row ;gap: 20px;">
         <div style="flex-direction: column;">
-          <span class="join">Join the beta program</span>
+          <span style="cursor: default;" class="join">Join the beta program</span>
       <button class="sign-button" @click="redirectToSign">Free Trial</button>
         </div>
  <div>
-      <span class="already-have-invite">Already have an account?</span>
+      <span style="cursor: default;" class="already-have-invite">Already have an account?</span>
       <button class="login-button" @click="redirectToLogin">Login Now &rarr;</button>
  </div>
       </div>
     </div>
     <div class="video-container">
-      <img class="hero-video" src="@/assets/videos/heroAnimation.gif" alt="Hero Animation">
-      <div class="beta-tag-on-video">
+      <img class="hero-video" src="@/assets/videos/heroAnimation.gif" alt="Hero Animation" draggable="false">
+      <div style="cursor: default;" class="beta-tag-on-video">
         <span class="title">Beta Now Available</span>
       </div>
     </div>
@@ -65,40 +65,40 @@
   <!--rest of the content goes inside this div-->
   <div class="features">
     <div id="partners">
-      <h2>PARTNERS</h2>
+      <h2 style="cursor: default;">PARTNERS</h2>
       <div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
-    <img class="logo" src="@/assets/images/logos/tiingo.png" alt="">
-    <img class="logo" src="@/assets/images/logos/tradingview.png" alt="">
+    <img class="logo" src="@/assets/images/logos/tiingo.png" alt="" draggable="false">
+    <img class="logo" src="@/assets/images/logos/tradingview.png" alt="" draggable="false">
 </div>
     </div>
     <!-- Features Section -->
     <div id="features">
       <br>
-      <h2>FEATURES</h2>
+      <h2 style="cursor: default;">FEATURES</h2>
       <div class="feature-cards">
    <div class="feature-card">
-    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/settings.png" alt="">
+    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/settings.png" alt="" draggable="false">
     <div class="feature-title">Personalized Stock Universe</div>
     <div class="feature-desc">
       You can customize your stock universe by hiding stocks that are irrelevant to your workflow and investment criteria, tailoring the data to your individual investment needs and preferences.
     </div>
   </div>
   <div class="feature-card">
-    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/intersect.png" alt="">
+    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/intersect.png" alt="" draggable="false">
     <div class="feature-title">One-Click Multi-Screener</div>
     <div class="feature-desc">
       You can run multiple screeners simultaneously, providing a comprehensive view of your desired stocks in a single click.
     </div>
   </div>
   <div class="feature-card">
-    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/savings.png" alt="">
+    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/savings.png" alt="" draggable="false">
     <div class="feature-title">Unbeatable Value</div>
     <div class="feature-desc">
       This platform offers one of the cheapest and most affordable professional stock screening and research solution on the market, focusing on essential EOD and core fundamental data that drives informed decision-making.
     </div>
   </div>
   <div class="feature-card">
-    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/discount.png" alt="">
+    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/discount.png" alt="" draggable="false">
     <div class="feature-title">Up to 96% Cost Savings</div>
     <div class="feature-desc">
       By stripping away expensive features like integrated news APIs and real-time/intraday data, this platform provides professional-grade tools at a significantly lower cost, making it up to 96% cheaper than other platforms.
@@ -107,8 +107,8 @@
 </div>
    <!-- Tradeoff Section -->
    <div id="tradeoff">
-  <h2>THE TRADEOFF</h2>
-  <div class="comparison-table">
+  <h2 style="cursor: default;">THE TRADEOFF</h2>
+  <div class="comparison-table" style="cursor: default;">
     <div class="table-header">
       <div class="table-cell" style="font-size: 16px;">Feature</div>
       <div class="table-cell" style="font-size: 16px;">Ereuna (Core)</div>
@@ -155,7 +155,7 @@
 </div>
 
     <!-- Pricing Section -->
-    <div class="content-section" id="pricing">
+    <div class="content-section" id="pricing" style="cursor: default;">
       <h2 style="text-align: center; font-size: 20px; color: whitesmoke;">PRICING</h2>
        <div class="pricing-cards">
      <div class="pricing-card">
@@ -163,6 +163,7 @@
   <h3>CORE</h3>
   <div class="price-container">
     <span class="feature">5.99€</span>
+    <span class="mini-title"> / month (VAT Excluded)</span>
   </div>
 </div>
   <div class="feature-list">
@@ -190,6 +191,7 @@
   <h3>PREMIUM</h3>
   <div class="price-container">
     <span class="feature">14.99€</span>
+    <span class="mini-title"> / month (VAT Excluded)</span>
   </div>
 </div>
   <div class="feature-list">
@@ -203,7 +205,7 @@
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      35+ years of EOD price data (Daily and Weekly), 20+ years of financial statements
+      35+ years of price data (Intraday, Daily and Weekly), 20+ years of financial statements
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
@@ -220,8 +222,8 @@
     </div>
 
    <!-- Call-to-Action Section -->
-   <div class="cta-section">
-    <h2 style="text-align: center; font-size: 30px; color: whitesmoke;">Ready to Get Started?</h2>
+   <div class="cta-section" >
+    <h2 style="text-align: center; font-size: 30px; color: whitesmoke;cursor: default;">Ready to Get Started?</h2>
      <div class="navbtn3" @click="$router.push('/signup')">Join Now</div> 
     </div>
   
@@ -230,7 +232,7 @@
     </div>
 <!-- FAQ Section -->
 <div class="content-section" id="faq">
-    <h2 style="text-align: center; font-size: 20px; color: whitesmoke;">FREQUENTLY ASKED QUESTIONS</h2>
+    <h2 style="text-align: center; font-size: 20px; color: whitesmoke; cursor: default;">FREQUENTLY ASKED QUESTIONS</h2>
     <div class="faq-cards">
       <div class="faq-card" v-for="(item, index) in faqs" :key="index">
         <h3 class="faq-question">{{ item.question }}</h3>
@@ -318,7 +320,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
 const router = useRouter();
 
@@ -376,6 +378,32 @@ function showTermsModal() {
 
 function closeTermsModal() {
   showTerms.value = false;
+}
+
+// Add these for scroll animations
+onMounted(() => {
+  // Wait for DOM to be ready
+  setTimeout(() => {
+    setupCardAnimations();
+  }, 100);
+});
+
+function setupCardAnimations() {
+  const cards = document.querySelectorAll('.feature-card');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Add class without invalid characters
+        entry.target.classList.add('animate-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  
+  cards.forEach(card => {
+    observer.observe(card);
+  });
 }
 
 </script>
@@ -765,6 +793,7 @@ a:hover{
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  cursor: default;
 }
 
 .faq-card {
@@ -777,14 +806,14 @@ a:hover{
 }
 
 .faq-question {
-  font-size: 18px;
+  font-size: 2rem;
   font-weight: bold;
   margin-bottom: 10px;
   opacity: 1;
 }
 
 .faq-answer {
-  font-size: 17px;
+  font-size: 1rem;
   color: #dcdcdc;
 }
 
@@ -876,6 +905,18 @@ a:hover{
   text-align: center;
   border: solid 1px $accent2;
   color: #dcdcdc;
+  cursor: default;
+  
+  /* Animation properties */
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+/* Class applied when card becomes visible */
+.feature-card.animate-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .feature-title {
@@ -947,6 +988,11 @@ h2{
 .feature{
   color: $text1;
   font-size: 5rem;
+}
+
+.mini-title {
+  color: $text2;
+  font-size: 1.5rem;
 }
 
 .pricing-header h3 {

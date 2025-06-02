@@ -2,11 +2,11 @@
     <div class="signup-form">
       <div class="logo-c">
   <router-link to="/" class="logo-link">
-    <img class="logo" src="@/assets/icons/ereuna.png" alt="Owl Icon">
+    <img class="logo" src="@/assets/icons/ereuna.png" alt="Owl Icon" draggable="false">
   </router-link>
-  <p>Already Registered? <router-link to="/login" class="text">Login Here</router-link></p>
+  <p style="cursor: default;">Already Registered? <router-link to="/login" class="text">Login Here</router-link></p>
 </div>
-        <h1>Create a Free Account</h1>
+        <h1 style="cursor: default;">Create a New Account</h1>
       <div class="input-group">
         <input required type="text" :class="error" name="username" autocomplete="off" class="input">
         <label :class="error" class="user-label">Username</label>
@@ -20,6 +20,59 @@
         <label :class="error" class="user-label">Confirm Password</label>
       </div>
       <br>
+      <!-- Subscription Selection Section -->
+<div class="subscription-section">
+  <h2 style="cursor: default; color: #f5f5f5; margin-bottom: 20px;">Choose Your Plan</h2>
+  
+  <div class="plan-options">
+  <div class="plan-card" :class="{ 'selected-plan': selectedPlan === 'core' }" @click="selectedPlan = 'core'">
+    <div class="plan-header">CORE</div>
+    <div class="plan-price">€5.99<span> / month</span></div>
+    <ul class="plan-features">
+      <li>Coverage of 5000+ Stocks listed on NYSE and Nasdaq</li>
+      <li>35+ years of EOD price data (Daily and Weekly)</li>
+      <li>One-Click Multi-Screener feature</li>
+    </ul>
+  </div>
+  
+  <div class="plan-card" :class="{ 'selected-plan': selectedPlan === 'premium' }" @click="selectedPlan = 'premium'">
+    <div class="plan-header">PREMIUM</div>
+    <div class="plan-price">€14.99<span> / month</span></div>
+    <ul class="plan-features">
+      <li>Intraday / Real-time Data Support</li>
+      <li>Coverage of 5000+ Stocks listed on NYSE and Nasdaq</li>
+      <li>35+ years of price data (Intraday, Daily and Weekly)</li>
+      <li>Advanced analytics and predictive tools</li>
+    </ul>
+  </div>
+</div>
+  
+  <div class="duration-selection">
+    <h3 style="color: #f5f5f5; margin: 20px 0 10px;">Subscription Duration</h3>
+    <div class="duration-options">
+      <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 1 }" @click="selectedDuration = 1">
+        1 Month
+      </div>
+      <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 4 }" @click="selectedDuration = 4">
+        4 Months
+      </div>
+      <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 6 }" @click="selectedDuration = 6">
+        6 Months
+      </div>
+      <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 12 }" @click="selectedDuration = 12">
+        1 Year
+      </div>
+    </div>
+  </div>
+ <div class="total-price">
+  <div class="card-element-container">
+    <div id="card-element"></div>
+    <div id="card-errors" role="alert"></div>
+  </div>
+  <p>Total: <span>€{{ calculateTotalPrice() }}</span>
+  </p>
+</div>
+</div>
      <div 
   class="custom-checkbox" 
   :class="{ checked: agreeToTerms }"
@@ -31,8 +84,8 @@
     <a href="#" @click.prevent="showTermsModal">Terms of Service & Privacy Policy</a></label>
 </div>
       <button @click="Trial()" class="userbtn">Create</button>
-      <p><label style="color: #8c8dfe; font-size: inherit;">Security Notice:</label> A unique Recovery Key is required for password recovery. You can download this key in the Dashboard section of your account. Please store it securely, as it will be the only means of regaining access to your account in the event of a lost or forgotten password.</p>
-      <p> <label style="color: #8c8dfe; font-size: inherit;">2-Factor Authentication (2FA)</label>  is available as an optional security feature. To activate 2FA, navigate to the 'Security' section within your user session. Note that only authentication app-based 2FA is currently supported, with no SMS or email options available. </p>
+      <p style="cursor: default;"><label style="color: #8c8dfe; font-size: inherit;">Security Notice:</label> A unique Recovery Key is required for password recovery. You can download this key in the Dashboard section of your account. Please store it securely, as it will be the only means of regaining access to your account in the event of a lost or forgotten password.</p>
+      <p style="cursor: default;"> <label style="color: #8c8dfe; font-size: inherit;">2-Factor Authentication (2FA)</label>  is available as an optional security feature. To activate 2FA, navigate to the 'Security' section within your user session. Note that only authentication app-based 2FA is currently supported, with no SMS or email options available. </p>
     </div>
     <div v-if="showTerms" class="modal" @click.self="closeTermsModal">
     <h2 style="color: whitesmoke; font-size: 16px;">Terms of Service & Privacy Policy</h2>
@@ -90,10 +143,15 @@
 import NotificationPopup from '@/components/NotificationPopup.vue';
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { loadStripe } from '@stripe/stripe-js'; 
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 const showTerms = ref(false);
 const agreeToTerms = ref(false);
+const stripe = ref(null);
+const elements = ref(null);
+const card = ref(null);
+const processing = ref(false);
 const router = useRouter();
 
 // for popup notifications
@@ -199,6 +257,88 @@ async function Trial() {
 }
 }
 
+// Add these variables at the top of your <script setup> section
+const selectedPlan = ref('core'); // Default to core plan
+const selectedDuration = ref(1);  // Default to 1 month
+
+// Add this function to calculate the total price
+function calculateTotalPrice() {
+  // Base monthly prices
+  const prices = {
+    core: 5.99,
+    premium: 14.99
+  };
+  
+  let basePrice = prices[selectedPlan.value];
+  let totalMonths = selectedDuration.value;
+  let totalPrice = basePrice * totalMonths;
+  
+  /*
+  // Apply discounts for longer durations
+  if (selectedDuration.value === 6) {
+    // 5% discount for 6-month subscription
+    totalPrice = totalPrice * 0.95;
+  } else if (selectedDuration.value === 12) {
+    // 10% discount for 1-year subscription
+    totalPrice = totalPrice * 0.90;
+  }
+  */
+  return totalPrice.toFixed(2);
+}
+
+onMounted(async () => {
+  // Load Stripe.js
+  if (!stripe.value) {
+    stripe.value = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+  }
+  
+  // Create card element
+  initializeStripe();
+  
+  // Set default subscription option
+  selectOption(1);
+});
+
+// Initialize Stripe elements
+function initializeStripe() {
+    elements.value = stripe.value.elements();
+    card.value = elements.value.create('card', {
+      style: {
+        base: {
+          color: '#ffffff',
+          fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+          fontSmoothing: 'antialiased',
+          fontSize: '16px',
+          '::placeholder': {
+            color: '#aab7c4'
+          }
+        },
+        invalid: {
+          color: '#fa755a',
+          iconColor: '#fa755a'
+        }
+      }
+    });
+    
+    // Wait for DOM to be updated
+    setTimeout(() => {
+      const cardElement = document.getElementById('card-element');
+      if (cardElement) {
+        card.value.mount('#card-element');
+      }
+    }, 100);
+
+    // Handle card element errors
+    card.value.on('change', function(event) {
+      const displayError = document.getElementById('card-errors');
+      if (event.error) {
+        displayError.textContent = event.error.message;
+      } else {
+        displayError.textContent = '';
+      }
+    });
+  }
+
 </script>
   
 <style lang="scss" scoped>
@@ -238,14 +378,14 @@ async function Trial() {
 
   .input:focus, .input:valid {
     outline: none;
-    border: 2px solid #8c8dfe;
+    border: 2px solid $accent1;
   }
 
   .input:focus ~ label, .input:valid ~ label {
     transform: translateY(-50%) scale(0.8);
     background-color: #212121;
     padding: 0 .4em;
-    color: #8c8dfe;
+    color: $accent1;
   }
 
   .userbtn {
@@ -253,7 +393,8 @@ async function Trial() {
   color: $text1;
   border-radius: 10px;
   outline: none;
-  border: solid 3px #8c8dfe;
+  border: none;
+  background-color: $accent1;
   padding: 10px;
   margin: 10px;
   width: 400px;
@@ -265,7 +406,7 @@ async function Trial() {
 }
 
 .userbtn:hover {
-  background-color: #8c8dfe;
+  background-color: $accent2;
   color: white;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
   transform: scale(1.05); /* New animation: scale up on hover */
@@ -421,6 +562,151 @@ h1{
   opacity: 0.20;
 }
 
+/* Subscription Section Styles */
+.subscription-section {
+  background-color: $base1;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.plan-options {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 25px 0;
+}
+
+.plan-card {
+  background-color: $base2;
+  border-radius: 10px;
+  padding: 20px;
+  flex: 1;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.plan-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.plan-card.selected-plan {
+  border-color: $accent2;
+}
+
+.plan-header {
+  font-size: 22px;
+  color: $text1;
+  margin-bottom: 10px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.plan-price {
+  font-size: 28px;
+  color: $accent1;
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.plan-price span {
+  font-size: 14px;
+  color: $text2;
+}
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.plan-features li {
+  color: $text2;
+  padding: 8px 0;
+  position: relative;
+  padding-left: 22px;
+}
+
+.plan-features li:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 14px;
+  height: 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Ccircle cx='10' cy='10' r='10' fill='%238c8dfe'/%3E%3Cpath d='M6 10.5l2.5 2.5 5-5' stroke='%23fff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.duration-selection {
+  margin-top: 30px;
+}
+
+.duration-options {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.duration-option {
+  background-color: $base4;
+  color: $text2;
+  border-radius: 20px;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  flex: 1;
+  min-width: 80px;
+}
+
+.duration-option:hover {
+  background-color: $base2;
+}
+
+.duration-option.selected-duration {
+  background-color: $accent1;
+  color: $text2;
+  font-weight: 500;
+}
+
+.total-price {
+  margin-top: 30px;
+  text-align: right;
+  padding: 10px;
+  border-top: 1px solid $base2;
+}
+
+.total-price p {
+  font-size: 18px;
+  color: $text2;
+}
+
+.total-price span {
+  font-size: 22px;
+  color: $accent1;
+  font-weight: 700;
+  margin-left: 8px;
+}
+
+.discount-tag {
+  font-size: 1rem;
+  background-color: $accent1;
+  color: $text1;
+  padding: 3px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  font-weight: 500;
+  display: inline-block;
+}
+
 /* Mobile version */
 @media (max-width: 1150px) {
   .signup-form {
@@ -499,6 +785,26 @@ h1{
   display: inline-block;
   transition: background-color 0.3s, border-color 0.3s; /* Add transition for border color */
 }
+
+.plan-options {
+    flex-direction: column;
+  }
+  
+  .plan-card {
+    margin-bottom: 20px;
+  }
+  
+  .duration-options {
+    flex-direction: column;
+  }
+  
+  .duration-option {
+    margin-bottom: 10px;
+  }
+  
+  .total-price {
+    text-align: center;
+  }
 
 }
 

@@ -2339,8 +2339,6 @@ def getIEXPrice():
             print("No data found for the specified tickers.")
     else:
         print(f"Error: {response.status_code} - {response.text}")
-        
-#Daily()
 
 def clone_user_documents():
     # List of new usernames
@@ -2403,3 +2401,6 @@ def clone_user_documents():
 
 # Usage:
 #clone_user_documents()
+
+
+Daily()
