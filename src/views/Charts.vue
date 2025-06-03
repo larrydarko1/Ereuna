@@ -428,7 +428,7 @@ l-240 1 -90 -57z"/>
     @click="showMA1 = !showMA1"
   >-- 10SMA</span>
 </div>
-          <div id="chartdiv" ref="mainchart"></div>
+          <div id="chartdiv" ref="mainchart" :class="{'chart-loading': isChartLoading}"></div>
           <div class="loading-container" v-if="isChartLoading">
             <Loader />
           </div>
@@ -3743,7 +3743,7 @@ function getSidebarProps(tag) {
 /* input for searching symbols */
 #searchbar {
   border-radius: 5px;
-  padding: 5px 5px 5px 15px;
+  padding: 10px 10px 10px 15px;
   margin: 7px;
   width: calc(100% - 30px);
   /* Make space for the button */
@@ -3778,8 +3778,8 @@ function getSidebarProps(tag) {
   padding: 0;
   outline: none;
   cursor: pointer;
-  height: 22px;
-  width: 22px;
+  height: 32px;
+  width: 32px;
    border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
   border-top-left-radius: 0;
@@ -3794,6 +3794,17 @@ function getSidebarProps(tag) {
   background-color: var(--accent2);
   box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
   outline: none;
+}
+
+/* Hide chart elements while loading */
+.tv-lightweight-charts {
+  visibility: hidden;
+  transition: visibility 0.2s;
+}
+
+/* Show chart elements when loaded */
+:not(.isChartLoading) .tv-lightweight-charts {
+  visibility: visible;
 }
 
 
@@ -4287,14 +4298,16 @@ function getSidebarProps(tag) {
 
 .loading-container {
   position: absolute;
-  top: -10%;
+  top: 0%;
   left: 0;
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 2000;
+  background-color: var(--base1);
+  opacity: 1;
   border: none;
 }
 
@@ -4890,8 +4903,7 @@ function getSidebarProps(tag) {
 }
 
 .index-btn.active {
-  background-color: rgba(var(--accent1), 0.30);
-  /* color when active */
+  background-color: var(--base1);
   color: var(--text1);
 }
 

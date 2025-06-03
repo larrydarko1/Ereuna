@@ -1,7 +1,7 @@
 v1.0.5
 - added 45 new themes
 - refactored screener code (you can now customize what elements you see in the table and in what order)
-- 
+- charts changing are not visible anymore while they load 
 ----
 v1.0.4
 - you can toggle visibility of moving averages on charts
