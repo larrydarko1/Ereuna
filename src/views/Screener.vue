@@ -2031,22 +2031,21 @@ l-240 1 -90 -57z"/>
           </div>
         </div>
       <div id="sidebar-r" :class="{ 'hidden-mobile': selected !== 'charts' }">
-        <h1 class="title3">WEEKLY CHART</h1>
-        <div class="loading-container1" v-if="isChartLoading1">
-      <Loader />
+       <h1 class="title3">WEEKLY CHART</h1>
+<div class="chart-container">
+    <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
+        <Loader />
     </div>
-    <div class="loading-container1" v-if="isLoading1">
-      <Loader />
+    <div id="wk-chart" ref="wkchart" style="width: 100%; height: 250px;" :class="{'hidden': isChartLoading1 || isLoading1}"></div>
+</div>
+
+<h1 class="title3">DAILY CHART</h1>
+<div class="chart-container">
+    <div class="loading-container2" v-if="isChartLoading2 || isLoading2">
+        <Loader />
     </div>
-        <div id="wk-chart" ref="wkchart" style="width: 100%; height: 250px;"></div>
-        <h1 class="title3">DAILY CHART</h1>
-        <div class="loading-container2" v-if="isChartLoading2">
-      <Loader />
-    </div>
-    <div class="loading-container2" v-if="isLoading2">
-      <Loader />
-    </div>
-        <div id="dl-chart" ref="dlchart" style="width: 100%; height: 250px;"></div>
+    <div id="dl-chart" ref="dlchart" style="width: 100%; height: 250px;" :class="{'hidden': isChartLoading2 || isLoading2}"></div>
+</div>
         <h1 class="title3">SUMMARY</h1>
         <div style="padding-top: 5px; border:none" id="summary">
           <div style="color: whitesmoke; text-align: center; border: none; overflow: scroll">
@@ -7002,7 +7001,7 @@ input:checked+.slider:before {
 .RenameScreener,
 .CreateScreener {
   position: absolute;
-  top: 50%;
+  top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: var(--base2);
@@ -7764,6 +7763,28 @@ input[type="date"]{
   display: none;
 }
 
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 250px;
+}
+
+.loading-container1, .loading-container2 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--base1);
+    z-index: 10;
+}
+
+.hidden {
+    visibility: hidden;
+}
 
 
 @media (min-width: 1151px) {
