@@ -945,20 +945,13 @@ async function searchTicker(providedSymbol) {
     if (response && response.status !== 404) {
       await searchNotes();
       await fetchData();
-      await fetchData2();
       await fetchData3();
-      await fetchData4();
-      await fetchData5();
-      await fetchData6();
       await fetchData7();
-      await fetchData8();
       await fetchData9();
-      await fetchData10();
-      await fetchData11();
-      await fetchData12();
       await fetchSplitsDate();
       await fetchDividendsDate();
       await fetchFinancials();
+      console.log(data4.value);
     }
     isChartLoading.value = false;
   }
@@ -1336,17 +1329,9 @@ async function showTicker() {
   } finally {
     await searchNotes();
     await fetchData();
-    await fetchData2();
     await fetchData3();
-    await fetchData4();
-    await fetchData5();
-    await fetchData6();
     await fetchData7();
-    await fetchData8();
     await fetchData9();
-    await fetchData10();
-    await fetchData11();
-    await fetchData12();
   }
 }
 
@@ -1425,31 +1410,10 @@ async function fetchData() {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const newData = await response.json();
-    data.value = newData;
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    error.value = error.message;
-  }
-}
-
-async function fetchData2() {
-  try {
-    let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data2`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newData2 = await response.json();
-    data2.value = newData2;
+    const chartData = await response.json();
+    // Directly assign the arrays from the backend to your refs
+    data.value = chartData.ohlc || [];
+    data2.value = chartData.volume || [];
   } catch (error) {
     if (error.name === 'AbortError') {
       return;
@@ -1468,116 +1432,27 @@ async function fetchData3() {
     });
 
     if (!response.ok) {
-      data3.value = null; // Explicitly set to null if response is not ok
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newData3 = await response.json();
-
-    // Check if newData3 is undefined, null, or empty
-    if (!newData3 || newData3.length === 0) {
       data3.value = null;
-    } else {
-      data3.value = newData3;
-    }
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    data3.value = null; // Set to null in case of any other error
-    error.value = error.message;
-  }
-}
-
-async function fetchData4() {
-  try {
-    let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data4`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      data4.value = null; // Explicitly set to null if response is not ok
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newData4 = await response.json();
-
-    // Check if newData4 is undefined, null, or empty
-    if (!newData4 || newData4.length === 0) {
       data4.value = null;
-    } else {
-      data4.value = newData4;
-    }
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    data4.value = null; // Set to null in case of any other error
-    error.value = error.message;
-  }
-}
-
-async function fetchData5() {
-  try {
-    let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data5`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      data5.value = null; // Explicitly set to null if response is not ok
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newData5 = await response.json();
-
-    // Check if newData5 is undefined, null, or empty
-    if (!newData5 || newData5.length === 0) {
       data5.value = null;
-    } else {
-      data5.value = newData5;
-    }
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    data5.value = null; // Set to null in case of any other error
-    error.value = error.message;
-  }
-}
-
-async function fetchData6() {
-  try {
-    let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data6`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      data6.value = null; // Explicitly set to null if response is not ok
+      data6.value = null;
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const newData6 = await response.json();
+    const maData = await response.json();
 
-    // Check if newData6 is undefined, null, or empty
-    if (!newData6 || newData6.length === 0) {
-      data6.value = null;
-    } else {
-      data6.value = newData6;
-    }
+    // Assign each MA to the correct variable
+    data3.value = maData.MA10 && maData.MA10.length ? maData.MA10 : null;
+    data4.value = maData.MA20 && maData.MA20.length ? maData.MA20 : null;
+    data5.value = maData.MA50 && maData.MA50.length ? maData.MA50 : null;
+    data6.value = maData.MA200 && maData.MA200.length ? maData.MA200 : null;
+
   } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    data6.value = null; // Set to null in case of any other error
+    if (error.name === 'AbortError') return;
+    data3.value = null;
+    data4.value = null;
+    data5.value = null;
+    data6.value = null;
     error.value = error.message;
   }
 }
@@ -1595,35 +1470,11 @@ async function fetchData7() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const newData7 = await response.json();
-    data7.value = newData7;
+    const chartData = await response.json();
+    data7.value = chartData.ohlc2 || [];
+    data8.value = chartData.volume2 || [];
   } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    error.value = error.message;
-  }
-}
-
-async function fetchData8() {
-  try {
-    let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data8`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newData8 = await response.json();
-    data8.value = newData8;
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
+    if (error.name === 'AbortError') return;
     error.value = error.message;
   }
 }
@@ -1638,116 +1489,27 @@ async function fetchData9() {
     });
 
     if (!response.ok) {
-      data9.value = null; // Explicitly set to null if response is not ok
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newData9 = await response.json();
-
-    // Check if newData9 is undefined, null, or empty
-    if (!newData9 || newData9.length === 0) {
       data9.value = null;
-    } else {
-      data9.value = newData9;
-    }
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    data9.value = null; // Set to null in case of any other error
-    error.value = error.message;
-  }
-}
-
-async function fetchData10() {
-  try {
-    let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data10`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      data10.value = null; // Explicitly set to null if response is not ok
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newData10 = await response.json();
-
-    // Check if newData10 is undefined, null, or empty
-    if (!newData10 || newData10.length === 0) {
       data10.value = null;
-    } else {
-      data10.value = newData10;
-    }
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    data10.value = null; // Set to null in case of any other error
-    error.value = error.message;
-  }
-}
-
-async function fetchData11() {
-  try {
-    let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data11`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      data11.value = null; // Explicitly set to null if response is not ok
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newData11 = await response.json();
-
-    // Check if newData11 is undefined, null, or empty
-    if (!newData11 || newData11.length === 0) {
       data11.value = null;
-    } else {
-      data11.value = newData11;
-    }
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    data11.value = null; // Set to null in case of any other error
-    error.value = error.message;
-  }
-}
-
-async function fetchData12() {
-  try {
-    let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data12`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      data12.value = null; // Explicitly set to null if response is not ok
+      data12.value = null;
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const newData12 = await response.json();
+    const maData = await response.json();
 
-    // Check if newData12 is undefined, null, or empty
-    if (!newData12 || newData12.length === 0) {
-      data12.value = null;
-    } else {
-      data12.value = newData12;
-    }
+    // Assign each MA to the correct variable
+    data9.value = maData.MA10 && maData.MA10.length ? maData.MA10 : null;
+    data10.value = maData.MA20 && maData.MA20.length ? maData.MA20 : null;
+    data11.value = maData.MA50 && maData.MA50.length ? maData.MA50 : null;
+    data12.value = maData.MA200 && maData.MA200.length ? maData.MA200 : null;
+
   } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    data12.value = null; // Set to null in case of any other error
+    if (error.name === 'AbortError') return;
+    data9.value = null;
+    data10.value = null;
+    data11.value = null;
+    data12.value = null;
     error.value = error.message;
   }
 }
@@ -2291,17 +2053,9 @@ MaSeries4.applyOptions({ visible: showMA4.value });
     }
 
     await fetchData();
-    await fetchData2();
     await fetchData3();
-    await fetchData4();
-    await fetchData5();
-    await fetchData6();
     await fetchData7();
-    await fetchData8();
     await fetchData9();
-    await fetchData10();
-    await fetchData11();
-    await fetchData12();
     updateLegend3(data.value);
     isLoading.value = false
 
@@ -2323,17 +2077,9 @@ async function toggleChartView() {
   chartView.value = chartView.value === 'Daily Chart' ? 'Weekly Chart' : 'Daily Chart';
   useAlternateData = !useAlternateData;
   await fetchData();
-  await fetchData2();
   await fetchData3();
-  await fetchData4();
-  await fetchData5();
-  await fetchData6();
   await fetchData7();
-  await fetchData8();
   await fetchData9();
-  await fetchData10();
-  await fetchData11();
-  await fetchData12();
   isLoading.value = false;
 }
 
