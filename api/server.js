@@ -11338,9 +11338,23 @@ app.get('/screener/:usernameID/all',
         return {
           ...asset,
           screenerNames: screenerNames,
-          isDuplicate: screenerNames.length > 1
+          isDuplicate: screenerNames.length > 1,
+          duplicateCount: screenerNames.length // Add this for sorting
         };
       });
+
+      // Sort: duplicates first, then by how many times they appear (descending)
+      finalResults.sort((a, b) => {
+        // First, sort by duplicate count descending
+        if (b.duplicateCount !== a.duplicateCount) {
+          return b.duplicateCount - a.duplicateCount;
+        }
+        // Optionally, add a secondary sort (e.g., by Symbol)
+        return a.Symbol.localeCompare(b.Symbol);
+      });
+
+      // Remove duplicateCount from the response if you don't want to expose it
+      finalResults.forEach(asset => { delete asset.duplicateCount; });
 
       res.send(finalResults);
 
