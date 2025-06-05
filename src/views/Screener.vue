@@ -636,7 +636,7 @@
           <br>
           <div style="display: flex; flex-direction: column; align-items: center; border: none;">
             <div style="display: flex; align-items: center; border: none;">
-              <p style="margin-right: 10px;">200MA</p>
+              <p style="margin-right: 10px;">200 DMA</p>
               <div class="ma200-select-container">
   <div class="ma200-dropdown-btn">
     <p class="selected-value">{{ ma200Select }}</p>
@@ -649,7 +649,7 @@
 </div>
             </div>
             <div style="display: flex; align-items: center; border: none;">
-              <p style="margin-right: 10px;">50MA</p>
+              <p style="margin-right: 10px;">50 DMA</p>
               <div class="ma50-select-container">
   <div class="ma50-dropdown-btn">
     <p class="selected-value">{{ ma50Select }}</p>
@@ -662,7 +662,7 @@
 </div>
             </div>
             <div style="display: flex; align-items: center; border: none;">
-              <p style="margin-right: 10px;">20MA</p>
+              <p style="margin-right: 10px;">20 DMA</p>
               <div class="ma20-select-container">
   <div class="ma20-dropdown-btn">
     <p class="selected-value">{{ ma20Select }}</p>
@@ -675,13 +675,26 @@
 </div>
             </div>
             <div style="display: flex; align-items: center; border: none;">
-              <p style="margin-right: 10px;">10MA</p>
+              <p style="margin-right: 10px;">10 DMA</p>
               <div class="ma10-select-container">
   <div class="ma10-dropdown-btn">
     <p class="selected-value">{{ ma10Select }}</p>
   </div>
   <div class="ma10-dropdown-menu">
     <div v-for="(option, index) in ma10Options" :key="index" @click="selectMa10Option(option)">
+      {{ option }}
+    </div>
+  </div>
+</div>
+            </div>
+                <div style="display: flex; align-items: center; border: none;">
+              <p style="margin-right: 10px;">Price</p>
+              <div class="price-select-container">
+  <div class="price-dropdown-btn">
+    <p class="selected-value">{{ priceSelect }}</p>
+  </div>
+  <div class="price-dropdown-menu">
+    <div v-for="(option, index) in priceOptions" :key="index" @click="selectPriception(option)">
       {{ option }}
     </div>
   </div>
@@ -4452,6 +4465,7 @@ async function SetPricePerformance(){
     const ma50 = ma50Select.value;
     const ma20 = ma20Select.value;
     const ma10 = ma10Select.value;
+    const pricevalue = priceSelect.value;
 
     const response = await fetch('/api/screener/price-performance', {
       method: 'PATCH',
@@ -4473,6 +4487,7 @@ async function SetPricePerformance(){
         value11: ma50,
         value12: ma20,
         value13: ma10,
+        value14: pricevalue,
         screenerName: selectedScreener.value,
         user: user
       })
@@ -4544,6 +4559,7 @@ try {
     let MA20 = screenerSettings.MA50
     let MA50 = screenerSettings.MA50
     let MA200 = screenerSettings.MA200
+    let CurrentPrice = screenerSettings.CurrentPrice
     let NewHigh = screenerSettings.NewHigh
     let NewLow = screenerSettings.NewLow
     let PercOffWeekHigh = screenerSettings.PercOffWeekHigh
@@ -4615,6 +4631,7 @@ try {
     screenerSettings?.MA20?.length > 0 ||
     screenerSettings?.MA50?.length > 0 || 
     screenerSettings?.MA200?.length > 0 || 
+    screenerSettings?.CurrentPrice?.length > 0 ||
     screenerSettings?.NewHigh?.length > 0 ||  
     screenerSettings?.NewLow?.length > 0 ||
     screenerSettings?.PercOffWeekHigh?.length > 0 ||
@@ -4848,7 +4865,7 @@ async function SummaryScreener() {
     const attributes = [
       'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'PS', 'ForwardPE', 'PEG', 'EPS', 'PB', 'DivYield',
       'EPSQoQ', 'EPSYoY', 'EarningsQoQ', 'EarningsYoY', 'RevQoQ', 'RevYoY', 'AvgVolume1W', 'AvgVolume1M', 'AvgVolume6M', 'AvgVolume1Y',
-      'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W','RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'NewHigh',
+      'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W','RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'CurrentPrice', 'NewHigh',
       'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio', 
       'assetsCurrent', 'liabilitiesCurrent', 'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin', 'debtEquity', 'bookVal', 'EV',
       'RSI', 'Gap'
@@ -5147,9 +5164,11 @@ const ma200Options = ref([
   'abv50',
   'abv20',
   'abv10',
+  'abvPrice',
   'blw50',
   'blw20',
-  'blw10'
+  'blw10',
+  'blwPrice'
 ]);
 
 const ma50Options = ref([
@@ -5157,9 +5176,11 @@ const ma50Options = ref([
   'abv200',
   'abv20',
   'abv10',
+  'abvPrice',
   'blw200',
   'blw20',
-  'blw10'
+  'blw10',
+  'blwPrice'
 ]);
 
 const ma20Options = ref([
@@ -5167,9 +5188,11 @@ const ma20Options = ref([
   'abv200',
   'abv50',
   'abv10',
+  'abvPrice',
   'blw200',
   'blw50',
-  'blw10'
+  'blw10',
+  'blwPrice'
 ]);
 
 const ma10Options = ref([
@@ -5177,9 +5200,23 @@ const ma10Options = ref([
   'abv200',
   'abv50',
   'abv20',
+  'abvPrice',
   'blw200',
   'blw50',
-  'blw20'
+  'blw20',
+  'blwPrice'
+]);
+
+const priceOptions = ref([
+  '-',
+  'abv200',
+  'abv50',
+  'abv20',
+  'abv10',
+  'blw200',
+  'blw50',
+  'blw20',
+  'blw10'
 ]);
 
 const changepercSelect = ref('-');
@@ -5187,6 +5224,7 @@ const ma200Select = ref('-');
 const ma50Select = ref('-');
 const ma20Select = ref('-');
 const ma10Select = ref('-');
+const priceSelect = ref('-');
 
 function selectChangepercOption(option) {
   changepercSelect.value = option;
@@ -5206,6 +5244,10 @@ function selectMa20Option(option) {
 
 function selectMa10Option(option) {
   ma10Select.value = option;
+}
+
+function selectPriception(option) {
+  priceSelect.value = option;
 }
 
 const allTimeHigh = ref(false);
@@ -6339,7 +6381,7 @@ fetchTier()
   color: var(--text2);
   background-color: var(--base2);
   border: none;
-  height: 430px;
+  height: 450px;
   position: relative;
 }
 
@@ -7569,7 +7611,7 @@ input[type="date"]{
   display: block;
 }
 
-.ma200-select-container, .ma50-select-container, .ma20-select-container, .ma10-select-container {
+.ma200-select-container, .ma50-select-container, .ma20-select-container, .ma10-select-container , .price-select-container{
   position: relative;
   background-color: var(--base2);
   text-align: center;
@@ -7584,13 +7626,13 @@ input[type="date"]{
   border: solid 2px var(--base1);
 }
 
-.ma200-dropdown-btn, .ma50-dropdown-btn, .ma20-dropdown-btn, .ma10-dropdown-btn {
+.ma200-dropdown-btn, .ma50-dropdown-btn, .ma20-dropdown-btn, .ma10-dropdown-btn, .price-dropdown-btn {
   background-color: transparent;
   border: none;
   cursor: pointer;
 }
 
-.ma200-dropdown-menu, .ma50-dropdown-menu, .ma20-dropdown-menu, .ma10-dropdown-menu {
+.ma200-dropdown-menu, .ma50-dropdown-menu, .ma20-dropdown-menu, .ma10-dropdown-menu, .price-dropdown-menu {
   display: none;
   cursor: pointer;
   width: 125px;
@@ -7600,7 +7642,7 @@ input[type="date"]{
   left: 20px;
 }
 
-.ma200-dropdown-menu > div, .ma50-dropdown-menu > div, .ma20-dropdown-menu > div, .ma10-dropdown-menu > div {
+.ma200-dropdown-menu > div, .ma50-dropdown-menu > div, .ma20-dropdown-menu > div, .ma10-dropdown-menu > div, .price-dropdown-menu > div {
   background-color: var(--base2);
   padding: 5px;
   height: 14px;
@@ -7608,7 +7650,7 @@ input[type="date"]{
   align-items: center;
 }
 
-.ma200-dropdown-menu > div:hover, .ma50-dropdown-menu > div:hover, .ma20-dropdown-menu > div:hover, .ma10-dropdown-menu > div:hover {
+.ma200-dropdown-menu > div:hover, .ma50-dropdown-menu > div:hover, .ma20-dropdown-menu > div:hover, .ma10-dropdown-menu > div:hover, .price-dropdown-menu > div:hover {
   background-color: var(--accent1);
 }
 
@@ -7619,7 +7661,8 @@ input[type="date"]{
 .ma20-dropdown-btn:hover + .ma20-dropdown-menu, 
 .ma20-dropdown-menu:hover,
 .ma10-dropdown-btn:hover + .ma10-dropdown-menu, 
-.ma10-dropdown-menu:hover {
+.ma10-dropdown-menu:hover, .price-dropdown-btn:hover + .price-dropdown-menu, 
+.price-dropdown-menu:hover {
   display: block;
 }
 
