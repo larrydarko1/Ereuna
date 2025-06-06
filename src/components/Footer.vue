@@ -37,6 +37,7 @@ footer {
   font-size: 12px;
   border: none;
   margin: 0;
+  cursor: default;
 }
 
 .link {
@@ -45,6 +46,7 @@ footer {
   font-size: 12px;
   border: none;
   margin: 0;
+  cursor: pointer;
 }
 
 

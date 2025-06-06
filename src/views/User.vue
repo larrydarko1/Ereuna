@@ -8,7 +8,7 @@
             <h1 class="user">{{ user }}</h1>
             <h2 class="tier">{{ Tier }}</h2>
           </div>
-          <h2 class="subscription-remaining">{{ expirationDays !== null ? expirationDays + ' subscription daysremaining'
+          <h2 class="subscription-remaining">{{ expirationDays !== null ? expirationDays + ' subscription days remaining'
             : 'Loading...' }}</h2>
         </div>
         <div class="menu-wrapper">
@@ -1132,6 +1132,7 @@ h1 {
   color: var(--accent3);
   font-size: 30px;
   margin-bottom: 0;
+  cursor: default;
 }
 
 .user {
@@ -1144,11 +1145,13 @@ h1 {
   color: var(--text2);
   font-size: 12px;
   margin-bottom: 30px;
+  cursor: default;
 }
 
 h2 {
   color: var(--text1);
   font-size: 15px;
+  cursor: default;
 }
 
 .menu-wrapper {

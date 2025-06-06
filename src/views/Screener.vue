@@ -5916,41 +5916,6 @@ function select(option) {
   selected.value = option
 }
 
-const themes = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
-const currentTheme = ref('default');
-
-const themeDisplayNames = {
-  default: 'Default Theme (Dark)',
-  ihatemyeyes: 'I Hate My Eyes (light-mode)',
-  colorblind: "I'm Colorblind",
-  catpuccin: 'Catpuccin',
-};
-
-async function setTheme(newTheme) {
-  const root = document.documentElement;
-  root.classList.remove(...themes);
-  root.classList.add(newTheme);
-  localStorage.setItem('user-theme', newTheme);
-  try {
-    const response = await fetch('/api/theme', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ theme: newTheme, username: user }),
-    });
-    const data = await response.json();
-    if (data.message === 'Theme updated') {
-      currentTheme.value = newTheme;
-    } else {
-      error.value = data.message;
-    }
-  } catch (error) {
-    error.value = error.message;
-  }
-}
-
 async function loadTheme() {
     try {
       const response = await fetch('/api/load-theme', {
@@ -5973,10 +5938,6 @@ async function loadTheme() {
   }
 
 loadTheme()
-
-defineExpose({
-  loadTheme,
-});
 
 let Tier = ref(); // user tier
 
