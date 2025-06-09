@@ -22,7 +22,7 @@
       <br>
       <!-- Subscription Selection Section -->
 <div class="subscription-section">
-  <h2 style="cursor: default; color: #f5f5f5; margin-bottom: 20px;">Choose Your Plan</h2>
+  <h2 class="subtitle">Choose Your Plan</h2>
   
   <div class="plan-options">
   <div class="plan-card" :class="{ 'selected-plan': selectedPlan === 'core' }" @click="selectedPlan = 'core'">
@@ -48,7 +48,7 @@
 </div>
   
   <div class="duration-selection">
-    <h3 style="color: #f5f5f5; margin: 20px 0 10px;">Subscription Duration</h3>
+    <h3 class="subtitle">Subscription Duration</h3>
     <div class="duration-options">
       <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 1 }" @click="selectedDuration = 1">
         1 Month
@@ -490,6 +490,13 @@ function initializeStripe() {
   cursor: pointer;
 }
 
+.subtitle {
+ color: $text1; 
+ margin: 20px 0 10px; 
+ font-size: 2rem;
+ cursor: default;
+}
+
 .modal-content {
     max-height: 500px; /* Adjust height as needed */
     overflow-y: auto; /* Enable vertical scrolling */
@@ -673,7 +680,7 @@ h1{
 
 .duration-option.selected-duration {
   background-color: $accent1;
-  color: $text2;
+  color: $text4;
   font-weight: 500;
 }
 
