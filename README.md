@@ -1,3 +1,6 @@
+v1.0.6
+
+----
 v1.0.5
 - added 45 new themes
 - charts changing are not visible anymore while they load 

@@ -10,7 +10,7 @@
       >
         {{ item }}
       </p>
-      <span class="version">Ereuna v1.0.4</span>
+      <span class="version">Ereuna v1.0.5</span>
     </div>
   <div class="side2">
   <p

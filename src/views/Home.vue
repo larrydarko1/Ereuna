@@ -40,7 +40,7 @@
   <div class="hero">
     <div class="content">
       <p style="cursor: default;" class="description">Unlock Smarter Investing with <span style="color: #8c8dfe; font-size: inherit ;">Ereuna</span></p> 
-      <p style="cursor: default;" class="call-to-action">Essential features and data for mid-to-long term investors, all at a fraction of the cost of traditional solutions.</p>
+      <p style="cursor: default;" class="call-to-action">Cut your research time and costs—invest with confidence.</p>
       <br>
       <br>
       <div style="display: flex; flex-direction: row ;gap: 20px;">
@@ -50,7 +50,12 @@
         </div>
  <div>
       <span style="cursor: default;" class="already-have-invite">Already have an account?</span>
-      <button class="login-button" @click="redirectToLogin">Login Now &rarr;</button>
+<button class="login-button" @click="redirectToLogin">
+  Login Now
+  <svg xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-left: 8px;" width="20" height="20" fill="none" viewBox="0 0 24 24">
+    <path d="M15.75 15.25L19 12m0 0l-3.25-3.25M19 12H8.5M12 19.25A7.25 7.25 0 1 1 12 4.75" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
  </div>
       </div>
     </div>
@@ -197,7 +202,7 @@
   <div class="feature-list">
      <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      Intraday / Real-time Data Support
+       Intraday / Real-time Data Support
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
@@ -487,7 +492,7 @@ function setupCardAnimations() {
 }
 
 .description {
-  font-size: 40px;
+  font-size: 5rem;
   font-weight: bold;
   margin: 0;
 }
@@ -499,7 +504,7 @@ function setupCardAnimations() {
 
 .call-to-action {
   font-size: 18px;
-  color: #dcdcdc;
+  color: $text2;
   a {
     color: $accent1;
     text-decoration: none;
@@ -513,7 +518,7 @@ function setupCardAnimations() {
   font-size: 12px;
   margin-bottom: 10px;
   display: block;
-  color: #dcdcdc;
+  color: $text2;
 }
 
 .login-button {
@@ -524,10 +529,17 @@ function setupCardAnimations() {
   font-size: 18px;
   cursor: pointer;
   border-radius: 5px;
-  transition: background-color 0.3s ease;
+  transition: 
+    background-color 0.3s cubic-bezier(0.4,0,0.2,1),
+    color 0.3s cubic-bezier(0.4,0,0.2,1),
+    box-shadow 0.3s cubic-bezier(0.4,0,0.2,1),
+    transform 0.2s cubic-bezier(0.4,0,0.2,1);
 
   &:hover {
     background-color: $accent1;
+    color: $text4;
+    transform: scale(1.04);
+    border-color: $accent1;
   }
 }
 
@@ -535,7 +547,7 @@ function setupCardAnimations() {
   font-size: 12px;
   margin-bottom: 10px;
   display: block;
-  color: #dcdcdc;
+  color: $text2;
 }
 
 .sign-button {
@@ -547,6 +559,13 @@ function setupCardAnimations() {
   cursor: pointer;
   border-radius: 5px;
   transition: background-color 0.3s ease;
+
+   &:hover {
+    background-color: $text2;
+    border: solid 2px $text2;
+    color: $text4;
+    transform: scale(1.04);
+  }
 }
 
 .icon {
@@ -560,7 +579,7 @@ function setupCardAnimations() {
   align-items: center;
   background-color: transparent;
   border-radius: 10px;
-  color: #f5f5f5;
+  color: $text2;
   padding: 15px 30px; /* Add horizontal padding for better spacing */
   position: sticky;
   top: 2%;
@@ -577,7 +596,7 @@ function setupCardAnimations() {
 }
 
 a{
-  color: whitesmoke;
+  color: $text2;
   opacity: 0.90;
   cursor: pointer;
 }
@@ -589,7 +608,7 @@ a:hover{
   .navbtn{
     border: none;
     background-color: transparent;
-    color: whitesmoke;
+    color: $text2;
     opacity: 0.70;
     font-size: 1.5rem;
   }
@@ -600,60 +619,31 @@ a:hover{
      cursor: pointer;
   }
 
-  .navbtn2 {
-  border: none; /* Remove default border */
-  border-radius: 5px; /* Rounded corners */
-  background-color: transparent; /* Button background color */
-  color: whitesmoke; /* Text color */
-  padding: 10px 20px; /* Padding for better spacing */
-  font-size: 1.5rem; /* Font size */
-  cursor: pointer; /* Pointer cursor on hover */
-  position: relative; /* For pseudo-element positioning */
-  overflow: hidden; /* Hide overflow for pseudo-element */
-  z-index: 100; /* Ensure text is above the gradient */
-  transition: color 0.3s ease; /* Smooth text color transition */
-  display: flex; /* Use flexbox for centering */
-  align-items: center; /* Center vertically */
-  justify-content: center; /* Center horizontally */
+.navbtn2 {
+  border: none;
+  border-radius: 5px;
+  background-color: $accent1;
+  font-size: 1.5rem;
+  color: $text1;
+  padding: 15px 30px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  z-index: 100;
+  transition: 
+    background 0.25s cubic-bezier(0.4,0,0.2,1),
+    color 0.25s cubic-bezier(0.4,0,0.2,1),
+    transform 0.18s cubic-bezier(0.4,0,0.2,1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Gradient border animation */
-.navbtn2::before {
-  content: '';
-  position: absolute; /* Position it absolutely */
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1; /* Place it behind the content */
-  border-radius: 5px; /* Match the border radius of the parent */
-  background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
-  padding: 2px; /* Space for the border effect */
-  mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
-  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
-  -webkit-mask-composite: source-out; /* For masking */
-  animation: border-animation 5s linear infinite;
-  mask-composite: exclude; /* For masking */
-  background-size: 300% 300%; 
-}
-
-.navbtn2:hover::before {
-  -webkit-mask: none; /* Remove the mask on hover */
-  mask: none; /* Remove the mask on hover */
-  padding: 0; /* Remove padding to fill the entire button */
-}
-
-/* Keyframes for gradient animation */
-@keyframes border-animation {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+.navbtn2:hover {
+  background-color: $accent2;
+  color: $text4;
+  transform: scale(1.04);
+  box-shadow: 0 4px 16px 0 rgba(140,141,254,0.10);
 }
 
 .logo{
@@ -1023,6 +1013,7 @@ h2{
   font-size: 14px;
   color: $text2;
   gap: 10px;
+  text-align: left;
 }
 
 .verified-icon {
@@ -1305,10 +1296,21 @@ h2{
     color: #dcdcdc;
   }
 
+  .sign-button {
+  background-color: $text2;
+  color: $text4;
+  border: none;
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
   .login-button {
-    background-color: transparent;
-    color: $text1;
-    border: solid 2px $accent1;
+    background-color: $accent1;
+    color: $text4;
+    border: none;
     padding: 10px 20px;
     font-size: 16px; /* Adjust font size for better readability on mobile */
     cursor: pointer;
@@ -1415,6 +1417,22 @@ h2{
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.footer {
+  padding: 10px;
+  background-color: $base4;
+  color: $text2;
+  text-align: center;
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footer-links {
+  margin-left: 0;
+  display: flex;
 }
 
 }
