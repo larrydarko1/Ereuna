@@ -37,6 +37,11 @@ const routes = [
     component: () => import('../views/Upload.vue')
   },
   {
+    path: '/maintenance',
+    name: 'Maintenance',
+    component: () => import('../views/maintenance.vue')
+  },
+  {
     path: '/renew-subscription',
     name: 'PaymentRenew',
     component: () => import('../views/PaymentRenew.vue')

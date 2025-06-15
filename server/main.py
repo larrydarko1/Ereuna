@@ -42,11 +42,14 @@ def maintenanceMode(mode):
 def getMonday(timestamp):
     first_day_of_week = timestamp - dt.timedelta(days=timestamp.weekday())
     return first_day_of_week
-    
+ 
+# function to remove documents with a specific timestamp from the OHCLVData2 collection   
 def remove_documents_with_timestamp(timestamp_str):
     weekly_collection = db["OHCLVData2"]
     timestamp = dt.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f+00:00')
     weekly_collection.delete_many({'timestamp': timestamp})
+    
+#remove_documents_with_timestamp('2025-06-10T00:00:00.000+00:00') 
 
 def play_song(song_path):
     pygame.init()
@@ -55,7 +58,6 @@ def play_song(song_path):
     pygame.mixer.music.play(-1)  # -1 to loop the song
 
 
-'''
 #arranges pictures based on market
 def ArrangeIcons():
     current_dir = os.getcwd()
@@ -85,8 +87,6 @@ def ArrangeIcons():
     else:
         print("The 'pictures' folder does not exist.")
 
-Section for IPOs and monthly update for stocks
-'''
 #updates symbol, name, description, IPO, exchange, sector, industry, location, currency, country
 def getSummary():
     start_time = time.time()
@@ -384,7 +384,7 @@ def getHistoricalPrice():
     for asset_info in asset_info_collection.find():
         ticker = asset_info['Symbol']
         now = datetime.now()
-        url = f'https://api.tiingo.com/tiingo/daily/{ticker}/prices?token={api_key}&startDate=1990-01-01&endDate={now.strftime("%Y-%m-%d")}'
+        url = f'https://api.tiingo.com/tiingo/daily/{ticker}/prices?token={api_key}&startDate=1960-01-01&endDate={now.strftime("%Y-%m-%d")}'
         response = requests.get(url)
         
         if response.status_code == 200:
@@ -429,9 +429,10 @@ def getHistoricalPrice():
                 # Process weekly data from daily data
                 df['timestamp'] = pd.to_datetime(df['timestamp'])
                 weekly_grouped = df.groupby(pd.Grouper(key='timestamp', freq='W-MON'))
-                
-                for week_start, week_data in weekly_grouped:
+                for week_label, week_data in weekly_grouped:
                     if not week_data.empty:
+                        # Calculate the week start (Monday)
+                        week_start = week_label - pd.Timedelta(days=6)
                         weekly_doc = {
                             'tickerID': ticker,
                             'timestamp': week_start.to_pydatetime(),
@@ -440,7 +441,7 @@ def getHistoricalPrice():
                             'low': float(week_data['adjLow'].min()),
                             'close': float(week_data['adjClose'].iloc[-1]),
                             'volume': int(week_data['adjVolume'].sum())
-                        }
+        }
                         
                         # Check if weekly document already exists
                         existing_weekly_doc = weekly_collection.find_one({
@@ -456,9 +457,6 @@ def getHistoricalPrice():
         else:
             print(f"Error: {response.text}")
 
-'''
-Daily updates section
-'''
 # get daily OHCLV Data and build weekly OHCLV day after day
 def getPrice():
     daily_collection = db["OHCLVData"]
@@ -2065,7 +2063,6 @@ def Daily():
     song_thread = threading.Thread(target=play_song, args=(song_path,))
     song_thread.daemon = True  # set as daemon so it stops when main thread stops
     song_thread.start()
-    maintenanceMode(True)
     functions = [
         ('getPrice', getPrice),
         ('getWeekly', updateWeekly),
@@ -2102,14 +2099,16 @@ def Daily():
     
     print(f'\nTotal execution time: {total_execution_time_in_minutes:.2f} minutes')
     song_thread.join()
-    maintenanceMode(False)
     #checkAndUpdateFinancialUpdates()
+    #fetchNews()
 
 #scheduler
-scheduler.add_job(Daily, CronTrigger(hour=18, minute=0, day_of_week='mon-fri', timezone='US/Eastern'))
+scheduler.add_job(Daily, CronTrigger(hour=18, minute=30, day_of_week='mon-fri', timezone='US/Eastern'))
 scheduler.start()
 
-'''
+#HELPER FUNCTIONS
+
+# function to remove the 'isActive' attribute from AssetInfo documents
 def RemoveIsActiveAttribute():
     asset_info_collection = db['AssetInfo']
 
@@ -2121,7 +2120,7 @@ def RemoveIsActiveAttribute():
     except Exception as e:
         print(f"Error removing 'isActive' attribute: {e}")
         
-
+# function to remove duplicate documents in AssetInfo collection
 def RemoveDuplicateDocuments():
     asset_info_collection = db['AssetInfo']
 
@@ -2149,16 +2148,8 @@ def RemoveDuplicateDocuments():
         print("Removed duplicate documents with less attributes")
     except Exception as e:
         print(f"Error removing duplicate documents: {e}")
-        
 
-def remove_documents_with_timestamp(timestamp_str):
-    weekly_collection = db["OHCLVData2"]
-    timestamp = dt.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f+00:00')
-    weekly_collection.delete_many({'timestamp': timestamp})
-
-# Call the function with the specific timestamp
-remove_documents_with_timestamp('2025-03-17T00:00:00.000+00:00')
-
+# function to find symbols in AssetInfo collection that do not have an ISIN attribute
 def MissingISIN():
     asset_info_collection = db['AssetInfo']
 
@@ -2177,13 +2168,9 @@ def MissingISIN():
         print(symbols_without_isin)
     except Exception as e:
         print(f'Error finding symbols without ISIN - {str(e)}')
-        
 
-
+# function to rename volatility fields in AssetInfo collection
 def rename_volatility_fields():
-    """
-    Renames volatility fields in the AssetInfo collection.
-    """
     asset_info_collection = db["AssetInfo"]
     
     # Define the updates to be made
@@ -2213,8 +2200,6 @@ def rename_volatility_fields():
     
     # Print the result
     print(f"Updated {result.modified_count} documents")
-    
-rename_volatility_fields()
 
 def updateAssetInfoAttributeNames():
     asset_info_collection = db['AssetInfo']
@@ -2254,10 +2239,6 @@ def updateAssetInfoAttributeNames():
             print(f"Updated {result.modified_count} documents")
         except Exception as e:
             print(f"Error updating documents: {e}")
-
-# Call the function to execute the updates
-updateAssetInfoAttributeNames()
-'''
 
 # get the OHCLV for IEX throught tiingo rest api, and updates database before tiingo aggregation, if successfull, it saves us 3 hours 
 def getIEXPrice():
@@ -2340,6 +2321,7 @@ def getIEXPrice():
     else:
         print(f"Error: {response.status_code} - {response.text}")
 
+# Function to clone ZephyrStar's documents to new users
 def clone_user_documents():
     # List of new usernames
     new_usernames = [
@@ -2399,8 +2381,129 @@ def clone_user_documents():
         )
         print(f"Cloned documents and updated panels for {username}")
 
-# Usage:
-#clone_user_documents()
+# Function to update the AssetType field to 'Stock' for all documents in AssetInfo
+def update_asset_type_to_stock():
+    asset_info_collection = db['AssetInfo']
+    updates = []
 
+    print("Updating 'AssetType' to 'Stock' for all documents in AssetInfo...")
+    for i, asset_info in enumerate(asset_info_collection.find()):
+        ticker = asset_info.get('Symbol')
+        try:
+            updates.append(
+                UpdateOne(
+                    {'_id': asset_info['_id']},
+                    {'$set': {'AssetType': 'Stock'}}
+                )
+            )
+            print(f"Prepared update for {ticker}")
+        except Exception as e:
+            print(f"Error preparing update for {ticker}: {e}")
 
-Daily()
+    if updates:
+        try:
+            result = asset_info_collection.bulk_write(updates)
+            print(f"Updated {result.modified_count} documents with AssetType='Stock'")
+        except Exception as e:
+            print(f"Error updating documents: {e}")
+
+#grabs recent news articles from Tiingo API and inserts them into the News collection
+def fetchNews():
+    news_collection = db["News"]
+    asset_info_collection = db["AssetInfo"]
+    symbols = [doc['Symbol'] for doc in asset_info_collection.find()]
+    total_inserted = 0
+    MAX_NEWS_PER_SYMBOL = 5
+
+    for symbol in symbols:
+        api_url = f"https://api.tiingo.com/tiingo/news?tickers={symbol.lower()}&token={api_key}"
+        response = requests.get(api_url)
+
+        if response.status_code == 200:
+            news_items = response.json()
+            # Sort news by publishedDate descending (most recent first)
+            news_items.sort(key=lambda x: x.get("publishedDate", ""), reverse=True)
+            # Only keep the most recent MAX_NEWS_PER_SYMBOL articles
+            news_items = news_items[:MAX_NEWS_PER_SYMBOL]
+            documents = []
+            for item in news_items:
+                tickers_upper = [t.upper() for t in item.get("tickers", [])]
+                # Convert publishedDate string to datetime (BSON compatible)
+                published_date_str = item.get("publishedDate")
+                published_date = None
+                if published_date_str:
+                    try:
+                        published_date = datetime.strptime(published_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
+                    except ValueError:
+                        try:
+                            published_date = datetime.strptime(published_date_str, "%Y-%m-%dT%H:%M:%SZ")
+                        except Exception:
+                            published_date = None
+                doc = {
+                    "publishedDate": published_date,
+                    "title": item.get("title"),
+                    "url": item.get("url"),
+                    "description": item.get("description"),
+                    "source": item.get("source"),
+                    "tickers": tickers_upper,
+                }
+                exists = news_collection.find_one({
+                    "url": doc["url"],
+                    "publishedDate": doc["publishedDate"]
+                })
+                if not exists:
+                    documents.append(doc)
+            # Remove old news for this symbol if more than MAX_NEWS_PER_SYMBOL exist
+            existing_news = list(news_collection.find({"tickers": symbol.upper()}).sort("publishedDate", -1))
+            if len(existing_news) + len(documents) > MAX_NEWS_PER_SYMBOL:
+                # Remove oldest to keep only MAX_NEWS_PER_SYMBOL
+                to_remove = existing_news[MAX_NEWS_PER_SYMBOL - len(documents):]
+                for doc in to_remove:
+                    news_collection.delete_one({"_id": doc["_id"]})
+            if documents:
+                news_collection.insert_many(documents)
+                total_inserted += len(documents)
+                print(f"Inserted {len(documents)} news articles for {symbol}.")
+            else:
+                print(f"No new news articles found for {symbol}.")
+        else:
+            print(f"Failed to fetch news for {symbol}: {response.status_code} {response.text}")
+
+    print(f"Total news articles inserted: {total_inserted}")
+
+def generate_weekly_candles():
+    daily_collection = db["OHCLVData"]
+    weekly_collection = db["OHCLVData2"]
+
+    tickers = daily_collection.distinct('tickerID')
+    for ticker in tickers:
+        daily_data = list(daily_collection.find({'tickerID': ticker}))
+        if not daily_data:
+            continue
+
+        df = pd.DataFrame(daily_data)
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+        # Calculate the Monday of each week for each row
+        df['week_monday'] = df['timestamp'] - pd.to_timedelta(df['timestamp'].dt.weekday, unit='d')
+
+        # Group by Monday date
+        grouped = df.groupby('week_monday')
+        for week_monday, week_data in grouped:
+            weekly_doc = {
+                'tickerID': ticker,
+                'timestamp': week_monday.to_pydatetime(),  # This is the Monday
+                'open': float(week_data.sort_values('timestamp').iloc[0]['open']),
+                'high': float(week_data['high'].max()),
+                'low': float(week_data['low'].min()),
+                'close': float(week_data.sort_values('timestamp').iloc[-1]['close']),
+                'volume': int(week_data['volume'].sum())
+            }
+            exists = weekly_collection.find_one({
+                'tickerID': ticker,
+                'timestamp': weekly_doc['timestamp']
+            })
+            if not exists:
+                weekly_collection.insert_one(weekly_doc)
+        print(f"Weekly candles generated for {ticker}")
+        

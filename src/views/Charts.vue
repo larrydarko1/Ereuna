@@ -633,6 +633,7 @@ import DividendsTable from '@/components/sidebar/dividends.vue'
 import SplitsTable from '@/components/sidebar/splits.vue'
 import Financials from '@/components/sidebar/financialbtn.vue'
 import Notes from '@/components/notes.vue'
+import News from '@/components/news.vue'
 import { reactive, onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from 'vue';
 import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
 import Loader from '@/components/loader.vue';
@@ -712,6 +713,7 @@ async function initializeComponent() {
     await Promise.all([
       await searchTicker(),
       await searchNotes(),
+      await fetchNews(),
       await fetchHiddenList(),
       await fetchPanel(),
       await fetchTier(),
@@ -944,6 +946,7 @@ async function searchTicker(providedSymbol) {
   } finally {
     if (response && response.status !== 404) {
       await searchNotes();
+      await fetchNews();
       await fetchData();
       await fetchData3();
       await fetchData7();
@@ -1195,6 +1198,7 @@ function calculateRev(totalRevenue) {
 
 // related to notes 
 const BeautifulNotes = ref([]);
+const BeautifulNews = ref([]);
 const loading = ref(false);
 const error = ref(null);
 
@@ -1210,6 +1214,24 @@ async function searchNotes() {
     });
     const data = await response.json();
     BeautifulNotes.value = data;
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function fetchNews() {
+  try {
+    const searchbar = document.getElementById('searchbar');
+    const symbol = searchbar.value || defaultSymbol;
+    const response = await fetch(`/api/${symbol}/news`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
+    const data = await response.json();
+    BeautifulNews.value = data;
   } catch (err) {
     error.value = err.message;
   } finally {
@@ -1328,6 +1350,7 @@ async function showTicker() {
     error.value = err.message;
   } finally {
     await searchNotes();
+    await fetchNews();
     await fetchData();
     await fetchData3();
     await fetchData7();
@@ -2983,18 +3006,10 @@ async function seeIndex(index) {
     activeIndex.value = -1;
     defaultSymbol = localStorage.getItem('defaultSymbol');
     isChartLoading.value = true;
-    await fetchData();
-    await fetchData2();
-    await fetchData3();
-    await fetchData4();
-    await fetchData5();
-    await fetchData6();
-    await fetchData7();
-    await fetchData8();
-    await fetchData9();
-    await fetchData10();
-    await fetchData11();
-    await fetchData12();
+  await fetchData();
+  await fetchData3();
+  await fetchData7();
+  await fetchData9();
     isChartLoading.value = false;
   } else {
     activeIndex.value = index;
@@ -3003,17 +3018,9 @@ async function seeIndex(index) {
     defaultSymbol = symbol;
     isChartLoading.value = true;
     await fetchData(symbol);
-    await fetchData2(symbol);
     await fetchData3(symbol);
-    await fetchData4(symbol);
-    await fetchData5(symbol);
-    await fetchData6(symbol);
     await fetchData7(symbol);
-    await fetchData8(symbol);
     await fetchData9(symbol);
-    await fetchData10(symbol);
-    await fetchData11(symbol);
-    await fetchData12(symbol);
     isChartLoading.value = false;
   }
 }
@@ -3314,6 +3321,7 @@ const sidebarComponentMap = {
   SplitsTable,
   Financials,
   Notes,
+  News,
 };
 
 function getSidebarProps(tag) {
@@ -3380,6 +3388,11 @@ function getSidebarProps(tag) {
     case 'Notes':
       return {
         BeautifulNotes: BeautifulNotes.value,
+        formatDate,
+      };
+      case 'News':
+      return {
+        BeautifulNews: BeautifulNews.value,
         formatDate,
       };
     default:

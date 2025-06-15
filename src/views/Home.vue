@@ -140,14 +140,14 @@
     </div>
     <div class="table-row">
       <div class="table-cell" style="font-weight: bold; font-size: 14px;">Financial Instruments / Coverage </div>
-      <div class="table-cell" style="font-size: 12px;">US Equity Only (for now)</div>
-      <div class="table-cell" style="font-size: 12px;">US Equity Only (for now)</div>
+      <div class="table-cell" style="font-size: 12px;">US Equity / ETFs Only (for now)</div>
+      <div class="table-cell" style="font-size: 12px;">US Equity / ETFs Only (for now)</div>
       <div class="table-cell" style="font-size: 12px;">It varies</div>
     </div>
     <div class="table-row">
       <div class="table-cell" style="font-weight: bold; font-size: 14px;">Integrated Market News</div>
-      <div class="table-cell" style="font-size: 12px;">No</div>
-      <div class="table-cell" style="font-size: 12px;">No</div>
+      <div class="table-cell" style="font-size: 12px;">Yes</div>
+      <div class="table-cell" style="font-size: 12px;">Yes</div>
       <div class="table-cell" style="font-size: 12px;">It varies</div>
     </div>
     <div class="table-row">

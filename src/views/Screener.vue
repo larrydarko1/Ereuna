@@ -1601,6 +1601,9 @@ l-240 1 -90 -57z"/>
           <button style="display: none;" class="snavbtn" :class="{ 'snavbtnslct': showSearch }" id="showSearch" @click="showSearch = !showSearch" v-b-tooltip.hover title="Search">
            <svg class="img2" fill="var(--text1)" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12.027 9.92L16 13.95 14 16l-4.075-3.976A6.465 6.465 0 0 1 6.5 13C2.91 13 0 10.083 0 6.5 0 2.91 2.917 0 6.5 0 10.09 0 13 2.917 13 6.5a6.463 6.463 0 0 1-.973 3.42zM1.997 6.452c0 2.48 2.014 4.5 4.5 4.5 2.48 0 4.5-2.015 4.5-4.5 0-2.48-2.015-4.5-4.5-4.5-2.48 0-4.5 2.014-4.5 4.5z" fill-rule="evenodd"></path> </g></svg>
             <label class=btnlabel>Search</label></button>
+              <button @click="DownloadResults" class="snavbtn" :class="{ 'snavbtnslct': showSearch }" v-b-tooltip.hover title="Download Results">
+           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M12 3V16M12 16L16 11.625M12 16L8 11.625" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+            <label class=btnlabel>Download Results</label></button>
         </div>
         <div class="navmenu-mobile">
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }" @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover
@@ -5968,6 +5971,55 @@ async function fetchTier() {
 }
 
 fetchTier()
+
+function arrayToCSV(data) {
+  if (!data.length) return '';
+  const keys = Object.keys(data[0]);
+  const csvRows = [
+    keys.join(','), // header row
+    ...data.map(row => keys.map(k => `"${(row[k] ?? '').toString().replace(/"/g, '""')}"`).join(','))
+  ];
+  return csvRows.join('\n');
+}
+
+function DownloadResults() {
+    let data = [];
+    let filename = 'results.csv';
+
+    switch (listMode.value) {
+      case 'main':
+        data = screenerResults.value;
+        filename = 'main_results.csv';
+        break;
+      case 'filter':
+        data = filterResults.value;
+        filename = 'filter_results.csv';
+        break;
+      case 'hidden':
+        data = HiddenResults.value;
+        filename = 'hidden_results.csv';
+        break;
+      case 'combined':
+        data = compoundedResults.value;
+        filename = 'combined_results.csv';
+        break;
+        return;
+    }
+
+    const csv = arrayToCSV(data);
+
+    // Create a blob and trigger download
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
 </script>
 

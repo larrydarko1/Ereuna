@@ -89,6 +89,7 @@ async function fetchPanel() {
           { order: 6, tag: 'SplitsTable', name: 'Split Table', hidden: false },
           { order: 7, tag: 'Financials', name: 'Financial Statements', hidden: false },
           { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
+          { order: 9, tag: 'News', name: 'News', hidden: false },
         ];
   } catch (error) {
     console.error('Error fetching panel data:', error);
@@ -108,6 +109,7 @@ const originalOrder = ref([
   { order: 6, tag: 'SplitsTable', name: 'Split Table', hidden: false },
   { order: 7, tag: 'Financials', name: 'Financial Statements', hidden: false },
   { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
+  { order: 9, tag: 'News', name: 'News', hidden: false },
 ]);
 
 function dragStart(event, index) {
