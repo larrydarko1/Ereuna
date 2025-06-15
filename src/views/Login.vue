@@ -15,12 +15,12 @@
     ETH: 0x150b03B3904D877e2399F6302c5Db5f332170304
     <br>
     XMR: 449bkU2MvFh1oiRZGYT72BAfF6uj3kPa1TJfBmPT1agNYFyrifsSW1reEGjrwgG9UujoV4EEEB14PMpDkVGinc3QGFwfVcw</p>
-  <img class="bg" src="@/assets/images/bg.png" alt="">
+  <img class="bg" src="@/assets/images/bg.png" alt="" draggable="false">
 </div>
 <div class="login container">
   <div class="login-form" @keydown.enter="login()">
     <div class="logo-container">
-      <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/owl.png" alt="">
+      <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/owl.png" alt="" draggable="false">
       <div class="beta">BETA VERSION</div>
     </div>
     <br>

@@ -603,6 +603,12 @@ app.post('/login',
           { $set: { Paid: true } }
         );
 
+        // Set LastLogin timestamp
+        await usersCollection.updateOne(
+          { Username: user.Username },
+          { $set: { LastLogin: new Date() } }
+        );
+
         // Generate a JWT token
         let tokenExpiration;
         if (rememberMe === 'true') {
@@ -14644,13 +14650,13 @@ app.post('/load-theme', validate([
 app.post('/panel', validate([
   validationSchemas.username(),
   body('newListOrder')
-    .isArray({ min: 1, max: 8 })
-    .withMessage('Panel list must contain between 1 and 8 items'),
+    .isArray({ min: 1, max: 9 })
+    .withMessage('Panel list must contain between 1 and 9 items'),
   body('newListOrder.*.order')
-    .isInt({ min: 1, max: 8 })
-    .withMessage('Order must be an integer between 1 and 8'),
+    .isInt({ min: 1, max: 9 })
+    .withMessage('Order must be an integer between 1 and 9'),
   body('newListOrder.*.tag')
-    .isIn(['Summary', 'EpsTable', 'EarnTable', 'SalesTable', 'DividendsTable', 'SplitsTable', 'Financials', 'Notes'])
+    .isIn(['Summary', 'EpsTable', 'EarnTable', 'SalesTable', 'DividendsTable', 'SplitsTable', 'Financials', 'Notes', 'News'])
     .withMessage('Invalid tag'),
   body('newListOrder.*.name')
     .isString()
@@ -14896,3 +14902,57 @@ app.get('/tier', validate([
     if (client) await client.close();
   }
 });
+
+// endpoint to get news for a ticker
+app.get('/:symbol/news', validate(validationSets.newsSearch), async (req, res) => {
+  const ticker = req.params.symbol.toUpperCase();
+  const sanitizedTicker = sanitizeInput(ticker);
+
+  let client;
+
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
+
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
+    }
+
+    client = new MongoClient(uri);
+    await client.connect();
+
+    const db = client.db('EreunaDB');
+    const newsCollection = db.collection('News');
+
+    // Find all news where the ticker is in the tickers array
+    const news = await newsCollection.find({
+      tickers: sanitizedTicker
+    }).sort({ publishedDate: -1 }).toArray();
+
+    if (!news || news.length === 0) {
+      return res.status(404).json({ message: 'No news found' });
+    }
+
+    res.status(200).json(news);
+
+    client.close();
+  } catch (error) {
+    logger.error({
+      msg: 'News Search Error',
+      error: error.message,
+      symbol: sanitizedTicker
+    });
+
+    res.status(500).json({
+      message: 'Internal Server Error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+

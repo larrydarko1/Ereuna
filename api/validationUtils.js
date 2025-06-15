@@ -399,6 +399,10 @@ const validationSets = {
         validationSchemas.symbolParam('symbol')
     ],
 
+    newsSearch: [
+        validationSchemas.symbolParam('symbol')
+    ],
+
     notesDeletion: [
         validationSchemas.symbolParam('symbol'),
         validationSchemas.noteId(),
