@@ -1,6 +1,21 @@
 <template>
   <body>
     <Header />
+<div class="indexes">
+  <button
+    v-for="(index, i) in Indexes"
+    :key="i"
+    :class="{ active: defaultSymbol === index.Symbol, 'index-btn': true }"
+    @click="defaultSymbol = index.Symbol; searchTicker(index.Symbol)"
+  >
+    {{ index.Symbol }}
+    <span :class="parseFloat(index.percentageReturn) > 0 ? 'positive' : 'negative'">
+      {{ index.percentageReturn }}
+    </span>
+    <span v-if="parseFloat(index.percentageReturn) > 0" class="arrow-up"></span>
+    <span v-else class="arrow-down"></span>
+  </button>
+</div>
    <div class="mobilenav">
     <button
       class="mnavbtn"
@@ -375,17 +390,6 @@ l-240 1 -90 -57z"/>
         </div>
       </div>
       <div id="center" :class="{ 'hidden-mobile': selected !== 'chart' }">
-        
-        <div class="indexes">
-  <button v-for="(index, i) in Indexes" :key="i" :class="{ active: activeIndex === i, 'index-btn': true }"
-    @click="seeIndex(i)">
-    {{ symbolMapping[index.Symbol] }} <span
-      :class="parseFloat(index.percentageReturn) > 0 ? 'positive' : 'negative'">{{ index.percentageReturn
-      }}</span>
-    <span v-if="parseFloat(index.percentageReturn) > 0" class="arrow-up"></span>
-    <span v-else class="arrow-down"></span>
-  </button>
-</div>
         <div id="chart-container">
           <div id="legend"></div>
           <div id="legend2">
@@ -402,7 +406,7 @@ l-240 1 -90 -57z"/>
   </button>
           </div>
           <div id="legend3"></div>
-          <div id="legend4" v-if="!['SPY', 'QQQ', 'DIA', 'IWM'].includes(defaultSymbol)">
+          <div id="legend4">
             <img class="chart-img" :src="getImagePath(assetInfo.Symbol)" alt="">
             <p class="ticker">{{ assetInfo.Symbol }} </p>
             <p class="name"> - {{ assetInfo.Name }}</p>
@@ -461,7 +465,7 @@ l-240 1 -90 -57z"/>
             <Loader />
           </div>
           <div id="searchtable">
-            <input type="text" id="searchbar" name="search" placeholder="Search Ticker" v-model="searchQuery"
+            <input type="text" id="searchbar" name="search" placeholder="Search Ticker / ISIN" v-model="searchQuery"
               @input="toUpperCase" @keydown.enter="searchTicker()">
             <button class="wlbtn2" id="searchBtn" @click="searchTicker()" v-b-tooltip.hover title="Search Symbol">
              <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg></button>
@@ -855,6 +859,8 @@ const showSplitsButton = computed(() => {
 
 const showAllSplits = ref(false);
 
+const isInitializing = ref(true);
+
 // function that searches for tickers
 async function searchTicker(providedSymbol) {
   let response;
@@ -862,84 +868,45 @@ async function searchTicker(providedSymbol) {
   try {
     isChartLoading.value = true;
     const searchbar = document.getElementById('searchbar');
-    let symbol;
-    {
-      symbol = (searchbar.value || defaultSymbol).toUpperCase();
-      response = await fetch(`/api/chart/${symbol}`, {
-        headers: {
-          'X-API-KEY': apiKey,
-        },
-      });
+    let symbol = (searchbar.value || defaultSymbol).toUpperCase();
 
-      if (response.status === 404) {
-        notification.value.show('Ticker not Found');
-        isChartLoading.value = false;
-        return;
-      }
+    response = await fetch(`/api/chart/${symbol}`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
 
-      const data = await response.json();
-
-      searchbar.value = data.Symbol;
-      localStorage.setItem('defaultSymbol', data.Symbol);
-      defaultSymbol = data.Symbol;
-      selectedItem = data.Symbol;
-      await updateUserDefaultSymbol(data.Symbol);
-
-      assetInfo.Name = data.Name;
-      assetInfo.ISIN = data.ISIN;
-      assetInfo.Symbol = data.Symbol;
-      assetInfo.AssetType = data.AssetType;
-      assetInfo.Sector = data.Sector;
-      assetInfo.Industry = data.Industry;
-      assetInfo.MarketCapitalization = data.MarketCapitalization;
-      assetInfo.SharesOutstanding = data.SharesOutstanding;
-      assetInfo.Country = data.Country;
-      assetInfo.Address = data.Address;
-      assetInfo.Currency = data.Currency;
-      assetInfo.Beta = data.Beta;
-      assetInfo.BookValue = data.BookValue;
-      assetInfo.DividendYield = data.DividendYield;
-      assetInfo.DividendDate = data.DividendDate;
-      assetInfo.Exchange = data.Exchange;
-      assetInfo.PEGRatio = data.PEGRatio;
-      assetInfo.PERatio = data.PERatio;
-      assetInfo.Exchange = data.Exchange;
-      assetInfo.ForwardPE = data.ForwardPE;
-      assetInfo.PriceToBookRatio = data.PriceToBookRatio;
-      assetInfo.TrailingPE = data.TrailingPE;
-      assetInfo.WeekHigh = data.WeekHigh;
-      assetInfo.WeekLow = data.WeekLow;
-      assetInfo.quarterlyEarnings = data.quarterlyEarnings;
-      assetInfo.annualEarnings = data.annualEarnings;
-      assetInfo.quarterlyFinancials = data.quarterlyFinancials;
-      assetInfo.annualFinancials = data.annualFinancials;
-      assetInfo.RSScore1W = data.RSScore1W;
-      assetInfo.RSScore1M = data.RSScore1M;
-      assetInfo.RSScore4M = data.RSScore4M;
-      assetInfo.IPO = data.IPO;
-      assetInfo.Description = data.Description;
-      assetInfo.RSI = data.RSI;
-      assetInfo.Gap = data.Gap;
-      assetInfo.ADV1W = data.ADV1W;
-      assetInfo.ADV1M = data.ADV1M;
-      assetInfo.ADV4M = data.ADV4M;
-      assetInfo.ADV1Y = data.ADV1Y;
-      assetInfo.PriceToSalesRatio = data.PriceToSalesRatio;
-      assetInfo.AlltimeLow = data.AlltimeLow;
-      assetInfo.AlltimeHigh = data.AlltimeHigh;
-      assetInfo.percoff52WeekLow = data.percoff52WeekLow;
-      assetInfo.percoff52WeekHigh = data.percoff52WeekHigh;
-      assetInfo.fiftytwoWeekLow = data.fiftytwoWeekLow;
-      assetInfo.fiftytwoWeekHigh = data.fiftytwoWeekHigh;
-      assetInfo.RelVolume6M = data.RelVolume6M;
-      assetInfo.RelVolume1Y = data.RelVolume1Y;
-      assetInfo.RelVolume1M = data.RelVolume1M;
-      assetInfo.RelVolume1W = data.RelVolume1W;
-      assetInfo.AvgVolume6M = data.AvgVolume6M;
-      assetInfo.AvgVolume1Y = data.AvgVolume1Y;
-      assetInfo.AvgVolume1M = data.AvgVolume1M;
-      assetInfo.AvgVolume1W = data.AvgVolume1W;
+    if (response.status === 404) {
+      notification.value.show('Ticker not Found');
+      isChartLoading.value = false;
+      return;
     }
+
+    const data = await response.json();
+
+    searchbar.value = data.Symbol;
+    localStorage.setItem('defaultSymbol', data.Symbol);
+    defaultSymbol = data.Symbol;
+    selectedItem = data.Symbol;
+    await updateUserDefaultSymbol(data.Symbol);
+
+    // Set assetInfo fields, using '-' or [] for missing values
+Object.keys(assetInfo).forEach(key => {
+  if (Array.isArray(assetInfo[key])) {
+    assetInfo[key] = Array.isArray(data[key]) ? data[key] : [];
+  } else if (
+    data[key] === undefined ||
+    data[key] === null ||
+    data[key] === 0 ||
+    (typeof data[key] === 'number' && Number.isNaN(data[key])) ||
+    (typeof data[key] === 'string' && data[key].toLowerCase() === 'NaN')
+  ) {
+    assetInfo[key] = '-';
+  } else {
+    assetInfo[key] = data[key];
+  }
+});
+
   } catch (err) {
     isChartLoading.value = false;
     error.value = err.message;
@@ -960,60 +927,59 @@ async function searchTicker(providedSymbol) {
   }
 }
 
-const isInitializing = ref(true);
 const assetInfo = reactive({
-  Name: '',
-  ISIN: '',
-  AssetType: '',
-  Sector: '',
-  Exchange: '',
-  Industry: '',
-  MarketCap: '',
-  SharesOutstanding: '',
-  PEGRatio: '',
-  PERatio: '',
-  ForwardPE: '',
-  PriceToBookRatio: '',
-  TrailingPE: '',
-  WeekHigh: '',
-  WeekLow: '',
-  Country: '',
-  Address: '',
-  Beta: '',
-  BookValue: '',
-  DividendYield: '',
-  DividendDate: '',
+  Name: '-',
+  ISIN: '-',
+  AssetType: '-',
+  Sector: '-',
+  Exchange: '-',
+  Industry: '-',
+  MarketCap: '-',
+  SharesOutstanding: '-',
+  PEGRatio: '-',
+  PERatio: '-',
+  ForwardPE: '-',
+  PriceToBookRatio: '-',
+  TrailingPE: '-',
+  WeekHigh: '-',
+  WeekLow: '-',
+  Country: '-',
+  Address: '-',
+  Beta: '-',
+  BookValue: '-',
+  DividendYield: '-',
+  DividendDate: '-',
   quarterlyEarnings: [],
   annualEarnings: [],
   quarterlyFinancials: [],
   annualFinancials: [],
-  Symbol: '',
-  RSScore1W: '',
-  RSScore1M: '',
-  RSScore4M: '',
-  IPO: '',
-  Description: '',
-  RSI: '',
-  Gap: '',
-  ADV1W: '',
-  ADV1M: '',
-  ADV4M: '',
-  ADV1Y: '',
-  PriceToSalesRatio: '',
-  AlltimeLow: '',
-  AlltimeHigh: '',
-  percoff52WeekLow: '',
-  percoff52WeekHigh: '',
-  fiftytwoWeekLow: '',
-  fiftytwoWeekHigh: '',
-  RelVolume6M: '',
-  RelVolume1Y: '',
-  RelVolume1M: '',
-  RelVolume1W: '',
-  AvgVolume6M: '',
-  AvgVolume1Y: '',
-  AvgVolume1M: '',
-  AvgVolume1W: '',
+  Symbol: '-',
+  RSScore1W: '-',
+  RSScore1M: '-',
+  RSScore4M: '-',
+  IPO: '-',
+  Description: '-',
+  RSI: '-',
+  Gap: '-',
+  ADV1W: '-',
+  ADV1M: '-',
+  ADV4M: '-',
+  ADV1Y: '-',
+  PriceToSalesRatio: '-',
+  AlltimeLow: '-',
+  AlltimeHigh: '-',
+  percoff52WeekLow: '-',
+  percoff52WeekHigh: '-',
+  fiftytwoWeekLow: '-',
+  fiftytwoWeekHigh: '-',
+  RelVolume6M: '-',
+  RelVolume1Y: '-',
+  RelVolume1M: '-',
+  RelVolume1W: '-',
+  AvgVolume6M: '-',
+  AvgVolume1Y: '-',
+  AvgVolume1M: '-',
+  AvgVolume1W: '-',
 });
 
 //takes date strings inside database and converts them into actual date, in italian format
@@ -2992,13 +2958,6 @@ function getQuarterAndYear(dateString) {
   }
 }
 
-const symbolMapping = {
-  SPY: 'SPX',
-  QQQ: 'NDX',
-  DIA: 'DJI',
-  IWM: 'RUT',
-};
-
 const activeIndex = ref(-1);
 
 async function seeIndex(index) {
@@ -3006,15 +2965,14 @@ async function seeIndex(index) {
     activeIndex.value = -1;
     defaultSymbol = localStorage.getItem('defaultSymbol');
     isChartLoading.value = true;
-  await fetchData();
-  await fetchData3();
-  await fetchData7();
-  await fetchData9();
+    await fetchData();
+    await fetchData3();
+    await fetchData7();
+    await fetchData9();
     isChartLoading.value = false;
   } else {
     activeIndex.value = index;
-    const symbols = ['SPY', 'QQQ', 'DIA', 'IWM'];
-    const symbol = symbols[index];
+    const symbol = Indexes.value[index].Symbol; // Use the symbol directly from Indexes
     defaultSymbol = symbol;
     isChartLoading.value = true;
     await fetchData(symbol);
@@ -3025,8 +2983,7 @@ async function seeIndex(index) {
   }
 }
 
-
-let Indexes = ref([]); // Define the Indexes list
+let Indexes = ref([]);
 
 // Function to fetch markets data
 async function fetchMarkets() {
@@ -4639,12 +4596,12 @@ function getSidebarProps(tag) {
 
 .indexes {
   background-color: var(--base2);
-  height: 20px;
   color: var(--text1);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 25%;
+  border-bottom: 1px solid var(--base4);
 }
 
 .index-btn {
@@ -4654,6 +4611,8 @@ function getSidebarProps(tag) {
   border-color: transparent;
   letter-spacing: 0.2px;
   cursor: pointer;
+  margin: 0.3rem;
+  padding: 0.5rem;
 }
 
 .index-btn:hover {

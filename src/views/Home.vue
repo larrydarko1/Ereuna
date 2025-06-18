@@ -178,7 +178,7 @@
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      35+ years of EOD price data (Daily and Weekly), 20+ years of financial statements
+      65+ years of EOD price data (Daily and Weekly), 20+ years of financial statements
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
@@ -210,7 +210,7 @@
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      35+ years of price data (Intraday, Daily and Weekly), 20+ years of financial statements
+      65+ years of price data (Daily and Weekly), 20+ years of financial statements
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
@@ -262,14 +262,63 @@
     </div>
 
     <!-- Footer -->
-    <div class="footer">
-  <p>&copy; Lorenzo Mazzola 2025. All rights reserved.</p>
-  <div class="back-to-top" @click="scrollToSection('navbar')">Back to Top ↑</div>
-  <div class="footer-links">
-    <a href="#" @click.prevent="showTermsModal">Terms of Service  & Privacy Policy</a> 
+  <div class="footer">
+  <div class="footer-main">
+    <!-- Company Info -->
+    <div class="footer-section">
+      <h4>Ereuna Srls</h4>
+      <p>Via Esempio 123, 20100 Milano (MI), Italia</p>
+      <p>Codice Fiscale / P.IVA: 12345678901</p>
+      <p>REA: MI-1234567</p>
+      <p>Cap. Soc.: €10.000,00 i.v.</p>
+      <p>Email: <a href="mailto:contact@ereuna.io">contact@ereuna.io</a></p>
+    </div>
+    <!-- Navigation Links -->
+    <div class="footer-section">
+      <h4>Links</h4>
+      <div style="display: flex; flex-direction: column; gap: 5px">
+         <a href="#" @click.prevent="showTermsModal">Terms of Service & Privacy Policy</a>
+        <a href="#" @click="scrollToSection('navbar')">Back to Top ↑</a>
+        <a href="#">About</a>
+        <router-link to="/documentation">Documentation</router-link>
+        <a href="#">Careers</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+    <!-- Banking & Legal -->
+    <div class="footer-section">
+      <h4>Banking Details</h4>
+      <p><strong>IBAN:</strong> IT60X0542811101000000123456</p>
+      <p><strong>BIC/SWIFT:</strong> BPPIITRRXXX</p>
+      <p><strong>Banca:</strong> Banca di Esempio S.p.A.</p>
+    </div>
+    <!-- Social Media -->
+    <div class="footer-section">
+      <h4>Social Links</h4>
+      <div class="footer-social">
+        <a class="social" href="#" aria-label="LinkedIn"><svg class="social-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6.5 8C7.32843 8 8 7.32843 8 6.5C8 5.67157 7.32843 5 6.5 5C5.67157 5 5 5.67157 5 6.5C5 7.32843 5.67157 8 6.5 8Z" fill="currentColor"></path> <path d="M5 10C5 9.44772 5.44772 9 6 9H7C7.55228 9 8 9.44771 8 10V18C8 18.5523 7.55228 19 7 19H6C5.44772 19 5 18.5523 5 18V10Z" fill="currentColor"></path> <path d="M11 19H12C12.5523 19 13 18.5523 13 18V13.5C13 12 16 11 16 13V18.0004C16 18.5527 16.4477 19 17 19H18C18.5523 19 19 18.5523 19 18V12C19 10 17.5 9 15.5 9C13.5 9 13 10.5 13 10.5V10C13 9.44771 12.5523 9 12 9H11C10.4477 9 10 9.44772 10 10V18C10 18.5523 10.4477 19 11 19Z" fill="currentColor"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M20 1C21.6569 1 23 2.34315 23 4V20C23 21.6569 21.6569 23 20 23H4C2.34315 23 1 21.6569 1 20V4C1 2.34315 2.34315 1 4 1H20ZM20 3C20.5523 3 21 3.44772 21 4V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V4C3 3.44772 3.44772 3 4 3H20Z" fill="currentColor"></path> </g></svg> LinkedIn</a>
+        <a class="social" href="#" aria-label="Twitter">
+  <svg class="social-icon" viewBox="0 0 24 24" fill="none" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.53 3H21.5L13.62 11.51L22.96 21H16.13L10.61 14.79L4.44 21H0.47L8.81 12.01L0 3H7.03L12.02 8.67L17.53 3ZM16.26 19.13H18.18L6.81 4.76H4.73L16.26 19.13Z" fill="currentColor"/>
+  </svg>
+  Twitter
+</a>
+<a class="social" href="#" aria-label="Mastodon">
+  <svg class="social-icon" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11.19 12.195c2.016-.24 3.77-1.475 3.99-2.603.348-1.778.32-4.339.32-4.339 0-3.47-2.286-4.488-2.286-4.488C12.062.238 10.083.017 8.027 0h-.05C5.92.017 3.942.238 2.79.765c0 0-2.285 1.017-2.285 4.488l-.002.662c-.004.64-.007 1.35.011 2.091.083 3.394.626 6.74 3.78 7.57 1.454.383 2.703.463 3.709.408 1.823-.1 2.847-.647 2.847-.647l-.06-1.317s-1.303.41-2.767.36c-1.45-.05-2.98-.156-3.215-1.928a3.614 3.614 0 0 1-.033-.496s1.424.346 3.228.428c1.103.05 2.137-.064 3.188-.189zm1.613-2.47H11.13v-4.08c0-.859-.364-1.295-1.091-1.295-.804 0-1.207.517-1.207 1.541v2.233H7.168V5.89c0-1.024-.403-1.541-1.207-1.541-.727 0-1.091.436-1.091 1.296v4.079H3.197V5.522c0-.859.22-1.541.66-2.046.456-.505 1.052-.764 1.793-.764.856 0 1.504.328 1.933.983L8 4.39l.417-.695c.429-.655 1.077-.983 1.934-.983.74 0 1.336.259 1.791.764.442.505.661 1.187.661 2.046v4.203z"></path> </g></svg>
+  Mastodon
+</a>
+<a class="social" href="#" aria-label="Mastodon">
+  <svg class="social-icon" viewBox="0 -3 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="currentColor"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>youtube [#168]</title> <desc>Created with Sketch.</desc> <defs> </defs> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="Dribbble-Light-Preview" transform="translate(-300.000000, -7442.000000)" fill="currentColor"> <g id="icons" transform="translate(56.000000, 160.000000)"> <path d="M251.988432,7291.58588 L251.988432,7285.97425 C253.980638,7286.91168 255.523602,7287.8172 257.348463,7288.79353 C255.843351,7289.62824 253.980638,7290.56468 251.988432,7291.58588 M263.090998,7283.18289 C262.747343,7282.73013 262.161634,7282.37809 261.538073,7282.26141 C259.705243,7281.91336 248.270974,7281.91237 246.439141,7282.26141 C245.939097,7282.35515 245.493839,7282.58153 245.111335,7282.93357 C243.49964,7284.42947 244.004664,7292.45151 244.393145,7293.75096 C244.556505,7294.31342 244.767679,7294.71931 245.033639,7294.98558 C245.376298,7295.33761 245.845463,7295.57995 246.384355,7295.68865 C247.893451,7296.0008 255.668037,7296.17532 261.506198,7295.73552 C262.044094,7295.64178 262.520231,7295.39147 262.895762,7295.02447 C264.385932,7293.53455 264.28433,7285.06174 263.090998,7283.18289" id="youtube-[#168]"> </path> </g> </g> </g> </g></svg>
+  Youtube
+</a>
+      </div>
+    </div>
   </div>
 </div>
     </div>
+     <div class="footer-bottom">
+    <p>&copy; Ereuna Srls 2025. All rights reserved.</p>
+  </div>
   </div>
   <div v-if="showTerms" class="modal" @click.self="closeTermsModal">
     <h2 style="color: whitesmoke; font-size: 14px;">Terms of Service & Privacy Policy</h2>
@@ -938,33 +987,75 @@ h2{
 }
 
 .footer {
-  padding: 40px;
-  background-color: rgba($base4, 0.40);
+  background: $base4;
   color: $text2;
-  text-align: center;
-  margin-top: 40px;
+  padding: 2rem 8rem 8rem 8rem; /* top right bottom left */
+  border-top: 1px solid $accent3;
+  margin-top: 4rem;
+}
+
+.footer h4{
+  font-size: 1.5rem;
+}
+
+.footer p{
+  font-size: 1.3rem;
+}
+
+.footer strong{
+  font-size: inherit;
+}
+
+.footer-main {
   display: flex;
-  flex-direction: row;
-  align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
 }
 
-.footer-links {
-  margin-left: auto;
+.footer a {
+  color: $accent3;
+  font-size: 1.3rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-social {
   display: flex;
-  gap: 20px;
+  flex-direction: column;;
+  gap: 10px;
+}
+
+.footer a:hover {
+  color: $accent2;
+}
+
+.footer-bottom {
+  text-align: center;
+  font-size: 1rem;
+  padding: 1rem 0;
+  color: $text2;
+  background: $base2;
+}
+
+/* Add this to your CSS file */
+a.social {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; /* space between icon and text */
+  text-decoration: none;
+  color: inherit;
+}
+
+.social-icon {
+  width: 15px;
+  display: block;
 }
 
 .back-to-top {
+  margin-top: 12px;
   cursor: pointer;
-  color: whitesmoke;
-  opacity: 0.90;
-  margin: 0 auto;
-  flex: 1;
-  text-align: center;
+  color: $accent1;
 }
-
-// ...existing code...
 
 .pricing-header {
   display: flex;
