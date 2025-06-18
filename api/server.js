@@ -333,6 +333,7 @@ async function createUser(collection, username, hashedPassword, expirationDate, 
       { order: 6, tag: 'SplitsTable', name: 'Split Table', hidden: false },
       { order: 7, tag: 'Financials', name: 'Financial Statements', hidden: false },
       { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
+      { order: 9, tag: 'News', name: 'News', hidden: false },
     ]
   };
 
@@ -2852,9 +2853,6 @@ app.get('/:ticker/splitsdate',
         const data = await collection.findOne({ Symbol: ticker });
 
         if (!data || !data.splits) {
-          logger.warn('No splits data found', {
-            ticker: ticker
-          });
           return res.status(404).json({
             message: 'No splits data found for this ticker'
           });
@@ -2940,9 +2938,6 @@ app.get('/:ticker/dividendsdate',
         const data = await collection.findOne({ Symbol: ticker });
 
         if (!data || !data.dividends) {
-          logger.warn('No dividend data found', {
-            ticker: ticker
-          });
           return res.status(404).json({
             message: 'No dividend data found for this ticker'
           });
