@@ -24,18 +24,19 @@ from datetime import datetime
 import datetime as dt
 import pandas as pd
 import numpy as np
+from concurrent.futures import ProcessPoolExecutor
 
 #Middleware
 app = FastAPI()
 scheduler = BackgroundScheduler()
 load_dotenv()  
 mongo_uri = os.getenv('MONGODB_URI') 
-client = MongoClient(mongo_uri)
-db = client['EreunaDB']  
 api_key = os.getenv('TIINGO_KEY')
 
 #updates symbol, name, description, IPO, exchange, sector, industry, location, currency, country
 def getSummary():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB']  
     start_time = time.time()
     collection = db['AssetInfo']
     tickers = [doc['Symbol'] for doc in collection.find()]
@@ -118,6 +119,8 @@ def getSummary():
 
 #gets full splits history 
 def getFullSplits():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB']  
     ohclv_data_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
     updates = []
@@ -175,6 +178,8 @@ def getFullSplits():
 
 #gets full dividend history 
 def getFullDividends():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB']  
     ohclv_data_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
     updates = []
@@ -232,6 +237,8 @@ def getFullDividends():
    
 #gets full financials again from scratch 
 def getFinancials():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB']  
     maintenanceMode(True)
     collection = db['AssetInfo']
 
@@ -324,6 +331,8 @@ def getFinancials():
 
 #uploads full ohclvdata from scratch, don't use everyday    
 def getHistoricalPrice():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB']  
     daily_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
 
@@ -380,6 +389,8 @@ def getHistoricalPrice():
 
 # get daily OHCLV Data day after day
 def getPrice():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB']  
     daily_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
 
@@ -448,6 +459,8 @@ monday = dt.datetime.combine(today - dt.timedelta(days=today.weekday()), dt.time
 
 #updates weekly candles 
 def updateWeekly():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB']  
     # Delete all filtered documents on OHCLVData2
     remove_documents_with_timestamp(monday.strftime('%Y-%m-%dT%H:%M:%S.%f+00:00'))
 
@@ -505,6 +518,8 @@ def updateWeekly():
               
 #updates MarketCap, PE, PB, PEG , PS, RSI, Gap%
 def updateDailyRatios():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB']  
     ohclv_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
     updates = []
@@ -634,6 +649,8 @@ def updateDailyRatios():
             
 #updates splits when triggered 
 def Split(tickerID, timestamp, splitFactor):
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     # Connect to AssetInfo
     asset_info_collection = db['AssetInfo']
 
@@ -673,6 +690,8 @@ def Split(tickerID, timestamp, splitFactor):
 
 #updates dividends when triggered 
 def Dividends(tickerID, timestamp, divCash):
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     # Connect to AssetInfo
     asset_info_collection = db['AssetInfo']
 
@@ -698,6 +717,8 @@ def Dividends(tickerID, timestamp, divCash):
 
 #triggers when there's a split, it deleted and reuploads updated ohclvdata
 def getHistoricalPrice2(tickerID):
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     daily_collection = db["OHCLVData"]
     weekly_collection = db["OHCLVData2"]
 
@@ -785,6 +806,8 @@ def getHistoricalPrice2(tickerID):
 
 #scan endpoints for financial statements updates and update symbol when it does
 def checkAndUpdateFinancialUpdates():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     start_time = time.time()
     collection = db['AssetInfo']
     tickers = [doc['Symbol'] for doc in collection.find()]
@@ -907,6 +930,8 @@ def checkAndUpdateFinancialUpdates():
 
 #updates assetinfo with recent ohclvdata 
 def updateTimeSeries():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     ohclv_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
     updates = []
@@ -949,6 +974,8 @@ def updateTimeSeries():
             
 #updates dividend yields TTM daily 
 def getDividendYieldTTM():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     collection = db['AssetInfo']
 
     for document in collection.find():
@@ -990,6 +1017,8 @@ def getDividendYieldTTM():
 
 #calculates average volume for 1w, 1m, 6m and 1y
 def calculateVolumes():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     ohclv_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
     updates = []
@@ -1043,6 +1072,8 @@ def calculateVolumes():
 
 #calculates moving averages (10, 20, 50 and 200DMA)
 def calculateSMAs():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     ohclv_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
     updates = []
@@ -1090,6 +1121,8 @@ def calculateSMAs():
 
 #calulcates technical score 
 def calculateTechnicalScores():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     ohclv_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
     updates = []
@@ -1224,6 +1257,8 @@ def calculateTechnicalScores():
 
 #calculates both 52wk and all time high/low
 def calculateAlltimehighlowandperc52wk():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     ohclv_data_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
     updates = []
@@ -1297,6 +1332,8 @@ def calculateAlltimehighlowandperc52wk():
  
 #caluclautes percentage changes for today, wk, 1m, 4m, 6m, 1y, and YTD (althought ytd is still a bit weird)
 def calculatePerc():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     ohclv_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
     updates = []
@@ -1367,6 +1404,8 @@ def calculatePerc():
   
 #scans documents for delisted stocks, it removes stocks that have ohclvdata older than 14 days            
 def scanDelisted():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     current_date = dt.datetime.now()
     time_period = dt.timedelta(days=14)
     date_threshold = current_date - time_period
@@ -1390,6 +1429,8 @@ def scanDelisted():
 
 #removes delisted tickers from the database
 def Delist(delisted):
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     asset_info_collection = db['AssetInfo']
     ohclv_data_collection = db['OHCLVData']
     ohclv_data_collection2 = db['OHCLVData2']
@@ -1411,6 +1452,8 @@ def Delist(delisted):
 
 #get OHCLVData from Nasdaq100, S&P500, Dow Jones 30, Russell 2000
 def getIndex():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     indexes = ['QQQ', 'SPY', 'DIA', 'IWM']
     daily_collection = db["OHCLVData"]
     weekly_collection = db["OHCLVData2"]
@@ -1496,6 +1539,8 @@ def getIndex():
 
 #calculates average day volatility for specific timespans and updates documents 
 def calculateADV():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     ohclv_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
     updates = []
@@ -1556,6 +1601,8 @@ Qaurterly Section
 '''
 #calculares QoQ changes        
 def calculate_qoq_changes():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     collection = db['AssetInfo']
     for doc in collection.find():
         ticker = doc['Symbol']
@@ -1599,6 +1646,8 @@ def calculate_qoq_changes():
 
 #calculares YoY changes 
 def calculate_YoY_changes():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     collection = db['AssetInfo']
     for doc in collection.find():
         ticker = doc['Symbol']
@@ -1642,6 +1691,8 @@ def calculate_YoY_changes():
 
 #updates data when financials are updated 
 def update_eps_shares_dividend_date():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     try:
         collection = db['AssetInfo']
 
@@ -1688,6 +1739,8 @@ with open('server/new.txt', 'r') as file:
     tickers = file.read().replace("'", "").split(', ')
 '''  
 def updateSummarySingle(ticker):
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     print(f'processing {ticker}')
     url = f'https://api.tiingo.com/tiingo/daily/{ticker}?token={api_key}'
     response = requests.get(url)
@@ -1710,6 +1763,8 @@ def updateSummarySingle(ticker):
         print(f"Error fetching data for {ticker}: {response.status_code}")
 
 def getSummary2Single(ticker):
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     url = f'https://api.tiingo.com/tiingo/fundamentals/meta?token={api_key}'
     response = requests.get(url)
 
@@ -1748,6 +1803,8 @@ def getSummary2Single(ticker):
         print(response.text)
         
 def getSplitsSingle(ticker):
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     ohclv_data_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
 
@@ -1790,6 +1847,8 @@ def getSplitsSingle(ticker):
         print(f'Error updating splits for ticker: {ticker} - {str(e)}')
 
 def getDividendsSingle(ticker):
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     ohclv_data_collection = db['OHCLVData']
     asset_info_collection = db['AssetInfo']
 
@@ -1832,6 +1891,8 @@ def getDividendsSingle(ticker):
         print(f'Error updating dividends for ticker: {ticker} - {str(e)}')
 
 def getFinancialsSingle(ticker):
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     print(f'processing {ticker}')
     url = f'https://api.tiingo.com/tiingo/fundamentals/{ticker}/statements?token={api_key}'
     response = requests.get(url)
@@ -1917,6 +1978,8 @@ def getFinancialsSingle(ticker):
         print(f"Error fetching data for {ticker}: {response.status_code}")
 
 def update_exchanges():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     asset_info_collection = db['AssetInfo']
 
     try:
@@ -1958,52 +2021,11 @@ def ExMachina():
     getFinancials()
     getFullSplits()
     getFullDividends()
-    
-#run every day
-def Daily():
-    functions = [
-        ('getPrice', getPrice),
-        ('getWeekly', updateWeekly),
-        ('checkDelist', scanDelisted),
-        ('updateDailyRatios', updateDailyRatios),
-        ('update_timeseries', updateTimeSeries),
-        ('update_yield', getDividendYieldTTM),
-        ('calculate_volumes', calculateVolumes),
-        ('calculate_moving_averages', calculateSMAs),
-        ('calculate_technical_scores', calculateTechnicalScores),
-        ('calculate_average_volatility', calculateADV),
-        ('calculate__high_low', calculateAlltimehighlowandperc52wk),
-        ('calculate_change_perc', calculatePerc),
-    ]
-    execution_times = {}
-    start_time = time.time()
-    
-    for func_name, func in functions:
-        func_start_time = time.time()
-        func()
-        func_end_time = time.time()
-        execution_time_in_seconds = func_end_time - func_start_time
-        execution_time_in_minutes = execution_time_in_seconds / 60
-        execution_times[func_name] = execution_time_in_minutes
-
-    end_time = time.time()
-    total_execution_time_in_seconds = end_time - start_time
-    total_execution_time_in_minutes = total_execution_time_in_seconds / 60
-
-    print('Execution times:')
-    for func_name, execution_time in execution_times.items():
-        print(f'{func_name} took {execution_time:.2f} minutes to execute')
-    
-    print(f'\nTotal execution time: {total_execution_time_in_minutes:.2f} minutes')
-    #checkAndUpdateFinancialUpdates()
-    #fetchNews()
-
-#scheduler
-scheduler.add_job(Daily, CronTrigger(hour=18, minute=30, day_of_week='mon-fri', timezone='US/Eastern'))
-scheduler.start()
 
 # get the OHCLV for IEX throught tiingo rest api, and updates database before tiingo aggregation, if successfull, it saves us 3 hours 
 def getIEXPrice():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     daily_collection = db["OHCLVData"]
     weekly_collection = db["OHCLVData2"]
     asset_info_collection = db["AssetInfo"]
@@ -2085,6 +2107,8 @@ def getIEXPrice():
 
 #grabs recent news articles from Tiingo API and inserts them into the News collection
 def fetchNews():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     news_collection = db["News"]
     asset_info_collection = db["AssetInfo"]
     symbols = [doc['Symbol'] for doc in asset_info_collection.find()]
@@ -2148,6 +2172,8 @@ def fetchNews():
     print(f"Total news articles inserted: {total_inserted}")
 
 def generate_weekly_candles():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB'] 
     daily_collection = db["OHCLVData"]
     weekly_collection = db["OHCLVData2"]
 
@@ -2184,3 +2210,37 @@ def generate_weekly_candles():
         print(f"Weekly candles generated for {ticker}")
     
         
+def Daily():
+    # Run getPrice first (sequentially)
+    getPrice()
+
+    # List of CPU-bound functions to run in parallel
+    functions = [
+        updateWeekly,
+        scanDelisted,
+        updateDailyRatios,
+        updateTimeSeries,
+        getDividendYieldTTM,
+        calculateVolumes,
+        calculateSMAs,
+        calculateTechnicalScores,
+        calculateADV,
+        calculateAlltimehighlowandperc52wk,
+        calculatePerc,
+    ]
+
+    start_time = time.time()
+    with ProcessPoolExecutor() as executor:
+        executor.map(lambda f: f(), functions)
+    end_time = time.time()
+    print(f"Total execution time: {(end_time - start_time)/60:.2f} minutes")
+    #checkAndUpdateFinancialUpdates()
+    #fetchNews()
+
+if __name__ == '__main__':  # <-- Add this at the bottom of your script
+    Daily()
+    
+    
+#scheduler
+scheduler.add_job(Daily, CronTrigger(hour=18, minute=30, day_of_week='mon-fri', timezone='US/Eastern'))
+scheduler.start()

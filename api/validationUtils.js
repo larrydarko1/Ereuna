@@ -344,6 +344,12 @@ const validationSchemas = {
         .notEmpty().withMessage('Average Volume Option is required')
         .isIn(['-', '1W', '1M', '6M', '1Y']).withMessage('Invalid Average Volume Option'),
 
+    symbolsArray: () =>
+        body('symbols')
+            .isArray({ min: 0, max: 20 }).withMessage('Symbols must be an array with up to 20 elements')
+            .custom((arr) => arr.every(s => typeof s === 'string')).withMessage('Each symbol must be a string')
+            .custom((arr) => arr.every(s => /^[A-Z0-9]+$/.test(s))).withMessage('Symbols must be uppercase alphanumeric'),
+
 };
 
 

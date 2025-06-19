@@ -334,7 +334,8 @@ async function createUser(collection, username, hashedPassword, expirationDate, 
       { order: 7, tag: 'Financials', name: 'Financial Statements', hidden: false },
       { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
       { order: 9, tag: 'News', name: 'News', hidden: false },
-    ]
+    ],
+    WatchPanel: ['SPY', 'QQQ', 'DIA', 'IWM', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'NFLX'],
   };
 
   try {
@@ -11906,13 +11907,13 @@ app.get('/:ticker/financials',
   }
 );
 
-app.get('/markets',
+// Endpoint that retrieves watch panel data for a user
+app.get('/watchpanel/:user',
   async (req, res) => {
     let client;
 
     try {
       const apiKey = req.header('x-api-key');
-
       const sanitizedKey = sanitizeInput(apiKey);
 
       if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
@@ -11925,17 +11926,30 @@ app.get('/markets',
         });
       }
 
+      const username = req.params.user;
+
+      if (!username) {
+        return res.status(400).json({ message: 'Missing user parameter' });
+      }
+
       client = new MongoClient(uri);
       await client.connect();
 
       const db = client.db('EreunaDB');
-      const collection = db.collection('OHCLVData');
+      const assetInfoCollection = db.collection('Users');
+      const ohclvCollection = db.collection('OHCLVData');
 
-      const tickers = ['SPY', 'QQQ', 'DIA', 'IWM'];
-      const marketsData = [];
+      // Find the user's WatchPanel array
+      const userDoc = await assetInfoCollection.findOne({ Username: username });
+      if (!Array.isArray(userDoc.WatchPanel)) {
+        return res.status(404).json({ message: 'WatchPanel not found' });
+      }
+
+      const tickers = userDoc.WatchPanel.slice(0, 20); // Limit to 20 tickers
+      const watchPanelData = [];
 
       for (const ticker of tickers) {
-        const data = await collection.find({ tickerID: ticker }).sort({ timestamp: -1 }).limit(2).toArray();
+        const data = await ohclvCollection.find({ tickerID: ticker }).sort({ timestamp: -1 }).limit(2).toArray();
 
         if (data.length < 2) {
           logger.warn({
@@ -11949,18 +11963,17 @@ app.get('/markets',
         const previousClose = parseFloat(data[1].close.toString().slice(0, 8));
         const percentageChange = ((latestClose - previousClose) / previousClose) * 100;
 
-        marketsData.push({
+        watchPanelData.push({
           Symbol: ticker,
           percentageReturn: percentageChange.toFixed(2) + '%'
         });
       }
 
-      res.json(marketsData);
+      res.json(watchPanelData);
 
     } catch (error) {
-      // Log any unexpected errors
       logger.error({
-        msg: 'Markets Data Retrieval Error',
+        msg: 'WatchPanel Data Retrieval Error',
         error: error.message
       });
 
@@ -11969,13 +11982,91 @@ app.get('/markets',
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     } finally {
-      // Ensure client is closed
       if (client) {
         await client.close();
       }
     }
   }
 );
+
+app.patch('/watchpanel/:user', validate([
+  validationSchemas.userParam('user'),
+  validationSchemas.symbolsArray()
+]), async (req, res) => {
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+      return res.status(401).json({ message: 'Unauthorized API Access' });
+    }
+
+    const username = req.params.user;
+    if (!username) {
+      return res.status(400).json({ message: 'Missing user parameter' });
+    }
+
+    const { symbols } = req.body;
+    if (!Array.isArray(symbols) || symbols.length > 20 || symbols.some(s => typeof s !== 'string')) {
+      return res.status(400).json({ message: 'Invalid symbols array (must be array of max 20 strings)' });
+    }
+
+    client = new MongoClient(uri);
+    await client.connect();
+
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+    const assetInfoCollection = db.collection('AssetInfo');
+    const ohclvCollection = db.collection('OHCLVData');
+
+    // Validate all symbols exist in AssetInfo collection
+    const assetDocs = await assetInfoCollection.find({ Symbol: { $in: symbols } }).toArray();
+    const foundSymbols = assetDocs.map(doc => doc.Symbol);
+    const missingSymbols = symbols.filter(s => !foundSymbols.includes(s));
+
+    if (missingSymbols.length > 0) {
+      return res.status(400).json({
+        message: `Invalid symbol(s): ${missingSymbols.join(', ')}`
+      });
+    }
+
+    // Update the WatchPanel array for the user
+    const updateResult = await usersCollection.updateOne(
+      { Username: username },
+      { $set: { WatchPanel: symbols } }
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Optionally, fetch the updated WatchPanel data as in your GET endpoint
+    const watchPanelData = [];
+    for (const ticker of symbols) {
+      const data = await ohclvCollection.find({ tickerID: ticker }).sort({ timestamp: -1 }).limit(2).toArray();
+      if (data.length < 2) continue;
+      const latestClose = parseFloat(data[0].close.toString().slice(0, 8));
+      const previousClose = parseFloat(data[1].close.toString().slice(0, 8));
+      const percentageChange = ((latestClose - previousClose) / previousClose) * 100;
+      watchPanelData.push({
+        Symbol: ticker,
+        percentageReturn: percentageChange.toFixed(2) + '%'
+      });
+    }
+
+    res.json(watchPanelData);
+
+  } catch (error) {
+    logger.error({
+      msg: 'WatchPanel PATCH Error',
+      error: error.message
+    });
+  } finally {
+    if (client) await client.close();
+  }
+});
 
 // endpoint that updates screener document with ROE parameters
 app.patch('/screener/roe', validate([

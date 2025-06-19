@@ -1,5 +1,5 @@
 v1.0.7
-
+- watch panel now customizes symbols for each user
 ---
 v1.0.6
 - added news
