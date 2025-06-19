@@ -1,20 +1,46 @@
 <template>
   <body>
     <Header />
-<div class="indexes">
-  <button
-    v-for="(index, i) in Indexes"
-    :key="i"
-    :class="{ active: defaultSymbol === index.Symbol, 'index-btn': true }"
-    @click="defaultSymbol = index.Symbol; searchTicker(index.Symbol)"
+<div class="watch-panel-container" style="display: flex; align-items: center; justify-content: space-between;">
+  <div class="watch-panel" style="display: flex; gap: 8px;">
+<template v-if="watchPanel.length > 0">
+  <div
+    class="watch-panel-track"
+    :class="{ 'scrolling': watchPanel.length > 12 }"
   >
-    {{ index.Symbol }}
-    <span :class="parseFloat(index.percentageReturn) > 0 ? 'positive' : 'negative'">
-      {{ index.percentageReturn }}
-    </span>
-    <span v-if="parseFloat(index.percentageReturn) > 0" class="arrow-up"></span>
-    <span v-else class="arrow-down"></span>
+    <template v-for="repeat in watchPanel.length > 12 ? 2 : 1">
+      <button
+        v-for="(ticker, i) in watchPanel"
+        :key="repeat + '-' + i"
+        :class="{ active: defaultSymbol === ticker.Symbol, 'index-btn': true }"
+        @click="defaultSymbol = ticker.Symbol; searchTicker(ticker.Symbol)"
+      >
+        {{ ticker.Symbol }}
+        <span :class="parseFloat(ticker.percentageReturn) > 0 ? 'positive' : 'negative'">
+          {{ ticker.percentageReturn }}
+        </span>
+        <span v-if="parseFloat(ticker.percentageReturn) > 0" class="arrow-up"></span>
+        <span v-else class="arrow-down"></span>
+      </button>
+    </template>
+  </div>
+</template>
+    <template v-else>
+      <span class="no-symbols">No Symbols in Watch Panel</span>
+    </template>
+  </div>
+  <button class="edit-watch-panel-btn" @click="openEditor">
+    Edit Watch Panel
   </button>
+<WatchPanelEditor
+  v-if="editWatchPanel"
+  :apiKey="apiKey"
+  :user="user"
+  :watchPanel="watchPanel"
+  :fetchWatchPanel="fetchWatchPanel"
+  :notify="(msg) => notification.value.show(msg)"
+  @close="closeEditor"
+/>
 </div>
    <div class="mobilenav">
     <button
@@ -638,6 +664,7 @@ import SplitsTable from '@/components/sidebar/splits.vue'
 import Financials from '@/components/sidebar/financialbtn.vue'
 import Notes from '@/components/notes.vue'
 import News from '@/components/news.vue'
+import WatchPanelEditor from '@/components/WatchPanelEditor.vue';
 import { reactive, onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from 'vue';
 import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
 import Loader from '@/components/loader.vue';
@@ -706,7 +733,7 @@ async function initializeComponent() {
       getWatchlists(),
       filterWatchlist(),
       fetchSymbolsAndExchanges(),
-      fetchMarkets(),
+      fetchWatchPanel(),
     ]);
 
     if (watchlist2.tickers && watchlist2.tickers.length > 0) {
@@ -2960,38 +2987,16 @@ function getQuarterAndYear(dateString) {
 
 const activeIndex = ref(-1);
 
-async function seeIndex(index) {
-  if (activeIndex.value === index) {
-    activeIndex.value = -1;
-    defaultSymbol = localStorage.getItem('defaultSymbol');
-    isChartLoading.value = true;
-    await fetchData();
-    await fetchData3();
-    await fetchData7();
-    await fetchData9();
-    isChartLoading.value = false;
-  } else {
-    activeIndex.value = index;
-    const symbol = Indexes.value[index].Symbol; // Use the symbol directly from Indexes
-    defaultSymbol = symbol;
-    isChartLoading.value = true;
-    await fetchData(symbol);
-    await fetchData3(symbol);
-    await fetchData7(symbol);
-    await fetchData9(symbol);
-    isChartLoading.value = false;
-  }
-}
+//central price panel for tickers
+const watchPanel = ref([]);
 
-let Indexes = ref([]);
-
-// Function to fetch markets data
-async function fetchMarkets() {
+// Function to fetch user's WatchPanel data
+async function fetchWatchPanel() {
   try {
     const headers = {
       'x-api-key': apiKey
     };
-    const response = await fetch('/api/markets', {
+    const response = await fetch(`/api/watchpanel/${user}`, {
       headers: headers
     });
 
@@ -2999,13 +3004,14 @@ async function fetchMarkets() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const newMarkets = await response.json();
-    Indexes.value = newMarkets;
+    const newWatchPanel = await response.json();
+    watchPanel.value = newWatchPanel;
 
   } catch (error) {
     if (error.name === 'AbortError') {
       return;
     }
+    // Optionally handle other errors
   }
 }
 
@@ -3357,6 +3363,15 @@ function getSidebarProps(tag) {
   }
 }
 
+const editWatchPanel = ref(false);
+
+function openEditor() {
+  editWatchPanel.value = true;
+}
+function closeEditor() {
+  editWatchPanel.value = false;
+}
+
 </script>
 
 <style lang="scss">
@@ -3391,7 +3406,7 @@ function getSidebarProps(tag) {
 }
 
 #chartdiv2 {
-  flex-shrink: 0;
+  flex: 1 1 0%;
   padding: 15px 10px 10px 10px;
   border: none;
   background-color: var(--base2);
@@ -3399,6 +3414,7 @@ function getSidebarProps(tag) {
   z-index: 10;
   margin: 2px;
   box-sizing: border-box;
+  height: 200px;
 }
 
 #sidebar-right {
@@ -4594,14 +4610,68 @@ function getSidebarProps(tag) {
   background-color: var(--accent2);
 }
 
-.indexes {
+.watch-panel-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: var(--base2);
+  border-bottom: 1px solid var(--base4);
+}
+
+.watch-panel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  width: 100%;
+  /* Remove or adjust padding if needed */
+}
+
+.edit-watch-panel-btn {
+  flex: 0 1 5%;
+  margin-right: 2rem;
   background-color: var(--base2);
   color: var(--text1);
+  border: 1px solid var(--base4);
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.edit-watch-panel-btn:hover {
+  background-color: var(--base4);
+  color: var(--text1);
+}
+
+.no-symbols {
+  color: var(--text3);
+  font-style: italic;
+  padding: 1rem 1rem;
+}
+
+.watch-panel-track {
   display: flex;
-  justify-content: space-between;
+  flex-direction: row;
   align-items: center;
-  padding: 0 25%;
-  border-bottom: 1px solid var(--base4);
+  gap: 8px;
+  width: max-content;
+  white-space: nowrap;
+}
+
+.watch-panel-track.scrolling {
+  animation: scroll-ticker 30s linear infinite;
+  will-change: transform;
+}
+
+@keyframes scroll-ticker {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .index-btn {
@@ -4715,6 +4785,10 @@ function getSidebarProps(tag) {
   display: flex;
   flex-direction: column;
   height: 100vh;
+}
+
+.watch-panel-container {
+  display: none;
 }
 
 /* Hide sections that have the 'hidden-mobile' class */
