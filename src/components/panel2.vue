@@ -1,51 +1,3 @@
-<template>
-  <div class="edit-summary-popup">
-    <div class="popup-content">
-      <div class="summaryDiv-container">
-        <div
-          v-for="(field, index) in summaryFields"
-          :key="index"
-          class="summaryDiv"
-          :class="{ 'hidden-section': field.hidden }"
-          draggable="true"
-          @dragstart="dragStart($event, index)"
-          @dragover="dragOver($event)"
-          @drop="drop($event, index)"
-        >
-          <!-- Mobile-only up/down arrows -->
-          <span class="mobile-arrows">
-            <button
-              class="arrow-btn"
-              :disabled="index === 0"
-              @click="moveFieldUp(index)"
-              aria-label="Move up"
-            >▲</button>
-            <button
-              class="arrow-btn"
-              :disabled="index === summaryFields.length - 1"
-              @click="moveFieldDown(index)"
-              aria-label="Move down"
-            >▼</button>
-          </span>
-          <button
-            class="hide-button"
-            :class="{ 'hidden-button': field.hidden }"
-            @click="toggleHidden(index)"
-          >
-            {{ field.hidden ? 'Add' : 'Remove' }}
-          </button>
-          {{ field.name }}
-        </div>
-      </div>
-      <div class="nav-buttons">
-        <button class="nav-button" @click="$emit('close')">Close</button>
-        <button class="nav-button" @click="resetOrder">Reset</button>
-        <button class="nav-button" @click="updatePanel2">Submit</button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref, defineEmits, onMounted } from 'vue';
 import { useStore } from 'vuex';
@@ -219,47 +171,128 @@ function moveFieldDown(index) {
 
 </script>
 
+<template>
+  <div class="watch-panel-editor-backdrop" @click.self="$emit('close')">
+    <div class="watch-panel-editor-modal">
+      <h2>Edit Summary Fields</h2>
+      <div class="sections-list">
+        <div
+          v-for="(field, index) in summaryFields"
+          :key="index"
+          class="section-mini"
+          :class="{ 'hidden-section': field.hidden }"
+          draggable="true"
+          @dragstart="dragStart($event, index)"
+          @dragover="dragOver($event)"
+          @drop="drop($event, index)"
+        >
+          <span class="mobile-arrows">
+            <button
+              class="arrow-btn"
+              :disabled="index === 0"
+              @click="moveFieldUp(index)"
+              aria-label="Move up"
+            >▲</button>
+            <button
+              class="arrow-btn"
+              :disabled="index === summaryFields.length - 1"
+              @click="moveFieldDown(index)"
+              aria-label="Move down"
+            >▼</button>
+          </span>
+          <button
+            class="hide-button"
+            :class="{ 'hidden-button': field.hidden }"
+            @click="toggleHidden(index)"
+          >
+            {{ field.hidden ? 'Add' : 'Remove' }}
+          </button>
+          <span class="section-name">{{ field.name }}</span>
+        </div>
+      </div>
+      <div class="nav-buttons">
+        <button class="nav-button" @click="$emit('close')">Close</button>
+        <button class="nav-button" @click="resetOrder">Reset</button>
+        <button class="nav-button" @click="updatePanel2">Submit</button>
+      </div>
+    </div>
+  </div>
+</template>
+
 <style scoped>
-.edit-summary-popup {
+.watch-panel-editor-backdrop {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.3);
-  z-index: 1000000001;
+  background: color-mix(in srgb, var(--base1) 70%, transparent);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10000;
 }
 
-.popup-content {
-  background: var(--base2);
-  padding: 30px;
-  border-radius: 10px;
-  min-width: 300px;
-  max-height: 80vh;
-  overflow-y: auto;
-  text-align: center;
-}
-
-.summaryDiv-container {
+.watch-panel-editor-modal {
+  background: color-mix(in srgb, var(--base2) 85%, transparent);
+  color: var(--text1);
+  padding: 2.5rem 2rem 2rem 2rem;
+  border-radius: 18px;
+  min-width: 340px;
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--base1) 35%, transparent);
+  border: 1.5px solid var(--base4);
+  backdrop-filter: blur(8px);
+  transition: box-shadow 0.2s;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-height: 500px;
-  overflow-y: auto;
+  align-items: stretch;
 }
 
-.summaryDiv {
-  background-color: var(--base1);
-  padding: 10px;
-  border-radius: 5px;
+.watch-panel-editor-modal h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.02em;
+  color: var(--accent1);
+  text-align: left;
+}
+
+.sections-list {
+  margin-bottom: 1.5rem;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section-mini {
   display: flex;
   align-items: center;
-  margin-top: 0;
-  user-select: none;
-  gap: 10px;
+  gap: 0.75rem;
+  background: var(--base4);
+  border-radius: 6px;
+  padding: 0.5rem 0.8rem;
+  transition: background 0.2s;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--accent3);
+  cursor: grab;
+}
+
+.section-mini:active {
+  cursor: grabbing;
+}
+
+.section-name {
+  flex: 1;
+  color: var(--accent3);
 }
 
 .hidden-section {
+  background-color: transparent;
+  color: var(--text2);
+  border: none;
   opacity: 0.5;
   text-decoration: line-through;
 }
@@ -268,13 +301,12 @@ function moveFieldDown(index) {
   background: transparent;
   border: 1px solid var(--accent1);
   color: var(--accent1);
-  border-radius: 3px;
+  border-radius: 5px;
   cursor: pointer;
-  padding: 3px 7px;
-  font-size: 12px;
-  user-select: none;
-  flex-shrink: 0;
-  transition: background-color 0.3s ease;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
 }
 
 .hide-button:hover {
@@ -288,30 +320,8 @@ function moveFieldDown(index) {
   border: none;
 }
 
-.nav-buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-  justify-content: center;
-}
-
-.nav-button {
-  background-color: var(--accent1);
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  user-select: none;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
-}
-
-.nav-button:hover {
-  background-color: var(--accent2);
-}
-
 .mobile-arrows {
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 2px;
   margin-right: 6px;
@@ -335,14 +345,41 @@ function moveFieldDown(index) {
   cursor: not-allowed;
 }
 
-/* Mobile version: smaller divs and buttons */
+.nav-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 1.5rem;
+}
+
+.nav-button {
+  width: 100%;
+  padding: 0.7rem 0;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  color: var(--text2);
+  font-weight: 600;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+.nav-button:hover {
+  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  color: var(--text4);
+  transform: scale(1.03);
+}
+
+/* Mobile version */
 @media (max-width: 1150px) {
-  .popup-content {
-    min-width: 90vw;
-    padding: 10px;
-    font-size: 1rem;
+  .watch-panel-editor-modal {
+    width: 90%;
+    min-width: unset;
+    padding: 1.5rem 0.7rem 1rem 0.7rem;
   }
-  .summaryDiv {
+  .sections-list {
+    max-height: 180px;
+  }
+  .section-mini {
     font-size: 0.85rem;
     padding: 6px 4px;
     border-radius: 7px;
@@ -364,10 +401,10 @@ function moveFieldDown(index) {
     padding: 0;
   }
   .mobile-arrows {
-    display: flex;
-    gap: 1px;
-    margin-right: 2px;
-  }
-}
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-right: 6px;
+}}
 
 </style>
