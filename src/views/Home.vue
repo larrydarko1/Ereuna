@@ -1,4 +1,5 @@
 <template>
+  <Policy :visible="showPolicy" @close="showPolicy = false" />
   <div class="landingPage">
     <div id="navbar" class="navbar">
   <img class="icon" src="@/assets/icons/ereuna.png" alt="Owl Icon" draggable="false">
@@ -74,6 +75,8 @@
       <div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
     <img class="logo" src="@/assets/images/logos/tiingo.png" alt="" draggable="false">
     <img class="logo" src="@/assets/images/logos/tradingview.png" alt="" draggable="false">
+    <img class="logo" src="@/assets/images/logos/stripe.png" alt="" draggable="false">
+    <img class="logo2" src="@/assets/images/logos/IEX.png" alt="" draggable="false">
 </div>
     </div>
     <!-- Features Section -->
@@ -83,23 +86,23 @@
       <div class="feature-cards">
    <div class="feature-card">
     <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/settings.png" alt="" draggable="false">
-    <div class="feature-title">Personalized Stock Universe</div>
+    <div class="feature-title">Personalized Database</div>
     <div class="feature-desc">
-      You can customize your stock universe by hiding stocks that are irrelevant to your workflow and investment criteria, tailoring the data to your individual investment needs and preferences.
+      You can customize your financial instruments database by hiding assets that are irrelevant to your workflow and investment criteria, tailoring the data to your individual investment needs and preferences.
     </div>
   </div>
   <div class="feature-card">
     <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/intersect.png" alt="" draggable="false">
     <div class="feature-title">One-Click Multi-Screener</div>
     <div class="feature-desc">
-      You can run multiple screeners simultaneously, providing a comprehensive view of your desired stocks in a single click.
+      You can run multiple screeners simultaneously, providing a comprehensive view of your desired results in a single click. duplicate values are highlighted and sorted automatically.
     </div>
   </div>
   <div class="feature-card">
     <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/savings.png" alt="" draggable="false">
     <div class="feature-title">Unbeatable Value</div>
     <div class="feature-desc">
-      This platform offers one of the cheapest and most affordable professional stock screening and research solution on the market, focusing on essential EOD and core fundamental data that drives informed decision-making.
+      Core subscriptions offers one of the cheapest and most affordable professional financial markets screening and research solution on the market, focusing on essential EOD and core fundamental data that drives informed decision-making.
     </div>
   </div>
   <div class="feature-card">
@@ -124,7 +127,7 @@
       <div class="table-cell" style="font-weight: bold; font-size: 14px;">Price</div>
       <div class="table-cell" style="font-size: 12px;">5.99€ / Month</div>
       <div class="table-cell" style="font-size: 12px;">14.99€ / Month</div>
-      <div class="table-cell" style="font-size: 12px;">40€ / Month (up to 150€+)</div>
+      <div class="table-cell" style="font-size: 12px;">20€ / Month (up to 150€+)</div>
     </div>
     <div class="table-row">
       <div class="table-cell" style="font-weight: bold; font-size: 14px;">Intraday / Real Time Data</div>
@@ -174,11 +177,11 @@
   <div class="feature-list">
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      Coverage of 5000+ Stocks listed on NYSE and Nasdaq
+       Coverage of 8500+ Financial Assets (Cryptocurrencies, US Stocks / ETFs)
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      65+ years of EOD price data (Daily and Weekly), 20+ years of financial statements
+      65+ years of price data (Daily and Weekly, Intraday is held for 2 weeks only), 20+ years of financial statements
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
@@ -202,15 +205,15 @@
   <div class="feature-list">
      <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-       Intraday / Real-time Data Support
+       Real-time Data Support
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      Coverage of 5000+ Stocks listed on NYSE and Nasdaq
+      Coverage of 8500+ Financial Assets (Cryptocurrencies, US Stocks / ETFs)
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      65+ years of price data (Daily and Weekly), 20+ years of financial statements
+      65+ years of price data (Daily and Weekly, Intraday is held for 2 weeks only), 20+ years of financial statements
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
@@ -241,44 +244,29 @@
     <div class="faq-cards">
       <div class="faq-card" v-for="(item, index) in faqs" :key="index">
         <h3 class="faq-question">{{ item.question }}</h3>
-        <div class="faq-answer" v-show="item.show">
-          <p>{{ item.answer }}</p>
+        <div v-show="item.show">
+          <p class="faq-answer">{{ item.answer }}</p>
         </div>
       </div>
     </div>
   </div>
 
-
-  <div id="about">
-      <h2 style="text-align: center; font-size: 20px; color: whitesmoke;">ABOUT</h2>
-      <p class="text">
-        Over the years I became fed up with the expensive and cluttered premium stock screeners on the current market. I was paying up to $50 per month for features I didn't need and was stuck sifting through irrelevant stocks and duplicate values.</p>
-<p class="text">
-  I built an affordable stock screening option for mid-long term oriented retail traders. you can hide unwanted stocks that don't meet your criteria, run multiple screeners simultaneously, so that you can remove duplicate value while still allowing you to see how many times a stock appeared and where, this allows you to do everything in 1/5 of the time (by estimate based on my personal screening routine), also by focusing only on core data (EOD price and financial statements), i was able to significantly reduce costs and took price down to just $5.99/month compared to 50-150 $ / month of industry average, i also have plans to expand to include new markets and features in the future.
-      </p>
-      <p class="text">
-        I can create a new market space that's uncontested by traditional premium screeners, because small investors should be able to put as much of their savings as they can in the market to growth their wealth, rather than spending them on tools for analysing it.
-      </p>
-    </div>
-
     <!-- Footer -->
   <div class="footer">
   <div class="footer-main">
     <!-- Company Info -->
-    <div class="footer-section">
-      <h4>Ereuna Srls</h4>
-      <p>Via Esempio 123, 20100 Milano (MI), Italia</p>
-      <p>Codice Fiscale / P.IVA: 12345678901</p>
-      <p>REA: MI-1234567</p>
-      <p>Cap. Soc.: €10.000,00 i.v.</p>
-      <p>Email: <a href="mailto:contact@ereuna.io">contact@ereuna.io</a></p>
-    </div>
+   <div class="footer-section">
+  <h4>Ereuna Ltd</h4>
+  <p>Level 2, Valletta Buildings, South Street, Valletta VLT 1103, Malta</p>
+  <p>Company Registration No.: C 123456</p>
+  <p>VAT No.: MT12345678</p>
+  <p>Email: <a href="mailto:contact@ereuna.io">contact@ereuna.io</a></p>
+</div>
     <!-- Navigation Links -->
     <div class="footer-section">
       <h4>Links</h4>
       <div style="display: flex; flex-direction: column; gap: 5px">
-         <a href="#" @click.prevent="showTermsModal">Terms of Service & Privacy Policy</a>
-        <a href="#" @click="scrollToSection('navbar')">Back to Top ↑</a>
+         <a href="#" @click.prevent="showPolicy = true">Terms of Service & Privacy Policy</a>
         <a href="#">About</a>
         <router-link to="/documentation">Documentation</router-link>
         <a href="#">Careers</a>
@@ -286,12 +274,12 @@
       </div>
     </div>
     <!-- Banking & Legal -->
-    <div class="footer-section">
-      <h4>Banking Details</h4>
-      <p><strong>IBAN:</strong> IT60X0542811101000000123456</p>
-      <p><strong>BIC/SWIFT:</strong> BPPIITRRXXX</p>
-      <p><strong>Banca:</strong> Banca di Esempio S.p.A.</p>
-    </div>
+   <div class="footer-section">
+  <h4>Banking Details</h4>
+  <p><strong>IBAN:</strong> MT84MALT011000012345MTLCAST001S</p>
+  <p><strong>BIC/SWIFT:</strong> MALTMTMTXXX</p>
+  <p><strong>Bank:</strong> Bank of Valletta p.l.c.</p>
+</div>
     <!-- Social Media -->
     <div class="footer-section">
       <h4>Social Links</h4>
@@ -317,64 +305,16 @@
 </div>
     </div>
      <div class="footer-bottom">
-    <p>&copy; Ereuna Srls 2025. All rights reserved.</p>
+    <p>&copy; Ereuna Ltd 2025. All rights reserved.</p>  <a @click="scrollToSection('navbar')">Back to Top ↑</a>
   </div>
   </div>
-  <div v-if="showTerms" class="modal" @click.self="closeTermsModal">
-    <h2 style="color: whitesmoke; font-size: 14px;">Terms of Service & Privacy Policy</h2>
-    <div class="modal-content">
-    <h2 class="contract-title">1. INTRODUCTION</h2>
-    <p>These Terms and Conditions and Privacy Policy ("Terms") govern the use of the Ereuna platform ("Platform") and the services provided by Lorenzo Mazzola, trading as Ereuna ("Proprietor"). By using the Platform, you ("User ") agree to be bound by these Terms.</p>
-    
-    <h2 class="contract-title">2. DATA AGGREGATION SERVICES</h2>
-    <p>The Proprietor provides financial data aggregation services using data supplied by Tiingo.com, as well as internally calculated formulas using the data provided by Tiingo. Core data, including End-of-Day (EOD) and financial data, is provided by Tiingo and their third-party providers. The Proprietor does not assume any responsibility for inaccuracies in the core data. The responsibility for any inaccuracies lies with Tiingo and their third-party partners.</p>
-    
-    <h2 class="contract-title">3. USER INFORMATION AND PRIVACY</h2>
-    <p>The Proprietor is committed to collecting the minimum amount of user information necessary to anonymize users to the greatest extent possible and to store only the information that is essential for the functioning of the application. The Proprietor does not implement any tracking systems, except for those necessary to authenticate user sessions or for minimal logging purposes to ensure the platform's functionality and security. IP addresses and fingerprints may be logged. The Proprietor does not sell user information to third parties, and does not store payment informations, full legal names, email addresses, or phone numbers in its database.</p>
-    
-    <h2 class="contract-title">4. PAYMENT TERMS</h2>
-    <p>Payment can be made using a credit card through Stripe. Credit card information will not be stored in the Proprietor's database. The Proprietor offers a subscription with four tiers: 1 month, 4 months, 6 months, and 1 year. The amount will be €5.99 per month, plus any applicable value-added taxes based on the client's location.</p>
-    
-    <h2 class="contract-title">5. REFUND POLICY</h2>
-    <p>The client can request a refund within the first 15 days of their initial subscription. For subsequent recharge payments, the client can request a refund within the first 48 hours. Please note that this refund policy only applies to the initial subscription and subsequent recharge payments, and not to any other circumstances.</p>
-    
-    <h2 class="contract-title">6. SECURITY AND ACCESS</h2>
-    <p>Users are strictly prohibited from attempting to access the server, API, or other services reserved for the Proprietor, regardless of their intentions. Additionally, users are not permitted to resell data or scrape the platform in any way. Any attempts to bypass security measures or exploit the platform for unauthorized purposes will be considered a serious breach of these Terms.</p>
-    
-    <h2 class="contract-title">7. RECOVERY METHODS</h2>
-    <p>The Proprietor offers a two-factor authentication verification using an authenticator app with a QR code. For password recovery, a code can be entered to reset the password. The recovery code can be downloaded during the registration process or regenerated and downloaded during a user's session. No other recovery methods will be used. It is the user's responsibility to securely store their recovery code, as it will be the only means of regaining access to their account in the event of a lost or forgotten password.</p>
-    
-    <h2 class="contract-title">8. MODIFICATION OF TERMS</h2>
-    <p>The Proprietor reserves the right to modify these Terms, provided that it notifies all users on the platform and they must re-accept the new conditions or terminate their use of the service. Users will be informed of any changes to these Terms, and it is their responsibility to review and agree to the updated Terms. If a user does not agree to the new Terms, they must cancel their subscription and cease using the service.</p>
-    
-    <h2 class="contract-title">9. DATA UPDATE AND MAINTENANCE</h2>
-    <p>New data and formulas will be updated approximately 2 hours after the US markets close on each business day (due to the provider's schedule) and there will be a maintenance period during which the platform will be temporarily unavailable to allow new data to be uploaded into the platform. This maintenance period typically lasts around 20 minutes, after which the platform will be available again.</p>
-    
-    <h2 class="contract-title">10. SUPPORT AND CONTACT</h2>
-    <p>For any questions or support, you can contact the Proprietor at the email address contact@ereuna.io. The Proprietor will respond to inquiries and provide assistance to the best of its abilities.</p>
-    
-    <h2 class="contract-title">11. LEGAL BASIS AND JURISDICTION</h2>
-    <p>The Platform is legally based in Italy and is subject to the laws and regulations of Italy. As required by applicable laws, logs will be kept for a period of up to 18 months. After this period, the logs will be deleted. The Platform will comply with all applicable requirements, including those related to data retention and privacy.</p>
-    
-    <h2 class="contract-title">12. ACCOUNT CANCELLATION</h2>
-    <p>The user can cancel their account at any time through the dashboard session on the platform. Upon account cancellation, all user data will be deleted within 48 hours (except for logs, which will be retained for 18 months as previously mentioned). A refund can be applicable, taking into account the remaining time, calculated on the basis of remaining subscriptions days, where 30 days equal 5.99€.</p>
-    
-    <h2 class="contract-title">13. DATA BREACH NOTIFICATION</h2>
-    <p>The Proprietor is obligated to notify users in the event of a data breach. As previously stated, no sensitive data is stored on the platform, and data minimization is implemented. All data is encrypted to ensure its confidentiality and security. In the event of a data breach, the Proprietor will notify affected users promptly and provide them with information on the measures being taken to mitigate the breach and prevent future incidents.</p>
-    
-    <h2 class="contract-title">14. LIMITATION OF LIABILITY</h2>
-    <p>In no event shall the Proprietor be liable for any damages, including but not limited to incidental, consequential, or punitive damages, arising out of or in connection with the use of the Platform. The User agrees to hold harmless the Proprietor, from any claims, demands, or actions arising out of or in connection with the use of the Platform.</p>
-
-    <p style="text-align: center; margin-top: 60px">By using the Platform, you acknowledge that you have read, understood, and agree to be bound by these Terms.</p>
-    </div>
-    <button @click="closeTermsModal"><img style="width: 10px;" src="@/assets/icons/close.png" alt=""></button>
-</div>
 </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router';
 import { ref, onMounted } from 'vue';
+import Policy from '@/components/policy.vue';
 
 const router = useRouter();
 
@@ -424,15 +364,7 @@ const scrollToSection = (sectionId) => {
   }
 };
 
-const showTerms = ref(false);
-
-function showTermsModal() {
-  showTerms.value = true;
-}
-
-function closeTermsModal() {
-  showTerms.value = false;
-}
+const showPolicy = ref(false)
 
 // Add these for scroll animations
 onMounted(() => {
@@ -696,7 +628,12 @@ a:hover{
 }
 
 .logo{
-  height: 30px;
+  max-height: 30px;
+}
+
+.logo2{
+  max-height: 80px;
+  margin-bottom: 20px;
 }
 
 .features{
@@ -852,8 +789,8 @@ a:hover{
 }
 
 .faq-answer {
-  font-size: 1rem;
-  color: #dcdcdc;
+  font-size: 1.5rem;
+  color: $text2;
 }
 
 .modal {
@@ -1031,11 +968,21 @@ h2{
 
 .footer-bottom {
   text-align: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
   font-size: 1rem;
   padding: 1rem 0;
   color: $text2;
+  gap: 20px;
   background: $base2;
 }
+
+.footer-bottom p, .footer-bottom a{
+  font-size: 1.5rem;
+}
+
 
 /* Add this to your CSS file */
 a.social {

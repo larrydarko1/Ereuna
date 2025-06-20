@@ -1,58 +1,3 @@
-<template>
-  <div class="panel-menu">
-    <div
-      v-for="(section, index) in sections"
-      :key="index"
-      class="section-mini"
-      :class="{ 'hidden-section': section.hidden }"
-      draggable="true"
-      @dragstart="dragStart($event, index)"
-      @dragover="dragOver($event)"
-      @drop="drop($event, index)"
-    >
-      <!-- Mobile-only up/down arrows -->
-      <span class="mobile-arrows">
-        <button
-          class="arrow-btn"
-          :disabled="index === 0"
-          @click="moveSectionUp(index)"
-          aria-label="Move up"
-        >▲</button>
-        <button
-          class="arrow-btn"
-          :disabled="index === sections.length - 1"
-          @click="moveSectionDown(index)"
-          aria-label="Move down"
-        >▼</button>
-      </span>
-      <button
-        class="hide-button"
-        :class="{ 'hidden-button': section.hidden }"
-        @click="toggleHidden(index)"
-      >
-        {{ section.hidden ? 'Add' : 'Remove' }}
-      </button>
-       {{ section.name }}
-      <!-- Edit Summary Button -->
-      <button
-        v-if="section.tag === 'Summary'"
-        class="edit-summary-btn"
-        @click="showEditSummary = true"
-      >
-        Edit Summary
-      </button>
-    </div>
-    <div class="nav-buttons">
-      <button class="nav-button" @click="$emit('close')">Close</button>
-      <button class="nav-button" @click="resetOrder">Reset</button>
-      <button class="nav-button" @click="updatePanel">Submit</button>
-    </div>
-    <!-- Edit Summary Popup -->
-    <Panel2 v-if="showEditSummary" @close="showEditSummary = false" @panel-updated="onPanelUpdated" />
-  </div>
-</template>
-
-
 <script setup>
 import { ref, defineEmits, onMounted } from 'vue';
 const emit = defineEmits(['updated', 'panel-updated']);
@@ -197,68 +142,150 @@ function moveSectionDown(index) {
 
 </script>
 
-<style lang="scss" scoped>
-@use '../style.scss' as *;
+<template>
+  <div class="watch-panel-editor-backdrop" @click.self="$emit('close')">
+    <div class="watch-panel-editor-modal">
+      <h2>Edit Panel Sections</h2>
+      <div class="sections-list">
+        <div
+          v-for="(section, index) in sections"
+          :key="index"
+          class="section-mini"
+          :class="{ 'hidden-section': section.hidden }"
+          draggable="true"
+          @dragstart="dragStart($event, index)"
+          @dragover="dragOver($event)"
+          @drop="drop($event, index)"
+        >
+          <span class="mobile-arrows">
+            <button
+              class="arrow-btn"
+              :disabled="index === 0"
+              @click="moveSectionUp(index)"
+              aria-label="Move up"
+            >▲</button>
+            <button
+              class="arrow-btn"
+              :disabled="index === sections.length - 1"
+              @click="moveSectionDown(index)"
+              aria-label="Move down"
+            >▼</button>
+          </span>
+          <button
+            class="hide-button"
+            :class="{ 'hidden-button': section.hidden }"
+            @click="toggleHidden(index)"
+          >
+            {{ section.hidden ? 'Add' : 'Remove' }}
+          </button>
+          <span class="section-name">{{ section.name }}</span>
+          <button
+            v-if="section.tag === 'Summary'"
+            class="edit-summary-btn"
+            @click="showEditSummary = true"
+          >
+            Edit Summary
+          </button>
+        </div>
+      </div>
+      <div class="nav-buttons">
+        <button class="nav-button" @click="$emit('close')">Close</button>
+        <button class="nav-button" @click="resetOrder">Reset</button>
+        <button class="nav-button" @click="updatePanel">Submit</button>
+      </div>
+      <Panel2 v-if="showEditSummary" @close="showEditSummary = false" @panel-updated="onPanelUpdated" />
+    </div>
+  </div>
+</template>
 
-.panel-menu {
-  background-color: var(--base2);
-  color: var(--text1);
-  font-weight: 600;
-  font-size: 1.2rem;
-  padding: 10px;
-  border-radius: 8px;
-  text-align: center;
-  user-select: none;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+<style scoped>
+.watch-panel-editor-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: color-mix(in srgb, var(--base1) 70%, transparent);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 70%;
-  width: 300px;
-  box-sizing: border-box;
-  margin: 0 auto;
-   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1000000000;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+  z-index: 10000;
 }
 
-.section-mini{
-    background-color: var(--base1);
-    padding: 10px;
-    border-radius: 10px;
-    width: 90%;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: grab;
+.watch-panel-editor-modal {
+  background: color-mix(in srgb, var(--base2) 85%, transparent);
+  color: var(--text1);
+  padding: 2.5rem 2rem 2rem 2rem;
+  border-radius: 18px;
+  min-width: 340px;
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--base1) 35%, transparent);
+  border: 1.5px solid var(--base4);
+  backdrop-filter: blur(8px);
+  transition: box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.watch-panel-editor-modal h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.02em;
+  color: var(--accent1);
+  text-align: left;
+}
+
+.sections-list {
+  margin-bottom: 1.5rem;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--base4);
+  border-radius: 6px;
+  padding: 0.5rem 0.8rem;
+  transition: background 0.2s;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--accent3);
+  cursor: grab;
 }
 
 .section-mini:active {
   cursor: grabbing;
 }
 
+.section-name {
+  flex: 1;
+  color: var(--accent3);
+}
+
 .hidden-section {
   background-color: transparent;
   color: var(--text2);
   border: none;
+  opacity: 0.5;
+  text-decoration: line-through;
 }
 
 .hide-button {
   background: transparent;
   border: 1px solid var(--accent1);
   color: var(--accent1);
-  border-radius: 3px;
+  border-radius: 5px;
   cursor: pointer;
-  padding: 3px 7px;
-  font-size: 12px;
-  user-select: none;
-  flex-shrink: 0;
-  transition: background-color 0.3s ease;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
 }
 
 .hide-button:hover {
@@ -272,37 +299,25 @@ function moveSectionDown(index) {
   border: none;
 }
 
-.hidden-section {
-  opacity: 0.5;
-  text-decoration: line-through;
-}
-.nav-buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.nav-button {
-  background-color: var(--accent1);
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
 .edit-summary-btn {
   margin-left: auto;
-  background-color: var(--accent2);
-  color: var(--text1);
+  padding: 0.3rem 0.9rem;
+  border-radius: 6px;
   border: none;
-  padding: 5px 12px;
-  border-radius: 5px;
+  background: linear-gradient(90deg, var(--accent2) 0%, var(--accent1) 100%);
+  color: var(--text1);
+  font-weight: 500;
+  font-size: 0.95rem;
   cursor: pointer;
-  font-size: 0.95em;
+  transition: background 0.2s, transform 0.1s;
+}
+.edit-summary-btn:hover {
+  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  transform: scale(1.05);
 }
 
 .mobile-arrows {
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 2px;
   margin-right: 6px;
@@ -326,16 +341,41 @@ function moveSectionDown(index) {
   cursor: not-allowed;
 }
 
+.nav-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 1.5rem;
+}
+
+.nav-button {
+  width: 100%;
+  padding: 0.7rem 0;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  color: var(--text2);
+  font-weight: 600;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+.nav-button:hover {
+  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  color: var(--text4);
+  transform: scale(1.03);
+}
+
 /* Mobile version */
 @media (max-width: 1150px) {
-  .panel-menu {
+  .watch-panel-editor-modal {
     width: 90%;
-    height: 80%;
-    padding: 10px;
-    font-size: 1rem;
+    min-width: unset;
+    padding: 1.5rem 0.7rem 1rem 0.7rem;
+  }
+  .sections-list {
+    max-height: 180px;
   }
   .section-mini {
-    width: 95%;
     font-size: 0.85rem;
     padding: 6px 4px;
     border-radius: 7px;
@@ -358,7 +398,6 @@ function moveSectionDown(index) {
     padding: 0;
   }
   .mobile-arrows {
-    display: flex;
     gap: 1px;
     margin-right: 2px;
   }
