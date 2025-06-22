@@ -15042,3 +15042,319 @@ app.get('/:symbol/news', validate(validationSets.newsSearch), async (req, res) =
   }
 });
 
+// endpoint to get general communications
+app.get('/communications', async (req, res) => {
+  let client;
+
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
+
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
+    }
+
+    client = new MongoClient(uri);
+    await client.connect();
+
+    const db = client.db('EreunaDB');
+    const alertsCollection = db.collection('Alerts');
+
+    // Fetch all documents from the Alerts collection
+    const communications = await alertsCollection.find({}).sort({ publishedDate: -1 }).toArray();
+
+    res.status(200).json(communications);
+
+    await client.close();
+  } catch (error) {
+    logger.error({
+      msg: 'Communications Fetch Error',
+      error: error.message
+    });
+
+    res.status(500).json({
+      message: 'Internal Server Error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// endpoint to get the current panel order
+app.get('/panel', validate([
+  validationSchemas.usernameQuery()
+]), async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
+    }
+    const { username } = req.query;
+    const sanitizedUser = sanitizeInput(username);
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+    const userDocument = await usersCollection.findOne({ Username: sanitizedUser }, { projection: { panel: 1 } });
+    if (!userDocument) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    return res.status(200).json({ panel: userDocument.panel || [] });
+  } catch (error) {
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred while retrieving the panel list' });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
+// endpoint to get the current trade history
+app.get('/trades', validate([
+  validationSchemas.usernameQuery()
+]), async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
+    }
+    const { username } = req.query;
+    const sanitizedUser = sanitizeInput(username);
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+    const userDocument = await usersCollection.findOne(
+      { Username: sanitizedUser },
+      { projection: { Trades: 1 } }
+    );
+    if (!userDocument) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    return res.status(200).json({ userDocument });
+  } catch (error) {
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred while retrieving the trade list' });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
+// endpoint to add a trade and update portfolio
+app.post('/trades/add', validate([
+  validationSchemas.username(),
+  body('trade').isObject().withMessage('Trade must be an object'),
+  body('trade.Symbol').isString().trim().notEmpty().withMessage('Symbol is required'),
+  body('trade.Action').matches('Buy').withMessage('Action must be "Buy"'),
+  body('trade.Shares').isFloat({ min: 0.01 }).withMessage('Shares must be a positive number'),
+  body('trade.Price').isFloat({ min: 0.01 }).withMessage('Price must be a positive number'),
+  body('trade.Date').isISO8601().withMessage('Date must be a valid ISO date'),
+  body('trade.Total').isFloat({ min: 0 }).withMessage('Total must be a number'),
+]), async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+      return res.status(401).json({ message: 'Unauthorized API Access' });
+    }
+    const { username, trade } = req.body;
+    const sanitizedUser = sanitizeInput(username);
+
+    // Process and sanitize the trade object
+    const processedTrade = {
+      Date: new Date(trade.Date).toISOString(),
+      Symbol: String(trade.Symbol).toUpperCase().trim(),
+      Action: String(trade.Action),
+      Shares: Number(trade.Shares),
+      Price: Number(trade.Price),
+      Total: Number(trade.Total)
+    };
+
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+    const assetInfoCollection = db.collection('AssetInfo');
+
+    // Check if symbol exists in AssetInfo
+    const symbolExists = await assetInfoCollection.findOne({ Symbol: processedTrade.Symbol });
+    if (!symbolExists) {
+      return res.status(404).json({ message: 'Symbol not found in AssetInfo' });
+    }
+
+    const userDocument = await usersCollection.findOne({ Username: sanitizedUser });
+    if (!userDocument) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Insert the trade into the Trades array
+    const updateResult = await usersCollection.updateOne(
+      { Username: sanitizedUser },
+      { $push: { Trades: processedTrade } }
+    );
+
+    if (updateResult.modifiedCount === 1) {
+      // --- Portfolio update logic ---
+      let portfolio = Array.isArray(userDocument.portfolio) ? userDocument.portfolio : [];
+      const idx = portfolio.findIndex(p => p.Symbol === processedTrade.Symbol);
+
+      if (idx !== -1) {
+        // Update existing position
+        const position = portfolio[idx];
+        const totalShares = position.Shares + processedTrade.Shares;
+        const totalCost = (position.AvgPrice * position.Shares) + (processedTrade.Price * processedTrade.Shares);
+        const newAvgPrice = totalCost / totalShares;
+
+        portfolio[idx] = {
+          Symbol: position.Symbol,
+          Shares: totalShares,
+          AvgPrice: newAvgPrice
+        };
+      } else {
+        // Add new position
+        portfolio.push({
+          Symbol: processedTrade.Symbol,
+          Shares: processedTrade.Shares,
+          AvgPrice: processedTrade.Price
+        });
+      }
+
+      await usersCollection.updateOne(
+        { Username: sanitizedUser },
+        { $set: { portfolio } }
+      );
+
+      return res.status(200).json({ message: 'Trade added and portfolio updated' });
+    } else {
+      return res.status(400).json({ message: 'Trade not added' });
+    }
+  } catch (error) {
+    if (error.errors) {
+      const validationErrors = error.errors.map(err => ({
+        field: err.param,
+        message: err.msg
+      }));
+      return res.status(400).json({ errors: validationErrors });
+    }
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred while adding trade' });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
+// Endpoint to get the current portfolio
+app.get('/portfolio', validate([
+  validationSchemas.usernameQuery()
+]), async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', {
+        providedApiKey: !!sanitizedKey
+      });
+      return res.status(401).json({
+        message: 'Unauthorized API Access'
+      });
+    }
+    const { username } = req.query;
+    const sanitizedUser = sanitizeInput(username);
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+    // Fetch only the portfolio field
+    const userDocument = await usersCollection.findOne(
+      { Username: sanitizedUser },
+      { projection: { portfolio: 1 } }
+    );
+    if (!userDocument) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    // Return the portfolio array (or empty array if not present)
+    return res.status(200).json({ portfolio: userDocument.portfolio || [] });
+  } catch (error) {
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred while retrieving the portfolio' });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
+app.get('/quotes', async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+      return res.status(401).json({ message: 'Unauthorized API Access' });
+    }
+
+    const symbolsParam = req.query.symbols;
+    if (!symbolsParam) {
+      return res.status(400).json({ message: 'Symbols parameter is required' });
+    }
+    const symbols = symbolsParam.split(',').map(s => sanitizeInput(s.trim().toUpperCase()));
+
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const assetInfoCollection = db.collection('AssetInfo');
+
+    // Fetch all matching assets in one query
+    const assets = await assetInfoCollection.find({ Symbol: { $in: symbols } }).toArray();
+
+    // Build the result: { SYMBOL: close }
+    const result = {};
+    for (const asset of assets) {
+      if (asset.TimeSeries && typeof asset.TimeSeries === 'object') {
+        // Get the first object in TimeSeries (assume it's sorted by date descending)
+        const timeSeriesArray = Object.values(asset.TimeSeries);
+        if (timeSeriesArray.length > 0 && timeSeriesArray[0]['4. close']) {
+          result[asset.Symbol] = parseFloat(timeSeriesArray[0]['4. close']);
+        }
+      }
+    }
+
+    // For symbols not found, return null
+    symbols.forEach(sym => {
+      if (!(sym in result)) result[sym] = null;
+    });
+
+    return res.status(200).json(result);
+
+  } catch (error) {
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred while retrieving quotes' });
+  } finally {
+    if (client) await client.close();
+  }
+});

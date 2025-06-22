@@ -79,6 +79,60 @@ l-240 1 -90 -57z"/>
   </svg>
   <span :class="{ 'active-text': route.path === '/account' }">Account</span>
 </router-link>
+<router-link to="/archie" title="Archie" :class="['nav-link', { 'active': route.path === '/archie' }]">
+  <svg :class="{ 'active-svg': route.path === '/archie' }" width="24" height="24" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <g id="SVGRepo_iconCarrier">
+      <circle cx="34.52" cy="11.43" r="5.82"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'"
+        :fill="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <circle cx="53.63" cy="31.6" r="5.82"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'"
+        :fill="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <circle cx="34.52" cy="50.57" r="5.82"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'"
+        :fill="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <circle cx="15.16" cy="42.03" r="5.82"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'"
+        :fill="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <circle cx="15.16" cy="19.27" r="5.82"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'"
+        :fill="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <circle cx="34.51" cy="29.27" r="4.7"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'"
+        :fill="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <line x1="20.17" y1="16.3" x2="28.9" y2="12.93"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <line x1="38.6" y1="15.59" x2="49.48" y2="27.52"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <line x1="50.07" y1="36.2" x2="38.67" y2="46.49"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <line x1="18.36" y1="24.13" x2="30.91" y2="46.01"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <line x1="20.31" y1="44.74" x2="28.7" y2="48.63"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <line x1="17.34" y1="36.63" x2="31.37" y2="16.32"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <line x1="20.52" y1="21.55" x2="30.34" y2="27.1"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <line x1="39.22" y1="29.8" x2="47.81" y2="30.45"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+      <line x1="34.51" y1="33.98" x2="34.52" y2="44.74"
+        :stroke="route.path === '/archie' ? 'var(--accent1)' : 'var(--text1)'" />
+    </g>
+  </svg>
+  <span :class="{ activeText: route.path === '/archie' }">Archie</span>
+</router-link>
+<router-link to="/portfolio" title="Portfolio" :class="['nav-link', { 'active': route.path === '/portfolio' }]">
+  <svg :class="{ 'active-svg': route.path === '/portfolio' }" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <g id="SVGRepo_iconCarrier">
+      <path d="M21.6702 6.94942C21.0302 4.77942 19.2202 2.96942 17.0502 2.32942C15.4002 1.84942 14.2602 1.88942 13.4702 2.47942C12.5202 3.18942 12.4102 4.46942 12.4102 5.37942V7.86942C12.4102 10.3294 13.5302 11.5794 15.7302 11.5794H18.6002C19.5002 11.5794 20.7902 11.4694 21.5002 10.5194C22.1102 9.73942 22.1602 8.59942 21.6702 6.94942Z"
+        :fill="route.path === '/portfolio' ? 'var(--accent1)' : 'var(--text1)'"></path>
+      <path d="M18.9094 13.3611C18.6494 13.0611 18.2694 12.8911 17.8794 12.8911H14.2994C12.5394 12.8911 11.1094 11.4611 11.1094 9.70113V6.12113C11.1094 5.73113 10.9394 5.35113 10.6394 5.09113C10.3494 4.83113 9.94941 4.71113 9.56941 4.76113C7.21941 5.06113 5.05941 6.35113 3.64941 8.29113C2.22941 10.2411 1.70941 12.6211 2.15941 15.0011C2.80941 18.4411 5.55941 21.1911 9.00941 21.8411C9.55941 21.9511 10.1094 22.0011 10.6594 22.0011C12.4694 22.0011 14.2194 21.4411 15.7094 20.3511C17.6494 18.9411 18.9394 16.7811 19.2394 14.4311C19.2894 14.0411 19.1694 13.6511 18.9094 13.3611Z"
+        :fill="route.path === '/portfolio' ? 'var(--accent1)' : 'var(--text1)'"></path>
+    </g>
+  </svg>
+  <span :class="{ activeText: route.path === '/portfolio' }">Portfolio</span>
+</router-link>
 <router-link to="/charts" title="Chart" :class="['nav-link', { 'active': route.path === '/charts' }]">
   <svg viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" :class="{ 'active-svg': route.path === '/charts' }" width="24" height="24" fill="currentColor">
     <g id="SVGRepo_iconCarrier">

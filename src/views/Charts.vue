@@ -3981,7 +3981,7 @@ function closeEditor() {
 
 .wlist {
   background-color: var(--base2);
-  height: 27px;
+  height: 30px;
   margin-top: 2px;
   border-left: var(--base4) solid 1px;
   display: flex;

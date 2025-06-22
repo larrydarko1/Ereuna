@@ -17,6 +17,16 @@ const routes = [
     component: () => import('../views/Screener.vue')
   },
   {
+    path: '/portfolio',
+    name: 'Portfolio',
+    component: () => import('../views/Portfolio.vue')
+  },
+  {
+    path: '/archie',
+    name: 'Archie',
+    component: () => import('../views/archie.vue')
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('../views/Login.vue')

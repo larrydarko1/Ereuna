@@ -380,3 +380,30 @@ def print_unique_exchange_values():
         print(exchange)
 
     
+# add a notification to the database
+def addCommunication():
+    mongo_uri = os.getenv('MONGODB_URI')
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB']
+    alerts_collection = db['Alerts']
+
+    # Prompt user for header and message
+    print("Hello Sexy, let's add a new notification")
+    header = input("Enter notification header: ").strip()
+    message = input("Enter notification message: ").strip()
+
+    if not header or not message:
+        print("Header and message cannot be empty.")
+        return
+
+    doc = {
+        "header": header,
+        "message": message,
+        "publishedDate": datetime.utcnow()
+    }
+
+    result = alerts_collection.insert_one(doc)
+    if result.inserted_id:
+        print("Notification inserted successfully.")
+    else:
+        print("Failed to insert notification.")
