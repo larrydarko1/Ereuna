@@ -16,31 +16,30 @@
   :symbol="sellPosition.symbol"
   :maxShares="sellPosition.shares"
   :price="sellPosition.price"
+  :currentPrice="latestQuotes[sellPosition.symbol]"
   @close="showSellModal = false"
   @sell="handleSell"
+  :user="user"
+  :api-key="apiKey"
 />
     </div>
     <div class="portfolio-summary">
       <div class="summary-card">
         <div class="summary-title">Total Value</div>
-        <div class="summary-value">$100,000</div>
+        <div class="summary-value">${{ totalPortfolioValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</div>
       </div>
-      <div class="summary-card">
-        <div class="summary-title">Daily P/L (%)</div>
-        <div class="summary-value positive">+2.5%</div>
-      </div>
-       <div class="summary-card">
-        <div class="summary-title">Daily P/L</div>
-        <div class="summary-value negative">-$120</div>
-        </div>
       <div class="summary-card">
         <div class="summary-title">Total P/L</div>
-        <div class="summary-value positive">+$2,500</div>
+        <div class="summary-value" :class="totalPortfolioPL >= 0 ? 'positive' : 'negative'">
+          {{ totalPortfolioPL >= 0 ? '+' : '' }}${{ totalPortfolioPL.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
         </div>
-        <div class="summary-card">
+      </div>
+      <div class="summary-card">
         <div class="summary-title">Total P/L (%)</div>
-        <div class="summary-value positive">+25.72%</div>
+        <div class="summary-value" :class="totalPortfolioPL >= 0 ? 'positive' : 'negative'">
+          {{ totalPortfolioPL >= 0 ? '+' : '' }}{{ totalPortfolioPLPercent }}%
         </div>
+      </div>
     </div>
   <div class="portfolio-linechart-container">
   <div class="linechart-fixed-height">
@@ -173,8 +172,12 @@ function openSellModal(position) {
 }
 
 function handleSell(sellOrder) {
-  // Handle sell logic here (update portfolio, add to history, etc)
-  showSellModal.value = false
+  showSellModal.value = false;
+  // Add a short delay to ensure backend is updated
+  setTimeout(() => {
+    fetchTransactionHistory();
+    fetchPortfolio();
+  }, 300); // 300ms delay, adjust if needed
 }
 
 Chart.register(ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale)
@@ -185,11 +188,33 @@ function getVar(name) {
 }
 
 // Get theme colors from CSS variables
-const accent1 = getVar('--accent1') || '#8c8dfe';
-const accent2 = getVar('--accent2') || '#a9a5ff';
+const accent1   = getVar('--accent1')   || '#8c8dfe';
+const accent2   = getVar('--accent2')   || '#a9a5ff';
+const accent3   = getVar('--accent3')   || '#cfcbff';
+const accent4   = getVar('--accent4')   || '#a9a5ff53';
 const base3   = getVar('--base3')   || '#8a8a90';
-const base1   = getVar('--base1')   || '#181926';
-const text2   = getVar('--text2')   || '#cad3f5';
+const base1   = getVar('--base1')  || '#1e1e2f';
+const text1     = getVar('--text1')     || '#ffffff';
+const text2     = getVar('--text2')     || '#cad3f5';
+const volume    = getVar('--volume')    || '#4d4d4d';
+const ma4       = getVar('--ma4')       || '#4caf50';
+const ma3       = getVar('--ma3')       || '#ffeb3b';
+const ma2       = getVar('--ma2')       || '#2862ff';
+const ma1       = getVar('--ma1')       || '#00bcd4';
+
+const themeColors = [
+  accent1,
+  accent2,
+  accent3,
+  accent4,
+  text1,
+  text2,
+  volume,
+  ma4,
+  ma3,
+  ma2,
+  ma1
+];
 
 // Pie chart data
 const pieChartData = computed(() => {
@@ -211,7 +236,7 @@ const pieChartData = computed(() => {
     datasets: [
       {
         data,
-        backgroundColor: [accent1, accent2, base3, base1, text2], // add more if needed
+        backgroundColor: themeColors, // add more if needed
         borderColor: base1,
         borderWidth: 2
       }
@@ -398,6 +423,22 @@ const totalPortfolioValue = computed(() => {
   }, 0);
 });
 
+const totalPortfolioCost = computed(() => {
+  return portfolio.value.reduce((sum, pos) => {
+    if (!pos.AvgPrice) return sum;
+    return sum + pos.AvgPrice * pos.Shares;
+  }, 0);
+});
+
+const totalPortfolioPL = computed(() => {
+  return totalPortfolioValue.value - totalPortfolioCost.value;
+});
+
+const totalPortfolioPLPercent = computed(() => {
+  if (!totalPortfolioCost.value) return '';
+  return ((totalPortfolioPL.value / totalPortfolioCost.value) * 100).toFixed(2);
+});
+
 function getPercOfPortfolio(position) {
   const total = totalPortfolioValue.value;
   const close = latestQuotes.value[position.Symbol];
@@ -409,6 +450,7 @@ function getPercOfPortfolio(position) {
 </script>
 
 <style lang="scss" scoped>
+
 .portfolio-container {
   background: var(--base4);
   color: var(--text1);
@@ -500,6 +542,8 @@ function getPercOfPortfolio(position) {
   box-shadow: 0 2px 12px 0 rgba(0,0,0,0.08);
   overflow-x: auto;
   flex: 2 1 400px;
+  max-height: 520px; // 8 rows * ~60px per row + header
+  overflow-y: auto;
 }
 
 .portfolio-history-container {
@@ -529,6 +573,10 @@ function getPercOfPortfolio(position) {
     color: var(--accent1);
     font-weight: 600;
     border-bottom: 2px solid var(--base3);
+    position: sticky;
+    top: 0;
+    background: var(--base2);
+    z-index: 1;
   }
   td {
     border-bottom: 1px solid var(--base3);
