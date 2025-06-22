@@ -2237,7 +2237,7 @@ def Daily():
     #checkAndUpdateFinancialUpdates()
     #fetchNews()
 
-if __name__ == '__main__':  # <-- Add this at the bottom of your script
+if __name__ == '__main__':  
     Daily()
     
     

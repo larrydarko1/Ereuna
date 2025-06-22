@@ -34,7 +34,7 @@ router.beforeEach(async (to, from, next) => {
     await maintenanceStore.checkMaintenanceStatus();
     if (token && maintenanceStore.isUnderMaintenance === true) {
         // If trying to access restricted pages during maintenance, redirect to Upload
-        if (['Charts', 'Screener', 'Dashboard'].includes(to.name)) {
+        if (['Charts', 'Screener', 'Dashboard', 'Portfolio'].includes(to.name)) {
             next({ name: 'Maintenance' });
             return;
         }

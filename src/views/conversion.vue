@@ -6,6 +6,7 @@
   </router-link>
   <p style="cursor: default;">Already Registered? <router-link to="/login" class="text">Login Here</router-link></p>
 </div>
+<div class="subscription-section">
         <h1 style="cursor: default;">Create a New Account</h1>
       <div class="input-group">
         <input required type="text" :class="error" name="username" autocomplete="off" class="input">
@@ -19,7 +20,7 @@
         <input required type="password" :class="error" name="confirm-password" autocomplete="off" class="input">
         <label :class="error" class="user-label">Confirm Password</label>
       </div>
-      <br>
+      </div>
       <!-- Subscription Selection Section -->
 <div class="subscription-section">
   <h2 class="subtitle">Choose Your Plan</h2>
@@ -617,19 +618,19 @@ function initializeStripe() {
 
   .input {
     border: solid 2px transparent;
-    border-radius: 1.5rem;
-    background-color:#2c2b3e;;
+    border-radius: 10px;
+    background-color:$base2;
     padding: 1.5rem;
     font-size: 1.2rem;
     width: 400px;
-    color: #f5f5f5;
+    color: $text2;
     transition: border 150ms cubic-bezier(0.4,0,0.2,1);
   }
 
   .user-label {
     text-align: center;
     position: absolute;
-    left: 200px;
+    left: 180px;
     bottom: 45px;
     color: #cdcdcd;
     pointer-events: none;
@@ -644,7 +645,7 @@ function initializeStripe() {
 
   .input:focus ~ label, .input:valid ~ label {
     transform: translateY(-50%) scale(0.8);
-    background-color: #212121;
+    background-color: $base1;
     padding: 0 .4em;
     color: $accent1;
   }

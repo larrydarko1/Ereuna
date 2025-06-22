@@ -62,9 +62,6 @@
     </div>
     <div class="video-container">
       <img class="hero-video" src="@/assets/videos/heroAnimation.gif" alt="Hero Animation" draggable="false">
-      <div style="cursor: default;" class="beta-tag-on-video">
-        <span class="title">Beta Now Available</span>
-      </div>
     </div>
   </div>
   <div class="sphere-gradient"></div>
@@ -75,7 +72,6 @@
       <div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
     <img class="logo" src="@/assets/images/logos/tiingo.png" alt="" draggable="false">
     <img class="logo" src="@/assets/images/logos/tradingview.png" alt="" draggable="false">
-    <img class="logo" src="@/assets/images/logos/stripe.png" alt="" draggable="false">
     <img class="logo2" src="@/assets/images/logos/IEX.png" alt="" draggable="false">
 </div>
     </div>
@@ -143,8 +139,8 @@
     </div>
     <div class="table-row">
       <div class="table-cell" style="font-weight: bold; font-size: 14px;">Financial Instruments / Coverage </div>
-      <div class="table-cell" style="font-size: 12px;">US Equity / ETFs Only (for now)</div>
-      <div class="table-cell" style="font-size: 12px;">US Equity / ETFs Only (for now)</div>
+      <div class="table-cell" style="font-size: 12px;">US Equity / ETFs, Crypto</div>
+      <div class="table-cell" style="font-size: 12px;">US Equity / ETFs, Crypto</div>
       <div class="table-cell" style="font-size: 12px;">It varies</div>
     </div>
     <div class="table-row">
