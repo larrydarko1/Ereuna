@@ -15358,3 +15358,106 @@ app.get('/quotes', async (req, res) => {
     if (client) await client.close();
   }
 });
+
+app.post('/trades/sell', validate([
+  validationSchemas.username(),
+  body('trade').isObject().withMessage('Trade must be an object'),
+  body('trade.Symbol').isString().trim().notEmpty().withMessage('Symbol is required'),
+  body('trade.Action').matches('Sell').withMessage('Action must be "Sell"'),
+  body('trade.Shares').isFloat({ min: 0.01 }).withMessage('Shares must be a positive number'),
+  body('trade.Price').isFloat({ min: 0.01 }).withMessage('Price must be a positive number'),
+  body('trade.Date').isISO8601().withMessage('Date must be a valid ISO date'),
+  body('trade.Total').isFloat({ min: 0 }).withMessage('Total must be a number'),
+]), async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+      return res.status(401).json({ message: 'Unauthorized API Access' });
+    }
+    const { username, trade } = req.body;
+    const sanitizedUser = sanitizeInput(username);
+
+    // Process and sanitize the trade object
+    const processedTrade = {
+      Date: new Date(trade.Date).toISOString(),
+      Symbol: String(trade.Symbol).toUpperCase().trim(),
+      Action: String(trade.Action),
+      Shares: Number(trade.Shares),
+      Price: Number(trade.Price),
+      Total: Number(trade.Total)
+    };
+
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+    const assetInfoCollection = db.collection('AssetInfo');
+
+    // Check if symbol exists in AssetInfo
+    const symbolExists = await assetInfoCollection.findOne({ Symbol: processedTrade.Symbol });
+    if (!symbolExists) {
+      return res.status(404).json({ message: 'Symbol not found in AssetInfo' });
+    }
+
+    const userDocument = await usersCollection.findOne({ Username: sanitizedUser });
+    if (!userDocument) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // --- Portfolio update logic for Sell ---
+    let portfolio = Array.isArray(userDocument.portfolio) ? userDocument.portfolio : [];
+    const idx = portfolio.findIndex(p => p.Symbol === processedTrade.Symbol);
+
+    if (idx === -1 || portfolio[idx].Shares < processedTrade.Shares) {
+      return res.status(400).json({ message: 'Not enough shares to sell' });
+    }
+
+    // Insert the trade into the Trades array
+    const updateResult = await usersCollection.updateOne(
+      { Username: sanitizedUser },
+      { $push: { Trades: processedTrade } }
+    );
+
+    if (updateResult.modifiedCount === 1) {
+      // Update or remove position
+      const position = portfolio[idx];
+      const remainingShares = position.Shares - processedTrade.Shares;
+
+      if (remainingShares > 0) {
+        portfolio[idx] = {
+          Symbol: position.Symbol,
+          Shares: remainingShares,
+          AvgPrice: position.AvgPrice // Keep avg price unchanged for remaining shares
+        };
+      } else {
+        // Remove position if all shares sold
+        portfolio.splice(idx, 1);
+      }
+
+      await usersCollection.updateOne(
+        { Username: sanitizedUser },
+        { $set: { portfolio } }
+      );
+
+      return res.status(200).json({ message: 'Sell trade added and portfolio updated' });
+    } else {
+      return res.status(400).json({ message: 'Trade not added' });
+    }
+  } catch (error) {
+    if (error.errors) {
+      const validationErrors = error.errors.map(err => ({
+        field: err.param,
+        message: err.msg
+      }));
+      return res.status(400).json({ errors: validationErrors });
+    }
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred while adding sell trade' });
+  } finally {
+    if (client) await client.close();
+  }
+});

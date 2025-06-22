@@ -30,7 +30,7 @@
             min="0.01"
             step="0.01"
             required
-            placeholder="e.g. 185.00"
+            :placeholder="currentPrice ? `$${Number(currentPrice).toFixed(2)}` : 'e.g. 185.00'"
           />
         </div>
         <div class="modal-actions">
@@ -47,25 +47,55 @@ import { ref, defineProps, defineEmits, watch } from 'vue'
 const props = defineProps({
   symbol: String,
   maxShares: Number,
-  price: Number
+  price: Number,
+  currentPrice: Number, // new prop for price placeholder
+  user: String,
+  apiKey: String
 })
 const emit = defineEmits(['close', 'sell'])
 
 const sellShares = ref(1)
-const sellPrice = ref(props.price || 0)
+const sellPrice = ref(props.currentPrice || props.price || 0)
 
-watch(() => props.price, (val) => { sellPrice.value = val })
+// Clamp sellShares to maxShares
+watch(sellShares, (val, oldVal) => {
+  if (val > props.maxShares) sellShares.value = props.maxShares
+  if (val < 1) sellShares.value = 1
+})
+
+// Always update sellPrice if currentPrice changes
+watch(() => props.currentPrice, (val) => { if (val) sellPrice.value = val })
 
 function close() {
   emit('close')
 }
-function submitSell() {
+
+async function submitSell() {
   if (sellShares.value > props.maxShares) return
-  emit('sell', {
-    symbol: props.symbol,
-    shares: sellShares.value,
-    price: sellPrice.value
-  })
+  const trade = {
+    Symbol: props.symbol,
+    Shares: sellShares.value,
+    Action: "Sell",
+    Price: sellPrice.value,
+    Date: new Date().toISOString(),
+    Total: Number((sellShares.value * sellPrice.value).toFixed(2))
+  }
+  try {
+    const response = await fetch(`/api/trades/sell`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': props.apiKey
+      },
+      body: JSON.stringify({ username: props.user, trade })
+    })
+    if (!response.ok) {
+      throw new Error('Failed to add trade')
+    }
+    emit('sell', trade)
+  } catch (error) {
+    // Optionally handle error
+  }
   close()
 }
 </script>
