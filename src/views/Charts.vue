@@ -1,63 +1,43 @@
 <template>
+
   <body>
     <Header />
-<div class="watch-panel-container" style="display: flex; align-items: center; justify-content: space-between;">
-  <div class="watch-panel" style="display: flex; gap: 8px;">
-<template v-if="watchPanel.length > 0">
-  <div
-    class="watch-panel-track"
-    :class="{ 'scrolling': watchPanel.length > 12 }"
-  >
-    <template v-for="repeat in watchPanel.length > 12 ? 2 : 1">
-      <button
-        v-for="(ticker, i) in watchPanel"
-        :key="repeat + '-' + i"
-        :class="{ active: defaultSymbol === ticker.Symbol, 'index-btn': true }"
-        @click="defaultSymbol = ticker.Symbol; searchTicker(ticker.Symbol)"
-      >
-        {{ ticker.Symbol }}
-        <span :class="parseFloat(ticker.percentageReturn) > 0 ? 'positive' : 'negative'">
-          {{ ticker.percentageReturn }}
-        </span>
-        <span v-if="parseFloat(ticker.percentageReturn) > 0" class="arrow-up"></span>
-        <span v-else class="arrow-down"></span>
+    <div class="watch-panel-container" style="display: flex; align-items: center; justify-content: space-between;">
+      <div class="watch-panel" style="display: flex; gap: 8px;">
+        <template v-if="watchPanel.length > 0">
+          <div class="watch-panel-track" :class="{ 'scrolling': watchPanel.length > 12 }">
+            <template v-for="repeat in watchPanel.length > 12 ? 2 : 1">
+              <button v-for="(ticker, i) in watchPanel" :key="repeat + '-' + i"
+                :class="{ active: defaultSymbol === ticker.Symbol, 'index-btn': true }"
+                @click="defaultSymbol = ticker.Symbol; searchTicker(ticker.Symbol)">
+                {{ ticker.Symbol }}
+                <span :class="parseFloat(ticker.percentageReturn) > 0 ? 'positive' : 'negative'">
+                  {{ ticker.percentageReturn }}
+                </span>
+                <span v-if="parseFloat(ticker.percentageReturn) > 0" class="arrow-up"></span>
+                <span v-else class="arrow-down"></span>
+              </button>
+            </template>
+          </div>
+        </template>
+        <template v-else>
+          <span class="no-symbols">No Symbols in Watch Panel</span>
+        </template>
+      </div>
+      <button class="edit-watch-panel-btn" @click="openEditor">
+        Edit Watch Panel
       </button>
-    </template>
-  </div>
-</template>
-    <template v-else>
-      <span class="no-symbols">No Symbols in Watch Panel</span>
-    </template>
-  </div>
-  <button class="edit-watch-panel-btn" @click="openEditor">
-    Edit Watch Panel
-  </button>
-<WatchPanelEditor
-  v-if="editWatchPanel"
-  :apiKey="apiKey"
-  :user="user"
-  :watchPanel="watchPanel"
-  :fetchWatchPanel="fetchWatchPanel"
-  :notify="(msg) => notification.value.show(msg)"
-  @close="closeEditor"
-/>
-</div>
-   <div class="mobilenav">
-    <button
-      class="mnavbtn"
-      :class="{ selected: selected === 'info' }"
-      @click="select('info')"
-    >
-      Info
-    </button>
-    <button
-      class="mnavbtn"
-      :class="{ selected: selected === 'watchlists' }"
-      @click="select('watchlists')"
-    >
-      Watchlists
-    </button>
-  </div>
+      <WatchPanelEditor v-if="editWatchPanel" :apiKey="apiKey" :user="user" :watchPanel="watchPanel"
+        :fetchWatchPanel="fetchWatchPanel" :notify="(msg) => notification.value.show(msg)" @close="closeEditor" />
+    </div>
+    <div class="mobilenav">
+      <button class="mnavbtn" :class="{ selected: selected === 'info' }" @click="select('info')">
+        Info
+      </button>
+      <button class="mnavbtn" :class="{ selected: selected === 'watchlists' }" @click="select('watchlists')">
+        Watchlists
+      </button>
+    </div>
     <div id="main">
       <div class="tooltip-container">
         <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
@@ -66,11 +46,10 @@
       </div>
       <div v-if="showCreateNote" class="CreateNote">
         <br>
-         <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
- preserveAspectRatio="xMidYMid meet">
-<g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)"
-fill="var(--text1)" stroke="none">
-<path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
+        <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
+          preserveAspectRatio="xMidYMid meet">
+          <g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)" fill="var(--text1)" stroke="none">
+            <path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
 -625 104 -601 387 -1216 800 -1735 123 -155 475 -507 616 -616 280 -217 609
 -419 1640 -1007 1314 -749 1735 -942 2525 -1157 257 -70 457 -130 660 -200
 924 -315 1748 -774 2455 -1366 434 -363 775 -722 1190 -1249 226 -288 317
@@ -86,9 +65,9 @@ c-149 -1 -246 -3 -214 -5 31 -2 57 -8 57 -12 0 -20 -966 -572 -1955 -1118
 -469 -561 -242 -873 -321 -1356 -342 -455 -19 -824 20 -1176 126 -280 83 -380
 132 -1143 552 -413 227 -1022 569 -1419 796 -163 94 -254 140 -287 146 -72 14
 -124 45 -158 94 -17 24 -37 46 -46 49 -22 9 -18 25 8 30 12 2 -86 5 -218 5
-l-240 1 -90 -57z"/>
-<path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z"/>
-<path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
+l-240 1 -90 -57z" />
+            <path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z" />
+            <path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
 -765 -1960 -65 -377 -84 -670 -77 -1147 6 -360 19 -545 58 -805 125 -849 505
 -1739 1054 -2470 694 -926 1639 -1601 2760 -1973 393 -131 761 -205 1215 -244
 217 -19 820 -16 1055 5 478 43 804 92 839 127 12 12 -5 38 -258 375 -318 422
@@ -96,8 +75,8 @@ l-240 1 -90 -57z"/>
 -691 401 -1002 704 -383 374 -682 822 -875 1311 -175 444 -239 804 -239 1350
 0 611 120 1142 374 1650 183 365 364 619 697 980 94 102 181 214 181 234 0 14
 -49 38 -315 156 -275 122 -561 265 -870 438 -320 178 -439 241 -503 266 l-53
-21 -51 -47z"/>
-<path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
+21 -51 -47z" />
+            <path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
 -382 -387 -176 -457 -209 -462 -222 -7 -18 70 -122 173 -233 273 -295 429
 -503 594 -791 226 -394 394 -862 445 -1233 48 -353 48 -880 0 -1232 -48 -355
 -209 -812 -414 -1178 -413 -738 -1086 -1338 -1855 -1653 -464 -191 -909 -273
@@ -105,16 +84,16 @@ l-240 1 -90 -57z"/>
 -410 -306 -421 0 -12 53 -25 260 -64 367 -69 618 -88 1125 -89 497 0 759 20
 1095 85 1456 282 2780 1184 3622 2469 368 560 633 1184 772 1817 81 372 106
 609 113 1109 9 632 -27 1014 -138 1464 -183 742 -504 1431 -947 2030 -169 228
--311 380 -355 380 -13 0 -98 -38 -188 -84z"/>
-<path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
+-311 380 -355 380 -13 0 -98 -38 -188 -84z" />
+            <path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
 -761 -191 -379 -407 -678 -715 -985 -281 -282 -540 -474 -950 -705 -110 -62
 -201 -114 -203 -115 -12 -11 103 -216 241 -429 216 -335 366 -522 846 -1061
 174 -195 358 -422 539 -665 248 -333 341 -407 542 -431 97 -11 219 -6 300 13
 137 32 248 132 450 403 233 314 459 589 718 873 251 275 419 479 534 647 135
 197 338 534 374 621 l14 32 -203 112 c-400 222 -668 420 -952 705 -320 320
 -541 629 -736 1030 -124 255 -247 600 -266 745 -8 63 -18 78 -61 90 -44 12
--85 12 -130 -1z"/>
-<path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
+-85 12 -130 -1z" />
+            <path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
 -528 435 -1160 557 -1303 25 -29 83 -101 128 -160 114 -148 273 -310 397 -402
 135 -102 282 -177 576 -293 132 -52 341 -142 465 -200 124 -57 238 -107 255
 -111 16 -4 73 -32 126 -62 180 -100 318 -152 785 -294 614 -187 1092 -375
@@ -131,12 +110,12 @@ l-240 1 -90 -57z"/>
 -455 207 -653 368 -42 35 -124 108 -182 163 -58 54 -121 114 -141 133 l-36 33
 -214 -60 c-564 -158 -911 -223 -1432 -268 -236 -20 -820 -23 -1047 -4 -961 77
 -1761 299 -2600 722 -932 469 -1698 1111 -2414 2024 -143 182 -140 178 -133
-140z"/>
-<path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z"/>
-<path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
--3z"/>
-</g>
-</svg>
+140z" />
+            <path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z" />
+            <path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
+-3z" />
+          </g>
+        </svg>
         <br>
         <p style="font-size: 9px; padding: 0; color: var(--text1); opacity: 0.60; margin: 5px;">350 characters max / 10
           notes limit for each symbol</p>
@@ -144,19 +123,41 @@ l-240 1 -90 -57z"/>
           v-model="noteContent" @input="updateCharacterCount"></textarea>
         <div class="inner">
           <button @click="showCreateNote = false">
-           <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve" transform="rotate(180)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z"></path> </g> </g></svg>
+            <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve"
+              transform="rotate(180)">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <g>
+                  <path
+                    d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z">
+                  </path>
+                </g>
+              </g>
+            </svg>
           </button>
           <button @click="sendNote()">
-           <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z" fill="var(--text1)"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z" fill="var(--text1)"></path> </g></svg>
+            <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <path
+                  d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z"
+                  fill="var(--text1)"></path>
+                <path fill-rule="evenodd" clip-rule="evenodd"
+                  d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z"
+                  fill="var(--text1)"></path>
+              </g>
+            </svg>
           </button>
         </div>
       </div>
       <div v-if="showCreateWatchlist" class="CreateWatchlist">
-       <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
- preserveAspectRatio="xMidYMid meet">
-<g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)"
-fill="var(--text1)" stroke="none">
-<path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
+        <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
+          preserveAspectRatio="xMidYMid meet">
+          <g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)" fill="var(--text1)" stroke="none">
+            <path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
 -625 104 -601 387 -1216 800 -1735 123 -155 475 -507 616 -616 280 -217 609
 -419 1640 -1007 1314 -749 1735 -942 2525 -1157 257 -70 457 -130 660 -200
 924 -315 1748 -774 2455 -1366 434 -363 775 -722 1190 -1249 226 -288 317
@@ -172,9 +173,9 @@ c-149 -1 -246 -3 -214 -5 31 -2 57 -8 57 -12 0 -20 -966 -572 -1955 -1118
 -469 -561 -242 -873 -321 -1356 -342 -455 -19 -824 20 -1176 126 -280 83 -380
 132 -1143 552 -413 227 -1022 569 -1419 796 -163 94 -254 140 -287 146 -72 14
 -124 45 -158 94 -17 24 -37 46 -46 49 -22 9 -18 25 8 30 12 2 -86 5 -218 5
-l-240 1 -90 -57z"/>
-<path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z"/>
-<path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
+l-240 1 -90 -57z" />
+            <path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z" />
+            <path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
 -765 -1960 -65 -377 -84 -670 -77 -1147 6 -360 19 -545 58 -805 125 -849 505
 -1739 1054 -2470 694 -926 1639 -1601 2760 -1973 393 -131 761 -205 1215 -244
 217 -19 820 -16 1055 5 478 43 804 92 839 127 12 12 -5 38 -258 375 -318 422
@@ -182,8 +183,8 @@ l-240 1 -90 -57z"/>
 -691 401 -1002 704 -383 374 -682 822 -875 1311 -175 444 -239 804 -239 1350
 0 611 120 1142 374 1650 183 365 364 619 697 980 94 102 181 214 181 234 0 14
 -49 38 -315 156 -275 122 -561 265 -870 438 -320 178 -439 241 -503 266 l-53
-21 -51 -47z"/>
-<path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
+21 -51 -47z" />
+            <path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
 -382 -387 -176 -457 -209 -462 -222 -7 -18 70 -122 173 -233 273 -295 429
 -503 594 -791 226 -394 394 -862 445 -1233 48 -353 48 -880 0 -1232 -48 -355
 -209 -812 -414 -1178 -413 -738 -1086 -1338 -1855 -1653 -464 -191 -909 -273
@@ -191,16 +192,16 @@ l-240 1 -90 -57z"/>
 -410 -306 -421 0 -12 53 -25 260 -64 367 -69 618 -88 1125 -89 497 0 759 20
 1095 85 1456 282 2780 1184 3622 2469 368 560 633 1184 772 1817 81 372 106
 609 113 1109 9 632 -27 1014 -138 1464 -183 742 -504 1431 -947 2030 -169 228
--311 380 -355 380 -13 0 -98 -38 -188 -84z"/>
-<path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
+-311 380 -355 380 -13 0 -98 -38 -188 -84z" />
+            <path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
 -761 -191 -379 -407 -678 -715 -985 -281 -282 -540 -474 -950 -705 -110 -62
 -201 -114 -203 -115 -12 -11 103 -216 241 -429 216 -335 366 -522 846 -1061
 174 -195 358 -422 539 -665 248 -333 341 -407 542 -431 97 -11 219 -6 300 13
 137 32 248 132 450 403 233 314 459 589 718 873 251 275 419 479 534 647 135
 197 338 534 374 621 l14 32 -203 112 c-400 222 -668 420 -952 705 -320 320
 -541 629 -736 1030 -124 255 -247 600 -266 745 -8 63 -18 78 -61 90 -44 12
--85 12 -130 -1z"/>
-<path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
+-85 12 -130 -1z" />
+            <path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
 -528 435 -1160 557 -1303 25 -29 83 -101 128 -160 114 -148 273 -310 397 -402
 135 -102 282 -177 576 -293 132 -52 341 -142 465 -200 124 -57 238 -107 255
 -111 16 -4 73 -32 126 -62 180 -100 318 -152 785 -294 614 -187 1092 -375
@@ -217,30 +218,52 @@ l-240 1 -90 -57z"/>
 -455 207 -653 368 -42 35 -124 108 -182 163 -58 54 -121 114 -141 133 l-36 33
 -214 -60 c-564 -158 -911 -223 -1432 -268 -236 -20 -820 -23 -1047 -4 -961 77
 -1761 299 -2600 722 -932 469 -1698 1111 -2414 2024 -143 182 -140 178 -133
-140z"/>
-<path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z"/>
-<path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
--3z"/>
-</g>
-</svg>
+140z" />
+            <path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z" />
+            <path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
+-3z" />
+          </g>
+        </svg>
         <h3 class="title" style="color:var(--text1)">Create Watchlist</h3>
         <input id="inputcreate" placeholder="Enter Watchlist Name" type="text" v-model="watchlistName"
           :class="{ 'input-error': watchlistName.length > 20 }" />
         <div class="inner">
           <button @click="showCreateWatchlist = false">
-            <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve" transform="rotate(180)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z"></path> </g> </g></svg>
-            </button>
+            <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve"
+              transform="rotate(180)">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <g>
+                  <path
+                    d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z">
+                  </path>
+                </g>
+              </g>
+            </svg>
+          </button>
           <button @click="CreateWatchlist()">
-           <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z" fill="var(--text1)"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z" fill="var(--text1)"></path> </g></svg>
+            <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <path
+                  d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z"
+                  fill="var(--text1)"></path>
+                <path fill-rule="evenodd" clip-rule="evenodd"
+                  d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z"
+                  fill="var(--text1)"></path>
+              </g>
+            </svg>
           </button>
         </div>
       </div>
       <div v-if="showRenameWatchlist" class="RenameWatchlist">
         <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
- preserveAspectRatio="xMidYMid meet">
-<g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)"
-fill="var(--text1)" stroke="none">
-<path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
+          preserveAspectRatio="xMidYMid meet">
+          <g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)" fill="var(--text1)" stroke="none">
+            <path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
 -625 104 -601 387 -1216 800 -1735 123 -155 475 -507 616 -616 280 -217 609
 -419 1640 -1007 1314 -749 1735 -942 2525 -1157 257 -70 457 -130 660 -200
 924 -315 1748 -774 2455 -1366 434 -363 775 -722 1190 -1249 226 -288 317
@@ -256,9 +279,9 @@ c-149 -1 -246 -3 -214 -5 31 -2 57 -8 57 -12 0 -20 -966 -572 -1955 -1118
 -469 -561 -242 -873 -321 -1356 -342 -455 -19 -824 20 -1176 126 -280 83 -380
 132 -1143 552 -413 227 -1022 569 -1419 796 -163 94 -254 140 -287 146 -72 14
 -124 45 -158 94 -17 24 -37 46 -46 49 -22 9 -18 25 8 30 12 2 -86 5 -218 5
-l-240 1 -90 -57z"/>
-<path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z"/>
-<path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
+l-240 1 -90 -57z" />
+            <path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z" />
+            <path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
 -765 -1960 -65 -377 -84 -670 -77 -1147 6 -360 19 -545 58 -805 125 -849 505
 -1739 1054 -2470 694 -926 1639 -1601 2760 -1973 393 -131 761 -205 1215 -244
 217 -19 820 -16 1055 5 478 43 804 92 839 127 12 12 -5 38 -258 375 -318 422
@@ -266,8 +289,8 @@ l-240 1 -90 -57z"/>
 -691 401 -1002 704 -383 374 -682 822 -875 1311 -175 444 -239 804 -239 1350
 0 611 120 1142 374 1650 183 365 364 619 697 980 94 102 181 214 181 234 0 14
 -49 38 -315 156 -275 122 -561 265 -870 438 -320 178 -439 241 -503 266 l-53
-21 -51 -47z"/>
-<path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
+21 -51 -47z" />
+            <path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
 -382 -387 -176 -457 -209 -462 -222 -7 -18 70 -122 173 -233 273 -295 429
 -503 594 -791 226 -394 394 -862 445 -1233 48 -353 48 -880 0 -1232 -48 -355
 -209 -812 -414 -1178 -413 -738 -1086 -1338 -1855 -1653 -464 -191 -909 -273
@@ -275,16 +298,16 @@ l-240 1 -90 -57z"/>
 -410 -306 -421 0 -12 53 -25 260 -64 367 -69 618 -88 1125 -89 497 0 759 20
 1095 85 1456 282 2780 1184 3622 2469 368 560 633 1184 772 1817 81 372 106
 609 113 1109 9 632 -27 1014 -138 1464 -183 742 -504 1431 -947 2030 -169 228
--311 380 -355 380 -13 0 -98 -38 -188 -84z"/>
-<path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
+-311 380 -355 380 -13 0 -98 -38 -188 -84z" />
+            <path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
 -761 -191 -379 -407 -678 -715 -985 -281 -282 -540 -474 -950 -705 -110 -62
 -201 -114 -203 -115 -12 -11 103 -216 241 -429 216 -335 366 -522 846 -1061
 174 -195 358 -422 539 -665 248 -333 341 -407 542 -431 97 -11 219 -6 300 13
 137 32 248 132 450 403 233 314 459 589 718 873 251 275 419 479 534 647 135
 197 338 534 374 621 l14 32 -203 112 c-400 222 -668 420 -952 705 -320 320
 -541 629 -736 1030 -124 255 -247 600 -266 745 -8 63 -18 78 -61 90 -44 12
--85 12 -130 -1z"/>
-<path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
+-85 12 -130 -1z" />
+            <path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
 -528 435 -1160 557 -1303 25 -29 83 -101 128 -160 114 -148 273 -310 397 -402
 135 -102 282 -177 576 -293 132 -52 341 -142 465 -200 124 -57 238 -107 255
 -111 16 -4 73 -32 126 -62 180 -100 318 -152 785 -294 614 -187 1092 -375
@@ -301,21 +324,44 @@ l-240 1 -90 -57z"/>
 -455 207 -653 368 -42 35 -124 108 -182 163 -58 54 -121 114 -141 133 l-36 33
 -214 -60 c-564 -158 -911 -223 -1432 -268 -236 -20 -820 -23 -1047 -4 -961 77
 -1761 299 -2600 722 -932 469 -1698 1111 -2414 2024 -143 182 -140 178 -133
-140z"/>
-<path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z"/>
-<path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
--3z"/>
-</g>
-</svg>
+140z" />
+            <path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z" />
+            <path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
+-3z" />
+          </g>
+        </svg>
         <h3 class="title" style="color:var(--text1)">Rename Watchlist</h3>
         <input id="inputrename" placeholder="Enter Watchlist Name" type="text" v-model="watchlistName"
           :class="{ 'input-error': watchlistName.length > 20 }" />
         <div class="inner">
           <button @click="showRenameWatchlist = false">
-            <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve" transform="rotate(180)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z"></path> </g> </g></svg>
-            </button>
+            <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve"
+              transform="rotate(180)">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <g>
+                  <path
+                    d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z">
+                  </path>
+                </g>
+              </g>
+            </svg>
+          </button>
           <button @click="UpdateWatchlist()">
-           <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z" fill="var(--text1)"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z" fill="var(--text1)"></path> </g></svg>
+            <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <path
+                  d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z"
+                  fill="var(--text1)"></path>
+                <path fill-rule="evenodd" clip-rule="evenodd"
+                  d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z"
+                  fill="var(--text1)"></path>
+              </g>
+            </svg>
           </button>
         </div>
       </div>
@@ -327,45 +373,42 @@ l-240 1 -90 -57z"/>
         </div>
         <div v-else style="border:none">
           <div>
-<div class="editbtn" @click="showPanel = !showPanel">
-  <svg v-if="!showPanel" viewBox="0 0 24 24" height="10" width="10" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier"> 
-      <path fill-rule="evenodd" clip-rule="evenodd" d="M20.8477 1.87868C19.6761 0.707109 17.7766 0.707105 16.605 1.87868L2.44744 16.0363C2.02864 16.4551 1.74317 16.9885 1.62702 17.5692L1.03995 20.5046C0.760062 21.904 1.9939 23.1379 3.39334 22.858L6.32868 22.2709C6.90945 22.1548 7.44285 21.8693 7.86165 21.4505L22.0192 7.29289C23.1908 6.12132 23.1908 4.22183 22.0192 3.05025L20.8477 1.87868ZM18.0192 3.29289C18.4098 2.90237 19.0429 2.90237 19.4335 3.29289L20.605 4.46447C20.9956 4.85499 20.9956 5.48815 20.605 5.87868L17.9334 8.55027L15.3477 5.96448L18.0192 3.29289ZM13.9334 7.3787L3.86165 17.4505C3.72205 17.5901 3.6269 17.7679 3.58818 17.9615L3.00111 20.8968L5.93645 20.3097C6.13004 20.271 6.30784 20.1759 6.44744 20.0363L16.5192 9.96448L13.9334 7.3787Z" fill="var(--text1)"></path> 
-    </g>
-  </svg>
-  <svg v-else viewBox="0 0 24 24" height="10" width="10" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier"> 
-      <path d="M18 6L6 18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" stroke="var(--text1)"></path>
-      <path d="M6 6L18 18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" stroke="var(--text1)"></path>
-    </g>
-  </svg>
-  {{ showPanel ? 'Close Popup' : 'Edit Panel' }}
-</div>
-<transition name="fade">
-  <Panel v-if="showPanel" @close="showPanel = false" @updated="fetchPanel" @panel-updated="handlePanelUpdated" />
-</transition>
-</div>
- <component
-  v-for="(item, idx) in panelData"
-  :key="idx"
-  :is="sidebarComponentMap[item.tag]"
-  v-show="!item.hidden"
-  v-bind="getSidebarProps(item.tag)"
-  :refresh-key="item.tag === 'Summary' ? summaryRefreshKey : undefined"
-  @show-popup="showPopup = true"
-  @toggle-description="showAllDescription = !showAllDescription"
-  @toggle-eps="showAllEPS = !showAllEPS"
-  @toggle-earnings="showAllEarnings = !showAllEarnings"
-  @toggle-sales="showAllSales = !showAllSales"
-  @toggle-dividends="showAllDividends = !showAllDividends"
-  @toggle-splits="showAllSplits = !showAllSplits"
-  @remove-note="removeNote"
-/>
-<div v-if="showPopup" class="popup">
+            <div class="editbtn" @click="showPanel = !showPanel">
+              <svg v-if="!showPanel" viewBox="0 0 24 24" height="10" width="10" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                    d="M20.8477 1.87868C19.6761 0.707109 17.7766 0.707105 16.605 1.87868L2.44744 16.0363C2.02864 16.4551 1.74317 16.9885 1.62702 17.5692L1.03995 20.5046C0.760062 21.904 1.9939 23.1379 3.39334 22.858L6.32868 22.2709C6.90945 22.1548 7.44285 21.8693 7.86165 21.4505L22.0192 7.29289C23.1908 6.12132 23.1908 4.22183 22.0192 3.05025L20.8477 1.87868ZM18.0192 3.29289C18.4098 2.90237 19.0429 2.90237 19.4335 3.29289L20.605 4.46447C20.9956 4.85499 20.9956 5.48815 20.605 5.87868L17.9334 8.55027L15.3477 5.96448L18.0192 3.29289ZM13.9334 7.3787L3.86165 17.4505C3.72205 17.5901 3.6269 17.7679 3.58818 17.9615L3.00111 20.8968L5.93645 20.3097C6.13004 20.271 6.30784 20.1759 6.44744 20.0363L16.5192 9.96448L13.9334 7.3787Z"
+                    fill="var(--text1)"></path>
+                </g>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" height="10" width="10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path d="M18 6L6 18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    stroke="var(--text1)"></path>
+                  <path d="M6 6L18 18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    stroke="var(--text1)"></path>
+                </g>
+              </svg>
+              {{ showPanel ? 'Close Popup' : 'Edit Panel' }}
+            </div>
+            <transition name="fade">
+              <Panel v-if="showPanel" @close="showPanel = false" @updated="fetchPanel"
+                @panel-updated="handlePanelUpdated" />
+            </transition>
+          </div>
+          <component v-for="(item, idx) in panelData" :key="idx" :is="sidebarComponentMap[item.tag]"
+            v-show="!item.hidden" v-bind="getSidebarProps(item.tag)"
+            :refresh-key="item.tag === 'Summary' ? summaryRefreshKey : undefined" @show-popup="showPopup = true"
+            @toggle-description="showAllDescription = !showAllDescription" @toggle-eps="showAllEPS = !showAllEPS"
+            @toggle-earnings="showAllEarnings = !showAllEarnings" @toggle-sales="showAllSales = !showAllSales"
+            @toggle-dividends="showAllDividends = !showAllDividends" @toggle-splits="showAllSplits = !showAllSplits"
+            @remove-note="removeNote" />
+          <div v-if="showPopup" class="popup">
             <div class="popup-content">
               <div class="toggle-button-container">
                 <button @click="toggleFinancials" class="toggle-button">
@@ -383,31 +426,36 @@ l-240 1 -90 -57z"/>
               <div
                 v-for="(attribute, index) in Object.keys(currentFinancials[0]).filter(attr => attr !== 'fiscalDateEnding')"
                 :key="index" class='financials-row'>
-             <div class="attribute-name" style="display: grid; grid-template-columns: 1fr auto;">
-  {{ attributeMap[attribute] || attribute }}
-  <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+                <div class="attribute-name" style="display: grid; grid-template-columns: 1fr auto;">
+                  {{ attributeMap[attribute] || attribute }}
+                  <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                    @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut">
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                      <path
+                        d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                        stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round">
+                      </path>
+                      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                        stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088"
+                        stroke-linecap="round" stroke-linejoin="round"></path>
+                    </g>
+                  </svg>
+                </div>
                 <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="financial-value">
                   {{ isNaN(parseInt(financial[attribute])) ? '-' : parseInt(financial[attribute]).toLocaleString() }}
                   <div class="percentage-box"
-  :class="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0 ? 'positive' : 'negative'">
-  {{ isNaN(parseFloat(getPercentageDifference(financial, attribute))) ? '-' :
-    getPercentageDifference(financial, attribute) }}
-  <span
-    v-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0"
-    class="arrow-up"></span>
-  <span v-else-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute)))"
-    class="arrow-down"></span>
-</div>
+                    :class="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0 ? 'positive' : 'negative'">
+                    {{ isNaN(parseFloat(getPercentageDifference(financial, attribute))) ? '-' :
+                      getPercentageDifference(financial, attribute) }}
+                    <span
+                      v-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0"
+                      class="arrow-up"></span>
+                    <span v-else-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute)))"
+                      class="arrow-down"></span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -420,16 +468,11 @@ l-240 1 -90 -57z"/>
           <div id="legend"></div>
           <div id="legend2">
             <button class="navbtng" v-b-tooltip.hover title="Change Chart View" @click="toggleChartView">{{ chartView
-              }}</button>
-            <button
-    class="navbtng"
-    v-b-tooltip.hover
-    title="Change Chart type"
-    @click="toggleChartType"
-    aria-label="Toggle chart type"
-  >
-    {{ isBarChart ? 'Candlestick' : 'Bar' }}
-  </button>
+            }}</button>
+            <button class="navbtng" v-b-tooltip.hover title="Change Chart type" @click="toggleChartType"
+              aria-label="Toggle chart type">
+              {{ isBarChart ? 'Candlestick' : 'Bar' }}
+            </button>
           </div>
           <div id="legend3"></div>
           <div id="legend4">
@@ -440,51 +483,38 @@ l-240 1 -90 -57z"/>
               <p>HIDDEN LIST</p>
             </div>
           </div>
-         <div id="legend5">
-  <span
-    :style="{ color: 'var(--ma4)', cursor: 'pointer', opacity: showMA4 ? 1 : 0.3 }"
-    @click="showMA4 = !showMA4"
-  >-- 200SMA</span>
-  <span
-    :style="{ color: 'var(--ma3)', cursor: 'pointer', opacity: showMA3 ? 1 : 0.3 }"
-    @click="showMA3 = !showMA3"
-  >-- 50SMA</span>
-  <span
-    :style="{ color: 'var(--ma2)', cursor: 'pointer', opacity: showMA2 ? 1 : 0.3 }"
-    @click="showMA2 = !showMA2"
-  >-- 20SMA</span>
-  <span
-    :style="{ color: 'var(--ma1)', cursor: 'pointer', opacity: showMA1 ? 1 : 0.3 }"
-    @click="showMA1 = !showMA1"
-  >-- 10SMA</span>
-</div>
-          <div id="chartdiv" ref="mainchart" :class="{'chart-loading': isChartLoading}"></div>
+          <div id="legend5">
+            <span :style="{ color: 'var(--ma4)', cursor: 'pointer', opacity: showMA4 ? 1 : 0.3 }"
+              @click="showMA4 = !showMA4">-- 200SMA</span>
+            <span :style="{ color: 'var(--ma3)', cursor: 'pointer', opacity: showMA3 ? 1 : 0.3 }"
+              @click="showMA3 = !showMA3">-- 50SMA</span>
+            <span :style="{ color: 'var(--ma2)', cursor: 'pointer', opacity: showMA2 ? 1 : 0.3 }"
+              @click="showMA2 = !showMA2">-- 20SMA</span>
+            <span :style="{ color: 'var(--ma1)', cursor: 'pointer', opacity: showMA1 ? 1 : 0.3 }"
+              @click="showMA1 = !showMA1">-- 10SMA</span>
+          </div>
+          <div id="chartdiv" ref="mainchart" :class="{ 'chart-loading': isChartLoading }"></div>
           <div class="loading-container" v-if="isChartLoading">
             <Loader />
           </div>
           <div class="loading-container" v-if="isLoading">
             <Loader />
           </div>
-        
+
         </div>
-         <div id="chartdiv2">
-            <img src="@/assets/images/logos/tiingo.png" alt="Image"
-              style="height: 15px; margin-right: 10px; margin-bottom: 7px;">
-            <p style="margin: 0; font-size: 10px;">Core financial data provided by Tiingo.com as of {{ currentDate }} -
-              Any metrics or calculations not directly provided by Tiingo are derived internally using their core data.
-              End-of-day (EOD) data updates occur daily, Monday through Friday, between 6:00 PM and 6:30 PM ET, subject
-              to Tiingo's data availability.</p>
-          </div>
+        <div id="chartdiv2">
+          <img src="@/assets/images/logos/tiingo.png" alt="Image"
+            style="height: 15px; margin-right: 10px; margin-bottom: 7px;">
+          <p style="margin: 0; font-size: 10px;">Core financial data provided by Tiingo.com as of {{ currentDate }} -
+            Any metrics or calculations not directly provided by Tiingo are derived internally using their core data.
+            End-of-day (EOD) data updates occur daily, Monday through Friday, between 6:00 PM and 6:30 PM ET, subject
+            to Tiingo's data availability.</p>
+        </div>
       </div>
       <div id="sidebar-right" :class="{ 'hidden-mobile': selected !== 'watchlists' }">
         <div style="position: sticky; top: 0; z-index: 1000;">
-           <div
-  id="chartdiv-mobile"
-  ref="mainchartMobile"
-  class="mobile-chart"
-  v-show="isMobile"
-></div>
- <div class="loading-container2" v-if="isChartLoading">
+          <div id="chartdiv-mobile" ref="mainchartMobile" class="mobile-chart" v-show="isMobile"></div>
+          <div class="loading-container2" v-if="isChartLoading">
             <Loader />
           </div>
           <div class="loading-container2" v-if="isLoading">
@@ -494,68 +524,181 @@ l-240 1 -90 -57z"/>
             <input type="text" id="searchbar" name="search" placeholder="Search Ticker / ISIN" v-model="searchQuery"
               @input="toUpperCase" @keydown.enter="searchTicker()">
             <button class="wlbtn2" id="searchBtn" @click="searchTicker()" v-b-tooltip.hover title="Search Symbol">
-             <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg></button>
+              <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                    stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                </g>
+              </svg></button>
           </div>
           <div id="wlnav">
-  <div id="realwatchlist" class="select-container" @mouseover="showDropdown = true"
-    @mouseout="showDropdown = false">
-    <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" 
-      :class="{ 'dropdown-icon-hover': showDropdown }" 
-      v-if="!showDropdown">
-  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-  <g id="SVGRepo_iconCarrier"> 
-    <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z" fill="var(--text1)"></path> 
-  </g>
-</svg>
-<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" 
-      :class="{ 'dropdown-icon': showDropdown }" 
-      v-else transform="matrix(1, 0, 0, 1, 0, 0)rotate(180)">
-  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-  <g id="SVGRepo_iconCarrier"> 
-    <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z" fill="var(--text1)"></path> 
-  </g>
-</svg>
-    <p style="font-weight: bold;" class="selected-value" @click.stop="">{{ selectedWatchlist ? selectedWatchlist.Name : (watchlist && watchlist.tickers && watchlist.tickers.length > 0 ? 'Select a watch' : 'No Watchlists') }}</p>
-    <div class="dropdown-container" v-if="watchlist && watchlist.tickers && watchlist.tickers.length > 0">
-      <div class="watchlist-dropdown-menu">
-        <div class="watchlist-item" v-for="watch in watchlist.tickers" :key="watch.Name"
-          :class="{ 'selected': selectedWatchlist && selectedWatchlist.Name === watch.Name }"
-          @click="filterWatchlist(watch)">
-          {{ watch.Name }}
-          <span class="badge">{{ watch.List.length }}</span>
-          <button class="icondlt" id="watchlistDelete" @click.stop="DeleteWatchlist(watch)" v-b-tooltip.hover
-            title="Delete Watchlist">
-           <svg class="imgm" viewBox="0 0 16 16" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" version="1.1" id="svg8" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><metadata id="metadata5"><rdf:rdf><cc:work><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type><dc:title></dc:title><dc:date>2021</dc:date><dc:creator><cc:agent><dc:title>Timothée Giet</dc:title></cc:agent></dc:creator><cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"></cc:license></cc:work><cc:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/"><cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"></cc:permits><cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"></cc:permits><cc:requires rdf:resource="http://creativecommons.org/ns#Notice"></cc:requires><cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"></cc:requires><cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"></cc:permits><cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"></cc:requires></cc:license></rdf:rdf></metadata><rect transform="rotate(45)" ry="0" y="-1" x="4.3137083" height="2" width="14" id="rect1006" style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1"></rect><rect transform="rotate(-45)" ry="0" y="10.313708" x="-7" height="2" width="14" id="rect1006-5" style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1"></rect></g></svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+            <div id="realwatchlist" class="select-container" @mouseover="showDropdown = true"
+              @mouseout="showDropdown = false">
+              <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                :class="{ 'dropdown-icon-hover': showDropdown }" v-if="!showDropdown">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                    d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z"
+                    fill="var(--text1)"></path>
+                </g>
+              </svg>
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                :class="{ 'dropdown-icon': showDropdown }" v-else transform="matrix(1, 0, 0, 1, 0, 0)rotate(180)">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                    d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z"
+                    fill="var(--text1)"></path>
+                </g>
+              </svg>
+              <p style="font-weight: bold;" class="selected-value" @click.stop="">{{ selectedWatchlist ?
+                selectedWatchlist.Name : (watchlist && watchlist.tickers && watchlist.tickers.length > 0 ?
+                  'Select a watch' : 'No Watchlists') }}</p>
+              <div class="dropdown-container" v-if="watchlist && watchlist.tickers && watchlist.tickers.length > 0">
+                <div class="watchlist-dropdown-menu">
+                  <div class="watchlist-item" v-for="watch in watchlist.tickers" :key="watch.Name"
+                    :class="{ 'selected': selectedWatchlist && selectedWatchlist.Name === watch.Name }"
+                    @click="filterWatchlist(watch)">
+                    {{ watch.Name }}
+                    <span class="badge">{{ watch.List.length }}</span>
+                    <button class="icondlt" id="watchlistDelete" @click.stop="DeleteWatchlist(watch)" v-b-tooltip.hover
+                      title="Delete Watchlist">
+                      <svg class="imgm" viewBox="0 0 16 16" xmlns:dc="http://purl.org/dc/elements/1.1/"
+                        xmlns:cc="http://creativecommons.org/ns#"
+                        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg"
+                        version="1.1" id="svg8" fill="var(--text1)">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g id="SVGRepo_iconCarrier">
+                          <metadata id="metadata5">
+                            <rdf:rdf>
+                              <cc:work>
+                                <dc:format>image/svg+xml</dc:format>
+                                <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type>
+                                <dc:title></dc:title>
+                                <dc:date>2021</dc:date>
+                                <dc:creator>
+                                  <cc:agent>
+                                    <dc:title>Timothée Giet</dc:title>
+                                  </cc:agent>
+                                </dc:creator>
+                                <cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"></cc:license>
+                              </cc:work>
+                              <cc:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/">
+                                <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"></cc:permits>
+                                <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"></cc:permits>
+                                <cc:requires rdf:resource="http://creativecommons.org/ns#Notice"></cc:requires>
+                                <cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"></cc:requires>
+                                <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"></cc:permits>
+                                <cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"></cc:requires>
+                              </cc:license>
+                            </rdf:rdf>
+                          </metadata>
+                          <rect transform="rotate(45)" ry="0" y="-1" x="4.3137083" height="2" width="14" id="rect1006"
+                            style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1">
+                          </rect>
+                          <rect transform="rotate(-45)" ry="0" y="10.313708" x="-7" height="2" width="14"
+                            id="rect1006-5"
+                            style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1">
+                          </rect>
+                        </g>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
             <button class="navbtn" @click="addWatchlist()" v-b-tooltip.hover title="Add ticker to watchlist">
-              <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M4 12H20M12 4V20" stroke="var(--text1)" stroke-width="1.9440000000000002" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg> 
+              <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path d="M4 12H20M12 4V20" stroke="var(--text1)" stroke-width="1.9440000000000002"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </g>
+              </svg>
               <span>Add Symbol</span>
             </button>
             <div class="wlnav-dropdown">
               <button class="dropdown-toggle wlbtn" v-b-tooltip.hover title="More Options">
-               <svg class="img" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--text1)"></path> <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--text1)"></path> <path d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z" fill="var(--text1)"></path> </g></svg>
+                <svg class="img" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z"
+                      fill="var(--text1)"></path>
+                    <path
+                      d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z"
+                      fill="var(--text1)"></path>
+                    <path
+                      d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z"
+                      fill="var(--text1)"></path>
+                  </g>
+                </svg>
               </button>
               <div class="dropdown-vnav">
                 <div class="watchlist-dropdown-menu2">
                   <button class="dropdown-item" @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Watchlist">
-                    <svg class="img4" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="var(--text1)" fill-rule="evenodd" d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z"></path> </g></svg> Autoplay
+                    <svg class="img4" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
+                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                      <g id="SVGRepo_iconCarrier">
+                        <path fill="var(--text1)" fill-rule="evenodd"
+                          d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z">
+                        </path>
+                      </g>
+                    </svg> Autoplay
                   </button>
                   <button class="dropdown-item" @click="showCreateNote = true" v-b-tooltip.hover title="Create a Note">
-                   <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="File / Note_Edit"> <path id="Vector" d="M10.0002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2839 19.7822 18.9076C20 18.4802 20 17.921 20 16.8031V14M16 5L10 11V14H13L19 8M16 5L19 2L22 5L19 8M16 5L19 8" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg> Create Note
+                    <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                      <g id="SVGRepo_iconCarrier">
+                        <g id="File / Note_Edit">
+                          <path id="Vector"
+                            d="M10.0002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2839 19.7822 18.9076C20 18.4802 20 17.921 20 16.8031V14M16 5L10 11V14H13L19 8M16 5L19 2L22 5L19 8M16 5L19 8"
+                            stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          </path>
+                        </g>
+                      </g>
+                    </svg> Create Note
                   </button>
                   <button class="dropdown-item" @click="showCreateWatchlist = true" v-b-tooltip.hover
                     title="Create New Watchlist">
-                   <svg class="img4" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32.219 32.219" xml:space="preserve" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path style="fill:var(--text1);" d="M32.144,12.402c-0.493-1.545-3.213-1.898-6.09-2.277c-1.578-0.209-3.373-0.445-3.914-0.844 c-0.543-0.398-1.304-2.035-1.978-3.482C18.94,3.17,17.786,0.686,16.166,0.68l-0.03-0.003c-1.604,0.027-2.773,2.479-4.016,5.082 c-0.684,1.439-1.463,3.07-2.005,3.463c-0.551,0.394-2.342,0.613-3.927,0.803c-2.877,0.352-5.598,0.68-6.108,2.217 c-0.507,1.539,1.48,3.424,3.587,5.424c1.156,1.094,2.465,2.34,2.67,2.98c0.205,0.639-0.143,2.414-0.448,3.977 c-0.557,2.844-1.084,5.535,0.219,6.5c0.312,0.225,0.704,0.338,1.167,0.328c1.331-0.023,3.247-1.059,5.096-2.062 c1.387-0.758,2.961-1.611,3.661-1.621c0.675,0.002,2.255,0.881,3.647,1.654c1.891,1.051,3.852,2.139,5.185,2.119 c0.414-0.01,0.771-0.117,1.06-0.322c1.312-0.947,0.814-3.639,0.285-6.494c-0.289-1.564-0.615-3.344-0.409-3.982 c0.213-0.639,1.537-1.867,2.702-2.955C30.628,15.808,32.634,13.945,32.144,12.402z M21.473,19.355h-3.722v3.797h-3.237v-3.797 h-3.768v-3.238h3.768v-3.691h3.237v3.691h3.722V19.355z"></path> </g> </g></svg> New Watchlist
+                    <svg class="img4" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
+                      xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32.219 32.219" xml:space="preserve"
+                      fill="var(--text1)">
+                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                      <g id="SVGRepo_iconCarrier">
+                        <g>
+                          <path style="fill:var(--text1);"
+                            d="M32.144,12.402c-0.493-1.545-3.213-1.898-6.09-2.277c-1.578-0.209-3.373-0.445-3.914-0.844 c-0.543-0.398-1.304-2.035-1.978-3.482C18.94,3.17,17.786,0.686,16.166,0.68l-0.03-0.003c-1.604,0.027-2.773,2.479-4.016,5.082 c-0.684,1.439-1.463,3.07-2.005,3.463c-0.551,0.394-2.342,0.613-3.927,0.803c-2.877,0.352-5.598,0.68-6.108,2.217 c-0.507,1.539,1.48,3.424,3.587,5.424c1.156,1.094,2.465,2.34,2.67,2.98c0.205,0.639-0.143,2.414-0.448,3.977 c-0.557,2.844-1.084,5.535,0.219,6.5c0.312,0.225,0.704,0.338,1.167,0.328c1.331-0.023,3.247-1.059,5.096-2.062 c1.387-0.758,2.961-1.611,3.661-1.621c0.675,0.002,2.255,0.881,3.647,1.654c1.891,1.051,3.852,2.139,5.185,2.119 c0.414-0.01,0.771-0.117,1.06-0.322c1.312-0.947,0.814-3.639,0.285-6.494c-0.289-1.564-0.615-3.344-0.409-3.982 c0.213-0.639,1.537-1.867,2.702-2.955C30.628,15.808,32.634,13.945,32.144,12.402z M21.473,19.355h-3.722v3.797h-3.237v-3.797 h-3.768v-3.238h3.768v-3.691h3.237v3.691h3.722V19.355z">
+                          </path>
+                        </g>
+                      </g>
+                    </svg> New Watchlist
                   </button>
                   <button class="dropdown-item" @click="showRenameWatchlist = true" v-b-tooltip.hover
                     title="Rename Watchlist">
-                   <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path> <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path> <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path> </g></svg> Rename Watchlist
+                    <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                      <g id="SVGRepo_iconCarrier">
+                        <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2">
+                        </path>
+                        <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
+                        <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2">
+                        </path>
+                      </g>
+                    </svg> Rename Watchlist
                   </button>
                 </div>
               </div>
@@ -565,13 +708,49 @@ l-240 1 -90 -57z"/>
             <div class="ntbl" style="flex: 0.5"></div>
             <div class="ntbl" style="flex: 1"></div>
             <div class="tbl" style="flex: 1" @click="sortTable('ticker')">
-              <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M16 5.25C16.2029 5.25 16.3972 5.33222 16.5384 5.47789L20.5384 9.60289C20.8268 9.90025 20.8195 10.3751 20.5221 10.6634C20.2247 10.9518 19.7499 10.9445 19.4616 10.6471L16.75 7.8508L16.75 18C16.75 18.4142 16.4142 18.75 16 18.75C15.5858 18.75 15.25 18.4142 15.25 18L15.25 7.8508L12.5384 10.6471C12.2501 10.9445 11.7753 10.9518 11.4779 10.6634C11.1805 10.3751 11.1732 9.90025 11.4616 9.60289L15.4616 5.47789C15.6028 5.33222 15.7971 5.25 16 5.25ZM8 5.25C8.41421 5.25 8.75 5.58579 8.75 6L8.75 16.1492L11.4616 13.3529C11.7499 13.0555 12.2247 13.0482 12.5221 13.3366C12.8195 13.6249 12.8268 14.0997 12.5384 14.3971L8.53843 18.5221C8.39717 18.6678 8.20291 18.75 8 18.75C7.79709 18.75 7.60283 18.6678 7.46158 18.5221L3.46158 14.3971C3.17322 14.0997 3.18053 13.6249 3.47789 13.3366C3.77526 13.0482 4.25007 13.0555 4.53843 13.3529L7.25 16.1492L7.25 6C7.25 5.58579 7.58579 5.25 8 5.25Z" fill="var(--text1)"></path> </g></svg> Ticker</div>
+              <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                    d="M16 5.25C16.2029 5.25 16.3972 5.33222 16.5384 5.47789L20.5384 9.60289C20.8268 9.90025 20.8195 10.3751 20.5221 10.6634C20.2247 10.9518 19.7499 10.9445 19.4616 10.6471L16.75 7.8508L16.75 18C16.75 18.4142 16.4142 18.75 16 18.75C15.5858 18.75 15.25 18.4142 15.25 18L15.25 7.8508L12.5384 10.6471C12.2501 10.9445 11.7753 10.9518 11.4779 10.6634C11.1805 10.3751 11.1732 9.90025 11.4616 9.60289L15.4616 5.47789C15.6028 5.33222 15.7971 5.25 16 5.25ZM8 5.25C8.41421 5.25 8.75 5.58579 8.75 6L8.75 16.1492L11.4616 13.3529C11.7499 13.0555 12.2247 13.0482 12.5221 13.3366C12.8195 13.6249 12.8268 14.0997 12.5384 14.3971L8.53843 18.5221C8.39717 18.6678 8.20291 18.75 8 18.75C7.79709 18.75 7.60283 18.6678 7.46158 18.5221L3.46158 14.3971C3.17322 14.0997 3.18053 13.6249 3.47789 13.3366C3.77526 13.0482 4.25007 13.0555 4.53843 13.3529L7.25 16.1492L7.25 6C7.25 5.58579 7.58579 5.25 8 5.25Z"
+                    fill="var(--text1)"></path>
+                </g>
+              </svg> Ticker
+            </div>
             <div class="tbl" style="flex: 1" @click="sortTable('last')">
-              <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M16 5.25C16.2029 5.25 16.3972 5.33222 16.5384 5.47789L20.5384 9.60289C20.8268 9.90025 20.8195 10.3751 20.5221 10.6634C20.2247 10.9518 19.7499 10.9445 19.4616 10.6471L16.75 7.8508L16.75 18C16.75 18.4142 16.4142 18.75 16 18.75C15.5858 18.75 15.25 18.4142 15.25 18L15.25 7.8508L12.5384 10.6471C12.2501 10.9445 11.7753 10.9518 11.4779 10.6634C11.1805 10.3751 11.1732 9.90025 11.4616 9.60289L15.4616 5.47789C15.6028 5.33222 15.7971 5.25 16 5.25ZM8 5.25C8.41421 5.25 8.75 5.58579 8.75 6L8.75 16.1492L11.4616 13.3529C11.7499 13.0555 12.2247 13.0482 12.5221 13.3366C12.8195 13.6249 12.8268 14.0997 12.5384 14.3971L8.53843 18.5221C8.39717 18.6678 8.20291 18.75 8 18.75C7.79709 18.75 7.60283 18.6678 7.46158 18.5221L3.46158 14.3971C3.17322 14.0997 3.18053 13.6249 3.47789 13.3366C3.77526 13.0482 4.25007 13.0555 4.53843 13.3529L7.25 16.1492L7.25 6C7.25 5.58579 7.58579 5.25 8 5.25Z" fill="var(--text1)"></path> </g></svg>Last</div>
+              <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                    d="M16 5.25C16.2029 5.25 16.3972 5.33222 16.5384 5.47789L20.5384 9.60289C20.8268 9.90025 20.8195 10.3751 20.5221 10.6634C20.2247 10.9518 19.7499 10.9445 19.4616 10.6471L16.75 7.8508L16.75 18C16.75 18.4142 16.4142 18.75 16 18.75C15.5858 18.75 15.25 18.4142 15.25 18L15.25 7.8508L12.5384 10.6471C12.2501 10.9445 11.7753 10.9518 11.4779 10.6634C11.1805 10.3751 11.1732 9.90025 11.4616 9.60289L15.4616 5.47789C15.6028 5.33222 15.7971 5.25 16 5.25ZM8 5.25C8.41421 5.25 8.75 5.58579 8.75 6L8.75 16.1492L11.4616 13.3529C11.7499 13.0555 12.2247 13.0482 12.5221 13.3366C12.8195 13.6249 12.8268 14.0997 12.5384 14.3971L8.53843 18.5221C8.39717 18.6678 8.20291 18.75 8 18.75C7.79709 18.75 7.60283 18.6678 7.46158 18.5221L3.46158 14.3971C3.17322 14.0997 3.18053 13.6249 3.47789 13.3366C3.77526 13.0482 4.25007 13.0555 4.53843 13.3529L7.25 16.1492L7.25 6C7.25 5.58579 7.58579 5.25 8 5.25Z"
+                    fill="var(--text1)"></path>
+                </g>
+              </svg>Last
+            </div>
             <div class="tbl" style="flex: 1" @click="sortTable('chg')">
-              <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M16 5.25C16.2029 5.25 16.3972 5.33222 16.5384 5.47789L20.5384 9.60289C20.8268 9.90025 20.8195 10.3751 20.5221 10.6634C20.2247 10.9518 19.7499 10.9445 19.4616 10.6471L16.75 7.8508L16.75 18C16.75 18.4142 16.4142 18.75 16 18.75C15.5858 18.75 15.25 18.4142 15.25 18L15.25 7.8508L12.5384 10.6471C12.2501 10.9445 11.7753 10.9518 11.4779 10.6634C11.1805 10.3751 11.1732 9.90025 11.4616 9.60289L15.4616 5.47789C15.6028 5.33222 15.7971 5.25 16 5.25ZM8 5.25C8.41421 5.25 8.75 5.58579 8.75 6L8.75 16.1492L11.4616 13.3529C11.7499 13.0555 12.2247 13.0482 12.5221 13.3366C12.8195 13.6249 12.8268 14.0997 12.5384 14.3971L8.53843 18.5221C8.39717 18.6678 8.20291 18.75 8 18.75C7.79709 18.75 7.60283 18.6678 7.46158 18.5221L3.46158 14.3971C3.17322 14.0997 3.18053 13.6249 3.47789 13.3366C3.77526 13.0482 4.25007 13.0555 4.53843 13.3529L7.25 16.1492L7.25 6C7.25 5.58579 7.58579 5.25 8 5.25Z" fill="var(--text1)"></path> </g></svg>Chg</div>
+              <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                    d="M16 5.25C16.2029 5.25 16.3972 5.33222 16.5384 5.47789L20.5384 9.60289C20.8268 9.90025 20.8195 10.3751 20.5221 10.6634C20.2247 10.9518 19.7499 10.9445 19.4616 10.6471L16.75 7.8508L16.75 18C16.75 18.4142 16.4142 18.75 16 18.75C15.5858 18.75 15.25 18.4142 15.25 18L15.25 7.8508L12.5384 10.6471C12.2501 10.9445 11.7753 10.9518 11.4779 10.6634C11.1805 10.3751 11.1732 9.90025 11.4616 9.60289L15.4616 5.47789C15.6028 5.33222 15.7971 5.25 16 5.25ZM8 5.25C8.41421 5.25 8.75 5.58579 8.75 6L8.75 16.1492L11.4616 13.3529C11.7499 13.0555 12.2247 13.0482 12.5221 13.3366C12.8195 13.6249 12.8268 14.0997 12.5384 14.3971L8.53843 18.5221C8.39717 18.6678 8.20291 18.75 8 18.75C7.79709 18.75 7.60283 18.6678 7.46158 18.5221L3.46158 14.3971C3.17322 14.0997 3.18053 13.6249 3.47789 13.3366C3.77526 13.0482 4.25007 13.0555 4.53843 13.3529L7.25 16.1492L7.25 6C7.25 5.58579 7.58579 5.25 8 5.25Z"
+                    fill="var(--text1)"></path>
+                </g>
+              </svg>Chg
+            </div>
             <div class="tbl" style="flex: 1" @click="sortTable('perc')">
-              <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M16 5.25C16.2029 5.25 16.3972 5.33222 16.5384 5.47789L20.5384 9.60289C20.8268 9.90025 20.8195 10.3751 20.5221 10.6634C20.2247 10.9518 19.7499 10.9445 19.4616 10.6471L16.75 7.8508L16.75 18C16.75 18.4142 16.4142 18.75 16 18.75C15.5858 18.75 15.25 18.4142 15.25 18L15.25 7.8508L12.5384 10.6471C12.2501 10.9445 11.7753 10.9518 11.4779 10.6634C11.1805 10.3751 11.1732 9.90025 11.4616 9.60289L15.4616 5.47789C15.6028 5.33222 15.7971 5.25 16 5.25ZM8 5.25C8.41421 5.25 8.75 5.58579 8.75 6L8.75 16.1492L11.4616 13.3529C11.7499 13.0555 12.2247 13.0482 12.5221 13.3366C12.8195 13.6249 12.8268 14.0997 12.5384 14.3971L8.53843 18.5221C8.39717 18.6678 8.20291 18.75 8 18.75C7.79709 18.75 7.60283 18.6678 7.46158 18.5221L3.46158 14.3971C3.17322 14.0997 3.18053 13.6249 3.47789 13.3366C3.77526 13.0482 4.25007 13.0555 4.53843 13.3529L7.25 16.1492L7.25 6C7.25 5.58579 7.58579 5.25 8 5.25Z" fill="var(--text1)"></path> </g></svg>%</div>
+              <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                    d="M16 5.25C16.2029 5.25 16.3972 5.33222 16.5384 5.47789L20.5384 9.60289C20.8268 9.90025 20.8195 10.3751 20.5221 10.6634C20.2247 10.9518 19.7499 10.9445 19.4616 10.6471L16.75 7.8508L16.75 18C16.75 18.4142 16.4142 18.75 16 18.75C15.5858 18.75 15.25 18.4142 15.25 18L15.25 7.8508L12.5384 10.6471C12.2501 10.9445 11.7753 10.9518 11.4779 10.6634C11.1805 10.3751 11.1732 9.90025 11.4616 9.60289L15.4616 5.47789C15.6028 5.33222 15.7971 5.25 16 5.25ZM8 5.25C8.41421 5.25 8.75 5.58579 8.75 6L8.75 16.1492L11.4616 13.3529C11.7499 13.0555 12.2247 13.0482 12.5221 13.3366C12.8195 13.6249 12.8268 14.0997 12.5384 14.3971L8.53843 18.5221C8.39717 18.6678 8.20291 18.75 8 18.75C7.79709 18.75 7.60283 18.6678 7.46158 18.5221L3.46158 14.3971C3.17322 14.0997 3.18053 13.6249 3.47789 13.3366C3.77526 13.0482 4.25007 13.0555 4.53843 13.3529L7.25 16.1492L7.25 6C7.25 5.58579 7.58579 5.25 8 5.25Z"
+                    fill="var(--text1)"></path>
+                </g>
+              </svg>%
+            </div>
           </div>
         </div>
         <div v-if="isLoading2" style="position: relative; height: 100%;">
@@ -580,80 +759,162 @@ l-240 1 -90 -57z"/>
           </div>
         </div>
         <div v-else>
-  <div id="list" ref="watchlistContainer" tabindex="0" @keydown="handleKeydown" @click="handleClick">
-    <div v-if="watchlist2.tickers && watchlist2.tickers.length > 0">
-      <div ref="sortable">
-        <div v-for="item in watchlist2.tickers" :key="item"
-          :class="{ 'selected': selectedItem === item, 'wlist': true }" @click="selectRow(item)">
-          <div style="flex: 0.5; position: relative;">
-            <button class="dropdown-btn">
-              <svg class="imgm" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--text1)"></path> <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--text1)"></path> <path d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z" fill="var(--text1)"></path> </g></svg>
-            </button>
-            <div class="dropdown-menu3">
-              <div class="watchlist-dropdown-menu3">
-                <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
-                  <label :for="'watchlist-' + index" class="checkbox-label">
-                   <div @click.stop="toggleWatchlist(ticker, item)" style="cursor: pointer;">
-  <svg width="24" height="24" v-if="isAssetInWatchlist(ticker.Name, item)" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier"> 
-      <g id="Interface / Checkbox_Check"> 
-        <path id="Vector" d="M8 12L11 15L16 9M4 16.8002V7.2002C4 6.08009 4 5.51962 4.21799 5.0918C4.40973 4.71547 4.71547 4.40973 5.0918 4.21799C5.51962 4 6.08009 4 7.2002 4H16.8002C17.9203 4 18.4796 4 18.9074 4.21799C19.2837 4.40973 19.5905 4.71547 19.7822 5.0918C20 5.5192 20 6.07899 20 7.19691V16.8036C20 17.9215 20 18.4805 19.7822 18.9079C19.5905 19.2842 19.2837 19.5905 18.9074 19.7822C18.48 20 17.921 20 16.8031 20H7.19691C6.07899 20 5.5192 20 5.0918 19.7822C4.71547 19.5905 4.40973 19.2842 4.21799 18.9079C4 18.4801 4 17.9203 4 16.8002Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> 
-      </g> 
-    </g>
-  </svg>
-  <svg width="24" height="24" v-else viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier"> 
-      <g id="Interface / Checkbox_Unchecked"> 
-        <path id="Vector" d="M4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2842 19.7822 18.9079C20 18.4805 20 17.9215 20 16.8036V7.19691C20 6.07899 20 5.5192 19.7822 5.0918C19.5905 4.71547 19.2837 4.40973 18.9074 4.21799C18.4796 4 17.9203 4 16.8002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> 
-      </g> 
-    </g>
-  </svg>
-</div>
-                    <span class="checkmark"></span>
-                    {{ ticker.Name }}
-                  </label>
+          <div id="list" ref="watchlistContainer" tabindex="0" @keydown="handleKeydown" @click="handleClick">
+            <div v-if="watchlist2.tickers && watchlist2.tickers.length > 0">
+              <div ref="sortable">
+                <div v-for="item in watchlist2.tickers" :key="item"
+                  :class="{ 'selected': selectedItem === item, 'wlist': true }" @click="selectRow(item)">
+                  <div style="flex: 0.5; position: relative;">
+                    <button class="dropdown-btn">
+                      <svg class="imgm" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g id="SVGRepo_iconCarrier">
+                          <path
+                            d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z"
+                            fill="var(--text1)"></path>
+                          <path
+                            d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z"
+                            fill="var(--text1)"></path>
+                          <path
+                            d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z"
+                            fill="var(--text1)"></path>
+                        </g>
+                      </svg>
+                    </button>
+                    <div class="dropdown-menu3">
+                      <div class="watchlist-dropdown-menu3">
+                        <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
+                          <label :for="'watchlist-' + index" class="checkbox-label">
+                            <div @click.stop="toggleWatchlist(ticker, item)" style="cursor: pointer;">
+                              <svg width="24" height="24" v-if="isAssetInWatchlist(ticker.Name, item)"
+                                viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                <g id="SVGRepo_iconCarrier">
+                                  <g id="Interface / Checkbox_Check">
+                                    <path id="Vector"
+                                      d="M8 12L11 15L16 9M4 16.8002V7.2002C4 6.08009 4 5.51962 4.21799 5.0918C4.40973 4.71547 4.71547 4.40973 5.0918 4.21799C5.51962 4 6.08009 4 7.2002 4H16.8002C17.9203 4 18.4796 4 18.9074 4.21799C19.2837 4.40973 19.5905 4.71547 19.7822 5.0918C20 5.5192 20 6.07899 20 7.19691V16.8036C20 17.9215 20 18.4805 19.7822 18.9079C19.5905 19.2842 19.2837 19.5905 18.9074 19.7822C18.48 20 17.921 20 16.8031 20H7.19691C6.07899 20 5.5192 20 5.0918 19.7822C4.71547 19.5905 4.40973 19.2842 4.21799 18.9079C4 18.4801 4 17.9203 4 16.8002Z"
+                                      stroke="var(--text1)" stroke-width="2" stroke-linecap="round"
+                                      stroke-linejoin="round">
+                                    </path>
+                                  </g>
+                                </g>
+                              </svg>
+                              <svg width="24" height="24" v-else viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                <g id="SVGRepo_iconCarrier">
+                                  <g id="Interface / Checkbox_Unchecked">
+                                    <path id="Vector"
+                                      d="M4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2842 19.7822 18.9079C20 18.4805 20 17.9215 20 16.8036V7.19691C20 6.07899 20 5.5192 19.7822 5.0918C19.5905 4.71547 19.2837 4.40973 18.9074 4.21799C18.4796 4 17.9203 4 16.8002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002Z"
+                                      stroke="var(--text1)" stroke-width="2" stroke-linecap="round"
+                                      stroke-linejoin="round">
+                                    </path>
+                                  </g>
+                                </g>
+                              </svg>
+                            </div>
+                            <span class="checkmark"></span>
+                            {{ ticker.Name }}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div style="flex: 1; text-align: center;">
+                    <img class="cmp-logo" :src="getImagePath(item)" alt="" />
+                  </div>
+                  <div style="flex: 1; text-align: center;" class="btsymbol">{{ item }}</div>
+                  <div style="flex: 1; text-align: center;">{{ quotes[item] }}</div>
+                  <div style="flex: 1; text-align: center;" :class="changes[item] > 0 ? 'positive' : 'negative'">{{
+                    changes[item] }}</div>
+                  <div style="flex: 1; text-align: center;" :class="perc[item] > 0 ? 'positive' : 'negative'">{{
+                    perc[item] }}%</div>
+                  <div class="delete-cell" style="position: relative;">
+                    <button class="dbtn" @click="deleteTicker(item)" style="position: absolute; right: 0;" @click.stop>
+                      <svg class="imgm" viewBox="0 0 16 16" xmlns:dc="http://purl.org/dc/elements/1.1/"
+                        xmlns:cc="http://creativecommons.org/ns#"
+                        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg"
+                        version="1.1" id="svg8" fill="var(--text1)">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g id="SVGRepo_iconCarrier">
+                          <metadata id="metadata5">
+                            <rdf:rdf>
+                              <cc:work>
+                                <dc:format>image/svg+xml</dc:format>
+                                <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type>
+                                <dc:title></dc:title>
+                                <dc:date>2021</dc:date>
+                                <dc:creator>
+                                  <cc:agent>
+                                    <dc:title>Timothée Giet</dc:title>
+                                  </cc:agent>
+                                </dc:creator>
+                                <cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"></cc:license>
+                              </cc:work>
+                              <cc:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/">
+                                <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"></cc:permits>
+                                <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"></cc:permits>
+                                <cc:requires rdf:resource="http://creativecommons.org/ns#Notice"></cc:requires>
+                                <cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"></cc:requires>
+                                <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"></cc:permits>
+                                <cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"></cc:requires>
+                              </cc:license>
+                            </rdf:rdf>
+                          </metadata>
+                          <rect transform="rotate(45)" ry="0" y="-1" x="4.3137083" height="2" width="14" id="rect1006"
+                            style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1">
+                          </rect>
+                          <rect transform="rotate(-45)" ry="0" y="10.313708" x="-7" height="2" width="14"
+                            id="rect1006-5"
+                            style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1">
+                          </rect>
+                        </g>
+                      </svg></button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div style="flex: 1; text-align: center;">
-            <img class="cmp-logo" :src="getImagePath(item)" alt="" />
-          </div>
-          <div style="flex: 1; text-align: center;" class="btsymbol">{{ item }}</div>
-          <div style="flex: 1; text-align: center;">{{ quotes[item] }}</div>
-          <div style="flex: 1; text-align: center;" :class="changes[item] > 0 ? 'positive' : 'negative'">{{
-            changes[item] }}</div>
-          <div style="flex: 1; text-align: center;" :class="perc[item] > 0 ? 'positive' : 'negative'">{{
-            perc[item] }}%</div>
-          <div class="delete-cell" style="position: relative;">
-            <button class="dbtn" @click="deleteTicker(item)" style="position: absolute; right: 0;"
-              @click.stop> <svg class="imgm" viewBox="0 0 16 16" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" version="1.1" id="svg8" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><metadata id="metadata5"><rdf:rdf><cc:work><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type><dc:title></dc:title><dc:date>2021</dc:date><dc:creator><cc:agent><dc:title>Timothée Giet</dc:title></cc:agent></dc:creator><cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"></cc:license></cc:work><cc:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/"><cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"></cc:permits><cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"></cc:permits><cc:requires rdf:resource="http://creativecommons.org/ns#Notice"></cc:requires><cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"></cc:requires><cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"></cc:permits><cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"></cc:requires></cc:license></rdf:rdf></metadata><rect transform="rotate(45)" ry="0" y="-1" x="4.3137083" height="2" width="14" id="rect1006" style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1"></rect><rect transform="rotate(-45)" ry="0" y="10.313708" x="-7" height="2" width="14" id="rect1006-5" style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1"></rect></g></svg></button>
+            <div v-else class="empty-list-message">
+              <svg fill="var(--text1)" height="20px" width="20px" version="1.1" id="Layer_1"
+                xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512"
+                xml:space="preserve">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <g>
+                    <g>
+                      <path
+                        d="M493.297,159.693c-12.477-30.878-31.231-59.828-56.199-84.792c-24.964-24.967-53.914-43.722-84.793-56.199 C321.426,6.222,288.617,0,255.823,0c-32.748,0-65.497,6.249-96.315,18.743c-30.814,12.491-59.695,31.244-84.607,56.159 c-24.915,24.912-43.668,53.793-56.158,84.607C6.25,190.325,0.001,223.073,0.001,255.823c0,32.794,6.222,65.602,18.701,96.484 c12.477,30.878,31.231,59.828,56.199,84.793c24.964,24.967,53.914,43.722,84.792,56.199c30.882,12.48,63.69,18.701,96.484,18.701 c32.748,0,65.497-6.249,96.314-18.743c30.814-12.49,59.695-31.242,84.607-56.158c24.917-24.913,43.67-53.794,56.16-84.608 c12.493-30.817,18.743-63.566,18.743-96.315C511.999,223.383,505.778,190.575,493.297,159.693z M461.611,339.661 c-10.821,26.683-27.019,51.648-48.659,73.291c-21.643,21.64-46.608,37.837-73.292,48.657 c-26.679,10.818-55.078,16.241-83.484,16.241c-28.477,0-56.947-5.405-83.688-16.213c-26.744-10.813-51.76-27.007-73.441-48.685 c-21.678-21.682-37.873-46.697-48.685-73.441C39.554,312.77,34.149,284.3,34.149,255.823c0-28.406,5.423-56.804,16.241-83.484 c10.821-26.683,27.018-51.648,48.659-73.291c21.643-21.64,46.608-37.837,73.291-48.659c26.679-10.818,55.078-16.241,83.484-16.241 c28.477,0,56.947,5.405,83.688,16.214c26.744,10.813,51.76,27.008,73.441,48.685c21.677,21.681,37.873,46.697,48.685,73.441 c10.808,26.741,16.214,55.211,16.214,83.688C477.852,284.583,472.429,312.981,461.611,339.661z">
+                      </path>
+                    </g>
+                  </g>
+                  <g>
+                    <g>
+                      <path
+                        d="M385.946,126.055c-6.524-6.525-17.102-6.525-23.626,0l-36.278,36.278c-7.82-5.861-16.298-10.691-25.249-14.389 c-14.036-5.803-29.225-8.832-44.792-8.83c-15.572-0.002-30.761,3.027-44.797,8.83c-14.037,5.799-26.917,14.372-37.901,25.36 c-11.376,11.375-19.956,24.598-25.656,38.689c-5.704,14.094-8.547,29.054-8.548,44.007c0,14.954,2.843,29.914,8.548,44.007 c3.693,9.131,8.603,17.892,14.691,26.027l-36.285,36.285c-6.524,6.524-6.524,17.102,0,23.627c6.525,6.524,17.102,6.524,23.627,0 l36.278-36.278c7.82,5.861,16.298,10.691,25.249,14.389c14.036,5.803,29.225,8.832,44.792,8.83 c15.572,0.002,30.761-3.027,44.797-8.83c14.037-5.799,26.917-14.372,37.901-25.359c11.376-11.375,19.955-24.599,25.656-38.689 c5.704-14.094,8.547-29.054,8.548-44.007c0-14.954-2.843-29.914-8.548-44.008c-3.693-9.131-8.603-17.892-14.691-26.027 l36.285-36.285C392.47,143.157,392.47,132.579,385.946,126.055z M178.621,287.472c-4.066-10.044-6.108-20.754-6.107-31.471 c0-10.717,2.042-21.428,6.107-31.472c4.07-10.047,10.146-19.431,18.31-27.599c7.908-7.906,17.06-13.98,27.036-18.106 c9.978-4.122,20.783-6.295,32.033-6.296c11.245,0.002,22.051,2.174,32.03,6.297c4.897,2.025,9.593,4.525,14.044,7.476 L186.305,302.069C183.229,297.418,180.669,292.53,178.621,287.472z M333.38,287.472c-4.07,10.047-10.146,19.431-18.31,27.599 c-7.908,7.906-17.06,13.98-27.036,18.106c-9.978,4.122-20.783,6.295-32.033,6.296c-11.245-0.002-22.05-2.174-32.03-6.297 c-4.897-2.025-9.593-4.526-14.044-7.476l115.769-115.769c3.076,4.651,5.636,9.539,7.684,14.597 c4.066,10.044,6.108,20.754,6.107,31.472C339.488,266.717,337.446,277.427,333.38,287.472z">
+                      </path>
+                    </g>
+                  </g>
+                </g>
+              </svg>
+              <p>This list is empty</p>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-    <div v-else class="empty-list-message">
-      <svg fill="var(--text1)" height="20px" width="20px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M493.297,159.693c-12.477-30.878-31.231-59.828-56.199-84.792c-24.964-24.967-53.914-43.722-84.793-56.199 C321.426,6.222,288.617,0,255.823,0c-32.748,0-65.497,6.249-96.315,18.743c-30.814,12.491-59.695,31.244-84.607,56.159 c-24.915,24.912-43.668,53.793-56.158,84.607C6.25,190.325,0.001,223.073,0.001,255.823c0,32.794,6.222,65.602,18.701,96.484 c12.477,30.878,31.231,59.828,56.199,84.793c24.964,24.967,53.914,43.722,84.792,56.199c30.882,12.48,63.69,18.701,96.484,18.701 c32.748,0,65.497-6.249,96.314-18.743c30.814-12.49,59.695-31.242,84.607-56.158c24.917-24.913,43.67-53.794,56.16-84.608 c12.493-30.817,18.743-63.566,18.743-96.315C511.999,223.383,505.778,190.575,493.297,159.693z M461.611,339.661 c-10.821,26.683-27.019,51.648-48.659,73.291c-21.643,21.64-46.608,37.837-73.292,48.657 c-26.679,10.818-55.078,16.241-83.484,16.241c-28.477,0-56.947-5.405-83.688-16.213c-26.744-10.813-51.76-27.007-73.441-48.685 c-21.678-21.682-37.873-46.697-48.685-73.441C39.554,312.77,34.149,284.3,34.149,255.823c0-28.406,5.423-56.804,16.241-83.484 c10.821-26.683,27.018-51.648,48.659-73.291c21.643-21.64,46.608-37.837,73.291-48.659c26.679-10.818,55.078-16.241,83.484-16.241 c28.477,0,56.947,5.405,83.688,16.214c26.744,10.813,51.76,27.008,73.441,48.685c21.677,21.681,37.873,46.697,48.685,73.441 c10.808,26.741,16.214,55.211,16.214,83.688C477.852,284.583,472.429,312.981,461.611,339.661z"></path> </g> </g> <g> <g> <path d="M385.946,126.055c-6.524-6.525-17.102-6.525-23.626,0l-36.278,36.278c-7.82-5.861-16.298-10.691-25.249-14.389 c-14.036-5.803-29.225-8.832-44.792-8.83c-15.572-0.002-30.761,3.027-44.797,8.83c-14.037,5.799-26.917,14.372-37.901,25.36 c-11.376,11.375-19.956,24.598-25.656,38.689c-5.704,14.094-8.547,29.054-8.548,44.007c0,14.954,2.843,29.914,8.548,44.007 c3.693,9.131,8.603,17.892,14.691,26.027l-36.285,36.285c-6.524,6.524-6.524,17.102,0,23.627c6.525,6.524,17.102,6.524,23.627,0 l36.278-36.278c7.82,5.861,16.298,10.691,25.249,14.389c14.036,5.803,29.225,8.832,44.792,8.83 c15.572,0.002,30.761-3.027,44.797-8.83c14.037-5.799,26.917-14.372,37.901-25.359c11.376-11.375,19.955-24.599,25.656-38.689 c5.704-14.094,8.547-29.054,8.548-44.007c0-14.954-2.843-29.914-8.548-44.008c-3.693-9.131-8.603-17.892-14.691-26.027 l36.285-36.285C392.47,143.157,392.47,132.579,385.946,126.055z M178.621,287.472c-4.066-10.044-6.108-20.754-6.107-31.471 c0-10.717,2.042-21.428,6.107-31.472c4.07-10.047,10.146-19.431,18.31-27.599c7.908-7.906,17.06-13.98,27.036-18.106 c9.978-4.122,20.783-6.295,32.033-6.296c11.245,0.002,22.051,2.174,32.03,6.297c4.897,2.025,9.593,4.525,14.044,7.476 L186.305,302.069C183.229,297.418,180.669,292.53,178.621,287.472z M333.38,287.472c-4.07,10.047-10.146,19.431-18.31,27.599 c-7.908,7.906-17.06,13.98-27.036,18.106c-9.978,4.122-20.783,6.295-32.033,6.296c-11.245-0.002-22.05-2.174-32.03-6.297 c-4.897-2.025-9.593-4.526-14.044-7.476l115.769-115.769c3.076,4.651,5.636,9.539,7.684,14.597 c4.066,10.044,6.108,20.754,6.107,31.472C339.488,266.717,337.446,277.427,333.38,287.472z"></path> </g> </g> </g></svg>
-      <p>This list is empty</p>
-    </div>
-  </div>
-</div>
         <div class="results2"></div>
       </div>
     </div>
     <NotificationPopup ref="notification" />
-    <Footer />
   </body>
 </template>
 
 <script setup>
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
-import Footer from '@/components/Footer.vue'
 import Panel from '@/components/panel.vue'
 import Summary from '@/components/sidebar/summary.vue'
 import EpsTable from '@/components/sidebar/eps.vue'
@@ -918,21 +1179,21 @@ async function searchTicker(providedSymbol) {
     await updateUserDefaultSymbol(data.Symbol);
 
     // Set assetInfo fields, using '-' or [] for missing values
-Object.keys(assetInfo).forEach(key => {
-  if (Array.isArray(assetInfo[key])) {
-    assetInfo[key] = Array.isArray(data[key]) ? data[key] : [];
-  } else if (
-    data[key] === undefined ||
-    data[key] === null ||
-    data[key] === 0 ||
-    (typeof data[key] === 'number' && Number.isNaN(data[key])) ||
-    (typeof data[key] === 'string' && data[key].toLowerCase() === 'NaN')
-  ) {
-    assetInfo[key] = '-';
-  } else {
-    assetInfo[key] = data[key];
-  }
-});
+    Object.keys(assetInfo).forEach(key => {
+      if (Array.isArray(assetInfo[key])) {
+        assetInfo[key] = Array.isArray(data[key]) ? data[key] : [];
+      } else if (
+        data[key] === undefined ||
+        data[key] === null ||
+        data[key] === 0 ||
+        (typeof data[key] === 'number' && Number.isNaN(data[key])) ||
+        (typeof data[key] === 'string' && data[key].toLowerCase() === 'NaN')
+      ) {
+        assetInfo[key] = '-';
+      } else {
+        assetInfo[key] = data[key];
+      }
+    });
 
   } catch (err) {
     isChartLoading.value = false;
@@ -1601,11 +1862,11 @@ onMounted(async () => {
     }
     await showTicker();
     await nextTick()
-   const chartDiv = isMobile.value ? mainchartMobile.value : mainchart.value;
+    const chartDiv = isMobile.value ? mainchartMobile.value : mainchart.value;
     const { width, height } = getChartDimensions();
     const chart = createChart(chartDiv, {
-    height,
-    width,
+      height,
+      width,
       layout: {
         background: {
           type: ColorType.Solid,
@@ -1757,14 +2018,14 @@ onMounted(async () => {
 
     let lastRecordedValue = null;
 
- function updateLastRecordedValue(changes) {
-  if (chartView.value === 'Daily Chart') {
-    lastRecordedValue = changes[changes.length - 1];
-  } else if (chartView.value === 'Weekly Chart') {
-    lastRecordedValue = changes[changes.length - 1];
-  }
-  updateFirstRow(lastRecordedValue);
-}
+    function updateLastRecordedValue(changes) {
+      if (chartView.value === 'Daily Chart') {
+        lastRecordedValue = changes[changes.length - 1];
+      } else if (chartView.value === 'Weekly Chart') {
+        lastRecordedValue = changes[changes.length - 1];
+      }
+      updateFirstRow(lastRecordedValue);
+    }
 
     watch(data, (newData) => {
       const changes = calculateChanges(newData);
@@ -1872,25 +2133,25 @@ onMounted(async () => {
       Histogram.setData(relativeVolumeData);
     });
 
-// Watch for visibility changes and set series visibility
-watch(showMA1, (visible) => {
-  MaSeries1.applyOptions({ visible });
-});
-watch(showMA2, (visible) => {
-  MaSeries2.applyOptions({ visible });
-});
-watch(showMA3, (visible) => {
-  MaSeries3.applyOptions({ visible });
-});
-watch(showMA4, (visible) => {
-  MaSeries4.applyOptions({ visible });
-});
+    // Watch for visibility changes and set series visibility
+    watch(showMA1, (visible) => {
+      MaSeries1.applyOptions({ visible });
+    });
+    watch(showMA2, (visible) => {
+      MaSeries2.applyOptions({ visible });
+    });
+    watch(showMA3, (visible) => {
+      MaSeries3.applyOptions({ visible });
+    });
+    watch(showMA4, (visible) => {
+      MaSeries4.applyOptions({ visible });
+    });
 
-// Set initial visibility
-MaSeries1.applyOptions({ visible: showMA1.value });
-MaSeries2.applyOptions({ visible: showMA2.value });
-MaSeries3.applyOptions({ visible: showMA3.value });
-MaSeries4.applyOptions({ visible: showMA4.value });
+    // Set initial visibility
+    MaSeries1.applyOptions({ visible: showMA1.value });
+    MaSeries2.applyOptions({ visible: showMA2.value });
+    MaSeries3.applyOptions({ visible: showMA3.value });
+    MaSeries4.applyOptions({ visible: showMA4.value });
 
 
     function calculateChanges(dataPoints) {
@@ -2084,7 +2345,7 @@ MaSeries4.applyOptions({ visible: showMA4.value });
     isInitializing.value = false;
   }
 
-   window.addEventListener('resize', resizeChart);
+  window.addEventListener('resize', resizeChart);
 
 });
 
@@ -3192,25 +3453,25 @@ async function setTheme(newTheme) {
 }
 
 async function loadTheme() {
-    try {
-      const response = await fetch('/api/load-theme', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': apiKey,
-        },
-        body: JSON.stringify({ username: user }),
-      });
-      const data = await response.json();
-      if (data.theme) {
-        setTheme(data.theme);
-      } else {
-        setTheme('default');
-      }
-    } catch (error) {
+  try {
+    const response = await fetch('/api/load-theme', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({ username: user }),
+    });
+    const data = await response.json();
+    if (data.theme) {
+      setTheme(data.theme);
+    } else {
       setTheme('default');
     }
+  } catch (error) {
+    setTheme('default');
   }
+}
 
 loadTheme()
 
@@ -3353,7 +3614,7 @@ function getSidebarProps(tag) {
         BeautifulNotes: BeautifulNotes.value,
         formatDate,
       };
-      case 'News':
+    case 'News':
       return {
         BeautifulNews: BeautifulNews.value,
         formatDate,
@@ -3512,7 +3773,7 @@ function closeEditor() {
   cursor: pointer;
   height: 32px;
   width: 32px;
-   border-top-right-radius: 5px;
+  border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -3575,7 +3836,7 @@ function closeEditor() {
   /* Allow full height when expanded */
 }
 
-.category{
+.category {
   color: var(--text1);
 }
 
@@ -3969,6 +4230,7 @@ function closeEditor() {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -4006,7 +4268,7 @@ function closeEditor() {
 
 .wlist.selected {
   background-color: var(--accent4);
-  background-size: 400% 100% ;
+  background-size: 400% 100%;
   color: var(--text1);
 }
 
@@ -4105,7 +4367,7 @@ function closeEditor() {
 
 /* */
 
-.editbtn{
+.editbtn {
   background-color: var(--base4);
   border: none;
   cursor: pointer;
@@ -4437,6 +4699,7 @@ function closeEditor() {
   color: var(--positive);
   margin-left: 7px;
 }
+
 .arrow-up::after {
   content: "\25B2";
   position: absolute;
@@ -4483,13 +4746,15 @@ function closeEditor() {
   background-color: transparent;
   color: var(--text1);
   border: solid 1px var(--text1);
-  border-radius: 2.5px; 
+  border-radius: 2.5px;
   margin-left: 5px;
   opacity: 0.85;
   user-select: none;
   text-align: center;
-  padding: 0px 4px; /* minimal padding */
-  font-size: 0.175rem; /* extremely small font size */
+  padding: 0px 4px;
+  /* minimal padding */
+  font-size: 0.175rem;
+  /* extremely small font size */
   line-height: 0.5;
 }
 
@@ -4669,6 +4934,7 @@ function closeEditor() {
   0% {
     transform: translateX(0%);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -4734,7 +5000,7 @@ function closeEditor() {
   margin-left: 40px;
 }
 
-.empty-list-message p{
+.empty-list-message p {
   font-size: 18px;
   margin-left: 10px;
 }
@@ -4748,22 +5014,28 @@ function closeEditor() {
   margin-left: 4px;
   border: none;
 }
+
 .green-sphere {
-  background-color: var(--positive); /* default green */
-}
-.red-sphere {
-  background-color: var(--negative); /* default red */
+  background-color: var(--positive);
+  /* default green */
 }
 
-.mobilenav{
+.red-sphere {
+  background-color: var(--negative);
+  /* default red */
+}
+
+.mobilenav {
   display: none;
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.5s;
 }
 
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 
@@ -4772,6 +5044,7 @@ function closeEditor() {
 }
 
 @media (min-width: 1151px) {
+
   #sidebar-left,
   #chart-container,
   #sidebar-right {
@@ -4781,366 +5054,367 @@ function closeEditor() {
 
 /* Mobile version */
 @media (max-width: 1150px) {
-#main {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
+  #main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
 
-.watch-panel-container {
-  display: none;
-}
+  .watch-panel-container {
+    display: none;
+  }
 
-/* Hide sections that have the 'hidden-mobile' class */
+  /* Hide sections that have the 'hidden-mobile' class */
   .hidden-mobile {
     display: none !important;
   }
 
-#sidebar-left {
-  flex-direction: column;
-  background-color: var(--base4);
-  height: 100%;
-}
+  #sidebar-left {
+    flex-direction: column;
+    background-color: var(--base4);
+    height: 100%;
+  }
 
-#sidebar-right {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background-color: var(--base4);
-}
+  #sidebar-right {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--base4);
+  }
 
-#chart-container {
-  display:none;
-}
+  #chart-container {
+    display: none;
+  }
 
-.indexes{
-  display: none;
-}
+  .indexes {
+    display: none;
+  }
 
-.mobilenav{
-  display: flex;
-  flex-direction: row;
-  gap: 12px; /* space between buttons */
-  padding: 8px 12px;
-  background-color: rgba(var(--base4), 0.1); /* subtle transparent background */
-  border-radius: 10px;
-  justify-content: center;
-  align-items: center;
-}
+  .mobilenav {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    /* space between buttons */
+    padding: 8px 12px;
+    background-color: rgba(var(--base4), 0.1);
+    /* subtle transparent background */
+    border-radius: 10px;
+    justify-content: center;
+    align-items: center;
+  }
 
-.mnavbtn{
-  margin-top: 5px;
-  display: flex;
-  justify-content: center; 
-  align-items: center;
-  background-color: var(--base2);
-  padding: 10px 30px;
-  color: var(--text1);
-  font-size: 1.5rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
-  opacity: 0.85;
-  height: 3rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  user-select: none;
-  border: transparent;
-}
+  .mnavbtn {
+    margin-top: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--base2);
+    padding: 10px 30px;
+    color: var(--text1);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
+    opacity: 0.85;
+    height: 3rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    user-select: none;
+    border: transparent;
+  }
 
-.mnavbtn:hover {
-  background-color: var(--accent1);
-  opacity: 1;
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-.mnavbtn.selected {
-  background-color: var(--accent1);
-  opacity: 1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
+  .mnavbtn:hover {
+    background-color: var(--accent1);
+    opacity: 1;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
 
-.empty-list-message{
-  position: absolute;
-  top: 50%;
-  left: 40%;
-  transform: translate(-50%, -50%);
-}
+  .mnavbtn.selected {
+    background-color: var(--accent1);
+    opacity: 1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
 
-.editbtn{
-  background-color: var(--base4);
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  padding: 15px;
-  color: var(--text1);
-  transition: background-color 0.5s ease-in-out;
-  align-items: center;
-  justify-content: center;
-  display: flex;
-  flex-direction: row;
-  gap: 5px;
-}
+  .empty-list-message {
+    position: absolute;
+    top: 50%;
+    left: 40%;
+    transform: translate(-50%, -50%);
+  }
 
-.financialbtn {
-  background-color: var(--accent1);
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  padding: 15px;
-  color: var(--text1);
-  transition: background-color 0.5s ease-in-out;
-  font-size: 2rem;
-}
+  .editbtn {
+    background-color: var(--base4);
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    padding: 15px;
+    color: var(--text1);
+    transition: background-color 0.5s ease-in-out;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+  }
 
-.summary-row .category {
-  flex: 0 0 50%;
-  font-weight: 400;
-  font-size: 1.5rem;
-}
+  .financialbtn {
+    background-color: var(--accent1);
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    padding: 15px;
+    color: var(--text1);
+    transition: background-color 0.5s ease-in-out;
+    font-size: 2rem;
+  }
 
-.summary-row .response {
-  flex: 0 0 50%;
-  font-size: 1.5rem;
-}
+  .summary-row .category {
+    flex: 0 0 50%;
+    font-weight: 400;
+    font-size: 1.5rem;
+  }
 
-.summary-row2 {
-  display: flex;
-  height: fit-content;
-  padding-left: 5px;
-  padding-right: 5px;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--base4);
-}
+  .summary-row .response {
+    flex: 0 0 50%;
+    font-size: 1.5rem;
+  }
 
-.description {
-  border: none;
-  text-align: center;
-  overflow: hidden;
-  /* Hide overflow when not expanded */
-  transition: height 0.3s ease;
-  /* Smooth transition for height */
-  /* Set a fixed height when not expanded */
-  height: 50px;
-  font-size: 1.5rem;
-  /* This should match your minHeight */
-}
+  .summary-row2 {
+    display: flex;
+    height: fit-content;
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--base4);
+  }
 
-.toggle-btn {
-  background-color: var(--base2);
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  color: var(--text1);
-  padding: 10px;
-  font-size: 1.5rem;
-  transition: background-color 0.5s ease-in-out;
-}
+  .description {
+    border: none;
+    text-align: center;
+    overflow: hidden;
+    /* Hide overflow when not expanded */
+    transition: height 0.3s ease;
+    /* Smooth transition for height */
+    /* Set a fixed height when not expanded */
+    height: 50px;
+    font-size: 1.5rem;
+    /* This should match your minHeight */
+  }
 
-.toggle-btn:hover {
-  background-color: var(--base4);
-}
+  .toggle-btn {
+    background-color: var(--base2);
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    color: var(--text1);
+    padding: 10px;
+    font-size: 1.5rem;
+    transition: background-color 0.5s ease-in-out;
+  }
 
-.dividends-header,
-.eps-header,
-.earn-header,
-.sales-header,
-.splits-header {
-  display: flex;
-  font-weight: bold;
-  background-color: var(--base1);
-  text-align: center;
-  color: var(--text1);
-  height: 40px;
-  justify-content: center;
-  align-items: center;
-  font-size: 2rem;
-}
+  .toggle-btn:hover {
+    background-color: var(--base4);
+  }
 
-.dividends-row,
-.eps-row,
-.earn-row,
-.sales-row,
-.splits-row {
-  display: flex;
-  height: 40px;
-  text-align: center;
-  margin-bottom: 1px;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--base2);
-  font-weight: bold;
-  font-size: 2rem;
-}
+  .dividends-header,
+  .eps-header,
+  .earn-header,
+  .sales-header,
+  .splits-header {
+    display: flex;
+    font-weight: bold;
+    background-color: var(--base1);
+    text-align: center;
+    color: var(--text1);
+    height: 40px;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+  }
 
-.title {
-  background-color: var(--base1);
-  color: var(--text1);
-  text-align: center;
-  padding: 15px;
-  font-size: 1.5rem;
-  border: none;
-  margin: 0;
-}
+  .dividends-row,
+  .eps-row,
+  .earn-row,
+  .sales-row,
+  .splits-row {
+    display: flex;
+    height: 40px;
+    text-align: center;
+    margin-bottom: 1px;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--base2);
+    font-weight: bold;
+    font-size: 2rem;
+  }
 
-#chartdiv {
-  border: none;
-}
+  .title {
+    background-color: var(--base1);
+    color: var(--text1);
+    text-align: center;
+    padding: 15px;
+    font-size: 1.5rem;
+    border: none;
+    margin: 0;
+  }
 
-#legend {
-  display: none;
-}
+  #chartdiv {
+    border: none;
+  }
 
-#legend2 {
-  display: none;
-}
+  #legend {
+    display: none;
+  }
 
-#legend3 {
-  display: none;
-}
+  #legend2 {
+    display: none;
+  }
 
-#legend4 {
-  display: none;
-}
+  #legend3 {
+    display: none;
+  }
 
-#chartdiv-mobile.mobile-chart {
+  #legend4 {
+    display: none;
+  }
+
+  #chartdiv-mobile.mobile-chart {
     display: block;
     width: 100% !important;
     height: 200px !important;
     margin: 0 auto;
   }
+
   #chartdiv {
     display: none !important;
   }
 
   /* input for searching symbols */
-#searchbar {
-  border-radius: 5px;
-  padding: 15px 15px 15px 15px;
-  margin: 7px;
-  width: calc(100% - 30px);
-  /* Make space for the button */
-  outline: none;
-  color: var(--base3);
-  /* Dark text color */
-  transition: border-color 0.3s, box-shadow 0.3s;
-  /* Smooth transition for focus effects */
-  border: solid 1px var(--base1);
-  background-color: var(--base4);
+  #searchbar {
+    border-radius: 5px;
+    padding: 15px 15px 15px 15px;
+    margin: 7px;
+    width: calc(100% - 30px);
+    /* Make space for the button */
+    outline: none;
+    color: var(--base3);
+    /* Dark text color */
+    transition: border-color 0.3s, box-shadow 0.3s;
+    /* Smooth transition for focus effects */
+    border: solid 1px var(--base1);
+    background-color: var(--base4);
+  }
+
+  #searchbar:focus {
+    border-color: var(--accent1);
+    /* Change border color on focus */
+    //box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
+    /* Subtle shadow effect */
+    outline: none;
+    /* Remove default outline */
+  }
+
+  /* button for searching symbols, inside searchbar */
+  .wlbtn2 {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    flex-shrink: 0;
+    color: var(--text1);
+    background-color: var(--accent1);
+    border: none;
+    padding: 0;
+    outline: none;
+    cursor: pointer;
+    height: 41px;
+    width: 41px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  .wlbtn2:hover {
+    background-color: var(--accent2);
+    box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
+    outline: none;
+  }
+
+  .img {
+    width: 20px;
+    height: 20px;
+    border: none;
+  }
+
+  .wlist {
+    background-color: var(--base2);
+    height: 35px;
+    margin-top: 2px;
+    border-left: var(--base4) solid 1px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--text1);
+  }
+
+  .img2 {
+    width: 20px;
+    height: 20px;
+    border: none;
+  }
+
+  .tbl {
+    font-size: 1.3rem;
+  }
+
+  .navbtn {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    opacity: 0.80;
+    color: var(--text1);
+    transition: opacity 0.2s ease;
+    padding: 5px;
+    margin: 5px;
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .navbtn span {
+    margin-left: 5px;
+    font-size: 1.2rem;
+  }
+
+  .loading-container2 {
+    position: absolute;
+    bottom: 25%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    border: none;
+  }
+
+  .dbtn {
+    opacity: 1;
+  }
+
+
+
 }
-
-#searchbar:focus {
-  border-color: var(--accent1);
-  /* Change border color on focus */
-  //box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
-  /* Subtle shadow effect */
-  outline: none;
-  /* Remove default outline */
-}
-
-/* button for searching symbols, inside searchbar */
-.wlbtn2 {
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-  flex-shrink: 0;
-  color: var(--text1);
-  background-color: var(--accent1);
-  border: none;
-  padding: 0;
-  outline: none;
-  cursor: pointer;
-  height: 41px;
-  width: 41px;
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: background-color 0.2s ease-in-out;
-}
-
-.wlbtn2:hover {
-  background-color: var(--accent2);
-  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
-  outline: none;
-}
-
-.img {
-  width: 20px;
-  height: 20px;
-  border: none;
-}
-
-.wlist {
-  background-color: var(--base2);
-  height: 35px;
-  margin-top: 2px;
-  border-left: var(--base4) solid 1px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--text1);
-}
-
-.img2 {
-  width: 20px;
-  height: 20px;
-  border: none;
-}
-
-.tbl{
-  font-size: 1.3rem;
-}
-
-.navbtn {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  opacity: 0.80;
-  color: var(--text1);
-  transition: opacity 0.2s ease;
-  padding: 5px;
-  margin: 5px;
-  align-items: center;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-}
-
-.navbtn span {
-  margin-left: 5px;
-  font-size: 1.2rem;
-}
-
-.loading-container2 {
-  position: absolute;
-  bottom: 25%;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  border: none;
-}
-
-.dbtn{
-  opacity: 1;
-}
-
-
-
-}
-
-
-
 </style>

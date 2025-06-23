@@ -1,85 +1,123 @@
 <template>
+
   <body>
     <Header />
-       <div class="mobilenav">
-    <button
-      class="mnavbtn"
-      :class="{ selected: selected === 'filters' }"
-      @click="select('filters')"
-    >
-      Filters
-    </button>
-    <button
-      class="mnavbtn"
-      :class="{ selected: selected === 'list' }"
-      @click="select('list')"
-    >
-      List
-    </button>
-    <button
-      class="mnavbtn"
-      :class="{ selected: selected === 'charts' }"
-      @click="select('charts')"
-    >
-      Charts
-    </button>
-  </div>
-    <div id="main2">
-      <div class="tooltip-container" style="position: relative;">
-  <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
-    <span class="tooltip-text">{{ tooltipText }}</span>
-  </div>
-</div>
-      <div id="filters" :class="{ 'hidden-mobile': selected !== 'filters' }">
-        <div id="screener-select" class="select-container" :class="{ 'error-border': isScreenerError }" @mouseover="showDropdown = true" @mouseout="showDropdown = false">
-           <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" 
-      :class="{ 'dropdown-icon': showDropdown }" 
-      v-if="!showDropdown">
-  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-  <g id="SVGRepo_iconCarrier"> 
-    <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z" fill="var(--text1)"></path> 
-  </g>
-</svg>
-<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" 
-      :class="{ 'dropdown-icon': showDropdown }" 
-      v-else transform="matrix(1, 0, 0, 1, 0, 0)rotate(180)">
-  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-  <g id="SVGRepo_iconCarrier"> 
-    <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z" fill="var(--text1)"></path> 
-  </g>
-</svg>
-  <p class="selected-value" @click.stop="">{{ selectedScreener ? selectedScreener : (ScreenersName.length > 0 ? 'Choose a Screener...' : 'No screeners available.') }}</p>
-  <div class="dropdown-container" v-if="ScreenersName.length > 0">
-    <div class="wrapper">
-    <div v-for="(screener, index) in ScreenersName" :key="index" :class="{'selected': selectedScreener === screener.Name}" @click="selectScreener(screener.Name)">
-<button class="icondlt2">
-<span class="img3" v-html="getScreenerImage(screener)" @click.stop="ExcludeScreener(screener.Name)" v-b-tooltip.hover title="Toggle This Screener's Inclusion" alt="toggle screener"></span>
-</button>
-      {{ screener.Name }}
-      <button class="icondlt"  @click.stop="DeleteScreener(screener.Name)" v-b-tooltip.hover title="Delete This Screener">
-         <svg class="img2" viewBox="0 0 16 16" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" version="1.1" id="svg8" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><metadata id="metadata5"><rdf:rdf><cc:work><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type><dc:title></dc:title><dc:date>2021</dc:date><dc:creator><cc:agent><dc:title>Timothée Giet</dc:title></cc:agent></dc:creator><cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"></cc:license></cc:work><cc:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/"><cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"></cc:permits><cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"></cc:permits><cc:requires rdf:resource="http://creativecommons.org/ns#Notice"></cc:requires><cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"></cc:requires><cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"></cc:permits><cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"></cc:requires></cc:license></rdf:rdf></metadata><rect transform="rotate(45)" ry="0" y="-1" x="4.3137083" height="2" width="14" id="rect1006" style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1"></rect><rect transform="rotate(-45)" ry="0" y="10.313708" x="-7" height="2" width="14" id="rect1006-5" style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1"></rect></g></svg>
+    <div class="mobilenav">
+      <button class="mnavbtn" :class="{ selected: selected === 'filters' }" @click="select('filters')">
+        Filters
+      </button>
+      <button class="mnavbtn" :class="{ selected: selected === 'list' }" @click="select('list')">
+        List
+      </button>
+      <button class="mnavbtn" :class="{ selected: selected === 'charts' }" @click="select('charts')">
+        Charts
       </button>
     </div>
-  </div>
-  </div>
-</div>
+    <div id="main2">
+      <div class="tooltip-container" style="position: relative;">
+        <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
+          <span class="tooltip-text">{{ tooltipText }}</span>
+        </div>
+      </div>
+      <div id="filters" :class="{ 'hidden-mobile': selected !== 'filters' }">
+        <div id="screener-select" class="select-container" :class="{ 'error-border': isScreenerError }"
+          @mouseover="showDropdown = true" @mouseout="showDropdown = false">
+          <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+            :class="{ 'dropdown-icon': showDropdown }" v-if="!showDropdown">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z"
+                fill="var(--text1)"></path>
+            </g>
+          </svg>
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+            :class="{ 'dropdown-icon': showDropdown }" v-else transform="matrix(1, 0, 0, 1, 0, 0)rotate(180)">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z"
+                fill="var(--text1)"></path>
+            </g>
+          </svg>
+          <p class="selected-value" @click.stop="">{{ selectedScreener ? selectedScreener : (ScreenersName.length > 0 ?
+            'Choose a Screener...' : 'No screeners available.') }}</p>
+          <div class="dropdown-container" v-if="ScreenersName.length > 0">
+            <div class="wrapper">
+              <div v-for="(screener, index) in ScreenersName" :key="index"
+                :class="{ 'selected': selectedScreener === screener.Name }" @click="selectScreener(screener.Name)">
+                <button class="icondlt2">
+                  <span class="img3" v-html="getScreenerImage(screener)" @click.stop="ExcludeScreener(screener.Name)"
+                    v-b-tooltip.hover title="Toggle This Screener's Inclusion" alt="toggle screener"></span>
+                </button>
+                {{ screener.Name }}
+                <button class="icondlt" @click.stop="DeleteScreener(screener.Name)" v-b-tooltip.hover
+                  title="Delete This Screener">
+                  <svg class="img2" viewBox="0 0 16 16" xmlns:dc="http://purl.org/dc/elements/1.1/"
+                    xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                    xmlns="http://www.w3.org/2000/svg" version="1.1" id="svg8" fill="var(--text1)">
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                      <metadata id="metadata5">
+                        <rdf:rdf>
+                          <cc:work>
+                            <dc:format>image/svg+xml</dc:format>
+                            <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type>
+                            <dc:title></dc:title>
+                            <dc:date>2021</dc:date>
+                            <dc:creator>
+                              <cc:agent>
+                                <dc:title>Timothée Giet</dc:title>
+                              </cc:agent>
+                            </dc:creator>
+                            <cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"></cc:license>
+                          </cc:work>
+                          <cc:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/">
+                            <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"></cc:permits>
+                            <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"></cc:permits>
+                            <cc:requires rdf:resource="http://creativecommons.org/ns#Notice"></cc:requires>
+                            <cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"></cc:requires>
+                            <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"></cc:permits>
+                            <cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"></cc:requires>
+                          </cc:license>
+                        </rdf:rdf>
+                      </metadata>
+                      <rect transform="rotate(45)" ry="0" y="-1" x="4.3137083" height="2" width="14" id="rect1006"
+                        style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1">
+                      </rect>
+                      <rect transform="rotate(-45)" ry="0" y="10.313708" x="-7" height="2" width="14" id="rect1006-5"
+                        style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1">
+                      </rect>
+                    </g>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
         <div :class="[showPriceInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>Price</p>
-  <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'price')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Price</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'price')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPriceInputs" style="border: none;">
               <span class="slider round"></span>
@@ -91,30 +129,56 @@
               <input class="right input" id="right-p" type="text" placeholder="max">
             </div>
             <div class="row" style="flex-direction: row;">
-            <button class="btns" style="float:right" @click="SetPrice()">
-              <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-            </button>
-            <button class="btnsr" style="float:right" @click="Reset('price')">
-           <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-            </button>
-          </div>
+              <button class="btns" style="float:right" @click="SetPrice()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('price')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
         <div :class="[showMarketCapInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>Market Cap (1000s)</p>
-  <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'market-cap')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Market Cap (1000s)</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'market-cap')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" v-model="showMarketCapInputs">
               <span class="slider round"></span>
@@ -127,29 +191,55 @@
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetMarketCap()">
-                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btnsr"style="float:right" @click="Reset('Marketcap')">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btnsr" style="float:right" @click="Reset('Marketcap')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
         </div>
         <div :class="[showIPOInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>IPO Date</p>
-   <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'ipo')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>IPO Date</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'ipo')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" v-model="showIPOInputs">
               <span class="slider round"></span>
@@ -162,161 +252,253 @@
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetIpoDate()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btnsr"style="float:right" @click="Reset('IPO')">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btnsr" style="float:right" @click="Reset('IPO')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
         </div>
         <div :class="[ShowSector ? 'param-s2-expanded' : 'param-s1']">
-    <div class="row">
-      <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>Sector</p>
-   <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'sector')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
-      <label style="float:right" class="switch">
-        <input type="checkbox" v-model="ShowSector">
-        <span class="slider round"></span>
-      </label>
-    </div>
-    <div style="border: none" v-if="ShowSector">
-      <div class="row2">
-        <div class="check" v-for="(sector, index) in Sectors" :key="index">
-          <div 
-            :id="`sector-${index}`" 
-            class="custom-checkbox" 
-            :class="{ checked: selectedSectors[index] }" 
-            @click="toggleSector(index)"
-          >
-            <span class="checkmark"></span>
-            {{ sector }}
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Sector</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'sector')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" v-model="ShowSector">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none" v-if="ShowSector">
+            <div class="row2">
+              <div class="check" v-for="(sector, index) in Sectors" :key="index">
+                <div :id="`sector-${index}`" class="custom-checkbox" :class="{ checked: selectedSectors[index] }"
+                  @click="toggleSector(index)">
+                  <span class="checkmark"></span>
+                  {{ sector }}
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <button class="btns2" style="float:right" @click="SetSector">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btns2r" style="float:right" @click="Reset('Sector')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="row">
-        <button class="btns2" style="float:right" @click="SetSector">
-         <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-        </button>
-        <button class="btns2r" style="float:right" @click="Reset('Sector')">
-         <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-        </button>
-      </div>
-    </div>
-  </div>
-  <div :class="[ShowExchange ? 'param-s3-expanded' : 'param-s1']">
-    <div class="row">
-      <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>Exchange</p>
-   <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'exchange')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
-      <label style="float:right" class="switch">
-        <input type="checkbox" v-model="ShowExchange">
-        <span class="slider round"></span>
-      </label>
-    </div>
-    <div style="border: none" v-if="ShowExchange">
-      <div class="row2">
-        <div class="check" v-for="(exchange, index) in Exchanges" :key="index">
-          <div 
-            :id="`exchange-${index}`" 
-            class="custom-checkbox" 
-            :class="{ checked: selectedExchanges[index] }" 
-            @click="toggleExchange(index)"
-          >
-            <span class="checkmark"></span>
-            {{ exchange }}
+        <div :class="[ShowExchange ? 'param-s3-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Exchange</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'exchange')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" v-model="ShowExchange">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none" v-if="ShowExchange">
+            <div class="row2">
+              <div class="check" v-for="(exchange, index) in Exchanges" :key="index">
+                <div :id="`exchange-${index}`" class="custom-checkbox" :class="{ checked: selectedExchanges[index] }"
+                  @click="toggleExchange(index)">
+                  <span class="checkmark"></span>
+                  {{ exchange }}
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <button class="btns3" style="float:right" @click="SetExchange">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btns3r" style="float:right" @click="Reset('Exchange')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="row">
-        <button class="btns3" style="float:right" @click="SetExchange">
-          <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-        </button>
-        <button class="btns3r" style="float:right" @click="Reset('Exchange')">
-         <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-        </button>
-      </div>
-    </div>
-  </div>
-  <div :class="[ShowCountry ? 'param-s9-expanded' : 'param-s1']">
-    <div class="row">
-      <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>Country</p>
-   <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'country')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
-      <label style="float:right" class="switch">
-        <input type="checkbox" v-model="ShowCountry">
-        <span class="slider round"></span>
-      </label>
-    </div>
-    <div style="border: none" v-if="ShowCountry">
-      <div class="row2">
-        <div class="check" v-for="(country, index) in Country" :key="index">
-          <div 
-            :id="`country-${index}`" 
-            class="custom-checkbox" 
-            :class="{ checked: selectedCountries[index] }" 
-            @click="toggleCountry(index)"
-          >
-            <span class="checkmark"></span>
-            {{ country }}
+        <div :class="[ShowCountry ? 'param-s9-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Country</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'country')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" v-model="ShowCountry">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none" v-if="ShowCountry">
+            <div class="row2">
+              <div class="check" v-for="(country, index) in Country" :key="index">
+                <div :id="`country-${index}`" class="custom-checkbox" :class="{ checked: selectedCountries[index] }"
+                  @click="toggleCountry(index)">
+                  <span class="checkmark"></span>
+                  {{ country }}
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <button class="btns3" style="float:right" @click="SetCountry">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btns3r" style="float:right" @click="Reset('Country')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="row">
-        <button class="btns3" style="float:right" @click="SetCountry">
-          <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-        </button>
-        <button class="btns3r" style="float:right" @click="Reset('Country')">
-         <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-        </button>
-      </div>
-    </div>
-  </div>
         <div :class="[showPEInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>PE Ratio</p>
-   <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'pe')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>PE Ratio</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'pe')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPEInputs" style="border: none;">
               <span class="slider round"></span>
@@ -329,29 +511,55 @@
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetPE()">
-              <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btnsr"style="float:right" @click="Reset('PE')">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btnsr" style="float:right" @click="Reset('PE')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
         </div>
         <div :class="[showPSInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>PS Ratio</p>
-   <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'ps')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>PS Ratio</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'ps')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPSInputs" style="border: none;">
               <span class="slider round"></span>
@@ -364,29 +572,55 @@
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetPSRatio()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btnsr"style="float:right" @click="Reset('PS')">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btnsr" style="float:right" @click="Reset('PS')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
         </div>
         <div :class="[showPEGInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>PEG Ratio</p>
-  <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'peg')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>PEG Ratio</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'peg')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPEGInputs" style="border: none;">
               <span class="slider round"></span>
@@ -399,10 +633,31 @@
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetPEG()">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btnsr"style="float:right" @click="Reset('PEG')">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btnsr" style="float:right" @click="Reset('PEG')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
@@ -410,24 +665,29 @@
         <div :class="[showEPSInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div>
-              <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-                 <p >EPS</p>
-                 <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'eps')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
+              <div
+                style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+                <p>EPS</p>
+                <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                  @mouseover="handleMouseOver($event, 'eps')" @mouseout="handleMouseOut">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                      stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                      stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                      stroke-linejoin="round"></path>
+                  </g>
+                </svg>
               </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showEPSInputs" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
+              <label style="float:right" class="switch">
+                <input type="checkbox" id="price-check" v-model="showEPSInputs" style="border: none;">
+                <span class="slider round"></span>
+              </label>
+            </div>
           </div>
           <div style="border: none;" v-if="showEPSInputs">
             <div class="row">
@@ -436,29 +696,55 @@
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetEPS()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btnsr"style="float:right" @click="Reset('EPS')">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btnsr" style="float:right" @click="Reset('EPS')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
         </div>
         <div :class="[showPBInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>PB Ratio</p>
-   <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'pb')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>PB Ratio</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'pb')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPBInputs" style="border: none;">
               <span class="slider round"></span>
@@ -471,29 +757,55 @@
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetPBRatio()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btnsr"style="float:right" @click="Reset('PB')">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btnsr" style="float:right" @click="Reset('PB')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
         </div>
         <div :class="[showDivYieldInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>Dividend Yield TTM (%)</p>
-   <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'div')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Dividend Yield TTM (%)</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'div')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showDivYieldInputs" style="border: none;">
               <span class="slider round"></span>
@@ -506,29 +818,55 @@
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetDivYield()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btnsr"style="float:right" @click="Reset('DivYield')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btnsr" style="float:right" @click="Reset('DivYield')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
         </div>
         <div :class="[showFundYoYQoQ ? 'param-s5-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>Revenue / Earnings / EPS Growth</p>
-  <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'growth')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Revenue / Earnings / EPS Growth</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'growth')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showFundYoYQoQ" style="border: none;">
               <span class="slider round"></span>
@@ -536,9 +874,9 @@
           </div>
           <div style="border: none;" v-if="showFundYoYQoQ">
             <div class="DataInputs">
-            <p>Revenue Growth (YoY)</p>
-            <input id="left-RevYoY" class="input" type="text" placeholder="min">
-            <input id="right-RevYoY" class="input" type="text" placeholder="max">
+              <p>Revenue Growth (YoY)</p>
+              <input id="left-RevYoY" class="input" type="text" placeholder="min">
+              <input id="right-RevYoY" class="input" type="text" placeholder="max">
               <p>Revenue Growth (QoQ)</p>
               <input id="left-RevQoQ" class="input" type="text" placeholder="min">
               <input id="right-RevQoQ" class="input" type="text" placeholder="max">
@@ -557,29 +895,55 @@
             </div>
             <div class="row">
               <button class="btns5" style="float:right" @click="SetFundamentalGrowth()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btns5r"style="float:right" @click="Reset('FundGrowth')">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btns5r" style="float:right" @click="Reset('FundGrowth')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
         </div>
         <div :class="[showPricePerf ? 'param-s6-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>Price Performance</p>
-   <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'perf')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Price Performance</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'perf')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showPricePerf" style="border: none;">
               <span class="slider round"></span>
@@ -587,146 +951,165 @@
           </div>
           <div style="border: none;" v-if="showPricePerf">
             <div class="DataInputs11">
-            <p style="text-align: center;">Change %</p>
-            <div style="display: flex; justify-content: center; align-items: center; border: none;">
-            <input class="input" id="changeperc1" type="text" style="width: 70px; margin: 0 5px;" placeholder="Min">
-            <input class="input" id="changeperc2" type="text" style="width: 70px; margin: 0 5px;" placeholder="Max">
-            <div class="changeperc-select-container">
-  <div class="changeperc-dropdown-btn">
-    <p class="selected-value">{{ changepercSelect }}</p>
-  </div>
-  <div class="changeperc-dropdown-menu">
-    <div v-for="(option, index) in changepercOptions" :key="index" @click="selectChangepercOption(option)">
-      {{ option }}
-    </div>
-  </div>
-</div>
-          </div>
-          <div style="border: none;">
-            <p style="text-align: center;">% off 52weekhigh</p>
-            <div style="display: flex; justify-content: center; align-items: center; border:none;">
-              <input class="input" type="text" id="weekhigh1" style="width: 70px; margin: 0 5px;" placeholder="Min">
-              <input class="input" type="text" id="weekhigh2" style="width: 70px; margin: 0 5px;" placeholder="Max">
-            </div>
-            <p style="text-align: center;">% off 52weeklow</p>
-            <div style="display: flex; justify-content: center; align-items: center; border:none;">
-              <input class="input" type="text" id="weeklow1" style="width: 70px; margin: 0 5px;" placeholder="Min">
-              <input class="input" type="text" id="weeklow2" style="width: 70px; margin: 0 5px;" placeholder="Max">
-            </div>
-          </div>
-            <div style="display: flex; flex-direction: column; align-items: center; border:none;">
-              <br>
-              <div 
-  class="custom-checkbox" 
-  :class="{ checked: allTimeHigh }" 
-  @click="toggleAllTimeHigh"
->
-  <span class="checkmark"></span>
-  New All time High
-</div>
-<div 
-  class="custom-checkbox" 
-  :class="{ checked: allTimeLow }" 
-  @click="toggleAllTimeLow"
->
-  <span class="checkmark"></span>
-  New All time Low
-</div>
-          </div>
-          <br>
-          <div style="display: flex; flex-direction: column; align-items: center; border: none;">
-            <div style="display: flex; align-items: center; border: none;">
-              <p style="margin-right: 10px;">200 DMA</p>
-              <div class="ma200-select-container">
-  <div class="ma200-dropdown-btn">
-    <p class="selected-value">{{ ma200Select }}</p>
-  </div>
-  <div class="ma200-dropdown-menu">
-    <div v-for="(option, index) in ma200Options" :key="index" @click="selectMa200Option(option)">
-      {{ option }}
-    </div>
-  </div>
-</div>
-            </div>
-            <div style="display: flex; align-items: center; border: none;">
-              <p style="margin-right: 10px;">50 DMA</p>
-              <div class="ma50-select-container">
-  <div class="ma50-dropdown-btn">
-    <p class="selected-value">{{ ma50Select }}</p>
-  </div>
-  <div class="ma50-dropdown-menu">
-    <div v-for="(option, index) in ma50Options" :key="index" @click="selectMa50Option(option)">
-      {{ option }}
-    </div>
-  </div>
-</div>
-            </div>
-            <div style="display: flex; align-items: center; border: none;">
-              <p style="margin-right: 10px;">20 DMA</p>
-              <div class="ma20-select-container">
-  <div class="ma20-dropdown-btn">
-    <p class="selected-value">{{ ma20Select }}</p>
-  </div>
-  <div class="ma20-dropdown-menu">
-    <div v-for="(option, index) in ma20Options" :key="index" @click="selectMa20Option(option)">
-      {{ option }}
-    </div>
-  </div>
-</div>
-            </div>
-            <div style="display: flex; align-items: center; border: none;">
-              <p style="margin-right: 10px;">10 DMA</p>
-              <div class="ma10-select-container">
-  <div class="ma10-dropdown-btn">
-    <p class="selected-value">{{ ma10Select }}</p>
-  </div>
-  <div class="ma10-dropdown-menu">
-    <div v-for="(option, index) in ma10Options" :key="index" @click="selectMa10Option(option)">
-      {{ option }}
-    </div>
-  </div>
-</div>
-            </div>
-                <div style="display: flex; align-items: center; border: none;">
-              <p style="margin-right: 10px;">Price</p>
-              <div class="price-select-container">
-  <div class="price-dropdown-btn">
-    <p class="selected-value">{{ priceSelect }}</p>
-  </div>
-  <div class="price-dropdown-menu">
-    <div v-for="(option, index) in priceOptions" :key="index" @click="selectPriception(option)">
-      {{ option }}
-    </div>
-  </div>
-</div>
-            </div>
-          </div>
+              <p style="text-align: center;">Change %</p>
+              <div style="display: flex; justify-content: center; align-items: center; border: none;">
+                <input class="input" id="changeperc1" type="text" style="width: 70px; margin: 0 5px;" placeholder="Min">
+                <input class="input" id="changeperc2" type="text" style="width: 70px; margin: 0 5px;" placeholder="Max">
+                <div class="changeperc-select-container">
+                  <div class="changeperc-dropdown-btn">
+                    <p class="selected-value">{{ changepercSelect }}</p>
+                  </div>
+                  <div class="changeperc-dropdown-menu">
+                    <div v-for="(option, index) in changepercOptions" :key="index"
+                      @click="selectChangepercOption(option)">
+                      {{ option }}
+                    </div>
+                  </div>
+                </div>
               </div>
+              <div style="border: none;">
+                <p style="text-align: center;">% off 52weekhigh</p>
+                <div style="display: flex; justify-content: center; align-items: center; border:none;">
+                  <input class="input" type="text" id="weekhigh1" style="width: 70px; margin: 0 5px;" placeholder="Min">
+                  <input class="input" type="text" id="weekhigh2" style="width: 70px; margin: 0 5px;" placeholder="Max">
+                </div>
+                <p style="text-align: center;">% off 52weeklow</p>
+                <div style="display: flex; justify-content: center; align-items: center; border:none;">
+                  <input class="input" type="text" id="weeklow1" style="width: 70px; margin: 0 5px;" placeholder="Min">
+                  <input class="input" type="text" id="weeklow2" style="width: 70px; margin: 0 5px;" placeholder="Max">
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center; border:none;">
+                <br>
+                <div class="custom-checkbox" :class="{ checked: allTimeHigh }" @click="toggleAllTimeHigh">
+                  <span class="checkmark"></span>
+                  New All time High
+                </div>
+                <div class="custom-checkbox" :class="{ checked: allTimeLow }" @click="toggleAllTimeLow">
+                  <span class="checkmark"></span>
+                  New All time Low
+                </div>
+              </div>
+              <br>
+              <div style="display: flex; flex-direction: column; align-items: center; border: none;">
+                <div style="display: flex; align-items: center; border: none;">
+                  <p style="margin-right: 10px;">200 DMA</p>
+                  <div class="ma200-select-container">
+                    <div class="ma200-dropdown-btn">
+                      <p class="selected-value">{{ ma200Select }}</p>
+                    </div>
+                    <div class="ma200-dropdown-menu">
+                      <div v-for="(option, index) in ma200Options" :key="index" @click="selectMa200Option(option)">
+                        {{ option }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; border: none;">
+                  <p style="margin-right: 10px;">50 DMA</p>
+                  <div class="ma50-select-container">
+                    <div class="ma50-dropdown-btn">
+                      <p class="selected-value">{{ ma50Select }}</p>
+                    </div>
+                    <div class="ma50-dropdown-menu">
+                      <div v-for="(option, index) in ma50Options" :key="index" @click="selectMa50Option(option)">
+                        {{ option }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; border: none;">
+                  <p style="margin-right: 10px;">20 DMA</p>
+                  <div class="ma20-select-container">
+                    <div class="ma20-dropdown-btn">
+                      <p class="selected-value">{{ ma20Select }}</p>
+                    </div>
+                    <div class="ma20-dropdown-menu">
+                      <div v-for="(option, index) in ma20Options" :key="index" @click="selectMa20Option(option)">
+                        {{ option }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; border: none;">
+                  <p style="margin-right: 10px;">10 DMA</p>
+                  <div class="ma10-select-container">
+                    <div class="ma10-dropdown-btn">
+                      <p class="selected-value">{{ ma10Select }}</p>
+                    </div>
+                    <div class="ma10-dropdown-menu">
+                      <div v-for="(option, index) in ma10Options" :key="index" @click="selectMa10Option(option)">
+                        {{ option }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; border: none;">
+                  <p style="margin-right: 10px;">Price</p>
+                  <div class="price-select-container">
+                    <div class="price-dropdown-btn">
+                      <p class="selected-value">{{ priceSelect }}</p>
+                    </div>
+                    <div class="price-dropdown-menu">
+                      <div v-for="(option, index) in priceOptions" :key="index" @click="selectPriception(option)">
+                        {{ option }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="row">
               <button class="btns6" style="float:right" @click="SetPricePerformance()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btns6r"style="float:right" @click="Reset('PricePerformance')">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btns6r" style="float:right" @click="Reset('PricePerformance')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
         </div>
         <div :class="[showRSscore ? 'param-s8-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>Technical Score</p>
-  <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'rs')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Technical Score</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'rs')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showRSscore" style="border: none;">
               <span class="slider round"></span>
@@ -734,104 +1117,164 @@
           </div>
           <div style="border: none;" v-if="showRSscore">
             <div class="DataInputs10">
-            <p>Technical Score (1W)</p>
-            <input class="input" type="number" placeholder="min (1)" id="RSscore1Winput1" name="input5" min="1" max="100">
-            <input class="input" type="number" placeholder="max (100)" id="RSscore1Winput2" name="input6" min="1" max="100">
-            <p>Technical Score (1M)</p>
-            <input class="input" type="number" placeholder="min (1)" id="RSscore1Minput1" name="input1" min="1" max="100">
-            <input class="input" type="number" placeholder="max (100)" id="RSscore1Minput2" name="input2" min="1" max="100">
-            <p>Technical Score (4M)</p>
-            <input class="input" type="number" placeholder="min (1)" id="RSscore4Minput1" name="input3" min="1" max="100">
-            <input class="input" type="number" placeholder="max (100)" id="RSscore4Minput2" name="input4" min="1" max="100">
+              <p>Technical Score (1W)</p>
+              <input class="input" type="number" placeholder="min (1)" id="RSscore1Winput1" name="input5" min="1"
+                max="100">
+              <input class="input" type="number" placeholder="max (100)" id="RSscore1Winput2" name="input6" min="1"
+                max="100">
+              <p>Technical Score (1M)</p>
+              <input class="input" type="number" placeholder="min (1)" id="RSscore1Minput1" name="input1" min="1"
+                max="100">
+              <input class="input" type="number" placeholder="max (100)" id="RSscore1Minput2" name="input2" min="1"
+                max="100">
+              <p>Technical Score (4M)</p>
+              <input class="input" type="number" placeholder="min (1)" id="RSscore4Minput1" name="input3" min="1"
+                max="100">
+              <input class="input" type="number" placeholder="max (100)" id="RSscore4Minput2" name="input4" min="1"
+                max="100">
             </div>
             <div class="row">
               <button class="btns8" style="float:right" @click="SetRSscore()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btns8r"style="float:right" @click="Reset('RSscore')">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btns8r" style="float:right" @click="Reset('RSscore')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
         </div>
         <div :class="[showVolume ? 'param-s7-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>Volume</p>
-  <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'volume')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" id="price-check" v-model="showVolume" style="border: none;">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showVolume">
-    <div class="DataInputs4">
-      <p>Relative Volume</p>
-      <div style="display: flex; align-items: center;">
-  <input class="input" id="left-relvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;">
-  <input class="input" id="right-relvol" type="text" placeholder="max" style="width: 70px; margin: 0 5px;">
-  <div class="relvol-select-container" style="margin-left: 5px;">
-    <div class="relvol-dropdown-btn">
-      <p class="selected-value">{{ relVolSelect }}</p>
-    </div>
-    <div class="relvol-dropdown-menu">
-      <div v-for="(option, index) in relVolOptions" :key="index" @click="selectRelVolOption(option)">
-        {{ option }}
-      </div>
-    </div>
-  </div>
-</div>
-      <p>Average Volume (1000s)</p>
-      <div style="display: flex; align-items: center;">
-  <input class="input" id="left-avgvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;">
-  <input class="input" id="right-avgvol" type="text" placeholder="max" style="width: 70px; margin: 0 5px;">
-  <div class="avgvol-select-container" style="margin-left: 5px;">
-    <div class="avgvol-dropdown-btn">
-      <p class="selected-value">{{ avgVolSelect }}</p>
-    </div>
-    <div class="avgvol-dropdown-menu">
-      <div v-for="(option, index) in avgVolOptions" :key="index" @click="selectAvgVolOption(option)">
-        {{ option }}
-      </div>
-    </div>
-  </div>
-</div>
-</div>
-    <div class="row">
-      <button class="btns7" style="float:right" @click="SetVolume()">
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-      </button>
-      <button class="btns7r"style="float:right" @click="Reset('Volume')">
-      <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
-<div :class="[showADV ? 'param-s10-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>Average Daily Volatility (ADV)</p>
-  <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'adv')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Volume</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'volume')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" id="price-check" v-model="showVolume" style="border: none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showVolume">
+            <div class="DataInputs4">
+              <p>Relative Volume</p>
+              <div style="display: flex; align-items: center;">
+                <input class="input" id="left-relvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;">
+                <input class="input" id="right-relvol" type="text" placeholder="max"
+                  style="width: 70px; margin: 0 5px;">
+                <div class="relvol-select-container" style="margin-left: 5px;">
+                  <div class="relvol-dropdown-btn">
+                    <p class="selected-value">{{ relVolSelect }}</p>
+                  </div>
+                  <div class="relvol-dropdown-menu">
+                    <div v-for="(option, index) in relVolOptions" :key="index" @click="selectRelVolOption(option)">
+                      {{ option }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p>Average Volume (1000s)</p>
+              <div style="display: flex; align-items: center;">
+                <input class="input" id="left-avgvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;">
+                <input class="input" id="right-avgvol" type="text" placeholder="max"
+                  style="width: 70px; margin: 0 5px;">
+                <div class="avgvol-select-container" style="margin-left: 5px;">
+                  <div class="avgvol-dropdown-btn">
+                    <p class="selected-value">{{ avgVolSelect }}</p>
+                  </div>
+                  <div class="avgvol-dropdown-menu">
+                    <div v-for="(option, index) in avgVolOptions" :key="index" @click="selectAvgVolOption(option)">
+                      {{ option }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <button class="btns7" style="float:right" @click="SetVolume()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btns7r" style="float:right" @click="Reset('Volume')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showADV ? 'param-s10-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Average Daily Volatility (ADV)</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'adv')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showADV" style="border: none;">
               <span class="slider round"></span>
@@ -839,44 +1282,70 @@
           </div>
           <div style="border: none;" v-if="showADV">
             <div class="DataInputs10">
-            <p>ADV (1W)</p>
-            <input class="input" type="number" placeholder="min (%)" id="ADV1Winput1" name="input1">
-            <input class="input" type="number" placeholder="max (%)" id="ADV1Winput2" name="input2">
-            <p>ADV (1M)</p>
-            <input class="input" type="number" placeholder="min (%)" id="ADV1Minput1" name="input3">
-            <input class="input" type="number" placeholder="max (%)" id="ADV1Minput2" name="input4">
-            <p>ADV (4M)</p>
-            <input class="input" type="number" placeholder="min (%)" id="ADV4Minput1" name="input5">
-            <input class="input" type="number" placeholder="max (%)" id="ADV4Minput2" name="input6">
-            <p>ADV (1Y)</p>
-            <input class="input" type="number" placeholder="min (%)" id="ADV1Yinput1" name="input7">
-            <input class="input" type="number" placeholder="max (%)" id="ADV1Yinput2" name="input8">
+              <p>ADV (1W)</p>
+              <input class="input" type="number" placeholder="min (%)" id="ADV1Winput1" name="input1">
+              <input class="input" type="number" placeholder="max (%)" id="ADV1Winput2" name="input2">
+              <p>ADV (1M)</p>
+              <input class="input" type="number" placeholder="min (%)" id="ADV1Minput1" name="input3">
+              <input class="input" type="number" placeholder="max (%)" id="ADV1Minput2" name="input4">
+              <p>ADV (4M)</p>
+              <input class="input" type="number" placeholder="min (%)" id="ADV4Minput1" name="input5">
+              <input class="input" type="number" placeholder="max (%)" id="ADV4Minput2" name="input6">
+              <p>ADV (1Y)</p>
+              <input class="input" type="number" placeholder="min (%)" id="ADV1Yinput1" name="input7">
+              <input class="input" type="number" placeholder="max (%)" id="ADV1Yinput2" name="input8">
             </div>
             <div class="row">
               <button class="btns8" style="float:right" @click="SetADV()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btns8r"style="float:right" @click="Reset('ADV')">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btns8r" style="float:right" @click="Reset('ADV')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
         </div>
         <div :class="[showROE ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>Return of Equity (ROE)</p>
-   <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'roe')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Return of Equity (ROE)</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'roe')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showROE" style="border: none;">
               <span class="slider round"></span>
@@ -889,29 +1358,55 @@
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetROE()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btnsr"style="float:right" @click="Reset('ROE')">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btnsr" style="float:right" @click="Reset('ROE')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
         </div>
         <div :class="[showROA ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
-            <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-  <p>Return of Assets (ROA)</p>
-   <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'roa')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-</div>
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Return of Assets (ROA)</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'roa')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
             <label style="float:right" class="switch">
               <input type="checkbox" id="price-check" v-model="showROA" style="border: none;">
               <span class="slider round"></span>
@@ -924,478 +1419,836 @@
             </div>
             <div class="row">
               <button class="btns" style="float:right" @click="SetROA()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
               </button>
-              <button class="btnsr"style="float:right" @click="Reset('ROA')">
-               <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
+              <button class="btnsr" style="float:right" @click="Reset('ROA')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
               </button>
             </div>
           </div>
         </div>
         <div :class="[showCurrentRatio ? 'param-s1-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>Current Ratio</p>
-      <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'current-ratio')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" id="current-ratio-check" v-model="showCurrentRatio" style="border: none;">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showCurrentRatio">
-    <div class="row">
-      <input class="left input" id="left-current-ratio" type="text" placeholder="min">
-      <input class="right input" id="right-current-ratio" type="text" placeholder="max">
-    </div>
-    <div class="row">
-      <button class="btns" style="float:right" @click="SetCurrentRatio()">
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-      </button>
-      <button class="btnsr" style="float:right" @click="Reset('CurrentRatio')">
-       <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
-<div :class="[showCurrentAssets ? 'param-s1-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>Current Assets (1000s)</p>
-     <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'current-assets')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" v-model="showCurrentAssets">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showCurrentAssets">
-    <div class="row">
-      <input class="left input" id="left-ca" type="text" placeholder="min">
-      <input class="right input" id="right-ca" type="text" placeholder="max">
-    </div>
-    <div class="row">
-      <button class="btns" style="float:right" @click="SetCurrentAssets()">
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-      </button>
-      <button class="btnsr" style="float:right" @click="Reset('CurrentAssets')">
-       <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
-<div :class="[showCurrentLiabilities ? 'param-s1-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>Current Liabilities (1000s)</p>
-     <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'current-liabilities')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" v-model="showCurrentLiabilities">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showCurrentLiabilities">
-    <div class="row">
-      <input class="left input" id="left-cl" type="text" placeholder="min">
-      <input class="right input" id="right-cl" type="text" placeholder="max">
-    </div>
-    <div class="row">
-      <button class="btns" style="float:right" @click="SetCurrentLiabilities()">
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-      </button>
-      <button class="btnsr" style="float:right" @click="Reset('CurrentLiabilities')">
-      <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
-<div :class="[showCurrentDebt ? 'param-s1-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>Current Debt (1000s)</p>
-      <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'current-debt')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" v-model="showCurrentDebt">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showCurrentDebt">
-    <div class="row">
-      <input class="left input" id="left-cd" type="text" placeholder="min">
-      <input class="right input" id="right-cd" type="text" placeholder="max">
-    </div>
-    <div class="row">
-      <button class="btns" style="float:right" @click="SetCurrentDebt()">
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-      </button>
-      <button class="btnsr" style="float:right" @click="Reset('CurrentDebt')">
-     <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
-<div :class="[showCashEquivalents ? 'param-s1-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>Cash & Equivalents (1000s)</p>
-      <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'casheq')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" v-model="showCashEquivalents">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showCashEquivalents">
-    <div class="row">
-      <input class="left input" id="left-ce" type="text" placeholder="min">
-      <input class="right input" id="right-ce" type="text" placeholder="max">
-    </div>
-    <div class="row">
-      <button class="btns" style="float:right" @click="SetCashEquivalents()">
-         <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-      </button>
-      <button class="btnsr" style="float:right" @click="Reset('CashEquivalents')">
-       <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
-<div :class="[showFreeCashFlow ? 'param-s1-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>Free Cash Flow (1000s)</p>
-      <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'fcf')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" v-model="showFreeCashFlow">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showFreeCashFlow">
-    <div class="row">
-      <input class="left input" id="left-fcf" type="text" placeholder="min">
-      <input class="right input" id="right-fcf" type="text" placeholder="max">
-    </div>
-    <div class="row">
-      <button class="btns" style="float:right" @click="SetFreeCashFlow()">
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-      </button>
-      <button class="btnsr" style="float:right" @click="Reset('FCF')">
-      <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
-<div :class="[showProfitMargin ? 'param-s1-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>Profit Margin</p>
-      <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'profit-margin')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" id="profit-margin-check" v-model="showProfitMargin" style="border: none;">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showProfitMargin">
-    <div class="row">
-      <input class="left input" id="left-pm" type="text" placeholder="min">
-      <input class="right input" id="right-pm" type="text" placeholder="max">
-    </div>
-    <div class="row">
-      <button class="btns" style="float:right" @click="SetProfitMargin()">
-       <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-      </button>
-      <button class="btnsr" style="float:right" @click="Reset('ProfitMargin')">
-      <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
-<div :class="[showGrossMargin ? 'param-s1-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>Gross Margin</p>
-     <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'gross-margin')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" id="gross-margin-check" v-model="showGrossMargin" style="border: none;">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showGrossMargin">
-    <div class="row">
-      <input class="left input" id="left-gm" type="text" placeholder="min">
-      <input class="right input" id="right-gm" type="text" placeholder="max">
-    </div>
-    <div class="row">
-      <button class="btns" style="float:right" @click="SetGrossMargin()">
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-      </button>
-      <button class="btnsr" style="float:right" @click="Reset('GrossMargin')">
-       <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
-<div :class="[showDebtToEquityRatio ? 'param-s1-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>Debt to Equity Ratio</p>
-      <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'debt-equity')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" id="debt-to-equity-check" v-model="showDebtToEquityRatio" style="border: none;">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showDebtToEquityRatio">
-    <div class="row">
-      <input class="left input" id="left-der" type="text" placeholder="min">
-      <input class="right input" id="right-der" type="text" placeholder="max">
-    </div>
-    <div class="row">
-      <button class="btns" style="float:right" @click="SetDebtToEquityRatio()">
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-      </button>
-      <button class="btnsr" style="float:right" @click="Reset('DebtEquity')">
-       <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
-<div :class="[showBookValue ? 'param-s1-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>Book Value (1000s)</p>
-      <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'book-value')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" id="book-value-check" v-model="showBookValue" style="border: none;">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showBookValue">
-    <div class="row">
-      <input class="left input" id="left-bv" type="text" placeholder="min">
-      <input class="right input" id="right-bv" type="text" placeholder="max">
-    </div>
-    <div class="row">
-      <button class="btns" style="float:right" @click="SetBookValue()">
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-      </button>
-      <button class="btnsr" style="float:right" @click="Reset('BookValue')">
-       <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
-<div :class="[showEV ? 'param-s1-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>EV (Enterprise Value) - 1000s</p>
-      <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'ev')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" id="ev-check" v-model="showEV" style="border: none;">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showEV">
-    <div class="row">
-      <input class="left input" id="left-ev" type="text" placeholder="min">
-      <input class="right input" id="right-ev" type="text" placeholder="max">
-    </div>
-    <div class="row">
-      <button class="btns" style="float:right" @click="SetEV()">
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-      </button>
-      <button class="btnsr" style="float:right" @click="Reset('EV')">
-       <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
-<div :class="[showRSI ? 'param-s1-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>RSI (Relative Strength Index)</p>
-      <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'rsi')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" id="rsi-check" v-model="showRSI" style="border: none;">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showRSI">
-    <div class="row">
-      <input class="left input" id="left-rsi" type="number" placeholder="min" min="1" max="100">
-      <input class="right input" id="right-rsi" type="number" placeholder="max" min="1" max="100">
-    </div>
-    <div class="row">
-      <button class="btns" style="float:right" @click="SetRSI()">
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g></g></g></svg>
-      </button>
-      <button class="btnsr" style="float:right" @click="Reset('RSI')">
-       <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
-<div :class="[showGap ? 'param-s1-expanded' : 'param-s1']">
-  <div class="row">
-    <div style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>Gap %</p>
-      <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-       @mouseover="handleMouseOver($event, 'gap')" @mouseout="handleMouseOut">
-    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-      <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-    </g>
-  </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" id="gap-percent-check" v-model="showGap" style="border: none;">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none;" v-if="showGap">
-    <div class="row">
-      <input class="left input" id="left-gap" type="text" placeholder="min">
-      <input class="right input" id="right-gap" type="text" placeholder="max">
-    </div>
-    <div class="row">
-      <button class="btns" style="float:right" @click="SetGapPercent()">
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/" xmlns:xlink="http://www.w3.org/1999/xlink"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z"></path><g id="Icon"></g></g></svg>
-      </button>
-      <button class="btnsr" style="float:right" @click="Reset('Gap')">
-       <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg" transform="rotate(90)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0" fill-rule="evenodd"></path> </g></svg>
-      </button>
-    </div>
-  </div>
-</div>
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Current Ratio</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'current-ratio')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" id="current-ratio-check" v-model="showCurrentRatio" style="border: none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showCurrentRatio">
+            <div class="row">
+              <input class="left input" id="left-current-ratio" type="text" placeholder="min">
+              <input class="right input" id="right-current-ratio" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetCurrentRatio()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('CurrentRatio')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showCurrentAssets ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Current Assets (1000s)</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'current-assets')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" v-model="showCurrentAssets">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showCurrentAssets">
+            <div class="row">
+              <input class="left input" id="left-ca" type="text" placeholder="min">
+              <input class="right input" id="right-ca" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetCurrentAssets()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('CurrentAssets')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showCurrentLiabilities ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Current Liabilities (1000s)</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'current-liabilities')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" v-model="showCurrentLiabilities">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showCurrentLiabilities">
+            <div class="row">
+              <input class="left input" id="left-cl" type="text" placeholder="min">
+              <input class="right input" id="right-cl" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetCurrentLiabilities()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('CurrentLiabilities')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showCurrentDebt ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Current Debt (1000s)</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'current-debt')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" v-model="showCurrentDebt">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showCurrentDebt">
+            <div class="row">
+              <input class="left input" id="left-cd" type="text" placeholder="min">
+              <input class="right input" id="right-cd" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetCurrentDebt()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('CurrentDebt')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showCashEquivalents ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Cash & Equivalents (1000s)</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'casheq')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" v-model="showCashEquivalents">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showCashEquivalents">
+            <div class="row">
+              <input class="left input" id="left-ce" type="text" placeholder="min">
+              <input class="right input" id="right-ce" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetCashEquivalents()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('CashEquivalents')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showFreeCashFlow ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Free Cash Flow (1000s)</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'fcf')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" v-model="showFreeCashFlow">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showFreeCashFlow">
+            <div class="row">
+              <input class="left input" id="left-fcf" type="text" placeholder="min">
+              <input class="right input" id="right-fcf" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetFreeCashFlow()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('FCF')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showProfitMargin ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Profit Margin</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'profit-margin')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" id="profit-margin-check" v-model="showProfitMargin" style="border: none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showProfitMargin">
+            <div class="row">
+              <input class="left input" id="left-pm" type="text" placeholder="min">
+              <input class="right input" id="right-pm" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetProfitMargin()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('ProfitMargin')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showGrossMargin ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Gross Margin</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'gross-margin')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" id="gross-margin-check" v-model="showGrossMargin" style="border: none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showGrossMargin">
+            <div class="row">
+              <input class="left input" id="left-gm" type="text" placeholder="min">
+              <input class="right input" id="right-gm" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetGrossMargin()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('GrossMargin')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showDebtToEquityRatio ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Debt to Equity Ratio</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'debt-equity')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" id="debt-to-equity-check" v-model="showDebtToEquityRatio" style="border: none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showDebtToEquityRatio">
+            <div class="row">
+              <input class="left input" id="left-der" type="text" placeholder="min">
+              <input class="right input" id="right-der" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetDebtToEquityRatio()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('DebtEquity')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showBookValue ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Book Value (1000s)</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'book-value')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" id="book-value-check" v-model="showBookValue" style="border: none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showBookValue">
+            <div class="row">
+              <input class="left input" id="left-bv" type="text" placeholder="min">
+              <input class="right input" id="right-bv" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetBookValue()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('BookValue')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showEV ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>EV (Enterprise Value) - 1000s</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'ev')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" id="ev-check" v-model="showEV" style="border: none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showEV">
+            <div class="row">
+              <input class="left input" id="left-ev" type="text" placeholder="min">
+              <input class="right input" id="right-ev" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetEV()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('EV')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showRSI ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>RSI (Relative Strength Index)</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'rsi')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" id="rsi-check" v-model="showRSI" style="border: none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showRSI">
+            <div class="row">
+              <input class="left input" id="left-rsi" type="number" placeholder="min" min="1" max="100">
+              <input class="right input" id="right-rsi" type="number" placeholder="max" min="1" max="100">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetRSI()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('RSI')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div :class="[showGap ? 'param-s1-expanded' : 'param-s1']">
+          <div class="row">
+            <div
+              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+              <p>Gap %</p>
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, 'gap')" @mouseout="handleMouseOut">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+                    stroke-linejoin="round"></path>
+                </g>
+              </svg>
+            </div>
+            <label style="float:right" class="switch">
+              <input type="checkbox" id="gap-percent-check" v-model="showGap" style="border: none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div style="border: none;" v-if="showGap">
+            <div class="row">
+              <input class="left input" id="left-gap" type="text" placeholder="min">
+              <input class="right input" id="right-gap" type="text" placeholder="max">
+            </div>
+            <div class="row">
+              <button class="btns" style="float:right" @click="SetGapPercent()">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+                  xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+                    </path>
+                    <g id="Icon"></g>
+                  </g>
+                </svg>
+              </button>
+              <button class="btnsr" style="float:right" @click="Reset('Gap')">
+                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+                  transform="rotate(90)">
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                  <g id="SVGRepo_iconCarrier">
+                    <path
+                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+                      fill-rule="evenodd"></path>
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
         <div class="results"></div>
       </div>
       <div id="resultsDiv" :class="{ 'hidden-mobile': selected !== 'list' }">
         <div v-if="showCreateScreener" class="CreateScreener">
-        <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
- preserveAspectRatio="xMidYMid meet">
-<g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)"
-fill="var(--text1)" stroke="none">
-<path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
+          <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
+            preserveAspectRatio="xMidYMid meet">
+            <g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)" fill="var(--text1)" stroke="none">
+              <path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
 -625 104 -601 387 -1216 800 -1735 123 -155 475 -507 616 -616 280 -217 609
 -419 1640 -1007 1314 -749 1735 -942 2525 -1157 257 -70 457 -130 660 -200
 924 -315 1748 -774 2455 -1366 434 -363 775 -722 1190 -1249 226 -288 317
@@ -1411,9 +2264,9 @@ c-149 -1 -246 -3 -214 -5 31 -2 57 -8 57 -12 0 -20 -966 -572 -1955 -1118
 -469 -561 -242 -873 -321 -1356 -342 -455 -19 -824 20 -1176 126 -280 83 -380
 132 -1143 552 -413 227 -1022 569 -1419 796 -163 94 -254 140 -287 146 -72 14
 -124 45 -158 94 -17 24 -37 46 -46 49 -22 9 -18 25 8 30 12 2 -86 5 -218 5
-l-240 1 -90 -57z"/>
-<path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z"/>
-<path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
+l-240 1 -90 -57z" />
+              <path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z" />
+              <path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
 -765 -1960 -65 -377 -84 -670 -77 -1147 6 -360 19 -545 58 -805 125 -849 505
 -1739 1054 -2470 694 -926 1639 -1601 2760 -1973 393 -131 761 -205 1215 -244
 217 -19 820 -16 1055 5 478 43 804 92 839 127 12 12 -5 38 -258 375 -318 422
@@ -1421,8 +2274,8 @@ l-240 1 -90 -57z"/>
 -691 401 -1002 704 -383 374 -682 822 -875 1311 -175 444 -239 804 -239 1350
 0 611 120 1142 374 1650 183 365 364 619 697 980 94 102 181 214 181 234 0 14
 -49 38 -315 156 -275 122 -561 265 -870 438 -320 178 -439 241 -503 266 l-53
-21 -51 -47z"/>
-<path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
+21 -51 -47z" />
+              <path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
 -382 -387 -176 -457 -209 -462 -222 -7 -18 70 -122 173 -233 273 -295 429
 -503 594 -791 226 -394 394 -862 445 -1233 48 -353 48 -880 0 -1232 -48 -355
 -209 -812 -414 -1178 -413 -738 -1086 -1338 -1855 -1653 -464 -191 -909 -273
@@ -1430,16 +2283,16 @@ l-240 1 -90 -57z"/>
 -410 -306 -421 0 -12 53 -25 260 -64 367 -69 618 -88 1125 -89 497 0 759 20
 1095 85 1456 282 2780 1184 3622 2469 368 560 633 1184 772 1817 81 372 106
 609 113 1109 9 632 -27 1014 -138 1464 -183 742 -504 1431 -947 2030 -169 228
--311 380 -355 380 -13 0 -98 -38 -188 -84z"/>
-<path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
+-311 380 -355 380 -13 0 -98 -38 -188 -84z" />
+              <path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
 -761 -191 -379 -407 -678 -715 -985 -281 -282 -540 -474 -950 -705 -110 -62
 -201 -114 -203 -115 -12 -11 103 -216 241 -429 216 -335 366 -522 846 -1061
 174 -195 358 -422 539 -665 248 -333 341 -407 542 -431 97 -11 219 -6 300 13
 137 32 248 132 450 403 233 314 459 589 718 873 251 275 419 479 534 647 135
 197 338 534 374 621 l14 32 -203 112 c-400 222 -668 420 -952 705 -320 320
 -541 629 -736 1030 -124 255 -247 600 -266 745 -8 63 -18 78 -61 90 -44 12
--85 12 -130 -1z"/>
-<path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
+-85 12 -130 -1z" />
+              <path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
 -528 435 -1160 557 -1303 25 -29 83 -101 128 -160 114 -148 273 -310 397 -402
 135 -102 282 -177 576 -293 132 -52 341 -142 465 -200 124 -57 238 -107 255
 -111 16 -4 73 -32 126 -62 180 -100 318 -152 785 -294 614 -187 1092 -375
@@ -1456,35 +2309,52 @@ l-240 1 -90 -57z"/>
 -455 207 -653 368 -42 35 -124 108 -182 163 -58 54 -121 114 -141 133 l-36 33
 -214 -60 c-564 -158 -911 -223 -1432 -268 -236 -20 -820 -23 -1047 -4 -961 77
 -1761 299 -2600 722 -932 469 -1698 1111 -2414 2024 -143 182 -140 178 -133
-140z"/>
-<path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z"/>
-<path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
--3z"/>
-</g>
-</svg>
+140z" />
+              <path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z" />
+              <path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
+-3z" />
+            </g>
+          </svg>
           <h3 style="color: var(--text1)">Create Screener</h3>
-          <input
-      id="inputcreate"
-      placeholder="Enter Screener Name"
-      type="text"
-      v-model="screenerName"
-      :class="{'input-error': screenerName.length > 20}"
-    />
+          <input id="inputcreate" placeholder="Enter Screener Name" type="text" v-model="screenerName"
+            :class="{ 'input-error': screenerName.length > 20 }" />
           <div class="inner">
             <button @click="showCreateScreener = false">
-             <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve" transform="rotate(180)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z"></path> </g> </g></svg>
+              <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve"
+                transform="rotate(180)">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <g>
+                    <path
+                      d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z">
+                    </path>
+                  </g>
+                </g>
+              </svg>
             </button>
             <button @click="CreateScreener()">
-               <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z" fill="var(--text1)"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z" fill="var(--text1)"></path> </g></svg>
+              <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z"
+                    fill="var(--text1)"></path>
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                    d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z"
+                    fill="var(--text1)"></path>
+                </g>
+              </svg>
             </button>
           </div>
         </div>
         <div v-if="showRenameScreener" class="RenameScreener">
-         <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
- preserveAspectRatio="xMidYMid meet">
-<g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)"
-fill="var(--text1)" stroke="none">
-<path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
+          <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
+            preserveAspectRatio="xMidYMid meet">
+            <g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)" fill="var(--text1)" stroke="none">
+              <path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
 -625 104 -601 387 -1216 800 -1735 123 -155 475 -507 616 -616 280 -217 609
 -419 1640 -1007 1314 -749 1735 -942 2525 -1157 257 -70 457 -130 660 -200
 924 -315 1748 -774 2455 -1366 434 -363 775 -722 1190 -1249 226 -288 317
@@ -1500,9 +2370,9 @@ c-149 -1 -246 -3 -214 -5 31 -2 57 -8 57 -12 0 -20 -966 -572 -1955 -1118
 -469 -561 -242 -873 -321 -1356 -342 -455 -19 -824 20 -1176 126 -280 83 -380
 132 -1143 552 -413 227 -1022 569 -1419 796 -163 94 -254 140 -287 146 -72 14
 -124 45 -158 94 -17 24 -37 46 -46 49 -22 9 -18 25 8 30 12 2 -86 5 -218 5
-l-240 1 -90 -57z"/>
-<path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z"/>
-<path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
+l-240 1 -90 -57z" />
+              <path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z" />
+              <path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
 -765 -1960 -65 -377 -84 -670 -77 -1147 6 -360 19 -545 58 -805 125 -849 505
 -1739 1054 -2470 694 -926 1639 -1601 2760 -1973 393 -131 761 -205 1215 -244
 217 -19 820 -16 1055 5 478 43 804 92 839 127 12 12 -5 38 -258 375 -318 422
@@ -1510,8 +2380,8 @@ l-240 1 -90 -57z"/>
 -691 401 -1002 704 -383 374 -682 822 -875 1311 -175 444 -239 804 -239 1350
 0 611 120 1142 374 1650 183 365 364 619 697 980 94 102 181 214 181 234 0 14
 -49 38 -315 156 -275 122 -561 265 -870 438 -320 178 -439 241 -503 266 l-53
-21 -51 -47z"/>
-<path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
+21 -51 -47z" />
+              <path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
 -382 -387 -176 -457 -209 -462 -222 -7 -18 70 -122 173 -233 273 -295 429
 -503 594 -791 226 -394 394 -862 445 -1233 48 -353 48 -880 0 -1232 -48 -355
 -209 -812 -414 -1178 -413 -738 -1086 -1338 -1855 -1653 -464 -191 -909 -273
@@ -1519,16 +2389,16 @@ l-240 1 -90 -57z"/>
 -410 -306 -421 0 -12 53 -25 260 -64 367 -69 618 -88 1125 -89 497 0 759 20
 1095 85 1456 282 2780 1184 3622 2469 368 560 633 1184 772 1817 81 372 106
 609 113 1109 9 632 -27 1014 -138 1464 -183 742 -504 1431 -947 2030 -169 228
--311 380 -355 380 -13 0 -98 -38 -188 -84z"/>
-<path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
+-311 380 -355 380 -13 0 -98 -38 -188 -84z" />
+              <path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
 -761 -191 -379 -407 -678 -715 -985 -281 -282 -540 -474 -950 -705 -110 -62
 -201 -114 -203 -115 -12 -11 103 -216 241 -429 216 -335 366 -522 846 -1061
 174 -195 358 -422 539 -665 248 -333 341 -407 542 -431 97 -11 219 -6 300 13
 137 32 248 132 450 403 233 314 459 589 718 873 251 275 419 479 534 647 135
 197 338 534 374 621 l14 32 -203 112 c-400 222 -668 420 -952 705 -320 320
 -541 629 -736 1030 -124 255 -247 600 -266 745 -8 63 -18 78 -61 90 -44 12
--85 12 -130 -1z"/>
-<path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
+-85 12 -130 -1z" />
+              <path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
 -528 435 -1160 557 -1303 25 -29 83 -101 128 -160 114 -148 273 -310 397 -402
 135 -102 282 -177 576 -293 132 -52 341 -142 465 -200 124 -57 238 -107 255
 -111 16 -4 73 -32 126 -62 180 -100 318 -152 785 -294 614 -187 1092 -375
@@ -1545,550 +2415,910 @@ l-240 1 -90 -57z"/>
 -455 207 -653 368 -42 35 -124 108 -182 163 -58 54 -121 114 -141 133 l-36 33
 -214 -60 c-564 -158 -911 -223 -1432 -268 -236 -20 -820 -23 -1047 -4 -961 77
 -1761 299 -2600 722 -932 469 -1698 1111 -2414 2024 -143 182 -140 178 -133
-140z"/>
-<path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z"/>
-<path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
--3z"/>
-</g>
-</svg>
+140z" />
+              <path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z" />
+              <path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
+-3z" />
+            </g>
+          </svg>
           <h3 style="color: var(--text1)">Rename Screener</h3>
-          <input 
-        id="inputrename" 
-        placeholder="Enter Screener Name" 
-        type="text"
-        v-model="screenerName"
-      :class="{'input-error': screenerName.length > 20}"
-      />
+          <input id="inputrename" placeholder="Enter Screener Name" type="text" v-model="screenerName"
+            :class="{ 'input-error': screenerName.length > 20 }" />
           <div class="inner">
             <button @click="showRenameScreener = false">
-             <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve" transform="rotate(180)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z"></path> </g> </g></svg>
+              <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve"
+                transform="rotate(180)">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <g>
+                    <path
+                      d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z">
+                    </path>
+                  </g>
+                </g>
+              </svg>
             </button>
             <button @click="UpdateScreener()">
-               <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z" fill="var(--text1)"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z" fill="var(--text1)"></path> </g></svg>
+              <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z"
+                    fill="var(--text1)"></path>
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                    d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z"
+                    fill="var(--text1)"></path>
+                </g>
+              </svg>
             </button>
           </div>
         </div>
         <div v-if="showSearch" class="searchDiv">
-          <input type="search" class="search-input" placeholder="Search..." 
-          v-model="searchQuery" @input="toUpperCase" @keydown.enter="SearchElement()">
+          <input type="search" class="search-input" placeholder="Search..." v-model="searchQuery" @input="toUpperCase"
+            @keydown.enter="SearchElement()">
           <button class="search-btn" @click="SearchElement()">
-            <svg class="img3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+            <svg class="img3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <path
+                  d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                  stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              </g>
+            </svg>
           </button>
         </div>
         <div class="navmenu">
-          <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }" @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover
-            title="Create New Screener">
-            <svg class="img2" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>new-indicator</title> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)"> <path d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z" id="Combined-Shape"> </path> </g> </g> </g></svg>
-               <label class=btnlabel>Create</label></button>
-          <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }" @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover
-            title="Rename Current Screener">
-            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path> <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path> <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path> </g></svg>
-              <label class=btnlabel>Rename</label></button>
-          <button class="snavbtn" v-b-tooltip.hover title="Reset Screener" @click="async() => {await ResetScreener(); await CurrentScreener();}" >
-           <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" data-name="Layer 1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="20.48"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z"></path></g></svg>
-             <label class=btnlabel>Reset</label></button>
-          <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning === true }" @click="AutoPlay()" v-b-tooltip.hover
-            title="Autoplay Results">
-            <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path fill="var(--text1)" fill-rule="evenodd" d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z"></path> </g></svg>
+          <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
+            @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover title="Create New Screener">
+            <svg class="img2" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <title>new-indicator</title>
+                <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)">
+                    <path
+                      d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z"
+                      id="Combined-Shape"> </path>
+                  </g>
+                </g>
+              </g>
+            </svg>
+            <label class=btnlabel>Create</label></button>
+          <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }"
+            @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover title="Rename Current Screener">
+            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path>
+                <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
+                <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path>
+              </g>
+            </svg>
+            <label class=btnlabel>Rename</label></button>
+          <button class="snavbtn" v-b-tooltip.hover title="Reset Screener"
+            @click="async () => { await ResetScreener(); await CurrentScreener(); }">
+            <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" data-name="Layer 1" id="Layer_1"
+              xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="20.48">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <path
+                  d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z">
+                </path>
+              </g>
+            </svg>
+            <label class=btnlabel>Reset</label></button>
+          <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning === true }"
+            @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Results">
+            <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <path fill="var(--text1)" fill-rule="evenodd"
+                  d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z">
+                </path>
+              </g>
+            </svg>
             <label class=btnlabel>Autoplay</label></button>
-          <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'hidden' }" v-b-tooltip.hover title="Hidden List" @click="showHiddenResults()">
-           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Edit / Hide"> <path id="Vector" d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>
-               <label class=btnlabel>Hidden Stocks</label></button>
-              <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover title="Show Combined Screener Results" @click="showCombinedResults()">
-           <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z"></path> </g></svg>
+          <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'hidden' }" v-b-tooltip.hover
+            title="Hidden List" @click="showHiddenResults()">
+            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <g id="Edit / Hide">
+                  <path id="Vector"
+                    d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
+                    stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                </g>
+              </g>
+            </svg>
+            <label class=btnlabel>Hidden Stocks</label></button>
+          <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover
+            title="Show Combined Screener Results" @click="showCombinedResults()">
+            <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <path
+                  d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z">
+                </path>
+              </g>
+            </svg>
             <label class=btnlabel>Multi-Screener</label>
           </button>
-          <button style="display: none;" class="snavbtn" :class="{ 'snavbtnslct': showSearch }" id="showSearch" @click="showSearch = !showSearch" v-b-tooltip.hover title="Search">
-           <svg class="img2" fill="var(--text1)" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12.027 9.92L16 13.95 14 16l-4.075-3.976A6.465 6.465 0 0 1 6.5 13C2.91 13 0 10.083 0 6.5 0 2.91 2.917 0 6.5 0 10.09 0 13 2.917 13 6.5a6.463 6.463 0 0 1-.973 3.42zM1.997 6.452c0 2.48 2.014 4.5 4.5 4.5 2.48 0 4.5-2.015 4.5-4.5 0-2.48-2.015-4.5-4.5-4.5-2.48 0-4.5 2.014-4.5 4.5z" fill-rule="evenodd"></path> </g></svg>
+          <button style="display: none;" class="snavbtn" :class="{ 'snavbtnslct': showSearch }" id="showSearch"
+            @click="showSearch = !showSearch" v-b-tooltip.hover title="Search">
+            <svg class="img2" fill="var(--text1)" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <path
+                  d="M12.027 9.92L16 13.95 14 16l-4.075-3.976A6.465 6.465 0 0 1 6.5 13C2.91 13 0 10.083 0 6.5 0 2.91 2.917 0 6.5 0 10.09 0 13 2.917 13 6.5a6.463 6.463 0 0 1-.973 3.42zM1.997 6.452c0 2.48 2.014 4.5 4.5 4.5 2.48 0 4.5-2.015 4.5-4.5 0-2.48-2.015-4.5-4.5-4.5-2.48 0-4.5 2.014-4.5 4.5z"
+                  fill-rule="evenodd"></path>
+              </g>
+            </svg>
             <label class=btnlabel>Search</label></button>
-              <button @click="DownloadResults" class="snavbtn" :class="{ 'snavbtnslct': showSearch }" v-b-tooltip.hover title="Download Results">
-           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M12 3V16M12 16L16 11.625M12 16L8 11.625" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+          <button @click="DownloadResults" class="snavbtn" :class="{ 'snavbtnslct': showSearch }" v-b-tooltip.hover
+            title="Download Results">
+            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <path
+                  d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M12 3V16M12 16L16 11.625M12 16L8 11.625" stroke="currentColor" stroke-width="1.5"
+                  stroke-linecap="round" stroke-linejoin="round"></path>
+              </g>
+            </svg>
             <label class=btnlabel>Download Results</label></button>
         </div>
         <div class="navmenu-mobile">
-          <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }" @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover
-            title="Create New Screener">
-            <svg class="img2" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>new-indicator</title> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)"> <path d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z" id="Combined-Shape"> </path> </g> </g> </g></svg></button>
-          <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }" @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover
-            title="Rename Current Screener">
-            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path> <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path> <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path> </g></svg>
-             </button>
-          <button class="snavbtn" v-b-tooltip.hover title="Reset Screener" @click="async() => {await ResetScreener(); await CurrentScreener();}" >
-           <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" data-name="Layer 1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="20.48"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z"></path></g></svg>
-             </button>
-          <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'hidden' }" v-b-tooltip.hover title="Hidden List" @click="showHiddenResults()">
-           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Edit / Hide"> <path id="Vector" d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>
-              </button>
-              <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover title="Show Combined Screener Results" @click="showCombinedResults()">
-           <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z"></path> </g></svg>
-            
+          <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
+            @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover title="Create New Screener">
+            <svg class="img2" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <title>new-indicator</title>
+                <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                  <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)">
+                    <path
+                      d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z"
+                      id="Combined-Shape"> </path>
+                  </g>
+                </g>
+              </g>
+            </svg></button>
+          <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }"
+            @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover title="Rename Current Screener">
+            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path>
+                <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
+                <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path>
+              </g>
+            </svg>
+          </button>
+          <button class="snavbtn" v-b-tooltip.hover title="Reset Screener"
+            @click="async () => { await ResetScreener(); await CurrentScreener(); }">
+            <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" data-name="Layer 1" id="Layer_1"
+              xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="20.48">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <path
+                  d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z">
+                </path>
+              </g>
+            </svg>
+          </button>
+          <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'hidden' }" v-b-tooltip.hover
+            title="Hidden List" @click="showHiddenResults()">
+            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <g id="Edit / Hide">
+                  <path id="Vector"
+                    d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
+                    stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                </g>
+              </g>
+            </svg>
+          </button>
+          <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover
+            title="Show Combined Screener Results" @click="showCombinedResults()">
+            <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+              <g id="SVGRepo_iconCarrier">
+                <path
+                  d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z">
+                </path>
+              </g>
+            </svg>
+
           </button>
         </div>
-          <div v-if="listMode === 'main'">
-            <div class="RES" >
-          <div class="Header">
-            <div style="min-width: 100px;"> <h1 style="background-color: var(--base1)" :key="resultListLength">RESULTS: {{ resultListLength }}</h1></div>
-            <div style="min-width: 0px;"></div>
-            <div style="min-width: 70px;">Ticker</div>
-            <div style="min-width: 300px;">Name</div>
-            <div style="min-width: 100px;">Price</div>
-            <div style="min-width: 70px;">Chg%</div>
-            <div style="min-width: 120px;">Technical Score (1W)</div>
-            <div style="min-width: 120px;">Technical Score (1M)</div>
-            <div style="min-width: 120px;">Technical Score (4M)</div>
-            <div style="min-width: 100px;">ADV (1W)</div>
-            <div style="min-width: 100px;">ADV (1M)</div>
-            <div style="min-width: 100px;">ADV (4M)</div>
-            <div style="min-width: 100px;">ADV (1Y)</div>
-            <div style="min-width: 120px;">Exchange</div>
-            <div style="min-width: 120px;">Sector</div>
-            <div style="min-width: 200px;">Industry</div>
-            <div style="min-width: 120px;">Location</div>
-            <div style="min-width: 100px;">ISIN</div>
-            <div style="min-width: 150px;">Market Cap</div>
-            <div style="min-width: 70px;">PE Ratio</div>
-            <div style="min-width: 70px;">PS Ratio</div>
-            <div style="min-width: 70px;">PEG Ratio</div>
-            <div style="min-width: 100px;">Dividend Yield (TTM)</div>
-            <div style="min-width: 70px;">EPS</div>
-          </div>
-          <div class="wlist-container" @scroll.passive="handleScroll1">
-            <div 
-  id="wlist" 
-  style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;" 
-  tabindex="0" 
-  @keydown="handleKeydown" 
-  @click="selectRow(asset.Symbol)" 
-  v-for="(asset, index) in currentResults"
-  :key="asset.Symbol" 
-  :class="[
-    index % 2 === 0 ? 'even' : 'odd', 
-    { 'selected': selectedItem === asset.Symbol }
-  ]" 
-  :data-symbol="asset.Symbol"
->
-            <div style="min-width: 50px;; position: relative;">
-                <button class="dropdown-btn">
-                   <svg class="img" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--text1)"></path> <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--text1)"></path> <path d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z" fill="var(--text1)"></path> </g></svg>
-                </button>
-                <div class="dropdown-menu">
-                  <div @click="hideStock(asset)" @click.stop style="display: flex; flex-direction: row; align-items: center; height: 14px;">
-                   <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Edit / Hide"> <path id="Vector" d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>
-                    <p>Hide Stock</p>
-                  </div>
-                  <div class="nested-dropdown" style="display: flex; flex-direction: row; align-items: center; height: 14px;">
-                   <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>new-indicator</title> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)"> <path d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z" id="Combined-Shape"> </path> </g> </g> </g></svg>
-                    <p>Add to Watchlist</p>
-                    <div class="nested-dropdown-menu">
-                  <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
-                    <label :for="'watchlist-' + index" class="checkbox-label">
-                    <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
-  <div v-html="getWatchlistIcon(ticker, asset.Symbol)"></div>
-</div>
-                      <span></span>
-                      {{ ticker.Name }}
-                    </label>
+        <div v-if="listMode === 'main'">
+          <div class="RES">
+            <div class="Header">
+              <div style="min-width: 100px;">
+                <h1 style="background-color: var(--base1)" :key="resultListLength">RESULTS: {{ resultListLength }}</h1>
+              </div>
+              <div style="min-width: 0px;"></div>
+              <div style="min-width: 70px;">Ticker</div>
+              <div style="min-width: 300px;">Name</div>
+              <div style="min-width: 100px;">Price</div>
+              <div style="min-width: 70px;">Chg%</div>
+              <div style="min-width: 120px;">Technical Score (1W)</div>
+              <div style="min-width: 120px;">Technical Score (1M)</div>
+              <div style="min-width: 120px;">Technical Score (4M)</div>
+              <div style="min-width: 100px;">ADV (1W)</div>
+              <div style="min-width: 100px;">ADV (1M)</div>
+              <div style="min-width: 100px;">ADV (4M)</div>
+              <div style="min-width: 100px;">ADV (1Y)</div>
+              <div style="min-width: 120px;">Exchange</div>
+              <div style="min-width: 120px;">Sector</div>
+              <div style="min-width: 200px;">Industry</div>
+              <div style="min-width: 120px;">Location</div>
+              <div style="min-width: 100px;">ISIN</div>
+              <div style="min-width: 150px;">Market Cap</div>
+              <div style="min-width: 70px;">PE Ratio</div>
+              <div style="min-width: 70px;">PS Ratio</div>
+              <div style="min-width: 70px;">PEG Ratio</div>
+              <div style="min-width: 100px;">Dividend Yield (TTM)</div>
+              <div style="min-width: 70px;">EPS</div>
+            </div>
+            <div class="wlist-container" @scroll.passive="handleScroll1">
+              <div id="wlist"
+                style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;"
+                tabindex="0" @keydown="handleKeydown" @click="selectRow(asset.Symbol)"
+                v-for="(asset, index) in currentResults" :key="asset.Symbol" :class="[
+                  index % 2 === 0 ? 'even' : 'odd',
+                  { 'selected': selectedItem === asset.Symbol }
+                ]" :data-symbol="asset.Symbol">
+                <div style="min-width: 50px;; position: relative;">
+                  <button class="dropdown-btn">
+                    <svg class="img" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                      <g id="SVGRepo_iconCarrier">
+                        <path
+                          d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z"
+                          fill="var(--text1)"></path>
+                        <path
+                          d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z"
+                          fill="var(--text1)"></path>
+                        <path
+                          d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z"
+                          fill="var(--text1)"></path>
+                      </g>
+                    </svg>
+                  </button>
+                  <div class="dropdown-menu">
+                    <div @click="hideStock(asset)" @click.stop
+                      style="display: flex; flex-direction: row; align-items: center; height: 14px;">
+                      <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 24 24"
+                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g id="SVGRepo_iconCarrier">
+                          <g id="Edit / Hide">
+                            <path id="Vector"
+                              d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
+                              stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                          </g>
+                        </g>
+                      </svg>
+                      <p>Hide Stock</p>
+                    </div>
+                    <div class="nested-dropdown"
+                      style="display: flex; flex-direction: row; align-items: center; height: 14px;">
+                      <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 512 512"
+                        version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                        fill="var(--text1)">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g id="SVGRepo_iconCarrier">
+                          <title>new-indicator</title>
+                          <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                            <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)">
+                              <path
+                                d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z"
+                                id="Combined-Shape"> </path>
+                            </g>
+                          </g>
+                        </g>
+                      </svg>
+                      <p>Add to Watchlist</p>
+                      <div class="nested-dropdown-menu">
+                        <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
+                          <label :for="'watchlist-' + index" class="checkbox-label">
+                            <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
+                              <div v-html="getWatchlistIcon(ticker, asset.Symbol)"></div>
+                            </div>
+                            <span></span>
+                            {{ ticker.Name }}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                  </div>
+                <div style="min-width: 50px;">
+                  <img :src="getImagePath(asset)" class="img" />
+                </div>
+                <div style="min-width: 70px;" class="btsymbol">{{ asset.Symbol }}</div>
+                <div style="min-width: 300px;">{{ asset.Name }}</div>
+                <div style="min-width: 100px;">{{ asset.Close }}</div>
+                <div style="min-width: 70px;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{
+                  (asset.todaychange * 100).toFixed(2) }}%</div>
+                <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
+                <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
+                <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+                <div style="min-width: 100px;">{{ asset.ADV1W !== null && !isNaN(asset.ADV1W) ? asset.ADV1W.toFixed(2) +
+                  '%' : '-' }}</div>
+                <div style="min-width: 100px;">{{ asset.ADV1M !== null && !isNaN(asset.ADV1M) ? asset.ADV1M.toFixed(2) +
+                  '%' : '-' }}</div>
+                <div style="min-width: 100px;">{{ asset.ADV4M !== null && !isNaN(asset.ADV4M) ? asset.ADV4M.toFixed(2) +
+                  '%' : '-' }}</div>
+                <div style="min-width: 100px;">{{ asset.ADV1Y !== null && !isNaN(asset.ADV1Y) ? asset.ADV1Y.toFixed(2) +
+                  '%' : '-' }}</div>
+                <div style="min-width: 120px;">{{ asset.Exchange }}</div>
+                <div style="min-width: 120px;">{{ asset.Sector }}</div>
+                <div style="min-width: 200px;">{{ asset.Industry }}</div>
+                <div style="min-width: 120px;">{{ asset.Country }}</div>
+                <div style="min-width: 100px;">{{ asset.ISIN }}</div>
+                <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
+                <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+                    <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' :
+                      Math.floor(asset.PriceToSalesRatioTTM) }}</div>
+                        <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
+                            <div style="min-width: 100px;">{{ asset.DividendYield === null || asset.DividendYield ===
+                              undefined || asset.DividendYield === 0 || isNaN(asset.DividendYield * 100) ? '-' :
+                              ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
+                            <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
+                        </div>
+                        <div class="results2">
+                        </div>
+                    </div>
                 </div>
               </div>
-              <div style="min-width: 50px;">
-                <img 
-  :src="getImagePath(asset)" 
-  class="img" 
-/>
-              </div>
-              <div style="min-width: 70px;" class="btsymbol">{{ asset.Symbol }}</div>
-              <div style="min-width: 300px;">{{ asset.Name }}</div>
-              <div style="min-width: 100px;">{{ asset.Close }}</div>
-              <div style="min-width: 70px;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{ (asset.todaychange * 100).toFixed(2) }}%</div>
-              <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
-              <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
-              <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV1W !== null && !isNaN(asset.ADV1W) ? asset.ADV1W.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV1M !== null && !isNaN(asset.ADV1M) ? asset.ADV1M.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV4M !== null && !isNaN(asset.ADV4M) ? asset.ADV4M.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV1Y !== null && !isNaN(asset.ADV1Y) ? asset.ADV1Y.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 120px;">{{ asset.Exchange }}</div>
-              <div style="min-width: 120px;">{{ asset.Sector }}</div>
-              <div style="min-width: 200px;">{{ asset.Industry }}</div>
-              <div style="min-width: 120px;">{{ asset.Country }}</div>
-              <div style="min-width: 100px;">{{ asset.ISIN }}</div>
-              <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
-              <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
-              <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' : Math.floor(asset.PriceToSalesRatioTTM) }}</div>
-              <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
-              <div style="min-width: 100px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || asset.DividendYield === 0 || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
-              <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
-            </div>
-            <div class="results2"> 
-            </div>
-          </div>
-          </div>
-          </div>
-          <div v-else-if="listMode === 'filter'">
-            <div class="RES">
-          <div class="Header" style="display: flex; flex-direction: row; width: 100vw; height: 30px; align-items: center;">
-             <div style="min-width: 100px;"> <h1 style="background-color: var(--base1)" :key="resultListLength">RESULTS: {{ resultListLength }}</h1></div>
-            <div style="min-width: 0px;"></div>
-            <div style="min-width: 70px;">Ticker</div>
-            <div style="min-width: 300px;">Name</div>
-            <div style="min-width: 100px;">Price</div>
-            <div style="min-width: 70px;">Chg%</div>
-            <div style="min-width: 120px;">Technical Score (1W)</div>
-            <div style="min-width: 120px;">Technical Score (1M)</div>
-            <div style="min-width: 120px;">Technical Score (4M)</div>
-            <div style="min-width: 100px;">ADV (1W)</div>
-            <div style="min-width: 100px;">ADV (1M)</div>
-            <div style="min-width: 100px;">ADV (4M)</div>
-            <div style="min-width: 100px;">ADV (1Y)</div>
-            <div style="min-width: 120px;">Exchange</div>
-            <div style="min-width: 120px;">Sector</div>
-            <div style="min-width: 200px;">Industry</div>
-            <div style="min-width: 120px;">Location</div>
-            <div style="min-width: 100px;">ISIN</div>
-            <div style="min-width: 150px;">Market Cap</div>
-            <div style="min-width: 70px;">PE Ratio</div>
-            <div style="min-width: 70px;">PS Ratio</div>
-            <div style="min-width: 70px;">PEG Ratio</div>
-            <div style="min-width: 100px;">Dividend Yield (TTM)</div>
-            <div style="min-width: 70px;">EPS</div>
-          </div>
-          <div class="wlist-container" @scroll.passive="handleScroll2">
-            <div 
-  id="wlist" 
-  style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;" 
-  tabindex="0" 
-  @keydown="handleKeydown" 
-  @click="selectRow(asset.Symbol)" 
-  v-for="(asset, index) in currentResults"
-  :key="asset.Symbol" 
-  :class="[
-    index % 2 === 0 ? 'even' : 'odd', 
-    { 'selected': selectedItem === asset.Symbol }
-  ]" 
-  :data-symbol="asset.Symbol"
->
-              <div style="min-width: 50px; position: relative;">
-                <button class="dropdown-btn">
-                  <svg class="img" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--text1)"></path> <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--text1)"></path> <path d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z" fill="var(--text1)"></path> </g></svg>
-                </button>
-                <div class="dropdown-menu">
-                  <div @click="hideStock(asset)" @click.stop style="display: flex; flex-direction: row; align-items: center; height: 14px;">
-                     <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Edit / Hide"> <path id="Vector" d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>
-                    <p>Hide Stock</p>
+              <div v-else-if="listMode === 'filter'">
+                <div class="RES">
+                  <div class="Header"
+                    style="display: flex; flex-direction: row; width: 100vw; height: 30px; align-items: center;">
+                    <div style="min-width: 100px;">
+                      <h1 style="background-color: var(--base1)" :key="resultListLength">RESULTS: {{ resultListLength }}
+                      </h1>
+                    </div>
+                    <div style="min-width: 0px;"></div>
+                    <div style="min-width: 70px;">Ticker</div>
+                    <div style="min-width: 300px;">Name</div>
+                    <div style="min-width: 100px;">Price</div>
+                    <div style="min-width: 70px;">Chg%</div>
+                    <div style="min-width: 120px;">Technical Score (1W)</div>
+                    <div style="min-width: 120px;">Technical Score (1M)</div>
+                    <div style="min-width: 120px;">Technical Score (4M)</div>
+                    <div style="min-width: 100px;">ADV (1W)</div>
+                    <div style="min-width: 100px;">ADV (1M)</div>
+                    <div style="min-width: 100px;">ADV (4M)</div>
+                    <div style="min-width: 100px;">ADV (1Y)</div>
+                    <div style="min-width: 120px;">Exchange</div>
+                    <div style="min-width: 120px;">Sector</div>
+                    <div style="min-width: 200px;">Industry</div>
+                    <div style="min-width: 120px;">Location</div>
+                    <div style="min-width: 100px;">ISIN</div>
+                    <div style="min-width: 150px;">Market Cap</div>
+                    <div style="min-width: 70px;">PE Ratio</div>
+                    <div style="min-width: 70px;">PS Ratio</div>
+                    <div style="min-width: 70px;">PEG Ratio</div>
+                    <div style="min-width: 100px;">Dividend Yield (TTM)</div>
+                    <div style="min-width: 70px;">EPS</div>
                   </div>
-                  <div class="nested-dropdown" style="display: flex; flex-direction: row; align-items: center; height: 14px;">
-                    <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>new-indicator</title> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)"> <path d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z" id="Combined-Shape"> </path> </g> </g> </g></svg>
-                    <p>Add to Watchlist</p>
-                    <div class="nested-dropdown-menu">
-                  <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
-                    <label :for="'watchlist-' + index" class="checkbox-label">
-                        <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
-  <div v-html="getWatchlistIcon(ticker, asset.Symbol)"></div>
-</div>
-                      <span></span>
-                      {{ ticker.Name }}
-                    </label>
-                  </div>
-                </div>
-                  </div>
-                </div>
-              </div>
-              <div style="min-width: 50px;">
-                <img 
-  :src="getImagePath(asset)" 
-  class="img" 
-/>
-              </div>
-              <div style="min-width: 70px;" class="btsymbol">{{ asset.Symbol }}</div>
-              <div style="min-width: 300px;">{{ asset.Name }}</div>
-              <div style="min-width: 100px;">{{ asset.Close }}</div>
-              <div style="min-width: 70px;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{ (asset.todaychange * 100).toFixed(2) }}%</div>
-              <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
-              <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
-              <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV1W !== null && !isNaN(asset.ADV1W) ? asset.ADV1W.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV1M !== null && !isNaN(asset.ADV1M) ? asset.ADV1M.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV4M !== null && !isNaN(asset.ADV4M) ? asset.ADV4M.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV1Y !== null && !isNaN(asset.ADV1Y) ? asset.ADV1Y.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 120px;">{{ asset.Exchange }}</div>
-              <div style="min-width: 120px;">{{ asset.Sector }}</div>
-              <div style="min-width: 200px;">{{ asset.Industry }}</div>
-              <div style="min-width: 120px;">{{ asset.Country }}</div>
-              <div style="min-width: 100px;">{{ asset.ISIN }}</div>
-              <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
-              <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
-              <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' : Math.floor(asset.PriceToSalesRatioTTM) }}</div>
-              <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
-              <div style="min-width: 100px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || asset.DividendYield === 0 || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
-              <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
-            </div>
-            <div class="results2"> 
-            </div>
-          </div>
-          </div>
-          </div>
-          <div v-else-if="listMode === 'hidden'">
-            <div class="RES">
-          <div class="Header" style="display: flex; flex-direction: row; width: 100vw; height: 30px; align-items: center;">
-             <div style="min-width: 100px;"> <h1 style="background-color: var(--base1)" :key="resultListLength">RESULTS: {{ resultListLength }}</h1></div>
-            <div style="min-width: 0px;"></div>
-            <div style="min-width: 70px;">Ticker</div>
-            <div style="min-width: 300px;">Name</div>
-            <div style="min-width: 100px;">Price</div>
-            <div style="min-width: 70px;">Chg%</div>
-            <div style="min-width: 120px;">Technical Score (1W)</div>
-            <div style="min-width: 120px;">Technical Score (1M)</div>
-            <div style="min-width: 120px;">Technical Score (4M)</div>
-            <div style="min-width: 100px;">ADV (1W)</div>
-            <div style="min-width: 100px;">ADV (1M)</div>
-            <div style="min-width: 100px;">ADV (4M)</div>
-            <div style="min-width: 100px;">ADV (1Y)</div>
-            <div style="min-width: 120px;">Exchange</div>
-            <div style="min-width: 120px;">Sector</div>
-            <div style="min-width: 200px;">Industry</div>
-            <div style="min-width: 120px;">Location</div>
-            <div style="min-width: 100px;">ISIN</div>
-            <div style="min-width: 150px;">Market Cap</div>
-            <div style="min-width: 70px;">PE Ratio</div>
-            <div style="min-width: 70px;">PS Ratio</div>
-            <div style="min-width: 70px;">PEG Ratio</div>
-            <div style="min-width: 100px;">Dividend Yield (TTM)</div>
-            <div style="min-width: 70px;">EPS</div>
-          </div>
-          <div class="wlist-container" @scroll.passive="handleScroll3">
-            <div 
-  id="wlist" 
-  style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;" 
-  tabindex="0" 
-  @keydown="handleKeydown" 
-  @click="selectRow(asset.Symbol)" 
-  v-for="(asset, index) in currentResults"
-  :key="asset.Symbol" 
-  :class="[
-    index % 2 === 0 ? 'even' : 'odd', 
-    { 'selected': selectedItem === asset.Symbol }
-  ]" 
-  :data-symbol="asset.Symbol"
->
-              <div style="min-width: 50px;; position: relative;">
-                <button class="dropdown-btn">
-                  <svg class="img" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--text1)"></path> <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--text1)"></path> <path d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z" fill="var(--text1)"></path> </g></svg>
-                </button>
-                <div class="dropdown-menu">
-                  <div @click="ShowStock(asset)" @click.stop style="display: flex; flex-direction: row; align-items: center; height: 14px;">
-                   <svg style="width: 15px; height: 15px; margin-right: 5px;" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M0 0h48v48H0z" fill="none"></path> <g id="Shopicon"> <circle cx="24" cy="24" r="4"></circle> <path d="M24,38c12,0,20-14,20-14s-8-14-20-14S4,24,4,24S12,38,24,38z M24,16c4.418,0,8,3.582,8,8s-3.582,8-8,8s-8-3.582-8-8 S19.582,16,24,16z"></path> </g> </g></svg>
-                    <p>Show Stock</p>
-                  </div>
-                  <div class="nested-dropdown" style="display: flex; flex-direction: row; align-items: center; height: 14px;">
-                    <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>new-indicator</title> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)"> <path d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z" id="Combined-Shape"> </path> </g> </g> </g></svg>
-                    <p>Add to Watchlist</p>
-                    <div class="nested-dropdown-menu">
-                  <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
-                    <label :for="'watchlist-' + index" class="checkbox-label">
-                        <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
-  <div v-html="getWatchlistIcon(ticker, asset.Symbol)"></div>
-</div>
-                      <span></span>
-                      {{ ticker.Name }}
-                    </label>
-                  </div>
-                </div>
-                  </div>
-                </div>
-              </div>
-              <div style="min-width: 50px;">
-                <img 
-  :src="getImagePath(asset)" 
-  class="img" 
-/>
-              </div>
-              <div style="min-width: 70px;" class="btsymbol">{{ asset.Symbol }}</div>
-              <div style="min-width: 300px;">{{ asset.Name }}</div>
-              <div style="min-width: 100px;;">{{ asset.Close }}</div>
-              <div style="min-width: 70px;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{ (asset.todaychange * 100).toFixed(2) }}%</div>
-              <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
-              <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
-              <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV1W !== null && !isNaN(asset.ADV1W) ? asset.ADV1W.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV1M !== null && !isNaN(asset.ADV1M) ? asset.ADV1M.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV4M !== null && !isNaN(asset.ADV4M) ? asset.ADV4M.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV1Y !== null && !isNaN(asset.ADV1Y) ? asset.ADV1Y.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 120px;">{{ asset.Exchange }}</div>
-              <div style="min-width: 120px;">{{ asset.Sector }}</div>
-              <div style="min-width: 200px;">{{ asset.Industry }}</div>
-              <div style="min-width: 120px;">{{ asset.Country }}</div>
-              <div style="min-width: 100px;">{{ asset.ISIN }}</div>
-              <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
-              <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
-              <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' : Math.floor(asset.PriceToSalesRatioTTM) }}</div>
-              <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
-              <div style="min-width: 100px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || asset.DividendYield === 0 || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
-              <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
-            </div>
-            <div class="results2"> 
-            </div>
-            </div>
-          </div>
-          </div>
-          <div v-else-if="listMode === 'combined'">
-            <div class="RES">
-          <div class="Header" style="display: flex; flex-direction: row; width: 100vw; height: 30px; align-items: center;">
-             <div style="min-width: 100px;"> <h1 style="background-color: var(--base1)" :key="resultListLength">RESULTS: {{ resultListLength }}</h1></div>
-            <div style="min-width: 0px;"></div>
-            <div style="min-width: 70px;">Ticker</div>
-            <div style="min-width: 300px;">Name</div>
-            <div style="min-width: 100px;">Price</div>
-            <div style="min-width: 70px;">Chg%</div>
-            <div style="min-width: 120px;">Technical Score (1W)</div>
-            <div style="min-width: 120px;">Technical Score (1M)</div>
-            <div style="min-width: 120px;">Technical Score (4M)</div>
-            <div style="min-width: 100px;">ADV (1W)</div>
-            <div style="min-width: 100px;">ADV (1M)</div>
-            <div style="min-width: 100px;">ADV (4M)</div>
-            <div style="min-width: 100px;">ADV (1Y)</div>
-            <div style="min-width: 120px;">Exchange</div>
-            <div style="min-width: 120px;">Sector</div>
-            <div style="min-width: 200px;">Industry</div>
-            <div style="min-width: 120px;">Location</div>
-            <div style="min-width: 100px;">ISIN</div>
-            <div style="min-width: 150px;">Market Cap</div>
-            <div style="min-width: 70px;">PE Ratio</div>
-            <div style="min-width: 70px;">PS Ratio</div>
-            <div style="min-width: 70px;">PEG Ratio</div>
-            <div style="min-width: 100px;">Dividend Yield (TTM)</div>
-            <div style="min-width: 70px;">EPS</div>
-          </div>
-          <div class="wlist-container" @scroll.passive="handleScroll4">
-            <div 
-  id="wlist" 
-  style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;" 
-  tabindex="0" 
-  @keydown="handleKeydown" 
-  @click="selectRow(asset.Symbol)" 
-  v-for="(asset, index) in currentResults"
-  :key="asset.Symbol" 
-  :class="[
-    index % 2 === 0 ? 'even' : 'odd', 
-    { 'selected': selectedItem === asset.Symbol }
-  ]" 
-  :data-symbol="asset.Symbol"
->
-              <div style="min-width: 50px;; position: relative;">
-                <button class="dropdown-btn">
-                  <svg class="img" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--text1)"></path> <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--text1)"></path> <path d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z" fill="var(--text1)"></path> </g></svg>
-                </button>
-                <div class="dropdown-menu">
-                  <div @click="hideStock(asset)" @click.stop style="display: flex; flex-direction: row; align-items: center; height: 14px;">
-                     <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Edit / Hide"> <path id="Vector" d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>
-                    <p>Hide Stock</p>
-                  </div>
-                  <div class="nested-dropdown" style="display: flex; flex-direction: row; align-items: center; height: 14px;">
-                   <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>new-indicator</title> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)"> <path d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z" id="Combined-Shape"> </path> </g> </g> </g></svg>
-                    <p>Add to Watchlist</p>
-                    <div class="nested-dropdown-menu">
-                  <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
-                    <label :for="'watchlist-' + index" class="checkbox-label">
-                        <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
-  <div v-html="getWatchlistIcon(ticker, asset.Symbol)"></div>
-</div>
-                      <span></span>
-                      {{ ticker.Name }}
-                    </label>
-                  </div>
-                </div>
-                  </div>
-                </div>
-              </div>
-              <div style="min-width: 50px;">
-                <img 
-  :src="getImagePath(asset)" 
-  class="img" 
-/>
-              </div>
-              <div style="min-width: 70px;" class="btsymbol">
-                {{ asset.Symbol }}
-  <span v-if="asset.isDuplicate" class="duplicate-asterisk">
-    * 
-    <span class="tooltip2">
-      Appears in:
-      <div v-for="(screener, index) in asset.screenerNames" :key="index">{{ screener }}</div>
-    </span>
-  </span>
-</div>
-              <div style="min-width: 300px;">{{ asset.Name }}</div>
-              <div style="min-width: 100px;">{{ asset.Close }}</div>
-              <div style="min-width: 70px;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{ (asset.todaychange * 100).toFixed(2) }}%</div>
-              <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
-              <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
-              <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV1W !== null && !isNaN(asset.ADV1W) ? asset.ADV1W.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV1M !== null && !isNaN(asset.ADV1M) ? asset.ADV1M.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV4M !== null && !isNaN(asset.ADV4M) ? asset.ADV4M.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 100px;">{{ asset.ADV1Y !== null && !isNaN(asset.ADV1Y) ? asset.ADV1Y.toFixed(2) + '%' : '-' }}</div>
-              <div style="min-width: 120px;">{{ asset.Exchange }}</div>
-              <div style="min-width: 120px;">{{ asset.Sector }}</div>
-              <div style="min-width: 200px;">{{ asset.Industry }}</div>
-              <div style="min-width: 120px;">{{ asset.Country }}</div>
-              <div style="min-width: 100px;">{{ asset.ISIN }}</div>
-              <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
-              <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
-              <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' : Math.floor(asset.PriceToSalesRatioTTM) }}</div>
-              <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
-              <div style="min-width: 100px;">{{ asset.DividendYield === null || asset.DividendYield === undefined || asset.DividendYield === 0 || isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
-              <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
-            </div>
-            <div class="results2"> 
-            </div>
-          </div>
-          </div>
-          </div>
-        </div>
-      <div id="sidebar-r" :class="{ 'hidden-mobile': selected !== 'charts' }">
-       <h1 class="title3">WEEKLY CHART</h1>
-<div class="chart-container">
-    <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
-        <Loader />
-    </div>
-    <div id="wk-chart" ref="wkchart" style="width: 100%; height: 250px;" :class="{'hidden': isChartLoading1 || isLoading1}"></div>
-</div>
+                  <div class="wlist-container" @scroll.passive="handleScroll2">
+                    <div id="wlist"
+                      style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;"
+                      tabindex="0" @keydown="handleKeydown" @click="selectRow(asset.Symbol)"
+                      v-for="(asset, index) in currentResults" :key="asset.Symbol" :class="[
+                        index % 2 === 0 ? 'even' : 'odd',
+                        { 'selected': selectedItem === asset.Symbol }
+                      ]" :data-symbol="asset.Symbol">
+                      <div style="min-width: 50px; position: relative;">
+                        <button class="dropdown-btn">
+                          <svg class="img" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                            <g id="SVGRepo_iconCarrier">
+                              <path
+                                d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z"
+                                fill="var(--text1)"></path>
+                              <path
+                                d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z"
+                                fill="var(--text1)"></path>
+                              <path
+                                d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z"
+                                fill="var(--text1)"></path>
+                            </g>
+                          </svg>
+                        </button>
+                        <div class="dropdown-menu">
+                          <div @click="hideStock(asset)" @click.stop
+                            style="display: flex; flex-direction: row; align-items: center; height: 14px;">
+                            <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 24 24"
+                              fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                              <g id="SVGRepo_iconCarrier">
+                                <g id="Edit / Hide">
+                                  <path id="Vector"
+                                    d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
+                                    stroke="var(--text1)" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round"></path>
+                                </g>
+                              </g>
+                            </svg>
+                            <p>Hide Stock</p>
+                          </div>
+                          <div class="nested-dropdown"
+                            style="display: flex; flex-direction: row; align-items: center; height: 14px;">
+                            <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 512 512"
+                              version="1.1" xmlns="http://www.w3.org/2000/svg"
+                              xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)">
+                              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                              <g id="SVGRepo_iconCarrier">
+                                <title>new-indicator</title>
+                                <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                  <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)">
+                                    <path
+                                      d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z"
+                                      id="Combined-Shape"> </path>
+                                  </g>
+                                </g>
+                              </g>
+                            </svg>
+                            <p>Add to Watchlist</p>
+                            <div class="nested-dropdown-menu">
+                              <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
+                                <label :for="'watchlist-' + index" class="checkbox-label">
+                                  <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
+                                    <div v-html="getWatchlistIcon(ticker, asset.Symbol)"></div>
+                                  </div>
+                                  <span></span>
+                                  {{ ticker.Name }}
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div style="min-width: 50px;">
+                        <img :src="getImagePath(asset)" class="img" />
+                      </div>
+                      <div style="min-width: 70px;" class="btsymbol">{{ asset.Symbol }}</div>
+                      <div style="min-width: 300px;">{{ asset.Name }}</div>
+                      <div style="min-width: 100px;">{{ asset.Close }}</div>
+                      <div style="min-width: 70px;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{
+                        (asset.todaychange * 100).toFixed(2) }}%</div>
+                      <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
+                      <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
+                      <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+                      <div style="min-width: 100px;">{{ asset.ADV1W !== null && !isNaN(asset.ADV1W) ?
+                        asset.ADV1W.toFixed(2) + '%' : '-' }}</div>
+                      <div style="min-width: 100px;">{{ asset.ADV1M !== null && !isNaN(asset.ADV1M) ?
+                        asset.ADV1M.toFixed(2) + '%' : '-' }}</div>
+                      <div style="min-width: 100px;">{{ asset.ADV4M !== null && !isNaN(asset.ADV4M) ?
+                        asset.ADV4M.toFixed(2) + '%' : '-' }}</div>
+                      <div style="min-width: 100px;">{{ asset.ADV1Y !== null && !isNaN(asset.ADV1Y) ?
+                        asset.ADV1Y.toFixed(2) + '%' : '-' }}</div>
+                      <div style="min-width: 120px;">{{ asset.Exchange }}</div>
+                      <div style="min-width: 120px;">{{ asset.Sector }}</div>
+                      <div style="min-width: 200px;">{{ asset.Industry }}</div>
+                      <div style="min-width: 120px;">{{ asset.Country }}</div>
+                      <div style="min-width: 100px;">{{ asset.ISIN }}</div>
+                      <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
+                      <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
+                          <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' :
+                            Math.floor(asset.PriceToSalesRatioTTM) }}</div>
+                              <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio)
+                                  }}</div>
+                                  <div style="min-width: 100px;">{{ asset.DividendYield === null || asset.DividendYield
+                                    === undefined || asset.DividendYield === 0 || isNaN(asset.DividendYield * 100) ? '-'
+                                    : ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
+                                  <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
+                              </div>
+                              <div class="results2">
+                              </div>
+                          </div>
+                      </div>
+                    </div>
+                    <div v-else-if="listMode === 'hidden'">
+                      <div class="RES">
+                        <div class="Header"
+                          style="display: flex; flex-direction: row; width: 100vw; height: 30px; align-items: center;">
+                          <div style="min-width: 100px;">
+                            <h1 style="background-color: var(--base1)" :key="resultListLength">RESULTS: {{
+                              resultListLength }}</h1>
+                          </div>
+                          <div style="min-width: 0px;"></div>
+                          <div style="min-width: 70px;">Ticker</div>
+                          <div style="min-width: 300px;">Name</div>
+                          <div style="min-width: 100px;">Price</div>
+                          <div style="min-width: 70px;">Chg%</div>
+                          <div style="min-width: 120px;">Technical Score (1W)</div>
+                          <div style="min-width: 120px;">Technical Score (1M)</div>
+                          <div style="min-width: 120px;">Technical Score (4M)</div>
+                          <div style="min-width: 100px;">ADV (1W)</div>
+                          <div style="min-width: 100px;">ADV (1M)</div>
+                          <div style="min-width: 100px;">ADV (4M)</div>
+                          <div style="min-width: 100px;">ADV (1Y)</div>
+                          <div style="min-width: 120px;">Exchange</div>
+                          <div style="min-width: 120px;">Sector</div>
+                          <div style="min-width: 200px;">Industry</div>
+                          <div style="min-width: 120px;">Location</div>
+                          <div style="min-width: 100px;">ISIN</div>
+                          <div style="min-width: 150px;">Market Cap</div>
+                          <div style="min-width: 70px;">PE Ratio</div>
+                          <div style="min-width: 70px;">PS Ratio</div>
+                          <div style="min-width: 70px;">PEG Ratio</div>
+                          <div style="min-width: 100px;">Dividend Yield (TTM)</div>
+                          <div style="min-width: 70px;">EPS</div>
+                        </div>
+                        <div class="wlist-container" @scroll.passive="handleScroll3">
+                          <div id="wlist"
+                            style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;"
+                            tabindex="0" @keydown="handleKeydown" @click="selectRow(asset.Symbol)"
+                            v-for="(asset, index) in currentResults" :key="asset.Symbol" :class="[
+                              index % 2 === 0 ? 'even' : 'odd',
+                              { 'selected': selectedItem === asset.Symbol }
+                            ]" :data-symbol="asset.Symbol">
+                            <div style="min-width: 50px;; position: relative;">
+                              <button class="dropdown-btn">
+                                <svg class="img" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                  <g id="SVGRepo_iconCarrier">
+                                    <path
+                                      d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z"
+                                      fill="var(--text1)"></path>
+                                    <path
+                                      d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z"
+                                      fill="var(--text1)"></path>
+                                    <path
+                                      d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z"
+                                      fill="var(--text1)"></path>
+                                  </g>
+                                </svg>
+                              </button>
+                              <div class="dropdown-menu">
+                                <div @click="ShowStock(asset)" @click.stop
+                                  style="display: flex; flex-direction: row; align-items: center; height: 14px;">
+                                  <svg style="width: 15px; height: 15px; margin-right: 5px;" viewBox="0 0 48 48"
+                                    xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
+                                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                    <g id="SVGRepo_iconCarrier">
+                                      <path d="M0 0h48v48H0z" fill="none"></path>
+                                      <g id="Shopicon">
+                                        <circle cx="24" cy="24" r="4"></circle>
+                                        <path
+                                          d="M24,38c12,0,20-14,20-14s-8-14-20-14S4,24,4,24S12,38,24,38z M24,16c4.418,0,8,3.582,8,8s-3.582,8-8,8s-8-3.582-8-8 S19.582,16,24,16z">
+                                        </path>
+                                      </g>
+                                    </g>
+                                  </svg>
+                                  <p>Show Stock</p>
+                                </div>
+                                <div class="nested-dropdown"
+                                  style="display: flex; flex-direction: row; align-items: center; height: 14px;">
+                                  <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img"
+                                    viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)">
+                                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                    <g id="SVGRepo_iconCarrier">
+                                      <title>new-indicator</title>
+                                      <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                        <g id="scheduler" fill="var(--text1)"
+                                          transform="translate(85.333333, 85.333333)">
+                                          <path
+                                            d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z"
+                                            id="Combined-Shape"> </path>
+                                        </g>
+                                      </g>
+                                    </g>
+                                  </svg>
+                                  <p>Add to Watchlist</p>
+                                  <div class="nested-dropdown-menu">
+                                    <div v-for="(ticker, index) in watchlist.tickers" :key="index"
+                                      class="watchlist-item">
+                                      <label :for="'watchlist-' + index" class="checkbox-label">
+                                        <div @click.stop="toggleWatchlist(ticker, asset.Symbol)"
+                                          style="cursor: pointer;">
+                                          <div v-html="getWatchlistIcon(ticker, asset.Symbol)"></div>
+                                        </div>
+                                        <span></span>
+                                        {{ ticker.Name }}
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div style="min-width: 50px;">
+                              <img :src="getImagePath(asset)" class="img" />
+                            </div>
+                            <div style="min-width: 70px;" class="btsymbol">{{ asset.Symbol }}</div>
+                            <div style="min-width: 300px;">{{ asset.Name }}</div>
+                            <div style="min-width: 100px;;">{{ asset.Close }}</div>
+                            <div style="min-width: 70px;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{
+                              (asset.todaychange * 100).toFixed(2) }}%</div>
+                            <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
+                            <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
+                            <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+                            <div style="min-width: 100px;">{{ asset.ADV1W !== null && !isNaN(asset.ADV1W) ?
+                              asset.ADV1W.toFixed(2) + '%' : '-' }}</div>
+                            <div style="min-width: 100px;">{{ asset.ADV1M !== null && !isNaN(asset.ADV1M) ?
+                              asset.ADV1M.toFixed(2) + '%' : '-' }}</div>
+                            <div style="min-width: 100px;">{{ asset.ADV4M !== null && !isNaN(asset.ADV4M) ?
+                              asset.ADV4M.toFixed(2) + '%' : '-' }}</div>
+                            <div style="min-width: 100px;">{{ asset.ADV1Y !== null && !isNaN(asset.ADV1Y) ?
+                              asset.ADV1Y.toFixed(2) + '%' : '-' }}</div>
+                            <div style="min-width: 120px;">{{ asset.Exchange }}</div>
+                            <div style="min-width: 120px;">{{ asset.Sector }}</div>
+                            <div style="min-width: 200px;">{{ asset.Industry }}</div>
+                            <div style="min-width: 120px;">{{ asset.Country }}</div>
+                            <div style="min-width: 100px;">{{ asset.ISIN }}</div>
+                            <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}
+                            </div>
+                            <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio)
+                                }}</div>
+                                <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' :
+                                  Math.floor(asset.PriceToSalesRatioTTM) }}</div>
+                                    <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' :
+                                        Math.floor(asset.PEGRatio) }}</div>
+                                        <div style="min-width: 100px;">{{ asset.DividendYield === null ||
+                                          asset.DividendYield === undefined || asset.DividendYield === 0 ||
+                                          isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield *
+                                          100).toFixed(2) + '%') }}</div>
+                                        <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
+                                    </div>
+                                    <div class="results2">
+                                    </div>
+                                </div>
+                            </div>
+                          </div>
+                          <div v-else-if="listMode === 'combined'">
+                            <div class="RES">
+                              <div class="Header"
+                                style="display: flex; flex-direction: row; width: 100vw; height: 30px; align-items: center;">
+                                <div style="min-width: 100px;">
+                                  <h1 style="background-color: var(--base1)" :key="resultListLength">RESULTS: {{
+                                    resultListLength }}</h1>
+                                </div>
+                                <div style="min-width: 0px;"></div>
+                                <div style="min-width: 70px;">Ticker</div>
+                                <div style="min-width: 300px;">Name</div>
+                                <div style="min-width: 100px;">Price</div>
+                                <div style="min-width: 70px;">Chg%</div>
+                                <div style="min-width: 120px;">Technical Score (1W)</div>
+                                <div style="min-width: 120px;">Technical Score (1M)</div>
+                                <div style="min-width: 120px;">Technical Score (4M)</div>
+                                <div style="min-width: 100px;">ADV (1W)</div>
+                                <div style="min-width: 100px;">ADV (1M)</div>
+                                <div style="min-width: 100px;">ADV (4M)</div>
+                                <div style="min-width: 100px;">ADV (1Y)</div>
+                                <div style="min-width: 120px;">Exchange</div>
+                                <div style="min-width: 120px;">Sector</div>
+                                <div style="min-width: 200px;">Industry</div>
+                                <div style="min-width: 120px;">Location</div>
+                                <div style="min-width: 100px;">ISIN</div>
+                                <div style="min-width: 150px;">Market Cap</div>
+                                <div style="min-width: 70px;">PE Ratio</div>
+                                <div style="min-width: 70px;">PS Ratio</div>
+                                <div style="min-width: 70px;">PEG Ratio</div>
+                                <div style="min-width: 100px;">Dividend Yield (TTM)</div>
+                                <div style="min-width: 70px;">EPS</div>
+                              </div>
+                              <div class="wlist-container" @scroll.passive="handleScroll4">
+                                <div id="wlist"
+                                  style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;"
+                                  tabindex="0" @keydown="handleKeydown" @click="selectRow(asset.Symbol)"
+                                  v-for="(asset, index) in currentResults" :key="asset.Symbol" :class="[
+                                    index % 2 === 0 ? 'even' : 'odd',
+                                    { 'selected': selectedItem === asset.Symbol }
+                                  ]" :data-symbol="asset.Symbol">
+                                  <div style="min-width: 50px;; position: relative;">
+                                    <button class="dropdown-btn">
+                                      <svg class="img" viewBox="0 0 16 16" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round">
+                                        </g>
+                                        <g id="SVGRepo_iconCarrier">
+                                          <path
+                                            d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z"
+                                            fill="var(--text1)"></path>
+                                          <path
+                                            d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z"
+                                            fill="var(--text1)"></path>
+                                          <path
+                                            d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z"
+                                            fill="var(--text1)"></path>
+                                        </g>
+                                      </svg>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                      <div @click="hideStock(asset)" @click.stop
+                                        style="display: flex; flex-direction: row; align-items: center; height: 14px;">
+                                        <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img"
+                                          viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                          <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round">
+                                          </g>
+                                          <g id="SVGRepo_iconCarrier">
+                                            <g id="Edit / Hide">
+                                              <path id="Vector"
+                                                d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
+                                                stroke="var(--text1)" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round"></path>
+                                            </g>
+                                          </g>
+                                        </svg>
+                                        <p>Hide Stock</p>
+                                      </div>
+                                      <div class="nested-dropdown"
+                                        style="display: flex; flex-direction: row; align-items: center; height: 14px;">
+                                        <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img"
+                                          viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                                          xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)">
+                                          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                          <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round">
+                                          </g>
+                                          <g id="SVGRepo_iconCarrier">
+                                            <title>new-indicator</title>
+                                            <g id="Page-1" stroke="none" stroke-width="1" fill="none"
+                                              fill-rule="evenodd">
+                                              <g id="scheduler" fill="var(--text1)"
+                                                transform="translate(85.333333, 85.333333)">
+                                                <path
+                                                  d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z"
+                                                  id="Combined-Shape"> </path>
+                                              </g>
+                                            </g>
+                                          </g>
+                                        </svg>
+                                        <p>Add to Watchlist</p>
+                                        <div class="nested-dropdown-menu">
+                                          <div v-for="(ticker, index) in watchlist.tickers" :key="index"
+                                            class="watchlist-item">
+                                            <label :for="'watchlist-' + index" class="checkbox-label">
+                                              <div @click.stop="toggleWatchlist(ticker, asset.Symbol)"
+                                                style="cursor: pointer;">
+                                                <div v-html="getWatchlistIcon(ticker, asset.Symbol)"></div>
+                                              </div>
+                                              <span></span>
+                                              {{ ticker.Name }}
+                                            </label>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div style="min-width: 50px;">
+                                    <img :src="getImagePath(asset)" class="img" />
+                                  </div>
+                                  <div style="min-width: 70px;" class="btsymbol">
+                                    {{ asset.Symbol }}
+                                    <span v-if="asset.isDuplicate" class="duplicate-asterisk">
+                                      *
+                                      <span class="tooltip2">
+                                        Appears in:
+                                        <div v-for="(screener, index) in asset.screenerNames" :key="index">{{ screener
+                                          }}</div>
+                                      </span>
+                                    </span>
+                                  </div>
+                                  <div style="min-width: 300px;">{{ asset.Name }}</div>
+                                  <div style="min-width: 100px;">{{ asset.Close }}</div>
+                                  <div style="min-width: 70px;"
+                                    :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{ (asset.todaychange *
+                                    100).toFixed(2) }}%</div>
+                                  <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
+                                  <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
+                                  <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
+                                  <div style="min-width: 100px;">{{ asset.ADV1W !== null && !isNaN(asset.ADV1W) ?
+                                    asset.ADV1W.toFixed(2) + '%' : '-' }}</div>
+                                  <div style="min-width: 100px;">{{ asset.ADV1M !== null && !isNaN(asset.ADV1M) ?
+                                    asset.ADV1M.toFixed(2) + '%' : '-' }}</div>
+                                  <div style="min-width: 100px;">{{ asset.ADV4M !== null && !isNaN(asset.ADV4M) ?
+                                    asset.ADV4M.toFixed(2) + '%' : '-' }}</div>
+                                  <div style="min-width: 100px;">{{ asset.ADV1Y !== null && !isNaN(asset.ADV1Y) ?
+                                    asset.ADV1Y.toFixed(2) + '%' : '-' }}</div>
+                                  <div style="min-width: 120px;">{{ asset.Exchange }}</div>
+                                  <div style="min-width: 120px;">{{ asset.Sector }}</div>
+                                  <div style="min-width: 200px;">{{ asset.Industry }}</div>
+                                  <div style="min-width: 120px;">{{ asset.Country }}</div>
+                                  <div style="min-width: 100px;">{{ asset.ISIN }}</div>
+                                  <div style="min-width: 150px;">{{
+                                    parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
+                                  <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio)
+                                      }}</div>
+                                      <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' :
+                                          Math.floor(asset.PriceToSalesRatioTTM) }}</div>
+                                          <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' :
+                                              Math.floor(asset.PEGRatio) }}</div>
+                                              <div style="min-width: 100px;">{{ asset.DividendYield === null ||
+                                                asset.DividendYield === undefined || asset.DividendYield === 0 ||
+                                                isNaN(asset.DividendYield * 100) ? '-' : ((asset.DividendYield *
+                                                100).toFixed(2) + '%') }}</div>
+                                              <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
+                                          </div>
+                                          <div class="results2">
+                                          </div>
+                                      </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div id="sidebar-r" :class="{ 'hidden-mobile': selected !== 'charts' }">
+                                <h1 class="title3">WEEKLY CHART</h1>
+                                <div class="chart-container">
+                                  <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
+                                    <Loader />
+                                  </div>
+                                  <div id="wk-chart" ref="wkchart" style="width: 100%; height: 250px;"
+                                    :class="{ 'hidden': isChartLoading1 || isLoading1 }"></div>
+                                </div>
 
-<h1 class="title3">DAILY CHART</h1>
-<div class="chart-container">
-    <div class="loading-container2" v-if="isChartLoading2 || isLoading2">
-        <Loader />
-    </div>
-    <div id="dl-chart" ref="dlchart" style="width: 100%; height: 250px;" :class="{'hidden': isChartLoading2 || isLoading2}"></div>
-</div>
-        <h1 class="title3">SUMMARY</h1>
-        <div style="padding-top: 5px; border:none" id="summary">
-          <div style="color: whitesmoke; text-align: center; border: none; overflow: scroll">
-  <div style="color: var(--text1)" v-for="(item, index) in screenerSummary" :key="index">
-  <div style="padding: 5px;" v-if="item">
-    <span style="font-weight: bold;">{{ item.attribute }}</span> : 
-    <span>
-      {{ formatValue(item) }}
-    </span>
-  </div>
-  </div>
-</div>
-        <div style="height: 30px; border: none"></div>
-      </div>
-      </div>
-    </div>
-    <NotificationPopup ref="notification" />
-    <Footer />
+                                <h1 class="title3">DAILY CHART</h1>
+                                <div class="chart-container">
+                                  <div class="loading-container2" v-if="isChartLoading2 || isLoading2">
+                                    <Loader />
+                                  </div>
+                                  <div id="dl-chart" ref="dlchart" style="width: 100%; height: 250px;"
+                                    :class="{ 'hidden': isChartLoading2 || isLoading2 }"></div>
+                                </div>
+                                <h1 class="title3">SUMMARY</h1>
+                                <div style="padding-top: 5px; border:none" id="summary">
+                                  <div style="color: whitesmoke; text-align: center; border: none; overflow: scroll">
+                                    <div style="color: var(--text1)" v-for="(item, index) in screenerSummary"
+                                      :key="index">
+                                      <div style="padding: 5px;" v-if="item">
+                                        <span style="font-weight: bold;">{{ item.attribute }}</span> :
+                                        <span>
+                                          {{ formatValue(item) }}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div style="height: 30px; border: none"></div>
+                                </div>
+                              </div>
+                            </div>
+                            <NotificationPopup ref="notification" />
   </body>
 </template>
 
 <script setup>
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
-import Footer from '@/components/Footer.vue'
 import Loader from '@/components/loader.vue'
-import { computed, onMounted, ref, watch, nextTick, reactive, toRef} from 'vue';
+import { computed, onMounted, ref, watch, nextTick, reactive, toRef } from 'vue';
 import { createChart, ColorType } from 'lightweight-charts';
 import { useStore } from 'vuex';
 import NotificationPopup from '@/components/NotificationPopup.vue';
@@ -2190,7 +3420,7 @@ const handleScroll4 = (event) => {
 };
 
 // related to retrieving user default symbol and updating it 
-let defaultSymbol = localStorage.getItem('defaultSymbol'); 
+let defaultSymbol = localStorage.getItem('defaultSymbol');
 
 async function fetchUserDefaultSymbol() {
   try {
@@ -2239,7 +3469,7 @@ onMounted(async () => {
 // these 4 are related to the loading animations of the two charts 
 let isChartLoading1 = ref(false);
 let isChartLoading2 = ref(false);
-const isLoading1 = ref(true) 
+const isLoading1 = ref(true)
 const isLoading2 = ref(true)
 
 const showCreateScreener = ref(false) // shows menu for creating new watchlist 
@@ -2247,7 +3477,7 @@ const showRenameScreener = ref(false) // shows menu for renaming selected watchl
 const showSearch = ref(false) // shows searchbar 
 const selectedScreener = ref('') // selectes current screener 
 const selectedSymbol = ref(''); // similar to selectedItem 
-let showPriceInputs = ref(false); 
+let showPriceInputs = ref(false);
 let showMarketCapInputs = ref(false);
 let ShowSector = ref(false);
 let ShowExchange = ref(false);
@@ -2293,18 +3523,18 @@ async function fetchSymbolsAndExchanges() {
         'X-API-KEY': apiKey,
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const data = await response.json();
-    
+
     // Map the data to the required format for ImagePaths
     ImagePaths.value = data.map(item => {
       // Construct the image path using the URL constructor
       const imagePath = new URL(`/src/assets/images/${item.Exchange}/${item.Symbol}.svg`, import.meta.url).href;
-      
+
       return {
         symbol: item.Symbol,
         exchange: item.Exchange,
@@ -2319,13 +3549,13 @@ async function fetchSymbolsAndExchanges() {
 function getImagePath(item) {
   // If item is an object, use its Symbol
   const symbol = typeof item === 'object' ? item.Symbol : item;
-  
+
   const imageObject = ImagePaths.value.find(image => image.symbol === symbol);
 
   if (imageObject) {
     return imageObject.path;
   }
-  
+
   return new URL('/src/assets/images/Blank.svg', import.meta.url).href; // Default to Blank.svg
 }
 
@@ -2372,7 +3602,7 @@ const currentResults = computed(() => {
 
 function selectRow(symbol) {
   if (!symbol) return;
-  
+
   selectedItem.value = symbol;
   setCharts(symbol);
   updateSelectedIndex();
@@ -2392,7 +3622,7 @@ function handleKeydown(event) {
     event.preventDefault();
     const direction = event.key === 'ArrowUp' ? -1 : 1;
     const newRowIndex = selectedIndex.value + direction;
-    
+
     if (newRowIndex >= 0 && newRowIndex < currentResults.value.length) {
       const newSelectedSymbol = currentResults.value[newRowIndex].Symbol;
       selectRow(newSelectedSymbol);
@@ -2560,11 +3790,11 @@ const wkchart = ref(null);
 onMounted(async () => {
 
   await fetchUserDefaultSymbol();
-  
+
   nextTick();
 
-const chartDiv = dlchart.value;
-const rect = chartDiv.getBoundingClientRect();
+  const chartDiv = dlchart.value;
+  const rect = chartDiv.getBoundingClientRect();
   const width = window.innerWidth <= 1150 ? 400 : rect.width;
   const height = rect.height <= 1150 ? 250 : rect.width;
   const chart = createChart(chartDiv, {
@@ -2603,15 +3833,15 @@ const rect = chartDiv.getBoundingClientRect();
 
   const barSeries = chart.addCandlestickSeries({
     downColor: theme.negative,
-      upColor: theme.positive,
-      borderDownColor: theme.negative,
-      borderUpColor: theme.positive,
-      wickDownColor: theme.negative,
-      wickUpColor: theme.positive,
-      priceLineVisible: false,
-      lastValueVisible: false,
-      crosshairMarkerVisible: false,
-    });
+    upColor: theme.positive,
+    borderDownColor: theme.negative,
+    borderUpColor: theme.positive,
+    wickDownColor: theme.negative,
+    wickUpColor: theme.positive,
+    priceLineVisible: false,
+    lastValueVisible: false,
+    crosshairMarkerVisible: false,
+  });
 
   const Histogram = chart.addHistogramSeries({
     color: theme.text1,
@@ -2672,36 +3902,36 @@ const rect = chartDiv.getBoundingClientRect();
   });
 
   watch(data3, (newData3) => {
-  if (newData3 === null) {
-    MaSeries1.setData([]); // Clear the series data when null
-  } else {
-    MaSeries1.setData(newData3);
-  }
-});
+    if (newData3 === null) {
+      MaSeries1.setData([]); // Clear the series data when null
+    } else {
+      MaSeries1.setData(newData3);
+    }
+  });
 
-watch(data4, (newData4) => {
-  if (newData4 === null) {
-    MaSeries2.setData([]); // Clear the series data when null
-  } else {
-    MaSeries2.setData(newData4);
-  }
-});
+  watch(data4, (newData4) => {
+    if (newData4 === null) {
+      MaSeries2.setData([]); // Clear the series data when null
+    } else {
+      MaSeries2.setData(newData4);
+    }
+  });
 
-watch(data5, (newData5) => {
-  if (newData5 === null) {
-    MaSeries3.setData([]); // Clear the series data when null
-  } else {
-    MaSeries3.setData(newData5);
-  }
-});
+  watch(data5, (newData5) => {
+    if (newData5 === null) {
+      MaSeries3.setData([]); // Clear the series data when null
+    } else {
+      MaSeries3.setData(newData5);
+    }
+  });
 
-watch(data6, (newData6) => {
-  if (newData6 === null) {
-    MaSeries4.setData([]); // Clear the series data when null
-  } else {
-    MaSeries4.setData(newData6);
-  }
-});
+  watch(data6, (newData6) => {
+    if (newData6 === null) {
+      MaSeries4.setData([]); // Clear the series data when null
+    } else {
+      MaSeries4.setData(newData6);
+    }
+  });
 
   watch(data2, (newData2) => {
     const relativeVolumeData = newData2.map((dataPoint, index) => {
@@ -2736,7 +3966,7 @@ watch(data6, (newData6) => {
 onMounted(async () => {
 
   const chartDiv = wkchart.value;
-const rect = chartDiv.getBoundingClientRect();
+  const rect = chartDiv.getBoundingClientRect();
   const width = window.innerWidth <= 1150 ? 400 : rect.width;
   const height = rect.height <= 1150 ? 250 : rect.width;
   const chart = createChart(chartDiv, {
@@ -2773,17 +4003,17 @@ const rect = chartDiv.getBoundingClientRect();
     },
   });
 
-  const barSeries =  chart.addCandlestickSeries({
-      downColor: theme.negative,
-      upColor: theme.positive,
-      borderDownColor: theme.negative,
-      borderUpColor: theme.positive,
-      wickDownColor: theme.negative,
-      wickUpColor: theme.positive,
-      lastValueVisible: false,
-      crosshairMarkerVisible: false,
-      priceLineVisible: false,
-    });
+  const barSeries = chart.addCandlestickSeries({
+    downColor: theme.negative,
+    upColor: theme.positive,
+    borderDownColor: theme.negative,
+    borderUpColor: theme.positive,
+    wickDownColor: theme.negative,
+    wickUpColor: theme.positive,
+    lastValueVisible: false,
+    crosshairMarkerVisible: false,
+    priceLineVisible: false,
+  });
 
   const Histogram = chart.addHistogramSeries({
     color: theme.text1,
@@ -2844,36 +4074,36 @@ const rect = chartDiv.getBoundingClientRect();
   });
 
   watch(data9, (newData9) => {
-  if (newData9 === null) {
-    MaSeries1.setData([]); // Clear the series data when null
-  } else {
-    MaSeries1.setData(newData9);
-  }
-});
+    if (newData9 === null) {
+      MaSeries1.setData([]); // Clear the series data when null
+    } else {
+      MaSeries1.setData(newData9);
+    }
+  });
 
-watch(data10, (newData10) => {
-  if (newData10 === null) {
-    MaSeries2.setData([]); // Clear the series data when null
-  } else {
-    MaSeries2.setData(newData10);
-  }
-});
+  watch(data10, (newData10) => {
+    if (newData10 === null) {
+      MaSeries2.setData([]); // Clear the series data when null
+    } else {
+      MaSeries2.setData(newData10);
+    }
+  });
 
-watch(data11, (newData11) => {
-  if (newData11 === null) {
-    MaSeries3.setData([]); // Clear the series data when null
-  } else {
-    MaSeries3.setData(newData11);
-  }
-});
+  watch(data11, (newData11) => {
+    if (newData11 === null) {
+      MaSeries3.setData([]); // Clear the series data when null
+    } else {
+      MaSeries3.setData(newData11);
+    }
+  });
 
-watch(data12, (newData12) => {
-  if (newData12 === null) {
-    MaSeries4.setData([]); // Clear the series data when null
-  } else {
-    MaSeries4.setData(newData12);
-  }
-});
+  watch(data12, (newData12) => {
+    if (newData12 === null) {
+      MaSeries4.setData([]); // Clear the series data when null
+    } else {
+      MaSeries4.setData(newData12);
+    }
+  });
 
   watch(data8, (newData8) => {
     const relativeVolumeData = newData8.map((dataPoint, index) => {
@@ -2935,13 +4165,15 @@ function showHiddenResults() {
   if (listMode.value === 'main') {
     listMode.value = 'hidden';
     currentList.value = HiddenResults.value;
-  } 
-  else if(listMode.value === 'combined')
-  {listMode.value = 'hidden';
-  currentList.value = HiddenResults.value;}
-  else if(listMode.value === 'filter')
-  {listMode.value = 'hidden';
-  currentList.value = HiddenResults.value;}
+  }
+  else if (listMode.value === 'combined') {
+    listMode.value = 'hidden';
+    currentList.value = HiddenResults.value;
+  }
+  else if (listMode.value === 'filter') {
+    listMode.value = 'hidden';
+    currentList.value = HiddenResults.value;
+  }
   else {
     listMode.value = 'main';
     currentList.value = screenerResults.value;
@@ -2955,13 +4187,15 @@ function showCombinedResults() {
   if (listMode.value === 'main') {
     listMode.value = 'combined';
     currentList.value = compoundedResults.value;
-  } 
-  else if(listMode.value === 'hidden')
-  {listMode.value = 'combined';
-  currentList.value = compoundedResults.value;}
-  else if(listMode.value === 'filter')
-  {listMode.value = 'combined';
-  currentList.value = compoundedResults.value;}
+  }
+  else if (listMode.value === 'hidden') {
+    listMode.value = 'combined';
+    currentList.value = compoundedResults.value;
+  }
+  else if (listMode.value === 'filter') {
+    listMode.value = 'combined';
+    currentList.value = compoundedResults.value;
+  }
   else {
     listMode.value = 'main';
     currentList.value = screenerResults.value;
@@ -3006,7 +4240,7 @@ async function GetScreenerResultsAll() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    screenerResults.value = data; 
+    screenerResults.value = data;
   } catch (error) {
     error.value = error.message;
   }
@@ -3025,7 +4259,7 @@ async function GetHiddenResults() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    HiddenResults.value = data; 
+    HiddenResults.value = data;
   } catch (error) {
     error.value = error.message;
   }
@@ -3044,7 +4278,7 @@ async function GetScreeners() {
     });
     const data = await response.json();
     // Assuming data is now an array of objects with Name and Include properties
-    ScreenersName.value = data; 
+    ScreenersName.value = data;
   } catch (error) {
     error.value = error.message;
   }
@@ -3088,7 +4322,7 @@ async function SetPrice() {
     const data = await response.json()
 
     if (data.message === 'Price range updated successfully') {
-      await fetchScreenerResults(selectedScreener.value); 
+      await fetchScreenerResults(selectedScreener.value);
     } else {
       throw new Error('Error updating price range')
     }
@@ -3594,7 +4828,7 @@ async function DeleteScreener(screenerName) {
   } catch (error) {
     error.value = error.message;
   }
-  
+
   await GetScreeners();
   await GetCompoundedResults();
 }
@@ -3673,7 +4907,7 @@ async function SetPE() {
     } else {
       throw new Error('Error updating price range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -3895,7 +5129,7 @@ async function SetPBRatio() {
 
     if (data.message === 'updated successfully') {
       await fetchScreenerResults(selectedScreener.value);
-    } 
+    }
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -4017,9 +5251,9 @@ async function SetFundamentalGrowth() {
         'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
-        minRevYoY: leftRevYoY, 
-        maxRevYoY: rightRevYoY, 
-        minRevQoQ: leftRevQoQ, 
+        minRevYoY: leftRevYoY,
+        maxRevYoY: rightRevYoY,
+        minRevQoQ: leftRevQoQ,
         maxRevQoQ: rightRevQoQ,
         minEarningsYoY: leftEarningsYoY,
         maxEarningsYoY: rightEarningsYoY,
@@ -4051,11 +5285,12 @@ async function SetFundamentalGrowth() {
     } else {
       error.value = error.message;
       await fetchScreenerResults(selectedScreener.value);
-  }}
+    }
+  }
 }
 
 // updates screener value with volume parameters 
-async function SetVolume(){
+async function SetVolume() {
   try {
     if (!selectedScreener.value) {
       isScreenerError.value = true
@@ -4104,7 +5339,7 @@ async function SetVolume(){
 }
 
 // updates screener value with RS Score parameters 
-async function SetRSscore(){
+async function SetRSscore() {
   try {
     if (!selectedScreener.value) {
       isScreenerError.value = true
@@ -4153,7 +5388,7 @@ async function SetRSscore(){
 }
 
 // updates screener value with ADV parameters 
-async function SetADV(){
+async function SetADV() {
   try {
     if (!selectedScreener.value) {
       isScreenerError.value = true
@@ -4206,7 +5441,7 @@ async function SetADV(){
 }
 
 // updates screener value with price performance parameters 
-async function SetPricePerformance(){
+async function SetPricePerformance() {
   try {
     if (!selectedScreener.value) {
       isScreenerError.value = true
@@ -4234,9 +5469,9 @@ async function SetPricePerformance(){
         'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
-        value1: changeperc1, 
-        value2: changeperc2, 
-        value3: changepercselect, 
+        value1: changeperc1,
+        value2: changeperc2,
+        value3: changepercselect,
         value4: weekhigh1,
         value5: weekhigh2,
         value6: weeklow1,
@@ -4270,20 +5505,21 @@ async function SetPricePerformance(){
     } else {
       error.value = error.message;
       await fetchScreenerResults(selectedScreener.value);
-  }}
+    }
+  }
 }
 
 // function that updates screener parameters graphically 
 async function CurrentScreener() {
   const Name = selectedScreener.value;
 
-try {
-  const response = await fetch(`/api/screener/datavalues/${user}/${Name}`, {
-    headers: {
-      'X-API-KEY': apiKey,
-    }
-  });
-  const screenerSettings = await response.json();
+  try {
+    const response = await fetch(`/api/screener/datavalues/${user}/${Name}`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      }
+    });
+    const screenerSettings = await response.json();
 
     let priceList = screenerSettings.Price;
     let marketCapList = screenerSettings.MarketCap;
@@ -4346,7 +5582,7 @@ try {
     let RSI = screenerSettings.RSI
     let Gap = screenerSettings.Gap
 
-            
+
     showPriceInputs.value = screenerSettings?.Price?.length > 0;
     showMarketCapInputs.value = screenerSettings?.MarketCap?.length > 0;
     showIPOInputs.value = screenerSettings?.IPO?.length > 0;
@@ -4361,42 +5597,42 @@ try {
     showPBInputs.value = screenerSettings?.PB?.length > 0;
     showBetaInputs.value = screenerSettings?.Beta?.length > 0;
     showDivYieldInputs.value = screenerSettings?.DivYield?.length > 0;
-    showFundYoYQoQ.value = 
-    screenerSettings?.EPSQoQ?.length > 0 || 
-    screenerSettings?.EPSYoY?.length > 0 || 
-    screenerSettings?.EarningsQoQ?.length > 0 || 
-    screenerSettings?.EarningsYoY?.length > 0 || 
-    screenerSettings?.RevQoQ?.length > 0 || 
-    screenerSettings?.RevYoY?.length > 0;
-    showVolume.value = 
-    screenerSettings?.AvgVolume1W?.length > 0 || 
-    screenerSettings?.AvgVolume1M?.length > 0 || 
-    screenerSettings?.AvgVolume6M?.length > 0 || 
-    screenerSettings?.AvgVolume1Y?.length > 0 || 
-    screenerSettings?.RelVolume1W?.length > 0 || 
-    screenerSettings?.RelVolume1M?.length > 0 || 
-    screenerSettings?.RelVolume6M?.length > 0 || 
-    screenerSettings?.RelVolume1Y?.length > 0;
-    showRSscore.value = 
-    screenerSettings?.RSScore1W?.length > 0 ||
-    screenerSettings?.RSScore1M?.length > 0 || 
-    screenerSettings?.RSScore4M?.length > 0;
-    showADV.value = 
-    screenerSettings?.ADV1W?.length > 0 ||
-    screenerSettings?.ADV1M?.length > 0 || 
-    screenerSettings?.ADV1Y?.length > 0 ||
-    screenerSettings?.ADV4M?.length > 0;
-    showPricePerf.value = 
-    screenerSettings?.MA10?.length > 0 || 
-    screenerSettings?.MA20?.length > 0 ||
-    screenerSettings?.MA50?.length > 0 || 
-    screenerSettings?.MA200?.length > 0 || 
-    screenerSettings?.CurrentPrice?.length > 0 ||
-    screenerSettings?.NewHigh?.length > 0 ||  
-    screenerSettings?.NewLow?.length > 0 ||
-    screenerSettings?.PercOffWeekHigh?.length > 0 ||
-    screenerSettings?.PercOffWeekLow?.length > 0 ||
-    screenerSettings?.changePerc?.length > 0;
+    showFundYoYQoQ.value =
+      screenerSettings?.EPSQoQ?.length > 0 ||
+      screenerSettings?.EPSYoY?.length > 0 ||
+      screenerSettings?.EarningsQoQ?.length > 0 ||
+      screenerSettings?.EarningsYoY?.length > 0 ||
+      screenerSettings?.RevQoQ?.length > 0 ||
+      screenerSettings?.RevYoY?.length > 0;
+    showVolume.value =
+      screenerSettings?.AvgVolume1W?.length > 0 ||
+      screenerSettings?.AvgVolume1M?.length > 0 ||
+      screenerSettings?.AvgVolume6M?.length > 0 ||
+      screenerSettings?.AvgVolume1Y?.length > 0 ||
+      screenerSettings?.RelVolume1W?.length > 0 ||
+      screenerSettings?.RelVolume1M?.length > 0 ||
+      screenerSettings?.RelVolume6M?.length > 0 ||
+      screenerSettings?.RelVolume1Y?.length > 0;
+    showRSscore.value =
+      screenerSettings?.RSScore1W?.length > 0 ||
+      screenerSettings?.RSScore1M?.length > 0 ||
+      screenerSettings?.RSScore4M?.length > 0;
+    showADV.value =
+      screenerSettings?.ADV1W?.length > 0 ||
+      screenerSettings?.ADV1M?.length > 0 ||
+      screenerSettings?.ADV1Y?.length > 0 ||
+      screenerSettings?.ADV4M?.length > 0;
+    showPricePerf.value =
+      screenerSettings?.MA10?.length > 0 ||
+      screenerSettings?.MA20?.length > 0 ||
+      screenerSettings?.MA50?.length > 0 ||
+      screenerSettings?.MA200?.length > 0 ||
+      screenerSettings?.CurrentPrice?.length > 0 ||
+      screenerSettings?.NewHigh?.length > 0 ||
+      screenerSettings?.NewLow?.length > 0 ||
+      screenerSettings?.PercOffWeekHigh?.length > 0 ||
+      screenerSettings?.PercOffWeekLow?.length > 0 ||
+      screenerSettings?.changePerc?.length > 0;
     showROE.value = screenerSettings?.ROE?.length > 0;
     showROA.value = screenerSettings?.ROA?.length > 0;
     showCurrentRatio.value = screenerSettings?.currentRatio?.length > 0;
@@ -4490,7 +5726,7 @@ try {
     document.getElementById('left-rsi').value = RSI[0];
     document.getElementById('right-rsi').value = RSI[1];
     document.getElementById('left-gap').value = Gap[0];
-    document.getElementById('right-gap').value = Gap[1]; 
+    document.getElementById('right-gap').value = Gap[1];
 
     const sectorCheckboxes = document.querySelectorAll('.check input[type="checkbox"]');
 
@@ -4601,7 +5837,7 @@ async function Reset(value) {
 
     if (!response.ok) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
-      
+
     }
     await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
@@ -4625,8 +5861,8 @@ async function SummaryScreener() {
     const attributes = [
       'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'PS', 'ForwardPE', 'PEG', 'EPS', 'PB', 'DivYield',
       'EPSQoQ', 'EPSYoY', 'EarningsQoQ', 'EarningsYoY', 'RevQoQ', 'RevYoY', 'AvgVolume1W', 'AvgVolume1M', 'AvgVolume6M', 'AvgVolume1Y',
-      'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W','RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'CurrentPrice', 'NewHigh',
-      'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio', 
+      'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W', 'RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'CurrentPrice', 'NewHigh',
+      'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio',
       'assetsCurrent', 'liabilitiesCurrent', 'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin', 'debtEquity', 'bookVal', 'EV',
       'RSI', 'Gap'
     ];
@@ -4693,18 +5929,18 @@ async function SummaryScreener() {
     };
 
     const newScreenerSummary = [];
-attributes.forEach((attribute) => {
-  if (screenerSettings[attribute]) {
-    const attributeName = attributeMapping[attribute] || attribute;
-    const attributeValue = screenerSettings[attribute];
-    const mappedValue = valueMapping[attributeValue] || attributeValue;
-    newScreenerSummary.push({
-      attribute: attributeName,
-      value: mappedValue
+    attributes.forEach((attribute) => {
+      if (screenerSettings[attribute]) {
+        const attributeName = attributeMapping[attribute] || attribute;
+        const attributeValue = screenerSettings[attribute];
+        const mappedValue = valueMapping[attributeValue] || attributeValue;
+        newScreenerSummary.push({
+          attribute: attributeName,
+          value: mappedValue
+        });
+      }
     });
-  }
-});
-screenerSummary.value = newScreenerSummary; // Replace the entire array
+    screenerSummary.value = newScreenerSummary; // Replace the entire array
   } catch (error) {
     error.value = error.message;
   }
@@ -4768,7 +6004,7 @@ async function getWatchlists() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    watchlist.tickers = data; 
+    watchlist.tickers = data;
   } catch (error) {
     error.value = error.message;
   }
@@ -4835,7 +6071,7 @@ const updateCheckbox = (ticker, symbol, $event) => {
 
 const FullWatchlists = ref([]);
 
-async function getFullWatchlists(user){
+async function getFullWatchlists(user) {
   const response = await fetch(`/api/${user}/full-watchlists`, {
     headers: {
       'X-API-KEY': apiKey,
@@ -4851,14 +6087,14 @@ const isAssetInWatchlist = (ticker, symbol) => {
   if (watchlist) {
     return watchlist.List.includes(symbol);
   }
-  
+
   return false;
 };
 
 async function ExcludeScreener(screener) {
-  const apiUrl = `/api/${user}/toggle/screener/${screener}`; 
+  const apiUrl = `/api/${user}/toggle/screener/${screener}`;
   const requestOptions = {
-    method: 'PATCH', 
+    method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
       'X-API-KEY': apiKey,
@@ -4889,7 +6125,7 @@ const getScreenerImage = (screener) => {
       </g>
     </svg>
   `;
-    const excludeSvg = ` <svg height=20 width=20 fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  const excludeSvg = ` <svg height=20 width=20 fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
       <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
       <g id="SVGRepo_iconCarrier">
@@ -5086,7 +6322,7 @@ async function SetROE() {
     } else {
       throw new Error('Error updating ROE range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5131,7 +6367,7 @@ async function SetROA() {
     } else {
       throw new Error('Error updating ROA range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5176,7 +6412,7 @@ async function SetCurrentRatio() {
     } else {
       throw new Error('Error updating Current Ratio range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5221,7 +6457,7 @@ async function SetCurrentAssets() {
     } else {
       throw new Error('Error updating Current Assets range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5266,7 +6502,7 @@ async function SetCurrentLiabilities() {
     } else {
       throw new Error('Error updating Current Liabilities range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5311,7 +6547,7 @@ async function SetCurrentDebt() {
     } else {
       throw new Error('Error updating Current Debt range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5356,7 +6592,7 @@ async function SetCashEquivalents() {
     } else {
       throw new Error('Error updating Cash Equivalents range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5401,7 +6637,7 @@ async function SetFreeCashFlow() {
     } else {
       throw new Error('Error updating Free Cash Flow range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5446,7 +6682,7 @@ async function SetProfitMargin() {
     } else {
       throw new Error('Error updating Profit Margin range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5491,7 +6727,7 @@ async function SetGrossMargin() {
     } else {
       throw new Error('Error updating Gross Margin range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5536,7 +6772,7 @@ async function SetDebtToEquityRatio() {
     } else {
       throw new Error('Error updating Debt to Equity Ratio range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5581,7 +6817,7 @@ async function SetBookValue() {
     } else {
       throw new Error('Error updating Book Value range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5626,7 +6862,7 @@ async function SetEV() {
     } else {
       throw new Error('Error updating EV range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5671,7 +6907,7 @@ async function SetRSI() {
     } else {
       throw new Error('Error updating RSI range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5716,7 +6952,7 @@ async function SetGapPercent() {
     } else {
       throw new Error('Error updating Gap % range')
     }
-    await fetchScreenerResults(selectedScreener.value); 
+    await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
@@ -5864,7 +7100,7 @@ function formatValue(item) {
     }
   }
 
-   if (attribute === 'Change (%)') {
+  if (attribute === 'Change (%)') {
     if (Array.isArray(value) && value.length === 3) {
       // Process first two elements with growthAttributes logic (multiply by 100 + format)
       const processed = value.slice(0, 2).map(v => {
@@ -5880,7 +7116,7 @@ function formatValue(item) {
     }
   }
 
-    if (percentageAttributes.includes(attribute)) {
+  if (percentageAttributes.includes(attribute)) {
     if (Array.isArray(value)) {
       return value.map(v => {
         let num = parseFloat(v);
@@ -5920,25 +7156,25 @@ function select(option) {
 }
 
 async function loadTheme() {
-    try {
-      const response = await fetch('/api/load-theme', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': apiKey,
-        },
-        body: JSON.stringify({ username: user }),
-      });
-      const data = await response.json();
-      if (data.theme) {
-        setTheme(data.theme);
-      } else {
-        setTheme('default');
-      }
-    } catch (error) {
+  try {
+    const response = await fetch('/api/load-theme', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({ username: user }),
+    });
+    const data = await response.json();
+    if (data.theme) {
+      setTheme(data.theme);
+    } else {
       setTheme('default');
     }
+  } catch (error) {
+    setTheme('default');
   }
+}
 
 loadTheme()
 
@@ -5983,43 +7219,43 @@ function arrayToCSV(data) {
 }
 
 function DownloadResults() {
-    let data = [];
-    let filename = 'results.csv';
+  let data = [];
+  let filename = 'results.csv';
 
-    switch (listMode.value) {
-      case 'main':
-        data = screenerResults.value;
-        filename = 'main_results.csv';
-        break;
-      case 'filter':
-        data = filterResults.value;
-        filename = 'filter_results.csv';
-        break;
-      case 'hidden':
-        data = HiddenResults.value;
-        filename = 'hidden_results.csv';
-        break;
-      case 'combined':
-        data = compoundedResults.value;
-        filename = 'combined_results.csv';
-        break;
-        return;
-    }
-
-    const csv = arrayToCSV(data);
-
-    // Create a blob and trigger download
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  switch (listMode.value) {
+    case 'main':
+      data = screenerResults.value;
+      filename = 'main_results.csv';
+      break;
+    case 'filter':
+      data = filterResults.value;
+      filename = 'filter_results.csv';
+      break;
+    case 'hidden':
+      data = HiddenResults.value;
+      filename = 'hidden_results.csv';
+      break;
+    case 'combined':
+      data = compoundedResults.value;
+      filename = 'combined_results.csv';
+      break;
+      return;
   }
+
+  const csv = arrayToCSV(data);
+
+  // Create a blob and trigger download
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 </script>
 
@@ -6206,68 +7442,68 @@ function DownloadResults() {
 }
 
 
-.DataInputs{
+.DataInputs {
   position: absolute;
   left: 17%;
   top: 10%;
   border: none;
 }
 
-.DataInputs2{
+.DataInputs2 {
   position: absolute;
   left: 25%;
   top: 10%;
   border: none;
 }
 
-.DataInputs4{
+.DataInputs4 {
   position: absolute;
   left: 5%;
   top: 15%;
   border: none;
 }
 
-.DataInputs4 input{
+.DataInputs4 input {
   width: 50px;
   margin-right: 5px;
 }
 
-.DataInputs4 p{
+.DataInputs4 p {
   font-weight: bold;
 }
 
-.DataInputs10{
+.DataInputs10 {
   position: absolute;
   left: 0%;
   top: 10%;
   border: none;
 }
 
-.DataInputs10 input{
+.DataInputs10 input {
   margin-right: 5px;
 }
 
-.DataInputs10 p{
+.DataInputs10 p {
   font-weight: bold;
 }
 
-.DataInputs11{
+.DataInputs11 {
   position: absolute;
   left: 10%;
   top: 10%;
   border: none;
 }
 
-.DataInputs11 p{
+.DataInputs11 p {
   font-weight: bold;
 }
 
-.DataInputs input{
+.DataInputs input {
   width: 50px;
   margin-right: 10px;
 }
 
-.DataInputs p{
+.DataInputs p {
   font-weight: bold;
 }
 
@@ -6467,7 +7703,7 @@ function DownloadResults() {
   background-color: var(--accent1);
 }
 
-.left{
+.left {
   border: none;
   outline: none;
   display: inline-flex;
@@ -6656,15 +7892,15 @@ input:checked+.slider:before {
   padding: 5px;
 }
 
-.Header{
+.Header {
   background-color: var(--base1);
   text-align: center;
   color: var(--text1);
   border: none;
-  display: flex; 
-  flex-direction: row; 
-  width: 100vw; 
-  height: 30px; 
+  display: flex;
+  flex-direction: row;
+  width: 100vw;
+  height: 30px;
   align-items: center;
   min-width: 2610px;
 }
@@ -6767,7 +8003,7 @@ input:checked+.slider:before {
   padding: 5px;
   cursor: pointer;
   text-decoration: none;
-  color:var(--text1);
+  color: var(--text1);
   border-radius: 4px;
   transition: background-color 0.3s ease;
   background-color: var(--base2);
@@ -6791,10 +8027,10 @@ input:checked+.slider:before {
 
 .snavbtn.active span,
 .activeText {
-  color:  var(--accent1);
+  color: var(--accent1);
 }
 
-.snavbtnslct{
+.snavbtnslct {
   background-color: var(--base1);
   color: var(--text1);
   padding: 5px;
@@ -6828,15 +8064,15 @@ input:checked+.slider:before {
   backdrop-filter: blur(10px);
   z-index: 10000;
   padding: 10px;
-  border: 2px solid var(--accent3); 
+  border: 2px solid var(--accent3);
 }
 
 .RenameScreener h3,
 .CreateScreener h3 {
   background-color: transparent;
-    color: rgba(var(--text1), 0.5);
-    border: none;
-    margin-top: 10px;
+  color: rgba(var(--text1), 0.5);
+  border: none;
+  margin-top: 10px;
 }
 
 .RenameScreener input,
@@ -6846,22 +8082,28 @@ input:checked+.slider:before {
   margin: 7px;
   width: 160px;
   outline: none;
-  color: var(--base3); /* Dark text color */
-  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
+  color: var(--base3);
+  /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s;
+  /* Smooth transition for focus effects */
   border: solid 1px var(--base4);
-  background-color:var(--base4);
+  background-color: var(--base4);
 }
 
 .RenameScreener input:focus,
 .CreateScreener input:focus {
-  border-color: var(--accent1); /* Change border color on focus */
-  box-shadow: 0 0 5px rgba(var(--accent3), 0.5); /* Subtle shadow effect */
-  outline: none; /* Remove default outline */
+  border-color: var(--accent1);
+  /* Change border color on focus */
+  box-shadow: 0 0 5px rgba(var(--accent3), 0.5);
+  /* Subtle shadow effect */
+  outline: none;
+  /* Remove default outline */
 }
 
-.CreateScreener input.input-error, 
+.CreateScreener input.input-error,
 .RenameScreener input.input-error {
-  border: solid 1px red !important; /* Use !important to ensure it takes precedence */
+  border: solid 1px red !important;
+  /* Use !important to ensure it takes precedence */
 }
 
 .inner {
@@ -6879,18 +8121,18 @@ input:checked+.slider:before {
 }
 
 .inner button {
-    background-color: transparent;
-    padding: 5px;
-    outline: none;
-    margin: 2px ;
-    border: none;
-    opacity: 0.60;
-  }
+  background-color: transparent;
+  padding: 5px;
+  outline: none;
+  margin: 2px;
+  border: none;
+  opacity: 0.60;
+}
 
-  .inner button:hover {
-    cursor: pointer;
-    opacity: 1;
-  }
+.inner button:hover {
+  cursor: pointer;
+  opacity: 1;
+}
 
 .results {
   background-color: var(--base4);
@@ -6898,23 +8140,23 @@ input:checked+.slider:before {
   text-align: center;
   align-items: center;
   padding: 100px;
-  border:none;
+  border: none;
 }
 
-.results2{
+.results2 {
   background-color: var(--base1);
   width: 100vw;
   color: var(--text1);
-  border:none;
+  border: none;
   height: 200px;
 }
 
-.results2v{
+.results2v {
   padding: 20px;
   background-color: var(--base4);
 }
 
-.rowint{
+.rowint {
   position: relative;
   display: flex;
   border: none;
@@ -6922,13 +8164,13 @@ input:checked+.slider:before {
   align-items: center;
 }
 
-.rowint p{
-  font-weight: bold; 
+.rowint p {
+  font-weight: bold;
   border: none;
   text-align: center;
 }
 
-#summary{
+#summary {
   background-color: var(--base1);
   border: none;
   min-height: 250px;
@@ -6949,7 +8191,7 @@ input:checked+.slider:before {
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  border: none ;
+  border: none;
 }
 
 .loading-container2 {
@@ -6962,10 +8204,10 @@ input:checked+.slider:before {
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  border: none ;
+  border: none;
 }
 
-.searchDiv{
+.searchDiv {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -6981,32 +8223,32 @@ input:checked+.slider:before {
   z-index: 1000;
 }
 
-.searchDiv input{
- outline: none;
- height: 20px;
- border-radius: 5px;
- padding-left: 5px;
+.searchDiv input {
+  outline: none;
+  height: 20px;
+  border-radius: 5px;
+  padding-left: 5px;
 }
 
-.searchDiv button{
- height: 21px;
- background-color: var(--accent1);
- outline: none;
- border: none;
- border-radius: 5px;
- position: absolute;
- right:0.3px;
+.searchDiv button {
+  height: 21px;
+  background-color: var(--accent1);
+  outline: none;
+  border: none;
+  border-radius: 5px;
+  position: absolute;
+  right: 0.3px;
 }
 
-.searchDiv button:hover{
- height: 21px;
- background-color: var(--accent2);
- outline: none;
- border: none;
- cursor: pointer;
+.searchDiv button:hover {
+  height: 21px;
+  background-color: var(--accent2);
+  outline: none;
+  border: none;
+  cursor: pointer;
 }
 
-.img3{
+.img3 {
   height: 10px;
   width: 10px;
 }
@@ -7023,14 +8265,14 @@ input:checked+.slider:before {
   z-index: 1000;
 }
 
-.wrapper{
+.wrapper {
   background-color: var(--base2);
   position: relative;
   display: flex;
   flex-direction: row;
   padding: 15px;
   border-radius: 5px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
 .select-container .dropdown-container {
@@ -7074,7 +8316,7 @@ input:checked+.slider:before {
   display: none;
   cursor: pointer;
   width: 125px;
-  position: absolute; 
+  position: absolute;
   z-index: 1000;
   top: -10px;
   left: 20px;
@@ -7083,7 +8325,7 @@ input:checked+.slider:before {
   background-color: var(--base4);
 }
 
-.dropdown-menu > div {
+.dropdown-menu>div {
   background-color: var(--base4);
   padding: 5px;
   height: 14px;
@@ -7092,11 +8334,11 @@ input:checked+.slider:before {
   border-radius: 5px;
 }
 
-.dropdown-menu > div:hover {
+.dropdown-menu>div:hover {
   background-color: var(--accent2);
 }
 
-.dropdown-btn:hover + .dropdown-menu, 
+.dropdown-btn:hover+.dropdown-menu,
 .dropdown-menu:hover {
   display: block;
 }
@@ -7109,7 +8351,7 @@ input:checked+.slider:before {
   display: none;
   position: absolute;
   left: 100%;
-  top: 0; 
+  top: 0;
   background-color: var(--base4);
   max-height: 185px;
   overflow-y: scroll;
@@ -7117,7 +8359,7 @@ input:checked+.slider:before {
   border-radius: 5px;
   min-width: 150px;
   z-index: 1001;
-  align-items: center; 
+  align-items: center;
   justify-content: center;
 }
 
@@ -7149,24 +8391,24 @@ input:checked+.slider:before {
 }
 
 /* Remove hover border */
-.dropdown-menu > div:hover,
+.dropdown-menu>div:hover,
 .watchlist-item:hover {
   border: none;
   outline: none;
 }
 
-.iconbtn{
+.iconbtn {
   width: 15px;
   height: 15px;
   opacity: 0.60;
   cursor: pointer;
 }
 
-.iconbtn:hover{
+.iconbtn:hover {
   opacity: 1;
 }
 
-.icondlt{
+.icondlt {
   background-color: transparent;
   border: none;
   padding: 0;
@@ -7175,7 +8417,7 @@ input:checked+.slider:before {
   margin: 0;
 }
 
-.icondlt:hover{
+.icondlt:hover {
   cursor: pointer;
   opacity: 1;
 }
@@ -7187,7 +8429,7 @@ input:checked+.slider:before {
   cursor: pointer;
 }
 
-.icondlt2{
+.icondlt2 {
   background-color: transparent;
   border: none;
   padding: 0;
@@ -7199,47 +8441,64 @@ input:checked+.slider:before {
 }
 
 .watchlist-icon {
-  width: 20px; 
-  height: 20px; 
-  margin-right: 8px;  
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
 }
 
 .checkbox-label {
-  display: flex;         
-  align-items: center;       
+  display: flex;
+  align-items: center;
 }
 
 .duplicate-asterisk {
-  color: var(--accent1); /* Change to your preferred color */
+  color: var(--accent1);
+  /* Change to your preferred color */
   margin-left: 4px;
-  cursor: pointer; /* Indicates to users that it has a tooltip */
-  position: relative; /* Positioning context for the tooltip */
+  cursor: pointer;
+  /* Indicates to users that it has a tooltip */
+  position: relative;
+  /* Positioning context for the tooltip */
 }
 
 .tooltip2 {
-  visibility: hidden; /* Initially hide the tooltip */
-  width: 120px; /* Adjust width as necessary */
-  background-color: var(--base1); /* Background color of the tooltip */
-  color: var(--text1); /* Text color */
-  text-align: center; /* Center text */
-  border-radius: 5px; /* Rounded corners */
+  visibility: hidden;
+  /* Initially hide the tooltip */
+  width: 120px;
+  /* Adjust width as necessary */
+  background-color: var(--base1);
+  /* Background color of the tooltip */
+  color: var(--text1);
+  /* Text color */
+  text-align: center;
+  /* Center text */
+  border-radius: 5px;
+  /* Rounded corners */
   border: solid 1px var(--accent3);
-  padding: 5px; /* Padding */
-  position: absolute; /* Positioning */
-  z-index: 1000; /* Ensure it appears above other elements */
-  top: 100%; 
-  left: 50%; 
-  margin-left: -60px; /* Adjust for half the width of the tooltip */
-  opacity: 0; /* Start with opacity 0 */
-  transition: opacity 0.3s; /* Smooth transition for visibility */
+  padding: 5px;
+  /* Padding */
+  position: absolute;
+  /* Positioning */
+  z-index: 1000;
+  /* Ensure it appears above other elements */
+  top: 100%;
+  left: 50%;
+  margin-left: -60px;
+  /* Adjust for half the width of the tooltip */
+  opacity: 0;
+  /* Start with opacity 0 */
+  transition: opacity 0.3s;
+  /* Smooth transition for visibility */
 }
 
 .duplicate-asterisk:hover .tooltip2 {
-  visibility: visible; /* Show tooltip on hover */
-  opacity: 1; /* Fade in */
+  visibility: visible;
+  /* Show tooltip on hover */
+  opacity: 1;
+  /* Fade in */
 }
 
-.imgbtn{
+.imgbtn {
   width: 15px;
   height: 15px;
 }
@@ -7249,32 +8508,41 @@ input:checked+.slider:before {
   align-items: center;
   cursor: pointer;
   padding: 5px;
-  opacity: 0.7; /* Initial opacity */
+  opacity: 0.7;
+  /* Initial opacity */
   transition: opacity 0.3s;
 }
 
 .custom-checkbox.checked {
-  color: var(--text1); /* Change text color when checked */
+  color: var(--text1);
+  /* Change text color when checked */
   opacity: 1;
 }
 
 .checkmark {
-  width: 8px; /* Smaller width */
-  height: 8px; /* Smaller height */
+  width: 8px;
+  /* Smaller width */
+  height: 8px;
+  /* Smaller height */
   background-color: var(--text1);
-  border-radius: 50%; /* Make it circular */
+  border-radius: 50%;
+  /* Make it circular */
   margin-right: 5px;
   display: inline-block;
-  transition: background-color 0.3s, border-color 0.3s; /* Add transition for border color */
+  transition: background-color 0.3s, border-color 0.3s;
+  /* Add transition for border color */
 }
 
 .custom-checkbox.checked .checkmark {
-  background-color: var(--accent1); /* Change to your desired color */
-  border-color: var(--accent1); /* Change to your desired border color */
+  background-color: var(--accent1);
+  /* Change to your desired color */
+  border-color: var(--accent1);
+  /* Change to your desired border color */
 }
 
 .custom-checkbox.checked {
-  color: var(--text1); /* Change text color when checked */
+  color: var(--text1);
+  /* Change text color when checked */
 }
 
 .select-container__no-screeners {
@@ -7283,21 +8551,25 @@ input:checked+.slider:before {
   font-size: 14px;
 }
 
-.input{
+.input {
   border-radius: 5px;
   padding: 5px 5px 5px 15px;
   margin: 7px;
   width: 160px;
   outline: none;
-  color: var(--text1); /* Dark text color */
-  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
+  color: var(--text1);
+  /* Dark text color */
+  transition: border-color 0.3s, box-shadow 0.3s;
+  /* Smooth transition for focus effects */
   border: solid 1px var(--base4);
-  background-color:var(--base4);
+  background-color: var(--base4);
 }
 
-.input:focus{
-  border-color: var(--accent1); /* Change border color on focus */
-  outline: none; /* Remove default outline */
+.input:focus {
+  border-color: var(--accent1);
+  /* Change border color on focus */
+  outline: none;
+  /* Remove default outline */
 }
 
 .select-container {
@@ -7318,15 +8590,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: none;
 }
 
-input[type="date"]{
+input[type="date"] {
   color: var(--base3);
 }
 
-.input[type="number"]::-webkit-inner-spin-button, 
+.input[type="number"]::-webkit-inner-spin-button,
 .input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
 .input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
@@ -7358,13 +8631,13 @@ input[type="date"]{
   display: none;
   cursor: pointer;
   width: 125px;
-  position: absolute; 
+  position: absolute;
   z-index: 1000;
   top: -10px;
   left: 20px;
 }
 
-.changeperc-dropdown-menu > div {
+.changeperc-dropdown-menu>div {
   background-color: var(--base2);
   padding: 5px;
   height: 14px;
@@ -7372,16 +8645,20 @@ input[type="date"]{
   align-items: center;
 }
 
-.changeperc-dropdown-menu > div:hover {
+.changeperc-dropdown-menu>div:hover {
   background-color: var(--accent2);
 }
 
-.changeperc-dropdown-btn:hover + .changeperc-dropdown-menu, 
+.changeperc-dropdown-btn:hover+.changeperc-dropdown-menu,
 .changeperc-dropdown-menu:hover {
   display: block;
 }
 
-.ma200-select-container, .ma50-select-container, .ma20-select-container, .ma10-select-container , .price-select-container{
+.ma200-select-container,
+.ma50-select-container,
+.ma20-select-container,
+.ma10-select-container,
+.price-select-container {
   position: relative;
   background-color: var(--base2);
   text-align: center;
@@ -7396,23 +8673,35 @@ input[type="date"]{
   border: solid 2px var(--base1);
 }
 
-.ma200-dropdown-btn, .ma50-dropdown-btn, .ma20-dropdown-btn, .ma10-dropdown-btn, .price-dropdown-btn {
+.ma200-dropdown-btn,
+.ma50-dropdown-btn,
+.ma20-dropdown-btn,
+.ma10-dropdown-btn,
+.price-dropdown-btn {
   background-color: transparent;
   border: none;
   cursor: pointer;
 }
 
-.ma200-dropdown-menu, .ma50-dropdown-menu, .ma20-dropdown-menu, .ma10-dropdown-menu, .price-dropdown-menu {
+.ma200-dropdown-menu,
+.ma50-dropdown-menu,
+.ma20-dropdown-menu,
+.ma10-dropdown-menu,
+.price-dropdown-menu {
   display: none;
   cursor: pointer;
   width: 125px;
-  position: absolute; 
+  position: absolute;
   z-index: 1000;
   top: -10px;
   left: 20px;
 }
 
-.ma200-dropdown-menu > div, .ma50-dropdown-menu > div, .ma20-dropdown-menu > div, .ma10-dropdown-menu > div, .price-dropdown-menu > div {
+.ma200-dropdown-menu>div,
+.ma50-dropdown-menu>div,
+.ma20-dropdown-menu>div,
+.ma10-dropdown-menu>div,
+.price-dropdown-menu>div {
   background-color: var(--base2);
   padding: 5px;
   height: 14px;
@@ -7420,23 +8709,29 @@ input[type="date"]{
   align-items: center;
 }
 
-.ma200-dropdown-menu > div:hover, .ma50-dropdown-menu > div:hover, .ma20-dropdown-menu > div:hover, .ma10-dropdown-menu > div:hover, .price-dropdown-menu > div:hover {
+.ma200-dropdown-menu>div:hover,
+.ma50-dropdown-menu>div:hover,
+.ma20-dropdown-menu>div:hover,
+.ma10-dropdown-menu>div:hover,
+.price-dropdown-menu>div:hover {
   background-color: var(--accent1);
 }
 
-.ma200-dropdown-btn:hover + .ma200-dropdown-menu, 
+.ma200-dropdown-btn:hover+.ma200-dropdown-menu,
 .ma200-dropdown-menu:hover,
-.ma50-dropdown-btn:hover + .ma50-dropdown-menu, 
+.ma50-dropdown-btn:hover+.ma50-dropdown-menu,
 .ma50-dropdown-menu:hover,
-.ma20-dropdown-btn:hover + .ma20-dropdown-menu, 
+.ma20-dropdown-btn:hover+.ma20-dropdown-menu,
 .ma20-dropdown-menu:hover,
-.ma10-dropdown-btn:hover + .ma10-dropdown-menu, 
-.ma10-dropdown-menu:hover, .price-dropdown-btn:hover + .price-dropdown-menu, 
+.ma10-dropdown-btn:hover+.ma10-dropdown-menu,
+.ma10-dropdown-menu:hover,
+.price-dropdown-btn:hover+.price-dropdown-menu,
 .price-dropdown-menu:hover {
   display: block;
 }
 
-.relvol-select-container, .avgvol-select-container {
+.relvol-select-container,
+.avgvol-select-container {
   position: relative;
   background-color: var(--base2);
   text-align: center;
@@ -7451,23 +8746,26 @@ input[type="date"]{
   border: solid 2px var(--base1);
 }
 
-.relvol-dropdown-btn, .avgvol-dropdown-btn {
+.relvol-dropdown-btn,
+.avgvol-dropdown-btn {
   background-color: transparent;
   border: none;
   cursor: pointer;
 }
 
-.relvol-dropdown-menu, .avgvol-dropdown-menu {
+.relvol-dropdown-menu,
+.avgvol-dropdown-menu {
   display: none;
   cursor: pointer;
   width: 125px;
-  position: absolute; 
+  position: absolute;
   z-index: 1000;
   top: -10px;
   left: 20px;
 }
 
-.relvol-dropdown-menu > div, .avgvol-dropdown-menu > div {
+.relvol-dropdown-menu>div,
+.avgvol-dropdown-menu>div {
   background-color: var(--base2);
   padding: 5px;
   height: 14px;
@@ -7475,26 +8773,27 @@ input[type="date"]{
   align-items: center;
 }
 
-.relvol-dropdown-menu > div:hover, .avgvol-dropdown-menu > div:hover {
+.relvol-dropdown-menu>div:hover,
+.avgvol-dropdown-menu>div:hover {
   background-color: var(--accent1);
 }
 
-.relvol-dropdown-btn:hover + .relvol-dropdown-menu, 
+.relvol-dropdown-btn:hover+.relvol-dropdown-menu,
 .relvol-dropdown-menu:hover,
-.avgvol-dropdown-btn:hover + .avgvol-dropdown-menu, 
+.avgvol-dropdown-btn:hover+.avgvol-dropdown-menu,
 .avgvol-dropdown-menu:hover {
   display: block;
 }
 
-.wlist-container{
-  height: 800px; 
-  width: 100%; 
+.wlist-container {
+  height: 800px;
+  width: 100%;
   min-width: 2610px;
-  overflow-y: scroll; 
+  overflow-y: scroll;
   z-index: 1000;
 }
 
-#wlist{
+#wlist {
   outline: none;
 }
 
@@ -7503,7 +8802,7 @@ input[type="date"]{
 }
 
 .question-mark-wrapper img {
-  width: 15px; 
+  width: 15px;
   height: 15px;
   cursor: pointer;
   margin-left: 7px;
@@ -7549,22 +8848,24 @@ input[type="date"]{
   0% {
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
   }
+
   50% {
     box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
   }
+
   100% {
     box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
   }
 }
 
-.question-img{
+.question-img {
   width: 15px;
   cursor: pointer;
   margin-left: 5px;
 }
 
-.btnlabel{
-  margin-left: 3px; 
+.btnlabel {
+  margin-left: 3px;
   cursor: inherit;
 }
 
@@ -7572,35 +8873,37 @@ input[type="date"]{
   display: none;
 }
 
-.navmenu-mobile{
+.navmenu-mobile {
   display: none;
 }
 
 .chart-container {
-    position: relative;
-    width: 100%;
-    height: 250px;
+  position: relative;
+  width: 100%;
+  height: 250px;
 }
 
-.loading-container1, .loading-container2 {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--base1);
-    z-index: 10;
+.loading-container1,
+.loading-container2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--base1);
+  z-index: 10;
 }
 
 .hidden {
-    visibility: hidden;
+  visibility: hidden;
 }
 
 
 @media (min-width: 1151px) {
+
   #filters,
   #resultsDiv,
   #sidebar-r {
@@ -7611,154 +8914,159 @@ input[type="date"]{
 /* Mobile version */
 @media (max-width: 1150px) {
 
-/* Hide sections that have the 'hidden-mobile' class */
+  /* Hide sections that have the 'hidden-mobile' class */
   .hidden-mobile {
     display: none !important;
   }
 
-  .navmenu{
-  display: none;
-}
+  .navmenu {
+    display: none;
+  }
 
-.navmenu-mobile{
-  display: flex;
-}
+  .navmenu-mobile {
+    display: flex;
+  }
 
-.mobilenav{
-  display: flex;
-  flex-direction: row;
-  gap: 12px; /* space between buttons */
-  padding: 8px 12px;
-  background-color: rgba(var(--base4), 0.1); /* subtle transparent background */
-  border-radius: 10px;
-  justify-content: center;
-  align-items: center;
-}
+  .mobilenav {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    /* space between buttons */
+    padding: 8px 12px;
+    background-color: rgba(var(--base4), 0.1);
+    /* subtle transparent background */
+    border-radius: 10px;
+    justify-content: center;
+    align-items: center;
+  }
 
-.mnavbtn{
-  margin-top: 5px;
-  display: flex;
-  justify-content: center; 
-  align-items: center;
-  background-color: var(--base2);
-  padding: 10px 30px;
-  color: var(--text1);
-  font-size: 1.5rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
-  opacity: 0.85;
-  height: 3rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  user-select: none;
-  border: transparent;
-}
+  .mnavbtn {
+    margin-top: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--base2);
+    padding: 10px 30px;
+    color: var(--text1);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
+    opacity: 0.85;
+    height: 3rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    user-select: none;
+    border: transparent;
+  }
 
-.mnavbtn:hover {
-  background-color: var(--accent1);
-  opacity: 1;
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-.mnavbtn.selected {
-  background-color: var(--accent1);
-  opacity: 1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
+  .mnavbtn:hover {
+    background-color: var(--accent1);
+    opacity: 1;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
 
-#main2 {
-  position: relative;
-  display: flex;
-}
+  .mnavbtn.selected {
+    background-color: var(--accent1);
+    opacity: 1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
 
-#filters {
-  flex: 0 0 100%;
-  flex-direction: column;
-  background-color: var(--base4);
-}
+  #main2 {
+    position: relative;
+    display: flex;
+  }
 
-#resultsDiv {
-  flex: 0 0 100%;
-  width: 100%;
-  overflow-x: scroll;
-  overflow-y: hidden;
-}
+  #filters {
+    flex: 0 0 100%;
+    flex-direction: column;
+    background-color: var(--base4);
+  }
 
-#sidebar-r {
-  width: 100%;
-  background-color: var(--base4);
-}
+  #resultsDiv {
+    flex: 0 0 100%;
+    width: 100%;
+    overflow-x: scroll;
+    overflow-y: hidden;
+  }
 
-#filters {
-  background-color: var(--base4);
-  display: flexbox;
-  color: var(--text1);
-  height: 100%;
-  text-align: center;
-}
+  #sidebar-r {
+    width: 100%;
+    background-color: var(--base4);
+  }
 
-.snavbtn {
-   display: flex;
-  align-items: center;
-  gap: 5px;
-  margin: 5px;
-  padding: 5px 8px;
-  cursor: pointer;
-  text-decoration: none;
-  color:var(--text1);
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
-}
+  #filters {
+    background-color: var(--base4);
+    display: flexbox;
+    color: var(--text1);
+    height: 100%;
+    text-align: center;
+  }
 
-.snavbtn span {
-  font-size: 14px;
-  user-select: none;
-  transition: color 0.3s ease;
-}
+  .snavbtn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 5px;
+    padding: 5px 8px;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text1);
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
 
-.snavbtn:hover,
-.snavbtn.active {
-  background-color: var(--base3);
-}
+  .snavbtn span {
+    font-size: 14px;
+    user-select: none;
+    transition: color 0.3s ease;
+  }
 
-.snavbtn.active span,
-.activeText {
-  color:  var(--accent1);
-}
+  .snavbtn:hover,
+  .snavbtn.active {
+    background-color: var(--base3);
+  }
 
-.snavbtnslct{
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin: 5px;
-  padding: 5px 8px;
-  cursor: pointer;
-  text-decoration: none;
-  color:var(--text1);
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
-  background-color: var(--accent1);
-}
+  .snavbtn.active span,
+  .activeText {
+    color: var(--accent1);
+  }
 
-#wk-chart,
-#dl-chart {
-  background-repeat: no-repeat;
-}
+  .snavbtnslct {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 5px;
+    padding: 5px 8px;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text1);
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    background-color: var(--accent1);
+  }
 
-.input{
-  border-radius: 5px;
-  padding: 5px 5px 5px 15px;
-  margin: 7px;
-  width: 200px;
-  outline: none;
-  color: var(--text1); /* Dark text color */
-  transition: border-color 0.3s, box-shadow 0.3s; /* Smooth transition for focus effects */
-  border: solid 1px var(--base4);
-  background-color:var(--base4);
-  text-align: left;
-}
+  #wk-chart,
+  #dl-chart {
+    background-repeat: no-repeat;
+  }
+
+  .input {
+    border-radius: 5px;
+    padding: 5px 5px 5px 15px;
+    margin: 7px;
+    width: 200px;
+    outline: none;
+    color: var(--text1);
+    /* Dark text color */
+    transition: border-color 0.3s, box-shadow 0.3s;
+    /* Smooth transition for focus effects */
+    border: solid 1px var(--base4);
+    background-color: var(--base4);
+    text-align: left;
+  }
 
 }
 </style>
