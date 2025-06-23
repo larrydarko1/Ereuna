@@ -1,37 +1,30 @@
 <template>
-  <Header/>
+  <Header />
   <section class="portfolio-container">
     <div class="portfolio-header">
       <h1>Simulated Portfolio</h1>
       <button class="trade-btn" @click="showTradeModal = true">New Trade</button>
-<TradePopup
-  v-if="showTradeModal"
-  :user="user"
-  :api-key="apiKey"
-  @close="showTradeModal = false"
-  @refresh-history="handleRefreshHistory"
-/>
-<SellTradePopup
-  v-if="showSellModal"
-  :symbol="sellPosition.symbol"
-  :maxShares="sellPosition.shares"
-  :price="sellPosition.price"
-  :currentPrice="latestQuotes[sellPosition.symbol]"
-  @close="showSellModal = false"
-  @sell="handleSell"
-  :user="user"
-  :api-key="apiKey"
-/>
+      <TradePopup v-if="showTradeModal" :user="user" :api-key="apiKey" @close="showTradeModal = false"
+        @refresh-history="handleRefreshHistory" />
+      <SellTradePopup v-if="showSellModal" :symbol="sellPosition.symbol" :maxShares="sellPosition.shares"
+        :price="sellPosition.price" :currentPrice="latestQuotes[sellPosition.symbol]" @close="showSellModal = false"
+        @sell="handleSell" :user="user" :api-key="apiKey" />
     </div>
     <div class="portfolio-summary">
       <div class="summary-card">
         <div class="summary-title">Total Value</div>
-        <div class="summary-value">${{ totalPortfolioValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</div>
+        <div class="summary-value">${{ totalPortfolioValue.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }) }}</div>
       </div>
       <div class="summary-card">
         <div class="summary-title">Total P/L</div>
         <div class="summary-value" :class="totalPortfolioPL >= 0 ? 'positive' : 'negative'">
-          {{ totalPortfolioPL >= 0 ? '+' : '' }}${{ totalPortfolioPL.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
+          {{ totalPortfolioPL >= 0 ? '+' : '' }}${{ totalPortfolioPL.toLocaleString(undefined, {
+            minimumFractionDigits:
+              2, maximumFractionDigits: 2
+          }) }}
         </div>
       </div>
       <div class="summary-card">
@@ -41,11 +34,11 @@
         </div>
       </div>
     </div>
-  <div class="portfolio-linechart-container">
-  <div class="linechart-fixed-height">
-    <Line :data="lineData" :options="lineOptions" :height="200" />
-  </div>
-</div>
+    <div class="portfolio-linechart-container">
+      <div class="linechart-fixed-height">
+        <Line :data="lineData" :options="lineOptions" :height="200" />
+      </div>
+    </div>
     <div class="portfolio-main-flex">
       <div class="portfolio-pie-container">
         <Pie :data="pieChartData" :options="pieOptions" />
@@ -53,52 +46,50 @@
       <div class="portfolio-table-container">
         <table class="portfolio-table">
           <thead>
-  <tr>
-    <th>% of Portfolio</th>
-    <th>Symbol</th>
-    <th>Shares</th>
-    <th>Avg. Price</th>
-    <th>Current Price</th>
-    <th>Total Value</th>
-    <th>PnL (%)</th>
-    <th>Actions</th>
-  </tr>
-</thead>
-<tbody>
-  <tr v-for="position in portfolio" :key="position.Symbol">
-     <td>
-      <span v-if="latestQuotes[position.Symbol] !== undefined">
-        {{ getPercOfPortfolio(position) }}%
-      </span>
-    </td>
-    <td>{{ position.Symbol }}</td>
-    <td>{{ position.Shares }}</td>
-    <td>${{ Number(position.AvgPrice).toFixed(2) }}</td>
-    <td>
-      <span v-if="latestQuotes[position.Symbol] !== undefined">
-        ${{ getCurrentPrice(position) }}
-      </span>
-    </td>
-    <td>
-      <span v-if="latestQuotes[position.Symbol] !== undefined">
-        ${{ getTotalValue(position) }}
-      </span>
-    </td>
-    <td :class="getPnLClass(position)">
-      <span v-if="latestQuotes[position.Symbol] !== undefined">
-        {{ getPnLPercent(position) > 0 ? '+' : '' }}{{ getPnLPercent(position) }}%
-      </span>
-    </td>
-    <td>
-      <button
-        class="action-btn"
-        @click="openSellModal({ symbol: position.Symbol, shares: position.Shares, price: position.AvgPrice })"
-      >
-        Sell
-      </button>
-    </td>
-  </tr>
-</tbody>
+            <tr>
+              <th>% of Portfolio</th>
+              <th>Symbol</th>
+              <th>Shares</th>
+              <th>Avg. Price</th>
+              <th>Current Price</th>
+              <th>Total Value</th>
+              <th>PnL (%)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="position in portfolio" :key="position.Symbol">
+              <td>
+                <span v-if="latestQuotes[position.Symbol] !== undefined">
+                  {{ getPercOfPortfolio(position) }}%
+                </span>
+              </td>
+              <td>{{ position.Symbol }}</td>
+              <td>{{ position.Shares }}</td>
+              <td>${{ Number(position.AvgPrice).toFixed(2) }}</td>
+              <td>
+                <span v-if="latestQuotes[position.Symbol] !== undefined">
+                  ${{ getCurrentPrice(position) }}
+                </span>
+              </td>
+              <td>
+                <span v-if="latestQuotes[position.Symbol] !== undefined">
+                  ${{ getTotalValue(position) }}
+                </span>
+              </td>
+              <td :class="getPnLClass(position)">
+                <span v-if="latestQuotes[position.Symbol] !== undefined">
+                  {{ getPnLPercent(position) > 0 ? '+' : '' }}{{ getPnLPercent(position) }}%
+                </span>
+              </td>
+              <td>
+                <button class="action-btn"
+                  @click="openSellModal({ symbol: position.Symbol, shares: position.Shares, price: position.AvgPrice })">
+                  Sell
+                </button>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -115,32 +106,32 @@
             <th>Total</th>
           </tr>
         </thead>
-<tbody>
-  <tr v-if="sortedTransactionHistory.length === 0">
-    <td colspan="6" style="text-align:center; color: var(--text2);">
-      No transaction history
-    </td>
-  </tr>
-  <tr v-for="(tx, i) in sortedTransactionHistory" :key="i">
-    <td>{{ tx.Date ? tx.Date.slice(0, 10) : '' }}</td>
-    <td>{{ tx.Symbol }}</td>
-    <td>{{ tx.Action }}</td>
-    <td>{{ tx.Shares }}</td>
-    <td>${{ Number(tx.Price).toFixed(2) }}</td>
-    <td>${{ Number(tx.Total).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
-  </tr>
-</tbody>
+        <tbody>
+          <tr v-if="sortedTransactionHistory.length === 0">
+            <td colspan="6" style="text-align:center; color: var(--text2);">
+              No transaction history
+            </td>
+          </tr>
+          <tr v-for="(tx, i) in sortedTransactionHistory" :key="i">
+            <td>{{ tx.Date ? tx.Date.slice(0, 10) : '' }}</td>
+            <td>{{ tx.Symbol }}</td>
+            <td>{{ tx.Action }}</td>
+            <td>{{ tx.Shares }}</td>
+            <td>${{ Number(tx.Price).toFixed(2) }}</td>
+            <td>${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            }}
+            </td>
+          </tr>
+        </tbody>
       </table>
     </div>
   </section>
   <br>
   <br>
-  <Footer/>
 </template>
 
 <script setup>
 import Header from '@/components/Header.vue';
-import Footer from '@/components/Footer.vue';
 import { ref, computed, watch } from 'vue'
 import TradePopup from '@/components/trade.vue'
 import SellTradePopup from '@/components/SellTradePopup.vue'
@@ -188,19 +179,19 @@ function getVar(name) {
 }
 
 // Get theme colors from CSS variables
-const accent1   = getVar('--accent1')   || '#8c8dfe';
-const accent2   = getVar('--accent2')   || '#a9a5ff';
-const accent3   = getVar('--accent3')   || '#cfcbff';
-const accent4   = getVar('--accent4')   || '#a9a5ff53';
-const base3   = getVar('--base3')   || '#8a8a90';
-const base1   = getVar('--base1')  || '#1e1e2f';
-const text1     = getVar('--text1')     || '#ffffff';
-const text2     = getVar('--text2')     || '#cad3f5';
-const volume    = getVar('--volume')    || '#4d4d4d';
-const ma4       = getVar('--ma4')       || '#4caf50';
-const ma3       = getVar('--ma3')       || '#ffeb3b';
-const ma2       = getVar('--ma2')       || '#2862ff';
-const ma1       = getVar('--ma1')       || '#00bcd4';
+const accent1 = getVar('--accent1') || '#8c8dfe';
+const accent2 = getVar('--accent2') || '#a9a5ff';
+const accent3 = getVar('--accent3') || '#cfcbff';
+const accent4 = getVar('--accent4') || '#a9a5ff53';
+const base3 = getVar('--base3') || '#8a8a90';
+const base1 = getVar('--base1') || '#1e1e2f';
+const text1 = getVar('--text1') || '#ffffff';
+const text2 = getVar('--text2') || '#cad3f5';
+const volume = getVar('--volume') || '#4d4d4d';
+const ma4 = getVar('--ma4') || '#4caf50';
+const ma3 = getVar('--ma3') || '#ffeb3b';
+const ma2 = getVar('--ma2') || '#2862ff';
+const ma1 = getVar('--ma1') || '#00bcd4';
 
 const themeColors = [
   accent1,
@@ -450,9 +441,8 @@ function getPercOfPortfolio(position) {
 </script>
 
 <style lang="scss" scoped>
-
 .portfolio-container {
-  background: var(--base4);
+  background: linear-gradient(90deg, var(--base4) 0%, var(--base2) 100%);
   color: var(--text1);
   padding: 32px 24px;
   min-height: 80vh;
@@ -482,6 +472,7 @@ function getPercOfPortfolio(position) {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+
   &:hover {
     background: var(--accent2);
   }
@@ -499,7 +490,7 @@ function getPercOfPortfolio(position) {
   border-radius: 10px;
   padding: 24px 32px;
   min-width: 100px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -509,11 +500,18 @@ function getPercOfPortfolio(position) {
     font-size: 1rem;
     margin-bottom: 8px;
   }
+
   .summary-value {
     font-size: 1.5rem;
     font-weight: 700;
-    &.positive { color: var(--positive); }
-    &.negative { color: var(--negative); }
+
+    &.positive {
+      color: var(--positive);
+    }
+
+    &.negative {
+      color: var(--negative);
+    }
   }
 }
 
@@ -530,7 +528,7 @@ function getPercOfPortfolio(position) {
   background: var(--base2);
   border-radius: 10px;
   padding: 24px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
   max-width: 400px;
   flex: 1 1 300px;
 }
@@ -539,7 +537,7 @@ function getPercOfPortfolio(position) {
   background: var(--base2);
   border-radius: 10px;
   padding: 24px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
   overflow-x: auto;
   flex: 2 1 400px;
   max-height: 520px; // 8 rows * ~60px per row + header
@@ -550,8 +548,9 @@ function getPercOfPortfolio(position) {
   background: var(--base2);
   border-radius: 10px;
   padding: 24px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
   margin-top: 32px;
+
   h2 {
     color: var(--accent1);
     margin-bottom: 16px;
@@ -565,10 +564,12 @@ function getPercOfPortfolio(position) {
   border-collapse: collapse;
   color: var(--text1);
 
-  th, td {
+  th,
+  td {
     padding: 12px 16px;
     text-align: left;
   }
+
   th {
     color: var(--accent1);
     font-weight: 600;
@@ -578,11 +579,18 @@ function getPercOfPortfolio(position) {
     background: var(--base2);
     z-index: 1;
   }
+
   td {
     border-bottom: 1px solid var(--base3);
   }
-  .positive { color: var(--positive); }
-  .negative { color: var(--negative); }
+
+  .positive {
+    color: var(--positive);
+  }
+
+  .negative {
+    color: var(--negative);
+  }
 }
 
 .action-btn {
@@ -594,6 +602,7 @@ function getPercOfPortfolio(position) {
   font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s;
+
   &:hover {
     background: var(--accent2);
     color: var(--text1);
@@ -605,15 +614,15 @@ function getPercOfPortfolio(position) {
   border-radius: 10px;
   padding: 24px;
   margin-bottom: 32px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
 }
 
 .linechart-fixed-height {
   height: 200px; // adjust as needed for 1/3 the original height
+
   canvas {
     height: 100% !important;
     max-height: 200px !important;
   }
 }
-
 </style>

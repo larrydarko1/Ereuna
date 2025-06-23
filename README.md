@@ -1,6 +1,7 @@
 v1.0.7
 - watch panel now customizes symbols for each user
 - new session for direct communication for platform added
+- started adding Archie
 ---
 v1.0.6
 - added news
