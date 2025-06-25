@@ -5,6 +5,7 @@ from bson import ObjectId
 from datetime import datetime
 import datetime as dt
 import pandas as pd
+import requests
 
 #Middleware
 load_dotenv()  
@@ -407,3 +408,162 @@ def addCommunication():
         print("Notification inserted successfully.")
     else:
         print("Failed to insert notification.")
+
+# Fetch all supported crypto tickers from Tiingo and upsert into AssetInfo collection
+def fetch_tiingo_crypto_metadata_and_store():
+    try:
+        api_key = os.getenv('TIINGO_KEY')
+        if not api_key:
+            print("TIINGO_KEY not found in environment variables.")
+            return
+        headers = {"Authorization": f"Token {api_key}"}
+        url = "https://api.tiingo.com/tiingo/crypto"
+        response = requests.get(url, headers=headers)
+        print("Status code:", response.status_code)
+        print("Raw response:", response.text[:500])  # Print first 500 chars for inspection
+
+        if response.status_code == 200:
+            data = response.json()
+            if not isinstance(data, list):
+                print("Unexpected data format:", type(data))
+                return
+            asset_info_collection = db['AssetInfo']
+            count = 0
+            for obj in data:
+                ticker = obj.get('ticker')
+                name = obj.get('name')
+                if ticker and name:
+                    doc = {
+                        'Symbol': ticker.upper(),
+                        'Name': name,
+                        'AssetType': 'Crypto'
+                    }
+                    asset_info_collection.update_one(
+                        {'Symbol': ticker.upper(), 'AssetType': 'Crypto'},
+                        {'$set': doc},
+                        upsert=True
+                    )
+                    count += 1
+            print(f"Upserted {count} crypto tickers into AssetInfo.")
+        else:
+            print(f"Failed to fetch crypto metadata: {response.status_code} {response.text}")
+    except Exception as e:
+        print(f"Exception occurred: {e}")
+
+def fetchAllNews():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB']
+    news_collection = db["News"]
+    asset_info_collection = db["AssetInfo"]
+    symbols = [doc['Symbol'] for doc in asset_info_collection.find()]
+    total_inserted = 0
+
+    for symbol in symbols:
+        api_url = f"https://api.tiingo.com/tiingo/news?tickers={symbol.lower()}&token={api_key}"
+        response = requests.get(api_url)
+
+        if response.status_code == 200:
+            news_items = response.json()
+            documents = []
+            for item in news_items:
+                tickers_upper = [t.upper() for t in item.get("tickers", [])]
+                published_date_str = item.get("publishedDate")
+                published_date = None
+                if published_date_str:
+                    try:
+                        published_date = datetime.strptime(published_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
+                    except ValueError:
+                        try:
+                            published_date = datetime.strptime(published_date_str, "%Y-%m-%dT%H:%M:%SZ")
+                        except Exception:
+                            published_date = None
+                doc = {
+                    "publishedDate": published_date,
+                    "title": item.get("title"),
+                    "url": item.get("url"),
+                    "description": item.get("description"),
+                    "source": item.get("source"),
+                    "tickers": tickers_upper,
+                }
+                exists = news_collection.find_one({
+                    "url": doc["url"],
+                    "publishedDate": doc["publishedDate"]
+                })
+                if not exists:
+                    documents.append(doc)
+            if documents:
+                news_collection.insert_many(documents)
+                total_inserted += len(documents)
+                print(f"Inserted {len(documents)} news articles for {symbol}.")
+            else:
+                print(f"No new news articles found for {symbol}.")
+        else:
+            print(f"Failed to fetch news for {symbol}: {response.status_code} {response.text}")
+
+    print(f"Total news articles inserted: {total_inserted}")
+
+def fetch_single_crypto_price(symbol='IDTRY'):
+    url = (
+        f'https://api.tiingo.com/tiingo/crypto/prices'
+        f'?tickers={symbol}&startDate=2019-01-02&resampleFreq=1Day&token={api_key}'
+    )
+    response = requests.get(url)
+    print(f"Status code: {response.status_code}")
+    try:
+        data = response.json()
+        print("Data response:")
+        print(data)
+    except Exception as e:
+        print(f"Error parsing response: {e}")
+        print("Raw response text:")
+        print(response.text)
+        
+#fetch_single_crypto_price(symbol='IDTRY')
+
+def getHistoricalCryptoPrice():
+    client = MongoClient(mongo_uri)
+    db = client['EreunaDB']  
+    daily_collection = db["OHCLVData"]
+    asset_info_collection = db["AssetInfo"]
+
+    # Only select crypto tickers
+    crypto_assets = asset_info_collection.find({'AssetType': 'Crypto'})
+    tickers = [asset['Symbol'] for asset in crypto_assets]
+
+    for ticker in tickers:
+        ticker_lower = ticker.lower()
+        url = (
+            f'https://api.tiingo.com/tiingo/crypto/prices'
+            f'?tickers={ticker_lower}&startDate=2000-01-01&resampleFreq=1Day&token={api_key}'
+        )
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+                if 'priceData' in data[0] and data[0]['priceData']:
+                    price_data = data[0]['priceData']
+                    for entry in price_data:
+                        try:
+                            record = {
+                                'timestamp': datetime.strptime(entry['date'], '%Y-%m-%dT%H:%M:%S%z'),
+                                'tickerID': ticker,
+                                'open': float(entry['open']),
+                                'high': float(entry['high']),
+                                'low': float(entry['low']),
+                                'close': float(entry['close']),
+                                'volume': float(entry['volume'])
+                            }
+                            existing = daily_collection.find_one({'tickerID': ticker, 'timestamp': record['timestamp']})
+                            if not existing:
+                                daily_collection.insert_one(record)
+                        except Exception as e:
+                            print(f"Error processing record for {ticker}: {e}")
+                    print(f"Successfully processed {ticker}")
+                else:
+                    print(f"No price data found for {ticker}. Response: {data}")
+            else:
+                print(f"Unexpected format for {ticker}. Response: {data}")
+        else:
+            print(f"Error fetching {ticker}: {response.text}")
+            

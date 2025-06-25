@@ -386,6 +386,8 @@ def getHistoricalPrice():
                 print(f"No data found for {ticker}")
         else:
             print(f"Error: {response.text}")
+            
+
 
 # get daily OHCLV Data day after day
 def getPrice():
@@ -1330,7 +1332,7 @@ def calculateAlltimehighlowandperc52wk():
         except Exception as e:
             print(f"Error updating documents: {e}")
  
-#caluclautes percentage changes for today, wk, 1m, 4m, 6m, 1y, and YTD (althought ytd is still a bit weird)
+#caluclates percentage changes for today, wk, 1m, 4m, 6m, 1y, and YTD (althought ytd is still a bit weird)
 def calculatePerc():
     client = MongoClient(mongo_uri)
     db = client['EreunaDB'] 
@@ -2230,15 +2232,22 @@ def Daily():
     ]
 
     start_time = time.time()
+    from concurrent.futures import as_completed
+
     with ProcessPoolExecutor() as executor:
-        executor.map(lambda f: f(), functions)
+        futures = [executor.submit(f) for f in functions]
+        for future in as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                print(f"Function raised an exception: {e}")
     end_time = time.time()
     print(f"Total execution time: {(end_time - start_time)/60:.2f} minutes")
     #checkAndUpdateFinancialUpdates()
     #fetchNews()
 
 if __name__ == '__main__':  
-    Daily()
+   Daily()
     
     
 #scheduler

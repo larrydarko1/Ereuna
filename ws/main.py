@@ -4,10 +4,11 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import websockets
+import ssl
+import asyncio
 
 load_dotenv()
 TIINGO_API_KEY = os.getenv('TIINGO_KEY')
-TIINGO_WS_URL = "wss://api.tiingo.com/iex"
 
 app = FastAPI()
 app.add_middleware(
@@ -18,69 +19,89 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# streams real time data for crypto, forex and stocks
 @app.websocket("/ws/stream")
-async def websocket_stream(websocket: WebSocket, symbol: str = Query(...)):
+async def websocket_stream(websocket: WebSocket):
     await websocket.accept()
-    if not symbol:
-        await websocket.send_text(json.dumps({"error": "No symbol provided"}))
-        await websocket.close()
-        return
 
-    try:
-        print(f"Connecting to Tiingo for symbol: {symbol}")
-        async with websockets.connect(TIINGO_WS_URL) as tiingo_ws:
-            subscribe_msg = {
-                "eventName": "subscribe",
-                "authorization": TIINGO_API_KEY,
-                "eventData": {
-                    "thresholdLevel": 6,
-                    "tickers": [symbol]
-                }
-            }
-            print("Sending subscribe message:", subscribe_msg)
-            await tiingo_ws.send(json.dumps(subscribe_msg))
+    # Hardcoded symbol lists
+    crypto_symbols = ["BTCUSD", "ETHUSD"]
+    stock_symbols = ["AAPL", "MSFT", "AMZN"]
+    forex_symbols = ["EURUSD", "EURCHF"]
 
-            while True:
-                msg = await tiingo_ws.recv()
-                print("Received from Tiingo:", msg)
-                try:
-                    tiingo_data = json.loads(msg)
-                except Exception as e:
-                    print("JSON decode error:", e)
-                    continue
-
-                # Only handle dict messages
-                if isinstance(tiingo_data, dict):
-                    # Handle error messages
-                    if tiingo_data.get("messageType") == "E":
-                        await websocket.send_text(json.dumps({"error": tiingo_data.get("response", {}).get("message", "Unknown error from Tiingo")}))
-                        await websocket.close()
-                        break
-                    # Handle info/heartbeat messages
-                    if tiingo_data.get("messageType") in ("I", "H"):
+    async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
+        try:
+            async with websockets.connect(ws_url, ssl=ssl_ctx) as tiingo_ws:
+                await tiingo_ws.send(json.dumps(subscribe_msg))
+                while True:
+                    msg = await tiingo_ws.recv()
+                    try:
+                        tiingo_data = json.loads(msg)
+                    except Exception as e:
+                        print(f"JSON decode error: {e}")
                         continue
-                    # Handle aggregate tick data
-                    if tiingo_data.get("messageType") == "A" and "data" in tiingo_data:
-                        data = tiingo_data["data"]
-                        # data is a list: [timestamp, symbol, last]
-                        if isinstance(data, list) and len(data) >= 3:
-                            payload = {
-                                "symbol": data[1],
-                                "last": data[2],
-                                "timestamp": data[0],
-                            }
-                            await websocket.send_text(json.dumps(payload))
-                        continue
-                # If message is not a dict, just ignore or log
-                else:
-                    print("Non-dict message from Tiingo:", tiingo_data)
-                # Optionally, handle info messages or ignore them
-    except WebSocketDisconnect:
-        print("WebSocket client disconnected")
-    except Exception as e:
-        print("Exception:", e)
-        await websocket.send_text(json.dumps({"error": str(e)}))
-        await websocket.close()
+                    if isinstance(tiingo_data, dict):
+                        # Handle error messages
+                        if tiingo_data.get("messageType") == "E":
+                            await websocket.send_text(json.dumps({"error": tiingo_data.get("response", {}).get("message", "Unknown error from Tiingo")}))
+                            await websocket.close()
+                            break
+                        # Handle info/heartbeat messages
+                        if tiingo_data.get("messageType") in ("I", "H"):
+                            continue
+                        # Filter and relay
+                        if filter_fn(tiingo_data):
+                            await websocket.send_text(json.dumps(tiingo_data))
+        except Exception as e:
+            print(f"Exception in relay_tiingo: {e}")
+            await websocket.send_text(json.dumps({"error": str(e)}))
+            await websocket.close()
+
+    # Define filter functions
+    def crypto_filter(msg):
+        return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) > 0 and msg["data"][0] == "Q"
+    def stock_filter(msg):
+        return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) >= 3
+    def forex_filter(msg):
+        return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) > 0 and msg["data"][0] == "Q"
+
+    # Prepare connection details
+    crypto_ws_url = "wss://api.tiingo.com/crypto"
+    crypto_subscribe_msg = {
+        "eventName": "subscribe",
+        "authorization": TIINGO_API_KEY,
+        "eventData": {
+            "tickers": crypto_symbols,
+            "channels": ["trades"],
+            "thresholdLevel": 2
+        }
+    }
+    stock_ws_url = "wss://api.tiingo.com/iex"
+    stock_subscribe_msg = {
+        "eventName": "subscribe",
+        "authorization": TIINGO_API_KEY,
+        "eventData": {
+            "thresholdLevel": 6,
+            "tickers": stock_symbols
+        }
+    }
+    forex_ws_url = "wss://api.tiingo.com/fx"
+    forex_subscribe_msg = {
+        "eventName": "subscribe",
+        "authorization": TIINGO_API_KEY,
+        "eventData": {
+            "tickers": forex_symbols,
+            "thresholdLevel": 5
+        }
+    }
+    ssl_ctx = ssl._create_unverified_context()
+
+    # Run all relays concurrently
+    await asyncio.gather(
+        relay_tiingo(crypto_ws_url, crypto_subscribe_msg, ssl_ctx, crypto_filter),
+        relay_tiingo(stock_ws_url, stock_subscribe_msg, ssl_ctx, stock_filter),
+        relay_tiingo(forex_ws_url, forex_subscribe_msg, ssl_ctx, forex_filter)
+    )
 
 # To run: uvicorn ws.main:app --reload
-# To test: wscat -c "ws://localhost:8000/ws/stream?symbol=AAPL"
+# wscat -c "ws://localhost:8000/ws/stream"
