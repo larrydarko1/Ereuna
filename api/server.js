@@ -15461,3 +15461,45 @@ app.post('/trades/sell', validate([
     if (client) await client.close();
   }
 });
+
+// Endpoint to get the price target for a symbol
+app.get('/pricetarget/:symbol', async (req, res) => {
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+      return res.status(401).json({ message: 'Unauthorized API Access' });
+    }
+
+    const symbol = sanitizeInput(req.params.symbol.toUpperCase());
+
+    client = new MongoClient(uri);
+    await client.connect();
+
+    const db = client.db('EreunaDB');
+    const assetInfoCollection = db.collection('AssetInfo');
+
+    const doc = await assetInfoCollection.findOne(
+      { Symbol: symbol },
+      { projection: { PriceTarget: 1, _id: 0 } }
+    );
+
+    if (!doc || typeof doc.PriceTarget === 'undefined') {
+      return res.status(404).json({ message: 'Price target not found' });
+    }
+
+    return res.status(200).json({ symbol, priceTarget: doc.PriceTarget });
+  } catch (error) {
+    logger.error({
+      msg: 'Error retrieving price target',
+      symbol: req.params.symbol,
+      error: error.message
+    });
+    return res.status(500).json({ message: 'Internal Server Error' });
+  } finally {
+    if (client) await client.close();
+  }
+});
