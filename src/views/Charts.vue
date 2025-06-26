@@ -44,327 +44,37 @@
           <span class="tooltip-text">{{ tooltipText }}</span>
         </div>
       </div>
-      <div v-if="showCreateNote" class="CreateNote">
-        <br>
-        <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
-          preserveAspectRatio="xMidYMid meet">
-          <g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)" fill="var(--text1)" stroke="none">
-            <path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
--625 104 -601 387 -1216 800 -1735 123 -155 475 -507 616 -616 280 -217 609
--419 1640 -1007 1314 -749 1735 -942 2525 -1157 257 -70 457 -130 660 -200
-924 -315 1748 -774 2455 -1366 434 -363 775 -722 1190 -1249 226 -288 317
--379 445 -443 88 -43 153 -55 285 -50 132 5 194 24 287 84 72 48 197 173 283
-284 233 300 352 440 614 714 308 324 765 741 1030 940 147 110 476 327 671
-442 189 111 663 350 860 433 345 146 572 223 1122 381 1006 287 1271 406 2563
-1145 1100 630 1429 831 1710 1049 140 108 493 461 616 616 424 534 714 1175
-809 1790 26 166 31 467 11 570 -36 183 -117 294 -294 403 l-92 57 -273 -2
-c-149 -1 -246 -3 -214 -5 31 -2 57 -8 57 -12 0 -20 -966 -572 -1955 -1118
--775 -427 -847 -462 -1125 -543 -319 -93 -606 -133 -955 -133 -318 0 -567 30
--860 104 -270 68 -413 120 -830 301 -1352 588 -2103 789 -3348 899 -298 26
--927 37 -1212 20 -880 -51 -1660 -206 -2527 -500 -353 -120 -486 -174 -1168
--469 -561 -242 -873 -321 -1356 -342 -455 -19 -824 20 -1176 126 -280 83 -380
-132 -1143 552 -413 227 -1022 569 -1419 796 -163 94 -254 140 -287 146 -72 14
--124 45 -158 94 -17 24 -37 46 -46 49 -22 9 -18 25 8 30 12 2 -86 5 -218 5
-l-240 1 -90 -57z" />
-            <path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z" />
-            <path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
--765 -1960 -65 -377 -84 -670 -77 -1147 6 -360 19 -545 58 -805 125 -849 505
--1739 1054 -2470 694 -926 1639 -1601 2760 -1973 393 -131 761 -205 1215 -244
-217 -19 820 -16 1055 5 478 43 804 92 839 127 12 12 -5 38 -258 375 -318 422
--480 672 -745 1153 l-123 222 -167 0 c-643 0 -1147 109 -1667 360 -383 184
--691 401 -1002 704 -383 374 -682 822 -875 1311 -175 444 -239 804 -239 1350
-0 611 120 1142 374 1650 183 365 364 619 697 980 94 102 181 214 181 234 0 14
--49 38 -315 156 -275 122 -561 265 -870 438 -320 178 -439 241 -503 266 l-53
-21 -51 -47z" />
-            <path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
--382 -387 -176 -457 -209 -462 -222 -7 -18 70 -122 173 -233 273 -295 429
--503 594 -791 226 -394 394 -862 445 -1233 48 -353 48 -880 0 -1232 -48 -355
--209 -812 -414 -1178 -413 -738 -1086 -1338 -1855 -1653 -464 -191 -909 -273
--1477 -273 l-167 0 -122 -222 c-252 -456 -435 -741 -704 -1098 -212 -280 -306
--410 -306 -421 0 -12 53 -25 260 -64 367 -69 618 -88 1125 -89 497 0 759 20
-1095 85 1456 282 2780 1184 3622 2469 368 560 633 1184 772 1817 81 372 106
-609 113 1109 9 632 -27 1014 -138 1464 -183 742 -504 1431 -947 2030 -169 228
--311 380 -355 380 -13 0 -98 -38 -188 -84z" />
-            <path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
--761 -191 -379 -407 -678 -715 -985 -281 -282 -540 -474 -950 -705 -110 -62
--201 -114 -203 -115 -12 -11 103 -216 241 -429 216 -335 366 -522 846 -1061
-174 -195 358 -422 539 -665 248 -333 341 -407 542 -431 97 -11 219 -6 300 13
-137 32 248 132 450 403 233 314 459 589 718 873 251 275 419 479 534 647 135
-197 338 534 374 621 l14 32 -203 112 c-400 222 -668 420 -952 705 -320 320
--541 629 -736 1030 -124 255 -247 600 -266 745 -8 63 -18 78 -61 90 -44 12
--85 12 -130 -1z" />
-            <path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
--528 435 -1160 557 -1303 25 -29 83 -101 128 -160 114 -148 273 -310 397 -402
-135 -102 282 -177 576 -293 132 -52 341 -142 465 -200 124 -57 238 -107 255
--111 16 -4 73 -32 126 -62 180 -100 318 -152 785 -294 614 -187 1092 -375
-1659 -655 876 -432 1632 -934 2390 -1586 258 -222 448 -402 810 -768 181 -183
-389 -388 460 -454 113 -104 130 -124 130 -151 l0 -31 186 -3 186 -2 12 28 c28
-68 127 132 204 132 27 0 86 54 496 463 561 557 784 760 1176 1073 1154 919
-2396 1568 3804 1984 327 97 519 170 653 247 43 25 136 69 206 98 70 29 201 87
-292 130 90 42 272 119 405 172 132 52 278 115 325 140 243 128 419 282 625
-548 38 50 94 119 123 153 114 136 370 720 527 1202 147 454 264 912 310 1220
-18 121 48 431 42 437 -3 2 -44 -47 -93 -109 -49 -62 -142 -178 -208 -258 -883
--1066 -1941 -1794 -3221 -2215 -1136 -375 -2424 -435 -3615 -169 -85 19 -278
-68 -428 110 l-272 75 -149 -141 c-82 -78 -180 -166 -218 -196 -183 -148 -429
--289 -604 -348 -122 -41 -219 -48 -567 -44 -311 5 -319 5 -407 32 -191 58
--455 207 -653 368 -42 35 -124 108 -182 163 -58 54 -121 114 -141 133 l-36 33
--214 -60 c-564 -158 -911 -223 -1432 -268 -236 -20 -820 -23 -1047 -4 -961 77
--1761 299 -2600 722 -932 469 -1698 1111 -2414 2024 -143 182 -140 178 -133
-140z" />
-            <path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z" />
-            <path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
--3z" />
-          </g>
-        </svg>
-        <br>
-        <p style="font-size: 9px; padding: 0; color: var(--text1); opacity: 0.60; margin: 5px;">350 characters max / 10
-          notes limit for each symbol</p>
-        <textarea id="notes-container" placeholder="write notes here" :class="{ error: characterCount > 350 }"
-          v-model="noteContent" @input="updateCharacterCount"></textarea>
-        <div class="inner">
-          <button @click="showCreateNote = false">
-            <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
-              xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve"
-              transform="rotate(180)">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <g>
-                  <path
-                    d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z">
-                  </path>
-                </g>
-              </g>
-            </svg>
-          </button>
-          <button @click="sendNote()">
-            <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <path
-                  d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z"
-                  fill="var(--text1)"></path>
-                <path fill-rule="evenodd" clip-rule="evenodd"
-                  d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z"
-                  fill="var(--text1)"></path>
-              </g>
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div v-if="showCreateWatchlist" class="CreateWatchlist">
-        <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
-          preserveAspectRatio="xMidYMid meet">
-          <g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)" fill="var(--text1)" stroke="none">
-            <path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
--625 104 -601 387 -1216 800 -1735 123 -155 475 -507 616 -616 280 -217 609
--419 1640 -1007 1314 -749 1735 -942 2525 -1157 257 -70 457 -130 660 -200
-924 -315 1748 -774 2455 -1366 434 -363 775 -722 1190 -1249 226 -288 317
--379 445 -443 88 -43 153 -55 285 -50 132 5 194 24 287 84 72 48 197 173 283
-284 233 300 352 440 614 714 308 324 765 741 1030 940 147 110 476 327 671
-442 189 111 663 350 860 433 345 146 572 223 1122 381 1006 287 1271 406 2563
-1145 1100 630 1429 831 1710 1049 140 108 493 461 616 616 424 534 714 1175
-809 1790 26 166 31 467 11 570 -36 183 -117 294 -294 403 l-92 57 -273 -2
-c-149 -1 -246 -3 -214 -5 31 -2 57 -8 57 -12 0 -20 -966 -572 -1955 -1118
--775 -427 -847 -462 -1125 -543 -319 -93 -606 -133 -955 -133 -318 0 -567 30
--860 104 -270 68 -413 120 -830 301 -1352 588 -2103 789 -3348 899 -298 26
--927 37 -1212 20 -880 -51 -1660 -206 -2527 -500 -353 -120 -486 -174 -1168
--469 -561 -242 -873 -321 -1356 -342 -455 -19 -824 20 -1176 126 -280 83 -380
-132 -1143 552 -413 227 -1022 569 -1419 796 -163 94 -254 140 -287 146 -72 14
--124 45 -158 94 -17 24 -37 46 -46 49 -22 9 -18 25 8 30 12 2 -86 5 -218 5
-l-240 1 -90 -57z" />
-            <path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z" />
-            <path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
--765 -1960 -65 -377 -84 -670 -77 -1147 6 -360 19 -545 58 -805 125 -849 505
--1739 1054 -2470 694 -926 1639 -1601 2760 -1973 393 -131 761 -205 1215 -244
-217 -19 820 -16 1055 5 478 43 804 92 839 127 12 12 -5 38 -258 375 -318 422
--480 672 -745 1153 l-123 222 -167 0 c-643 0 -1147 109 -1667 360 -383 184
--691 401 -1002 704 -383 374 -682 822 -875 1311 -175 444 -239 804 -239 1350
-0 611 120 1142 374 1650 183 365 364 619 697 980 94 102 181 214 181 234 0 14
--49 38 -315 156 -275 122 -561 265 -870 438 -320 178 -439 241 -503 266 l-53
-21 -51 -47z" />
-            <path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
--382 -387 -176 -457 -209 -462 -222 -7 -18 70 -122 173 -233 273 -295 429
--503 594 -791 226 -394 394 -862 445 -1233 48 -353 48 -880 0 -1232 -48 -355
--209 -812 -414 -1178 -413 -738 -1086 -1338 -1855 -1653 -464 -191 -909 -273
--1477 -273 l-167 0 -122 -222 c-252 -456 -435 -741 -704 -1098 -212 -280 -306
--410 -306 -421 0 -12 53 -25 260 -64 367 -69 618 -88 1125 -89 497 0 759 20
-1095 85 1456 282 2780 1184 3622 2469 368 560 633 1184 772 1817 81 372 106
-609 113 1109 9 632 -27 1014 -138 1464 -183 742 -504 1431 -947 2030 -169 228
--311 380 -355 380 -13 0 -98 -38 -188 -84z" />
-            <path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
--761 -191 -379 -407 -678 -715 -985 -281 -282 -540 -474 -950 -705 -110 -62
--201 -114 -203 -115 -12 -11 103 -216 241 -429 216 -335 366 -522 846 -1061
-174 -195 358 -422 539 -665 248 -333 341 -407 542 -431 97 -11 219 -6 300 13
-137 32 248 132 450 403 233 314 459 589 718 873 251 275 419 479 534 647 135
-197 338 534 374 621 l14 32 -203 112 c-400 222 -668 420 -952 705 -320 320
--541 629 -736 1030 -124 255 -247 600 -266 745 -8 63 -18 78 -61 90 -44 12
--85 12 -130 -1z" />
-            <path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
--528 435 -1160 557 -1303 25 -29 83 -101 128 -160 114 -148 273 -310 397 -402
-135 -102 282 -177 576 -293 132 -52 341 -142 465 -200 124 -57 238 -107 255
--111 16 -4 73 -32 126 -62 180 -100 318 -152 785 -294 614 -187 1092 -375
-1659 -655 876 -432 1632 -934 2390 -1586 258 -222 448 -402 810 -768 181 -183
-389 -388 460 -454 113 -104 130 -124 130 -151 l0 -31 186 -3 186 -2 12 28 c28
-68 127 132 204 132 27 0 86 54 496 463 561 557 784 760 1176 1073 1154 919
-2396 1568 3804 1984 327 97 519 170 653 247 43 25 136 69 206 98 70 29 201 87
-292 130 90 42 272 119 405 172 132 52 278 115 325 140 243 128 419 282 625
-548 38 50 94 119 123 153 114 136 370 720 527 1202 147 454 264 912 310 1220
-18 121 48 431 42 437 -3 2 -44 -47 -93 -109 -49 -62 -142 -178 -208 -258 -883
--1066 -1941 -1794 -3221 -2215 -1136 -375 -2424 -435 -3615 -169 -85 19 -278
-68 -428 110 l-272 75 -149 -141 c-82 -78 -180 -166 -218 -196 -183 -148 -429
--289 -604 -348 -122 -41 -219 -48 -567 -44 -311 5 -319 5 -407 32 -191 58
--455 207 -653 368 -42 35 -124 108 -182 163 -58 54 -121 114 -141 133 l-36 33
--214 -60 c-564 -158 -911 -223 -1432 -268 -236 -20 -820 -23 -1047 -4 -961 77
--1761 299 -2600 722 -932 469 -1698 1111 -2414 2024 -143 182 -140 178 -133
-140z" />
-            <path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z" />
-            <path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
--3z" />
-          </g>
-        </svg>
-        <h3 class="title" style="color:var(--text1)">Create Watchlist</h3>
-        <input id="inputcreate" placeholder="Enter Watchlist Name" type="text" v-model="watchlistName"
-          :class="{ 'input-error': watchlistName.length > 20 }" />
-        <div class="inner">
-          <button @click="showCreateWatchlist = false">
-            <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
-              xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve"
-              transform="rotate(180)">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <g>
-                  <path
-                    d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z">
-                  </path>
-                </g>
-              </g>
-            </svg>
-          </button>
-          <button @click="CreateWatchlist()">
-            <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <path
-                  d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z"
-                  fill="var(--text1)"></path>
-                <path fill-rule="evenodd" clip-rule="evenodd"
-                  d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z"
-                  fill="var(--text1)"></path>
-              </g>
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div v-if="showRenameWatchlist" class="RenameWatchlist">
-        <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
-          preserveAspectRatio="xMidYMid meet">
-          <g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)" fill="var(--text1)" stroke="none">
-            <path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
--625 104 -601 387 -1216 800 -1735 123 -155 475 -507 616 -616 280 -217 609
--419 1640 -1007 1314 -749 1735 -942 2525 -1157 257 -70 457 -130 660 -200
-924 -315 1748 -774 2455 -1366 434 -363 775 -722 1190 -1249 226 -288 317
--379 445 -443 88 -43 153 -55 285 -50 132 5 194 24 287 84 72 48 197 173 283
-284 233 300 352 440 614 714 308 324 765 741 1030 940 147 110 476 327 671
-442 189 111 663 350 860 433 345 146 572 223 1122 381 1006 287 1271 406 2563
-1145 1100 630 1429 831 1710 1049 140 108 493 461 616 616 424 534 714 1175
-809 1790 26 166 31 467 11 570 -36 183 -117 294 -294 403 l-92 57 -273 -2
-c-149 -1 -246 -3 -214 -5 31 -2 57 -8 57 -12 0 -20 -966 -572 -1955 -1118
--775 -427 -847 -462 -1125 -543 -319 -93 -606 -133 -955 -133 -318 0 -567 30
--860 104 -270 68 -413 120 -830 301 -1352 588 -2103 789 -3348 899 -298 26
--927 37 -1212 20 -880 -51 -1660 -206 -2527 -500 -353 -120 -486 -174 -1168
--469 -561 -242 -873 -321 -1356 -342 -455 -19 -824 20 -1176 126 -280 83 -380
-132 -1143 552 -413 227 -1022 569 -1419 796 -163 94 -254 140 -287 146 -72 14
--124 45 -158 94 -17 24 -37 46 -46 49 -22 9 -18 25 8 30 12 2 -86 5 -218 5
-l-240 1 -90 -57z" />
-            <path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z" />
-            <path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
--765 -1960 -65 -377 -84 -670 -77 -1147 6 -360 19 -545 58 -805 125 -849 505
--1739 1054 -2470 694 -926 1639 -1601 2760 -1973 393 -131 761 -205 1215 -244
-217 -19 820 -16 1055 5 478 43 804 92 839 127 12 12 -5 38 -258 375 -318 422
--480 672 -745 1153 l-123 222 -167 0 c-643 0 -1147 109 -1667 360 -383 184
--691 401 -1002 704 -383 374 -682 822 -875 1311 -175 444 -239 804 -239 1350
-0 611 120 1142 374 1650 183 365 364 619 697 980 94 102 181 214 181 234 0 14
--49 38 -315 156 -275 122 -561 265 -870 438 -320 178 -439 241 -503 266 l-53
-21 -51 -47z" />
-            <path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
--382 -387 -176 -457 -209 -462 -222 -7 -18 70 -122 173 -233 273 -295 429
--503 594 -791 226 -394 394 -862 445 -1233 48 -353 48 -880 0 -1232 -48 -355
--209 -812 -414 -1178 -413 -738 -1086 -1338 -1855 -1653 -464 -191 -909 -273
--1477 -273 l-167 0 -122 -222 c-252 -456 -435 -741 -704 -1098 -212 -280 -306
--410 -306 -421 0 -12 53 -25 260 -64 367 -69 618 -88 1125 -89 497 0 759 20
-1095 85 1456 282 2780 1184 3622 2469 368 560 633 1184 772 1817 81 372 106
-609 113 1109 9 632 -27 1014 -138 1464 -183 742 -504 1431 -947 2030 -169 228
--311 380 -355 380 -13 0 -98 -38 -188 -84z" />
-            <path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
--761 -191 -379 -407 -678 -715 -985 -281 -282 -540 -474 -950 -705 -110 -62
--201 -114 -203 -115 -12 -11 103 -216 241 -429 216 -335 366 -522 846 -1061
-174 -195 358 -422 539 -665 248 -333 341 -407 542 -431 97 -11 219 -6 300 13
-137 32 248 132 450 403 233 314 459 589 718 873 251 275 419 479 534 647 135
-197 338 534 374 621 l14 32 -203 112 c-400 222 -668 420 -952 705 -320 320
--541 629 -736 1030 -124 255 -247 600 -266 745 -8 63 -18 78 -61 90 -44 12
--85 12 -130 -1z" />
-            <path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
--528 435 -1160 557 -1303 25 -29 83 -101 128 -160 114 -148 273 -310 397 -402
-135 -102 282 -177 576 -293 132 -52 341 -142 465 -200 124 -57 238 -107 255
--111 16 -4 73 -32 126 -62 180 -100 318 -152 785 -294 614 -187 1092 -375
-1659 -655 876 -432 1632 -934 2390 -1586 258 -222 448 -402 810 -768 181 -183
-389 -388 460 -454 113 -104 130 -124 130 -151 l0 -31 186 -3 186 -2 12 28 c28
-68 127 132 204 132 27 0 86 54 496 463 561 557 784 760 1176 1073 1154 919
-2396 1568 3804 1984 327 97 519 170 653 247 43 25 136 69 206 98 70 29 201 87
-292 130 90 42 272 119 405 172 132 52 278 115 325 140 243 128 419 282 625
-548 38 50 94 119 123 153 114 136 370 720 527 1202 147 454 264 912 310 1220
-18 121 48 431 42 437 -3 2 -44 -47 -93 -109 -49 -62 -142 -178 -208 -258 -883
--1066 -1941 -1794 -3221 -2215 -1136 -375 -2424 -435 -3615 -169 -85 19 -278
-68 -428 110 l-272 75 -149 -141 c-82 -78 -180 -166 -218 -196 -183 -148 -429
--289 -604 -348 -122 -41 -219 -48 -567 -44 -311 5 -319 5 -407 32 -191 58
--455 207 -653 368 -42 35 -124 108 -182 163 -58 54 -121 114 -141 133 l-36 33
--214 -60 c-564 -158 -911 -223 -1432 -268 -236 -20 -820 -23 -1047 -4 -961 77
--1761 299 -2600 722 -932 469 -1698 1111 -2414 2024 -143 182 -140 178 -133
-140z" />
-            <path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z" />
-            <path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
--3z" />
-          </g>
-        </svg>
-        <h3 class="title" style="color:var(--text1)">Rename Watchlist</h3>
-        <input id="inputrename" placeholder="Enter Watchlist Name" type="text" v-model="watchlistName"
-          :class="{ 'input-error': watchlistName.length > 20 }" />
-        <div class="inner">
-          <button @click="showRenameWatchlist = false">
-            <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
-              xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve"
-              transform="rotate(180)">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <g>
-                  <path
-                    d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z">
-                  </path>
-                </g>
-              </g>
-            </svg>
-          </button>
-          <button @click="UpdateWatchlist()">
-            <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <path
-                  d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z"
-                  fill="var(--text1)"></path>
-                <path fill-rule="evenodd" clip-rule="evenodd"
-                  d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z"
-                  fill="var(--text1)"></path>
-              </g>
-            </svg>
-          </button>
-        </div>
-      </div>
+<CreateNote
+  v-if="showCreateNoteModal"
+  :user="user"
+  :api-key="apiKey"
+  :default-symbol="selectedItem"
+  :notification="notification"
+  :searchNotes="searchNotes"
+  @close="showCreateNoteModal = false"
+  @refresh-notes="handleRefreshNotes"
+/>
+     <CreateWatchlist
+  v-if="showCreateWatchlistModal"
+  :user="user"
+  :api-key="apiKey"
+  :watchlist="watchlist"
+  :notification="notification"
+  :getWatchlists="getWatchlists"
+  :filterWatchlist="filterWatchlist"
+  @close="showCreateWatchlistModal = false"
+/>
+<RenameWatchlist
+  v-if="showRenameWatchlistModal"
+  :user="user"
+  :api-key="apiKey"
+  :watchlist="watchlist"
+  :selected-watchlist="selectedWatchlist"
+  :notification="notification"
+  :getWatchlists="getWatchlists"
+  :filterWatchlist="filterWatchlist"
+  @close="showRenameWatchlistModal = false"
+/>
       <div id="sidebar-left" :class="{ 'hidden-mobile': selected !== 'info' }">
         <div v-if="isLoading3" style="position: relative; height: 100%;">
           <div style="position: absolute; top: 45%; left: 43%;">
@@ -656,7 +366,7 @@ l-240 1 -90 -57z" />
                       </g>
                     </svg> Autoplay
                   </button>
-                  <button class="dropdown-item" @click="showCreateNote = true" v-b-tooltip.hover title="Create a Note">
+                 <button class="dropdown-item" @click="showCreateNoteModal = true" v-b-tooltip.hover title="Create a Note">
                     <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                       <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -670,7 +380,7 @@ l-240 1 -90 -57z" />
                       </g>
                     </svg> Create Note
                   </button>
-                  <button class="dropdown-item" @click="showCreateWatchlist = true" v-b-tooltip.hover
+                  <button class="dropdown-item" @click="showCreateWatchlistModal = true" v-b-tooltip.hover
                     title="Create New Watchlist">
                     <svg class="img4" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
                       xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32.219 32.219" xml:space="preserve"
@@ -686,7 +396,7 @@ l-240 1 -90 -57z" />
                       </g>
                     </svg> New Watchlist
                   </button>
-                  <button class="dropdown-item" @click="showRenameWatchlist = true" v-b-tooltip.hover
+                  <button class="dropdown-item" @click="() =>  showRenameWatchlistModal = true " v-b-tooltip.hover
                     title="Rename Watchlist">
                     <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -926,6 +636,9 @@ import Financials from '@/components/sidebar/financialbtn.vue'
 import Notes from '@/components/notes.vue'
 import News from '@/components/news.vue'
 import WatchPanelEditor from '@/components/WatchPanelEditor.vue';
+import CreateNote from '@/components/charts/CreateNote.vue'
+import CreateWatchlist from '@/components/charts/CreateWatchlist.vue'
+import RenameWatchlist from '@/components/charts/RenameWatchlist.vue'
 import { reactive, onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from 'vue';
 import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
 import Loader from '@/components/loader.vue';
@@ -960,6 +673,9 @@ const showNotification = () => {
 
 const showDropdown = ref(false);
 const showPopup = ref(false) // div for financial statements
+const showCreateNoteModal = ref(false)
+const showCreateWatchlistModal = ref(false)
+const showRenameWatchlistModal = ref(false)
 
 // activates sorting of watchlist elements / drag and drop 
 const sortable = ref(null);
@@ -1490,45 +1206,6 @@ async function fetchNews() {
     error.value = err.message;
   } finally {
     loading.value = false;
-  }
-}
-
-async function sendNote() {
-  const note = document.getElementById('notes-container').value;
-  const symbol = document.getElementById('searchbar').value || defaultSymbol;
-
-  // Check character limit
-  if (note.length > 350) {
-    notification.value.show('Note exceeds 350 character limit');
-    return;
-  }
-
-  if (note.trim() !== '') {
-    try {
-      const response = await fetch(`/api/${symbol}/notes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': apiKey,
-        },
-        body: JSON.stringify({ note, Username: user }),
-      });
-
-      const responseData = await response.json();
-
-      if (response.ok) {
-        document.getElementById('notes-container').value = '';
-        showCreateNote.value = false;
-        await searchNotes(symbol);
-      } else if (response.status === 400) {
-        notification.value.show('Maximum note limit (10) reached for this symbol');
-      } else {
-        notification.value.show('Failed to create note');
-      }
-    } catch (err) {
-      error.value = err.message;
-    }
-  } else {
   }
 }
 
@@ -2508,106 +2185,6 @@ async function getData(item) {
 
   } catch (error) {
     error.value = error.message;
-  }
-}
-
-async function CreateWatchlist() {
-  const watchlistName = document.getElementById('inputcreate').value;
-  const existingWatchlists = watchlist.tickers.map(watch => watch.Name);
-
-  // Check for existing watchlist
-  if (existingWatchlists.includes(watchlistName)) {
-    notification.value.show('Watchlist already exists');
-    return;
-  }
-
-  // Check for length
-  if (watchlistName.length > 20) {
-    notification.value.show('Watchlist name cannot exceed 20 characters.');
-    return;
-  }
-
-  try {
-    const response = await fetch(`/api/${user}/create/watchlists/${watchlistName}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      }
-    });
-
-    // Check if the request was successful
-    if (response.ok) {
-    } else if (response.status === 400) {
-      const errorData = await response.json();
-      if (errorData.message === 'Maximum number of watchlists (20) has been reached') {
-        notification.value.show('Maximum number of watchlists (20) has been reached');
-      } else {
-        notification.value.show('Failed to create watchlist');
-      }
-    } else {
-      notification.value.show('Failed to create watchlist');
-    }
-  } catch (error) {
-    error.value = error.message;
-  }
-  showCreateWatchlist.value = false;
-  await getWatchlists();
-
-  // Find the newly created watchlist and select it
-  const newWatchlist = watchlist.tickers.find(watch => watch.Name === watchlistName);
-  if (newWatchlist) {
-    await filterWatchlist(newWatchlist);
-  }
-}
-
-async function UpdateWatchlist() {
-  const watchlistName = document.getElementById('inputrename').value;
-  const existingWatchlists = watchlist.tickers.map(watch => watch.Name)
-
-  // Check if watchlist already exists
-  if (existingWatchlists.includes(watchlistName)) {
-    notification.value.show('Watchlist already exists');
-    return
-  }
-
-  // Check if watchlist name is empty
-  if (!watchlistName) {
-    return;
-  }
-
-  // Check if watchlist name exceeds 20 characters
-  if (watchlistName.length > 20) {
-    notification.value.show('Watchlist name cannot exceed 20 characters.');
-    return;
-  }
-
-  try {
-    const response = await fetch(`/api/${user}/rename/watchlists/${selectedWatchlist.value.Name}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ newname: watchlistName })
-    });
-
-    // Check if the request was successful
-    if (response.ok) {
-    } else {
-      const errorData = await response.json();
-    }
-  } catch (error) {
-    error.value = error.message;
-  }
-
-  showRenameWatchlist.value = false;
-  await getWatchlists();
-
-  // Find the newly created watchlist and select it
-  const newWatchlist = watchlist.tickers.find(watch => watch.Name === watchlistName);
-  if (newWatchlist) {
-    await filterWatchlist(newWatchlist);
   }
 }
 

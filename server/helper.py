@@ -502,23 +502,46 @@ def fetchAllNews():
 
     print(f"Total news articles inserted: {total_inserted}")
 
-def fetch_single_crypto_price(symbol='IDTRY'):
+def fetch_single_crypto_price(symbol='IDTRY', db_collection_name='OHCLVData'):
     url = (
         f'https://api.tiingo.com/tiingo/crypto/prices'
-        f'?tickers={symbol}&startDate=2019-01-02&resampleFreq=1Day&token={api_key}'
+        f'?tickers={symbol.lower()}&startDate=2019-01-02&resampleFreq=1Day&token={api_key}'
     )
     response = requests.get(url)
+    daily_collection = db[db_collection_name]
     print(f"Status code: {response.status_code}")
     try:
         data = response.json()
-        print("Data response:")
-        print(data)
+        if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+            if 'priceData' in data[0] and data[0]['priceData']:
+                price_data = data[0]['priceData']
+                for entry in price_data:
+                    try:
+                        record = {
+                            'timestamp': datetime.strptime(entry['date'], '%Y-%m-%dT%H:%M:%S%z'),
+                            'tickerID': symbol,
+                            'open': float(entry['open']),
+                            'high': float(entry['high']),
+                            'low': float(entry['low']),
+                            'close': float(entry['close']),
+                            'volume': float(entry['volume'])
+                        }
+                        existing = daily_collection.find_one({'tickerID': symbol, 'timestamp': record['timestamp']})
+                        if not existing:
+                            daily_collection.insert_one(record)
+                    except Exception as e:
+                        print(f"Error processing record for {symbol}: {e}")
+                print(f"Successfully processed {symbol}")
+            else:
+                print(f"No price data found for {symbol}. Response: {data}")
+        else:
+            print(f"Unexpected format for {symbol}. Response: {data}")
     except Exception as e:
         print(f"Error parsing response: {e}")
         print("Raw response text:")
         print(response.text)
         
-#fetch_single_crypto_price(symbol='IDTRY')
+#fetch_single_crypto_price(symbol='IDTRY', db_collection_name='OHCLVData')
 
 def getHistoricalCryptoPrice():
     client = MongoClient(mongo_uri)
@@ -566,4 +589,147 @@ def getHistoricalCryptoPrice():
                 print(f"Unexpected format for {ticker}. Response: {data}")
         else:
             print(f"Error fetching {ticker}: {response.text}")
-            
+
+def fetch_all_crypto_prices(db_collection_name='OHCLVData'):
+    asset_info_collection = db["AssetInfo"]
+    # Extract list of crypto tickers as strings
+    tickers = [asset['Symbol'] for asset in asset_info_collection.find({'AssetType': 'Crypto'})]
+    print(f"Found {len(tickers)} crypto tickers.")
+    for ticker in tickers:
+        fetch_single_crypto_price(symbol=ticker, db_collection_name=db_collection_name)
+
+def insert_SHE_and_SHEB_stocks():
+    # Read the CSV file
+    df = pd.read_csv('server/supported_tickers.csv')
+
+    # Filter for SHE (CNY) and SHEB (HKD) stocks
+    she_filtered = df[
+        (df['assetType'] == 'Stock') &
+        (df['exchange'] == 'SHE') &
+        (df['endDate'] == '2025-06-10')
+    ]
+    sheb_filtered = df[
+        (df['assetType'] == 'Stock') &
+        (df['exchange'] == 'SHEB') &
+        (df['endDate'] == '2025-06-10')
+    ]
+
+    docs = []
+    for _, row in she_filtered.iterrows():
+        try:
+            ipo_date = datetime.strptime(str(row['startDate']), '%Y-%m-%d')
+        except Exception:
+            continue  # Skip rows with invalid or missing startDate
+        doc = {
+            'Symbol': row['ticker'],
+            'AssetType': 'Stock',
+            'Exchange': 'SHE',
+            'IPO': ipo_date,
+            'Currency': 'CNY'
+        }
+        docs.append(doc)
+    for _, row in sheb_filtered.iterrows():
+        try:
+            ipo_date = datetime.strptime(str(row['startDate']), '%Y-%m-%d')
+        except Exception:
+            continue
+        doc = {
+            'Symbol': row['ticker'],
+            'AssetType': 'Stock',
+            'Exchange': 'SHEB',
+            'IPO': ipo_date,
+            'Currency': 'HKD'
+        }
+        docs.append(doc)
+
+    if docs:
+        for doc in docs:
+            db['AssetInfo'].update_one(
+                {'Symbol': doc['Symbol'], 'Exchange': doc['Exchange']},
+                {'$setOnInsert': doc},
+                upsert=True
+            )
+
+def classify_and_price_target(stock_doc):
+    pe = stock_doc.get('PERatio', None)
+    peg = stock_doc.get('PEGRatio', None)
+    dividend_yield = stock_doc.get('DividendYield', 0) or 0
+    price_to_book = stock_doc.get('PriceToBookRatio', None)
+    price_to_sales = stock_doc.get('PriceToSalesRatioTTM', None)
+    eps = stock_doc.get('EPS', None)
+    book_value = stock_doc.get('BookValue', None)
+    market_cap = stock_doc.get('MarketCapitalization', None)
+    shares_out = stock_doc.get('SharesOutstanding', None)
+    quarterly_earnings = stock_doc.get('quarterlyEarnings', [])
+    quarterly_financials = stock_doc.get('quarterlyFinancials', [])
+    price = None
+
+    # Try to get current price if possible
+    if market_cap and shares_out and shares_out > 0:
+        price = market_cap / shares_out
+
+    # Calculate TTM EPS if possible
+    if (not eps or eps < 2) and quarterly_earnings and len(quarterly_earnings) >= 4:
+        try:
+            eps = sum([qe.get('reportedEPS', 0) or 0 for qe in quarterly_earnings[:4]])
+        except Exception:
+            pass
+
+    # Calculate recent revenue growth (last 4 quarters)
+    revenue_growth = None
+    if len(quarterly_financials) >= 5:
+        try:
+            rev_now = quarterly_financials[0].get('totalRevenue', None)
+            rev_past = quarterly_financials[4].get('totalRevenue', None)
+            if rev_now and rev_past and rev_past != 0:
+                revenue_growth = (rev_now - rev_past) / rev_past
+        except Exception:
+            revenue_growth = None
+
+    # Classification logic
+    is_growth = False
+    if (pe and pe > 25) or (peg and peg > 1.5) or (dividend_yield < 0.01) or (revenue_growth and revenue_growth > 0.10):
+        is_growth = True
+    if (dividend_yield > 0.025 and pe and pe < 20 and (revenue_growth is not None and revenue_growth < 0.05)):
+        is_growth = False
+
+    stock_type = 'growth' if is_growth else 'mature'
+
+    # Price target logic
+    price_target = None
+    if eps and eps > 0:
+        if stock_type == 'growth':
+            target_pe = 25 if not pe or pe > 25 else pe
+            price_target = eps * target_pe
+        else:
+            target_pe = 15 if not pe or pe > 15 else pe
+            price_target = eps * target_pe
+    elif price:
+        price_target = price  # fallback to current price
+
+    return {
+        'type': stock_type,
+        'price_target': round(price_target, 2) if price_target else None
+    }
+    
+def update_price_targets():
+    asset_info_collection = db['AssetInfo']
+    count = 0
+    for doc in asset_info_collection.find():
+        result = classify_and_price_target(doc)
+        price_target = result.get('price_target')
+        if price_target is not None:
+            asset_info_collection.update_one(
+                {'_id': doc['_id']},
+                {'$set': {'PriceTarget': float(price_target)}}
+            )
+            count += 1
+    print(f"Updated PriceTarget for {count} documents in AssetInfo.")
+
+# Usage:
+update_price_targets()
+
+def remove_she_and_sheb_documents():
+    asset_info_collection = db['AssetInfo']
+    result = asset_info_collection.delete_many({'Exchange': {'$in': ['SHE', 'SHEB']}})
+    print(f"Deleted {result.deleted_count} documents with Exchange 'SHE' or 'SHEB'.")

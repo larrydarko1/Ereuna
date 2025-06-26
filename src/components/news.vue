@@ -1,9 +1,13 @@
 <template>
   <div class="news-container">
     <div v-if="BeautifulNews.length > 0">
-      <div class="news" v-for="news in BeautifulNews" :key="news.publishedDate">
+      <div
+        class="news"
+        v-for="news in BeautifulNews.slice(0, 5)"
+        :key="news.publishedDate"
+      >
         <div class="inline-note">
-        <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M3 5a1 1 0 0 0 0 2h18a1 1 0 1 0 0-2H3ZM6 9a1 1 0 0 0 0 2h12a1 1 0 1 0 0-2H6ZM2 14a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1ZM6 17a1 1 0 1 0 0 2h12a1 1 0 1 0 0-2H6Z" fill="var(--text1)"></path></g></svg>
+          <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M3 5a1 1 0 0 0 0 2h18a1 1 0 1 0 0-2H3ZM6 9a1 1 0 0 0 0 2h12a1 1 0 1 0 0-2H6ZM2 14a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1ZM6 17a1 1 0 1 0 0 2h12a1 1 0 1 0 0-2H6Z" fill="var(--text1)"></path></g></svg>
         </div>
         <p class="news-msg-date" style="color: var(--text1); opacity: 0.60;">
           {{ formatDate(news.publishedDate) }}
@@ -15,10 +19,10 @@
       </div>
     </div>
     <div v-else>
-     <p class="no-data">No news available.</p>
+      <p class="no-data">No news available.</p>
     </div>
   </div>
-</template>
+  </template>
 
 <script setup>
 defineProps(['BeautifulNews', 'formatDate']);
