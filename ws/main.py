@@ -19,7 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# streams real time data for crypto, forex and stocks
+# streams real time data for crypto and stocks only (forex removed)
 @app.websocket("/ws/stream")
 async def websocket_stream(websocket: WebSocket):
     await websocket.accept()
@@ -27,7 +27,6 @@ async def websocket_stream(websocket: WebSocket):
     # Hardcoded symbol lists
     crypto_symbols = ["BTCUSD", "ETHUSD"]
     stock_symbols = ["AAPL", "MSFT", "AMZN"]
-    forex_symbols = ["EURUSD", "EURCHF"]
 
     async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
         try:
@@ -62,8 +61,6 @@ async def websocket_stream(websocket: WebSocket):
         return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) > 0 and msg["data"][0] == "Q"
     def stock_filter(msg):
         return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) >= 3
-    def forex_filter(msg):
-        return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) > 0 and msg["data"][0] == "Q"
 
     # Prepare connection details
     crypto_ws_url = "wss://api.tiingo.com/crypto"
@@ -85,22 +82,12 @@ async def websocket_stream(websocket: WebSocket):
             "tickers": stock_symbols
         }
     }
-    forex_ws_url = "wss://api.tiingo.com/fx"
-    forex_subscribe_msg = {
-        "eventName": "subscribe",
-        "authorization": TIINGO_API_KEY,
-        "eventData": {
-            "tickers": forex_symbols,
-            "thresholdLevel": 5
-        }
-    }
     ssl_ctx = ssl._create_unverified_context()
 
-    # Run all relays concurrently
+    # Run both relays concurrently (forex removed)
     await asyncio.gather(
         relay_tiingo(crypto_ws_url, crypto_subscribe_msg, ssl_ctx, crypto_filter),
-        relay_tiingo(stock_ws_url, stock_subscribe_msg, ssl_ctx, stock_filter),
-        relay_tiingo(forex_ws_url, forex_subscribe_msg, ssl_ctx, forex_filter)
+        relay_tiingo(stock_ws_url, stock_subscribe_msg, ssl_ctx, stock_filter)
     )
 
 # To run: uvicorn ws.main:app --reload
