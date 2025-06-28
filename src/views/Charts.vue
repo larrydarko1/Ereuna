@@ -201,6 +201,8 @@
               @click="showMA2 = !showMA2">-- 20SMA</span>
             <span :style="{ color: 'var(--ma1)', cursor: 'pointer', opacity: showMA1 ? 1 : 0.3 }"
               @click="showMA1 = !showMA1">-- 10SMA</span>
+              <span :style="{ color: 'var(--ma1)', cursor: 'pointer', opacity: showPriceTarget ? 1 : 0.3 }"
+      @click="showPriceTarget = !showPriceTarget">Price Target</span>
           </div>
           <div id="chartdiv" ref="mainchart" :class="{ 'chart-loading': isChartLoading }"></div>
           <div class="loading-container" v-if="isChartLoading">
@@ -921,10 +923,10 @@ async function searchTicker(providedSymbol) {
       await fetchData3();
       await fetchData7();
       await fetchData9();
+      await fetchPriceTarget();
       await fetchSplitsDate();
       await fetchDividendsDate();
       await fetchFinancials();
-      console.log(data4.value);
     }
     isChartLoading.value = false;
   }
@@ -1285,6 +1287,7 @@ async function showTicker() {
     await fetchData3();
     await fetchData7();
     await fetchData9();
+    await fetchPriceTarget();
   }
 }
 
@@ -1350,6 +1353,28 @@ const data11 = ref([]); // weekly 50MA
 const data12 = ref([]); // weekly 200MA
 const SplitsDate = ref([]); // Splits Data - just date
 const DividendsDate = ref([]); // Dividends Data 
+const priceTarget = ref(null);
+
+async function fetchPriceTarget() {
+  try {
+    let symbol = (defaultSymbol || selectedItem).toUpperCase();
+    const response = await fetch(`/api/pricetarget/${symbol}`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const result = await response.json();
+    // If your API returns { priceTarget: 123.45 }
+    priceTarget.value = result.priceTarget;
+  } catch (error) {
+    if (error.name === 'AbortError') return;
+    error.value = error.message;
+  }
+}
 
 async function fetchData() {
   try {
@@ -1511,6 +1536,7 @@ const showMA1 = ref(true);
 const showMA2 = ref(true);
 const showMA3 = ref(true);
 const showMA4 = ref(true);
+const showPriceTarget = ref(true);
 
 function getChartDimensions() {
   return isMobile.value
@@ -1702,6 +1728,28 @@ onMounted(async () => {
       }
       updateFirstRow(lastRecordedValue);
     }
+
+    let priceTargetLine = null;
+watch([priceTarget, showPriceTarget], ([newTarget, visible]) => {
+  if (barSeries) {
+    // Remove previous price line if it exists
+    if (priceTargetLine) {
+      barSeries.removePriceLine(priceTargetLine);
+      priceTargetLine = null;
+    }
+    // Only add if visible and newTarget is a valid number
+    if (visible && typeof newTarget === 'number' && !isNaN(newTarget)) {
+      priceTargetLine = barSeries.createPriceLine({
+        price: newTarget,
+        color: theme.accent1,
+        lineWidth: 2,
+        lineStyle: 2, // dashed
+        axisLabelVisible: true,
+        title: 'Price Target'
+      });
+    }
+  }
+});
 
     watch(data, (newData) => {
       const changes = calculateChanges(newData);
@@ -2009,6 +2057,7 @@ onMounted(async () => {
     await fetchData3();
     await fetchData7();
     await fetchData9();
+    await fetchPriceTarget();
     updateLegend3(data.value);
     isLoading.value = false
 
@@ -2033,6 +2082,7 @@ async function toggleChartView() {
   await fetchData3();
   await fetchData7();
   await fetchData9();
+  await fetchPriceTarget();
   isLoading.value = false;
 }
 
