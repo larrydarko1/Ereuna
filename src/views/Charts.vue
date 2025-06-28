@@ -201,7 +201,7 @@
               @click="showMA2 = !showMA2">-- 20SMA</span>
             <span :style="{ color: 'var(--ma1)', cursor: 'pointer', opacity: showMA1 ? 1 : 0.3 }"
               @click="showMA1 = !showMA1">-- 10SMA</span>
-              <span :style="{ color: 'var(--ma1)', cursor: 'pointer', opacity: showPriceTarget ? 1 : 0.3 }"
+              <span :style="{ color: 'var(--accent1)', cursor: 'pointer', opacity: showPriceTarget ? 1 : 0.3 }"
       @click="showPriceTarget = !showPriceTarget">Price Target</span>
           </div>
           <div id="chartdiv" ref="mainchart" :class="{ 'chart-loading': isChartLoading }"></div>
