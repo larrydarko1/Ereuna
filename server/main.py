@@ -2249,7 +2249,6 @@ def Daily():
 if __name__ == '__main__':  
    Daily()
     
-    
 #scheduler
 scheduler.add_job(Daily, CronTrigger(hour=18, minute=30, day_of_week='mon-fri', timezone='US/Eastern'))
 scheduler.start()
