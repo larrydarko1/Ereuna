@@ -1,5 +1,4 @@
 <template>
-
   <body>
     <Header />
     <div class="watch-panel-container" style="display: flex; align-items: center; justify-content: space-between;">
@@ -2037,6 +2036,10 @@ async function toggleChartView() {
   isLoading.value = false;
 }
 
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', resizeChart);
+});
+
 const watchlist = reactive([]); // dynamic list containing watchlist names for every user 
 const watchlist2 = reactive([]); // dynamic list containing content of watchlists
 const quotes = reactive({}); // dynamic list containing quotes for elements of watchlist
@@ -2048,14 +2051,6 @@ function updateSelectedWatchlist(watch) {
   selectedWatchlist.value = watch;
   localStorage.setItem('selectedWatchlist', JSON.stringify(watch));
 }
-
-const showCreateWatchlist = ref(false)
-const showRenameWatchlist = ref(false)
-const showCreateNote = ref(false)
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', resizeChart);
-});
 
 // generates all watchlist names 
 async function getWatchlists() {

@@ -624,7 +624,7 @@
     </defs>
   </svg>
   <div class="maintenance-mode">
- <h1 class="title">Extraordinary Maintenance in Progress</h1>
+ <h1 class="title">Maintenance in Progress</h1>
 <p class="message">
   We're fixing an unexpected issue—our servers needed a quick coffee break! Sorry for the inconvenience and thanks for your patience. We'll be back online as soon as we've sorted things out.
 </p>
@@ -633,32 +633,44 @@
   </div>
 </div>
   </div>
+  <audio ref="audioRef" src="/maintenance-music.mp3" loop></audio>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMaintenanceStore } from '../store/maintenance';
 
 const router = useRouter();
 const maintenanceStore = useMaintenanceStore();
 let pollInterval;
+const audioRef = ref(null);
 
 onMounted(() => {
+  // Play music when maintenance page is mounted
+  if (audioRef.value) {
+    audioRef.value.volume = 0.3; // Set volume as desired
+    audioRef.value.play().catch(() => {}); // Prevent error if autoplay is blocked
+  }
   // Check maintenance status every 30 seconds
   pollInterval = setInterval(async () => {
-  try {
-    await maintenanceStore.checkMaintenanceStatus();
-    if (!maintenanceStore.isUnderMaintenance) {
-      router.push({ name: 'Login' });
+    try {
+      await maintenanceStore.checkMaintenanceStatus();
+      if (!maintenanceStore.isUnderMaintenance) {
+        router.push({ name: 'Login' });
+      }
+    } catch (error) {
+      console.error('Error checking maintenance status:', error);
     }
-  } catch (error) {
-    console.error('Error checking maintenance status:', error);
-  }
-}, 30000);
+  }, 30000);
 });
 
 onUnmounted(() => {
+  // Pause music when leaving maintenance page
+  if (audioRef.value) {
+    audioRef.value.pause();
+    audioRef.value.currentTime = 0;
+  }
   if (pollInterval) {
     clearInterval(pollInterval);
   }
