@@ -369,105 +369,74 @@
         </div>
         <div style="height: 100px"></div>
       </div>
-      <div v-if="selectedIndex === 1">
-        <div style="margin-bottom: 30px; border-bottom: 3px #262435 solid; padding-bottom: 25px;">
-          <h1>Select a Subscription Plan</h1>
-          <div class="subscription-form">
-            <div class="sub-option" :class="{ select: selectedOption === 1 }" @click="selectOption(1)">
-              <h3 class="plan">1 Month</h3>
-              <p class="price">5.99€ + VAT</p>
-            </div>
-            <div class="sub-option" :class="{ select: selectedOption === 2 }" @click="selectOption(2)">
-              <h3 class="plan">4 Months</h3>
-              <p class="price">23.99€ + VAT</p>
-            </div>
-            <div class="sub-option-disabled">
-              <div class="coming-soon-banner">Available Soon</div>
-              <h3 style="cursor: default;" class="plan">6 Months</h3>
-              <p style="cursor: default;" class="price">35.99€ + VAT</p>
-            </div>
-            <div class="sub-option-disabled">
-              <div class="coming-soon-banner">Available Soon</div>
-              <h3 style="cursor: default;" class="plan">1 Year</h3>
-              <p style="cursor: default;" class="price">71.99€ + VAT</p>
-            </div>
-          </div>
-          <h1>Select a payment method</h1>
-          <div class="payment-form">
-            <div class="pay-option">
-              <div class="square" :class="{ select: selectedpay === 1 }"
-                @click="selectPaymentMethod('Credit Card'), selectPay(1)">
-                <img class="icon-op" src="@/assets/icons/credit-card.png" alt="credit-card">
-                <p>Credit Card</p>
-              </div>
-              <div class="square-disabled">
-                <div class="coming-soon-banner2">Available Soon</div>
-                <img class="icon-op" src="@/assets/icons/bitcoin.png" alt="bitcoin">
-                <p>Bitcoin</p>
-              </div>
-              <div class="square-disabled">
-                <div class="coming-soon-banner2">Available Soon</div>
-                <img class="icon-op" src="@/assets/icons/ethereum.png" alt="ethereum">
-                <p>Ethereum</p>
-              </div>
-              <div class="square-disabled">
-                <div class="coming-soon-banner2">Available Soon</div>
-                <img class="icon-op" src="@/assets/icons/monero.png" alt="monero">
-                <p>Monero</p>
-              </div>
-              <div v-if="selectedpay === 1" class="card-element-container">
-                <div id="card-element"></div>
-                <div id="card-errors" role="alert"></div>
-              </div>
-            </div>
-            <br><br>
-            <button class="userbtn" @click="Renew()">Renew Subscription</button>
-          </div>
-        </div>
-        <div>
-          <h2>Receipts</h2>
-          <div class="receipts">
-            <div class="receipt-header">
-              <p style="flex:1; font-weight: bold;">Payment Date</p>
-              <p style="flex:1; font-weight: bold;">Amount</p>
-              <p style="flex:1; font-weight: bold;">Paid with</p>
-              <p style="flex:1; font-weight: bold;">Subscription Plan</p>
-              <p style="flex:1; font-weight: bold;">Download</p>
-            </div>
-            <div v-if="loading">Loading receipts...</div>
-            <div style="background-color: #262435; padding: 3px;" v-else-if="error">{{ error }}</div>
-            <div style="background-color: #262435; padding: 3px;" v-if="receipts.length === 0">
-              <p>No receipts found</p>
-            </div>
-            <div v-else>
-              <div v-for="receipt in receipts" :key="receipt._id" class="receipt-item">
-                <p style="flex:1; text-align: center;">{{ formatDate(receipt.Date) }}</p>
-                <p style="flex:1; text-align: center;">{{ (receipt.Amount) / 100 }}€</p>
-                <p style="flex:1; text-align: center;">{{ receipt.Method }}</p>
-                <p style="flex:1; text-align: center;">{{ formatSubscription(receipt.Subscription) }}</p>
-                <div style="flex:1;"><button class="downloadbtn">
-                    <svg class="icon3" viewBox="0 0 24.00 24.00" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg"
-                      stroke="var(--text1)" stroke-width="0.696">
-                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                      <g id="SVGRepo_iconCarrier">
-                        <path
-                          d="M12.5535 16.5061C12.4114 16.6615 12.2106 16.75 12 16.75C11.7894 16.75 11.5886 16.6615 11.4465 16.5061L7.44648 12.1311C7.16698 11.8254 7.18822 11.351 7.49392 11.0715C7.79963 10.792 8.27402 10.8132 8.55352 11.1189L11.25 14.0682V3C11.25 2.58579 11.5858 2.25 12 2.25C12.4142 2.25 12.75 2.58579 12.75 3V14.0682L15.4465 11.1189C15.726 10.8132 16.2004 10.792 16.5061 11.0715C16.8118 11.351 16.833 11.8254 16.5535 12.1311L12.5535 16.5061Z"
-                          fill="var(--text1)"></path>
-                        <path
-                          d="M3.75 15C3.75 14.5858 3.41422 14.25 3 14.25C2.58579 14.25 2.25 14.5858 2.25 15V15.0549C2.24998 16.4225 2.24996 17.5248 2.36652 18.3918C2.48754 19.2919 2.74643 20.0497 3.34835 20.6516C3.95027 21.2536 4.70814 21.5125 5.60825 21.6335C6.47522 21.75 7.57754 21.75 8.94513 21.75H15.0549C16.4225 21.75 17.5248 21.75 18.3918 21.6335C19.2919 21.5125 20.0497 21.2536 20.6517 20.6516C21.2536 20.0497 21.5125 19.2919 21.6335 18.3918C21.75 17.5248 21.75 16.4225 21.75 15.0549V15C21.75 14.5858 21.4142 14.25 21 14.25C20.5858 14.25 20.25 14.5858 20.25 15C20.25 16.4354 20.2484 17.4365 20.1469 18.1919C20.0482 18.9257 19.8678 19.3142 19.591 19.591C19.3142 19.8678 18.9257 20.0482 18.1919 20.1469C17.4365 20.2484 16.4354 20.25 15 20.25H9C7.56459 20.25 6.56347 20.2484 5.80812 20.1469C5.07435 20.0482 4.68577 19.8678 4.40901 19.591C4.13225 19.3142 3.9518 18.9257 3.85315 18.1919C3.75159 17.4365 3.75 16.4354 3.75 15Z"
-                          fill="var(--text1)"></path>
-                      </g>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-        <div style="height: 100px"></div>
+<div v-if="selectedIndex === 1">
+  <div style="margin-bottom: 30px; border-bottom: 3px #262435 solid; padding-bottom: 25px;">
+    <h2>Subscription Status</h2>
+    <div class="subscription-meter">
+      <div class="meter-labels">
+        <span><strong>Days left:</strong> {{ expirationDays !== null ? expirationDays : 'Loading...' }}</span>
+        <span><strong>Money left:</strong>
+          <template v-if="expirationDays !== null && Tier">
+            {{
+              Tier === 'Premium'
+                ? ((14.99 / 30) * expirationDays).toFixed(2)
+                : Tier === 'Core'
+                  ? ((5.99 / 30) * expirationDays).toFixed(2)
+                  : '0.00'
+            }}€
+          </template>
+          <template v-else>Loading...</template>
+        </span>
+        <span><strong>Current Tier:</strong> {{ Tier || 'Loading...' }}</span>
       </div>
+      <div class="subscription-actions" style="margin-top: 18px;">
+        <button class="userbtn">Renew</button>
+        <button class="userbtn" :disabled="Tier === 'Premium'">Upgrade</button>
+        <button class="userbtn refund-btn">Ask for Refund</button>
+      </div>
+    </div>
+    <h2>Receipts</h2>
+    <div class="receipts">
+      <div class="receipt-header">
+        <p style="flex:1; font-weight: bold;">Payment Date</p>
+        <p style="flex:1; font-weight: bold;">Amount</p>
+        <p style="flex:1; font-weight: bold;">Paid with</p>
+        <p style="flex:1; font-weight: bold;">Subscription Plan</p>
+        <p style="flex:1; font-weight: bold;">Download</p>
+      </div>
+      <div v-if="loading">Loading receipts...</div>
+      <div style="background-color: #262435; padding: 3px;" v-else-if="error">{{ error }}</div>
+      <div style="background-color: #262435; padding: 3px;" v-if="receipts.length === 0">
+        <p>No receipts found</p>
+      </div>
+      <div v-else>
+        <div v-for="receipt in receipts" :key="receipt._id" class="receipt-item">
+          <p style="flex:1; text-align: center;">{{ formatDate(receipt.Date) }}</p>
+          <p style="flex:1; text-align: center;">{{ (receipt.Amount) / 100 }}€</p>
+          <p style="flex:1; text-align: center;">{{ receipt.Method }}</p>
+          <p style="flex:1; text-align: center;">{{ formatSubscription(receipt.Subscription) }}</p>
+          <div style="flex:1;"><button class="downloadbtn">
+              <svg class="icon3" viewBox="0 0 24.00 24.00" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg"
+                stroke="var(--text1)" stroke-width="0.696">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                  <path
+                    d="M12.5535 16.5061C12.4114 16.6615 12.2106 16.75 12 16.75C11.7894 16.75 11.5886 16.6615 11.4465 16.5061L7.44648 12.1311C7.16698 11.8254 7.18822 11.351 7.49392 11.0715C7.79963 10.792 8.27402 10.8132 8.55352 11.1189L11.25 14.0682V3C11.25 2.58579 11.5858 2.25 12 2.25C12.4142 2.25 12.75 2.58579 12.75 3V14.0682L15.4465 11.1189C15.726 10.8132 16.2004 10.792 16.5061 11.0715C16.8118 11.351 16.833 11.8254 16.5535 12.1311L12.5535 16.5061Z"
+                    fill="var(--text1)"></path>
+                  <path
+                    d="M3.75 15C3.75 14.5858 3.41422 14.25 3 14.25C2.58579 14.25 2.25 14.5858 2.25 15V15.0549C2.24998 16.4225 2.24996 17.5248 2.36652 18.3918C2.48754 19.2919 2.74643 20.0497 3.34835 20.6516C3.95027 21.2536 4.70814 21.5125 5.60825 21.6335C6.47522 21.75 7.57754 21.75 8.94513 21.75H15.0549C16.4225 21.75 17.5248 21.75 18.3918 21.6335C19.2919 21.5125 20.0497 21.2536 20.6517 20.6516C21.2536 20.0497 21.5125 19.2919 21.6335 18.3918C21.75 17.5248 21.75 16.4225 21.75 15.0549V15C21.75 14.5858 21.4142 14.25 21 14.25C20.5858 14.25 20.25 14.5858 20.25 15C20.25 16.4354 20.2484 17.4365 20.1469 18.1919C20.0482 18.9257 19.8678 19.3142 19.591 19.591C19.3142 19.8678 18.9257 20.0482 18.1919 20.1469C17.4365 20.2484 16.4354 20.25 15 20.25H9C7.56459 20.25 6.56347 20.2484 5.80812 20.1469C5.07435 20.0482 4.68577 19.8678 4.40901 19.591C4.13225 19.3142 3.9518 18.9257 3.85315 18.1919C3.75159 17.4365 3.75 16.4354 3.75 15Z"
+                    fill="var(--text1)"></path>
+                </g>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="height: 100px"></div>
+</div>
       <div class="theme-buttons" v-if="selectedIndex === 2">
         <button v-for="(theme, index) in themes" :key="index" @click="setTheme(theme)"
           :class="{ active: currentTheme === theme }">
@@ -1469,198 +1438,6 @@ p {
   margin-top: 10px;
 }
 
-.sub-option {
-  align-items: center;
-  display: inline-flex;
-  flex-direction: column;
-  border: none;
-  border-radius: 5px;
-  padding: 10px;
-  margin: 5px;
-  opacity: 0.80;
-  width: 120px;
-  height: 70px;
-  position: relative;
-  overflow: hidden;
-  justify-content: center;
-  color: var(--text1);
-}
-
-.sub-option::before {
-  content: '';
-  position: absolute;
-  /* Position it absolutely */
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
-  /* Place it behind the content */
-  border-radius: 5px;
-  /* Match the border radius of the parent */
-  background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9);
-  /* Gradient colors */
-  padding: 2px;
-  /* Space for the border effect */
-  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
-  mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
-  /* For masking */
-  -webkit-mask-composite: source-out;
-  /* For masking */
-  mask-composite: exclude;
-  /* For masking */
-  animation: border-animation 5s linear infinite;
-  background-size: 300% 300%;
-}
-
-.sub-option-disabled {
-  align-items: center;
-  display: inline-flex;
-  flex-direction: column;
-  border: none;
-  border-radius: 5px;
-  /* Rounded corners */
-  padding: 10px;
-  /* Inner padding */
-  margin: 5px;
-  opacity: 0.80;
-  width: 120px;
-  position: relative;
-  /* Position relative for the pseudo-element */
-  height: 70px;
-  overflow: hidden;
-  /* Ensure the pseudo-element doesn't overflow */
-  justify-content: center;
-  color: #f5f5f5;
-}
-
-.sub-option-disabled::before {
-  content: '';
-  position: absolute;
-  /* Position it absolutely */
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
-  /* Place it behind the content */
-  border-radius: 5px;
-  /* Match the border radius of the parent */
-  background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9);
-  /* Gradient colors */
-  padding: 2px;
-  /* Space for the border effect */
-  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
-  mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
-  /* For masking */
-  -webkit-mask-composite: source-out;
-  /* For masking */
-  animation: border-animation 5s linear infinite;
-  mask-composite: exclude;
-  /* For masking */
-  background-size: 300% 300%;
-}
-
-.sub-option:hover {
-  opacity: 1;
-  cursor: pointer;
-  background: var(--accent1);
-}
-
-.select {
-  border: none;
-  background: var(--accent1);
-  animation: border-animation 5s linear infinite;
-  /* Animation */
-  background-size: 300% 300%;
-  /* Allow for smooth animation */
-}
-
-@keyframes border-animation {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.coming-soon-banner {
-  position: absolute;
-  top: 20px;
-  /* Reduced from 20px */
-  right: -25px;
-  /* Changed from -35px */
-  background-color: var(--accent1);
-  /* Your purple color */
-  color: var(--text1);
-  padding-left: 10px;
-  /* Reduced padding */
-  padding: 1px;
-  font-size: 12px;
-  /* You can make this smaller if needed, like 10px */
-  transform: rotate(45deg);
-  transform-origin: center;
-  width: 120px;
-  /* Reduced from 150px */
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  z-index: 1;
-}
-
-.coming-soon-banner2 {
-  position: absolute;
-  top: 20px;
-  /* Reduced from 20px */
-  right: -35px;
-  /* Changed from -35px */
-  background-color: var(--accent1);
-  /* Your purple color */
-  color: var(--text1);
-  padding-left: 10px;
-  /* Reduced padding */
-  padding: 1px;
-  font-size: 12px;
-  /* You can make this smaller if needed, like 10px */
-  transform: rotate(45deg);
-  transform-origin: center;
-  width: 120px;
-  /* Reduced from 150px */
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  z-index: 1;
-  cursor: default;
-}
-
-.card-element-container {
-  background-color: var(--base2);
-  padding: 20px;
-  border-radius: 4px;
-  margin: 20px 0;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-#card-element {
-  padding: 10px;
-  border: 1px solid var(--base4);
-  border-radius: 4px;
-  background-color: var(--base4);
-}
-
-#card-errors {
-  color: #fa755a;
-  text-align: left;
-  margin-top: 8px;
-  min-height: 20px;
-}
-
 p {
   color: var(--text1);
 }
@@ -1673,43 +1450,6 @@ p {
 .offer {
   font-size: 18px;
   margin: 2px;
-}
-
-.receipts {
-  padding: 20px;
-}
-
-.receipt-item {
-  background-color: var(--base2);
-  padding: 3px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2px;
-}
-
-.receipt-header {
-  background-color: var(--base1);
-  padding: 3px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2px;
-}
-
-.receipt-item p {
-  margin: 5px 0;
-}
-
-.downloadbtn {
-  background-color: transparent;
-  border: none;
-  opacity: 0.60;
-}
-
-.downloadbtn:hover {
-  cursor: pointer;
-  opacity: 1;
 }
 
 .password-toggle {
@@ -1893,6 +1633,103 @@ p {
   cursor: default;
 }
 
+.subscription-meter {
+  margin-bottom: 25px;
+  background: var(--base2);
+  border-radius: 8px;
+  padding: 18px 10px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.meter-labels {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.meter-bar-container {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.subscription-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+.userbtn.refund-btn {
+  background: #ff4d4f;
+  color: #fff;
+}
+.userbtn.refund-btn:hover {
+  background: #d9363e;
+}
+
+.receipts {
+  padding: 20px;
+  background: var(--base2);
+  border-radius: 10px;
+  margin-top: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.receipt-header {
+  background-color: var(--base1);
+  padding: 10px 3px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  font-size: 15px;
+  color: var(--accent1);
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.receipt-item {
+  background-color: var(--base2);
+  padding: 10px 3px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(140,141,254,0.05);
+  transition: background 0.2s;
+}
+
+.receipt-item:hover {
+  background: var(--base3);
+}
+
+.receipt-item p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text1);
+  text-align: center;
+}
+
+.downloadbtn {
+  background-color: var(--accent1);
+  border: none;
+  border-radius: 5px;
+  padding: 6px 10px;
+  color: var(--text1);
+  opacity: 0.85;
+  transition: background 0.2s, opacity 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.downloadbtn:hover {
+  background: var(--accent2);
+  opacity: 1;
+}
 
 /* Mobile version */
 @media (max-width: 1150px) {
