@@ -15210,10 +15210,19 @@ app.post('/trades/add', validate([
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Insert the trade into the Trades array
+    // --- Cash balance check ---
+    const currentCash = typeof userDocument.cash === 'number' ? userDocument.cash : 0;
+    if (processedTrade.Total > currentCash) {
+      return res.status(400).json({ message: 'Insufficient cash balance for this trade' });
+    }
+
+    // Insert the trade into the Trades array and deduct cash
     const updateResult = await usersCollection.updateOne(
       { Username: sanitizedUser },
-      { $push: { Trades: processedTrade } }
+      {
+        $push: { Trades: processedTrade },
+        $inc: { cash: -processedTrade.Total }
+      }
     );
 
     if (updateResult.modifiedCount === 1) {
@@ -15307,6 +15316,138 @@ app.get('/portfolio', validate([
   }
 });
 
+app.delete('/portfolio', validate([
+  validationSchemas.usernameQuery()
+]), async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+      return res.status(401).json({ message: 'Unauthorized API Access' });
+    }
+    const { username } = req.query;
+    const sanitizedUser = sanitizeInput(username);
+
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+
+    // Find user document
+    const userDocument = await usersCollection.findOne({ Username: sanitizedUser });
+    if (!userDocument) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Reset Trades and portfolio arrays
+    await usersCollection.updateOne(
+      { Username: sanitizedUser },
+      { $set: { Trades: [], portfolio: [], cash: 0 } }
+    );
+
+    return res.status(200).json({ message: 'Portfolio and trade history reset successfully' });
+  } catch (error) {
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred while resetting the portfolio' });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
+app.post('/portfolio/cash', [
+  body('username')
+    .isString().trim().notEmpty().withMessage('Username is required')
+    .matches(/^[a-zA-Z0-9_]+$/).withMessage('Invalid username format'),
+  body('amount')
+    .isFloat({ min: 0.01 }).withMessage('Amount must be a positive number'),
+  body('date')
+    .optional()
+    .isISO8601().withMessage('Date must be a valid ISO date')
+], async (req, res) => {
+  const apiKey = req.header('x-api-key');
+  const sanitizedKey = sanitizeInput(apiKey);
+  if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+    return res.status(401).json({ message: 'Unauthorized API Access' });
+  }
+  const { username, amount, date } = req.body;
+  const sanitizedUser = sanitizeInput(username);
+  const sanitizedAmount = parseFloat(amount);
+  let depositDate = new Date().toISOString();
+  if (date) {
+    const parsedDate = new Date(date);
+    if (!isNaN(parsedDate.getTime())) {
+      depositDate = parsedDate.toISOString();
+    }
+  }
+  if (!sanitizedUser || !sanitizedAmount || sanitizedAmount <= 0) {
+    return res.status(400).json({ message: 'Invalid input' });
+  }
+  let client;
+  try {
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+    // Add cash to user's cash balance (create field if not exists)
+    await usersCollection.updateOne(
+      { Username: sanitizedUser },
+      { $inc: { cash: sanitizedAmount } }
+    );
+    // Add a "cash deposit" trade to Trades array
+    const cashTrade = {
+      Date: depositDate,
+      Symbol: '-',
+      Action: 'Cash Deposit',
+      Shares: '-',
+      Price: '-',
+      Total: sanitizedAmount
+    };
+    await usersCollection.updateOne(
+      { Username: sanitizedUser },
+      { $push: { Trades: cashTrade } }
+    );
+    return res.status(200).json({ message: 'Cash added successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: 'An error occurred while adding cash' });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
+app.get('/portfolio/cash', async (req, res) => {
+  const apiKey = req.header('x-api-key');
+  const sanitizedKey = sanitizeInput(apiKey);
+  if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+    return res.status(401).json({ message: 'Unauthorized API Access' });
+  }
+  const username = sanitizeInput(req.query.username);
+  if (!username) {
+    return res.status(400).json({ message: 'Username is required' });
+  }
+  let client;
+  try {
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const usersCollection = db.collection('Users');
+    const userDoc = await usersCollection.findOne(
+      { Username: username },
+      { projection: { cash: 1 } }
+    );
+    if (!userDoc) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    return res.status(200).json({ cash: userDoc.cash || 0 });
+  } catch (error) {
+    return res.status(500).json({ message: 'An error occurred while retrieving cash balance' });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
 app.get('/quotes', async (req, res) => {
   const requestLogger = createRequestLogger(req);
   let client;
@@ -15391,6 +15532,11 @@ app.post('/trades/sell', validate([
       Total: Number(trade.Total)
     };
 
+    // Prevent future-dated trades
+    if (new Date(processedTrade.Date) > new Date()) {
+      return res.status(400).json({ message: 'Trade date cannot be in the future' });
+    }
+
     client = new MongoClient(uri);
     await client.connect();
     const db = client.db('EreunaDB');
@@ -15419,7 +15565,10 @@ app.post('/trades/sell', validate([
     // Insert the trade into the Trades array
     const updateResult = await usersCollection.updateOne(
       { Username: sanitizedUser },
-      { $push: { Trades: processedTrade } }
+      {
+        $push: { Trades: processedTrade },
+        $inc: { cash: processedTrade.Total }
+      }
     );
 
     if (updateResult.modifiedCount === 1) {

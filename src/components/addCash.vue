@@ -2,107 +2,73 @@
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
       <button class="close-x" @click="close" aria-label="Close">&times;</button>
-      <h2>New Trade</h2>
-      <form @submit.prevent="submitTrade">
+      <h2>Add Cash</h2>
+      <form @submit.prevent="submitCash">
         <div class="input-row">
           <label for="date">Date</label>
           <input
             id="date"
             type="date"
-            v-model="tradeDate"
+            v-model="cashDate"
             :max="today"
             required
           />
         </div>
         <div class="input-row">
-          <label for="symbol">Symbol</label>
-          <input id="symbol" v-model="symbol" required autocomplete="off" placeholder="e.g. AAPL" />
-        </div>
-        <div class="input-row">
-          <label for="shares">Shares</label>
+          <label for="amount">Amount</label>
           <input
-            id="shares"
+            id="amount"
             type="number"
-            v-model.number="shares"
+            v-model.number="amount"
             min="0.01"
             step="0.01"
             required
-            placeholder="e.g. 10.25"
+            placeholder="e.g. 1000"
           />
         </div>
-        <div class="input-row">
-          <label for="price">Price</label>
-          <input id="price" type="number" v-model.number="price" min="0.01" step="0.01" required placeholder="e.g. 185.00" />
-        </div>
-        <div class="input-row" style="margin-top: 8px;">
-          <div>
-            <strong>Total:</strong> ${{ total.toFixed(2) }}
-          </div>
-          <div>
-            <strong>Your Cash:</strong> ${{ props.cash?.toFixed(2) }}
-          </div>
-        </div>
-        <div v-if="insufficientCash" style="color: var(--negative); margin-top: 8px;">
-          Insufficient cash: You need ${{ total.toFixed(2) }}, but you only have ${{ props.cash?.toFixed(2) ?? '0.00' }}.
-          <br>
-          <span style="font-size: 0.98em;">The trade will not be executed.</span>
-        </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn" :disabled="insufficientCash">Submit</button>
+          <button type="submit" class="trade-btn">Add</button>
           <button type="button" class="cancel-btn" @click="close">Cancel</button>
         </div>
+        <div v-if="error" style="color: var(--negative); margin-top: 12px;">{{ error }}</div>
       </form>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, defineEmits, defineProps } from 'vue'
-const emit = defineEmits(['close', 'trade', 'refresh-history'])
-
+import { ref, defineEmits, defineProps } from 'vue'
+const emit = defineEmits(['close', 'refresh'])
 const props = defineProps({
   user: String,
-  apiKey: String,
-  cash: Number // <-- Add this prop
+  apiKey: String
 })
 
-const symbol = ref('')
-const shares = ref(1)
-const price = ref(0)
 const today = new Date().toISOString().slice(0, 10)
-const tradeDate = ref(today)
+const cashDate = ref(today)
+const amount = ref(0)
+const error = ref('')
 
-const total = computed(() => Number((shares.value * price.value).toFixed(2)))
-const insufficientCash = computed(() => props.cash !== undefined && total.value > props.cash)
-
-async function submitTrade() {
-  if (insufficientCash.value) return
-  const trade = {
-    Symbol: symbol.value,
-    Shares: shares.value,
-    Action: "Buy",
-    Price: price.value,
-    Date: tradeDate.value,
-    Total: total.value
+async function submitCash() {
+  error.value = ''
+  if (!amount.value || amount.value <= 0) {
+    error.value = 'Please enter a valid amount.'
+    return
   }
-
   try {
-    const response = await fetch(`/api/trades/add`, {
+    const response = await fetch('/api/portfolio/cash', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': props.apiKey
       },
-      body: JSON.stringify({ username: props.user, trade })
+      body: JSON.stringify({ username: props.user, amount: amount.value, date: cashDate.value })
     })
-
-    if (!response.ok) {
-      throw new Error('Failed to add trade')
-    }
-
-    emit('refresh-history')
-  } catch (error) {
-    // Optionally show error to user
+    if (!response.ok) throw new Error('Failed to add cash')
+    emit('cash-added')
+    close()
+  } catch (err) {
+    error.value = err.message
   }
 }
 
@@ -112,6 +78,7 @@ function close() {
 </script>
 
 <style scoped>
+/* You can reuse the modal styles from trade.vue */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -122,7 +89,6 @@ function close() {
   z-index: 10000;
   backdrop-filter: blur(2px);
 }
-
 .modal-content {
   position: relative;
   background: var(--base2);
@@ -136,12 +102,6 @@ function close() {
   gap: 18px;
   animation: popup-in 0.18s cubic-bezier(.4,1.4,.6,1) backwards;
 }
-
-@keyframes popup-in {
-  from { transform: translateY(30px) scale(0.98); opacity: 0; }
-  to   { transform: none; opacity: 1; }
-}
-
 .close-x {
   position: absolute;
   top: 18px;
@@ -158,34 +118,17 @@ function close() {
 .close-x:hover {
   color: var(--accent1);
 }
-
-h2 {
-  margin: 0 0 12px 0;
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--accent1);
-  letter-spacing: 0.01em;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
 .input-row {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-
 label {
   font-size: 1rem;
   color: var(--text2);
   font-weight: 500;
   letter-spacing: 0.01em;
 }
-
 input {
   padding: 10px 12px;
   border-radius: 7px;
@@ -200,14 +143,12 @@ input:focus {
   border-color: var(--accent1);
   background: var(--base4);
 }
-
 .modal-actions {
   display: flex;
   gap: 16px;
   margin-top: 8px;
   justify-content: flex-end;
 }
-
 .trade-btn {
   background: var(--accent1);
   color: var(--text1);
@@ -222,7 +163,6 @@ input:focus {
 .trade-btn:hover {
   background: var(--accent2);
 }
-
 .cancel-btn {
   background: transparent;
   color: var(--text2);
