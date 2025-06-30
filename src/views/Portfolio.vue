@@ -3,36 +3,159 @@
   <section class="portfolio-container">
     <div class="portfolio-header">
       <h1>Simulated Portfolio</h1>
-      <button class="trade-btn" @click="showTradeModal = true">New Trade</button>
+      <div>
+        <button class="trade-btn" @click="showTradeModal = true">New Trade</button>
+        <button class="trade-btn" style="margin-left: 12px;" @click="showAddCashModal = true">Add Cash</button>
+        <button class="trade-btn2" style="margin-left: 12px;" @click="showResetDialog = true">Reset All</button>
+      </div>
+       <div v-if="showResetDialog" class="reset-modal-overlay">
+      <div class="reset-modal">
+        <h3>Reset Portfolio</h3>
+        <p>Are you sure you want to reset your entire portfolio? This cannot be undone.</p>
+        <div style="margin-top: 16px;">
+          <button class="trade-btn" @click="confirmResetPortfolio">Yes, Reset</button>
+          <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">Cancel</button>
+        </div>
+        <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
+      </div>
+    </div>
       <TradePopup v-if="showTradeModal" :user="user" :api-key="apiKey" @close="showTradeModal = false"
-        @refresh-history="handleRefreshHistory" />
+        @refresh-history="{ fetchCash(); fetchPortfolio(); fetchTransactionHistory(); showTradeModal = false }" :cash="cash" />
       <SellTradePopup v-if="showSellModal" :symbol="sellPosition.symbol" :maxShares="sellPosition.shares"
         :price="sellPosition.price" :currentPrice="latestQuotes[sellPosition.symbol]" @close="showSellModal = false"
         @sell="handleSell" :user="user" :api-key="apiKey" />
+<AddCashPopup
+  v-if="showAddCashModal"
+  :user="user"
+  :api-key="apiKey"
+  @close="showAddCashModal = false"
+  @cash-added="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); showAddCashModal = false }"
+/>
     </div>
     <div class="portfolio-summary">
       <div class="summary-card">
-        <div class="summary-title">Total Value</div>
-        <div class="summary-value">${{ totalPortfolioValue.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        }) }}</div>
-      </div>
+  <div class="summary-title">Total Value</div>
+  <div class="summary-value">
+    ${{ totalPortfolioValue2.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }) }}
+  </div>
+</div>
+  <div class="summary-card">
+  <div class="summary-title">Portfolio Value</div>
+  <div class="summary-value">
+    ${{ totalPortfolioValue.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }) }}
+  </div>
+</div>
+      <div class="summary-card">
+  <div class="summary-title">Cash</div>
+  <div class="summary-value">
+    ${{ cash.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }) }}
+  </div>
+</div>
       <div class="summary-card">
         <div class="summary-title">Total P/L</div>
-        <div class="summary-value" :class="totalPortfolioPL >= 0 ? 'positive' : 'negative'">
-          {{ totalPortfolioPL >= 0 ? '+' : '' }}${{ totalPortfolioPL.toLocaleString(undefined, {
+        <div class="summary-value" :class="totalPL >= 0 ? 'positive' : 'negative'">
+          {{ totalPL >= 0 ? '+' : '' }}${{ totalPL.toLocaleString(undefined, {
             minimumFractionDigits:
               2, maximumFractionDigits: 2
           }) }}
         </div>
       </div>
       <div class="summary-card">
-        <div class="summary-title">Total P/L (%)</div>
-        <div class="summary-value" :class="totalPortfolioPL >= 0 ? 'positive' : 'negative'">
-          {{ totalPortfolioPL >= 0 ? '+' : '' }}{{ totalPortfolioPLPercent }}%
+  <div class="summary-title">Total P/L (%)</div>
+  <div class="summary-value" :class="totalPL > 0 ? 'positive' : totalPL < 0 ? 'negative' : ''">
+    <template v-if="totalPLPercent !== '' && Number(totalPLPercent) !== 0">
+      {{ totalPL > 0 ? '+' : '' }}{{ totalPLPercent }}%
+    </template>
+    <template v-else>
+      -
+    </template>
+  </div>
+</div>
+      <div class="summary-card">
+        <div class="summary-title">Unrealized P/L</div>
+        <div class="summary-value" :class="unrealizedPL >= 0 ? 'positive' : 'negative'">
+          {{ unrealizedPL >= 0 ? '+' : '' }}${{ unrealizedPL.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) }}
         </div>
       </div>
+      <div class="summary-card">
+        <div class="summary-title">Unrealized P/L (%)</div>
+        <div class="summary-value" :class="unrealizedPL > 0 ? 'positive' : unrealizedPL < 0 ? 'negative' : ''">
+  <template v-if="unrealizedPLPercent !== '' && Number(unrealizedPLPercent) !== 0">
+    {{ unrealizedPL >= 0 ? '+' : '' }}{{ unrealizedPLPercent }}%
+  </template>
+  <template v-else>
+    -
+  </template>
+</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-title">Realized P/L</div>
+        <div class="summary-value" :class="realizedPL >= 0 ? 'positive' : 'negative'">
+          {{ realizedPL >= 0 ? '+' : '' }}${{ realizedPL.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) }}
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-title">Realized P/L (%)</div>
+        <div class="summary-value" :class="realizedPL >= 0 ? 'positive' : 'negative'">
+          {{ realizedPL >= 0 ? '+' : '' }}{{ realizedPLPercent }}%
+        </div>
+      </div>
+      <!-- Advanced Portfolio Stats -->
+  <div class="summary-card">
+  <div class="summary-title">Avg. Position Size</div>
+  <div class="summary-value">{{ avgPositionSize }}%</div>
+</div>
+  <div class="summary-card">
+    <div class="summary-title">Avg. Hold Time (Winners)</div>
+    <div class="summary-value">{{ avgHoldTimeWinners }} days</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-title">Avg. Hold Time (Losers)</div>
+    <div class="summary-value">{{ avgHoldTimeLosers }} days</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-title">Avg. Gain %</div>
+    <div class="summary-value positive">+{{ avgGain }}%</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-title">Avg. Loss %</div>
+    <div class="summary-value negative">{{ avgLoss }}%</div>
+  </div>
+  <div class="summary-card">
+  <div class="summary-title">Avg. Gain</div>
+  <div class="summary-value positive">
+    +${{ avgGainAbs }}
+  </div>
+</div>
+<div class="summary-card">
+  <div class="summary-title">Avg. Loss</div>
+  <div class="summary-value negative">
+    -${{ avgLossAbs }}
+  </div>
+</div>
+<div class="summary-card">
+  <div class="summary-title">Gain/Loss Ratio</div>
+  <div class="summary-value">{{ gainLossRatio }}</div>
+</div>
+<div class="summary-card">
+  <div class="summary-title">Risk/Reward Ratio</div>
+  <div class="summary-value">{{ riskRewardRatio }}</div>
+</div>
     </div>
     <div class="portfolio-linechart-container">
       <div class="linechart-fixed-height">
@@ -58,6 +181,11 @@
             </tr>
           </thead>
           <tbody>
+             <tr v-if="portfolio.length === 0">
+    <td colspan="8" style="text-align:center; color: var(--text2);">
+      No Active Positions
+    </td>
+  </tr>
             <tr v-for="position in portfolio" :key="position.Symbol">
               <td>
                 <span v-if="latestQuotes[position.Symbol] !== undefined">
@@ -106,7 +234,7 @@
             <th>Total</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody >
           <tr v-if="sortedTransactionHistory.length === 0">
             <td colspan="6" style="text-align:center; color: var(--text2);">
               No transaction history
@@ -117,7 +245,9 @@
             <td>{{ tx.Symbol }}</td>
             <td>{{ tx.Action }}</td>
             <td>{{ tx.Shares }}</td>
-            <td>${{ Number(tx.Price).toFixed(2) }}</td>
+            <td>
+  {{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toFixed(2) }}
+</td>
             <td>${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
             }}
             </td>
@@ -135,6 +265,7 @@ import Header from '@/components/Header.vue';
 import { ref, computed, watch } from 'vue'
 import TradePopup from '@/components/trade.vue'
 import SellTradePopup from '@/components/SellTradePopup.vue'
+import AddCashPopup from '@/components/addCash.vue'
 import { Pie, Line } from 'vue-chartjs'
 import {
   Chart,
@@ -156,6 +287,8 @@ const apiKey = import.meta.env.VITE_EREUNA_KEY;
 const showTradeModal = ref(false)
 const showSellModal = ref(false)
 const sellPosition = ref({ symbol: '', shares: 0, price: 0 })
+const showAddCashModal = ref(false)
+const addCashError = ref('')
 
 function openSellModal(position) {
   sellPosition.value = { ...position }
@@ -168,6 +301,7 @@ function handleSell(sellOrder) {
   setTimeout(() => {
     fetchTransactionHistory();
     fetchPortfolio();
+    fetchCash();
   }, 300); // 300ms delay, adjust if needed
 }
 
@@ -214,13 +348,18 @@ const pieChartData = computed(() => {
     pos => latestQuotes.value[pos.Symbol] !== undefined
   );
 
-  // Labels: stock symbols
-  const labels = positionsWithQuotes.map(pos => pos.Symbol);
+  // Add cash as a "position"
+  const labels = [
+    ...positionsWithQuotes.map(pos => pos.Symbol),
+    'CASH'
+  ];
 
-  // Data: total value per position
-  const data = positionsWithQuotes.map(
-    pos => Number(latestQuotes.value[pos.Symbol]) * Number(pos.Shares)
-  );
+  const data = [
+    ...positionsWithQuotes.map(
+      pos => Number(latestQuotes.value[pos.Symbol]) * Number(pos.Shares)
+    ),
+    cash.value // Add cash as a slice
+  ];
 
   return {
     labels,
@@ -247,21 +386,68 @@ const pieOptions = {
   }
 }
 
-// Line chart data (example)
-const lineData = {
-  labels: ['2025-06-18', '2025-06-19', '2025-06-20', '2025-06-21', '2025-06-22'],
-  datasets: [
-    {
-      label: 'Portfolio Value',
-      data: [95000, 97000, 100000, 99500, 100000],
-      borderColor: accent1,
-      backgroundColor: accent1 + '20', // 20 = ~12% opacity
-      tension: 0.4,
-      fill: true,
-      pointRadius: 3,
+// --- Total Value Over Time (Line Chart) ---
+const portfolioValueHistory = computed(() => {
+  const txs = [...transactionHistory.value].sort((a, b) => new Date(a.Date) - new Date(b.Date));
+  let holdings = {};
+  let cash = 0;
+  let history = [];
+  let lastDate = null;
+
+  for (const tx of txs) {
+    if (!tx.Date) continue;
+    // Update holdings and cash
+    if (tx.Action === 'Buy') {
+      holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) + tx.Shares;
+      cash -= tx.Total;
+    } else if (tx.Action === 'Sell') {
+      holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) - tx.Shares;
+      cash += tx.Total;
+    } else if (tx.Action === 'Cash Deposit') {
+      cash += tx.Total;
     }
-  ]
-}
+    // Calculate total value for this date (positions + cash)
+    let positionsValue = 0;
+    for (const [symbol, shares] of Object.entries(holdings)) {
+      if (shares === 0) continue;
+      // Use the last tx price for this symbol up to this date
+      let price = 0;
+      for (let i = txs.length - 1; i >= 0; i--) {
+        if (txs[i].Symbol === symbol && new Date(txs[i].Date) <= new Date(tx.Date)) {
+          price = txs[i].Price;
+          break;
+        }
+      }
+      positionsValue += shares * price;
+    }
+    const totalValue = positionsValue + cash;
+    if (lastDate !== tx.Date) {
+      history.push({ date: tx.Date.slice(0, 10), value: Math.max(0, totalValue) });
+      lastDate = tx.Date;
+    } else {
+      history[history.length - 1] = { date: tx.Date.slice(0, 10), value: Math.max(0, totalValue) };
+    }
+  }
+  return history;
+});
+
+const lineData = computed(() => {
+  const history = portfolioValueHistory.value;
+  return {
+    labels: history.map(h => h.date),
+    datasets: [
+      {
+        label: 'Total Value (Positions + Cash)',
+        data: history.map(h => h.value),
+        borderColor: accent1,
+        backgroundColor: accent1 + '20',
+        tension: 0.4,
+        fill: true,
+        pointRadius: 3,
+      }
+    ]
+  };
+});
 
 const lineOptions = {
   responsive: true,
@@ -314,15 +500,6 @@ const sortedTransactionHistory = computed(() => {
   });
 });
 
-function handleRefreshHistory() {
-  showTradeModal.value = false;
-  // Add a short delay to ensure backend is updated
-  setTimeout(() => {
-    fetchTransactionHistory();
-    fetchPortfolio();
-  }, 300); // 300ms delay, adjust if needed
-}
-
 const portfolio = ref([]); // List of Objects - This will hold the portfolio data for user
 
 async function fetchPortfolio() {
@@ -374,12 +551,6 @@ watch(portfolio, (newVal) => {
   if (newVal.length) fetchQuotes();
 });
 
-function getMarketPrice(position) {
-  const close = latestQuotes.value[position.Symbol];
-  if (close === undefined || close === null) return '';
-  return (close * position.Shares).toFixed(2);
-}
-
 function getPnLPercent(position) {
   const close = latestQuotes.value[position.Symbol];
   if (close === undefined || close === null) return '';
@@ -421,13 +592,83 @@ const totalPortfolioCost = computed(() => {
   }, 0);
 });
 
-const totalPortfolioPL = computed(() => {
-  return totalPortfolioValue.value - totalPortfolioCost.value;
+// --- Realized, Unrealized, and Total P/L ---
+const realizedPL = computed(() => {
+  // Track realized P/L for each symbol
+  let realized = 0;
+  let lots = {};
+  for (const tx of sortedTransactionHistory.value.slice().reverse()) {
+    if (!tx.Symbol || !tx.Action) continue;
+    if (tx.Action === 'Buy') {
+      lots[tx.Symbol] = lots[tx.Symbol] || [];
+      lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price });
+    } else if (tx.Action === 'Sell') {
+      let sharesToSell = tx.Shares;
+      lots[tx.Symbol] = lots[tx.Symbol] || [];
+      while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
+        let lot = lots[tx.Symbol][0];
+        let sellShares = Math.min(lot.shares, sharesToSell);
+        realized += (tx.Price - lot.price) * sellShares;
+        lot.shares -= sellShares;
+        sharesToSell -= sellShares;
+        if (lot.shares === 0) lots[tx.Symbol].shift();
+      }
+    }
+  }
+  return realized;
 });
 
-const totalPortfolioPLPercent = computed(() => {
-  if (!totalPortfolioCost.value) return '';
-  return ((totalPortfolioPL.value / totalPortfolioCost.value) * 100).toFixed(2);
+const unrealizedPL = computed(() => {
+  // For current holdings, use current price
+  let pl = 0;
+  for (const pos of portfolio.value) {
+    const close = latestQuotes.value[pos.Symbol];
+    if (close === undefined || close === null) continue;
+    pl += (close - pos.AvgPrice) * pos.Shares;
+  }
+  return pl;
+});
+
+const totalPL = computed(() => realizedPL.value + unrealizedPL.value);
+
+const totalPLPercent = computed(() => {
+  const cost = totalPortfolioCost.value;
+  if (!cost) return '';
+  return ((totalPL.value / cost) * 100).toFixed(2);
+});
+
+const unrealizedPLPercent = computed(() => {
+  const cost = totalPortfolioCost.value;
+  if (!cost) return '';
+  return ((unrealizedPL.value / cost) * 100).toFixed(2);
+});
+
+const realizedPLPercent = computed(() => {
+  // Track realized P/L and cost basis for sold shares only
+  let realized = 0;
+  let costBasis = 0;
+  let lots = {};
+  for (const tx of sortedTransactionHistory.value.slice().reverse()) {
+    if (!tx.Symbol || !tx.Action) continue;
+    if (tx.Action === 'Buy') {
+      lots[tx.Symbol] = lots[tx.Symbol] || [];
+      lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price });
+    } else if (tx.Action === 'Sell') {
+      let sharesToSell = tx.Shares;
+      lots[tx.Symbol] = lots[tx.Symbol] || [];
+      while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
+        let lot = lots[tx.Symbol][0];
+        let sellShares = Math.min(lot.shares, sharesToSell);
+        realized += (tx.Price - lot.price) * sellShares;
+        costBasis += lot.price * sellShares;
+        lot.shares -= sellShares;
+        sharesToSell -= sellShares;
+        if (lot.shares === 0) lots[tx.Symbol].shift();
+      }
+    }
+  }
+  if (!costBasis) return '';
+  return ((realized / costBasis) * 100).toFixed(2);
 });
 
 function getPercOfPortfolio(position) {
@@ -437,6 +678,209 @@ function getPercOfPortfolio(position) {
   const perc = ((close * position.Shares) / total) * 100;
   return perc.toFixed(2);
 }
+
+const showResetDialog = ref(false)
+const resetError = ref('')
+
+async function confirmResetPortfolio() {
+  resetError.value = '';
+  try {
+    const headers = { 'x-api-key': apiKey, 'Content-Type': 'application/json' };
+    const response = await fetch(`/api/portfolio?username=${user}`, {
+      method: 'DELETE',
+      headers
+    });
+    if (!response.ok) throw new Error('Failed to reset portfolio');
+    fetchTransactionHistory();
+    fetchPortfolio();
+    fetchCash()
+    showResetDialog.value = false;
+  } catch (error) {
+    resetError.value = 'Error resetting portfolio: ' + error.message;
+  }
+}
+
+const cash = ref(0); // Holds the user's cash balance
+
+async function fetchCash() {
+  try {
+    const headers = {
+      'x-api-key': apiKey
+    };
+
+    const response = await fetch(`/api/portfolio/cash?username=${user}`, {
+      headers: headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    cash.value = data.cash || 0; // Assign the cash value
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+    console.error('Error fetching cash balance:', error);
+  }
+}
+
+fetchCash()
+
+const totalPortfolioValue2 = computed(() => {
+  const positionsValue = portfolio.value.reduce((sum, pos) => {
+    const close = latestQuotes.value[pos.Symbol];
+    if (close === undefined || close === null) return sum;
+    return sum + close * pos.Shares;
+  }, 0);
+  return positionsValue + cash.value; // Add cash to the total
+});
+
+// Average position size as a percentage of total portfolio value (including cash)
+const avgPositionSize = computed(() => {
+  const buys = sortedTransactionHistory.value.filter(tx => tx.Action === 'Buy' && tx.Total && tx.Date);
+  if (!buys.length) return '0.00';
+
+  // For each buy, estimate portfolio value at that time (cash + all positions up to that date)
+  let avgPercents = [];
+  for (const buy of buys) {
+    // Get all transactions up to and including this buy
+    const txsUpToBuy = sortedTransactionHistory.value.filter(tx => tx.Date && new Date(tx.Date) <= new Date(buy.Date));
+    // Calculate cash and positions up to this buy
+    let cash = 0;
+    let holdings = {};
+    for (const tx of txsUpToBuy) {
+      if (tx.Action === 'Buy') {
+        holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) + tx.Shares;
+        cash -= tx.Total;
+      } else if (tx.Action === 'Sell') {
+        holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) - tx.Shares;
+        cash += tx.Total;
+      } else if (tx.Action === 'Cash Deposit') {
+        cash += tx.Total;
+      }
+    }
+    // Estimate positions value at buy price
+    let positionsValue = 0;
+    for (const [symbol, shares] of Object.entries(holdings)) {
+      // Use the last buy price up to this date for each symbol
+      let price = 0;
+      for (let i = txsUpToBuy.length - 1; i >= 0; i--) {
+        if (txsUpToBuy[i].Symbol === symbol && txsUpToBuy[i].Action === 'Buy') {
+          price = txsUpToBuy[i].Price;
+          break;
+        }
+      }
+      positionsValue += shares * price;
+    }
+    const portfolioValueAtBuy = positionsValue + cash;
+    if (portfolioValueAtBuy > 0) {
+      avgPercents.push((buy.Total / portfolioValueAtBuy) * 100);
+    }
+  }
+  if (!avgPercents.length) return '0.00';
+  return (avgPercents.reduce((a, b) => a + b, 0) / avgPercents.length).toFixed(2);
+});
+
+// Helper: Find all round-trips (buy then sell) for stats
+function getClosedPositions() {
+  const txs = [...sortedTransactionHistory.value].reverse();
+  const positions = [];
+  const lots = {};
+
+  for (const tx of txs) {
+    if (!tx.Symbol || !tx.Action) continue;
+    if (tx.Action === 'Buy') {
+      lots[tx.Symbol] = lots[tx.Symbol] || [];
+      lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price, date: tx.Date });
+    } else if (tx.Action === 'Sell') {
+      let sharesToSell = tx.Shares;
+      lots[tx.Symbol] = lots[tx.Symbol] || [];
+      while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
+        let lot = lots[tx.Symbol][0];
+        let sellShares = Math.min(lot.shares, sharesToSell);
+        positions.push({
+          symbol: tx.Symbol,
+          buyDate: lot.date,
+          sellDate: tx.Date,
+          buyPrice: lot.price,
+          sellPrice: tx.Price,
+          shares: sellShares,
+          pnl: ((tx.Price - lot.price) / lot.price) * 100,
+          holdDays: Math.max(0, Math.round((new Date(tx.Date) - new Date(lot.date)) / (1000 * 60 * 60 * 24)))
+        });
+        lot.shares -= sellShares;
+        sharesToSell -= sellShares;
+        if (lot.shares === 0) lots[tx.Symbol].shift();
+      }
+    }
+  }
+  return positions;
+}
+
+// Average hold time for winners (days)
+const avgHoldTimeWinners = computed(() => {
+  const closed = getClosedPositions().filter(p => p.pnl > 0);
+  if (!closed.length) return 0;
+  const avg = closed.reduce((sum, p) => sum + p.holdDays, 0) / closed.length;
+  return avg.toFixed(1);
+});
+
+// Average hold time for losers (days)
+const avgHoldTimeLosers = computed(() => {
+  const closed = getClosedPositions().filter(p => p.pnl < 0);
+  if (!closed.length) return 0;
+  const avg = closed.reduce((sum, p) => sum + p.holdDays, 0) / closed.length;
+  return avg.toFixed(1);
+});
+
+// Average gain (%)
+const avgGain = computed(() => {
+  const closed = getClosedPositions().filter(p => p.pnl > 0);
+  if (!closed.length) return '0.00';
+  const avg = closed.reduce((sum, p) => sum + p.pnl, 0) / closed.length;
+  return avg.toFixed(2);
+});
+
+// Average loss (%)
+const avgLoss = computed(() => {
+  const closed = getClosedPositions().filter(p => p.pnl < 0);
+  if (!closed.length) return '0.00';
+  const avg = closed.reduce((sum, p) => sum + p.pnl, 0) / closed.length;
+  return avg.toFixed(2);
+});
+
+// Gain/Loss Ratio (absolute value of avg gain divided by avg loss)
+const gainLossRatio = computed(() => {
+  const gain = Number(avgGainAbs.value);
+  const loss = Math.abs(Number(avgLossAbs.value));
+  if (!gain || !loss) return '-';
+  return (gain / loss).toFixed(2);
+});
+
+// Risk/Reward Ratio (avg loss divided by avg gain, absolute value)
+const riskRewardRatio = computed(() => {
+  const gain = Number(avgGain.value);
+  const loss = Math.abs(Number(avgLoss.value));
+  if (!gain || !loss) return '-';
+  return (gain / loss).toFixed(2);
+});
+
+const avgGainAbs = computed(() => {
+  const closed = getClosedPositions().filter(p => p.pnl > 0);
+  if (!closed.length) return '0.00';
+  const avg = closed.reduce((sum, p) => sum + ((p.sellPrice - p.buyPrice) * p.shares), 0) / closed.length;
+  return avg.toFixed(2);
+});
+
+const avgLossAbs = computed(() => {
+  const closed = getClosedPositions().filter(p => p.pnl < 0);
+  if (!closed.length) return '0.00';
+  const avg = closed.reduce((sum, p) => sum + Math.abs((p.sellPrice - p.buyPrice) * p.shares), 0) / closed.length;
+  return avg.toFixed(2);
+});
 
 </script>
 
@@ -470,6 +914,23 @@ function getPercOfPortfolio(position) {
   padding: 10px 24px;
   font-size: 1rem;
   font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: var(--accent2);
+  }
+}
+
+.trade-btn2 {
+  background: var(--negative);
+  color: var(--text1);
+  border: none;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-left: 12px;
   cursor: pointer;
   transition: background 0.2s;
 
@@ -624,5 +1085,23 @@ function getPercOfPortfolio(position) {
     height: 100% !important;
     max-height: 200px !important;
   }
+}
+
+.reset-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.reset-modal {
+  background: var(--base2);
+  padding: 32px 24px;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.12);
+  min-width: 320px;
+  text-align: center;
 }
 </style>

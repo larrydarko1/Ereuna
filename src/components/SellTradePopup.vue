@@ -5,6 +5,16 @@
       <h2>Sell {{ symbol }}</h2>
       <form @submit.prevent="submitSell">
         <div class="input-row">
+          <label for="date">Date</label>
+          <input
+            id="date"
+            type="date"
+            v-model="sellDate"
+            :max="today"
+            required
+          />
+        </div>
+        <div class="input-row">
           <label for="symbol">Symbol</label>
           <input id="symbol" :value="symbol" readonly />
         </div>
@@ -48,17 +58,19 @@ const props = defineProps({
   symbol: String,
   maxShares: Number,
   price: Number,
-  currentPrice: Number, // new prop for price placeholder
+  currentPrice: Number,
   user: String,
   apiKey: String
 })
 const emit = defineEmits(['close', 'sell'])
 
+const today = new Date().toISOString().slice(0, 10)
+const sellDate = ref(today)
 const sellShares = ref(1)
 const sellPrice = ref(props.currentPrice || props.price || 0)
 
 // Clamp sellShares to maxShares
-watch(sellShares, (val, oldVal) => {
+watch(sellShares, (val) => {
   if (val > props.maxShares) sellShares.value = props.maxShares
   if (val < 1) sellShares.value = 1
 })
@@ -77,7 +89,7 @@ async function submitSell() {
     Shares: sellShares.value,
     Action: "Sell",
     Price: sellPrice.value,
-    Date: new Date().toISOString(),
+    Date: sellDate.value, // Use selected date
     Total: Number((sellShares.value * sellPrice.value).toFixed(2))
   }
   try {

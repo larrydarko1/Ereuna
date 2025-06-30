@@ -2213,6 +2213,60 @@ function getImagePath(item) {
 
 async function getData(item) {
   try {
+    if (Tier.value === 'Premium') {
+      let ws;
+      let wsTimeout;
+      let resolved = false;
+
+      const wsPromise = new Promise((resolve, reject) => {
+        ws = new WebSocket(`wss://${window.location.host}/ws/premium-data`);
+        ws.onopen = () => {
+          ws.send(JSON.stringify({ action: 'subscribe', symbol: item }));
+        };
+        ws.onmessage = (event) => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(wsTimeout);
+            const data = JSON.parse(event.data);
+            ws.close();
+            resolve(data);
+          }
+        };
+        ws.onerror = (err) => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(wsTimeout);
+            ws.close();
+            reject(new Error('WebSocket error'));
+          }
+        };
+        wsTimeout = setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            ws.close();
+            reject(new Error('WebSocket timeout'));
+          }
+        }, 2000);
+      });
+
+      let premiumData = null;
+      let wsTimedOut = false;
+      try {
+        premiumData = await wsPromise;
+      } catch (wsError) {
+        wsTimedOut = true;
+      }
+
+      if (premiumData && !wsTimedOut) {
+        quotes[item] = parseFloat(premiumData.close).toFixed(2);
+        changes[item] = parseFloat(premiumData.closeDiff);
+        perc[item] = parseFloat(premiumData.percentChange);
+        return;
+      }
+      // If websocket fails or times out, fallback to Core logic below
+    }
+
+    // --- Core/EOD logic ---
     const response = await fetch(`/api/${item}/data-values`, {
       headers: {
         'X-API-KEY': apiKey,
@@ -2223,7 +2277,6 @@ async function getData(item) {
     }
     const data = await response.json();
 
-    // Assign the values to the reactive objects
     quotes[item] = parseFloat(data.close).toFixed(2);
     changes[item] = parseFloat(data.closeDiff);
     perc[item] = parseFloat(data.percentChange);
