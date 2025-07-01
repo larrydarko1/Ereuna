@@ -15170,6 +15170,7 @@ app.post('/trades/add', validate([
   body('trade.Price').isFloat({ min: 0.01 }).withMessage('Price must be a positive number'),
   body('trade.Date').isISO8601().withMessage('Date must be a valid ISO date'),
   body('trade.Total').isFloat({ min: 0 }).withMessage('Total must be a number'),
+  body('trade.Commission').optional().isFloat({ min: 0 }).withMessage('Commission must be a non-negative number'),
 ]), async (req, res) => {
   const requestLogger = createRequestLogger(req);
   let client;
@@ -15183,14 +15184,15 @@ app.post('/trades/add', validate([
     const { username, trade } = req.body;
     const sanitizedUser = sanitizeInput(username);
 
-    // Process and sanitize the trade object
+    // Process and sanitize the trade object, including Commission
     const processedTrade = {
       Date: new Date(trade.Date).toISOString(),
       Symbol: String(trade.Symbol).toUpperCase().trim(),
       Action: String(trade.Action),
       Shares: Number(trade.Shares),
       Price: Number(trade.Price),
-      Total: Number(trade.Total)
+      Total: Number(trade.Total),
+      Commission: typeof trade.Commission === 'number' ? Number(trade.Commission) : 0
     };
 
     client = new MongoClient(uri);
@@ -15509,6 +15511,7 @@ app.post('/trades/sell', validate([
   body('trade.Price').isFloat({ min: 0.01 }).withMessage('Price must be a positive number'),
   body('trade.Date').isISO8601().withMessage('Date must be a valid ISO date'),
   body('trade.Total').isFloat({ min: 0 }).withMessage('Total must be a number'),
+  body('trade.Commission').optional().isFloat({ min: 0 }).withMessage('Commission must be a non-negative number'),
 ]), async (req, res) => {
   const requestLogger = createRequestLogger(req);
   let client;
@@ -15522,14 +15525,15 @@ app.post('/trades/sell', validate([
     const { username, trade } = req.body;
     const sanitizedUser = sanitizeInput(username);
 
-    // Process and sanitize the trade object
+    // Process and sanitize the trade object, including Commission
     const processedTrade = {
       Date: new Date(trade.Date).toISOString(),
       Symbol: String(trade.Symbol).toUpperCase().trim(),
       Action: String(trade.Action),
       Shares: Number(trade.Shares),
       Price: Number(trade.Price),
-      Total: Number(trade.Total)
+      Total: Number(trade.Total),
+      Commission: typeof trade.Commission === 'number' ? Number(trade.Commission) : 0
     };
 
     // Prevent future-dated trades

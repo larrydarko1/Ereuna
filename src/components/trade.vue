@@ -30,13 +30,20 @@
             placeholder="e.g. 10.25"
           />
         </div>
-        <div class="input-row">
-          <label for="price">Price</label>
-          <input id="price" type="number" v-model.number="price" min="0.01" step="0.01" required placeholder="e.g. 185.00" />
+        <div class="input-row input-row-flex">
+          <div class="input-flex-vertical">
+            <label for="price">Price</label>
+            <input id="price" type="number" v-model.number="price" min="0.01" step="0.01" required placeholder="e.g. 185.00" />
+          </div>
+          <div class="input-flex-vertical" style="margin-left: 12px;">
+            <label for="commission">Commission <span style="font-weight:400; color:var(--text2); font-size:0.97em;">(optional)</span></label>
+            <input id="commission" type="number" v-model.number="commission" min="0" step="0.01" placeholder="e.g. 1.50" />
+          </div>
         </div>
         <div class="input-row" style="margin-top: 8px;">
           <div>
             <strong>Total:</strong> ${{ total.toFixed(2) }}
+            <span v-if="commission"> (incl. ${{ commission.toFixed(2) }} commission)</span>
           </div>
           <div>
             <strong>Your Cash:</strong> ${{ props.cash?.toFixed(2) }}
@@ -63,16 +70,17 @@ const emit = defineEmits(['close', 'trade', 'refresh-history'])
 const props = defineProps({
   user: String,
   apiKey: String,
-  cash: Number // <-- Add this prop
+  cash: Number
 })
 
 const symbol = ref('')
 const shares = ref(1)
 const price = ref(0)
+const commission = ref(0)
 const today = new Date().toISOString().slice(0, 10)
 const tradeDate = ref(today)
 
-const total = computed(() => Number((shares.value * price.value).toFixed(2)))
+const total = computed(() => Number((shares.value * price.value + (commission.value || 0)).toFixed(2)))
 const insufficientCash = computed(() => props.cash !== undefined && total.value > props.cash)
 
 async function submitTrade() {
@@ -83,7 +91,8 @@ async function submitTrade() {
     Action: "Buy",
     Price: price.value,
     Date: tradeDate.value,
-    Total: total.value
+    Total: total.value,
+    Commission: commission.value || 0
   }
 
   try {
@@ -177,6 +186,20 @@ form {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.input-row-flex {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  align-items: flex-start;
+}
+
+.input-flex-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
 }
 
 label {

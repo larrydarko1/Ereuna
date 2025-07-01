@@ -7,6 +7,7 @@
         <button class="trade-btn" @click="showTradeModal = true">New Trade</button>
         <button class="trade-btn" style="margin-left: 12px;" @click="showAddCashModal = true">Add Cash</button>
         <button class="trade-btn2" style="margin-left: 12px;" @click="showResetDialog = true">Reset All</button>
+        <button class="trade-btn" style="margin-left: 12px;" @click="showLossesInfo = true">How to Lose</button>
       </div>
        <div v-if="showResetDialog" class="reset-modal-overlay">
       <div class="reset-modal">
@@ -31,6 +32,7 @@
   @close="showAddCashModal = false"
   @cash-added="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); showAddCashModal = false }"
 />
+<LossesInfoPopup v-if="showLossesInfo" @close="showLossesInfo = false" />
     </div>
     <div class="portfolio-summary">
       <div class="summary-card">
@@ -258,9 +260,9 @@
         </table>
       </div>
     </div>
-    <div class="portfolio-bar-chart-container" style="margin-bottom: 32px;">
+ <div class="portfolio-bar-chart-container" style="margin-bottom: 32px; background: var(--base2); border-radius: 10px; padding: 24px; box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);">
   <h3 style="color: var(--accent1); margin-bottom: 12px;">Trade Returns (%)</h3>
- <Bar :data="tradeReturnsChartData" :options="tradeReturnsChartOptions" :height="70" />
+  <Bar :data="tradeReturnsChartData" :options="tradeReturnsChartOptions" :height="70" />
 </div>
     <div class="portfolio-history-container">
       <h2>Transaction History</h2>
@@ -272,6 +274,7 @@
             <th>Action</th>
             <th>Shares</th>
             <th>Price</th>
+            <th>Commissions</th>
             <th>Total</th>
           </tr>
         </thead>
@@ -288,6 +291,9 @@
             <td>{{ tx.Shares }}</td>
             <td>
   {{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toFixed(2) }}
+</td>
+<td>
+  {{ isNaN(Number(tx.Commission)) ? '-' : '$' + Number(tx.Commission).toFixed(2) }}
 </td>
             <td>${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
             }}
@@ -307,6 +313,7 @@ import { ref, computed, watch } from 'vue'
 import TradePopup from '@/components/trade.vue'
 import SellTradePopup from '@/components/SellTradePopup.vue'
 import AddCashPopup from '@/components/addCash.vue'
+import LossesInfoPopup from '@/components/losing.vue'
 import { Pie, Line, Bar } from 'vue-chartjs'
 import {
   Chart,
@@ -331,6 +338,7 @@ const showTradeModal = ref(false)
 const showSellModal = ref(false)
 const sellPosition = ref({ symbol: '', shares: 0, price: 0 })
 const showAddCashModal = ref(false)
+const showLossesInfo = ref(false)
 const addCashError = ref('')
 
 function openSellModal(position) {
@@ -493,7 +501,7 @@ const lineData = computed(() => {
         label: 'Total Value (Positions + Cash)',
         data: history.map(h => h.value),
         borderColor: accent1,
-        backgroundColor: accent1 + '20',
+        backgroundColor: 'rgba(140, 141, 254, 0.7)',
         tension: 0.4,
         fill: true,
         pointRadius: 3,
@@ -509,8 +517,16 @@ const lineOptions = {
     tooltip: { enabled: true }
   },
   scales: {
-    x: { ticks: { color: text2 } },
-    y: { ticks: { color: text2 } }
+    x: {
+      ticks: {
+        color: text2,
+        display: false 
+      },
+      title: { display: false }
+    },
+    y: {
+      ticks: { color: text2 }
+    }
   }
 }
 
