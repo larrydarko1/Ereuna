@@ -156,6 +156,32 @@
   <div class="summary-title">Risk/Reward Ratio</div>
   <div class="summary-value">{{ riskRewardRatio }}</div>
 </div>
+<div class="summary-card">
+  <div class="summary-title">Winning Trades</div>
+  <div class="summary-value positive">
+    {{ winnerCount }} ({{ winnerPercent }}%)
+  </div>
+</div>
+<div class="summary-card">
+  <div class="summary-title">Losing Trades</div>
+  <div class="summary-value negative">
+    {{ loserCount }} ({{ loserPercent }}%)
+  </div>
+</div>
+<div class="summary-card">
+  <div class="summary-title">Breakeven Trades</div>
+  <div class="summary-value">
+    {{ breakevenCount }} ({{ breakevenPercent }}%)
+  </div>
+</div>
+<div class="summary-card">
+  <div class="summary-title">Profit Factor</div>
+  <div class="summary-value">{{ profitFactor }}</div>
+</div>
+<div class="summary-card">
+  <div class="summary-title">Sortino Ratio</div>
+  <div class="summary-value">{{ sortinoRatio }}</div>
+</div>
     </div>
     <div class="portfolio-linechart-container">
       <div class="linechart-fixed-height">
@@ -180,47 +206,62 @@
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
-             <tr v-if="portfolio.length === 0">
+<tbody>
+  <tr v-if="portfolio.length === 0 && cash === 0">
     <td colspan="8" style="text-align:center; color: var(--text2);">
       No Active Positions
     </td>
   </tr>
-            <tr v-for="position in portfolio" :key="position.Symbol">
-              <td>
-                <span v-if="latestQuotes[position.Symbol] !== undefined">
-                  {{ getPercOfPortfolio(position) }}%
-                </span>
-              </td>
-              <td>{{ position.Symbol }}</td>
-              <td>{{ position.Shares }}</td>
-              <td>${{ Number(position.AvgPrice).toFixed(2) }}</td>
-              <td>
-                <span v-if="latestQuotes[position.Symbol] !== undefined">
-                  ${{ getCurrentPrice(position) }}
-                </span>
-              </td>
-              <td>
-                <span v-if="latestQuotes[position.Symbol] !== undefined">
-                  ${{ getTotalValue(position) }}
-                </span>
-              </td>
-              <td :class="getPnLClass(position)">
-                <span v-if="latestQuotes[position.Symbol] !== undefined">
-                  {{ getPnLPercent(position) > 0 ? '+' : '' }}{{ getPnLPercent(position) }}%
-                </span>
-              </td>
-              <td>
-                <button class="action-btn"
-                  @click="openSellModal({ symbol: position.Symbol, shares: position.Shares, price: position.AvgPrice })">
-                  Sell
-                </button>
-              </td>
-            </tr>
-          </tbody>
+  <tr v-for="position in portfolio" :key="position.Symbol">
+    <td>
+      <span v-if="latestQuotes[position.Symbol] !== undefined">
+        {{ getPercOfPortfolio(position) }}%
+      </span>
+    </td>
+    <td>{{ position.Symbol }}</td>
+    <td>{{ position.Shares }}</td>
+    <td>${{ Number(position.AvgPrice).toFixed(2) }}</td>
+    <td>
+      <span v-if="latestQuotes[position.Symbol] !== undefined">
+        ${{ getCurrentPrice(position) }}
+      </span>
+    </td>
+    <td>
+      <span v-if="latestQuotes[position.Symbol] !== undefined">
+        ${{ getTotalValue(position) }}
+      </span>
+    </td>
+    <td :class="getPnLClass(position)">
+      <span v-if="latestQuotes[position.Symbol] !== undefined">
+        {{ getPnLPercent(position) > 0 ? '+' : '' }}{{ getPnLPercent(position) }}%
+      </span>
+    </td>
+    <td>
+      <button class="action-btn"
+        @click="openSellModal({ symbol: position.Symbol, shares: position.Shares, price: position.AvgPrice })">
+        Sell
+      </button>
+    </td>
+  </tr>
+  <!-- Add cash as a row -->
+  <tr class="cash-row">
+    <td>{{ getPercOfCash() }}%</td>
+    <td>Cash</td>
+    <td>-</td>
+    <td>-</td>
+    <td>-</td>
+    <td>${{ cash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
+    <td>-</td>
+    <td></td>
+  </tr>
+</tbody>
         </table>
       </div>
     </div>
+    <div class="portfolio-bar-chart-container" style="margin-bottom: 32px;">
+  <h3 style="color: var(--accent1); margin-bottom: 12px;">Trade Returns (%)</h3>
+ <Bar :data="tradeReturnsChartData" :options="tradeReturnsChartOptions" :height="70" />
+</div>
     <div class="portfolio-history-container">
       <h2>Transaction History</h2>
       <table class="portfolio-table">
@@ -266,7 +307,7 @@ import { ref, computed, watch } from 'vue'
 import TradePopup from '@/components/trade.vue'
 import SellTradePopup from '@/components/SellTradePopup.vue'
 import AddCashPopup from '@/components/addCash.vue'
-import { Pie, Line } from 'vue-chartjs'
+import { Pie, Line, Bar } from 'vue-chartjs'
 import {
   Chart,
   ArcElement,
@@ -275,9 +316,11 @@ import {
   LineElement,
   PointElement,
   LinearScale,
-  CategoryScale
+  CategoryScale,
+  BarElement 
 } from 'chart.js'
 import { useStore } from 'vuex';
+import annotationPlugin from 'chartjs-plugin-annotation';
 
 // access user from store 
 const store = useStore();
@@ -305,7 +348,17 @@ function handleSell(sellOrder) {
   }, 300); // 300ms delay, adjust if needed
 }
 
-Chart.register(ArcElement, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale)
+Chart.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  BarElement,
+  annotationPlugin
+)
 
 // Helper to get CSS variable
 function getVar(name) {
@@ -672,7 +725,7 @@ const realizedPLPercent = computed(() => {
 });
 
 function getPercOfPortfolio(position) {
-  const total = totalPortfolioValue.value;
+  const total = totalPortfolioValue2.value; // includes cash
   const close = latestQuotes.value[position.Symbol];
   if (!total || close === undefined || close === null) return '';
   const perc = ((close * position.Shares) / total) * 100;
@@ -882,6 +935,151 @@ const avgLossAbs = computed(() => {
   return avg.toFixed(2);
 });
 
+const closedPositions = computed(() => getClosedPositions());
+
+const winnerCount = computed(() => closedPositions.value.filter(p => p.pnl > 0).length);
+const loserCount = computed(() => closedPositions.value.filter(p => p.pnl < 0).length);
+const breakevenCount = computed(() => closedPositions.value.filter(p => Number(p.pnl) === 0).length);
+const totalClosed = computed(() => closedPositions.value.length);
+
+const winnerPercent = computed(() => {
+  if (!totalClosed.value) return '0.00';
+  return ((winnerCount.value / totalClosed.value) * 100).toFixed(2);
+});
+const loserPercent = computed(() => {
+  if (!totalClosed.value) return '0.00';
+  return ((loserCount.value / totalClosed.value) * 100).toFixed(2);
+});
+const breakevenPercent = computed(() => {
+  if (!totalClosed.value) return '0.00';
+  return ((breakevenCount.value / totalClosed.value) * 100).toFixed(2);
+});
+
+function getPercOfCash() {
+  const total = totalPortfolioValue2.value; // includes cash
+  if (!total) return '0.00';
+  return ((cash.value / total) * 100).toFixed(2);
+}
+
+const profitFactor = computed(() => {
+  const closed = getClosedPositions();
+  const grossProfit = closed.filter(p => p.pnl > 0).reduce((sum, p) => sum + ((p.sellPrice - p.buyPrice) * p.shares), 0);
+  const grossLoss = closed.filter(p => p.pnl < 0).reduce((sum, p) => sum + Math.abs((p.sellPrice - p.buyPrice) * p.shares), 0);
+  if (grossLoss === 0) return grossProfit > 0 ? '∞' : '-';
+  return (grossProfit / grossLoss).toFixed(2);
+});
+
+const riskFreeRate = ref(0.02); // Set your risk-free rate here (e.g. 0.02 for 2%)
+
+const sortinoRatio = computed(() => {
+  const closed = getClosedPositions();
+  if (!closed.length) return '-';
+  const returns = closed.map(p => p.pnl / 100); // Convert % to decimal
+  const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
+  const downsideReturns = returns.filter(r => r < riskFreeRate.value);
+  if (!downsideReturns.length) return '∞';
+  const downsideDev = Math.sqrt(
+    downsideReturns.reduce((sum, r) => sum + Math.pow(r - riskFreeRate.value, 2), 0) / downsideReturns.length
+  );
+  if (downsideDev === 0) return '∞';
+  return ((avgReturn - riskFreeRate.value) / downsideDev).toFixed(2);
+});
+
+const tradeReturnsMedianBinIndex = computed(() => {
+  const closed = getClosedPositions();
+  if (!closed.length) return -1;
+
+  // Bin setup (must match your chart binning)
+  const minReturn = Math.floor(Math.min(...closed.map(p => p.pnl)) / 2) * 2;
+  const maxReturn = Math.ceil(Math.max(...closed.map(p => p.pnl)) / 2) * 2;
+  const bins = [];
+  for (let i = minReturn; i < maxReturn; i += 2) {
+    bins.push({ min: i, max: i + 2 });
+  }
+
+  // Sort returns and find the median value
+  const sorted = closed.map(p => p.pnl).sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const medianValue = sorted.length % 2 !== 0
+    ? sorted[mid]
+    : (sorted[mid - 1] + sorted[mid]) / 2;
+
+  // Find which bin contains the median value
+  return bins.findIndex(b => medianValue >= b.min && medianValue < b.max);
+});
+
+const tradeReturnsChartData = computed(() => {
+  const closed = getClosedPositions();
+  if (!closed.length) return { labels: [], datasets: [] };
+
+  // Find min and max return to determine bins
+  const minReturn = Math.floor(Math.min(...closed.map(p => p.pnl)) / 2) * 2;
+  const maxReturn = Math.ceil(Math.max(...closed.map(p => p.pnl)) / 2) * 2;
+
+  // Create bins
+  const bins = [];
+  for (let i = minReturn; i < maxReturn; i += 2) {
+    bins.push({ range: `${i} to ${i + 2}%`, count: 0, positive: i + 2 > 0 });
+  }
+
+  // Count trades in each bin
+  closed.forEach(p => {
+    const binIdx = Math.floor((p.pnl - minReturn) / 2);
+    if (bins[binIdx]) bins[binIdx].count += 1;
+  });
+
+  return {
+    labels: bins.map(b => b.range),
+    datasets: [
+      {
+        label: 'Number of Trades',
+        data: bins.map(b => b.count),
+        backgroundColor: bins.map(b => b.positive ? 'rgba(76, 175, 80, 0.7)' : 'rgba(244, 67, 54, 0.7)'),
+        borderColor: bins.map(b => b.positive ? '#4caf50' : '#f44336'),
+        borderWidth: 1,
+      }
+    ]
+  };
+});
+
+const tradeReturnsChartOptions = computed(() => {
+  // Get the label of the median bin
+  const medianBinLabel = tradeReturnsChartData.value.labels[tradeReturnsMedianBinIndex.value];
+  return {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: true },
+      annotation: {
+        annotations: {
+          medianLine: medianBinLabel !== undefined ? {
+            type: 'line',
+            xMin: medianBinLabel,
+            xMax: medianBinLabel,
+            borderColor: accent1,
+            borderWidth: 2,
+            // No borderDash for solid line
+            label: {
+              enabled: true,
+              content: 'Median',
+              position: 'top',
+              color: accent1,
+              backgroundColor: 'rgba(30,30,47,0.85)',
+              font: { weight: 'bold' }
+            }
+          } : undefined
+        }
+      }
+    },
+    scales: {
+      x: { ticks: { color: getVar('--text2') } },
+      y: {
+        ticks: { color: getVar('--text2') },
+        title: { display: true, text: 'Number of Trades', color: getVar('--text2') }
+      }
+    }
+  };
+});
 </script>
 
 <style lang="scss" scoped>
@@ -1103,5 +1301,11 @@ const avgLossAbs = computed(() => {
   box-shadow: 0 2px 12px 0 rgba(0,0,0,0.12);
   min-width: 320px;
   text-align: center;
+}
+
+.cash-row {
+  background: var(--base1);
+  color: var(--accent1);
+  font-weight: 600;
 }
 </style>
