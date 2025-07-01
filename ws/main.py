@@ -93,6 +93,29 @@ async def websocket_stream(websocket: WebSocket):
     except Exception as e:
         print(f"WebSocket error: {e}")
         await websocket.close()
+        
+@app.websocket("/ws/symbol/{symbol}")
+async def websocket_symbol(websocket: WebSocket, symbol: str):
+    await websocket.accept()
+    symbol = symbol.lower()
+    try:
+        while True:
+            msg = await message_queue.get()
+            try:
+                data = json.loads(msg)
+                d = data.get("data")
+                if isinstance(d, list):
+                    # For stocks: symbol at index 1, for crypto: symbol at index 1
+                    if len(d) > 1 and isinstance(d[1], str) and d[1].lower() == symbol:
+                        await websocket.send_text(msg)
+            except Exception:
+                continue
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+        await websocket.close()
 
 # To run: uvicorn ws.main:app --reload
 # wscat -c "ws://localhost:8000/ws/stream"
+# wscat -c "ws://localhost:8000/ws/symbol/BTCEUR"
