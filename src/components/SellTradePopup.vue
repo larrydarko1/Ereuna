@@ -31,17 +31,29 @@
           />
           <small class="hint">You own {{ maxShares }} shares</small>
         </div>
-        <div class="input-row">
-          <label for="price">Price</label>
-          <input
-            id="price"
-            type="number"
-            v-model.number="sellPrice"
-            min="0.01"
-            step="0.01"
-            required
-            :placeholder="currentPrice ? `$${Number(currentPrice).toFixed(2)}` : 'e.g. 185.00'"
-          />
+        <div class="input-row input-row-flex">
+          <div class="input-flex-vertical">
+            <label for="price">Price</label>
+            <input
+              id="price"
+              type="number"
+              v-model.number="sellPrice"
+              min="0.01"
+              step="0.01"
+              required
+              :placeholder="currentPrice ? `$${Number(currentPrice).toFixed(2)}` : 'e.g. 185.00'"
+            />
+          </div>
+          <div class="input-flex-vertical" style="margin-left: 12px;">
+            <label for="commission">Commission <span style="font-weight:400; color:var(--text2); font-size:0.97em;">(optional)</span></label>
+            <input id="commission" type="number" v-model.number="sellCommission" min="0" step="0.01" placeholder="e.g. 1.50" />
+          </div>
+        </div>
+        <div class="input-row" style="margin-top: 8px;">
+          <div>
+            <strong>Total:</strong> ${{ sellTotal.toFixed(2) }}
+            <span v-if="sellCommission"> (incl. ${{ sellCommission.toFixed(2) }} commission)</span>
+          </div>
         </div>
         <div class="modal-actions">
           <button type="submit" class="trade-btn">Sell</button>
@@ -53,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, watch } from 'vue'
+import { ref, defineProps, defineEmits, watch, computed } from 'vue'
 const props = defineProps({
   symbol: String,
   maxShares: Number,
@@ -68,6 +80,8 @@ const today = new Date().toISOString().slice(0, 10)
 const sellDate = ref(today)
 const sellShares = ref(1)
 const sellPrice = ref(props.currentPrice || props.price || 0)
+const sellCommission = ref(0)
+const sellTotal = computed(() => Number((sellShares.value * sellPrice.value + (sellCommission.value || 0)).toFixed(2)))
 
 // Clamp sellShares to maxShares
 watch(sellShares, (val) => {
@@ -90,7 +104,8 @@ async function submitSell() {
     Action: "Sell",
     Price: sellPrice.value,
     Date: sellDate.value, // Use selected date
-    Total: Number((sellShares.value * sellPrice.value).toFixed(2))
+    Total: sellTotal.value,
+    Commission: sellCommission.value || 0
   }
   try {
     const response = await fetch(`/api/trades/sell`, {
@@ -201,4 +216,16 @@ input:focus { border-color: var(--accent1); background: var(--base4); }
   transition: border-color 0.18s, color 0.18s;
 }
 .cancel-btn:hover { border-color: var(--accent1); color: var(--accent1); }
+.input-row-flex {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  align-items: flex-start;
+}
+.input-flex-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
 </style>
