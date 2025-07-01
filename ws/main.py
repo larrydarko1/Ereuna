@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import websockets
 import ssl
 import asyncio
+import collections
 
 load_dotenv()
 TIINGO_API_KEY = os.getenv('TIINGO_KEY')
@@ -19,16 +20,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# streams real time data for crypto and stocks only (forex removed)
-@app.websocket("/ws/stream")
-async def websocket_stream(websocket: WebSocket):
-    await websocket.accept()
+message_queue = asyncio.Queue(maxsize=1000)  # Holds latest messages
 
-    # Hardcoded symbol lists
-    crypto_symbols = ["BTCUSD", "ETHUSD"]
-    stock_symbols = ["AAPL", "MSFT", "AMZN"]
+crypto_symbols = ["BTCUSD", "ETHUSD"]
+stock_symbols = ["AAPL", "MSFT", "SPY"]
 
-    async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
+def crypto_filter(msg):
+    return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) > 0 and msg["data"][0] == "Q"
+def stock_filter(msg):
+    return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) >= 3
+
+crypto_ws_url = "wss://api.tiingo.com/crypto"
+crypto_subscribe_msg = {
+    "eventName": "subscribe",
+    "authorization": TIINGO_API_KEY,
+    "eventData": {
+        "tickers": crypto_symbols,
+        "channels": ["trades"],
+        "thresholdLevel": 2
+    }
+}
+stock_ws_url = "wss://api.tiingo.com/iex"
+stock_subscribe_msg = {
+    "eventName": "subscribe",
+    "authorization": TIINGO_API_KEY,
+    "eventData": {
+        "thresholdLevel": 6,
+        "tickers": stock_symbols
+    }
+}
+ssl_ctx = ssl._create_unverified_context()
+
+async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
+    while True:
         try:
             async with websockets.connect(ws_url, ssl=ssl_ctx) as tiingo_ws:
                 await tiingo_ws.send(json.dumps(subscribe_msg))
@@ -40,55 +64,35 @@ async def websocket_stream(websocket: WebSocket):
                         print(f"JSON decode error: {e}")
                         continue
                     if isinstance(tiingo_data, dict):
-                        # Handle error messages
-                        if tiingo_data.get("messageType") == "E":
-                            await websocket.send_text(json.dumps({"error": tiingo_data.get("response", {}).get("message", "Unknown error from Tiingo")}))
-                            await websocket.close()
-                            break
-                        # Handle info/heartbeat messages
                         if tiingo_data.get("messageType") in ("I", "H"):
                             continue
-                        # Filter and relay
                         if filter_fn(tiingo_data):
-                            await websocket.send_text(json.dumps(tiingo_data))
+                            try:
+                                await message_queue.put(json.dumps(tiingo_data))
+                            except asyncio.QueueFull:
+                                await message_queue.get()
+                                await message_queue.put(json.dumps(tiingo_data))
         except Exception as e:
             print(f"Exception in relay_tiingo: {e}")
-            await websocket.send_text(json.dumps({"error": str(e)}))
-            await websocket.close()
+            await asyncio.sleep(5)  # Retry after delay
 
-    # Define filter functions
-    def crypto_filter(msg):
-        return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) > 0 and msg["data"][0] == "Q"
-    def stock_filter(msg):
-        return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) >= 3
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(relay_tiingo(crypto_ws_url, crypto_subscribe_msg, ssl_ctx, crypto_filter))
+    asyncio.create_task(relay_tiingo(stock_ws_url, stock_subscribe_msg, ssl_ctx, stock_filter))
 
-    # Prepare connection details
-    crypto_ws_url = "wss://api.tiingo.com/crypto"
-    crypto_subscribe_msg = {
-        "eventName": "subscribe",
-        "authorization": TIINGO_API_KEY,
-        "eventData": {
-            "tickers": crypto_symbols,
-            "channels": ["trades"],
-            "thresholdLevel": 2
-        }
-    }
-    stock_ws_url = "wss://api.tiingo.com/iex"
-    stock_subscribe_msg = {
-        "eventName": "subscribe",
-        "authorization": TIINGO_API_KEY,
-        "eventData": {
-            "thresholdLevel": 6,
-            "tickers": stock_symbols
-        }
-    }
-    ssl_ctx = ssl._create_unverified_context()
-
-    # Run both relays concurrently (forex removed)
-    await asyncio.gather(
-        relay_tiingo(crypto_ws_url, crypto_subscribe_msg, ssl_ctx, crypto_filter),
-        relay_tiingo(stock_ws_url, stock_subscribe_msg, ssl_ctx, stock_filter)
-    )
+@app.websocket("/ws/stream")
+async def websocket_stream(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            msg = await message_queue.get()
+            await websocket.send_text(msg)
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+        await websocket.close()
 
 # To run: uvicorn ws.main:app --reload
 # wscat -c "ws://localhost:8000/ws/stream"
