@@ -557,7 +557,7 @@ def getHistoricalCryptoPrice():
         ticker_lower = ticker.lower()
         url = (
             f'https://api.tiingo.com/tiingo/crypto/prices'
-            f'?tickers={ticker_lower}&startDate=2000-01-01&resampleFreq=1Day&token={api_key}'
+            f'?tickers={ticker_lower}&startDate=2025-06-25&resampleFreq=1Day&token={api_key}'
         )
         response = requests.get(url)
         
@@ -649,85 +649,6 @@ def insert_SHE_and_SHEB_stocks():
                 {'$setOnInsert': doc},
                 upsert=True
             )
-
-def classify_and_price_target(stock_doc):
-    pe = stock_doc.get('PERatio', None)
-    peg = stock_doc.get('PEGRatio', None)
-    dividend_yield = stock_doc.get('DividendYield', 0) or 0
-    price_to_book = stock_doc.get('PriceToBookRatio', None)
-    price_to_sales = stock_doc.get('PriceToSalesRatioTTM', None)
-    eps = stock_doc.get('EPS', None)
-    book_value = stock_doc.get('BookValue', None)
-    market_cap = stock_doc.get('MarketCapitalization', None)
-    shares_out = stock_doc.get('SharesOutstanding', None)
-    quarterly_earnings = stock_doc.get('quarterlyEarnings', [])
-    quarterly_financials = stock_doc.get('quarterlyFinancials', [])
-    price = None
-
-    # Try to get current price if possible
-    if market_cap and shares_out and shares_out > 0:
-        price = market_cap / shares_out
-
-    # Calculate TTM EPS if possible
-    if (not eps or eps < 2) and quarterly_earnings and len(quarterly_earnings) >= 4:
-        try:
-            eps = sum([qe.get('reportedEPS', 0) or 0 for qe in quarterly_earnings[:4]])
-        except Exception:
-            pass
-
-    # Calculate recent revenue growth (last 4 quarters)
-    revenue_growth = None
-    if len(quarterly_financials) >= 5:
-        try:
-            rev_now = quarterly_financials[0].get('totalRevenue', None)
-            rev_past = quarterly_financials[4].get('totalRevenue', None)
-            if rev_now and rev_past and rev_past != 0:
-                revenue_growth = (rev_now - rev_past) / rev_past
-        except Exception:
-            revenue_growth = None
-
-    # Classification logic
-    is_growth = False
-    if (pe and pe > 25) or (peg and peg > 1.5) or (dividend_yield < 0.01) or (revenue_growth and revenue_growth > 0.10):
-        is_growth = True
-    if (dividend_yield > 0.025 and pe and pe < 20 and (revenue_growth is not None and revenue_growth < 0.05)):
-        is_growth = False
-
-    stock_type = 'growth' if is_growth else 'mature'
-
-    # Price target logic
-    price_target = None
-    if eps and eps > 0:
-        if stock_type == 'growth':
-            target_pe = 25 if not pe or pe > 25 else pe
-            price_target = eps * target_pe
-        else:
-            target_pe = 15 if not pe or pe > 15 else pe
-            price_target = eps * target_pe
-    elif price:
-        price_target = price  # fallback to current price
-
-    return {
-        'type': stock_type,
-        'price_target': round(price_target, 2) if price_target else None
-    }
-    
-def update_price_targets():
-    asset_info_collection = db['AssetInfo']
-    count = 0
-    for doc in asset_info_collection.find():
-        result = classify_and_price_target(doc)
-        price_target = result.get('price_target')
-        if price_target is not None:
-            asset_info_collection.update_one(
-                {'_id': doc['_id']},
-                {'$set': {'PriceTarget': float(price_target)}}
-            )
-            count += 1
-    print(f"Updated PriceTarget for {count} documents in AssetInfo.")
-
-# Usage:
-update_price_targets()
 
 def remove_she_and_sheb_documents():
     asset_info_collection = db['AssetInfo']
