@@ -557,7 +557,7 @@ def getHistoricalCryptoPrice():
         ticker_lower = ticker.lower()
         url = (
             f'https://api.tiingo.com/tiingo/crypto/prices'
-            f'?tickers={ticker_lower}&startDate=2025-06-25&resampleFreq=1Day&token={api_key}'
+            f'?tickers={ticker_lower}&startDate=2025-01-01&resampleFreq=1Day&token={api_key}'
         )
         response = requests.get(url)
         
@@ -654,3 +654,4 @@ def remove_she_and_sheb_documents():
     asset_info_collection = db['AssetInfo']
     result = asset_info_collection.delete_many({'Exchange': {'$in': ['SHE', 'SHEB']}})
     print(f"Deleted {result.deleted_count} documents with Exchange 'SHE' or 'SHEB'.")
+

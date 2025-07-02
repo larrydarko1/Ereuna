@@ -1,5 +1,6 @@
 <template>
   <Header />
+  <Assistant />
   <section class="portfolio-container">
     <div class="portfolio-header">
       <h1>Simulated Portfolio</h1>
@@ -309,7 +310,8 @@
 
 <script setup>
 import Header from '@/components/Header.vue';
-import { ref, computed, watch } from 'vue'
+import assistant from '@/components/assistant.vue';
+import { ref, computed, watch, onUnmounted } from 'vue'
 import TradePopup from '@/components/trade.vue'
 import SellTradePopup from '@/components/SellTradePopup.vue'
 import AddCashPopup from '@/components/addCash.vue'
@@ -328,11 +330,40 @@ import {
 } from 'chart.js'
 import { useStore } from 'vuex';
 import annotationPlugin from 'chartjs-plugin-annotation';
+import Assistant from '@/components/assistant.vue';
 
 // access user from store 
 const store = useStore();
 let user = store.getters.getUser;
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
+let Tier = ref(); // user tier
+
+// function to retrieve the tier for each user
+async function fetchTier() {
+  try {
+    const headers = {
+      'x-api-key': apiKey
+    };
+
+    const response = await fetch(`/api/tier?username=${user}`, {
+      headers: headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const newTier = await response.json();
+    Tier.value = newTier.Tier;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+    console.error('Error fetching tier:', error);
+  }
+}
+fetchTier()
 
 const showTradeModal = ref(false)
 const showSellModal = ref(false)
