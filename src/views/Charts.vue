@@ -1,6 +1,7 @@
 <template>
   <body>
     <Header />
+    <Assistant />
     <div class="watch-panel-container" style="display: flex; align-items: center; justify-content: space-between;">
       <div class="watch-panel" style="display: flex; gap: 8px;">
         <template v-if="watchPanel.length > 0">
@@ -626,6 +627,7 @@
 <script setup>
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
+import Assistant from '@/components/assistant.vue';
 import Panel from '@/components/panel.vue'
 import Summary from '@/components/sidebar/summary.vue'
 import EpsTable from '@/components/sidebar/eps.vue'

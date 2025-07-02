@@ -1,5 +1,6 @@
 <template>
   <Header />
+  <Assistant />
   <section class="archie-hero">
     <div class="e-card playing archie-card">
       <div class="wave"></div>
@@ -30,6 +31,7 @@
 </template>
 
 <script setup>
+import Assistant from '@/components/assistant.vue';
 import Header from '@/components/Header.vue'
 </script>
 

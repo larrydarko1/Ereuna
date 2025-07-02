@@ -2,6 +2,7 @@
 
   <body>
     <Header />
+    <Assistant />
     <div class="mobilenav">
       <button class="mnavbtn" :class="{ selected: selected === 'filters' }" @click="select('filters')">
         Filters
@@ -3317,6 +3318,7 @@ l-240 1 -90 -57z" />
 <script setup>
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
+import Assistant from '@/components/assistant.vue';
 import Loader from '@/components/loader.vue'
 import { computed, onMounted, ref, watch, nextTick, reactive, toRef } from 'vue';
 import { createChart, ColorType } from 'lightweight-charts';
