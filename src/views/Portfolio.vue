@@ -310,7 +310,6 @@
 
 <script setup>
 import Header from '@/components/Header.vue';
-import assistant from '@/components/assistant.vue';
 import { ref, computed, watch, onUnmounted } from 'vue'
 import TradePopup from '@/components/trade.vue'
 import SellTradePopup from '@/components/SellTradePopup.vue'

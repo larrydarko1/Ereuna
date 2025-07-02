@@ -1,5 +1,6 @@
 <template>
   <Header />
+  <Assistant />
   <div id="main">
     <div class="sidebar">
       <div class="inner2">
@@ -494,13 +495,11 @@
 
 <script setup>
 import Header from '@/components/Header.vue'
+import Assistant from '@/components/assistant.vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { ref, onMounted } from 'vue';
-import owlImage from '@/assets/icons/owl3.png';
 import QrcodeVue from 'qrcode.vue'
-import hideIcon from '@/assets/icons/hide.png';
-import showIcon from '@/assets/icons/show.png';
 import NotificationPopup from '@/components/NotificationPopup.vue';
 
 const store = useStore();
