@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import websockets
 import ssl
 import asyncio
-import collections
 
 load_dotenv()
 TIINGO_API_KEY = os.getenv('TIINGO_KEY')
@@ -23,7 +22,7 @@ app.add_middleware(
 message_queue = asyncio.Queue(maxsize=1000)  # Holds latest messages
 
 crypto_symbols = ["BTCUSD", "ETHUSD"]
-stock_symbols = ["AAPL", "MSFT", "SPY"]
+stock_symbols = ["RDDT", "TSLA", "SPY", "MNMD"]
 
 def crypto_filter(msg):
     return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) > 0 and msg["data"][0] == "Q"
@@ -104,9 +103,20 @@ async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
             try:
                 data = json.loads(msg)
                 d = data.get("data")
-                if isinstance(d, list) and len(d) > 1 and isinstance(d[1], str):
-                    if d[1].lower() in symbol_set:
-                        await websocket.send_text(msg)
+                # Crypto: ["Q", "btcusd", ... , price, ...]
+                if isinstance(d, list):
+                    # Crypto
+                    if len(d) > 4 and isinstance(d[1], str) and data.get("service") == "crypto_data":
+                        symbol = d[1].upper()
+                        price = float(d[5])
+                        if symbol.lower() in symbol_set:
+                            await websocket.send_text(f"{symbol}: {price}")
+                    # IEX (stocks/ETFs)
+                    elif len(d) > 2 and isinstance(d[1], str) and data.get("service") == "iex":
+                        symbol = d[1].upper()
+                        price = float(d[2])
+                        if symbol.lower() in symbol_set:
+                            await websocket.send_text(f"{symbol}: {price}")
             except Exception:
                 continue
     except WebSocketDisconnect:
@@ -117,4 +127,4 @@ async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
 
 # To run: uvicorn ws.main:app --reload
 # wscat -c "ws://localhost:8000/ws/stream"
-# wscat -c "ws://localhost:8000/ws/symbols?symbols=AAPL,MSFT,BTCUSD"
+# wscat -c "ws://localhost:8000/ws/symbols?symbols=RDDT,TSLA"

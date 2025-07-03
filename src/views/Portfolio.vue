@@ -8,7 +8,7 @@
         <button class="trade-btn" @click="showTradeModal = true">New Trade</button>
         <button class="trade-btn" style="margin-left: 12px;" @click="showAddCashModal = true">Add Cash</button>
         <button class="trade-btn2" style="margin-left: 12px;" @click="showResetDialog = true">Reset All</button>
-        <button class="trade-btn" style="margin-left: 12px;" @click="showLossesInfo = true">How to Lose</button>
+        <button class="trade-btn" style="margin-left: 12px;" @click="showLossesInfo = true">Archetypes</button>
       </div>
        <div v-if="showResetDialog" class="reset-modal-overlay">
       <div class="reset-modal">
@@ -33,7 +33,7 @@
   @close="showAddCashModal = false"
   @cash-added="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); showAddCashModal = false }"
 />
-<LossesInfoPopup v-if="showLossesInfo" @close="showLossesInfo = false" />
+<Archetypes v-if="showLossesInfo" @close="showLossesInfo = false" />
     </div>
     <div class="portfolio-summary">
       <div class="summary-card">
@@ -225,9 +225,9 @@
     <td>{{ position.Shares }}</td>
     <td>${{ Number(position.AvgPrice).toFixed(2) }}</td>
     <td>
-      <span v-if="latestQuotes[position.Symbol] !== undefined">
-        ${{ getCurrentPrice(position) }}
-      </span>
+     <span v-if="latestQuotes[position.Symbol] !== undefined">
+  ${{ getCurrentPrice(position) }}
+</span>
     </td>
     <td>
       <span v-if="latestQuotes[position.Symbol] !== undefined">
@@ -310,11 +310,11 @@
 
 <script setup>
 import Header from '@/components/Header.vue';
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
 import TradePopup from '@/components/trade.vue'
 import SellTradePopup from '@/components/SellTradePopup.vue'
 import AddCashPopup from '@/components/addCash.vue'
-import LossesInfoPopup from '@/components/losing.vue'
+import Archetypes from '@/components/archetypes.vue'
 import { Pie, Line, Bar } from 'vue-chartjs'
 import {
   Chart,
@@ -629,6 +629,7 @@ async function fetchPortfolio() {
 fetchPortfolio();
 
 const latestQuotes = ref({}); // { [symbol]: price }
+const wsRef = ref(null);
 
 async function fetchQuotes() {
   if (!portfolio.value.length) return;
@@ -644,6 +645,61 @@ async function fetchQuotes() {
     console.error('Error fetching quotes:', error);
   }
 }
+
+function connectWebSocket() {
+  if (wsRef.value) wsRef.value.close();
+  if (!portfolio.value.length) return;
+
+  const symbols = portfolio.value.map(p => p.Symbol).join(',');
+  const ws = new WebSocket(`ws://localhost:8000/ws/symbols?symbols=${symbols}`);
+  wsRef.value = ws;
+
+ ws.onmessage = (event) => {
+  // Expecting format: "AAPL: 213.805"
+  const text = event.data;
+  const [symbol, price] = text.split(':').map(s => s.trim());
+  if (symbol && price && !isNaN(price)) {
+    // Ensure Vue reactivity
+    latestQuotes.value = { ...latestQuotes.value, [symbol]: parseFloat(price) };
+  }
+};
+
+  ws.onclose = () => {
+    wsRef.value = null;
+  };
+}
+
+function disconnectWebSocket() {
+  if (wsRef.value) {
+    wsRef.value.close();
+    wsRef.value = null;
+  }
+}
+
+// Watch for changes in Tier or portfolio to switch logic
+watch([Tier, portfolio], ([newTier]) => {
+  if (newTier === 'Premium') {
+    disconnectWebSocket();
+    connectWebSocket();
+  } else {
+    disconnectWebSocket();
+    fetchQuotes();
+  }
+}, { immediate: true, deep: true });
+
+onMounted(() => {
+  if (Tier.value === 'Core') {
+    fetchQuotes();
+    // Optionally, set up polling interval
+    // setInterval(fetchQuotes, 10000);
+  } else if (Tier.value === 'Premium') {
+    connectWebSocket();
+  }
+});
+
+onUnmounted(() => {
+  disconnectWebSocket();
+});
 
 // Refetch quotes whenever portfolio changes
 watch(portfolio, (newVal) => {
