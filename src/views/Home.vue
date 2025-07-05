@@ -46,8 +46,8 @@
       <br>
       <div style="display: flex; flex-direction: row ;gap: 20px;">
         <div style="flex-direction: column;">
-          <span style="cursor: default;" class="join">Join the beta program</span>
-      <button class="sign-button" @click="redirectToSign">Free Trial</button>
+          <span style="cursor: default;" class="join">Create your account</span>
+<button class="sign-button" @click="redirectToSign">Get Started</button>
         </div>
  <div>
       <span style="cursor: default;" class="already-have-invite">Already have an account?</span>
@@ -72,7 +72,6 @@
       <div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
     <img class="logo" src="@/assets/images/logos/tiingo.png" alt="" draggable="false">
     <img class="logo" src="@/assets/images/logos/tradingview.png" alt="" draggable="false">
-    <img class="logo2" src="@/assets/images/logos/IEX.png" alt="" draggable="false">
 </div>
     </div>
     <!-- Features Section -->
@@ -286,10 +285,6 @@
     <path d="M17.53 3H21.5L13.62 11.51L22.96 21H16.13L10.61 14.79L4.44 21H0.47L8.81 12.01L0 3H7.03L12.02 8.67L17.53 3ZM16.26 19.13H18.18L6.81 4.76H4.73L16.26 19.13Z" fill="currentColor"/>
   </svg>
   Twitter
-</a>
-<a class="social" href="#" aria-label="Mastodon">
-  <svg class="social-icon" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M11.19 12.195c2.016-.24 3.77-1.475 3.99-2.603.348-1.778.32-4.339.32-4.339 0-3.47-2.286-4.488-2.286-4.488C12.062.238 10.083.017 8.027 0h-.05C5.92.017 3.942.238 2.79.765c0 0-2.285 1.017-2.285 4.488l-.002.662c-.004.64-.007 1.35.011 2.091.083 3.394.626 6.74 3.78 7.57 1.454.383 2.703.463 3.709.408 1.823-.1 2.847-.647 2.847-.647l-.06-1.317s-1.303.41-2.767.36c-1.45-.05-2.98-.156-3.215-1.928a3.614 3.614 0 0 1-.033-.496s1.424.346 3.228.428c1.103.05 2.137-.064 3.188-.189zm1.613-2.47H11.13v-4.08c0-.859-.364-1.295-1.091-1.295-.804 0-1.207.517-1.207 1.541v2.233H7.168V5.89c0-1.024-.403-1.541-1.207-1.541-.727 0-1.091.436-1.091 1.296v4.079H3.197V5.522c0-.859.22-1.541.66-2.046.456-.505 1.052-.764 1.793-.764.856 0 1.504.328 1.933.983L8 4.39l.417-.695c.429-.655 1.077-.983 1.934-.983.74 0 1.336.259 1.791.764.442.505.661 1.187.661 2.046v4.203z"></path> </g></svg>
-  Mastodon
 </a>
 <a class="social" href="#" aria-label="Mastodon">
   <svg class="social-icon" viewBox="0 -3 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="currentColor"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>youtube [#168]</title> <desc>Created with Sketch.</desc> <defs> </defs> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="Dribbble-Light-Preview" transform="translate(-300.000000, -7442.000000)" fill="currentColor"> <g id="icons" transform="translate(56.000000, 160.000000)"> <path d="M251.988432,7291.58588 L251.988432,7285.97425 C253.980638,7286.91168 255.523602,7287.8172 257.348463,7288.79353 C255.843351,7289.62824 253.980638,7290.56468 251.988432,7291.58588 M263.090998,7283.18289 C262.747343,7282.73013 262.161634,7282.37809 261.538073,7282.26141 C259.705243,7281.91336 248.270974,7281.91237 246.439141,7282.26141 C245.939097,7282.35515 245.493839,7282.58153 245.111335,7282.93357 C243.49964,7284.42947 244.004664,7292.45151 244.393145,7293.75096 C244.556505,7294.31342 244.767679,7294.71931 245.033639,7294.98558 C245.376298,7295.33761 245.845463,7295.57995 246.384355,7295.68865 C247.893451,7296.0008 255.668037,7296.17532 261.506198,7295.73552 C262.044094,7295.64178 262.520231,7295.39147 262.895762,7295.02447 C264.385932,7293.53455 264.28433,7285.06174 263.090998,7283.18289" id="youtube-[#168]"> </path> </g> </g> </g> </g></svg>
@@ -528,8 +523,8 @@ function setupCardAnimations() {
 }
 
 .sign-button {
-  background-color: transparent;
-  color: $text1;
+  background-color: $text2;
+  color: $text4;
   border: solid 2px $text2;
   padding: 10px 20px;
   font-size: 18px;
@@ -538,8 +533,8 @@ function setupCardAnimations() {
   transition: background-color 0.3s ease;
 
    &:hover {
-    background-color: $text2;
-    border: solid 2px $text2;
+    background-color: $text1;
+    border: solid 2px $text1;
     color: $text4;
     transform: scale(1.04);
   }
