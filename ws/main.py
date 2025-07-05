@@ -22,7 +22,7 @@ app.add_middleware(
 message_queue = asyncio.Queue(maxsize=1000)  # Holds latest messages
 
 crypto_symbols = ["BTCUSD", "ETHUSD"]
-stock_symbols = ["RDDT", "TSLA", "SPY", "MNMD"]
+stock_symbols = ["RDDT", "TSLA", "SPY", "UBER"]
 
 def crypto_filter(msg):
     return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) > 0 and msg["data"][0] == "Q"
