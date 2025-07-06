@@ -2245,341 +2245,95 @@
         <div class="results"></div>
       </div>
       <div id="resultsDiv" :class="{ 'hidden-mobile': selected !== 'list' }">
-        <div v-if="showCreateScreener" class="CreateScreener">
-          <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
-            preserveAspectRatio="xMidYMid meet">
-            <g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)" fill="var(--text1)" stroke="none">
-              <path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
--625 104 -601 387 -1216 800 -1735 123 -155 475 -507 616 -616 280 -217 609
--419 1640 -1007 1314 -749 1735 -942 2525 -1157 257 -70 457 -130 660 -200
-924 -315 1748 -774 2455 -1366 434 -363 775 -722 1190 -1249 226 -288 317
--379 445 -443 88 -43 153 -55 285 -50 132 5 194 24 287 84 72 48 197 173 283
-284 233 300 352 440 614 714 308 324 765 741 1030 940 147 110 476 327 671
-442 189 111 663 350 860 433 345 146 572 223 1122 381 1006 287 1271 406 2563
-1145 1100 630 1429 831 1710 1049 140 108 493 461 616 616 424 534 714 1175
-809 1790 26 166 31 467 11 570 -36 183 -117 294 -294 403 l-92 57 -273 -2
-c-149 -1 -246 -3 -214 -5 31 -2 57 -8 57 -12 0 -20 -966 -572 -1955 -1118
--775 -427 -847 -462 -1125 -543 -319 -93 -606 -133 -955 -133 -318 0 -567 30
--860 104 -270 68 -413 120 -830 301 -1352 588 -2103 789 -3348 899 -298 26
--927 37 -1212 20 -880 -51 -1660 -206 -2527 -500 -353 -120 -486 -174 -1168
--469 -561 -242 -873 -321 -1356 -342 -455 -19 -824 20 -1176 126 -280 83 -380
-132 -1143 552 -413 227 -1022 569 -1419 796 -163 94 -254 140 -287 146 -72 14
--124 45 -158 94 -17 24 -37 46 -46 49 -22 9 -18 25 8 30 12 2 -86 5 -218 5
-l-240 1 -90 -57z" />
-              <path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z" />
-              <path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
--765 -1960 -65 -377 -84 -670 -77 -1147 6 -360 19 -545 58 -805 125 -849 505
--1739 1054 -2470 694 -926 1639 -1601 2760 -1973 393 -131 761 -205 1215 -244
-217 -19 820 -16 1055 5 478 43 804 92 839 127 12 12 -5 38 -258 375 -318 422
--480 672 -745 1153 l-123 222 -167 0 c-643 0 -1147 109 -1667 360 -383 184
--691 401 -1002 704 -383 374 -682 822 -875 1311 -175 444 -239 804 -239 1350
-0 611 120 1142 374 1650 183 365 364 619 697 980 94 102 181 214 181 234 0 14
--49 38 -315 156 -275 122 -561 265 -870 438 -320 178 -439 241 -503 266 l-53
-21 -51 -47z" />
-              <path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
--382 -387 -176 -457 -209 -462 -222 -7 -18 70 -122 173 -233 273 -295 429
--503 594 -791 226 -394 394 -862 445 -1233 48 -353 48 -880 0 -1232 -48 -355
--209 -812 -414 -1178 -413 -738 -1086 -1338 -1855 -1653 -464 -191 -909 -273
--1477 -273 l-167 0 -122 -222 c-252 -456 -435 -741 -704 -1098 -212 -280 -306
--410 -306 -421 0 -12 53 -25 260 -64 367 -69 618 -88 1125 -89 497 0 759 20
-1095 85 1456 282 2780 1184 3622 2469 368 560 633 1184 772 1817 81 372 106
-609 113 1109 9 632 -27 1014 -138 1464 -183 742 -504 1431 -947 2030 -169 228
--311 380 -355 380 -13 0 -98 -38 -188 -84z" />
-              <path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
--761 -191 -379 -407 -678 -715 -985 -281 -282 -540 -474 -950 -705 -110 -62
--201 -114 -203 -115 -12 -11 103 -216 241 -429 216 -335 366 -522 846 -1061
-174 -195 358 -422 539 -665 248 -333 341 -407 542 -431 97 -11 219 -6 300 13
-137 32 248 132 450 403 233 314 459 589 718 873 251 275 419 479 534 647 135
-197 338 534 374 621 l14 32 -203 112 c-400 222 -668 420 -952 705 -320 320
--541 629 -736 1030 -124 255 -247 600 -266 745 -8 63 -18 78 -61 90 -44 12
--85 12 -130 -1z" />
-              <path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
--528 435 -1160 557 -1303 25 -29 83 -101 128 -160 114 -148 273 -310 397 -402
-135 -102 282 -177 576 -293 132 -52 341 -142 465 -200 124 -57 238 -107 255
--111 16 -4 73 -32 126 -62 180 -100 318 -152 785 -294 614 -187 1092 -375
-1659 -655 876 -432 1632 -934 2390 -1586 258 -222 448 -402 810 -768 181 -183
-389 -388 460 -454 113 -104 130 -124 130 -151 l0 -31 186 -3 186 -2 12 28 c28
-68 127 132 204 132 27 0 86 54 496 463 561 557 784 760 1176 1073 1154 919
-2396 1568 3804 1984 327 97 519 170 653 247 43 25 136 69 206 98 70 29 201 87
-292 130 90 42 272 119 405 172 132 52 278 115 325 140 243 128 419 282 625
-548 38 50 94 119 123 153 114 136 370 720 527 1202 147 454 264 912 310 1220
-18 121 48 431 42 437 -3 2 -44 -47 -93 -109 -49 -62 -142 -178 -208 -258 -883
--1066 -1941 -1794 -3221 -2215 -1136 -375 -2424 -435 -3615 -169 -85 19 -278
-68 -428 110 l-272 75 -149 -141 c-82 -78 -180 -166 -218 -196 -183 -148 -429
--289 -604 -348 -122 -41 -219 -48 -567 -44 -311 5 -319 5 -407 32 -191 58
--455 207 -653 368 -42 35 -124 108 -182 163 -58 54 -121 114 -141 133 l-36 33
--214 -60 c-564 -158 -911 -223 -1432 -268 -236 -20 -820 -23 -1047 -4 -961 77
--1761 299 -2600 722 -932 469 -1698 1111 -2414 2024 -143 182 -140 178 -133
-140z" />
-              <path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z" />
-              <path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
--3z" />
-            </g>
-          </svg>
-          <h3 style="color: var(--text1)">Create Screener</h3>
-          <input id="inputcreate" placeholder="Enter Screener Name" type="text" v-model="screenerName"
-            :class="{ 'input-error': screenerName.length > 20 }" />
-          <div class="inner">
-            <button @click="showCreateScreener = false">
-              <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
-                xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve"
-                transform="rotate(180)">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <g>
-                    <path
-                      d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z">
-                    </path>
-                  </g>
-                </g>
-              </svg>
-            </button>
-            <button @click="CreateScreener()">
-              <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z"
-                    fill="var(--text1)"></path>
-                  <path fill-rule="evenodd" clip-rule="evenodd"
-                    d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z"
-                    fill="var(--text1)"></path>
-                </g>
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div v-if="showRenameScreener" class="RenameScreener">
-          <svg class="inner-logo" version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2134.000000 2134.000000"
-            preserveAspectRatio="xMidYMid meet">
-            <g transform="translate(0.000000,2134.000000) scale(0.100000,-0.100000)" fill="var(--text1)" stroke="none">
-              <path d="M355 21282 c-175 -110 -255 -220 -291 -402 -25 -124 -15 -421 20
--625 104 -601 387 -1216 800 -1735 123 -155 475 -507 616 -616 280 -217 609
--419 1640 -1007 1314 -749 1735 -942 2525 -1157 257 -70 457 -130 660 -200
-924 -315 1748 -774 2455 -1366 434 -363 775 -722 1190 -1249 226 -288 317
--379 445 -443 88 -43 153 -55 285 -50 132 5 194 24 287 84 72 48 197 173 283
-284 233 300 352 440 614 714 308 324 765 741 1030 940 147 110 476 327 671
-442 189 111 663 350 860 433 345 146 572 223 1122 381 1006 287 1271 406 2563
-1145 1100 630 1429 831 1710 1049 140 108 493 461 616 616 424 534 714 1175
-809 1790 26 166 31 467 11 570 -36 183 -117 294 -294 403 l-92 57 -273 -2
-c-149 -1 -246 -3 -214 -5 31 -2 57 -8 57 -12 0 -20 -966 -572 -1955 -1118
--775 -427 -847 -462 -1125 -543 -319 -93 -606 -133 -955 -133 -318 0 -567 30
--860 104 -270 68 -413 120 -830 301 -1352 588 -2103 789 -3348 899 -298 26
--927 37 -1212 20 -880 -51 -1660 -206 -2527 -500 -353 -120 -486 -174 -1168
--469 -561 -242 -873 -321 -1356 -342 -455 -19 -824 20 -1176 126 -280 83 -380
-132 -1143 552 -413 227 -1022 569 -1419 796 -163 94 -254 140 -287 146 -72 14
--124 45 -158 94 -17 24 -37 46 -46 49 -22 9 -18 25 8 30 12 2 -86 5 -218 5
-l-240 1 -90 -57z" />
-              <path d="M19408 21333 c28 -2 76 -2 105 0 28 2 5 3 -53 3 -58 0 -81 -1 -52 -3z" />
-              <path d="M2668 15663 c-106 -99 -342 -418 -523 -706 -387 -617 -648 -1285
--765 -1960 -65 -377 -84 -670 -77 -1147 6 -360 19 -545 58 -805 125 -849 505
--1739 1054 -2470 694 -926 1639 -1601 2760 -1973 393 -131 761 -205 1215 -244
-217 -19 820 -16 1055 5 478 43 804 92 839 127 12 12 -5 38 -258 375 -318 422
--480 672 -745 1153 l-123 222 -167 0 c-643 0 -1147 109 -1667 360 -383 184
--691 401 -1002 704 -383 374 -682 822 -875 1311 -175 444 -239 804 -239 1350
-0 611 120 1142 374 1650 183 365 364 619 697 980 94 102 181 214 181 234 0 14
--49 38 -315 156 -275 122 -561 265 -870 438 -320 178 -439 241 -503 266 l-53
-21 -51 -47z" />
-              <path d="M18409 15616 c-90 -46 -239 -126 -330 -179 -258 -149 -527 -288 -734
--382 -387 -176 -457 -209 -462 -222 -7 -18 70 -122 173 -233 273 -295 429
--503 594 -791 226 -394 394 -862 445 -1233 48 -353 48 -880 0 -1232 -48 -355
--209 -812 -414 -1178 -413 -738 -1086 -1338 -1855 -1653 -464 -191 -909 -273
--1477 -273 l-167 0 -122 -222 c-252 -456 -435 -741 -704 -1098 -212 -280 -306
--410 -306 -421 0 -12 53 -25 260 -64 367 -69 618 -88 1125 -89 497 0 759 20
-1095 85 1456 282 2780 1184 3622 2469 368 560 633 1184 772 1817 81 372 106
-609 113 1109 9 632 -27 1014 -138 1464 -183 742 -504 1431 -947 2030 -169 228
--311 380 -355 380 -13 0 -98 -38 -188 -84z" />
-              <path d="M10602 11199 c-37 -11 -44 -25 -62 -118 -33 -180 -156 -513 -280
--761 -191 -379 -407 -678 -715 -985 -281 -282 -540 -474 -950 -705 -110 -62
--201 -114 -203 -115 -12 -11 103 -216 241 -429 216 -335 366 -522 846 -1061
-174 -195 358 -422 539 -665 248 -333 341 -407 542 -431 97 -11 219 -6 300 13
-137 32 248 132 450 403 233 314 459 589 718 873 251 275 419 479 534 647 135
-197 338 534 374 621 l14 32 -203 112 c-400 222 -668 420 -952 705 -320 320
--541 629 -736 1030 -124 255 -247 600 -266 745 -8 63 -18 78 -61 90 -44 12
--85 12 -130 -1z" />
-              <path d="M1413 8015 c3 -16 9 -68 12 -115 30 -392 123 -820 312 -1425 165
--528 435 -1160 557 -1303 25 -29 83 -101 128 -160 114 -148 273 -310 397 -402
-135 -102 282 -177 576 -293 132 -52 341 -142 465 -200 124 -57 238 -107 255
--111 16 -4 73 -32 126 -62 180 -100 318 -152 785 -294 614 -187 1092 -375
-1659 -655 876 -432 1632 -934 2390 -1586 258 -222 448 -402 810 -768 181 -183
-389 -388 460 -454 113 -104 130 -124 130 -151 l0 -31 186 -3 186 -2 12 28 c28
-68 127 132 204 132 27 0 86 54 496 463 561 557 784 760 1176 1073 1154 919
-2396 1568 3804 1984 327 97 519 170 653 247 43 25 136 69 206 98 70 29 201 87
-292 130 90 42 272 119 405 172 132 52 278 115 325 140 243 128 419 282 625
-548 38 50 94 119 123 153 114 136 370 720 527 1202 147 454 264 912 310 1220
-18 121 48 431 42 437 -3 2 -44 -47 -93 -109 -49 -62 -142 -178 -208 -258 -883
--1066 -1941 -1794 -3221 -2215 -1136 -375 -2424 -435 -3615 -169 -85 19 -278
-68 -428 110 l-272 75 -149 -141 c-82 -78 -180 -166 -218 -196 -183 -148 -429
--289 -604 -348 -122 -41 -219 -48 -567 -44 -311 5 -319 5 -407 32 -191 58
--455 207 -653 368 -42 35 -124 108 -182 163 -58 54 -121 114 -141 133 l-36 33
--214 -60 c-564 -158 -911 -223 -1432 -268 -236 -20 -820 -23 -1047 -4 -961 77
--1761 299 -2600 722 -932 469 -1698 1111 -2414 2024 -143 182 -140 178 -133
-140z" />
-              <path d="M9683 3 c15 -2 39 -2 55 0 15 2 2 4 -28 4 -30 0 -43 -2 -27 -4z" />
-              <path d="M11462 3 c59 -2 158 -2 220 0 62 1 14 3 -107 3 -121 0 -172 -2 -113
--3z" />
-            </g>
-          </svg>
-          <h3 style="color: var(--text1)">Rename Screener</h3>
-          <input id="inputrename" placeholder="Enter Screener Name" type="text" v-model="screenerName"
-            :class="{ 'input-error': screenerName.length > 20 }" />
-          <div class="inner">
-            <button @click="showRenameScreener = false">
-              <svg class="imgbtn" fill="var(--text1)" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
-                xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 882.968 882.968" xml:space="preserve"
-                transform="rotate(180)">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <g>
-                    <path
-                      d="M661.885,492.032c10.23,10.11,23.566,15.155,36.896,15.155c13.541,0,27.078-5.207,37.348-15.601l131.684-133.271 c9.785-9.905,15.236-23.291,15.154-37.216c-0.084-13.923-5.695-27.243-15.6-37.029l-131.48-129.912 c-20.625-20.379-53.867-20.18-74.244,0.445c-20.379,20.625-20.18,53.865,0.445,74.244l41.236,40.747H235.337 c-62.861,0-121.959,24.479-166.408,68.93C24.48,382.975,0,442.072,0,504.934v3.693c0,62.861,24.479,121.959,68.929,166.408 c44.45,44.449,103.547,68.929,166.408,68.929H381.2c62.861,0,121.958-24.479,166.408-68.929s68.93-103.547,68.93-166.408v-3.693 c0-28.995-23.506-52.5-52.5-52.5s-52.5,23.505-52.5,52.5v3.693c0,71.868-58.469,130.337-130.337,130.337H235.337 C163.469,638.964,105,580.495,105,508.627v-3.693c0-71.868,58.469-130.337,130.337-130.337h468.778l-42.676,43.191 C641.061,438.412,641.26,471.653,661.885,492.032z">
-                    </path>
-                  </g>
-                </g>
-              </svg>
-            </button>
-            <button @click="UpdateScreener()">
-              <svg class="imgbtn" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M11 8C11 7.44772 11.4477 7 12 7C12.5523 7 13 7.44771 13 8V11H16C16.5523 11 17 11.4477 17 12C17 12.5523 16.5523 13 16 13H13V16C13 16.5523 12.5523 17 12 17C11.4477 17 11 16.5523 11 16V13H8C7.44772 13 7 12.5523 7 12C7 11.4477 7.44771 11 8 11H11V8Z"
-                    fill="var(--text1)"></path>
-                  <path fill-rule="evenodd" clip-rule="evenodd"
-                    d="M23 4C23 2.34315 21.6569 1 20 1H4C2.34315 1 1 2.34315 1 4V20C1 21.6569 2.34315 23 4 23H20C21.6569 23 23 21.6569 23 20V4ZM21 4C21 3.44772 20.5523 3 20 3H4C3.44772 3 3 3.44772 3 4V20C3 20.5523 3.44772 21 4 21H20C20.5523 21 21 20.5523 21 20V4Z"
-                    fill="var(--text1)"></path>
-                </g>
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div v-if="showSearch" class="searchDiv">
-          <input type="search" class="search-input" placeholder="Search..." v-model="searchQuery" @input="toUpperCase"
-            @keydown.enter="SearchElement()">
-          <button class="search-btn" @click="SearchElement()">
-            <svg class="img3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <path
-                  d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                  stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-              </g>
-            </svg>
-          </button>
-        </div>
+<CreateScreener
+  v-if="showCreateScreener"
+  :user="user"
+  :apiKey="apiKey"
+  :notification="notification"
+  :GetScreeners="GetScreeners"
+  :GetCompoundedResults="GetCompoundedResults"
+  :showCreateScreener="showCreateScreener"
+  :error="error"
+  @close="handleCreateScreenerClose"
+/>
+      <RenameScreener
+  v-if="showRenameScreener"
+  :user="user"
+  :apiKey="apiKey"
+  :notification="notification"
+  :currentName="selectedScreener"
+  :GetScreeners="GetScreeners"
+  :error="error"
+  @close="handleRenameScreenerClose"
+/>
         <div class="navmenu">
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
             @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover title="Create New Screener">
-            <svg class="img2" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg"
-              xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <title>new-indicator</title>
-                <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                  <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)">
-                    <path
-                      d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z"
-                      id="Combined-Shape"> </path>
-                  </g>
-                </g>
-              </g>
-            </svg>
+           <svg class="img2" viewBox="0 0 512 512" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
+  <g fill="var(--text1)" transform="translate(85.333333, 85.333333)">
+    <path d="M170.67,0C264.92,0,341.33,76.41,341.33,170.67S264.92,341.33,170.67,341.33S0,264.92,0,170.67S76.41,0,170.67,0ZM170.67,42.67c-70.69,0-128,57.31-128,128s57.31,128,128,128s128-57.31,128-128S241.36,42.67,170.67,42.67ZM192,85.33v64h64v42.67h-64v64h-42.67v-64h-64v-42.67h64v-64H192Z"/>
+  </g>
+</svg>
             <label class=btnlabel>Create</label></button>
           <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }"
             @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover title="Rename Current Screener">
-            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path>
-                <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
-                <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path>
-              </g>
-            </svg>
+          <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path>
+  <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
+  <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path>
+</svg>
             <label class=btnlabel>Rename</label></button>
-          <button class="snavbtn" v-b-tooltip.hover title="Reset Screener"
-            @click="async () => { await ResetScreener(); await CurrentScreener(); }">
-            <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" data-name="Layer 1" id="Layer_1"
-              xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="20.48">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <path
-                  d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z">
-                </path>
-              </g>
-            </svg>
-            <label class=btnlabel>Reset</label></button>
+         <!-- Replace your current Reset button with this: -->
+<button class="snavbtn" v-b-tooltip.hover title="Reset Screener" @click="showResetDialog = true">
+  <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="20.48">
+    <path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z"/>
+  </svg>
+  <label class="btnlabel">Reset</label>
+</button>
+<div v-if="showResetDialog" class="reset-modal-overlay">
+  <div class="reset-modal">
+    <h3>Reset Screener</h3>
+    <p>Are you sure you want to reset the current screener? <br>This cannot be undone.</p>
+    <div style="margin-top: 16px;">
+      <button class="trade-btn" @click="confirmResetScreener">Yes, Reset</button>
+      <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">Cancel</button>
+    </div>
+    <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
+  </div>
+</div>
           <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning === true }"
             @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Results">
             <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <path fill="var(--text1)" fill-rule="evenodd"
-                  d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z">
-                </path>
-              </g>
-            </svg>
+  <path fill="var(--text1)" fill-rule="evenodd"
+    d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z">
+  </path>
+</svg>
             <label class=btnlabel>Autoplay</label></button>
           <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'hidden' }" v-b-tooltip.hover
             title="Hidden List" @click="showHiddenResults()">
-            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <g id="Edit / Hide">
-                  <path id="Vector"
-                    d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
-                    stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                </g>
-              </g>
-            </svg>
+          <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
+    stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
             <label class=btnlabel>Hidden Stocks</label></button>
           <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover
             title="Show Combined Screener Results" @click="showCombinedResults()">
-            <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <path
-                  d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z">
-                </path>
-              </g>
-            </svg>
+          <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <path d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z"/>
+</svg>
             <label class=btnlabel>Multi-Screener</label>
           </button>
-          <button style="display: none;" class="snavbtn" :class="{ 'snavbtnslct': showSearch }" id="showSearch"
-            @click="showSearch = !showSearch" v-b-tooltip.hover title="Search">
-            <svg class="img2" fill="var(--text1)" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <path
-                  d="M12.027 9.92L16 13.95 14 16l-4.075-3.976A6.465 6.465 0 0 1 6.5 13C2.91 13 0 10.083 0 6.5 0 2.91 2.917 0 6.5 0 10.09 0 13 2.917 13 6.5a6.463 6.463 0 0 1-.973 3.42zM1.997 6.452c0 2.48 2.014 4.5 4.5 4.5 2.48 0 4.5-2.015 4.5-4.5 0-2.48-2.015-4.5-4.5-4.5-2.48 0-4.5 2.014-4.5 4.5z"
-                  fill-rule="evenodd"></path>
-              </g>
-            </svg>
-            <label class=btnlabel>Search</label></button>
           <button @click="DownloadResults" class="snavbtn" :class="{ 'snavbtnslct': showSearch }" v-b-tooltip.hover
             title="Download Results">
-            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <path
-                  d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15"
-                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                <path d="M12 3V16M12 16L16 11.625M12 16L8 11.625" stroke="currentColor" stroke-width="1.5"
-                  stroke-linecap="round" stroke-linejoin="round"></path>
-              </g>
-            </svg>
+           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15"
+    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path
+    d="M12 3V16M12 16L16 11.625M12 16L8 11.625"
+    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
             <label class=btnlabel>Download Results</label></button>
         </div>
         <div class="navmenu-mobile">
@@ -3320,6 +3074,8 @@ l-240 1 -90 -57z" />
 import Header from '@/components/Header.vue'
 import Assistant from '@/components/assistant.vue';
 import Loader from '@/components/loader.vue'
+import CreateScreener from '@/components/Screener/CreateScreener.vue';
+import RenameScreener from '@/components/Screener/RenameScreener.vue';
 import { computed, onMounted, ref, watch, nextTick, reactive, toRef } from 'vue';
 import { createChart, ColorType } from 'lightweight-charts';
 import { useStore } from 'vuex';
@@ -4729,86 +4485,6 @@ async function SetCountry() {
   } catch (error) {
     error.value = error.message;
     await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-// creates new screeners 
-async function CreateScreener() {
-  try {
-    const ScreenerName = document.getElementById('inputcreate').value.trim();
-
-    // Optional: Client-side validation before sending request
-    if (ScreenerName.length > 20) {
-      notification.value.show('Screener name cannot be longer than 20 characters');
-      return;
-    }
-
-    const response = await fetch(`/api/${user}/create/screener/${ScreenerName}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      }
-    });
-
-    const responseData = await response.json();
-
-    // Check if the request was successful
-    if (response.ok) {
-      await GetScreeners();
-      await GetCompoundedResults();
-      showCreateScreener.value = false;
-    } else {
-      if (response.status === 400 && responseData.message === 'Maximum number of screeners (20) has been reached') {
-        notification.value.show('You have reached the maximum number of screeners (20). Please delete some screeners to create new ones.');
-      } else {
-        console.error(responseData.message);
-      }
-    }
-  } catch (error) {
-    error.value = error.message;
-  }
-}
-
-// renames screener 
-async function UpdateScreener() {
-  try {
-    const ScreenerName = document.getElementById('inputrename').value.trim();
-    const oldname = selectedScreener.value; // Get the current name of the screener
-
-    // Check if the new screener name is too long
-    if (ScreenerName.length > 20) {
-      notification.value.show('Screener name cannot be longer than 20 characters');
-      return;
-    }
-
-    // Optional: Check if the new name is different from the old name
-    if (ScreenerName === oldname) {
-      notification.value.show('New screener name must be different from the current name');
-      return;
-    }
-
-    const response = await fetch(`/api/${user}/rename/screener`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ newname: ScreenerName, oldname: oldname })
-    });
-
-    const responseData = await response.json();
-
-    // Check if the request was successful
-    if (response.ok) {
-      selectedScreener.value = ScreenerName;
-      await GetScreeners();
-      await GetCompoundedResults();
-      showRenameScreener.value = false;
-    } else {
-    }
-  } catch (error) {
-    error.value = error.message;
   }
 }
 
@@ -7259,6 +6935,33 @@ function DownloadResults() {
   URL.revokeObjectURL(url);
 }
 
+async function handleCreateScreenerClose() {
+  await GetScreeners();
+  await GetCompoundedResults();
+  showCreateScreener.value = false;
+}
+
+async function handleRenameScreenerClose() {
+  selectedScreener.value = screenerName.value;
+      await GetScreeners();
+      await GetCompoundedResults();
+      showRenameScreener.value = false;
+}
+
+const showResetDialog = ref(false);
+const resetError = ref('');
+
+async function confirmResetScreener() {
+  resetError.value = '';
+  try {
+    await ResetScreener();
+    await CurrentScreener();
+    showResetDialog.value = false;
+  } catch (error) {
+    resetError.value = 'Error resetting screener: ' + (error.message || error);
+  }
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -8000,15 +7703,15 @@ input:checked+.slider:before {
 .snavbtn {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 5px;
   margin: 5px;
-  padding: 5px;
+  padding: 5px 8px;
   cursor: pointer;
   text-decoration: none;
   color: var(--text1);
   border-radius: 4px;
   transition: background-color 0.3s ease;
-  background-color: var(--base2);
+  background-color: transparent;
   outline: none;
   border: none;
   box-shadow: none;
@@ -8024,7 +7727,7 @@ input:checked+.slider:before {
 
 .snavbtn:hover,
 .snavbtn.active {
-  background-color: var(--base1);
+  background-color: var(--base3);
 }
 
 .snavbtn.active span,
@@ -8033,12 +7736,13 @@ input:checked+.slider:before {
 }
 
 .snavbtnslct {
-  background-color: var(--base1);
+  background-color: var(--base3);
   color: var(--text1);
-  padding: 5px;
+  padding: 5px 8px;
   outline: none;
   border: none;
   opacity: 1;
+  border-radius: 4px;
 }
 
 .check {
@@ -8730,6 +8434,68 @@ input[type="date"] {
 .price-dropdown-btn:hover+.price-dropdown-menu,
 .price-dropdown-menu:hover {
   display: block;
+}
+
+.reset-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(30, 32, 48, 0.45); /* subtle dark glass */
+  backdrop-filter: blur(4px) saturate(120%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  transition: background 0.3s;
+}
+
+.reset-modal {
+  background: rgba(34, 37, 54, 0.98);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.22), 0 1.5px 6px 0 rgba(140,141,254,0.08);
+  padding: 36px 32px 28px 32px;
+  min-width: 340px;
+  max-width: 90vw;
+  text-align: center;
+  animation: modal-pop 0.22s cubic-bezier(.4,1.4,.6,1) both;
+}
+
+@keyframes modal-pop {
+  0% { transform: scale(0.95) translateY(20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.reset-modal h3 {
+  color: var(--accent1);
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 0.01em;
+}
+
+.reset-modal p {
+  color: var(--text2);
+  font-size: 1.05rem;
+  margin-bottom: 18px;
+  line-height: 1.6;
+}
+
+.reset-modal .trade-btn {
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 10px 28px;
+  margin: 0 4px;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+}
+
+.reset-modal .trade-btn {
+  background: var(--accent1);
+  color: var(--text1);
+}
+.reset-modal .trade-btn:hover {
+  background: var(--accent2);
+  color: #fff;
 }
 
 .relvol-select-container,
