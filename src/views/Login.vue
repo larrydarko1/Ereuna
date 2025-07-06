@@ -21,7 +21,6 @@
   <div class="login-form" @keydown.enter="login()">
     <div class="logo-container">
       <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/owl.png" alt="" draggable="false">
-      <div class="beta">BETA VERSION</div>
     </div>
     <br>
     <br>

@@ -655,3 +655,19 @@ def remove_she_and_sheb_documents():
     result = asset_info_collection.delete_many({'Exchange': {'$in': ['SHE', 'SHEB']}})
     print(f"Deleted {result.deleted_count} documents with Exchange 'SHE' or 'SHEB'.")
 
+def create_user_portfolios(username=None):
+    portfolios_collection = db["Portfolios"]
+    if not username:
+        username = input("Enter username for portfolio creation (default: LarryDarko): ").strip() or "LarryDarko"
+    docs = [
+        {
+            "Username": username,
+            "Number": i + 1,
+            "Trades": [],
+            "portfolio": [],
+            "cash": 0
+        }
+        for i in range(10)
+    ]
+    result = portfolios_collection.insert_many(docs)
+    print(f"Created {len(result.inserted_ids)} portfolios for user '{username}'.")

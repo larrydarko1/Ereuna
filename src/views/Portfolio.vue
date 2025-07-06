@@ -3,12 +3,26 @@
   <Assistant />
   <section class="portfolio-container">
     <div class="portfolio-header">
-      <h1>Simulated Portfolio</h1>
+      <div>
+         <h1>Simulated Portfolio</h1>
+      <div class="portfolio-selector">
+  <button
+    v-for="n in 10"
+    :key="n"
+    :class="['portfolio-btn', selectedPortfolioIndex === n - 1 ? 'selected' : '']"
+    @click="selectPortfolio(n - 1)"
+  >
+    {{ n }}
+  </button>
+</div>
+      </div>
       <div>
         <button class="trade-btn" @click="showTradeModal = true">New Trade</button>
         <button class="trade-btn" style="margin-left: 12px;" @click="showAddCashModal = true">Add Cash</button>
         <button class="trade-btn2" style="margin-left: 12px;" @click="showResetDialog = true">Reset All</button>
         <button class="trade-btn" style="margin-left: 12px;" @click="showLossesInfo = true">Archetypes</button>
+       <button class="trade-btn" style="margin-left: 12px;" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)">Import</button>
+         <button class="trade-btn" style="margin-left: 12px;" @click="exportPortfolioData">Export</button>
       </div>
        <div v-if="showResetDialog" class="reset-modal-overlay">
       <div class="reset-modal">
@@ -21,15 +35,32 @@
         <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
       </div>
     </div>
-      <TradePopup v-if="showTradeModal" :user="user" :api-key="apiKey" @close="showTradeModal = false"
-        @refresh-history="{ fetchCash(); fetchPortfolio(); fetchTransactionHistory(); showTradeModal = false }" :cash="cash" />
-      <SellTradePopup v-if="showSellModal" :symbol="sellPosition.symbol" :maxShares="sellPosition.shares"
-        :price="sellPosition.price" :currentPrice="latestQuotes[sellPosition.symbol]" @close="showSellModal = false"
-        @sell="handleSell" :user="user" :api-key="apiKey" />
+      <TradePopup
+  v-if="showTradeModal"
+  :user="user"
+  :api-key="apiKey"
+  :portfolio="selectedPortfolioIndex"
+  @close="showTradeModal = false"
+  @refresh-history="{ fetchCash(); fetchPortfolio(); fetchTransactionHistory(); showTradeModal = false }"
+  :cash="cash"
+/>
+      <SellTradePopup
+  v-if="showSellModal"
+  :symbol="sellPosition.symbol"
+  :maxShares="sellPosition.shares"
+  :price="sellPosition.price"
+  :currentPrice="latestQuotes[sellPosition.symbol]"
+  @close="showSellModal = false"
+  @sell="handleSell"
+  :user="user"
+  :api-key="apiKey"
+  :portfolio="selectedPortfolioIndex"
+/>
 <AddCashPopup
   v-if="showAddCashModal"
   :user="user"
   :api-key="apiKey"
+  :portfolio="selectedPortfolioIndex"
   @close="showAddCashModal = false"
   @cash-added="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); showAddCashModal = false }"
 />
@@ -369,7 +400,6 @@ const showSellModal = ref(false)
 const sellPosition = ref({ symbol: '', shares: 0, price: 0 })
 const showAddCashModal = ref(false)
 const showLossesInfo = ref(false)
-const addCashError = ref('')
 
 function openSellModal(position) {
   sellPosition.value = { ...position }
@@ -568,16 +598,17 @@ async function fetchTransactionHistory() {
       'x-api-key': apiKey
     };
 
-    const response = await fetch(`/api/trades?username=${user}`, {
-      headers: headers
-    });
+    const response = await fetch(
+      `/api/trades?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
+      { headers }
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    transactionHistory.value = data.userDocument?.Trades || []; // Assign the transactions array
+    transactionHistory.value = data.trades || []; // Assign the trades array from the new backend
 
   } catch (error) {
     if (error.name === 'AbortError') {
@@ -587,7 +618,6 @@ async function fetchTransactionHistory() {
   }
 }
 
-fetchTransactionHistory()
 
 
 const sortedTransactionHistory = computed(() => {
@@ -607,9 +637,10 @@ async function fetchPortfolio() {
       'x-api-key': apiKey
     };
 
-    const response = await fetch(`/api/portfolio?username=${user}`, {
-      headers: headers
-    });
+    const response = await fetch(
+      `/api/portfolio?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
+      { headers }
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -626,7 +657,7 @@ async function fetchPortfolio() {
   }
 }
 
-fetchPortfolio();
+
 
 const latestQuotes = ref({}); // { [symbol]: price }
 const wsRef = ref(null);
@@ -841,14 +872,17 @@ async function confirmResetPortfolio() {
   resetError.value = '';
   try {
     const headers = { 'x-api-key': apiKey, 'Content-Type': 'application/json' };
-    const response = await fetch(`/api/portfolio?username=${user}`, {
-      method: 'DELETE',
-      headers
-    });
+    const response = await fetch(
+      `/api/portfolio?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
+      {
+        method: 'DELETE',
+        headers
+      }
+    );
     if (!response.ok) throw new Error('Failed to reset portfolio');
     fetchTransactionHistory();
     fetchPortfolio();
-    fetchCash()
+    fetchCash();
     showResetDialog.value = false;
   } catch (error) {
     resetError.value = 'Error resetting portfolio: ' + error.message;
@@ -863,9 +897,10 @@ async function fetchCash() {
       'x-api-key': apiKey
     };
 
-    const response = await fetch(`/api/portfolio/cash?username=${user}`, {
-      headers: headers
-    });
+    const response = await fetch(
+      `/api/portfolio/cash?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
+      { headers }
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -882,7 +917,7 @@ async function fetchCash() {
   }
 }
 
-fetchCash()
+
 
 const totalPortfolioValue2 = computed(() => {
   const positionsValue = portfolio.value.reduce((sum, pos) => {
@@ -1030,6 +1065,12 @@ const avgGainAbs = computed(() => {
   return avg.toFixed(2);
 });
 
+function getPercOfCash() {
+  const total = totalPortfolioValue2.value; // includes cash
+  if (!total) return '0.00';
+  return ((cash.value / total) * 100).toFixed(2);
+}
+
 const avgLossAbs = computed(() => {
   const closed = getClosedPositions().filter(p => p.pnl < 0);
   if (!closed.length) return '0.00';
@@ -1110,6 +1151,12 @@ const tradeReturnsMedianBinIndex = computed(() => {
   return bins.findIndex(b => medianValue >= b.min && medianValue < b.max);
 });
 
+function getPercOfCash() {
+  const total = totalPortfolioValue2.value; // includes cash
+  if (!total) return '0.00';
+  return ((cash.value / total) * 100).toFixed(2);
+}
+
 const tradeReturnsChartData = computed(() => {
   const closed = getClosedPositions();
   if (!closed.length) return { labels: [], datasets: [] };
@@ -1182,6 +1229,66 @@ const tradeReturnsChartOptions = computed(() => {
     }
   };
 });
+
+// --- Export Portfolio Data ---
+function exportPortfolioData() {
+  // Helper to convert array of objects to CSV
+  function arrayToCSV(arr, headers) {
+    const escape = v => '"' + String(v).replace(/"/g, '""') + '"';
+    return [
+      headers.join(','),
+      ...arr.map(row => headers.map(h => escape(row[h] ?? '')).join(','))
+    ].join('\n');
+  }
+
+  // Portfolio section
+  const portfolioHeaders = ['Symbol', 'Shares', 'AvgPrice'];
+  const portfolioCSV = arrayToCSV(portfolio.value, portfolioHeaders);
+
+  // Transaction history section
+  const txHeaders = ['Date', 'Symbol', 'Action', 'Shares', 'Price', 'Commission', 'Total'];
+  const txCSV = arrayToCSV(transactionHistory.value, txHeaders);
+
+  // Cash section
+  const cashCSV = `Cash Balance\n${cash.value}`;
+
+  // Combine sections
+  const csvContent = [
+    'Portfolio',
+    portfolioCSV,
+    '',
+    'Transaction History',
+    txCSV,
+    '',
+    cashCSV
+  ].join('\n\n');
+
+  // Download
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `portfolio_export_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// --- Portfolio Switching Logic ---
+const selectedPortfolioIndex = ref(0);
+
+function selectPortfolio(idx) {
+  selectedPortfolioIndex.value = idx;
+  fetchPortfolio();
+  fetchTransactionHistory();
+  fetchCash();
+}
+
+// On mount, load the first portfolio by default
+onMounted(() => {
+  selectPortfolio(0);
+});
 </script>
 
 <style lang="scss" scoped>
@@ -1206,6 +1313,33 @@ const tradeReturnsChartOptions = computed(() => {
   }
 }
 
+.portfolio-selector {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+
+  .portfolio-btn {
+    background: var(--base3);
+    color: var(--text1);
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &.selected {
+      background: var(--accent1);
+      color: var(--text1);
+    }
+
+    &:hover {
+      background: var(--accent2);
+    }
+  }
+}
+
 .trade-btn {
   background: var(--accent1);
   color: var(--text1);
@@ -1220,6 +1354,16 @@ const tradeReturnsChartOptions = computed(() => {
   &:hover {
     background: var(--accent2);
   }
+}
+
+.trade-btn:disabled {
+  background: var(--base3);
+  color: var(--text2);
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+  border: none;
+  transition: background 0.2s, color 0.2s, opacity 0.2s;
 }
 
 .trade-btn2 {

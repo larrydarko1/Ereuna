@@ -1,4 +1,4 @@
-import { body, validationResult, param, query, } from 'express-validator';
+import { body, validationResult, param, query } from 'express-validator';
 import validator from 'validator';
 
 const validationSchemas = {
@@ -436,5 +436,6 @@ export {
     validationResult,
     validator,
     sanitizeInput,
-    param
+    param,
+    query
 };

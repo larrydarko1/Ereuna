@@ -20,7 +20,8 @@ import {
   validationResult,
   validator,
   param,
-  sanitizeInput
+  sanitizeInput,
+  query
 } from './validationUtils.js';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
@@ -216,6 +217,25 @@ app.post('/signup',
       const newUser = await createUser(usersCollection, sanitizedUsername, hashedPassword, expirationDate, parsedSubscriptionPlan, promoCodeValidated, rawAuthKey, requestLogger);
       if (!newUser) return res.status(500).json({ message: 'Failed to create user' });
 
+      // Create 10 portfolio documents for the new user
+      const portfoliosCollection = db.collection('Portfolios');
+      const portfolioDocs = Array.from({ length: 10 }, (_, i) => ({
+        Username: sanitizedUsername,
+        Number: i + 1,
+        Trades: [],
+        portfolio: [],
+        cash: 0
+      }));
+      try {
+        await portfoliosCollection.insertMany(portfolioDocs);
+      } catch (portfolioError) {
+        logger.error({
+          msg: 'Portfolio Creation Failed',
+          error: { message: portfolioError.message, name: portfolioError.name }
+        });
+        // Optionally, you can decide to rollback user creation or just log the error
+      }
+
       await createReceipt(db.collection('Receipts'), newUser.insertedId, amount, parsedSubscriptionPlan, promoCodeValidated, requestLogger);
       logSuccessfulSignup(requestLogger, newUser.insertedId, parsedSubscriptionPlan);
 
@@ -335,7 +355,7 @@ async function createUser(collection, username, hashedPassword, expirationDate, 
       { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
       { order: 9, tag: 'News', name: 'News', hidden: false },
     ],
-    WatchPanel: ['SPY', 'QQQ', 'DIA', 'IWM', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'NFLX'],
+    WatchPanel: ['SPY', 'QQQ', 'DIA', 'IWM', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'NFLX', 'BTCUSD', 'ETHUSD'],
   };
 
   try {
@@ -15121,9 +15141,10 @@ app.get('/panel', validate([
   }
 });
 
-// endpoint to get the current trade history
+// --- GET trades for a specific portfolio ---
 app.get('/trades', validate([
-  validationSchemas.usernameQuery()
+  validationSchemas.usernameQuery(),
+  query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
 ]), async (req, res) => {
   const requestLogger = createRequestLogger(req);
   let client;
@@ -15131,27 +15152,25 @@ app.get('/trades', validate([
     const apiKey = req.header('x-api-key');
     const sanitizedKey = sanitizeInput(apiKey);
     if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-      logger.warn('Invalid API key', {
-        providedApiKey: !!sanitizedKey
-      });
-      return res.status(401).json({
-        message: 'Unauthorized API Access'
-      });
+      logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+      return res.status(401).json({ message: 'Unauthorized API Access' });
     }
-    const { username } = req.query;
+    const { username, portfolio } = req.query;
     const sanitizedUser = sanitizeInput(username);
+    const portfolioNumber = parseInt(portfolio, 10);
+
     client = new MongoClient(uri);
     await client.connect();
     const db = client.db('EreunaDB');
-    const usersCollection = db.collection('Users');
-    const userDocument = await usersCollection.findOne(
-      { Username: sanitizedUser },
-      { projection: { Trades: 1 } }
+    const portfoliosCollection = db.collection('Portfolios');
+    const portfolioDoc = await portfoliosCollection.findOne(
+      { Username: sanitizedUser, Number: portfolioNumber },
+      { projection: { trades: 1 } }
     );
-    if (!userDocument) {
-      return res.status(404).json({ message: 'User not found' });
+    if (!portfolioDoc) {
+      return res.status(404).json({ message: 'Portfolio not found' });
     }
-    return res.status(200).json({ userDocument });
+    return res.status(200).json({ trades: portfolioDoc.trades || [] });
   } catch (error) {
     handleError(error, requestLogger, req);
     return res.status(500).json({ message: 'An error occurred while retrieving the trade list' });
@@ -15160,9 +15179,10 @@ app.get('/trades', validate([
   }
 });
 
-// endpoint to add a trade and update portfolio
+// --- POST add a trade to a specific portfolio ---
 app.post('/trades/add', validate([
   validationSchemas.username(),
+  body('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)'),
   body('trade').isObject().withMessage('Trade must be an object'),
   body('trade.Symbol').isString().trim().notEmpty().withMessage('Symbol is required'),
   body('trade.Action').matches('Buy').withMessage('Action must be "Buy"'),
@@ -15181,10 +15201,11 @@ app.post('/trades/add', validate([
       logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
       return res.status(401).json({ message: 'Unauthorized API Access' });
     }
-    const { username, trade } = req.body;
+    const { username, portfolio, trade } = req.body;
     const sanitizedUser = sanitizeInput(username);
+    const portfolioNumber = parseInt(portfolio, 10);
 
-    // Process and sanitize the trade object, including Commission
+
     const processedTrade = {
       Date: new Date(trade.Date).toISOString(),
       Symbol: String(trade.Symbol).toUpperCase().trim(),
@@ -15198,64 +15219,74 @@ app.post('/trades/add', validate([
     client = new MongoClient(uri);
     await client.connect();
     const db = client.db('EreunaDB');
-    const usersCollection = db.collection('Users');
+    const portfoliosCollection = db.collection('Portfolios');
     const assetInfoCollection = db.collection('AssetInfo');
 
-    // Check if symbol exists in AssetInfo
+    // Check if symbol exists
     const symbolExists = await assetInfoCollection.findOne({ Symbol: processedTrade.Symbol });
     if (!symbolExists) {
       return res.status(404).json({ message: 'Symbol not found in AssetInfo' });
     }
 
-    const userDocument = await usersCollection.findOne({ Username: sanitizedUser });
-    if (!userDocument) {
-      return res.status(404).json({ message: 'User not found' });
+
+    // Find portfolio doc
+    let portfolioDoc = await portfoliosCollection.findOne({ Username: sanitizedUser, Number: portfolioNumber }); // <-- FIXED
+    if (!portfolioDoc) {
+      // Create new portfolio doc if not exists
+      portfolioDoc = {
+        Username: sanitizedUser,
+        Number: portfolioNumber, // <-- FIXED
+        portfolio: [],
+        trades: [],
+        cash: 0
+      };
+      await portfoliosCollection.insertOne(portfolioDoc);
     }
 
-    // --- Cash balance check ---
-    const currentCash = typeof userDocument.cash === 'number' ? userDocument.cash : 0;
+    // Cash check
+    const currentCash = typeof portfolioDoc.cash === 'number' ? portfolioDoc.cash : 0;
     if (processedTrade.Total > currentCash) {
       return res.status(400).json({ message: 'Insufficient cash balance for this trade' });
     }
 
-    // Insert the trade into the Trades array and deduct cash
-    const updateResult = await usersCollection.updateOne(
-      { Username: sanitizedUser },
+    // Add trade and update cash
+    const updateResult = await portfoliosCollection.updateOne(
+      { Username: sanitizedUser, Number: portfolioNumber }, // <-- FIXED
       {
-        $push: { Trades: processedTrade },
+        $push: { trades: processedTrade },
         $inc: { cash: -processedTrade.Total }
       }
     );
 
     if (updateResult.modifiedCount === 1) {
-      // --- Portfolio update logic ---
-      let portfolio = Array.isArray(userDocument.portfolio) ? userDocument.portfolio : [];
-      const idx = portfolio.findIndex(p => p.Symbol === processedTrade.Symbol);
+      // Portfolio update logic
+      let portfolioArr = Array.isArray(portfolioDoc.portfolio) ? portfolioDoc.portfolio : [];
+      const idx = portfolioArr.findIndex(p => p.Symbol === processedTrade.Symbol);
 
       if (idx !== -1) {
         // Update existing position
-        const position = portfolio[idx];
+        const position = portfolioArr[idx];
         const totalShares = position.Shares + processedTrade.Shares;
         const totalCost = (position.AvgPrice * position.Shares) + (processedTrade.Price * processedTrade.Shares);
         const newAvgPrice = totalCost / totalShares;
 
-        portfolio[idx] = {
+        portfolioArr[idx] = {
           Symbol: position.Symbol,
           Shares: totalShares,
           AvgPrice: newAvgPrice
         };
       } else {
         // Add new position
-        portfolio.push({
+        portfolioArr.push({
           Symbol: processedTrade.Symbol,
           Shares: processedTrade.Shares,
           AvgPrice: processedTrade.Price
         });
       }
 
-      await usersCollection.updateOne(
-        { Username: sanitizedUser },
-        { $set: { portfolio } }
+      await portfoliosCollection.updateOne(
+        { Username: sanitizedUser, Number: portfolioNumber }, // <-- FIXED
+        { $set: { portfolio: portfolioArr } }
       );
 
       return res.status(200).json({ message: 'Trade added and portfolio updated' });
@@ -15277,49 +15308,11 @@ app.post('/trades/add', validate([
   }
 });
 
-// Endpoint to get the current portfolio
-app.get('/portfolio', validate([
-  validationSchemas.usernameQuery()
-]), async (req, res) => {
-  const requestLogger = createRequestLogger(req);
-  let client;
-  try {
-    const apiKey = req.header('x-api-key');
-    const sanitizedKey = sanitizeInput(apiKey);
-    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-      logger.warn('Invalid API key', {
-        providedApiKey: !!sanitizedKey
-      });
-      return res.status(401).json({
-        message: 'Unauthorized API Access'
-      });
-    }
-    const { username } = req.query;
-    const sanitizedUser = sanitizeInput(username);
-    client = new MongoClient(uri);
-    await client.connect();
-    const db = client.db('EreunaDB');
-    const usersCollection = db.collection('Users');
-    // Fetch only the portfolio field
-    const userDocument = await usersCollection.findOne(
-      { Username: sanitizedUser },
-      { projection: { portfolio: 1 } }
-    );
-    if (!userDocument) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    // Return the portfolio array (or empty array if not present)
-    return res.status(200).json({ portfolio: userDocument.portfolio || [] });
-  } catch (error) {
-    handleError(error, requestLogger, req);
-    return res.status(500).json({ message: 'An error occurred while retrieving the portfolio' });
-  } finally {
-    if (client) await client.close();
-  }
-});
 
-app.delete('/portfolio', validate([
-  validationSchemas.usernameQuery()
+// --- GET portfolio for a specific portfolio number ---
+app.get('/portfolio', validate([
+  validationSchemas.usernameQuery(),
+  query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
 ]), async (req, res) => {
   const requestLogger = createRequestLogger(req);
   let client;
@@ -15330,24 +15323,57 @@ app.delete('/portfolio', validate([
       logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
       return res.status(401).json({ message: 'Unauthorized API Access' });
     }
-    const { username } = req.query;
+    const { username, portfolio } = req.query;
     const sanitizedUser = sanitizeInput(username);
+    const portfolioNumber = parseInt(portfolio, 10);
 
     client = new MongoClient(uri);
     await client.connect();
     const db = client.db('EreunaDB');
-    const usersCollection = db.collection('Users');
-
-    // Find user document
-    const userDocument = await usersCollection.findOne({ Username: sanitizedUser });
-    if (!userDocument) {
-      return res.status(404).json({ message: 'User not found' });
+    const portfoliosCollection = db.collection('Portfolios');
+    const portfolioDoc = await portfoliosCollection.findOne(
+      { Username: sanitizedUser, Number: portfolioNumber },
+      { projection: { portfolio: 1 } }
+    );
+    if (!portfolioDoc) {
+      return res.status(404).json({ message: 'Portfolio not found' });
     }
+    return res.status(200).json({ portfolio: portfolioDoc.portfolio || [] });
+  } catch (error) {
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred while retrieving the portfolio' });
+  } finally {
+    if (client) await client.close();
+  }
+});
 
-    // Reset Trades and portfolio arrays
-    await usersCollection.updateOne(
-      { Username: sanitizedUser },
-      { $set: { Trades: [], portfolio: [], cash: 0 } }
+// --- DELETE portfolio (reset) for a specific portfolio number ---
+app.delete('/portfolio', validate([
+  validationSchemas.usernameQuery(),
+  query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
+]), async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+      return res.status(401).json({ message: 'Unauthorized API Access' });
+    }
+    const { username, portfolio } = req.query;
+    const sanitizedUser = sanitizeInput(username);
+    const portfolioNumber = parseInt(portfolio, 10);
+
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const portfoliosCollection = db.collection('Portfolios');
+
+    // Reset trades, portfolio, and cash for this portfolio
+    await portfoliosCollection.updateOne(
+      { Username: sanitizedUser, Number: portfolioNumber },
+      { $set: { trades: [], portfolio: [], cash: 0 } }
     );
 
     return res.status(200).json({ message: 'Portfolio and trade history reset successfully' });
@@ -15359,23 +15385,22 @@ app.delete('/portfolio', validate([
   }
 });
 
+// --- POST add cash to a specific portfolio ---
 app.post('/portfolio/cash', [
-  body('username')
-    .isString().trim().notEmpty().withMessage('Username is required')
+  body('username').isString().trim().notEmpty().withMessage('Username is required')
     .matches(/^[a-zA-Z0-9_]+$/).withMessage('Invalid username format'),
-  body('amount')
-    .isFloat({ min: 0.01 }).withMessage('Amount must be a positive number'),
-  body('date')
-    .optional()
-    .isISO8601().withMessage('Date must be a valid ISO date')
+  body('portfolio').isInt({ min: 1, max: 10 }).withMessage('Portfolio number required (1-10)'),
+  body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be a positive number'),
+  body('date').optional().isISO8601().withMessage('Date must be a valid ISO date')
 ], async (req, res) => {
   const apiKey = req.header('x-api-key');
   const sanitizedKey = sanitizeInput(apiKey);
   if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
     return res.status(401).json({ message: 'Unauthorized API Access' });
   }
-  const { username, amount, date } = req.body;
+  const { username, portfolio, amount, date } = req.body;
   const sanitizedUser = sanitizeInput(username);
+  const portfolioNumber = parseInt(portfolio, 10);
   const sanitizedAmount = parseFloat(amount);
   let depositDate = new Date().toISOString();
   if (date) {
@@ -15392,13 +15417,14 @@ app.post('/portfolio/cash', [
     client = new MongoClient(uri);
     await client.connect();
     const db = client.db('EreunaDB');
-    const usersCollection = db.collection('Users');
-    // Add cash to user's cash balance (create field if not exists)
-    await usersCollection.updateOne(
-      { Username: sanitizedUser },
-      { $inc: { cash: sanitizedAmount } }
+    const portfoliosCollection = db.collection('Portfolios');
+    // Add cash to portfolio's cash balance
+    await portfoliosCollection.updateOne(
+      { Username: sanitizedUser, Number: portfolioNumber },
+      { $inc: { cash: sanitizedAmount } },
+      { upsert: true }
     );
-    // Add a "cash deposit" trade to Trades array
+    // Add a "cash deposit" trade to trades array
     const cashTrade = {
       Date: depositDate,
       Symbol: '-',
@@ -15407,9 +15433,9 @@ app.post('/portfolio/cash', [
       Price: '-',
       Total: sanitizedAmount
     };
-    await usersCollection.updateOne(
-      { Username: sanitizedUser },
-      { $push: { Trades: cashTrade } }
+    await portfoliosCollection.updateOne(
+      { Username: sanitizedUser, Number: portfolioNumber },
+      { $push: { trades: cashTrade } }
     );
     return res.status(200).json({ message: 'Cash added successfully' });
   } catch (error) {
@@ -15419,13 +15445,18 @@ app.post('/portfolio/cash', [
   }
 });
 
-app.get('/portfolio/cash', async (req, res) => {
+// --- GET cash for a specific portfolio ---
+app.get('/portfolio/cash', [
+  query('username').isString().trim().notEmpty().withMessage('Username is required'),
+  query('portfolio').isInt({ min: 1, max: 10 }).withMessage('Portfolio number required (1-10)')
+], async (req, res) => {
   const apiKey = req.header('x-api-key');
   const sanitizedKey = sanitizeInput(apiKey);
   if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
     return res.status(401).json({ message: 'Unauthorized API Access' });
   }
   const username = sanitizeInput(req.query.username);
+  const portfolioNumber = parseInt(req.query.portfolio, 10);
   if (!username) {
     return res.status(400).json({ message: 'Username is required' });
   }
@@ -15434,15 +15465,15 @@ app.get('/portfolio/cash', async (req, res) => {
     client = new MongoClient(uri);
     await client.connect();
     const db = client.db('EreunaDB');
-    const usersCollection = db.collection('Users');
-    const userDoc = await usersCollection.findOne(
-      { Username: username },
+    const portfoliosCollection = db.collection('Portfolios');
+    const portfolioDoc = await portfoliosCollection.findOne(
+      { Username: username, Number: portfolioNumber },
       { projection: { cash: 1 } }
     );
-    if (!userDoc) {
-      return res.status(404).json({ message: 'User not found' });
+    if (!portfolioDoc) {
+      return res.status(404).json({ message: 'Portfolio not found' });
     }
-    return res.status(200).json({ cash: userDoc.cash || 0 });
+    return res.status(200).json({ cash: portfolioDoc.cash || 0 });
   } catch (error) {
     return res.status(500).json({ message: 'An error occurred while retrieving cash balance' });
   } finally {
@@ -15504,6 +15535,7 @@ app.get('/quotes', async (req, res) => {
 
 app.post('/trades/sell', validate([
   validationSchemas.username(),
+  body('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)'),
   body('trade').isObject().withMessage('Trade must be an object'),
   body('trade.Symbol').isString().trim().notEmpty().withMessage('Symbol is required'),
   body('trade.Action').matches('Sell').withMessage('Action must be "Sell"'),
@@ -15522,10 +15554,10 @@ app.post('/trades/sell', validate([
       logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
       return res.status(401).json({ message: 'Unauthorized API Access' });
     }
-    const { username, trade } = req.body;
+    const { username, portfolio, trade } = req.body;
     const sanitizedUser = sanitizeInput(username);
+    const portfolioNumber = parseInt(portfolio, 10);
 
-    // Process and sanitize the trade object, including Commission
     const processedTrade = {
       Date: new Date(trade.Date).toISOString(),
       Symbol: String(trade.Symbol).toUpperCase().trim(),
@@ -15544,56 +15576,56 @@ app.post('/trades/sell', validate([
     client = new MongoClient(uri);
     await client.connect();
     const db = client.db('EreunaDB');
-    const usersCollection = db.collection('Users');
+    const portfoliosCollection = db.collection('Portfolios');
     const assetInfoCollection = db.collection('AssetInfo');
 
-    // Check if symbol exists in AssetInfo
+    // Check if symbol exists
     const symbolExists = await assetInfoCollection.findOne({ Symbol: processedTrade.Symbol });
     if (!symbolExists) {
       return res.status(404).json({ message: 'Symbol not found in AssetInfo' });
     }
 
-    const userDocument = await usersCollection.findOne({ Username: sanitizedUser });
-    if (!userDocument) {
-      return res.status(404).json({ message: 'User not found' });
+    // Find portfolio doc
+    let portfolioDoc = await portfoliosCollection.findOne({ Username: sanitizedUser, Number: portfolioNumber });
+    if (!portfolioDoc) {
+      return res.status(404).json({ message: 'Portfolio not found' });
     }
 
-    // --- Portfolio update logic for Sell ---
-    let portfolio = Array.isArray(userDocument.portfolio) ? userDocument.portfolio : [];
-    const idx = portfolio.findIndex(p => p.Symbol === processedTrade.Symbol);
+    // Portfolio update logic for Sell
+    let portfolioArr = Array.isArray(portfolioDoc.portfolio) ? portfolioDoc.portfolio : [];
+    const idx = portfolioArr.findIndex(p => p.Symbol === processedTrade.Symbol);
 
-    if (idx === -1 || portfolio[idx].Shares < processedTrade.Shares) {
+    if (idx === -1 || portfolioArr[idx].Shares < processedTrade.Shares) {
       return res.status(400).json({ message: 'Not enough shares to sell' });
     }
 
-    // Insert the trade into the Trades array
-    const updateResult = await usersCollection.updateOne(
-      { Username: sanitizedUser },
+    // Add trade and update cash
+    const updateResult = await portfoliosCollection.updateOne(
+      { Username: sanitizedUser, Number: portfolioNumber },
       {
-        $push: { Trades: processedTrade },
+        $push: { trades: processedTrade },
         $inc: { cash: processedTrade.Total }
       }
     );
 
     if (updateResult.modifiedCount === 1) {
       // Update or remove position
-      const position = portfolio[idx];
+      const position = portfolioArr[idx];
       const remainingShares = position.Shares - processedTrade.Shares;
 
       if (remainingShares > 0) {
-        portfolio[idx] = {
+        portfolioArr[idx] = {
           Symbol: position.Symbol,
           Shares: remainingShares,
           AvgPrice: position.AvgPrice // Keep avg price unchanged for remaining shares
         };
       } else {
         // Remove position if all shares sold
-        portfolio.splice(idx, 1);
+        portfolioArr.splice(idx, 1);
       }
-
-      await usersCollection.updateOne(
-        { Username: sanitizedUser },
-        { $set: { portfolio } }
+      await portfoliosCollection.updateOne(
+        { Username: sanitizedUser, Number: portfolioNumber },
+        { $set: { portfolio: portfolioArr } }
       );
 
       return res.status(200).json({ message: 'Sell trade added and portfolio updated' });

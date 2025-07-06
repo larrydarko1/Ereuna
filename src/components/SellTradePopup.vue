@@ -72,7 +72,11 @@ const props = defineProps({
   price: Number,
   currentPrice: Number,
   user: String,
-  apiKey: String
+  apiKey: String,
+  portfolio: {
+  type: Number,
+  required: true
+}
 })
 const emit = defineEmits(['close', 'sell'])
 
@@ -103,7 +107,7 @@ async function submitSell() {
     Shares: sellShares.value,
     Action: "Sell",
     Price: sellPrice.value,
-    Date: sellDate.value, // Use selected date
+    Date: sellDate.value, 
     Total: sellTotal.value,
     Commission: sellCommission.value || 0
   }
@@ -114,7 +118,11 @@ async function submitSell() {
         'Content-Type': 'application/json',
         'x-api-key': props.apiKey
       },
-      body: JSON.stringify({ username: props.user, trade })
+      body: JSON.stringify({
+        username: props.user,
+        portfolio: props.portfolio, 
+        trade
+      })
     })
     if (!response.ok) {
       throw new Error('Failed to add trade')
