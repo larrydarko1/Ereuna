@@ -222,7 +222,7 @@ app.post('/signup',
       const portfolioDocs = Array.from({ length: 10 }, (_, i) => ({
         Username: sanitizedUsername,
         Number: i + 1,
-        Trades: [],
+        trades: [],
         portfolio: [],
         cash: 0
       }));
@@ -15684,6 +15684,77 @@ app.get('/pricetarget/:symbol', async (req, res) => {
       error: error.message
     });
     return res.status(500).json({ message: 'Internal Server Error' });
+  } finally {
+    if (client) await client.close();
+  }
+});
+
+// --- POST import a full portfolio (positions, trades, cash) ---
+app.post('/portfolio/import', validate([
+  validationSchemas.username(),
+  body('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)'),
+  body('portfolioData').isArray().withMessage('portfolioData must be an array'),
+  body('txData').isArray().withMessage('txData must be an array'),
+  body('cash').isFloat({ min: 0 }).withMessage('Cash must be a non-negative number')
+]), async (req, res) => {
+  const requestLogger = createRequestLogger(req);
+  let client;
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+      return res.status(401).json({ message: 'Unauthorized API Access' });
+    }
+    const { username, portfolio, portfolioData, txData, cash } = req.body;
+    const sanitizedUser = sanitizeInput(username);
+    const portfolioNumber = parseInt(portfolio, 10);
+
+    // --- Backend CSV Injection & Sanitization ---
+    function isDangerousCSVValue(v) {
+      return typeof v === 'string' && /^[=+\-@]/.test(v) && v.length > 1;
+    }
+    function sanitizeRow(row) {
+      const sanitized = {};
+      for (const [k, v] of Object.entries(row)) {
+        sanitized[k] = typeof v === 'string' ? sanitizeInput(v) : v;
+      }
+      return sanitized;
+    }
+    // Check for dangerous values in imported data
+    for (const row of [...portfolioData, ...txData]) {
+      for (const v of Object.values(row)) {
+        if (isDangerousCSVValue(v)) {
+          return res.status(400).json({ message: 'Potentially dangerous value detected in import.' });
+        }
+      }
+    }
+    // Sanitize all string fields
+    const safePortfolioData = portfolioData.map(sanitizeRow);
+    const safeTxData = txData.map(sanitizeRow);
+
+    client = new MongoClient(uri);
+    await client.connect();
+    const db = client.db('EreunaDB');
+    const portfoliosCollection = db.collection('Portfolios');
+
+    // Upsert the portfolio document with new data
+    await portfoliosCollection.updateOne(
+      { Username: sanitizedUser, Number: portfolioNumber },
+      {
+        $set: {
+          portfolio: safePortfolioData,
+          trades: safeTxData,
+          cash: cash
+        }
+      },
+      { upsert: true }
+    );
+
+    return res.status(200).json({ message: 'Portfolio imported successfully' });
+  } catch (error) {
+    handleError(error, requestLogger, req);
+    return res.status(500).json({ message: 'An error occurred while importing portfolio' });
   } finally {
     if (client) await client.close();
   }
