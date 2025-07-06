@@ -41,7 +41,11 @@ import { ref, defineEmits, defineProps } from 'vue'
 const emit = defineEmits(['close', 'refresh'])
 const props = defineProps({
   user: String,
-  apiKey: String
+  apiKey: String,
+  portfolio: {
+  type: Number,
+  required: true
+}
 })
 
 const today = new Date().toISOString().slice(0, 10)
@@ -62,7 +66,12 @@ async function submitCash() {
         'Content-Type': 'application/json',
         'x-api-key': props.apiKey
       },
-      body: JSON.stringify({ username: props.user, amount: amount.value, date: cashDate.value })
+      body: JSON.stringify({
+        username: props.user,
+        portfolio: props.portfolio, 
+        amount: amount.value,
+        date: cashDate.value
+      })
     })
     if (!response.ok) throw new Error('Failed to add cash')
     emit('cash-added')

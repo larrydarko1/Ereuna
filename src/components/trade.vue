@@ -70,7 +70,11 @@ const emit = defineEmits(['close', 'trade', 'refresh-history'])
 const props = defineProps({
   user: String,
   apiKey: String,
-  cash: Number
+  cash: Number,
+  portfolio: {
+  type: Number,
+  required: true
+}
 })
 
 const symbol = ref('')
@@ -102,7 +106,11 @@ async function submitTrade() {
         'Content-Type': 'application/json',
         'x-api-key': props.apiKey
       },
-      body: JSON.stringify({ username: props.user, trade })
+      body: JSON.stringify({
+        username: props.user,
+        portfolio: props.portfolio, 
+        trade
+      })
     })
 
     if (!response.ok) {

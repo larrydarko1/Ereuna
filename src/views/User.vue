@@ -1267,6 +1267,11 @@ p {
   /* Smooth transition for hover effects */
 }
 
+.userbtn:disabled , .userbtn:disabled:hover {
+  cursor: not-allowed;
+  background-color: var(--base3);
+}
+
 .userbtn:hover {
   background-color: var(--accent2);
   /* Background color on hover */
@@ -1721,8 +1726,6 @@ p {
   transition: background 0.2s, opacity 0.2s;
   cursor: pointer;
   display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .downloadbtn:hover {
