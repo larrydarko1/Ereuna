@@ -21,8 +21,8 @@
         <button class="trade-btn" style="margin-left: 12px;" @click="showAddCashModal = true">Add Cash</button>
         <button class="trade-btn2" style="margin-left: 12px;" @click="showResetDialog = true">Reset All</button>
         <button class="trade-btn" style="margin-left: 12px;" @click="showLossesInfo = true">Archetypes</button>
-       <button class="trade-btn" style="margin-left: 12px;" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)">Import</button>
-         <button class="trade-btn" style="margin-left: 12px;" @click="exportPortfolioData">Export</button>
+       <button class="trade-btn" style="margin-left: 12px;" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)" @click="showImportPopup = true">Import</button>
+        <button class="trade-btn" style="margin-left: 12px;" @click="exportPortfolioData">Export</button>
       </div>
        <div v-if="showResetDialog" class="reset-modal-overlay">
       <div class="reset-modal">
@@ -65,6 +65,14 @@
   @cash-added="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); showAddCashModal = false }"
 />
 <Archetypes v-if="showLossesInfo" @close="showLossesInfo = false" />
+<ImportPortfolioPopup
+          v-if="showImportPopup"
+          :user="user"
+          :api-key="apiKey"
+          :portfolio="selectedPortfolioIndex"
+          @close="showImportPopup = false"
+          @imported="() => { fetchPortfolio(); fetchTransactionHistory(); fetchCash(); }"
+        />
     </div>
     <div class="portfolio-summary">
       <div class="summary-card">
@@ -361,6 +369,7 @@ import {
 import { useStore } from 'vuex';
 import annotationPlugin from 'chartjs-plugin-annotation';
 import Assistant from '@/components/assistant.vue';
+import ImportPortfolioPopup from '@/components/ImportPortfolioPopup.vue';
 
 // access user from store 
 const store = useStore();
@@ -400,6 +409,7 @@ const showSellModal = ref(false)
 const sellPosition = ref({ symbol: '', shares: 0, price: 0 })
 const showAddCashModal = ref(false)
 const showLossesInfo = ref(false)
+const showImportPopup = ref(false)
 
 function openSellModal(position) {
   sellPosition.value = { ...position }
@@ -618,8 +628,6 @@ async function fetchTransactionHistory() {
   }
 }
 
-
-
 const sortedTransactionHistory = computed(() => {
   return [...transactionHistory.value].sort((a, b) => {
     // If Date is missing, treat as oldest
@@ -656,8 +664,6 @@ async function fetchPortfolio() {
     console.error('Error fetching portfolio:', error);
   }
 }
-
-
 
 const latestQuotes = ref({}); // { [symbol]: price }
 const wsRef = ref(null);
@@ -783,7 +789,7 @@ const realizedPL = computed(() => {
   // Track realized P/L for each symbol
   let realized = 0;
   let lots = {};
-  for (const tx of sortedTransactionHistory.value.slice().reverse()) {
+  for (const tx of sortedTransactionHistory.value.slice()) {
     if (!tx.Symbol || !tx.Action) continue;
     if (tx.Action === 'Buy') {
       lots[tx.Symbol] = lots[tx.Symbol] || [];
@@ -834,7 +840,7 @@ const realizedPLPercent = computed(() => {
   let realized = 0;
   let costBasis = 0;
   let lots = {};
-  for (const tx of sortedTransactionHistory.value.slice().reverse()) {
+  for (const tx of sortedTransactionHistory.value.slice()) {
     if (!tx.Symbol || !tx.Action) continue;
     if (tx.Action === 'Buy') {
       lots[tx.Symbol] = lots[tx.Symbol] || [];
@@ -976,7 +982,10 @@ const avgPositionSize = computed(() => {
 
 // Helper: Find all round-trips (buy then sell) for stats
 function getClosedPositions() {
-  const txs = [...sortedTransactionHistory.value].reverse();
+  // Always sort by date ascending (oldest to newest)
+  const txs = [...transactionHistory.value]
+    .filter(tx => tx.Date)
+    .sort((a, b) => new Date(a.Date) - new Date(b.Date));
   const positions = [];
   const lots = {};
 
@@ -1065,12 +1074,6 @@ const avgGainAbs = computed(() => {
   return avg.toFixed(2);
 });
 
-function getPercOfCash() {
-  const total = totalPortfolioValue2.value; // includes cash
-  if (!total) return '0.00';
-  return ((cash.value / total) * 100).toFixed(2);
-}
-
 const avgLossAbs = computed(() => {
   const closed = getClosedPositions().filter(p => p.pnl < 0);
   if (!closed.length) return '0.00';
@@ -1151,12 +1154,6 @@ const tradeReturnsMedianBinIndex = computed(() => {
   return bins.findIndex(b => medianValue >= b.min && medianValue < b.max);
 });
 
-function getPercOfCash() {
-  const total = totalPortfolioValue2.value; // includes cash
-  if (!total) return '0.00';
-  return ((cash.value / total) * 100).toFixed(2);
-}
-
 const tradeReturnsChartData = computed(() => {
   const closed = getClosedPositions();
   if (!closed.length) return { labels: [], datasets: [] };
@@ -1233,8 +1230,13 @@ const tradeReturnsChartOptions = computed(() => {
 // --- Export Portfolio Data ---
 function exportPortfolioData() {
   // Helper to convert array of objects to CSV
-  function arrayToCSV(arr, headers) {
-    const escape = v => '"' + String(v).replace(/"/g, '""') + '"';
+   function arrayToCSV(arr, headers) {
+    const escape = v => {
+      let str = String(v ?? '');
+      // Prefix dangerous values with a single quote to prevent CSV injection
+      if (/^[=+\-@]/.test(str)) str = "'" + str;
+      return '"' + str.replace(/"/g, '""') + '"';
+    };
     return [
       headers.join(','),
       ...arr.map(row => headers.map(h => escape(row[h] ?? '')).join(','))
@@ -1289,6 +1291,8 @@ function selectPortfolio(idx) {
 onMounted(() => {
   selectPortfolio(0);
 });
+
+
 </script>
 
 <style lang="scss" scoped>
