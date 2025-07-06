@@ -20,7 +20,7 @@
 <div class="login container">
   <div class="login-form" @keydown.enter="login()">
     <div class="logo-container">
-      <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/owl.png" alt="" draggable="false">
+      <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/ereuna.png" alt="" draggable="false">
     </div>
     <br>
     <br>
@@ -305,7 +305,7 @@ async function verifyMfa() {
 .logo {
   align-items: center;
   justify-content: center;
-  width: 90px;
+  width: 300px;
   margin: 10px;
 }
 
@@ -698,7 +698,7 @@ a:hover{
   }
 
   .logo {
-    width: 8rem;
+    width: 32rem;
     margin: 1rem auto;
     display: block;
   }

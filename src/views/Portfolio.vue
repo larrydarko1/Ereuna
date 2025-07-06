@@ -1328,6 +1328,7 @@ onMounted(() => {
     border: none;
     border-radius: 6px;
     padding: 10px 16px;
+    min-width: 50px;
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
