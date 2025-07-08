@@ -671,3 +671,4 @@ def create_user_portfolios(username=None):
     ]
     result = portfolios_collection.insert_many(docs)
     print(f"Created {len(result.inserted_ids)} portfolios for user '{username}'.")
+

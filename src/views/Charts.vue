@@ -2278,6 +2278,7 @@ async function getData(item) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
+    console.log(data);
 
     quotes[item] = parseFloat(data.close).toFixed(2);
     changes[item] = parseFloat(data.closeDiff);
