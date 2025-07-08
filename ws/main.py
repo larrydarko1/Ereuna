@@ -93,6 +93,21 @@ async def websocket_stream(websocket: WebSocket):
         print(f"WebSocket error: {e}")
         await websocket.close()
         
+# for looking at raw messages
+@app.websocket("/ws/raw")
+async def websocket_raw(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            msg = await message_queue.get()
+            await websocket.send_text(msg)
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+        await websocket.close()
+
+        
 @app.websocket("/ws/symbols")
 async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
     await websocket.accept()
@@ -124,7 +139,10 @@ async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
     except Exception as e:
         print(f"WebSocket error: {e}")
         await websocket.close()
+        
+
 
 # To run: uvicorn ws.main:app --reload
 # wscat -c "ws://localhost:8000/ws/stream"
 # wscat -c "ws://localhost:8000/ws/symbols?symbols=RDDT,TSLA"
+# wscat -c "ws://localhost:8000/ws/raw" - this listens to raw messages to better understand the data structure
