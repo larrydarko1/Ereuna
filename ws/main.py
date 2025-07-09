@@ -149,9 +149,9 @@ async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
         
 
 @app.websocket("/ws/assetinfo")
-async def websocket_assetinfo(websocket: WebSocket, ticker: str = Query(...)):
+async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
     await websocket.accept()
-    symbol = ticker.lower()
+    symbols = set(s.lower() for s in tickers.split(","))
     try:
         while True:
             msg = await message_queue.get()
@@ -160,11 +160,17 @@ async def websocket_assetinfo(websocket: WebSocket, ticker: str = Query(...)):
                 d = data.get("data")
                 service = data.get("service")
                 # Stocks (IEX)
-                if service == "iex" and isinstance(d, list) and len(d) > 2 and d[1].lower() == symbol:
+                if service == "iex" and isinstance(d, list) and len(d) > 2:
+                    symbol = d[1].lower()
+                    if symbol not in symbols:
+                        continue
                     latest_close = float(d[2])
                     timestamp = d[0]
                 # Crypto
-                elif service == "crypto_data" and isinstance(d, list) and len(d) > 5 and d[1].lower() == symbol:
+                elif service == "crypto_data" and isinstance(d, list) and len(d) > 5:
+                    symbol = d[1].lower()
+                    if symbol not in symbols:
+                        continue
                     latest_close = float(d[5])
                     timestamp = d[2]
                 else:
@@ -175,7 +181,6 @@ async def websocket_assetinfo(websocket: WebSocket, ticker: str = Query(...)):
                 if asset_doc and "TimeSeries" in asset_doc and asset_doc["TimeSeries"]:
                     ts_dict = asset_doc["TimeSeries"]
                     if isinstance(ts_dict, dict):
-                        # Get the only value in the dict (regardless of key)
                         ts = next(iter(ts_dict.values()))
                         prev_close_val = ts.get("4. close")
                         try:
@@ -191,6 +196,7 @@ async def websocket_assetinfo(websocket: WebSocket, ticker: str = Query(...)):
                     close_diff = latest_close - previous_close
                     percent_change = (close_diff / previous_close) * 100
                     payload = {
+                        "symbol": symbol.upper(),
                         "close": latest_close,
                         "closeDiff": f"{close_diff:+.2f}",
                         "latestClose": latest_close,
@@ -215,6 +221,6 @@ async def websocket_assetinfo(websocket: WebSocket, ticker: str = Query(...)):
 
 # To run: uvicorn ws.main:app --reload
 # wscat -c "ws://localhost:8000/ws/stream"
-# wscat -c "ws://localhost:8000/ws/assetinfo?ticker=TSLA"
+# wscat -c "ws://localhost:8000/ws/assetinfo?tickers=TSLA,AAPL,BTCUSD"
 # wscat -c "ws://localhost:8000/ws/symbols?symbols=RDDT,TSLA"
 # wscat -c "ws://localhost:8000/ws/raw" - this listens to raw messages to better understand the data structure

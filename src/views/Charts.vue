@@ -2213,63 +2213,12 @@ function getImagePath(item) {
   }
 }
 
-async function getData(item) {
+async function getData(items) {
+  if (!Array.isArray(items)) items = [items];
   try {
-    if (Tier.value === 'Premium') {
-      let ws;
-      let wsTimeout;
-      let resolved = false;
-
-      const wsPromise = new Promise((resolve, reject) => {
-        ws = new WebSocket(`wss://${window.location.host}/ws/premium-data`);
-        ws.onopen = () => {
-          ws.send(JSON.stringify({ action: 'subscribe', symbol: item }));
-        };
-        ws.onmessage = (event) => {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(wsTimeout);
-            const data = JSON.parse(event.data);
-            ws.close();
-            resolve(data);
-          }
-        };
-        ws.onerror = (err) => {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(wsTimeout);
-            ws.close();
-            reject(new Error('WebSocket error'));
-          }
-        };
-        wsTimeout = setTimeout(() => {
-          if (!resolved) {
-            resolved = true;
-            ws.close();
-            reject(new Error('WebSocket timeout'));
-          }
-        }, 2000);
-      });
-
-      let premiumData = null;
-      let wsTimedOut = false;
-      try {
-        premiumData = await wsPromise;
-      } catch (wsError) {
-        wsTimedOut = true;
-      }
-
-      if (premiumData && !wsTimedOut) {
-        quotes[item] = parseFloat(premiumData.close).toFixed(2);
-        changes[item] = parseFloat(premiumData.closeDiff);
-        perc[item] = parseFloat(premiumData.percentChange);
-        return;
-      }
-      // If websocket fails or times out, fallback to Core logic below
-    }
-
-    // --- Core/EOD logic ---
-    const response = await fetch(`/api/${item}/data-values`, {
+    // Join tickers as comma-separated for the query param
+    const tickersParam = items.map(encodeURIComponent).join(',');
+    const response = await fetch(`/api/data-values?tickers=${tickersParam}`, {
       headers: {
         'X-API-KEY': apiKey,
       },
@@ -2278,16 +2227,19 @@ async function getData(item) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    console.log(data);
-
-    quotes[item] = parseFloat(data.close).toFixed(2);
-    changes[item] = parseFloat(data.closeDiff);
-    perc[item] = parseFloat(data.percentChange);
-
+    // Assume data is an object: { TICKER: {close, closeDiff, percentChange}, ... }
+    for (const item of items) {
+      if (data[item]) {
+        quotes[item] = parseFloat(data[item].close).toFixed(2);
+        changes[item] = parseFloat(data[item].closeDiff);
+        perc[item] = parseFloat(data[item].percentChange);
+      }
+    }
   } catch (error) {
     error.value = error.message;
   }
 }
+
 
 async function DeleteWatchlist(watch) {
   const currentWatchlistName = watch.Name;
