@@ -3190,37 +3190,35 @@ app.get('/:user/watchlists/:list',
   }
 );
 
-// retrieves OHCLV for elements inside the watchlist
-app.get('/:symbol/data-values',
-  validate([
-    validationSchemas.symbolParam('symbol')
-  ]),
-  async (req, res) => {
+
+// Retrieves OHCLV for multiple elements inside the watchlist
+app.get('/data-values', async (req, res) => {
+  try {
+    const apiKey = req.header('x-api-key');
+    const sanitizedKey = sanitizeInput(apiKey);
+
+    if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+      logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+      return res.status(401).json({ message: 'Unauthorized API Access' });
+    }
+
+    // Accept comma-separated tickers in the query string
+    const tickersParam = req.query.tickers;
+    if (!tickersParam) {
+      return res.status(400).json({ message: 'No tickers provided' });
+    }
+    const tickers = tickersParam.split(',').map(sanitizeInput);
+
+    const client = new MongoClient(uri);
     try {
-      const apiKey = req.header('x-api-key');
+      await client.connect();
+      const db = client.db('EreunaDB');
+      const collection = db.collection('OHCLVData');
 
-      const sanitizedKey = sanitizeInput(apiKey);
-
-      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-        logger.warn('Invalid API key', {
-          providedApiKey: !!sanitizedKey
-        });
-
-        return res.status(401).json({
-          message: 'Unauthorized API Access'
-        });
-      }
-      const symbol = sanitizeInput(req.params.symbol);
-      const client = new MongoClient(uri);
-
-      try {
-        await client.connect();
-
-        const db = client.db('EreunaDB');
-        const collection = db.collection('OHCLVData');
-
-        // Fetch the latest two documents for changes and percentage calculations
-        const documents = await collection.find({ tickerID: symbol })
+      // Fetch latest two docs for each ticker
+      const results = {};
+      for (const ticker of tickers) {
+        const documents = await collection.find({ tickerID: ticker })
           .sort({ timestamp: -1 })
           .limit(2)
           .toArray();
@@ -3238,37 +3236,35 @@ app.get('/:symbol/data-values',
             const percentChange = ((closeDiff / previous.close) * 100).toFixed(2);
 
             responseData.closeDiff = closeDiff.toFixed(2);
-            responseData.percentChange = `${percentChange}%`;
+            responseData.percentChange = percentChange;
             responseData.latestClose = latest.close;
             responseData.previousClose = previous.close;
-            responseData.timestamp.previous = previous.timestamp;
+            responseData.timestampPrevious = previous.timestamp;
           } else {
             responseData.closeDiff = 0;
-            responseData.percentChange = '0%';
+            responseData.percentChange = '0';
             responseData.message = 'Insufficient historical data for comparison';
           }
 
-          res.status(200).json(responseData);
-        } else {
-          logger.warn('No data found for symbol', { symbol: symbol });
-          res.status(404).json({ message: 'No data found for the given symbol' });
-        }
-      } catch (dbError) {
-        logger.error('Database error retrieving data', { symbol: symbol, error: dbError.message });
-        res.status(500).json({ message: 'Internal Server Error', error: 'Failed to retrieve data' });
-      } finally {
-        try {
-          await client.close();
-        } catch (closeError) {
-          logger.error('Error closing database connection', { error: closeError.message });
+          results[ticker] = responseData;
         }
       }
-    } catch (unexpectedError) {
-      logger.error('Unexpected error in data retrieval', { error: unexpectedError.message, stack: unexpectedError.stack });
-      res.status(500).json({ message: 'Internal Server Error', error: 'An unexpected error occurred' });
+      res.status(200).json(results);
+    } catch (dbError) {
+      logger.error('Database error retrieving data', { error: dbError.message });
+      res.status(500).json({ message: 'Internal Server Error', error: 'Failed to retrieve data' });
+    } finally {
+      try {
+        await client.close();
+      } catch (closeError) {
+        logger.error('Error closing database connection', { error: closeError.message });
+      }
     }
+  } catch (unexpectedError) {
+    logger.error('Unexpected error in data retrieval', { error: unexpectedError.message, stack: unexpectedError.stack });
+    res.status(500).json({ message: 'Internal Server Error', error: 'An unexpected error occurred' });
   }
-);
+});
 
 // endpoint to add symbol to selected watchlist 
 app.patch('/:user/watchlists/:list',
