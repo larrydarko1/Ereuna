@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 import websockets
 import ssl
 import asyncio
+from pymongo import MongoClient
+import traceback
 
 load_dotenv()
 TIINGO_API_KEY = os.getenv('TIINGO_KEY')
@@ -19,10 +21,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# MongoDB connection setup
+MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
+mongo_client = MongoClient(MONGO_URI)
+db = mongo_client['EreunaDB']
+
 message_queue = asyncio.Queue(maxsize=1000)  # Holds latest messages
 
 crypto_symbols = ["BTCUSD", "ETHUSD"]
-stock_symbols = ["RDDT", "TSLA", "SPY", "UBER"]
+stock_symbols = ["RDDT", "TSLA", "SPY", "UBER", "AAPL"]
 
 def crypto_filter(msg):
     return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) > 0 and msg["data"][0] == "Q"
@@ -141,8 +148,73 @@ async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
         await websocket.close()
         
 
+@app.websocket("/ws/assetinfo")
+async def websocket_assetinfo(websocket: WebSocket, ticker: str = Query(...)):
+    await websocket.accept()
+    symbol = ticker.lower()
+    try:
+        while True:
+            msg = await message_queue.get()
+            try:
+                data = json.loads(msg)
+                d = data.get("data")
+                service = data.get("service")
+                # Stocks (IEX)
+                if service == "iex" and isinstance(d, list) and len(d) > 2 and d[1].lower() == symbol:
+                    latest_close = float(d[2])
+                    timestamp = d[0]
+                # Crypto
+                elif service == "crypto_data" and isinstance(d, list) and len(d) > 5 and d[1].lower() == symbol:
+                    latest_close = float(d[5])
+                    timestamp = d[2]
+                else:
+                    continue
+                # Fetch previous close from MongoDB
+                asset_doc = db.AssetInfo.find_one({"Symbol": symbol.upper()})
+                previous_close = None
+                if asset_doc and "TimeSeries" in asset_doc and asset_doc["TimeSeries"]:
+                    ts_dict = asset_doc["TimeSeries"]
+                    if isinstance(ts_dict, dict):
+                        # Get the only value in the dict (regardless of key)
+                        ts = next(iter(ts_dict.values()))
+                        prev_close_val = ts.get("4. close")
+                        try:
+                            previous_close = float(prev_close_val)
+                        except (TypeError, ValueError) as err:
+                            print(f"AssetInfo endpoint error: invalid '4. close' value: {prev_close_val} (type: {type(prev_close_val)}) for symbol {symbol.upper()}")
+                            traceback.print_exc()
+                            continue
+                    else:
+                        print(f"AssetInfo endpoint error: TimeSeries is not a dict for {symbol.upper()}")
+                        continue
+                if previous_close is not None and previous_close != 0:
+                    close_diff = latest_close - previous_close
+                    percent_change = (close_diff / previous_close) * 100
+                    payload = {
+                        "close": latest_close,
+                        "closeDiff": f"{close_diff:+.2f}",
+                        "latestClose": latest_close,
+                        "percentChange": f"{percent_change:+.2f}%",
+                        "previousClose": previous_close,
+                        "timestamp": timestamp
+                    }
+                    await websocket.send_text(json.dumps(payload))
+                else:
+                    print(f"AssetInfo endpoint error: missing or zero previous_close for {symbol}, got: {previous_close}")
+            except Exception as e:
+                print(f"AssetInfo endpoint error: {e}")
+                traceback.print_exc()
+                continue
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+        traceback.print_exc()
+        await websocket.close()
+
 
 # To run: uvicorn ws.main:app --reload
 # wscat -c "ws://localhost:8000/ws/stream"
+# wscat -c "ws://localhost:8000/ws/assetinfo?ticker=TSLA"
 # wscat -c "ws://localhost:8000/ws/symbols?symbols=RDDT,TSLA"
 # wscat -c "ws://localhost:8000/ws/raw" - this listens to raw messages to better understand the data structure
