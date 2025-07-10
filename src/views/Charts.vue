@@ -2240,6 +2240,38 @@ async function getData(items) {
   }
 }
 
+function AssetInfoWebSocket() {
+  let wsUrl;
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    wsUrl = `ws://localhost:8000/ws/assetinfo?tickers=TSLA,UBER,RDDT`; // adjust port if needed
+  } else {
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    wsUrl = `${protocol}://${window.location.host}/ws/assetinfo?tickers=TSLA,UBER,RDDT`;
+  }
+  const ws = new WebSocket(wsUrl);
+
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      // Expecting: { symbol, close, closeDiff, percentChange }
+      const symbol = data.symbol;
+      if (symbol) {
+        quotes[symbol] = parseFloat(data.close).toFixed(2);
+        changes[symbol] = parseFloat(data.closeDiff);
+        perc[symbol] = parseFloat(
+          typeof data.percentChange === 'string'
+            ? data.percentChange.replace('%', '')
+            : data.percentChange
+        );
+      }
+    } catch (err) {
+      console.error('WebSocket message error:', err, event.data);
+    }
+  };
+}
+
+AssetInfoWebSocket();
+
 
 async function DeleteWatchlist(watch) {
   const currentWatchlistName = watch.Name;
@@ -2897,6 +2929,7 @@ async function fetchWatchPanel() {
 
     const newWatchPanel = await response.json();
     watchPanel.value = newWatchPanel;
+    console.log('watchPanel', watchPanel.value);
 
   } catch (error) {
     if (error.name === 'AbortError') {
@@ -2904,6 +2937,49 @@ async function fetchWatchPanel() {
     }
     // Optionally handle other errors
   }
+}
+
+function WatchPanelWebSocket() {
+  let wsUrl;
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    wsUrl = `ws://localhost:8000/ws/watchpanel?user=${user}`;
+  } else {
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    wsUrl = `${protocol}://${window.location.host}/ws/watchpanel?user=${user}`;
+  }
+  const ws = new WebSocket(wsUrl);
+
+  ws.onmessage = (event) => {
+    try {
+      // Expecting: { Symbol: 'QQQ', percentageReturn: '0.71%' }
+      const data = JSON.parse(event.data);
+      if (data.Symbol && data.percentageReturn) {
+        // Update or add the symbol in the watchPanel array
+        const idx = watchPanel.value.findIndex(item => item.Symbol === data.Symbol);
+        if (idx !== -1) {
+          watchPanel.value[idx].percentageReturn = data.percentageReturn;
+        } else {
+          watchPanel.value.push(data);
+        }
+      }
+    } catch (err) {
+      console.error('WatchPanel WebSocket message error:', err, event.data);
+    }
+  };
+
+  ws.onerror = (err) => {
+    console.error('WatchPanel WebSocket error:', err);
+  };
+
+  ws.onclose = () => {
+    // Optionally implement reconnect logic here
+    console.warn('WatchPanel WebSocket closed');
+  };
+}
+
+// Call this after user is set and only if user is available
+if (user) {
+  WatchPanelWebSocket();
 }
 
 const getPercentageDifference = (financial, attribute) => {

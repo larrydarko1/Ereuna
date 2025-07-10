@@ -653,39 +653,36 @@ def updateDailyRatios():
 def Split(tickerID, timestamp, splitFactor):
     client = MongoClient(mongo_uri)
     db = client['EreunaDB'] 
-    # Connect to AssetInfo
     asset_info_collection = db['AssetInfo']
 
-    # Find the document in AssetInfo with the matching Symbol
     asset_info_doc = asset_info_collection.find_one({'Symbol': tickerID})
 
     if asset_info_doc:
-        # Create a new split object
+        # Skip if SharesOutstanding is missing
+        shares_outstanding = asset_info_doc.get('SharesOutstanding')
+        if shares_outstanding is None:
+            print(f"SharesOutstanding missing for {tickerID}. Skipping split update.")
+            return
+
         new_split = {
             'effective_date': timestamp,
             'split_factor': splitFactor
         }
 
-        # Update the SharesOutstanding attribute
         if splitFactor > 0:
-            # Split: multiply SharesOutstanding by splitFactor
-            updated_shares = asset_info_doc['SharesOutstanding'] * splitFactor
+            updated_shares = shares_outstanding * splitFactor
         elif splitFactor < 0:
-            # Reverse split: divide SharesOutstanding by the absolute value of splitFactor
-            updated_shares = asset_info_doc['SharesOutstanding'] / abs(splitFactor)
+            updated_shares = shares_outstanding / abs(splitFactor)
         else:
             print("Invalid split factor. It should be a non-zero number.")
             return
 
-        # Update the document
         asset_info_collection.update_one(
             {'Symbol': tickerID},
             {'$push': {'splits': new_split}, '$set': {'SharesOutstanding': updated_shares}}
         )
 
         print(f"Split factor triggered for {tickerID} on {timestamp} with split factor {splitFactor}")
-
-        # Call the getHistoricalPrice function with the tickerID as a parameter
         getHistoricalPrice2(tickerID)
     else:
         print(f"No document found in AssetInfo for {tickerID}")

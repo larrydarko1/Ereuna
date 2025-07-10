@@ -28,8 +28,8 @@ db = mongo_client['EreunaDB']
 
 message_queue = asyncio.Queue(maxsize=1000)  # Holds latest messages
 
-crypto_symbols = ["BTCUSD", "ETHUSD"]
-stock_symbols = ["RDDT", "TSLA", "SPY", "UBER", "AAPL"]
+crypto_symbols = ["BTCEUR", "ETHEUR"]
+stock_symbols = ["RDDT", "TSLA", "SPY", "DIA", "QQQ", "IWM", "UBER", "AAPL", "AMZN", "GOOGL", "NFLX", "NVDA", "META", "MSFT"]
 
 def crypto_filter(msg):
     return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) > 0 and msg["data"][0] == "Q"
@@ -218,9 +218,79 @@ async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
         traceback.print_exc()
         await websocket.close()
 
+@app.websocket("/ws/watchpanel")
+async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
+    await websocket.accept()
+    try:
+        # Fetch user's WatchPanel list from Users collection
+        user_doc = db.Users.find_one({"Username": user})
+        if not user_doc or "WatchPanel" not in user_doc:
+            await websocket.send_text(json.dumps({"error": "User or WatchPanel not found"}))
+            await websocket.close()
+            return
+
+        watchpanel_symbols = [s.lower() for s in user_doc["WatchPanel"] if isinstance(s, str)]
+        if not watchpanel_symbols:
+            await websocket.send_text(json.dumps({"error": "No symbols in WatchPanel"}))
+            await websocket.close()
+            return
+
+        while True:
+            msg = await message_queue.get()
+            try:
+                data = json.loads(msg)
+                d = data.get("data")
+                service = data.get("service")
+
+                # Determine symbol and latest price
+                if service == "iex" and isinstance(d, list) and len(d) > 2:
+                    symbol = d[1].lower()
+                    latest_close = float(d[2])
+                    timestamp = d[0]
+                elif service == "crypto_data" and isinstance(d, list) and len(d) > 5:
+                    symbol = d[1].lower()
+                    latest_close = float(d[5])
+                    timestamp = d[2]
+                else:
+                    continue
+
+                if symbol not in watchpanel_symbols:
+                    continue
+
+                # Fetch previous close from MongoDB
+                asset_doc = db.AssetInfo.find_one({"Symbol": symbol.upper()})
+                previous_close = None
+                if asset_doc and "TimeSeries" in asset_doc and asset_doc["TimeSeries"]:
+                    ts_dict = asset_doc["TimeSeries"]
+                    if isinstance(ts_dict, dict):
+                        ts = next(iter(ts_dict.values()))
+                        prev_close_val = ts.get("4. close")
+                        try:
+                            previous_close = float(prev_close_val)
+                        except (TypeError, ValueError):
+                            continue
+                    else:
+                        continue
+
+                if previous_close is not None and previous_close != 0:
+                    percent_change = (latest_close - previous_close) / previous_close * 100
+                    payload = {
+                        "Symbol": symbol.upper(),
+                        "percentageReturn": f"{percent_change:+.2f}%"
+                    }
+                    await websocket.send_text(json.dumps(payload))
+            except Exception:
+                continue
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        print(f"WebSocket error: {e}")
+        traceback.print_exc()
+        await websocket.close()
 
 # To run: uvicorn ws.main:app --reload
 # wscat -c "ws://localhost:8000/ws/stream"
 # wscat -c "ws://localhost:8000/ws/assetinfo?tickers=TSLA,AAPL,BTCUSD"
+# wscat -c "ws://localhost:8000/ws/watchpanel?user=LarryDarko"
 # wscat -c "ws://localhost:8000/ws/symbols?symbols=RDDT,TSLA"
 # wscat -c "ws://localhost:8000/ws/raw" - this listens to raw messages to better understand the data structure

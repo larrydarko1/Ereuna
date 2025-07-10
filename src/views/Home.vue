@@ -509,7 +509,7 @@ function setupCardAnimations() {
 
 .login-button {
   background-color: transparent;
-  color: $text1;
+  color: $accent1;
   border: solid 2px $accent1;
   padding: 10px 20px;
   font-size: 18px;
