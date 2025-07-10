@@ -5109,6 +5109,150 @@ app.patch('/screener/:user/show/:symbol',
   }
 );
 
+// endpoint that retrieves all available asset types for user (for screener)
+app.get('/screener/asset-type',
+  async (req, res) => {
+    let client;
+    try {
+      const apiKey = req.header('x-api-key');
+
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      client = new MongoClient(uri);
+      await client.connect();
+      const db = client.db('EreunaDB');
+      const assetInfoCollection = db.collection('AssetInfo');
+
+      // Retrieve distinct sectors
+      const assetTypes = await assetInfoCollection.distinct('AssetType');
+
+      // Basic type and null/undefined filtering
+      const uniqueAssetTypes = assetTypes
+        .filter(assetTypes =>
+          typeof assetTypes === 'string' &&
+          assetTypes.trim() !== '' &&
+          assetTypes !== null &&
+          assetTypes !== undefined
+        )
+        .slice(0, 50);
+
+      res.status(200).json(uniqueAssetTypes);
+
+    } catch (error) {
+      logger.error({ error }, 'Error retrieving asset types');
+      res.status(500).json({
+        message: 'Internal Server Error'
+      });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({ closeError }, 'Error closing database connection');
+        }
+      }
+    }
+  });
+
+// endpoint that updates screener document with asset type params 
+app.patch('/screener/asset-types',
+  validate([
+    validationSchemas.user(),
+    validationSchemas.screenerNameBody(),
+    body('assetTypes')
+      .isArray().withMessage('Asset types must be an array')
+      .custom((value) => {
+        // Ensure each asset type is a non-empty string
+        if (!value.every(type =>
+          typeof type === 'string' &&
+          type.trim().length > 0 &&
+          type.trim().length <= 50 &&
+          /^[a-zA-Z0-9&\s_-]+$/.test(type) // Allowing letters, numbers, &, spaces, underscores, and hyphens
+        )) {
+          throw new Error('Each asset type must be a non-empty string with max 50 characters and can include &');
+        }
+        return true;
+      })
+  ]),
+  async (req, res) => {
+    let client;
+    try {
+      const apiKey = req.header('x-api-key');
+      const sanitizedKey = sanitizeInput(apiKey);
+
+      if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+        logger.warn('Invalid API key', {
+          providedApiKey: !!sanitizedKey
+        });
+        return res.status(401).json({
+          message: 'Unauthorized API Access'
+        });
+      }
+      const assetTypes = req.body.assetTypes;
+      const Username = req.body.user;
+      const screenerName = req.body.screenerName;
+
+      // Sanitize asset types (trim and remove duplicates)
+      const sanitizedAssetTypes = [...new Set(
+        assetTypes.map(type => sanitizeInput(type).replace(/&amp;/g, '&'))
+      )];
+
+      client = new MongoClient(uri);
+      await client.connect();
+
+      const db = client.db('EreunaDB');
+      const collection = db.collection('Screeners');
+
+      const filter = {
+        UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+        Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+      };
+
+      const updateDoc = { $set: { AssetTypes: sanitizedAssetTypes } };
+      const options = { returnOriginal: false };
+
+      const result = await collection.findOneAndUpdate(filter, updateDoc, options);
+
+      if (!result.value) {
+        logger.warn('Screener not found', {
+          username: obfuscateUsername(Username),
+          screenerName
+        });
+        return res.status(404).json({ message: 'Screener not found' });
+      }
+      res.json({
+        message: 'Asset types updated successfully',
+        assetTypes: sanitizedAssetTypes
+      });
+
+    } catch (error) {
+      logger.error({
+        error,
+        username: obfuscateUsername(req.body.user)
+      }, 'Error updating screener asset types');
+
+      res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+      if (client) {
+        try {
+          await client.close();
+        } catch (closeError) {
+          logger.warn({ closeError }, 'Error closing database connection');
+        }
+      }
+    }
+  }
+);
+
 // endpoint that retrieves all available sectors for user (for screener)
 app.get('/screener/sectors',
   async (req, res) => {
@@ -7931,7 +8075,7 @@ app.patch('/reset/screener/param',
         'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta',
         'DivYield', 'FundGrowth', 'PricePerformance', 'RSscore', 'Volume', 'ADV', 'ROE', 'ROA', 'CurrentRatio', 'CurrentAssets',
         'CurrentLiabilities', 'CurrentDebt', 'CashEquivalents', 'FCF', 'ProfitMargin', 'GrossMargin',
-        'DebtEquity', 'BookValue', 'EV', 'RSI', 'Gap',
+        'DebtEquity', 'BookValue', 'EV', 'RSI', 'Gap', 'AssetType'
       ])
       .withMessage('Invalid parameter to reset')
   ]),
@@ -7995,6 +8139,9 @@ app.patch('/reset/screener/param',
           break;
         case 'Sector':
           updateDoc.$unset.Sectors = '';
+          break;
+        case 'AssetType':
+          updateDoc.$unset.AssetTypes = '';
           break;
         case 'Exchange':
           updateDoc.$unset.Exchanges = '';
@@ -8219,7 +8366,7 @@ app.get('/screener/datavalues/:user/:name',
           RSScore1W: 1, RSScore1M: 1, RSScore4M: 1, MA10: 1, MA20: 1, MA50: 1, MA200: 1, CurrentPrice: 1, NewHigh: 1, NewLow: 1, PercOffWeekHigh: 1,
           PercOffWeekLow: 1, changePerc: 1, IPO: 1, ADV1W: 1, ADV1M: 1, ADV4M: 1, ADV1Y: 1, ROE: 1, ROA: 1, currentRatio: 1,
           assetsCurrent: 1, liabilitiesCurrent: 1, debtCurrent: 1, cashAndEq: 1, freeCashFlow: 1, profitMargin: 1, grossMargin: 1,
-          debtEquity: 1, bookVal: 1, EV: 1, RSI: 1, Gap: 1,
+          debtEquity: 1, bookVal: 1, EV: 1, RSI: 1, Gap: 1, AssetType: 1
         };
 
         const cursor = assetInfoCollection.find(query, { projection: projection });
@@ -8243,6 +8390,7 @@ app.get('/screener/datavalues/:user/:name',
           Price: document.Price,
           MarketCap: document.MarketCap,
           Sectors: document.Sectors,
+          AssetType: document.AssetTypes,
           Exchanges: document.Exchanges,
           Countries: document.Countries,
           PE: document.PE,
@@ -8396,6 +8544,10 @@ app.get('/screener/:user/results/filtered/:name',
 
       if (screenerData.Sectors && screenerData.Sectors.length > 0) {
         screenerFilters.sectors = screenerData.Sectors;
+      }
+
+      if (screenerData.AssetTypes && screenerData.AssetTypes.length > 0) {
+        screenerFilters.assetTypes = screenerData.AssetTypes;
       }
 
       if (screenerData.Exchanges && screenerData.Exchanges.length > 0) {
@@ -8661,6 +8813,9 @@ app.get('/screener/:user/results/filtered/:name',
             break;
           case 'sectors':
             query.Sector = { $in: screenerFilters.sectors };
+            break;
+          case 'assetTypes':
+            query.AssetType = { $in: screenerFilters.assetTypes };
             break;
           case 'exchanges':
             query.Exchange = { $in: screenerFilters.exchanges };
@@ -9502,7 +9657,7 @@ app.get('/screener/summary/:usernameID/:name',
           'AvgVolume1M', 'RelVolume1M', 'AvgVolume6M', 'RelVolume6M', 'AvgVolume1Y', 'RelVolume1Y', '1mchange', '1ychange', '4mchange',
           '6mchange', 'todaychange', 'weekchange', 'ytdchange', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio',
           'assetsCurrent', 'liabilitiesCurrent', 'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin', 'debtEquity', 'bookVal', 'EV',
-          'RSI', 'Gap'
+          'RSI', 'Gap', 'AssetTypes',
         ];
 
         const filteredData = attributes.reduce((acc, attribute) => {
@@ -9635,6 +9790,10 @@ app.get('/screener/:usernameID/all',
 
           if (screenerData.Sectors && screenerData.Sectors.length > 0) {
             screenerFilters.sectors = screenerData.Sectors;
+          }
+
+          if (screenerData.AssetTypes && screenerData.AssetTypes.length > 0) {
+            screenerFilters.assetTypes = screenerData.AssetTypes;
           }
 
           if (screenerData.Exchanges && screenerData.Exchanges.length > 0) {
@@ -9886,6 +10045,9 @@ app.get('/screener/:usernameID/all',
                 break;
               case 'sectors':
                 query.Sector = { $in: screenerFilters.sectors };
+                break;
+              case 'assetTypes':
+                query.AssetType = { $in: screenerFilters.assetTypes };
                 break;
               case 'exchanges':
                 query.Exchange = { $in: screenerFilters.exchanges };

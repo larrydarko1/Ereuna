@@ -282,6 +282,74 @@
             </div>
           </div>
         </div>
+        <div :class="[ShowAssetType ? 'param-s2-expanded' : 'param-s1']">
+  <div class="row">
+    <div
+      style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
+      <p>Asset Type</p>
+      <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+        @mouseover="handleMouseOver($event, 'assetType')" @mouseout="handleMouseOut">
+        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_iconCarrier">
+          <path
+            d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+            stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+            stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
+            stroke-linejoin="round"></path>
+        </g>
+      </svg>
+    </div>
+    <label style="float:right" class="switch">
+      <input type="checkbox" v-model="ShowAssetType">
+      <span class="slider round"></span>
+    </label>
+  </div>
+  <div style="border: none" v-if="ShowAssetType">
+    <div class="row2">
+      <div class="check" v-for="(asset, index) in AssetTypes" :key="index">
+        <div :id="`asset-type-${index}`" class="custom-checkbox" :class="{ checked: selectedAssetTypes[index] }"
+          @click="toggleAssetType(index)">
+          <span class="checkmark"></span>
+          {{ asset }}
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btns2" style="float:right" @click="SetAssetType">
+        <!-- Same SVG as before -->
+        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
+          style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
+          xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
+          xmlns:xlink="http://www.w3.org/1999/xlink">
+          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+          <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+          <g id="SVGRepo_iconCarrier">
+            <path
+              d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
+            </path>
+            <g></g>
+          </g>
+        </svg>
+      </button>
+      <button class="btns2r" style="float:right" @click="Reset('AssetType')">
+        <!-- Same SVG as before -->
+        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
+          transform="rotate(90)">
+          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+          <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+          <g id="SVGRepo_iconCarrier">
+            <path
+              d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
+              fill-rule="evenodd"></path>
+          </g>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
         <div :class="[ShowSector ? 'param-s2-expanded' : 'param-s1']">
           <div class="row">
             <div
@@ -3238,6 +3306,7 @@ const selectedSymbol = ref(''); // similar to selectedItem
 let showPriceInputs = ref(false);
 let showMarketCapInputs = ref(false);
 let ShowSector = ref(false);
+let ShowAssetType = ref(false);
 let ShowExchange = ref(false);
 let ShowCountry = ref(false);
 let showPEInputs = ref(false);
@@ -3903,6 +3972,8 @@ const compoundedResults = ref([]) // it will store all compounded screener resul
 const hideList = ref([]); // stores hidden list of users
 const ScreenersName = ref([]); // stores all user's screeners
 const currentList = ref([]); // Initialize currentList as an empty array
+const AssetTypes = ref([]); // hosts all available asset types
+const selectedAssetTypes = ref([]);
 const Sectors = ref([]); // hosts all available sectors 
 const selectedSectors = ref([]);
 const Exchanges = ref([]); // hosts all available exchanges 
@@ -4338,6 +4409,23 @@ async function ShowStock(asset) {
 }
 
 // generates options for checkboxes for sectors
+async function GetAssetTypes() {
+  try {
+    const response = await fetch('/api/screener/asset-type', {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
+    const data = await response.json();
+    AssetTypes.value = data;
+    selectedAssetTypes.value = new Array(data.length).fill(false); // Initialize selection state
+  } catch (error) {
+    error.value = error.message;
+  }
+}
+GetAssetTypes();
+
+// generates options for checkboxes for sectors
 async function GetSectors() {
   try {
     const response = await fetch('/api/screener/sectors', {
@@ -4399,6 +4487,36 @@ GetCountry();
 const toggleCountry = (index) => {
   selectedCountries.value[index] = !selectedCountries.value[index]; // Toggle the selected state
 };
+
+// Sends asset types data to update screener
+async function SetAssetType() {
+  const selected = AssetTypes.value.filter((_, index) => selectedAssetTypes.value[index]); // Get selected asset types
+
+  try {
+    const response = await fetch('/api/screener/asset-types', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({ 
+        assetTypes: selected, 
+        screenerName: selectedScreener.value, 
+        user: user 
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    await fetchScreenerResults(selectedScreener.value); // Update the list after setting asset types
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
 
 // sends sectors data to update screener
 async function SetSector() {
@@ -5202,6 +5320,7 @@ async function CurrentScreener() {
     let priceList = screenerSettings.Price;
     let marketCapList = screenerSettings.MarketCap;
     let sectorsList = screenerSettings.Sectors;
+    let AssetTypesList = screenerSettings.AssetTypes;
     let exchangesList = screenerSettings.Exchanges;
     let countriesList = screenerSettings.Countries;
     let PEList = screenerSettings.PE;
@@ -5265,6 +5384,7 @@ async function CurrentScreener() {
     showMarketCapInputs.value = screenerSettings?.MarketCap?.length > 0;
     showIPOInputs.value = screenerSettings?.IPO?.length > 0;
     ShowSector.value = screenerSettings?.Sectors?.length > 0;
+    ShowAssetType.value = screenerSettings?.AssetTypes?.length > 0;
     ShowExchange.value = screenerSettings?.Exchanges?.length > 0;
     ShowCountry.value = screenerSettings?.Countries?.length > 0;
     showPEInputs.value = screenerSettings?.PE?.length > 0;
@@ -5415,7 +5535,7 @@ async function CurrentScreener() {
 
     sectorCheckboxes.forEach((checkbox) => {
       const value = checkbox.value;
-      if (sectorsList.includes(value) || exchangesList.includes(value) || countriesList.includes(value)) {
+      if (sectorsList.includes(value) || exchangesList.includes(value) || AssetTypesList.includes(value) || countriesList.includes(value)) {
         checkbox.checked = true;
       }
 
@@ -5487,7 +5607,8 @@ const valueMap = {
   'BookValue': 'BookValue',
   'EV': 'EV',
   'RSI': 'RSI',
-  'Gap': 'Gap'
+  'Gap': 'Gap',
+  'AssetType': 'AssetType',
 };
 
 // function that resets indivudal values for screeners 
@@ -5542,7 +5663,7 @@ async function SummaryScreener() {
       'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W', 'RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'CurrentPrice', 'NewHigh',
       'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio',
       'assetsCurrent', 'liabilitiesCurrent', 'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin', 'debtEquity', 'bookVal', 'EV',
-      'RSI', 'Gap'
+      'RSI', 'Gap', 'AssetTypes'
     ];
 
     const attributeMapping = {
@@ -5593,6 +5714,7 @@ async function SummaryScreener() {
       'EV': 'Enterprise Value',
       'RSI': 'RSI',
       'Gap': 'Gap %',
+      'AssetTypes': 'Asset Types'
     };
 
     const valueMapping = {
@@ -6718,7 +6840,9 @@ function getTooltipText(id) {
       return 'The relative strength index (RSI) is a technical indicator that measures a company\'s stock price momentum, ranging from 0 to 100.';
     case 'gap':
       return 'Gap % is a measure of the percentage change in a stock\'s price from the previous day\'s close to the current day\'s open. It is calculated as (Current Open - Previous Close) / Previous Close. A positive gap % indicates an upward price movement, while a negative gap % indicates a downward price movement.';
-    default:
+    case 'assetType':
+      return 'Category of the asset, in this case we support Stocks, ETFs, and cryptocurrencies.';
+      default:
       return '';
   }
 }
@@ -6961,6 +7085,10 @@ async function confirmResetScreener() {
     resetError.value = 'Error resetting screener: ' + (error.message || error);
   }
 }
+
+const toggleAssetType = (index) => {
+  selectedAssetTypes.value[index] = !selectedAssetTypes.value[index]; // Toggle the selected state
+};
 
 </script>
 
