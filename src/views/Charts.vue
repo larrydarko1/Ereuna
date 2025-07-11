@@ -2,34 +2,24 @@
   <body>
     <Header />
     <Assistant />
-    <div class="watch-panel-container" style="display: flex; align-items: center; justify-content: space-between;">
-      <div class="watch-panel" style="display: flex; gap: 8px;">
-        <template v-if="watchPanel.length > 0">
-          <div class="watch-panel-track" :class="{ 'scrolling': watchPanel.length > 12 }">
-            <template v-for="repeat in watchPanel.length > 12 ? 2 : 1">
-              <button v-for="(ticker, i) in watchPanel" :key="repeat + '-' + i"
-                :class="{ active: defaultSymbol === ticker.Symbol, 'index-btn': true }"
-                @click="defaultSymbol = ticker.Symbol; searchTicker(ticker.Symbol)">
-                {{ ticker.Symbol }}
-                <span :class="parseFloat(ticker.percentageReturn) > 0 ? 'positive' : 'negative'">
-                  {{ ticker.percentageReturn }}
-                </span>
-                <span v-if="parseFloat(ticker.percentageReturn) > 0" class="arrow-up"></span>
-                <span v-else class="arrow-down"></span>
-              </button>
-            </template>
-          </div>
-        </template>
-        <template v-else>
-          <span class="no-symbols">No Symbols in Watch Panel</span>
-        </template>
-      </div>
-      <button class="edit-watch-panel-btn" @click="openEditor">
-        Edit Watch Panel
-      </button>
-      <WatchPanelEditor v-if="editWatchPanel" :apiKey="apiKey" :user="user" :watchPanel="watchPanel"
-        :fetchWatchPanel="fetchWatchPanel" :notify="(msg) => notification.value.show(msg)" @close="closeEditor" />
-    </div>
+   <WatchPanel
+  :user="user"
+  :apiKey="apiKey"
+  :Tier="Tier"
+  :defaultSymbol="defaultSymbol"
+  @select-symbol="(symbol) => { defaultSymbol = symbol; searchTicker(symbol); }"
+  @open-editor="openEditor"
+>
+  <WatchPanelEditor
+    v-if="editWatchPanel"
+    :apiKey="apiKey"
+    :user="user"
+    :watchPanel="watchPanel"
+    :fetchWatchPanel="fetchWatchPanel"
+    :notify="(msg) => notification.value.show(msg)"
+    @close="closeEditor"
+  />
+</WatchPanel>
     <div class="mobilenav">
       <button class="mnavbtn" :class="{ selected: selected === 'info' }" @click="select('info')">
         Info
@@ -158,16 +148,8 @@
           <div class="loading-container" v-if="isLoading">
             <Loader />
           </div>
-
         </div>
-        <div id="chartdiv2">
-          <img src="@/assets/images/logos/tiingo.png" alt="Image"
-            style="height: 15px; margin-right: 10px; margin-bottom: 7px;">
-          <p style="margin: 0; font-size: 10px;">Core financial data provided by Tiingo.com as of {{ currentDate }} -
-            Any metrics or calculations not directly provided by Tiingo are derived internally using their core data.
-            End-of-day (EOD) data updates occur daily, Monday through Friday, between 6:00 PM and 6:30 PM ET, subject
-            to Tiingo's data availability.</p>
-        </div>
+       <Notice :apiKey="apiKey"/>
       </div>
       <div id="sidebar-right" :class="{ 'hidden-mobile': selected !== 'watchlists' }">
         <div style="position: sticky; top: 0; z-index: 1000;">
@@ -574,6 +556,7 @@
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
 import Assistant from '@/components/assistant.vue';
+import WatchPanel from '@/components/charts/WatchPanel.vue';
 import Panel from '@/components/charts/panel.vue'
 import Summary from '@/components/sidebar/summary.vue'
 import EpsTable from '@/components/sidebar/eps.vue'
@@ -582,6 +565,7 @@ import SalesTable from '@/components/sidebar/sales.vue'
 import DividendsTable from '@/components/sidebar/dividends.vue'
 import SplitsTable from '@/components/sidebar/splits.vue'
 import Financials from '@/components/sidebar/financialbtn.vue'
+import Notice from '@/components/charts/Notice.vue';
 import Notes from '@/components/charts/notes.vue'
 import News from '@/components/charts/news.vue'
 import WatchPanelEditor from '@/components/charts/WatchPanelEditor.vue';
@@ -687,8 +671,7 @@ async function initializeComponent() {
     await Promise.all([
       getWatchlists(),
       filterWatchlist(),
-      fetchSymbolsAndExchanges(),
-      fetchWatchPanel(),
+      fetchSymbolsAndExchanges()
     ]);
 
     if (watchlist2.tickers && watchlist2.tickers.length > 0) {
@@ -2721,30 +2704,6 @@ const isInHiddenList = (item) => {
   return hiddenList.value.includes(item);
 };
 
-const currentDate = ref('');
-
-async function getLastUpdate() {
-  try {
-    const response = await fetch('/api/getlastupdate', {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    currentDate.value = data.date;
-  } catch (error) {
-    console.error('Error fetching last update:', error);
-  }
-}
-
-onMounted(() => {
-  getLastUpdate();
-});
-
-
 const attributeMap = {
   rps: 'Revenue Per Share',
   roa: 'Return on Assets ROA',
@@ -2882,75 +2841,8 @@ function getQuarterAndYear(dateString) {
 
 const activeIndex = ref(-1);
 
-//central price panel for tickers
-const watchPanel = ref([]);
-
-// Function to fetch user's WatchPanel data
-async function fetchWatchPanel() {
-  try {
-    const headers = {
-      'x-api-key': apiKey
-    };
-    const response = await fetch(`/api/watchpanel/${user}`, {
-      headers: headers
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newWatchPanel = await response.json();
-    watchPanel.value = newWatchPanel;
-
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    // Optionally handle other errors
-  }
-}
-
-function WatchPanelWebSocket() {
-  let wsUrl;
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    wsUrl = `ws://localhost:8000/ws/watchpanel?user=${user}`;
-  } else {
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    wsUrl = `${protocol}://${window.location.host}/ws/watchpanel?user=${user}`;
-  }
-  const ws = new WebSocket(wsUrl);
-
-  ws.onmessage = (event) => {
-    try {
-      // Expecting: { Symbol: 'QQQ', percentageReturn: '0.71%' }
-      const data = JSON.parse(event.data);
-      if (data.Symbol && data.percentageReturn) {
-        // Update or add the symbol in the watchPanel array
-        const idx = watchPanel.value.findIndex(item => item.Symbol === data.Symbol);
-        if (idx !== -1) {
-          watchPanel.value[idx].percentageReturn = data.percentageReturn;
-        } else {
-          watchPanel.value.push(data);
-        }
-      }
-    } catch (err) {
-      console.error('WatchPanel WebSocket message error:', err, event.data);
-    }
-  };
-
-  ws.onerror = (err) => {
-    console.error('WatchPanel WebSocket error:', err);
-  };
-
-  ws.onclose = () => {
-    // Optionally implement reconnect logic here
-    console.warn('WatchPanel WebSocket closed');
-  };
-}
-
 watch([Tier, () => user], ([newTier, newUser]) => {
   if (newTier === 'Premium' && newUser) {
-    WatchPanelWebSocket();
     AssetInfoWebSocket();
   }
 });
