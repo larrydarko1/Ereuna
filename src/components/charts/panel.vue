@@ -2,7 +2,7 @@
 import { ref, defineEmits, onMounted } from 'vue';
 const emit = defineEmits(['updated', 'panel-updated']);
 import { useStore } from 'vuex';
-import Panel2 from '@/components/panel2.vue'; 
+import Panel2 from '@/components/charts/panel2.vue'; 
 
 function onPanelUpdated() {
   // Propagate event upward
