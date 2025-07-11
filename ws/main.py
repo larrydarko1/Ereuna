@@ -28,6 +28,9 @@ db = mongo_client['EreunaDB']
 
 message_queue = asyncio.Queue(maxsize=1000)  # Holds latest messages
 
+# In-memory cache for latest quotes per symbol
+latest_quotes = {}  # {symbol: tiingo_data_dict}
+
 crypto_symbols = ["BTCEUR", "ETHEUR"]
 stock_symbols = ["RDDT", "TSLA", "SPY", "DIA", "QQQ", "IWM", "UBER", "AAPL", "AMZN", "GOOGL", "NFLX", "NVDA", "META", "MSFT"]
 
@@ -73,6 +76,16 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                         if tiingo_data.get("messageType") in ("I", "H"):
                             continue
                         if filter_fn(tiingo_data):
+                            # --- Cache the latest quote ---
+                            d = tiingo_data.get("data")
+                            service = tiingo_data.get("service")
+                            if service == "iex" and isinstance(d, list) and len(d) > 2:
+                                symbol = d[1].lower()
+                                latest_quotes[symbol] = tiingo_data
+                            elif service == "crypto_data" and isinstance(d, list) and len(d) > 5:
+                                symbol = d[1].lower()
+                                latest_quotes[symbol] = tiingo_data
+                            # --- End cache ---
                             try:
                                 await message_queue.put(json.dumps(tiingo_data))
                             except asyncio.QueueFull:
@@ -119,6 +132,22 @@ async def websocket_raw(websocket: WebSocket):
 async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
     await websocket.accept()
     symbol_set = set(s.lower() for s in symbols.split(","))
+    # Send the latest cached value for each symbol before streaming
+    for symbol in symbol_set:
+        cached = latest_quotes.get(symbol)
+        if cached:
+            d = cached.get("data")
+            service = cached.get("service")
+            try:
+                if service == "iex" and isinstance(d, list) and len(d) > 2:
+                    price = float(d[2])
+                    await websocket.send_text(f"{symbol.upper()}: {price}")
+                elif service == "crypto_data" and isinstance(d, list) and len(d) > 5:
+                    price = float(d[5])
+                    await websocket.send_text(f"{symbol.upper()}: {price}")
+            except (WebSocketDisconnect, RuntimeError):
+                return
+
     try:
         while True:
             msg = await message_queue.get()
@@ -132,13 +161,19 @@ async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
                         symbol = d[1].upper()
                         price = float(d[5])
                         if symbol.lower() in symbol_set:
-                            await websocket.send_text(f"{symbol}: {price}")
+                            try:
+                                await websocket.send_text(f"{symbol}: {price}")
+                            except (WebSocketDisconnect, RuntimeError):
+                                return
                     # IEX (stocks/ETFs)
                     elif len(d) > 2 and isinstance(d[1], str) and data.get("service") == "iex":
                         symbol = d[1].upper()
                         price = float(d[2])
                         if symbol.lower() in symbol_set:
-                            await websocket.send_text(f"{symbol}: {price}")
+                            try:
+                                await websocket.send_text(f"{symbol}: {price}")
+                            except (WebSocketDisconnect, RuntimeError):
+                                return
             except Exception:
                 continue
     except WebSocketDisconnect:
@@ -152,6 +187,49 @@ async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
 async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
     await websocket.accept()
     symbols = set(s.lower() for s in tickers.split(","))
+    # Send the latest cached value for each symbol before streaming
+    for symbol in symbols:
+        cached = latest_quotes.get(symbol)
+        if cached:
+            d = cached.get("data")
+            service = cached.get("service")
+            try:
+                if service == "iex" and isinstance(d, list) and len(d) > 2:
+                    latest_close = float(d[2])
+                    timestamp = d[0]
+                elif service == "crypto_data" and isinstance(d, list) and len(d) > 5:
+                    latest_close = float(d[5])
+                    timestamp = d[2]
+                else:
+                    continue
+                # Fetch previous close from MongoDB (or cache if you have it)
+                asset_doc = db.AssetInfo.find_one({"Symbol": symbol.upper()})
+                previous_close = None
+                if asset_doc and "TimeSeries" in asset_doc and asset_doc["TimeSeries"]:
+                    ts_dict = asset_doc["TimeSeries"]
+                    if isinstance(ts_dict, dict):
+                        ts = next(iter(ts_dict.values()))
+                        prev_close_val = ts.get("4. close")
+                        try:
+                            previous_close = float(prev_close_val)
+                        except (TypeError, ValueError):
+                            continue
+                if previous_close is not None and previous_close != 0:
+                    close_diff = latest_close - previous_close
+                    percent_change = (close_diff / previous_close) * 100
+                    payload = {
+                        "symbol": symbol.upper(),
+                        "close": latest_close,
+                        "closeDiff": f"{close_diff:+.2f}",
+                        "latestClose": latest_close,
+                        "percentChange": f"{percent_change:+.2f}%",
+                        "previousClose": previous_close,
+                        "timestamp": timestamp
+                    }
+                    await websocket.send_text(json.dumps(payload))
+            except (WebSocketDisconnect, RuntimeError):
+                return
+
     try:
         while True:
             msg = await message_queue.get()
@@ -204,9 +282,14 @@ async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
                         "previousClose": previous_close,
                         "timestamp": timestamp
                     }
-                    await websocket.send_text(json.dumps(payload))
+                    try:
+                        await websocket.send_text(json.dumps(payload))
+                    except (WebSocketDisconnect, RuntimeError):
+                        return
                 else:
                     print(f"AssetInfo endpoint error: missing or zero previous_close for {symbol}, got: {previous_close}")
+            except (WebSocketDisconnect, RuntimeError):
+                return
             except Exception as e:
                 print(f"AssetInfo endpoint error: {e}")
                 traceback.print_exc()
@@ -235,6 +318,43 @@ async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
             await websocket.close()
             return
 
+        # Send the latest cached value for each symbol before streaming
+        for symbol in watchpanel_symbols:
+            cached = latest_quotes.get(symbol)
+            if cached:
+                d = cached.get("data")
+                service = cached.get("service")
+                try:
+                    if service == "iex" and isinstance(d, list) and len(d) > 2:
+                        latest_close = float(d[2])
+                    elif service == "crypto_data" and isinstance(d, list) and len(d) > 5:
+                        latest_close = float(d[5])
+                    else:
+                        continue
+
+                    # Fetch previous close from MongoDB (or cache if you have it)
+                    asset_doc = db.AssetInfo.find_one({"Symbol": symbol.upper()})
+                    previous_close = None
+                    if asset_doc and "TimeSeries" in asset_doc and asset_doc["TimeSeries"]:
+                        ts_dict = asset_doc["TimeSeries"]
+                        if isinstance(ts_dict, dict):
+                            ts = next(iter(ts_dict.values()))
+                            prev_close_val = ts.get("4. close")
+                            try:
+                                previous_close = float(prev_close_val)
+                            except (TypeError, ValueError):
+                                continue
+                    if previous_close is not None and previous_close != 0:
+                        percent_change = (latest_close - previous_close) / previous_close * 100
+                        payload = {
+                            "Symbol": symbol.upper(),
+                            "percentageReturn": f"{percent_change:+.2f}%"
+                        }
+                        await websocket.send_text(json.dumps(payload))
+                except (WebSocketDisconnect, RuntimeError):
+                    return
+
+        # Now continue streaming new updates as they arrive
         while True:
             msg = await message_queue.get()
             try:
@@ -278,7 +398,12 @@ async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
                         "Symbol": symbol.upper(),
                         "percentageReturn": f"{percent_change:+.2f}%"
                     }
-                    await websocket.send_text(json.dumps(payload))
+                    try:
+                        await websocket.send_text(json.dumps(payload))
+                    except (WebSocketDisconnect, RuntimeError):
+                        return
+            except (WebSocketDisconnect, RuntimeError):
+                return
             except Exception:
                 continue
     except WebSocketDisconnect:
