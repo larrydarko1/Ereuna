@@ -350,10 +350,10 @@
 <script setup>
 import Header from '@/components/Header.vue';
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
-import TradePopup from '@/components/trade.vue'
-import SellTradePopup from '@/components/SellTradePopup.vue'
-import AddCashPopup from '@/components/addCash.vue'
-import Archetypes from '@/components/archetypes.vue'
+import TradePopup from '@/components/Portfolio/trade.vue'
+import SellTradePopup from '@/components/Portfolio/SellTradePopup.vue'
+import AddCashPopup from '@/components/Portfolio/addCash.vue'
+import Archetypes from '@/components/Portfolio/archetypes.vue'
 import { Pie, Line, Bar } from 'vue-chartjs'
 import {
   Chart,
@@ -369,7 +369,7 @@ import {
 import { useStore } from 'vuex';
 import annotationPlugin from 'chartjs-plugin-annotation';
 import Assistant from '@/components/assistant.vue';
-import ImportPortfolioPopup from '@/components/ImportPortfolioPopup.vue';
+import ImportPortfolioPopup from '@/components/Portfolio/ImportPortfolioPopup.vue';
 
 // access user from store 
 const store = useStore();

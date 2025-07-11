@@ -26,7 +26,7 @@ MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
 mongo_client = MongoClient(MONGO_URI)
 db = mongo_client['EreunaDB']
 
-message_queue = asyncio.Queue(maxsize=1000)  # Holds latest messages
+message_queue = asyncio.Queue(maxsize=100000)  # Holds latest messages
 
 # In-memory cache for latest quotes per symbol
 latest_quotes = {}  # {symbol: tiingo_data_dict}
@@ -128,6 +128,7 @@ async def websocket_raw(websocket: WebSocket):
         await websocket.close()
 
         
+
 @app.websocket("/ws/symbols")
 async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
     await websocket.accept()
@@ -145,6 +146,12 @@ async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
                 elif service == "crypto_data" and isinstance(d, list) and len(d) > 5:
                     price = float(d[5])
                     await websocket.send_text(f"{symbol.upper()}: {price}")
+            except (WebSocketDisconnect, RuntimeError):
+                return
+        else:
+            # If no cached data, send a placeholder or skip (optionally fetch from DB)
+            try:
+                await websocket.send_text(f"{symbol.upper()}: No recent data available")
             except (WebSocketDisconnect, RuntimeError):
                 return
 
@@ -187,6 +194,7 @@ async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
 async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
     await websocket.accept()
     symbols = set(s.lower() for s in tickers.split(","))
+
     # Send the latest cached value for each symbol before streaming
     for symbol in symbols:
         cached = latest_quotes.get(symbol)
@@ -227,6 +235,12 @@ async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
                         "timestamp": timestamp
                     }
                     await websocket.send_text(json.dumps(payload))
+            except (WebSocketDisconnect, RuntimeError):
+                return
+        else:
+            # If no cached data, send a placeholder or skip (optionally fetch from DB)
+            try:
+                await websocket.send_text(json.dumps({"symbol": symbol.upper(), "error": "No recent data available"}))
             except (WebSocketDisconnect, RuntimeError):
                 return
 
@@ -318,6 +332,7 @@ async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
             await websocket.close()
             return
 
+
         # Send the latest cached value for each symbol before streaming
         for symbol in watchpanel_symbols:
             cached = latest_quotes.get(symbol)
@@ -351,6 +366,12 @@ async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
                             "percentageReturn": f"{percent_change:+.2f}%"
                         }
                         await websocket.send_text(json.dumps(payload))
+                except (WebSocketDisconnect, RuntimeError):
+                    return
+            else:
+                # If no cached data, send a placeholder or skip (optionally fetch from DB)
+                try:
+                    await websocket.send_text(json.dumps({"Symbol": symbol.upper(), "error": "No recent data available"}))
                 except (WebSocketDisconnect, RuntimeError):
                     return
 

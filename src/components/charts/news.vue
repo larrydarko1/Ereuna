@@ -29,7 +29,6 @@ defineProps(['BeautifulNews', 'formatDate']);
 </script>
 
 <style lang="scss" scoped>
-@use '../style.scss' as *;
 
 .no-data {
   text-align: center;
