@@ -508,8 +508,8 @@ function setupCardAnimations() {
 }
 
 .login-button {
-  background-color: transparent;
-  color: $accent1;
+  background-color: $accent1;
+  color: $text4;
   border: solid 2px $accent1;
   padding: 10px 20px;
   font-size: 18px;
@@ -522,10 +522,10 @@ function setupCardAnimations() {
     transform 0.2s cubic-bezier(0.4,0,0.2,1);
 
   &:hover {
-    background-color: $accent1;
+    background-color: $accent2;
     color: $text4;
     transform: scale(1.04);
-    border-color: $accent1;
+    border-color: $accent2;
   }
 }
 
