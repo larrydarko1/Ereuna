@@ -160,190 +160,23 @@
           <div class="loading-container2" v-if="isLoading">
             <Loader />
           </div>
-          <div id="searchtable">
-            <input type="text" id="searchbar" name="search" placeholder="Search Ticker / ISIN" v-model="searchQuery"
-              @input="toUpperCase" @keydown.enter="searchTicker()">
-            <button class="wlbtn2" id="searchBtn" @click="searchTicker()" v-b-tooltip.hover title="Search Symbol">
-              <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                    stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                </g>
-              </svg></button>
-          </div>
-          <div id="wlnav">
-            <div id="realwatchlist" class="select-container" @mouseover="showDropdown = true"
-              @mouseout="showDropdown = false">
-              <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                :class="{ 'dropdown-icon-hover': showDropdown }" v-if="!showDropdown">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path fill-rule="evenodd" clip-rule="evenodd"
-                    d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z"
-                    fill="var(--text1)"></path>
-                </g>
-              </svg>
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                :class="{ 'dropdown-icon': showDropdown }" v-else transform="matrix(1, 0, 0, 1, 0, 0)rotate(180)">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path fill-rule="evenodd" clip-rule="evenodd"
-                    d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z"
-                    fill="var(--text1)"></path>
-                </g>
-              </svg>
-              <p style="font-weight: bold;" class="selected-value" @click.stop="">{{ selectedWatchlist ?
-                selectedWatchlist.Name : (watchlist && watchlist.tickers && watchlist.tickers.length > 0 ?
-                  'Select a watch' : 'No Watchlists') }}</p>
-              <div class="dropdown-container" v-if="watchlist && watchlist.tickers && watchlist.tickers.length > 0">
-                <div class="watchlist-dropdown-menu">
-                  <div class="watchlist-item" v-for="watch in watchlist.tickers" :key="watch.Name"
-                    :class="{ 'selected': selectedWatchlist && selectedWatchlist.Name === watch.Name }"
-                    @click="filterWatchlist(watch)">
-                    {{ watch.Name }}
-                    <span class="badge">{{ watch.List.length }}</span>
-                    <button class="icondlt" id="watchlistDelete" @click.stop="DeleteWatchlist(watch)" v-b-tooltip.hover
-                      title="Delete Watchlist">
-                      <svg class="imgm" viewBox="0 0 16 16" xmlns:dc="http://purl.org/dc/elements/1.1/"
-                        xmlns:cc="http://creativecommons.org/ns#"
-                        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg"
-                        version="1.1" id="svg8" fill="var(--text1)">
-                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                        <g id="SVGRepo_iconCarrier">
-                          <metadata id="metadata5">
-                            <rdf:rdf>
-                              <cc:work>
-                                <dc:format>image/svg+xml</dc:format>
-                                <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type>
-                                <dc:title></dc:title>
-                                <dc:date>2021</dc:date>
-                                <dc:creator>
-                                  <cc:agent>
-                                    <dc:title>Timothée Giet</dc:title>
-                                  </cc:agent>
-                                </dc:creator>
-                                <cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"></cc:license>
-                              </cc:work>
-                              <cc:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/">
-                                <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"></cc:permits>
-                                <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"></cc:permits>
-                                <cc:requires rdf:resource="http://creativecommons.org/ns#Notice"></cc:requires>
-                                <cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"></cc:requires>
-                                <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"></cc:permits>
-                                <cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"></cc:requires>
-                              </cc:license>
-                            </rdf:rdf>
-                          </metadata>
-                          <rect transform="rotate(45)" ry="0" y="-1" x="4.3137083" height="2" width="14" id="rect1006"
-                            style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1">
-                          </rect>
-                          <rect transform="rotate(-45)" ry="0" y="10.313708" x="-7" height="2" width="14"
-                            id="rect1006-5"
-                            style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1">
-                          </rect>
-                        </g>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <button class="navbtn" @click="addWatchlist()" v-b-tooltip.hover title="Add ticker to watchlist">
-              <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path d="M4 12H20M12 4V20" stroke="var(--text1)" stroke-width="1.9440000000000002"
-                    stroke-linecap="round" stroke-linejoin="round"></path>
-                </g>
-              </svg>
-              <span>Add Symbol</span>
-            </button>
-            <div class="wlnav-dropdown">
-              <button class="dropdown-toggle wlbtn" v-b-tooltip.hover title="More Options">
-                <svg class="img" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z"
-                      fill="var(--text1)"></path>
-                    <path
-                      d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z"
-                      fill="var(--text1)"></path>
-                    <path
-                      d="M10 2C10 0.89543 9.10457 -4.82823e-08 8 0C6.89543 4.82823e-08 6 0.895431 6 2C6 3.10457 6.89543 4 8 4C9.10457 4 10 3.10457 10 2Z"
-                      fill="var(--text1)"></path>
-                  </g>
-                </svg>
-              </button>
-              <div class="dropdown-vnav">
-                <div class="watchlist-dropdown-menu2">
-                  <button class="dropdown-item" @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Watchlist">
-                    <svg class="img4" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
-                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                      <g id="SVGRepo_iconCarrier">
-                        <path fill="var(--text1)" fill-rule="evenodd"
-                          d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z">
-                        </path>
-                      </g>
-                    </svg> Autoplay
-                  </button>
-                 <button class="dropdown-item" @click="showCreateNoteModal = true" v-b-tooltip.hover title="Create a Note">
-                    <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                      <g id="SVGRepo_iconCarrier">
-                        <g id="File / Note_Edit">
-                          <path id="Vector"
-                            d="M10.0002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2839 19.7822 18.9076C20 18.4802 20 17.921 20 16.8031V14M16 5L10 11V14H13L19 8M16 5L19 2L22 5L19 8M16 5L19 8"
-                            stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          </path>
-                        </g>
-                      </g>
-                    </svg> Create Note
-                  </button>
-                  <button class="dropdown-item" @click="showCreateWatchlistModal = true" v-b-tooltip.hover
-                    title="Create New Watchlist">
-                    <svg class="img4" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
-                      xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32.219 32.219" xml:space="preserve"
-                      fill="var(--text1)">
-                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                      <g id="SVGRepo_iconCarrier">
-                        <g>
-                          <path style="fill:var(--text1);"
-                            d="M32.144,12.402c-0.493-1.545-3.213-1.898-6.09-2.277c-1.578-0.209-3.373-0.445-3.914-0.844 c-0.543-0.398-1.304-2.035-1.978-3.482C18.94,3.17,17.786,0.686,16.166,0.68l-0.03-0.003c-1.604,0.027-2.773,2.479-4.016,5.082 c-0.684,1.439-1.463,3.07-2.005,3.463c-0.551,0.394-2.342,0.613-3.927,0.803c-2.877,0.352-5.598,0.68-6.108,2.217 c-0.507,1.539,1.48,3.424,3.587,5.424c1.156,1.094,2.465,2.34,2.67,2.98c0.205,0.639-0.143,2.414-0.448,3.977 c-0.557,2.844-1.084,5.535,0.219,6.5c0.312,0.225,0.704,0.338,1.167,0.328c1.331-0.023,3.247-1.059,5.096-2.062 c1.387-0.758,2.961-1.611,3.661-1.621c0.675,0.002,2.255,0.881,3.647,1.654c1.891,1.051,3.852,2.139,5.185,2.119 c0.414-0.01,0.771-0.117,1.06-0.322c1.312-0.947,0.814-3.639,0.285-6.494c-0.289-1.564-0.615-3.344-0.409-3.982 c0.213-0.639,1.537-1.867,2.702-2.955C30.628,15.808,32.634,13.945,32.144,12.402z M21.473,19.355h-3.722v3.797h-3.237v-3.797 h-3.768v-3.238h3.768v-3.691h3.237v3.691h3.722V19.355z">
-                          </path>
-                        </g>
-                      </g>
-                    </svg> New Watchlist
-                  </button>
-                  <button class="dropdown-item" @click="() =>  showRenameWatchlistModal = true " v-b-tooltip.hover
-                    title="Rename Watchlist">
-                    <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                      <g id="SVGRepo_iconCarrier">
-                        <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2">
-                        </path>
-                        <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
-                        <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2">
-                        </path>
-                      </g>
-                    </svg> Rename Watchlist
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+         <SearchBar
+  v-model="searchQuery"
+  @search="searchTicker"
+  @input="toUpperCase"
+/>
+         <WatchlistNav
+  :watchlist="watchlist"
+  :selectedWatchlist="selectedWatchlist"
+  :showDropdown="showDropdown"
+  @filterWatchlist="filterWatchlist"
+  @deleteWatchlist="DeleteWatchlist"
+  @addWatchlist="addWatchlist"
+  @autoPlay="AutoPlay"
+  @showCreateNoteModal="showCreateNoteModal = true"
+  @showCreateWatchlistModal="showCreateWatchlistModal = true"
+  @showRenameWatchlistModal="showRenameWatchlistModal = true"
+/> 
           <div id="watch-container">
             <div class="ntbl" style="flex: 0.5"></div>
             <div class="ntbl" style="flex: 1"></div>
@@ -474,73 +307,19 @@
                     perc[item] }}%</div>
                   <div class="delete-cell" style="position: relative;">
                     <button class="dbtn" @click="deleteTicker(item)" style="position: absolute; right: 0;" @click.stop>
-                      <svg class="imgm" viewBox="0 0 16 16" xmlns:dc="http://purl.org/dc/elements/1.1/"
-                        xmlns:cc="http://creativecommons.org/ns#"
-                        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg"
-                        version="1.1" id="svg8" fill="var(--text1)">
-                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                        <g id="SVGRepo_iconCarrier">
-                          <metadata id="metadata5">
-                            <rdf:rdf>
-                              <cc:work>
-                                <dc:format>image/svg+xml</dc:format>
-                                <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type>
-                                <dc:title></dc:title>
-                                <dc:date>2021</dc:date>
-                                <dc:creator>
-                                  <cc:agent>
-                                    <dc:title>Timothée Giet</dc:title>
-                                  </cc:agent>
-                                </dc:creator>
-                                <cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"></cc:license>
-                              </cc:work>
-                              <cc:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/">
-                                <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"></cc:permits>
-                                <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"></cc:permits>
-                                <cc:requires rdf:resource="http://creativecommons.org/ns#Notice"></cc:requires>
-                                <cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"></cc:requires>
-                                <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"></cc:permits>
-                                <cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"></cc:requires>
-                              </cc:license>
-                            </rdf:rdf>
-                          </metadata>
-                          <rect transform="rotate(45)" ry="0" y="-1" x="4.3137083" height="2" width="14" id="rect1006"
-                            style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1">
-                          </rect>
-                          <rect transform="rotate(-45)" ry="0" y="10.313708" x="-7" height="2" width="14"
-                            id="rect1006-5"
-                            style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1">
-                          </rect>
-                        </g>
-                      </svg></button>
+                     <svg class="imgm" viewBox="0 0 16 16" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
+  <rect transform="rotate(45)" y="-1" x="4.3137083" height="2" width="14" style="fill:var(--text1);" />
+  <rect transform="rotate(-45)" y="10.313708" x="-7" height="2" width="14" style="fill:var(--text1);" />
+</svg></button>
                   </div>
                 </div>
               </div>
             </div>
             <div v-else class="empty-list-message">
-              <svg fill="var(--text1)" height="20px" width="20px" version="1.1" id="Layer_1"
-                xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512"
-                xml:space="preserve">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <g>
-                    <g>
-                      <path
-                        d="M493.297,159.693c-12.477-30.878-31.231-59.828-56.199-84.792c-24.964-24.967-53.914-43.722-84.793-56.199 C321.426,6.222,288.617,0,255.823,0c-32.748,0-65.497,6.249-96.315,18.743c-30.814,12.491-59.695,31.244-84.607,56.159 c-24.915,24.912-43.668,53.793-56.158,84.607C6.25,190.325,0.001,223.073,0.001,255.823c0,32.794,6.222,65.602,18.701,96.484 c12.477,30.878,31.231,59.828,56.199,84.793c24.964,24.967,53.914,43.722,84.792,56.199c30.882,12.48,63.69,18.701,96.484,18.701 c32.748,0,65.497-6.249,96.314-18.743c30.814-12.49,59.695-31.242,84.607-56.158c24.917-24.913,43.67-53.794,56.16-84.608 c12.493-30.817,18.743-63.566,18.743-96.315C511.999,223.383,505.778,190.575,493.297,159.693z M461.611,339.661 c-10.821,26.683-27.019,51.648-48.659,73.291c-21.643,21.64-46.608,37.837-73.292,48.657 c-26.679,10.818-55.078,16.241-83.484,16.241c-28.477,0-56.947-5.405-83.688-16.213c-26.744-10.813-51.76-27.007-73.441-48.685 c-21.678-21.682-37.873-46.697-48.685-73.441C39.554,312.77,34.149,284.3,34.149,255.823c0-28.406,5.423-56.804,16.241-83.484 c10.821-26.683,27.018-51.648,48.659-73.291c21.643-21.64,46.608-37.837,73.291-48.659c26.679-10.818,55.078-16.241,83.484-16.241 c28.477,0,56.947,5.405,83.688,16.214c26.744,10.813,51.76,27.008,73.441,48.685c21.677,21.681,37.873,46.697,48.685,73.441 c10.808,26.741,16.214,55.211,16.214,83.688C477.852,284.583,472.429,312.981,461.611,339.661z">
-                      </path>
-                    </g>
-                  </g>
-                  <g>
-                    <g>
-                      <path
-                        d="M385.946,126.055c-6.524-6.525-17.102-6.525-23.626,0l-36.278,36.278c-7.82-5.861-16.298-10.691-25.249-14.389 c-14.036-5.803-29.225-8.832-44.792-8.83c-15.572-0.002-30.761,3.027-44.797,8.83c-14.037,5.799-26.917,14.372-37.901,25.36 c-11.376,11.375-19.956,24.598-25.656,38.689c-5.704,14.094-8.547,29.054-8.548,44.007c0,14.954,2.843,29.914,8.548,44.007 c3.693,9.131,8.603,17.892,14.691,26.027l-36.285,36.285c-6.524,6.524-6.524,17.102,0,23.627c6.525,6.524,17.102,6.524,23.627,0 l36.278-36.278c7.82,5.861,16.298,10.691,25.249,14.389c14.036,5.803,29.225,8.832,44.792,8.83 c15.572,0.002,30.761-3.027,44.797-8.83c14.037-5.799,26.917-14.372,37.901-25.359c11.376-11.375,19.955-24.599,25.656-38.689 c5.704-14.094,8.547-29.054,8.548-44.007c0-14.954-2.843-29.914-8.548-44.008c-3.693-9.131-8.603-17.892-14.691-26.027 l36.285-36.285C392.47,143.157,392.47,132.579,385.946,126.055z M178.621,287.472c-4.066-10.044-6.108-20.754-6.107-31.471 c0-10.717,2.042-21.428,6.107-31.472c4.07-10.047,10.146-19.431,18.31-27.599c7.908-7.906,17.06-13.98,27.036-18.106 c9.978-4.122,20.783-6.295,32.033-6.296c11.245,0.002,22.051,2.174,32.03,6.297c4.897,2.025,9.593,4.525,14.044,7.476 L186.305,302.069C183.229,297.418,180.669,292.53,178.621,287.472z M333.38,287.472c-4.07,10.047-10.146,19.431-18.31,27.599 c-7.908,7.906-17.06,13.98-27.036,18.106c-9.978,4.122-20.783,6.295-32.033,6.296c-11.245-0.002-22.05-2.174-32.03-6.297 c-4.897-2.025-9.593-4.526-14.044-7.476l115.769-115.769c3.076,4.651,5.636,9.539,7.684,14.597 c4.066,10.044,6.108,20.754,6.107,31.472C339.488,266.717,337.446,277.427,333.38,287.472z">
-                      </path>
-                    </g>
-                  </g>
-                </g>
-              </svg>
+              <svg fill="var(--text1)" height="20px" width="20px" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <path d="M493.297,159.693c-12.477-30.878-31.231-59.828-56.199-84.792c-24.964-24.967-53.914-43.722-84.793-56.199 C321.426,6.222,288.617,0,255.823,0c-32.748,0-65.497,6.249-96.315,18.743c-30.814,12.491-59.695,31.244-84.607,56.159 c-24.915,24.912-43.668,53.793-56.158,84.607C6.25,190.325,0.001,223.073,0.001,255.823c0,32.794,6.222,65.602,18.701,96.484 c12.477,30.878,31.231,59.828,56.199,84.793c24.964,24.967,53.914,43.722,84.792,56.199c30.882,12.48,63.69,18.701,96.484,18.701 c32.748,0,65.497-6.249,96.314-18.743c30.814-12.49,59.695-31.242,84.607-56.158c24.917-24.913,43.67-53.794,56.16-84.608 c12.493-30.817,18.743-63.566,18.743-96.315C511.999,223.383,505.778,190.575,493.297,159.693z M461.611,339.661 c-10.821,26.683-27.019,51.648-48.659,73.291c-21.643,21.64-46.608,37.837-73.292,48.657 c-26.679,10.818-55.078,16.241-83.484,16.241c-28.477,0-56.947-5.405-83.688-16.213c-26.744-10.813-51.76-27.007-73.441-48.685 c-21.678-21.682-37.873-46.697-48.685-73.441C39.554,312.77,34.149,284.3,34.149,255.823c0-28.406,5.423-56.804,16.241-83.484 c10.821-26.683,27.018-51.648,48.659-73.291c21.643-21.64,46.608-37.837,73.291-48.659c26.679-10.818,55.078-16.241,83.484-16.241 c28.477,0,56.947,5.405,83.688,16.214c26.744,10.813,51.76,27.008,73.441,48.685c21.677,21.681,37.873,46.697,48.685,73.441 c10.808,26.741,16.214,55.211,16.214,83.688C477.852,284.583,472.429,312.981,461.611,339.661z"/>
+  <path d="M385.946,126.055c-6.524-6.525-17.102-6.525-23.626,0l-36.278,36.278c-7.82-5.861-16.298-10.691-25.249-14.389 c-14.036-5.803-29.225-8.832-44.792-8.83c-15.572-0.002-30.761,3.027-44.797,8.83c-14.037,5.799-26.917,14.372-37.901,25.36 c-11.376,11.375-19.956,24.598-25.656,38.689c-5.704,14.094-8.547,29.054-8.548,44.007c0,14.954,2.843,29.914,8.548,44.007 c3.693,9.131,8.603,17.892,14.691,26.027l-36.285,36.285c-6.524,6.524-6.524,17.102,0,23.627c6.525,6.524,17.102,6.524,23.627,0 l36.278-36.278c7.82,5.861,16.298,10.691,25.249,14.389c14.036,5.803,29.225,8.832,44.792,8.83 c15.572,0.002,30.761-3.027,44.797-8.83c14.037-5.799,26.917-14.372,37.901-25.359c11.376-11.375,19.955-24.599,25.656-38.689 c5.704-14.094,8.547-29.054,8.548-44.007c0-14.954-2.843-29.914-8.548-44.008c-3.693-9.131-8.603-17.892-14.691-26.027 l36.285-36.285C392.47,143.157,392.47,132.579,385.946,126.055z M178.621,287.472c-4.066-10.044-6.108-20.754-6.107-31.471 c0-10.717,2.042-21.428,6.107-31.472c4.07-10.047,10.146-19.431,18.31-27.599c7.908-7.906,17.06-13.98,27.036-18.106 c9.978-4.122,20.783-6.295,32.033-6.296c11.245,0.002,22.051,2.174,32.03,6.297c4.897,2.025,9.593,4.525,14.044,7.476 L186.305,302.069C183.229,297.418,180.669,292.53,178.621,287.472z M333.38,287.472c-4.07,10.047-10.146,19.431-18.31,27.599 c-7.908,7.906-17.06,13.98-27.036,18.106c-9.978,4.122-20.783,6.295-32.033,6.296c-11.245-0.002-22.05-2.174-32.03-6.297 c-4.897-2.025-9.593-4.526-14.044-7.476l115.769-115.769c3.076,4.651,5.636,9.539,7.684,14.597 c4.066,10.044,6.108,20.754,6.107,31.472C339.488,266.717,337.446,277.427,333.38,287.472z"/>
+  </svg>
               <p>This list is empty</p>
             </div>
           </div>
@@ -581,6 +360,8 @@ import barsIcon from '@/assets/icons/bars.png';
 import candlesIcon from '@/assets/icons/candles.png';
 import NotificationPopup from '@/components/NotificationPopup.vue';
 import { useStore } from 'vuex';
+import SearchBar from '@/components/charts/Search.vue';
+import WatchlistNav from '@/components/charts/Navigation.vue';
 
 // access user from store 
 const store = useStore();
