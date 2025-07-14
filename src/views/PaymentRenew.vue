@@ -1,647 +1,429 @@
 <template>
-  <div class="main">
-    <br>
-    <br>
-    <div class="logo-container">
-      <img class="logo" src="@/assets/icons/owl.png" alt="">
+  <div class="renewal-container">
+    <div class="expired-message">
+      <h1>Subscription Expired</h1>
+      <p>Your subscription has expired. Please renew to resume access to all features.</p>
     </div>
-    <h2 class="gradient-text">Subscription Expired</h2>
-    <p style="font-size: 12px; display: flex; align-items: center; justify-content: center;">
-      Hi <span class="gradient-text2" style="margin: 0 4px;">{{user}}!</span> It appears that your subscription has expired. 
-      To resume using our services and regain access to your account, please renew your subscription by completing the form below:
-    </p>
-    <br>
-    <div>
-      <h2>Select a Subscription Plan</h2>
-    <div class="subscription-form">
-      <div 
-      class="sub-option" 
-      :class="{ selected: selectedOption === 1 }"
-      @click="selectOption(1)"
-    >
-      <h3 class="plan">1 Month</h3>
-      <p class="price">5.99€ + VAT</p>
-    </div>
-    <div 
-      class="sub-option" 
-      :class="{ selected: selectedOption === 2 }"
-      @click="selectOption(2)"
-    >
-      <h3 class="plan">4 Months</h3>
-      <p class="price">23.99€ + VAT</p>
-    </div>
-    <div 
-  class="sub-option-disabled" 
->
-  <div class="coming-soon-banner">Available Soon</div>
-  <h3 style="cursor: default;" class="plan">6 Months</h3>
-  <p style="cursor: default;" class="price">35.99€ + VAT</p>
-</div>
-<div 
-  class="sub-option-disabled" 
->
-  <div class="coming-soon-banner">Available Soon</div>
-  <h3 style="cursor: default;" class="plan">1 Year</h3>
-  <p style="cursor: default;" class="price">71.99€ + VAT</p>
-</div>
-</div>
-    <h2>Select a payment method</h2>
-    <div class="payment-form">
-    <div class="pay-option">
-      <div class="square" :class="{ selected: selectedpay === 1 }" @click="selectPaymentMethod('Credit Card'), selectPay(1)">
-        <img class="icon" src="@/assets/icons/credit-card.png" alt="credit-card"> 
-        <p>Credit Card</p>
-    </div>
-    <div class="square-disabled">
-      <div class="coming-soon-banner2">Available Soon</div>
-    <img class="icon" src="@/assets/icons/bitcoin.png" alt="bitcoin"> 
-    <p>Bitcoin</p>
-</div>
-<div class="square-disabled">
-  <div class="coming-soon-banner2">Available Soon</div>
-    <img class="icon" src="@/assets/icons/ethereum.png" alt="ethereum"> 
-    <p>Ethereum</p>
-</div>
-<div class="square-disabled">
-  <div class="coming-soon-banner2">Available Soon</div>
-    <img class="icon" src="@/assets/icons/monero.png" alt="monero"> 
-    <p>Monero</p>
-</div>
-        <div v-if="selectedpay === 1" class="card-element-container">
-      <div id="card-element"></div>
-      <div id="card-errors" role="alert"></div>
+    <!-- Subscription Selection Section -->
+    <div class="subscription-section">
+      <h2 class="subtitle">Choose Your Plan</h2>
+      <div class="plan-options">
+        <div class="plan-card" :class="{ 'selected-plan': selectedPlan === 'core' }" @click="selectedPlan = 'core'">
+          <div class="plan-header">CORE</div>
+          <div class="plan-price">€5.99<span> / month</span></div>
+          <ul class="plan-features">
+            <li>Coverage of 11.000+ Financial Assets (Cryptocurrencies, US Stocks / ETFs)</li>
+            <li>65+ years of price data (Daily and Weekly, Intraday is held for 2 weeks only), 30+ years of financial statements</li>
+            <li>One-Click Multi-Screener and other time saving features, 50+ screening parameters</li>
+            <li>No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days</li>
+          </ul>
+        </div>
+        <div class="plan-card" :class="{ 'selected-plan': selectedPlan === 'premium' }" @click="selectedPlan = 'premium'">
+          <div class="plan-header">PREMIUM</div>
+          <div class="plan-price">€14.99<span> / month</span></div>
+          <ul class="plan-features">
+            <li>Real-time Data Support</li>
+            <li>Coverage of 11.000+ Financial Assets (Cryptocurrencies, US Stocks / ETFs)</li>
+            <li>65+ years of price data (Daily and Weekly, Intraday is held for 2 weeks only), 30+ years of financial statements</li>
+            <li>One-Click Multi-Screener and other time saving features, 50+ screening parameters</li>
+            <li>No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days</li>
+          </ul>
+        </div>
+      </div>
+      <div class="duration-selection">
+        <h3 class="subtitle">Subscription Duration</h3>
+        <div class="duration-options">
+          <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 1 }" @click="selectedDuration = 1">1 Month</div>
+          <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 4 }" @click="selectedDuration = 4">4 Months</div>
+          <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 6 }" @click="selectedDuration = 6">6 Months</div>
+          <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 12 }" @click="selectedDuration = 12">1 Year</div>
+        </div>
+      </div>
+      <div class="total-price">
+        <div class="card-element-container">
+          <div id="card-element"></div>
+          <div id="card-errors" role="alert"></div>
+        </div>
+        <div class="country-select">
+          <div class="dropdown" @click="toggleDropdown">
+            <div class="dropdown-selected">
+              {{ selectedCountryObj.name }} ({{ (selectedCountryObj.vat * 100).toFixed(0)}}% VAT)
+              <span class="dropdown-arrow" :class="{ open: dropdownOpen }">&#9662;</span>
+            </div>
+            <div class="dropdown-list" v-if="dropdownOpen">
+              <div
+                v-for="country in countries"
+                :key="country.code"
+                class="dropdown-item"
+                @click.stop="selectCountry(country)"
+              >
+                {{ country.flag }} {{ country.name }} ({{ (country.vat * 100).toFixed(0) }}% VAT )
+              </div>
+            </div>
           </div>
         </div>
-        <br><br>
-        <button class="userbtn" @click="Renew()">Renew Subscription</button>
+        <p class="total-text">Total: <span>€{{ calculateTotalPrice() }}</span></p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { loadStripe } from '@stripe/stripe-js';
 
-const store = useStore();
-const user = store.getters.getUser;
+// Stripe refs
+const stripe = ref(null);
+const elements = ref(null);
+const card = ref(null);
 
-let selectedOption = ref(1);
-let selectedpay = ref();
+// Plan, duration, country
+const selectedPlan = ref('core');
+const selectedDuration = ref(1);
+const selectedCountry = ref('MT'); // Default Malta
+const dropdownOpen = ref(false);
 
-function selectOption(option) {
-  selectedOption.value = option;
+// Country list (full, sorted)
+const countries = [
+  { code: 'IT', name: 'Italy', flag: '🇮🇹', vat: 0.22 },
+  { code: 'DE', name: 'Germany', flag: '🇩🇪', vat: 0.19 },
+  { code: 'FR', name: 'France', flag: '🇫🇷', vat: 0.20 },
+  { code: 'ES', name: 'Spain', flag: '🇪🇸', vat: 0.21 },
+  { code: 'US', name: 'United States', flag: '🇺🇸', vat: 0.00 },
+  { code: 'MT', name: 'Malta', flag: '🇲🇹', vat: 0.18 },
+  // ...add more as needed
+];
+countries.sort((a, b) => a.name.localeCompare(b.name));
+
+const selectedCountryObj = computed(() =>
+  countries.find(c => c.code === selectedCountry.value) || countries[0]
+);
+
+function toggleDropdown() {
+  dropdownOpen.value = !dropdownOpen.value;
+}
+function selectCountry(country) {
+  selectedCountry.value = country.code;
+  dropdownOpen.value = false;
 }
 
-function selectPay(option) {
-  selectedpay.value = option;
+function calculateTotalPrice() {
+  const prices = {
+    core: 5.99,
+    premium: 14.99
+  };
+  let basePrice = prices[selectedPlan.value];
+  let totalMonths = selectedDuration.value;
+  let totalPrice = basePrice * totalMonths;
+  const country = countries.find(c => c.code === selectedCountry.value);
+  const vatRate = country ? country.vat : 0;
+  const vatAmount = totalPrice * vatRate;
+  const totalWithVat = totalPrice + vatAmount;
+  return totalWithVat.toFixed(2);
 }
 
-function selectPaymentMethod(method) {
-  selectedPaymentMethod.value = method;
-}
-
-onMounted(() => {
-  selectOption(1); // Set default subscription option
+// Stripe card element logic
+onMounted(async () => {
+  if (!stripe.value) {
+    stripe.value = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+  }
+  initializeStripe();
 });
 
-async function Renew() {
-  // Logic to renew subscription
+function initializeStripe() {
+  elements.value = stripe.value.elements();
+  card.value = elements.value.create('card', {
+    style: {
+      base: {
+        color: '#ffffff',
+        fontFamily: 'Helvetica Neue, Helvetica, sans-serif',
+        fontSmoothing: 'antialiased',
+        fontSize: '16px',
+        '::placeholder': { color: '#aab7c4' }
+      },
+      invalid: {
+        color: '#fa755a',
+        iconColor: '#fa755a'
+      }
+    }
+  });
+  setTimeout(() => {
+    const cardElement = document.getElementById('card-element');
+    if (cardElement) {
+      card.value.mount('#card-element');
+    }
+  }, 100);
+  card.value.on('change', function(event) {
+    const displayError = document.getElementById('card-errors');
+    if (event.error) {
+      displayError.textContent = event.error.message;
+    } else {
+      displayError.textContent = '';
+    }
+  });
 }
 </script>
 
 <style lang="scss" scoped>
 @use '../style.scss' as *;
 
-.main {
-  min-width: 1200px; /* Set a minimum width that works for your design */
-  box-sizing: border-box; /* Ensure padding is included in the width */
+.renewal-container {
+  max-width: 1000px;
+  margin: 3.5rem auto 2rem auto;
+  background: $base4;
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 32px rgba(30, 41, 59, 0.13), 0 2px 8px rgba(30, 41, 59, 0.10);
+  padding: 2.5rem 1.5rem 2rem 1.5rem;
+  color: $text1;
+  position: relative;
 }
-
-h1 {
-  color: #b3b3b3;
-  font-size: 30px;
-  margin-bottom: 0;
+.expired-message {
   text-align: center;
+  margin-bottom: 2.2rem;
 }
-
-h2 {
-  color: rgb(179, 179, 179);
-  font-size: 15px;
+.expired-message h1 {
+  color: $accent1;
+  font-size: 4rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+.expired-message p {
+  color: $text2;
+  font-size: 2rem;
+}
+.subscription-section {
+  margin-top: 1.2rem;
+}
+.subtitle {
+  color: $accent1;
+  font-size: 2rem;
+  margin-bottom: 2rem;
   text-align: center;
+  font-weight: 600;
 }
-
-p{
-color: #b3b3b3;
-  font-size: 10px;
-  text-align: center;
-}
-
-.settingsbtn {
-  background-color: transparent;
-  color: whitesmoke;
-  width: fit-content;
-  padding: 10px;
-  border: solid 2px #8c8dfe;
-  margin-top: 5px;
-  font-size: 12px;
-}
-
-.settingsbtn:hover {
-  background-color: #8c8dfe;
-  cursor: pointer;
-}
-
-.menu{
-  margin-top: 5px;
+.plan-options {
   display: flex;
-  align-items: center;
-  width: 100%;
-  background-color: #262435;
-  padding: 10px;
-  color: whitesmoke;
-  font-size: 15px;
+  gap: 5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.plan-card {
+  background: $base2;
+  border-radius: 1rem;
+  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.08);
+  padding: 1.2rem 1rem 1rem 1rem;
+  width: 400px;
   cursor: pointer;
-}
-
-.menu:hover{
-  cursor: pointer;
-  background-color: #1f1d2b;
-}
-
-.menu.selected {
-  background-color: #1b1a26;
-}
-
-.icon {
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
-}
-
-.icon2 {
-  width: 15px;
-  height: 15px;
-}
-
-.icon3 {
-  width: 15px;
-  height: 15px;
-}
-
-.error-input {
-  border: 1px solid red;
-}
-
-.error-text {
-  color: red;
-  border: 1px solid red;
-  font-size: 12px;
-  margin-bottom: 10px;
-  padding: 4px;
-}
-
-.success-text {
-  color: green;
-  border: 1px solid green;
-  font-size: 12px;
-  margin-bottom: 10px;
-  padding: 4px;
-}
-
-.userbtn {
-    background-color: transparent;
-    border: solid 2px #8c8dfe; /* Border color */
-    color: #f5f5f5; /* Text color */
-    padding: 10px 20px; /* Increased padding for a better size */
-    margin-top: 5px;
-    border-radius: 5px; /* Rounded corners */
-    font-size: 12px; /* Font size */
-    font-weight: 500; /* Slightly bolder text */
-    text-align: center; /* Center text */
-    transition: all 0.3s ease; /* Smooth transition for hover effects */
-    cursor: pointer; /* Pointer cursor on hover */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-}
-
-.userbtn:hover {
-    background-color: #8c8dfe; /* Background color on hover */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
-}
-
-.userinput{
- outline: none;
- padding: 4px;
- border: solid 1px white;
-}
-
-.userinput:focus{
- border-color: #8c8dfe;
-}
-
-.title{
- margin:0;
- padding: 0;
-}
-
-.payment-form, .subscription-form{
-    text-align: center;
-    align-items: center;
-    align-self: center;
-    padding: 10px;
-    margin: 10px;
-    border: none;
-}
-
-.square {
-    align-items: center;
-    display: inline-flex;
-    flex-direction: row;
-    border: none;
-    border-radius: 10px; /* Slightly curved border */
-    padding: 10px;
-    margin: 5px;
-    padding-right: 15px;
-    opacity: 0.80;
-    width: 100px;
-    justify-content: center;
-    color: #f5f5f5;
-    position: relative; /* Position relative for pseudo-element */
-    overflow: hidden; /* Hide overflow */
-}
-
-.square-disabled {
-    align-items: center;
-    display: inline-flex;
-    flex-direction: row;
-    border: none;
-    border-radius: 10px; /* Slightly curved border */
-    padding: 10px;
-    margin: 5px;
-    padding-right: 15px;
-    opacity: 0.80;
-    width: 100px;
-    justify-content: center;
-    color: #f5f5f5;
-    position: relative; /* Position relative for pseudo-element */
-    overflow: hidden; /* Hide overflow */
-    cursor: default
-}
-
-.square-disabled::before {
-    content: '';
-    position: absolute; /* Position it absolutely */
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: -1; /* Place it behind the content */
-    border-radius: 10px; /* Match the border radius of the parent */
-    background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
-    padding: 2px; /* Space for the border effect */
-    -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
-    -webkit-mask-composite: source-out; /* For masking */
-    animation: border-animation 5s linear infinite; /* Add animation */
-    mask-composite: exclude; /* For masking */
-    background-size: 300% 300%; 
-    cursor: default;
-}
-
-.square::before {
-    content: '';
-    position: absolute; /* Position it absolutely */
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: -1; /* Place it behind the content */
-    border-radius: 10px; /* Match the border radius of the parent */
-    background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
-    padding: 2px; /* Space for the border effect */
-    -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
-    -webkit-mask-composite: source-out; /* For masking */
-    animation: border-animation 5s linear infinite; /* Add animation */
-    mask-composite: exclude; /* For masking */
-    background-size: 300% 300%; 
-}
-
-.square:hover{
-    opacity: 1;
-    cursor: pointer;
-}
-
-.selected {
-    border:none;
-    background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9);
-    animation: border-animation 5s linear infinite; /* Animation */
-    background-size: 300% 300%; /* Allow for smooth animation */
-}
-
-@keyframes border-animation {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
-.square:hover {
-    opacity: 1;
-    cursor: pointer;
-}
-
-.modal {
+  border: 2px solid transparent;
+  transition: border 0.2s, box-shadow 0.2s, transform 0.18s;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #2c2b3e;
-  padding: 20px;
-  border: none;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  z-index: 1000;
+  min-height: 260px;
 }
-
-.modal button {
-  margin-top: 10px;
+.plan-card.selected-plan {
+  border: 2px solid $accent1;
+  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.18);
+  transform: scale(1.04);
 }
-
-.sub-option {
-  align-items: center;
-  display: inline-flex;
-  flex-direction: column;
-  border: none;
-  border-radius: 5px;
-  padding: 10px;
-  margin: 5px;
-  opacity: 0.80;
-  width: 120px;
-  height: 70px;
-  position: relative; 
-  overflow: hidden;
-  justify-content: center;
-  color: #f5f5f5;
+.plan-header {
+  font-size: 2rem;
+  font-weight: 700;
+  color: $accent1;
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.04em;
 }
-
-.sub-option::before {
-  content: '';
-  position: absolute; /* Position it absolutely */
-  top: 0;
+.plan-price {
+  font-size: 1.70rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  color: $text1;
+}
+.plan-price span {
+  font-size: 0.98rem;
+  color: $text2;
+}
+.plan-features {
+  list-style: none;
+  color: $text2;
+  font-size: 0.97rem;
+  margin: 0;
+  padding-left: 0;
+  text-align: left;
+}
+.plan-features li {
+  padding: 7px 0 7px 22px;
+  position: relative;
+}
+.plan-features li:before {
+  content: "";
+  position: absolute;
   left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1; /* Place it behind the content */
-  border-radius: 5px; /* Match the border radius of the parent */
-  background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
-  padding: 2px; /* Space for the border effect */
-  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
-  -webkit-mask-composite: source-out; /* For masking */
-  mask-composite: exclude; /* For masking */
-  animation: border-animation 5s linear infinite;
-  background-size: 300% 300%; 
+  top: 13px;
+  width: 12px;
+  height: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Ccircle cx='10' cy='10' r='10' fill='%238c8dfe'/%3E%3Cpath d='M6 10.5l2.5 2.5 5-5' stroke='%23fff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
-
-.sub-option-disabled {
-  align-items: center;
-  display: inline-flex;
-  flex-direction: column;
-  border: none;
-  border-radius: 5px; /* Rounded corners */
-  padding: 10px; /* Inner padding */
-  margin: 5px;
-  opacity: 0.80;
-  width: 120px;
-  position: relative; /* Position relative for the pseudo-element */
-  height: 70px;
-  overflow: hidden; /* Ensure the pseudo-element doesn't overflow */
+.duration-selection {
+  margin-top: 18px;
+  margin-bottom: 1.2rem;
+}
+.duration-options {
+  display: flex;
+  gap: 0.7rem;
   justify-content: center;
-  color: #f5f5f5;
-  cursor: default;
+  flex-wrap: wrap;
 }
-
-.sub-option-disabled::before {
-  content: '';
-  position: absolute; /* Position it absolutely */
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1; /* Place it behind the content */
-  border-radius: 5px; /* Match the border radius of the parent */
-  background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9); /* Gradient colors */
-  padding: 2px; /* Space for the border effect */
-  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white); /* For masking */
-  -webkit-mask-composite: source-out; /* For masking */
-  animation: border-animation 5s linear infinite;
-  mask-composite: exclude; /* For masking */
-  background-size: 300% 300%; 
-  cursor: default;
-}
-
-.sub-option:hover {
-  opacity: 1;
+.duration-option {
+  background: $base2;
+  color: $text2;
+  border-radius: 18px;
+  padding: 8px 16px;
   cursor: pointer;
-}
-
-.coming-soon-banner {
-  position: absolute;
-  top: 20px;          /* Reduced from 20px */
-  right: -25px;       /* Changed from -35px */
-  background-color: #8c8dfe;  /* Your purple color */
-  color: whitesmoke;
-  padding-left: 10px;  /* Reduced padding */
-  padding: 1px;
-  font-size: 12px;    /* You can make this smaller if needed, like 10px */
-  transform: rotate(45deg);
-  transform-origin: center;
-  width: 120px;       /* Reduced from 150px */
+  transition: all 0.2s;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  z-index: 1;
+  border: 2px solid transparent;
+  font-size: 1rem;
+  min-width: 80px;
 }
-
-.coming-soon-banner2 {
-  position: absolute;
-  top: 20px;          /* Reduced from 20px */
-  right: -35px;       /* Changed from -35px */
-  background-color: #8c8dfe;  /* Your purple color */
-  color: whitesmoke;
-  padding-left: 10px;  /* Reduced padding */
-  padding: 1px;
-  font-size: 12px;    /* You can make this smaller if needed, like 10px */
-  transform: rotate(45deg);
-  transform-origin: center;
-  width: 120px;       /* Reduced from 150px */
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  z-index: 1;
-  cursor: default;
+.duration-option:hover {
+  background: $base3;
+}
+.duration-option.selected-duration {
+  background: $accent1;
+  color: $text4;
+  font-weight: 500;
+  border: 2px solid $accent1;
+}
+.total-price {
+  margin-top: 1.7rem;
+  text-align: right;
+  padding: 10px 0 0 0;
+  border-top: 1px solid $base2;
+}
+.total-price p {
+  font-size: 2rem;
+  color: $text2;
+}
+.total-price span {
+  font-size: 2rem;
+  color: $accent1;
+  font-weight: 700;
+  margin-left: 8px;
 }
 
 .card-element-container {
-  background-color: #2c2b3e;
-  padding: 20px;
-  border-radius: 4px;
-  margin: 20px 0;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-bottom: 1.1rem;
 }
-
 #card-element {
-  padding: 10px;
-  border: 1px solid #201b28;
-  border-radius: 4px;
-  background-color: #201b28;
+  background: $base4;
+  border-radius: 8px;
+  padding: 16px;
+  color: $text1;
+  border: 1.5px solid $base2;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  transition: border 0.2s;
 }
-
+#card-element.StripeElement--focus {
+  border-color: $accent1;
+}
 #card-errors {
-  color: #fa755a;
+  color: #ff6b6b;
+  font-size: 0.98rem;
+  margin-top: 6px;
+  min-height: 18px;
+}
+.country-select {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: left;
+}
+.dropdown {
+  position: relative;
+  width: 220px;
+  cursor: pointer;
+  user-select: none;
+}
+.dropdown-selected {
+  background: $base2;
+  color: $text1;
+  border-radius: 5px;
+  padding: 6px 10px;
+  border: 1px solid $base1;
+  font-size: 0.95rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 10px;
+}
+.dropdown-arrow {
+  margin-left: 6px;
+  font-size: 0.9em;
+  transition: transform 0.2s;
+}
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+.dropdown-list {
+  position: absolute;
+  top: 105%;
+  left: 0;
+  width: 100%;
+  background: $base2;
+  border: 1px solid $base1;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  z-index: 10;
+  max-height: 150px;
+  overflow-y: auto;
+}
+.dropdown-item {
+  padding: 6px 10px;
+  color: $text1;
   text-align: left;
-  margin-top: 8px;
-  min-height: 20px;
-}
-
-p{
-  color: #f5f5f5;
-}
-
-.price{
-  font-size: 12px;
-  margin: 2px;
-}
-
-.offer{
-  font-size: 18px;
-  margin: 2px;
-}
-
-.receipts {
-  padding: 20px;
-}
-
-.receipt-item {
-  background-color: #262435; 
-  padding: 3px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2px;
-}
-
-.receipt-header {
-  background-color: #322f45; 
-  padding: 3px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2px;
-}
-
-.receipt-item p {
-  margin: 5px 0;
-}
-
-.downloadbtn{
-  background-color: transparent; 
-  border: none;
-  opacity: 0.60;
-}
-
-.downloadbtn:hover{
   cursor: pointer;
-  opacity: 1;
-}
-
-.password-toggle {
-  position: absolute;
-  right: -1%;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 10px;
-  color: black;
-  opacity: 0.60;
-}
-
-.password-toggle2 {
-  position: absolute;
-  left: 52.5%;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 10px;
-  color: black;
-  opacity: 0.60;
-}
-
-.password-toggle3 {
-  position: absolute;
-  left: 52.5%;
-  top: 75%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 10px;
-  color: black;
-  opacity: 0.60;
-}
-
-.logo {
-  width: 70px;
-  margin: 10px;
-}
-
-.logo-container {
-  display: flex;
-  justify-content: center;
-}
-
-.gradient-text {
-  font-size: 40px;
-  background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9);
-  background-size: 400% 400%;
-  background-clip: text; /* Standard property */
-  -webkit-background-clip: text; /* Safari */
-  -moz-background-clip: text; /* Firefox (not widely supported) */
-  -webkit-text-fill-color: transparent; /* Safari */
-  animation: gradient-animation 3s ease infinite;
-}
-
-.gradient-text2 {
-  font-size: 12px;
-  background: linear-gradient(270deg, #8c8dfe, #4c4d8f, #494bb9);
-  background-size: 400% 400%;
-  background-clip: text; /* Standard property */
-  -webkit-background-clip: text; /* Safari */
-  -moz-background-clip: text; /* Firefox (not widely supported) */
-  -webkit-text-fill-color: transparent; /* Safari */
-  animation: gradient-animation 3s ease infinite;
-}
-
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
+  font-size: 0.95rem;
+  &:hover {
+    background: $accent1;
+    color: $text4;
   }
-  50% {
-    background-position: 100% 50%;
+}
+
+@media (max-width: 600px) {
+  .renewal-container {
+    padding: 1.1rem 0.2rem;
+    max-width: 99vw;
   }
-  100% {
-    background-position: 0% 50%;
+  .plan-options {
+    flex-direction: column;
+    align-items: center;
+  }
+  .plan-card {
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 18px;
+  }
+  .duration-options {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .duration-option {
+    min-width: 0;
+    width: 100%;
+  }
+  .total-price {
+    text-align: center;
+  }
+  .country-select {
+    width: 100%;
+  }
+  .dropdown {
+    width: 100%;
   }
 }
 </style>

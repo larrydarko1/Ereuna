@@ -14,6 +14,88 @@
         Charts
       </button>
     </div>
+   <div style="display: flex;">
+<Selector
+          :ScreenersName="ScreenersName"
+          :selectedScreener="selectedScreener"
+          :isScreenerError="isScreenerError"
+          :showDropdown="showDropdown"
+          @selectScreener="selectScreener"
+          @excludeScreener="ExcludeScreener"
+          @deleteScreener="DeleteScreener"
+          :getScreenerImage="getScreenerImage"
+        />
+         <div class="navmenu">
+          <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
+            @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover title="Create New Screener">
+           <svg class="img2" viewBox="0 0 512 512" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
+  <g fill="var(--text1)" transform="translate(85.333333, 85.333333)">
+    <path d="M170.67,0C264.92,0,341.33,76.41,341.33,170.67S264.92,341.33,170.67,341.33S0,264.92,0,170.67S76.41,0,170.67,0ZM170.67,42.67c-70.69,0-128,57.31-128,128s57.31,128,128,128s128-57.31,128-128S241.36,42.67,170.67,42.67ZM192,85.33v64h64v42.67h-64v64h-42.67v-64h-64v-42.67h64v-64H192Z"/>
+  </g>
+</svg>
+            <label class=btnlabel>Create</label></button>
+          <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }"
+            @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover title="Rename Current Screener">
+          <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path>
+  <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
+  <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path>
+</svg>
+            <label class=btnlabel>Rename</label></button>
+         <!-- Replace your current Reset button with this: -->
+<button class="snavbtn" v-b-tooltip.hover title="Reset Screener" @click="showResetDialog = true">
+  <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="20.48">
+    <path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z"/>
+  </svg>
+  <label class="btnlabel">Reset</label>
+</button>
+<div v-if="showResetDialog" class="reset-modal-overlay">
+  <div class="reset-modal">
+    <h3>Reset Screener</h3>
+    <p>Are you sure you want to reset the current screener? <br>This cannot be undone.</p>
+    <div style="margin-top: 16px;">
+      <button class="trade-btn" @click="confirmResetScreener">Yes, Reset</button>
+      <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">Cancel</button>
+    </div>
+    <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
+  </div>
+</div>
+          <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning === true }"
+            @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Results">
+            <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
+  <path fill="var(--text1)" fill-rule="evenodd"
+    d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z">
+  </path>
+</svg>
+            <label class=btnlabel>Autoplay</label></button>
+          <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'hidden' }" v-b-tooltip.hover
+            title="Hidden List" @click="showHiddenResults()">
+          <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
+    stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+            <label class=btnlabel>Hidden Stocks</label></button>
+          <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover
+            title="Show Combined Screener Results" @click="showCombinedResults()">
+          <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <path d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z"/>
+</svg>
+            <label class=btnlabel>Multi-Screener</label>
+          </button>
+          <button @click="DownloadResults" class="snavbtn" :class="{ 'snavbtnslct': showSearch }" v-b-tooltip.hover
+            title="Download Results">
+           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15"
+    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path
+    d="M12 3V16M12 16L16 11.625M12 16L8 11.625"
+    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+            <label class=btnlabel>Download Results</label></button>
+        </div>
+   </div>
     <div id="main2">
       <div class="tooltip-container" style="position: relative;">
         <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
@@ -21,85 +103,7 @@
         </div>
       </div>
       <div id="filters" :class="{ 'hidden-mobile': selected !== 'filters' }">
-        <div id="screener-select" class="select-container" :class="{ 'error-border': isScreenerError }"
-          @mouseover="showDropdown = true" @mouseout="showDropdown = false">
-          <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-            :class="{ 'dropdown-icon': showDropdown }" v-if="!showDropdown">
-            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-            <g id="SVGRepo_iconCarrier">
-              <path fill-rule="evenodd" clip-rule="evenodd"
-                d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z"
-                fill="var(--text1)"></path>
-            </g>
-          </svg>
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-            :class="{ 'dropdown-icon': showDropdown }" v-else transform="matrix(1, 0, 0, 1, 0, 0)rotate(180)">
-            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-            <g id="SVGRepo_iconCarrier">
-              <path fill-rule="evenodd" clip-rule="evenodd"
-                d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z"
-                fill="var(--text1)"></path>
-            </g>
-          </svg>
-          <p class="selected-value" @click.stop="">{{ selectedScreener ? selectedScreener : (ScreenersName.length > 0 ?
-            'Choose a Screener...' : 'No screeners available.') }}</p>
-          <div class="dropdown-container" v-if="ScreenersName.length > 0">
-            <div class="wrapper">
-              <div v-for="(screener, index) in ScreenersName" :key="index"
-                :class="{ 'selected': selectedScreener === screener.Name }" @click="selectScreener(screener.Name)">
-                <button class="icondlt2">
-                  <span class="img3" v-html="getScreenerImage(screener)" @click.stop="ExcludeScreener(screener.Name)"
-                    v-b-tooltip.hover title="Toggle This Screener's Inclusion" alt="toggle screener"></span>
-                </button>
-                {{ screener.Name }}
-                <button class="icondlt" @click.stop="DeleteScreener(screener.Name)" v-b-tooltip.hover
-                  title="Delete This Screener">
-                  <svg class="img2" viewBox="0 0 16 16" xmlns:dc="http://purl.org/dc/elements/1.1/"
-                    xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-                    xmlns="http://www.w3.org/2000/svg" version="1.1" id="svg8" fill="var(--text1)">
-                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                    <g id="SVGRepo_iconCarrier">
-                      <metadata id="metadata5">
-                        <rdf:rdf>
-                          <cc:work>
-                            <dc:format>image/svg+xml</dc:format>
-                            <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"></dc:type>
-                            <dc:title></dc:title>
-                            <dc:date>2021</dc:date>
-                            <dc:creator>
-                              <cc:agent>
-                                <dc:title>Timothée Giet</dc:title>
-                              </cc:agent>
-                            </dc:creator>
-                            <cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/"></cc:license>
-                          </cc:work>
-                          <cc:license rdf:about="http://creativecommons.org/licenses/by-sa/4.0/">
-                            <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"></cc:permits>
-                            <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"></cc:permits>
-                            <cc:requires rdf:resource="http://creativecommons.org/ns#Notice"></cc:requires>
-                            <cc:requires rdf:resource="http://creativecommons.org/ns#Attribution"></cc:requires>
-                            <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"></cc:permits>
-                            <cc:requires rdf:resource="http://creativecommons.org/ns#ShareAlike"></cc:requires>
-                          </cc:license>
-                        </rdf:rdf>
-                      </metadata>
-                      <rect transform="rotate(45)" ry="0" y="-1" x="4.3137083" height="2" width="14" id="rect1006"
-                        style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1">
-                      </rect>
-                      <rect transform="rotate(-45)" ry="0" y="10.313708" x="-7" height="2" width="14" id="rect1006-5"
-                        style="opacity:1;vector-effect:none;fill:var(--text1);fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:3.20000005;stroke-opacity:1">
-                      </rect>
-                    </g>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div :class="[showPriceInputs ? 'param-s1-expanded' : 'param-s1']">
+      <div :class="[showPriceInputs ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -2334,76 +2338,6 @@
   :error="error"
   @close="handleRenameScreenerClose"
 />
-        <div class="navmenu">
-          <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
-            @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover title="Create New Screener">
-           <svg class="img2" viewBox="0 0 512 512" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
-  <g fill="var(--text1)" transform="translate(85.333333, 85.333333)">
-    <path d="M170.67,0C264.92,0,341.33,76.41,341.33,170.67S264.92,341.33,170.67,341.33S0,264.92,0,170.67S76.41,0,170.67,0ZM170.67,42.67c-70.69,0-128,57.31-128,128s57.31,128,128,128s128-57.31,128-128S241.36,42.67,170.67,42.67ZM192,85.33v64h64v42.67h-64v64h-42.67v-64h-64v-42.67h64v-64H192Z"/>
-  </g>
-</svg>
-            <label class=btnlabel>Create</label></button>
-          <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }"
-            @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover title="Rename Current Screener">
-          <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path>
-  <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
-  <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path>
-</svg>
-            <label class=btnlabel>Rename</label></button>
-         <!-- Replace your current Reset button with this: -->
-<button class="snavbtn" v-b-tooltip.hover title="Reset Screener" @click="showResetDialog = true">
-  <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="20.48">
-    <path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z"/>
-  </svg>
-  <label class="btnlabel">Reset</label>
-</button>
-<div v-if="showResetDialog" class="reset-modal-overlay">
-  <div class="reset-modal">
-    <h3>Reset Screener</h3>
-    <p>Are you sure you want to reset the current screener? <br>This cannot be undone.</p>
-    <div style="margin-top: 16px;">
-      <button class="trade-btn" @click="confirmResetScreener">Yes, Reset</button>
-      <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">Cancel</button>
-    </div>
-    <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
-  </div>
-</div>
-          <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning === true }"
-            @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Results">
-            <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
-  <path fill="var(--text1)" fill-rule="evenodd"
-    d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z">
-  </path>
-</svg>
-            <label class=btnlabel>Autoplay</label></button>
-          <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'hidden' }" v-b-tooltip.hover
-            title="Hidden List" @click="showHiddenResults()">
-          <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path
-    d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
-    stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-            <label class=btnlabel>Hidden Stocks</label></button>
-          <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover
-            title="Show Combined Screener Results" @click="showCombinedResults()">
-          <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-  <path d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z"/>
-</svg>
-            <label class=btnlabel>Multi-Screener</label>
-          </button>
-          <button @click="DownloadResults" class="snavbtn" :class="{ 'snavbtnslct': showSearch }" v-b-tooltip.hover
-            title="Download Results">
-           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path
-    d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15"
-    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path
-    d="M12 3V16M12 16L16 11.625M12 16L8 11.625"
-    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-            <label class=btnlabel>Download Results</label></button>
-        </div>
         <div class="navmenu-mobile">
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
             @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover title="Create New Screener">
@@ -3141,6 +3075,7 @@
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
 import Assistant from '@/components/assistant.vue';
+import Selector from '@/components/Screener/Selector.vue';
 import Loader from '@/components/loader.vue'
 import CreateScreener from '@/components/Screener/CreateScreener.vue';
 import RenameScreener from '@/components/Screener/RenameScreener.vue';
@@ -3303,7 +3238,6 @@ const showRenameScreener = ref(false) // shows menu for renaming selected watchl
 const showSearch = ref(false) // shows searchbar 
 const selectedScreener = ref('') // selectes current screener 
 const selectedSymbol = ref(''); // similar to selectedItem 
-let showPriceInputs = ref(false);
 let showMarketCapInputs = ref(false);
 let ShowSector = ref(false);
 let ShowAssetType = ref(false);
@@ -4114,53 +4048,6 @@ async function GetScreeners() {
 }
 GetScreeners();
 
-// adds and modifies price value for screener 
-async function SetPrice() {
-  try {
-
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftPrice = parseFloat(document.getElementById('left-p').value)
-    const rightPrice = parseFloat(document.getElementById('right-p').value)
-
-    if (leftPrice >= rightPrice) {
-      throw new Error('Min price cannot be higher than or equal to max price')
-    }
-
-    const response = await fetch('/api/screener/price', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'Price range updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      throw new Error('Error updating price range')
-    }
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
 // add and or modifies market cap value and sends it
 async function SetMarketCap() {
   try {
@@ -4710,46 +4597,6 @@ async function SetPE() {
   }
 }
 
-// adds and modifies Forward PE Ratio value for screener 
-async function SetForwardPE() {
-  try {
-    const leftPrice = parseFloat(document.getElementById('left-pef').value)
-    const rightPrice = parseFloat(document.getElementById('right-pef').value)
-
-    if (leftPrice >= rightPrice) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch(`/api/screener/forward-pe/${apiKey}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      throw new Error('Error updating price range')
-    }
-  } catch (error) {
-    console.error('Error setting price:', error)
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
 // adds and modifies PEG Ratio value for screener 
 async function SetPEG() {
   try {
@@ -4786,6 +4633,55 @@ async function SetPEG() {
     const data = await response.json()
 
     if (data.message === 'updated successfully') {
+      await fetchScreenerResults(selectedScreener.value);
+    } else {
+      throw new Error('Error updating price range')
+    }
+  } catch (error) {
+    error.value = error.message;
+    await fetchScreenerResults(selectedScreener.value);
+  }
+}
+
+let showPriceInputs = ref(false);
+
+// adds and modifies price value for screener 
+async function SetPrice() {
+  try {
+
+    if (!selectedScreener.value) {
+      isScreenerError.value = true
+      throw new Error('Please select a screener')
+    }
+
+    const leftPrice = parseFloat(document.getElementById('left-p').value)
+    const rightPrice = parseFloat(document.getElementById('right-p').value)
+
+    if (leftPrice >= rightPrice) {
+      throw new Error('Min price cannot be higher than or equal to max price')
+    }
+
+    const response = await fetch('/api/screener/price', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({
+        minPrice: leftPrice,
+        maxPrice: rightPrice,
+        screenerName: selectedScreener.value,
+        user: user
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.message === 'Price range updated successfully') {
       await fetchScreenerResults(selectedScreener.value);
     } else {
       throw new Error('Error updating price range')
@@ -4931,46 +4827,6 @@ async function SetPBRatio() {
     await fetchScreenerResults(selectedScreener.value);
   }
   await fetchScreenerResults(selectedScreener.value);
-}
-
-// adds and modifies Beta value for screener 
-async function SetBeta() {
-  try {
-    const leftPrice = parseFloat(document.getElementById('left-beta').value)
-    const rightPrice = parseFloat(document.getElementById('right-beta').value)
-
-    if (leftPrice >= rightPrice) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch(`/api/screener/beta/${apiKey}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      throw new Error('Error updating price range')
-    }
-  } catch (error) {
-    console.error('Error setting price:', error)
-    await fetchScreenerResults(selectedScreener.value);
-  }
 }
 
 // adds and modifies dividend yield value for screener 
@@ -7802,14 +7658,12 @@ input:checked+.slider:before {
 }
 
 .navmenu {
-  width: 100%;
+  width: 100vw;
   border: none;
   position: relative;
   display: flex;
   flex-direction: row;
   background-color: var(--base2);
-  width: 100vw;
-  min-width: 2610px;
 }
 
 .title2 {
@@ -8087,65 +7941,6 @@ input:checked+.slider:before {
   width: 10px;
 }
 
-.select-container {
-  position: relative;
-  background-color: var(--base2);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 35px;
-  border-right: solid 1px var(--base1);
-  z-index: 1000;
-}
-
-.wrapper {
-  background-color: var(--base2);
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  padding: 15px;
-  border-radius: 5px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-}
-
-.select-container .dropdown-container {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
-}
-
-.select-container .dropdown-container div {
-  display: none;
-  background-color: var(--base4);
-  margin-bottom: 0.1px;
-  z-index: 1000;
-}
-
-.select-container:hover .dropdown-container div {
-  display: block;
-  background-color: var(--base4);
-  padding: 5px;
-  cursor: pointer;
-  z-index: 1000;
-}
-
-.wrapper div {
-  border-radius: 5px;
-}
-
-.select-container .wrapper div:hover {
-  background-color: var(--accent2);
-  z-index: 1000;
-}
-
-.dropdown-btn {
-  background-color: transparent;
-  border: none;
-}
-
 .dropdown-menu {
   display: none;
   cursor: pointer;
@@ -8242,36 +8037,11 @@ input:checked+.slider:before {
   opacity: 1;
 }
 
-.icondlt {
-  background-color: transparent;
-  border: none;
-  padding: 0;
-  float: right;
-  opacity: 0.60;
-  margin: 0;
-}
-
-.icondlt:hover {
-  cursor: pointer;
-  opacity: 1;
-}
-
 .img3 {
   width: 8px;
   height: 8px;
   border: none;
   cursor: pointer;
-}
-
-.icondlt2 {
-  background-color: transparent;
-  border: none;
-  padding: 0;
-  float: left;
-  opacity: 0.60;
-  margin: 0;
-  align-items: center;
-  align-content: center;
 }
 
 .watchlist-icon {
