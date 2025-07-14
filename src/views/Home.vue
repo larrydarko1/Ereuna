@@ -78,50 +78,62 @@
     <div id="features">
       <br>
       <h2 style="cursor: default;">FEATURES</h2>
-      <div class="feature-cards">
-   <div class="feature-card">
-    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/settings.png" alt="" draggable="false">
-    <div class="feature-title">Personalized Database</div>
-    <div class="feature-desc">
-      You can customize your financial instruments database by hiding assets that are irrelevant to your workflow and investment criteria, tailoring the data to your individual investment needs and preferences.
-    </div>
-  </div>
-  <div class="feature-card">
-    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/intersect.png" alt="" draggable="false">
-    <div class="feature-title">One-Click Multi-Screener</div>
-    <div class="feature-desc">
-      You can run multiple screeners simultaneously, providing a comprehensive view of your desired results in a single click. duplicate values are highlighted and sorted automatically.
-    </div>
-  </div>
-  <div class="feature-card">
-    <img style="width: 32px; margin-bottom: 10px;" src="@/assets/icons/savings.png" alt="" draggable="false">
-    <div class="feature-title">Unbeatable Value</div>
-    <div class="feature-desc">
-      Core subscription offers one of the cheapest and most affordable professional financial markets screening and research solution on the market, focusing on essential EOD and core fundamental data that drives informed decision-making.
-    </div>
-  </div>
- <div class="feature-card">
-    <svg width="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6.22209 4.60105C6.66665 4.304 7.13344 4.04636 7.6171 3.82976C8.98898 3.21539 9.67491 2.9082 10.5875 3.4994C11.5 4.09061 11.5 5.06041 11.5 7.00001V8.50001C11.5 10.3856 11.5 11.3284 12.0858 11.9142C12.6716 12.5 13.6144 12.5 15.5 12.5H17C18.9396 12.5 19.9094 12.5 20.5006 13.4125C21.0918 14.3251 20.7846 15.011 20.1702 16.3829C19.9536 16.8666 19.696 17.3334 19.399 17.7779C18.3551 19.3402 16.8714 20.5578 15.1355 21.2769C13.3996 21.9959 11.4895 22.184 9.64665 21.8175C7.80383 21.4509 6.11109 20.5461 4.78249 19.2175C3.45389 17.8889 2.5491 16.1962 2.18254 14.3534C1.81598 12.5105 2.00412 10.6004 2.72315 8.86451C3.44218 7.12861 4.65982 5.64492 6.22209 4.60105Z" fill="currentColor"></path> <path d="M21.446 7.06901C20.6342 5.00831 18.9917 3.36579 16.931 2.55398C15.3895 1.94669 14 3.34316 14 5.00002V9.00002C14 9.5523 14.4477 10 15 10H19C20.6569 10 22.0533 8.61055 21.446 7.06901Z" fill="currentColor"></path> </g></svg>
-    <div class="feature-title">Portfolio Simulations</div>
-    <div class="feature-desc">
-      Simulate different portfolios to discover which strategies work best for you, or simply track your progress over time. Test allocations, compare outcomes, and refine your investment approach with powerful, easy-to-use simulation tools.
-    </div>
-</div>
-<div class="feature-card">
-   <svg width="32" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" stroke-width="3" stroke="currentColor" fill="none"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><circle cx="34.52" cy="11.43" r="5.82"></circle><circle cx="53.63" cy="31.6" r="5.82"></circle><circle cx="34.52" cy="50.57" r="5.82"></circle><circle cx="15.16" cy="42.03" r="5.82"></circle><circle cx="15.16" cy="19.27" r="5.82"></circle><circle cx="34.51" cy="29.27" r="4.7"></circle><line x1="20.17" y1="16.3" x2="28.9" y2="12.93"></line><line x1="38.6" y1="15.59" x2="49.48" y2="27.52"></line><line x1="50.07" y1="36.2" x2="38.67" y2="46.49"></line><line x1="18.36" y1="24.13" x2="30.91" y2="46.01"></line><line x1="20.31" y1="44.74" x2="28.7" y2="48.63"></line><line x1="17.34" y1="36.63" x2="31.37" y2="16.32"></line><line x1="20.52" y1="21.55" x2="30.34" y2="27.1"></line><line x1="39.22" y1="29.8" x2="47.81" y2="30.45"></line><line x1="34.51" y1="33.98" x2="34.52" y2="44.74"></line></g></svg>
-    <div class="feature-title">Archie: AI Trading Assistant</div>
-    <div class="feature-desc">
-      Meet Archie, your AI-powered trading assistant. Trained on millions of financial market documents, Archie suggests trades tailored to your preferred style, recognizes patterns to help predict outcomes, and adapts to your needs by learning from your simulated portfolios. Get personalized, data-driven insights and smarter trading decisions—instantly.
-    </div>
-</div>
-<div class="feature-card">
-    <svg width="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M4 16.937L10 9.43701L15 13.437L20.5 6.93701" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <circle cx="10" cy="8.93701" r="2" fill="currentColor"></circle> <path d="M16.8125 14C16.8125 15.1046 15.9171 16 14.8125 16C13.7079 16 12.8125 15.1046 12.8125 14C12.8125 12.8954 13.7079 12 14.8125 12C15.9171 12 16.8125 12.8954 16.8125 14Z" fill="currentColor"></path> <circle cx="4" cy="16.937" r="2" fill="currentColor"></circle> <path d="M22.5 7.00002C22.5 8.10459 21.6046 9.00002 20.5 9.00002C19.3954 9.00002 18.5 8.10459 18.5 7.00002C18.5 5.89545 19.3954 5.00002 20.5 5.00002C21.6046 5.00002 22.5 5.89545 22.5 7.00002Z" fill="currentColor"></path> </g></svg>
-    <div class="feature-title">Mini-Charts</div>
-    <div class="feature-desc">
-      Experience lightning-fast, lightweight charting with our hard fork of TradingView's Lightweight Charts library. Mini-Charts delivers all the essential tools you need to analyze price action and trends—without the clutter. Perfect for quick, effective market analysis right in your workflow.
-    </div>
-</div>
-</div>
+      <div class="feature-cards-modern">
+        <div class="feature-card-modern">
+          <div class="feature-icon-modern">
+            <img src="@/assets/icons/settings.png" alt="" draggable="false" />
+          </div>
+          <div class="feature-title-modern">Personalized Database</div>
+          <div class="feature-desc-modern">
+            You can customize your financial instruments database by hiding assets that are irrelevant to your workflow and investment criteria, tailoring the data to your individual investment needs and preferences.
+          </div>
+        </div>
+        <div class="feature-card-modern">
+          <div class="feature-icon-modern">
+            <img src="@/assets/icons/intersect.png" alt="" draggable="false" />
+          </div>
+          <div class="feature-title-modern">One-Click Multi-Screener</div>
+          <div class="feature-desc-modern">
+            You can run multiple screeners simultaneously, providing a comprehensive view of your desired results in a single click. Duplicate values are highlighted and sorted automatically.
+          </div>
+        </div>
+        <div class="feature-card-modern">
+          <div class="feature-icon-modern">
+            <img src="@/assets/icons/savings.png" alt="" draggable="false" />
+          </div>
+          <div class="feature-title-modern">Unbeatable Value</div>
+          <div class="feature-desc-modern">
+            Core subscription offers one of the cheapest and most affordable professional financial markets screening and research solution on the market, focusing on essential EOD and core fundamental data that drives informed decision-making.
+          </div>
+        </div>
+        <div class="feature-card-modern">
+          <div class="feature-icon-modern">
+            <svg width="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6.22209 4.60105C6.66665 4.304 7.13344 4.04636 7.6171 3.82976C8.98898 3.21539 9.67491 2.9082 10.5875 3.4994C11.5 4.09061 11.5 5.06041 11.5 7.00001V8.50001C11.5 10.3856 11.5 11.3284 12.0858 11.9142C12.6716 12.5 13.6144 12.5 15.5 12.5H17C18.9396 12.5 19.9094 12.5 20.5006 13.4125C21.0918 14.3251 20.7846 15.011 20.1702 16.3829C19.9536 16.8666 19.696 17.3334 19.399 17.7779C18.3551 19.3402 16.8714 20.5578 15.1355 21.2769C13.3996 21.9959 11.4895 22.184 9.64665 21.8175C7.80383 21.4509 6.11109 20.5461 4.78249 19.2175C3.45389 17.8889 2.5491 16.1962 2.18254 14.3534C1.81598 12.5105 2.00412 10.6004 2.72315 8.86451C3.44218 7.12861 4.65982 5.64492 6.22209 4.60105Z" fill="currentColor"></path> <path d="M21.446 7.06901C20.6342 5.00831 18.9917 3.36579 16.931 2.55398C15.3895 1.94669 14 3.34316 14 5.00002V9.00002C14 9.5523 14.4477 10 15 10H19C20.6569 10 22.0533 8.61055 21.446 7.06901Z" fill="currentColor"></path> </g></svg>
+          </div>
+          <div class="feature-title-modern">Portfolio Simulations</div>
+          <div class="feature-desc-modern">
+            Simulate different portfolios to discover which strategies work best for you, or simply track your progress over time. Test allocations, compare outcomes, and refine your investment approach with powerful, easy-to-use simulation tools.
+          </div>
+        </div>
+        <div class="feature-card-modern">
+          <div class="feature-icon-modern">
+            <svg width="32" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" stroke-width="3" stroke="currentColor" fill="none"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><circle cx="34.52" cy="11.43" r="5.82"></circle><circle cx="53.63" cy="31.6" r="5.82"></circle><circle cx="34.52" cy="50.57" r="5.82"></circle><circle cx="15.16" cy="42.03" r="5.82"></circle><circle cx="15.16" cy="19.27" r="5.82"></circle><circle cx="34.51" cy="29.27" r="4.7"></circle><line x1="20.17" y1="16.3" x2="28.9" y2="12.93"></line><line x1="38.6" y1="15.59" x2="49.48" y2="27.52"></line><line x1="50.07" y1="36.2" x2="38.67" y2="46.49"></line><line x1="18.36" y1="24.13" x2="30.91" y2="46.01"></line><line x1="20.31" y1="44.74" x2="28.7" y2="48.63"></line><line x1="17.34" y1="36.63" x2="31.37" y2="16.32"></line><line x1="20.52" y1="21.55" x2="30.34" y2="27.1"></line><line x1="39.22" y1="29.8" x2="47.81" y2="30.45"></line><line x1="34.51" y1="33.98" x2="34.52" y2="44.74"></line></g></svg>
+          </div>
+          <div class="feature-title-modern">Archie: AI Trading Assistant</div>
+          <div class="feature-desc-modern">
+            Meet Archie, your AI-powered trading assistant. Trained on millions of financial market documents, Archie suggests trades tailored to your preferred style, recognizes patterns to help predict outcomes, and adapts to your needs by learning from your simulated portfolios. Get personalized, data-driven insights and smarter trading decisions—instantly.
+          </div>
+        </div>
+        <div class="feature-card-modern">
+          <div class="feature-icon-modern">
+            <svg width="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M4 16.937L10 9.43701L15 13.437L20.5 6.93701" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <circle cx="10" cy="8.93701" r="2" fill="currentColor"></circle> <path d="M16.8125 14C16.8125 15.1046 15.9171 16 14.8125 16C13.7079 16 12.8125 15.1046 12.8125 14C12.8125 12.8954 13.7079 12 14.8125 12C15.9171 12 16.8125 12.8954 16.8125 14Z" fill="currentColor"></path> <circle cx="4" cy="16.937" r="2" fill="currentColor"></circle> <path d="M22.5 7.00002C22.5 8.10459 21.6046 9.00002 20.5 9.00002C19.3954 9.00002 18.5 8.10459 18.5 7.00002C18.5 5.89545 19.3954 5.00002 20.5 5.00002C21.6046 5.00002 22.5 5.89545 22.5 7.00002Z" fill="currentColor"></path> </g></svg>
+          </div>
+          <div class="feature-title-modern">Mini-Charts</div>
+          <div class="feature-desc-modern">
+            Experience lightning-fast, lightweight charting with our hard fork of TradingView's Lightweight Charts library. Mini-Charts delivers all the essential tools you need to analyze price action and trends—without the clutter. Perfect for quick, effective market analysis right in your workflow.
+          </div>
+        </div>
+      </div>
    <!-- Tradeoff Section -->
    <div id="tradeoff">
   <h2 style="cursor: default;">THE TRADEOFF</h2>
@@ -869,47 +881,134 @@ a:hover{
   margin: 25px;
 }
 
-/* New styles for added sections */
-.feature-cards {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(300px, 1fr));
-  gap: 15px;
-  margin-top: 20px;
+/* Modern Comparison Table Redesign */
+.comparison-table {
+  width: 100%;
+  max-width: 1000px;
+  margin: 2.5rem auto 2rem auto;
+  background: linear-gradient(135deg, #232946 60%, #1a1a2e 100%);
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 24px rgba(30, 41, 59, 0.10), 0 1.5px 6px rgba(30, 41, 59, 0.06);
+  overflow: hidden;
+  font-size: 1.08rem;
+}
+.table-header {
+  display: flex;
+  background: linear-gradient(90deg, #6366f1 60%, #818cf8 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.15rem;
+  padding: 1.1rem 0.5rem 1.1rem 0.5rem;
+  border-bottom: 1px solid #3b3b5c;
+}
+.table-row {
+  display: flex;
+  background: rgba(255,255,255,0.01);
+  transition: background 0.18s;
+}
+.table-row:nth-child(even) {
+  background: rgba(99,102,241,0.07);
+}
+.table-row:hover {
+  background: rgba(99,102,241,0.13);
+}
+.table-cell {
+  flex: 1 1 0;
+  padding: 1rem 0.5rem;
+  text-align: center;
+  color: #f3f4f6;
+  font-weight: 500;
+  border-right: 1px solid #232946;
+}
+.table-cell:last-child {
+  border-right: none;
+}
+@media (max-width: 700px) {
+  .comparison-table, .table-header, .table-row {
+    flex-direction: column;
+    display: block;
+  }
+  .table-cell {
+    border-right: none;
+    border-bottom: 1px solid #232946;
+    text-align: left;
+    padding: 0.8rem 1rem;
+  }
+  .table-cell:last-child {
+    border-bottom: none;
+  }
+}
+/* Modern Feature Cards Redesign */
+.feature-cards-modern {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2.5rem;
+  margin: 3.5rem 0 2rem 0;
+}
+.feature-card-modern {
+  background: linear-gradient(135deg, #232946 60%, #1a1a2e 100%);
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 24px rgba(30, 41, 59, 0.10), 0 1.5px 6px rgba(30, 41, 59, 0.06);
+  padding: 2.5rem 2rem 2rem 2rem;
+  width: 320px;
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.25s, transform 0.18s;
+  position: relative;
+  overflow: hidden;
+  color: #f3f4f6;
+}
+.feature-card-modern::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 100px;
+  height: 100px;
+  background: rgba(99, 102, 241, 0.08);
+  border-radius: 50%;
+  z-index: 0;
+}
+.feature-card-modern:hover {
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.18), 0 2px 8px rgba(30, 41, 59, 0.10);
+  transform: translateY(-6px) scale(1.025);
+}
+.feature-icon-modern {
+  z-index: 1;
+  background: linear-gradient(135deg, #6366f1 60%, #818cf8 100%);
+  border-radius: 50%;
+  padding: 1.1rem;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.10);
+  display: flex;
+  align-items: center;
   justify-content: center;
 }
-
-.feature-card {
-  background-color: $base4;
-  padding: 20px;
-  margin: 5%;
-  border-radius: 10px;
+.feature-icon-modern img, .feature-icon-modern svg {
+  width: 48px;
+  height: 48px;
+  filter: drop-shadow(0 1px 2px rgba(99,102,241,0.10));
+}
+.feature-title-modern {
+  z-index: 1;
   text-align: center;
-  border: solid 1px $accent2;
-  color: #dcdcdc;
-  cursor: default;
-  
-  /* Animation properties */
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  margin: 0 0 0.7rem 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #f3f4f6;
+  letter-spacing: 0.01em;
 }
-
-/* Class applied when card becomes visible */
-.feature-card.animate-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.feature-title {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.feature-desc {
-  font-size: 14px;
-  color: #dcdcdc;
-  text-align: left;
+.feature-desc-modern {
+  z-index: 1;
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 1.08rem;
+  line-height: 1.6;
+  font-weight: 400;
+  text-align: center;
 }
 
 .cta-section {

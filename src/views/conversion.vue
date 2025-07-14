@@ -30,9 +30,10 @@
     <div class="plan-header">CORE</div>
     <div class="plan-price">€5.99<span> / month</span></div>
     <ul class="plan-features">
-      <li>Coverage of 5000+ Stocks listed on NYSE and Nasdaq</li>
-      <li>35+ years of EOD price data (Daily and Weekly)</li>
-      <li>One-Click Multi-Screener feature</li>
+      <li>Coverage of 11.000+ Financial Assets (Cryptocurrencies, US Stocks / ETFs)</li>
+      <li>65+ years of price data (Daily and Weekly, Intraday is held for 2 weeks only), 30+ years of financial statements</li>
+      <li>One-Click Multi-Screener and other time saving features, 50+ screening parameters</li>
+      <li>No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days</li>
     </ul>
   </div>
   
@@ -40,10 +41,11 @@
     <div class="plan-header">PREMIUM</div>
     <div class="plan-price">€14.99<span> / month</span></div>
     <ul class="plan-features">
-      <li>Intraday / Real-time Data Support</li>
-      <li>Coverage of 5000+ Stocks listed on NYSE and Nasdaq</li>
-      <li>35+ years of price data (Intraday, Daily and Weekly)</li>
-      <li>Advanced analytics and predictive tools</li>
+      <li>Real-time Data Support</li>
+      <li>Coverage of 11.000+ Financial Assets (Cryptocurrencies, US Stocks / ETFs)</li>
+      <li>65+ years of price data (Daily and Weekly, Intraday is held for 2 weeks only), 30+ years of financial statements</li>
+      <li>One-Click Multi-Screener and other time saving features, 50+ screening parameters</li>
+      <li>No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days</li>
     </ul>
   </div>
 </div>
@@ -897,6 +899,7 @@ h1{
   padding: 8px 0;
   position: relative;
   padding-left: 22px;
+  text-align: left;
 }
 
 .plan-features li:before {
