@@ -8,6 +8,7 @@ import ssl
 import asyncio
 from pymongo import MongoClient
 import traceback
+from aggregator import start_aggregator
 
 load_dotenv()
 TIINGO_API_KEY = os.getenv('TIINGO_KEY')
@@ -99,6 +100,7 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
 async def startup_event():
     asyncio.create_task(relay_tiingo(crypto_ws_url, crypto_subscribe_msg, ssl_ctx, crypto_filter))
     asyncio.create_task(relay_tiingo(stock_ws_url, stock_subscribe_msg, ssl_ctx, stock_filter))
+    asyncio.create_task(start_aggregator(message_queue, mongo_client))
 
 @app.websocket("/ws/stream")
 async def websocket_stream(websocket: WebSocket):
