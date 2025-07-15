@@ -28,22 +28,29 @@ async def start_aggregator(message_queue, mongo_client):
             msg = await message_queue.get()
             try:
                 data = json.loads(msg)
-                if data.get("service") != "crypto_data":
-                    continue
+                service = data.get("service")
                 d = data.get("data")
-                if not (isinstance(d, list) and len(d) > 5):
+                if not isinstance(d, list):
                     continue
-                symbol = d[1].upper()
-                price = float(d[5])
-                ts = d[2]  # ISO8601 string
+
+                # --- Parse symbol, price, timestamp for both crypto and stocks ---
+                if service == "crypto_data" and len(d) > 5:
+                    symbol = d[1].upper()
+                    price = float(d[5])
+                    ts = d[2]
+                elif service == "iex" and len(d) > 2:
+                    symbol = d[1].upper()
+                    price = float(d[2])
+                    ts = d[0]
+                else:
+                    continue
 
                 bucket = get_5min_bucket(ts)
                 key = (symbol, bucket)
                 candle = candles.get(key)
                 if not candle:
-                    # Use the bucket start time as the candle timestamp (UTC, from payload)
                     candles[key] = {
-                        "timestamp": bucket,  # Already UTC and rounded
+                        "timestamp": bucket,
                         "tickerID": symbol,
                         "open": price,
                         "high": price,
@@ -60,7 +67,6 @@ async def start_aggregator(message_queue, mongo_client):
                 finished = []
                 docs = []
                 for (sym, bkt), cndl in candles.items():
-                    # If the current time is 5 minutes past the bucket, flush it
                     if now >= bkt + timedelta(minutes=5):
                         docs.append({
                             "timestamp": cndl["timestamp"],
@@ -105,3 +111,62 @@ async def start_aggregator(message_queue, mongo_client):
                 logger.info(f"Aggregator shutdown: flushed {len(docs)} candles")
             except Exception as e:
                 logger.error(f"MongoDB insert error on shutdown: {e}")
+                
+async def aggregate_higher_timeframes(mongo_client):
+    db = mongo_client['EreunaDB']
+    col_5m = db['OHCLVData5m']
+    configs = [
+        {"minutes": 15, "collection": db['OHCLVData15m'], "window": 3},
+        {"minutes": 30, "collection": db['OHCLVData30m'], "window": 6},
+        {"minutes": 60, "collection": db['OHCLVData1hr'], "window": 12},
+    ]
+
+    while True:
+        try:
+            now = datetime.utcnow().replace(second=0, microsecond=0, tzinfo=timezone.utc)
+            # Get all distinct symbols in the last hour
+            since = now - timedelta(hours=1)
+            symbols = col_5m.distinct("tickerID", {"timestamp": {"$gte": since}})
+            for cfg in configs:
+                tf = cfg["minutes"]
+                window = cfg["window"]
+                col = cfg["collection"]
+                # For each symbol, aggregate the last N 5m candles for each completed bucket
+                for symbol in symbols:
+                    # Find the latest completed bucket for this timeframe
+                    last_bucket = now - timedelta(minutes=now.minute % tf, seconds=now.second, microseconds=now.microsecond)
+                    # Don't aggregate the current incomplete bucket
+                    last_complete = last_bucket - timedelta(minutes=tf)
+                    # Get the N 5m candles for this bucket
+                    candles = list(col_5m.find(
+                        {
+                            "tickerID": symbol,
+                            "timestamp": {
+                                "$gte": last_complete,
+                                "$lt": last_complete + timedelta(minutes=tf)
+                            }
+                        }
+                    ).sort("timestamp", 1))
+                    if len(candles) == window:
+                        o = candles[0]["open"]
+                        c = candles[-1]["close"]
+                        h = max(c["high"] for c in candles)
+                        l = min(c["low"] for c in candles)
+                        doc = {
+                            "timestamp": last_complete,
+                            "tickerID": symbol,
+                            "open": o,
+                            "close": c,
+                            "high": h,
+                            "low": l
+                        }
+                        # Upsert to avoid duplicates
+                        col.update_one(
+                            {"tickerID": symbol, "timestamp": last_complete},
+                            {"$set": doc},
+                            upsert=True
+                        )
+            logger.info("Higher timeframe aggregation complete")
+        except Exception as e:
+            logger.error(f"Error in higher timeframe aggregation: {e}")
+        await asyncio.sleep(300)  # Run every 5 minutes

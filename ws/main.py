@@ -8,7 +8,7 @@ import ssl
 import asyncio
 from pymongo import MongoClient
 import traceback
-from aggregator import start_aggregator
+from aggregator import start_aggregator, aggregate_higher_timeframes
 
 load_dotenv()
 TIINGO_API_KEY = os.getenv('TIINGO_KEY')
@@ -33,7 +33,7 @@ message_queue = asyncio.Queue(maxsize=100000)  # Holds latest messages
 latest_quotes = {}  # {symbol: tiingo_data_dict}
 
 crypto_symbols = ["BTCEUR", "ETHEUR"]
-stock_symbols = ["RDDT", "TSLA", "SPY", "DIA", "QQQ", "IWM", "UBER", "AAPL", "AMZN", "GOOGL", "NFLX", "NVDA", "META", "MSFT"]
+stock_symbols = ["RDDT", "TSLA"]
 
 def crypto_filter(msg):
     return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) > 0 and msg["data"][0] == "Q"
@@ -101,6 +101,7 @@ async def startup_event():
     asyncio.create_task(relay_tiingo(crypto_ws_url, crypto_subscribe_msg, ssl_ctx, crypto_filter))
     asyncio.create_task(relay_tiingo(stock_ws_url, stock_subscribe_msg, ssl_ctx, stock_filter))
     asyncio.create_task(start_aggregator(message_queue, mongo_client))
+    asyncio.create_task(aggregate_higher_timeframes(mongo_client))
 
 @app.websocket("/ws/stream")
 async def websocket_stream(websocket: WebSocket):
