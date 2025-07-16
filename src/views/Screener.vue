@@ -3332,10 +3332,7 @@ async function setCharts(symbol) {
   defaultSymbol = symbol;
   selectedSymbol.value = symbol;
   selectedItem.value = symbol;
-  await fetchData();
-  await fetchData3();
-  await fetchData7();
-  await fetchData9();
+  await fetchChartData();
   await updateUserDefaultSymbol(symbol);
   isChartLoading1.value = false;
   isChartLoading2.value = false;
@@ -3406,118 +3403,27 @@ const data10 = ref([]); // weekly 20MA
 const data11 = ref([]); // weekly 50MA
 const data12 = ref([]); // weekly 200MA
 
-async function fetchData() {
+async function fetchChartData() {
   try {
     let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const chartData = await response.json();
-    // Directly assign the arrays from the backend to your refs
-    data.value = chartData.ohlc || [];
-    data2.value = chartData.volume || [];
+    const response = await fetch(`/api/${symbol}/chartdata`, { headers: { 'X-API-KEY': apiKey } });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const result = await response.json();
+    // Daily
+    data.value = result.daily.ohlc || [];
+    data2.value = result.daily.volume || [];
+    data3.value = result.daily.MA10 || null;
+    data4.value = result.daily.MA20 || null;
+    data5.value = result.daily.MA50 || null;
+    data6.value = result.daily.MA200 || null;
+    // Weekly
+    data7.value = result.weekly.ohlc || [];
+    data8.value = result.weekly.volume || [];
+    data9.value = result.weekly.MA10 || null;
+    data10.value = result.weekly.MA20 || null;
+    data11.value = result.weekly.MA50 || null;
+    data12.value = result.weekly.MA200 || null;
   } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    error.value = error.message;
-  }
-}
-
-async function fetchData3() {
-  try {
-    let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data3`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      data3.value = null;
-      data4.value = null;
-      data5.value = null;
-      data6.value = null;
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const maData = await response.json();
-
-    // Assign each MA to the correct variable
-    data3.value = maData.MA10 && maData.MA10.length ? maData.MA10 : null;
-    data4.value = maData.MA20 && maData.MA20.length ? maData.MA20 : null;
-    data5.value = maData.MA50 && maData.MA50.length ? maData.MA50 : null;
-    data6.value = maData.MA200 && maData.MA200.length ? maData.MA200 : null;
-
-  } catch (error) {
-    if (error.name === 'AbortError') return;
-    data3.value = null;
-    data4.value = null;
-    data5.value = null;
-    data6.value = null;
-    error.value = error.message;
-  }
-}
-
-async function fetchData7() {
-  try {
-    let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data7`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const chartData = await response.json();
-    data7.value = chartData.ohlc2 || [];
-    data8.value = chartData.volume2 || [];
-  } catch (error) {
-    if (error.name === 'AbortError') return;
-    error.value = error.message;
-  }
-}
-
-async function fetchData9() {
-  try {
-    let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/data9`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      data9.value = null;
-      data10.value = null;
-      data11.value = null;
-      data12.value = null;
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const maData = await response.json();
-
-    // Assign each MA to the correct variable
-    data9.value = maData.MA10 && maData.MA10.length ? maData.MA10 : null;
-    data10.value = maData.MA20 && maData.MA20.length ? maData.MA20 : null;
-    data11.value = maData.MA50 && maData.MA50.length ? maData.MA50 : null;
-    data12.value = maData.MA200 && maData.MA200.length ? maData.MA200 : null;
-
-  } catch (error) {
-    if (error.name === 'AbortError') return;
-    data9.value = null;
-    data10.value = null;
-    data11.value = null;
-    data12.value = null;
     error.value = error.message;
   }
 }
@@ -3716,8 +3622,7 @@ onMounted(async () => {
     return sum / (end - start);
   }
 
-  await fetchData();
-  await fetchData3();
+  await fetchChartData();
 
   isLoading1.value = false
 
@@ -3888,8 +3793,7 @@ onMounted(async () => {
     return sum / (end - start);
   }
 
-  await fetchData7();
-  await fetchData9();
+  await fetchChartData();
 
   isLoading2.value = false
 
@@ -5617,21 +5521,6 @@ async function GetCompoundedResults() {
   }
 }
 GetCompoundedResults();
-
-function SearchElement() {
-  const searchValue = document.querySelector('.search-input').value;
-  const divElements = document.querySelectorAll('#wlist');
-
-  divElements.forEach((div) => {
-    const tdElement = div.querySelector('.btsymbol');
-    if (tdElement.textContent.includes(searchValue.toUpperCase())) {
-      div.style.display = 'flex';
-    } else {
-      div.style.display = 'none';
-    }
-  });
-  showSearch.value = false;
-}
 
 const emit = defineEmits(['update:modelValue']);
 
