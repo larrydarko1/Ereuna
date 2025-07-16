@@ -89,97 +89,31 @@ export default function (app, deps) {
         }
     );
 
-    // endpoint for OHLC and Volume data for Daily chart
-    app.get('/:ticker/data',
+
+    // Unified endpoint for all chart data (daily & weekly OHLC, volume, MAs)
+    app.get('/:ticker/chartdata',
         validate(validationSets.chartData),
         async (req, res) => {
             const ticker = sanitizeInput(req.params.ticker.toUpperCase());
             let client;
-
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
-
                 if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
                     logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
-
                 client = new MongoClient(uri);
                 await client.connect();
-
                 const db = client.db('EreunaDB');
-                const collection = db.collection('OHCLVData');
-                const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-                if (Data.length === 0) {
-                    logger.warn({ msg: 'No Chart Data Found', ticker: ticker });
-                    return res.status(404).json({ message: 'No data found for this ticker' });
-                }
-
-                // Format OHLC data
-                const ohlc = Data.map(item => ({
-                    time: item.timestamp.toISOString().slice(0, 10),
-                    open: parseFloat(item.open.toString().slice(0, 8)),
-                    high: parseFloat(item.high.toString().slice(0, 8)),
-                    low: parseFloat(item.low.toString().slice(0, 8)),
-                    close: parseFloat(item.close.toString().slice(0, 8)),
-                }));
-
-                // Format Volume data
-                const volume = Data.map(item => ({
-                    time: item.timestamp.toISOString().slice(0, 10),
-                    value: item.volume,
-                }));
-
-                res.json({ ohlc, volume });
-
-            } catch (error) {
-                logger.error({
-                    msg: 'Chart Data Retrieval Error',
-                    ticker: ticker,
-                    error: error.message
-                });
-                res.status(500).json({
-                    message: 'Internal Server Error',
-                    error: process.env.NODE_ENV === 'development' ? error.message : undefined
-                });
-            } finally {
-                if (client) await client.close();
-            }
-        }
-    );
-
-    // Endpoint to retrieve daily moving averages for a ticker
-    app.get('/:ticker/data3',
-        validate(validationSets.chartData),
-        async (req, res) => {
-            const ticker = sanitizeInput(req.params.ticker.toUpperCase());
-            let client;
-
-            try {
-                const apiKey = req.header('x-api-key');
-                const sanitizedKey = sanitizeInput(apiKey);
-
-                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                    logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
-                    return res.status(401).json({ message: 'Unauthorized API Access' });
-                }
-
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
-                const collection = db.collection('OHCLVData');
-                const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-                if (Data.length === 0) {
-                    logger.warn({ msg: 'No Moving Average Data Found', ticker: ticker });
-                    return res.status(404).json({ message: 'No data found for this ticker' });
-                }
-
-                // Helper to calculate moving average
-                function calcMA(period) {
+                // --- Daily ---
+                const dailyColl = db.collection('OHCLVData');
+                const dailyData = await dailyColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                // --- Weekly ---
+                const weeklyColl = db.collection('OHCLVData2');
+                const weeklyData = await weeklyColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                // Helper for MA
+                function calcMA(Data, period) {
                     if (Data.length < period) return [];
                     const arr = [];
                     for (let i = period - 1; i < Data.length; i++) {
@@ -192,139 +126,50 @@ export default function (app, deps) {
                     }
                     return arr;
                 }
-
-                res.json({
-                    MA10: calcMA(10),
-                    MA20: calcMA(20),
-                    MA50: calcMA(50),
-                    MA200: calcMA(200),
-                });
-
-            } catch (error) {
-                logger.error({ msg: 'Moving Average Data Retrieval Error', ticker: ticker, error: error.message });
-                res.status(500).json({
-                    message: 'Internal Server Error',
-                    error: process.env.NODE_ENV === 'development' ? error.message : undefined
-                });
-            } finally {
-                if (client) await client.close();
-            }
-        }
-    );
-
-    //Weekly OHCLV Data
-    app.get('/:ticker/data7',
-        validate(validationSets.chartData),
-        async (req, res) => {
-            const ticker = sanitizeInput(req.params.ticker.toUpperCase());
-            let client;
-
-            try {
-                const apiKey = req.header('x-api-key');
-                const sanitizedKey = sanitizeInput(apiKey);
-
-                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                    logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
-                    return res.status(401).json({ message: 'Unauthorized API Access' });
-                }
-
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
-                const collection = db.collection('OHCLVData2');
-                const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-                if (Data.length === 0) {
-                    logger.warn({ msg: 'No Weekly Chart Data Found', ticker: ticker });
-                    return res.status(404).json({ message: 'No weekly data found for this ticker' });
-                }
-
-                // Format OHLC data
-                const ohlc2 = Data.map(item => ({
-                    time: item.timestamp.toISOString().slice(0, 10),
-                    open: parseFloat(item.open.toString().slice(0, 8)),
-                    high: parseFloat(item.high.toString().slice(0, 8)),
-                    low: parseFloat(item.low.toString().slice(0, 8)),
-                    close: parseFloat(item.close.toString().slice(0, 8)),
-                }));
-
-                // Format Volume data
-                const volume2 = Data.map(item => ({
-                    time: item.timestamp.toISOString().slice(0, 10),
-                    value: item.volume,
-                }));
-
-                res.json({ ohlc2, volume2 });
-
+                // Format daily
+                const daily = dailyData.length ? {
+                    ohlc: dailyData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 10),
+                        open: parseFloat(item.open.toString().slice(0, 8)),
+                        high: parseFloat(item.high.toString().slice(0, 8)),
+                        low: parseFloat(item.low.toString().slice(0, 8)),
+                        close: parseFloat(item.close.toString().slice(0, 8)),
+                    })),
+                    volume: dailyData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 10),
+                        value: item.volume,
+                    })),
+                    MA10: calcMA(dailyData, 10),
+                    MA20: calcMA(dailyData, 20),
+                    MA50: calcMA(dailyData, 50),
+                    MA200: calcMA(dailyData, 200),
+                } : null;
+                // Format weekly
+                const weekly = weeklyData.length ? {
+                    ohlc: weeklyData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 10),
+                        open: parseFloat(item.open.toString().slice(0, 8)),
+                        high: parseFloat(item.high.toString().slice(0, 8)),
+                        low: parseFloat(item.low.toString().slice(0, 8)),
+                        close: parseFloat(item.close.toString().slice(0, 8)),
+                    })),
+                    volume: weeklyData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 10),
+                        value: item.volume,
+                    })),
+                    MA10: calcMA(weeklyData, 10),
+                    MA20: calcMA(weeklyData, 20),
+                    MA50: calcMA(weeklyData, 50),
+                    MA200: calcMA(weeklyData, 200),
+                } : null;
+                // Response
+                res.json({ daily, weekly });
             } catch (error) {
                 logger.error({
-                    msg: 'Weekly Chart Data Retrieval Error',
+                    msg: 'Unified Chart Data Retrieval Error',
                     ticker: ticker,
                     error: error.message
                 });
-                res.status(500).json({
-                    message: 'Internal Server Error',
-                    error: process.env.NODE_ENV === 'development' ? error.message : undefined
-                });
-            } finally {
-                if (client) await client.close();
-            }
-        }
-    );
-
-    // Combined endpoint for Weekly Moving Averages (10, 20, 50, 200)
-    app.get('/:ticker/data9',
-        validate(validationSets.chartData),
-        async (req, res) => {
-            const ticker = sanitizeInput(req.params.ticker.toUpperCase());
-            let client;
-
-            try {
-                const apiKey = req.header('x-api-key');
-                const sanitizedKey = sanitizeInput(apiKey);
-
-                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                    logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
-                    return res.status(401).json({ message: 'Unauthorized API Access' });
-                }
-
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
-                const collection = db.collection('OHCLVData2');
-                const Data = await collection.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-                if (Data.length === 0) {
-                    logger.warn({ msg: 'No Weekly MA Data Found', ticker: ticker });
-                    return res.status(404).json({ message: 'No data found for this ticker' });
-                }
-
-                // Helper to calculate moving average
-                function calcMA(period) {
-                    if (Data.length < period) return [];
-                    const arr = [];
-                    for (let i = period - 1; i < Data.length; i++) {
-                        const sum = Data.slice(i - period + 1, i + 1).reduce((acc, curr) => acc + curr.close, 0);
-                        const average = sum / period;
-                        arr.push({
-                            time: Data[i].timestamp.toISOString().slice(0, 10),
-                            value: parseFloat(average.toFixed(2)),
-                        });
-                    }
-                    return arr;
-                }
-
-                res.json({
-                    MA10: calcMA(10),
-                    MA20: calcMA(20),
-                    MA50: calcMA(50),
-                    MA200: calcMA(200),
-                });
-
-            } catch (error) {
-                logger.error({ msg: 'Weekly MA Data Retrieval Error', ticker: ticker, error: error.message });
                 res.status(500).json({
                     message: 'Internal Server Error',
                     error: process.env.NODE_ENV === 'development' ? error.message : undefined

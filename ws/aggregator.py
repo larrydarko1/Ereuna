@@ -124,18 +124,15 @@ async def aggregate_higher_timeframes(mongo_client):
     while True:
         try:
             now = datetime.utcnow().replace(second=0, microsecond=0, tzinfo=timezone.utc)
-            # Get all distinct symbols in the last hour
             since = now - timedelta(hours=1)
             symbols = col_5m.distinct("tickerID", {"timestamp": {"$gte": since}})
             for cfg in configs:
                 tf = cfg["minutes"]
                 window = cfg["window"]
                 col = cfg["collection"]
-                # For each symbol, aggregate the last N 5m candles for each completed bucket
                 for symbol in symbols:
                     # Find the latest completed bucket for this timeframe
                     last_bucket = now - timedelta(minutes=now.minute % tf, seconds=now.second, microseconds=now.microsecond)
-                    # Don't aggregate the current incomplete bucket
                     last_complete = last_bucket - timedelta(minutes=tf)
                     # Get the N 5m candles for this bucket
                     candles = list(col_5m.find(
@@ -160,13 +157,14 @@ async def aggregate_higher_timeframes(mongo_client):
                             "high": h,
                             "low": l
                         }
-                        # Upsert to avoid duplicates
-                        col.update_one(
-                            {"tickerID": symbol, "timestamp": last_complete},
-                            {"$set": doc},
-                            upsert=True
-                        )
+                        try:
+                            col.insert_one(doc)
+                        except Exception as e:
+                            # Ignore duplicate key errors, log others
+                            if "duplicate key" not in str(e):
+                                logger.error(f"Insert error for {symbol} {last_complete}: {e}")
             logger.info("Higher timeframe aggregation complete")
         except Exception as e:
             logger.error(f"Error in higher timeframe aggregation: {e}")
         await asyncio.sleep(300)  # Run every 5 minutes
+        
