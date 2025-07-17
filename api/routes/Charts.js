@@ -126,42 +126,42 @@ export default function (app, deps) {
                     }
                     return arr;
                 }
-                // Format daily
-                const daily = dailyData.length ? {
-                    ohlc: dailyData.map(item => ({
+                // Format daily (always object with arrays)
+                const daily = {
+                    ohlc: dailyData.length ? dailyData.map(item => ({
                         time: item.timestamp.toISOString().slice(0, 10),
                         open: parseFloat(item.open.toString().slice(0, 8)),
                         high: parseFloat(item.high.toString().slice(0, 8)),
                         low: parseFloat(item.low.toString().slice(0, 8)),
                         close: parseFloat(item.close.toString().slice(0, 8)),
-                    })),
-                    volume: dailyData.map(item => ({
+                    })) : [],
+                    volume: dailyData.length ? dailyData.map(item => ({
                         time: item.timestamp.toISOString().slice(0, 10),
                         value: item.volume,
-                    })),
-                    MA10: calcMA(dailyData, 10),
-                    MA20: calcMA(dailyData, 20),
-                    MA50: calcMA(dailyData, 50),
-                    MA200: calcMA(dailyData, 200),
-                } : null;
-                // Format weekly
-                const weekly = weeklyData.length ? {
-                    ohlc: weeklyData.map(item => ({
+                    })) : [],
+                    MA10: dailyData.length ? calcMA(dailyData, 10) : [],
+                    MA20: dailyData.length ? calcMA(dailyData, 20) : [],
+                    MA50: dailyData.length ? calcMA(dailyData, 50) : [],
+                    MA200: dailyData.length ? calcMA(dailyData, 200) : [],
+                };
+                // Format weekly (always object with arrays)
+                const weekly = {
+                    ohlc: weeklyData.length ? weeklyData.map(item => ({
                         time: item.timestamp.toISOString().slice(0, 10),
                         open: parseFloat(item.open.toString().slice(0, 8)),
                         high: parseFloat(item.high.toString().slice(0, 8)),
                         low: parseFloat(item.low.toString().slice(0, 8)),
                         close: parseFloat(item.close.toString().slice(0, 8)),
-                    })),
-                    volume: weeklyData.map(item => ({
+                    })) : [],
+                    volume: weeklyData.length ? weeklyData.map(item => ({
                         time: item.timestamp.toISOString().slice(0, 10),
                         value: item.volume,
-                    })),
-                    MA10: calcMA(weeklyData, 10),
-                    MA20: calcMA(weeklyData, 20),
-                    MA50: calcMA(weeklyData, 50),
-                    MA200: calcMA(weeklyData, 200),
-                } : null;
+                    })) : [],
+                    MA10: weeklyData.length ? calcMA(weeklyData, 10) : [],
+                    MA20: weeklyData.length ? calcMA(weeklyData, 20) : [],
+                    MA50: weeklyData.length ? calcMA(weeklyData, 50) : [],
+                    MA200: weeklyData.length ? calcMA(weeklyData, 200) : [],
+                };
                 // Response
                 res.json({ daily, weekly });
             } catch (error) {

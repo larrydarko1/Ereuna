@@ -113,8 +113,14 @@
         <div id="chart-container">
           <div id="legend"></div>
           <div id="legend2">
-            <button class="navbtng" v-b-tooltip.hover title="Change Chart View" @click="toggleChartView">{{ chartView
-            }}</button>
+            <div style="display: flex; gap: 5px;">
+              <button class="navbt" @click="setChartView('5 min')">5m</button>
+               <button class="navbt" @click="setChartView('15 min')">15m</button>
+               <button class="navbt" @click="setChartView('30 min')">30m</button>
+               <button class="navbt" @click="setChartView('1 hour')">1hr</button>
+               <button class="navbt" @click="setChartView('Daily Chart')">1D</button>
+               <button class="navbt" @click="setChartView('Weekly Chart')">1W</button>
+            </div>
             <button class="navbtng" v-b-tooltip.hover title="Change Chart type" @click="toggleChartType"
               aria-label="Toggle chart type">
               {{ isBarChart ? 'Candlestick' : 'Bar' }}
@@ -1118,19 +1124,19 @@ async function fetchChartData() {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const result = await response.json();
     // Daily
-    data.value = result.daily.ohlc || [];
-    data2.value = result.daily.volume || [];
-    data3.value = result.daily.MA10 || null;
-    data4.value = result.daily.MA20 || null;
-    data5.value = result.daily.MA50 || null;
-    data6.value = result.daily.MA200 || null;
+    data.value = Array.isArray(result.daily.ohlc) ? result.daily.ohlc : [];
+    data2.value = Array.isArray(result.daily.volume) ? result.daily.volume : [];
+    data3.value = Array.isArray(result.daily.MA10) ? result.daily.MA10 : [];
+    data4.value = Array.isArray(result.daily.MA20) ? result.daily.MA20 : [];
+    data5.value = Array.isArray(result.daily.MA50) ? result.daily.MA50 : [];
+    data6.value = Array.isArray(result.daily.MA200) ? result.daily.MA200 : [];
     // Weekly
-    data7.value = result.weekly.ohlc || [];
-    data8.value = result.weekly.volume || [];
-    data9.value = result.weekly.MA10 || null;
-    data10.value = result.weekly.MA20 || null;
-    data11.value = result.weekly.MA50 || null;
-    data12.value = result.weekly.MA200 || null;
+    data7.value = Array.isArray(result.weekly.ohlc) ? result.weekly.ohlc : [];
+    data8.value = Array.isArray(result.weekly.volume) ? result.weekly.volume : [];
+    data9.value = Array.isArray(result.weekly.MA10) ? result.weekly.MA10 : [];
+    data10.value = Array.isArray(result.weekly.MA20) ? result.weekly.MA20 : [];
+    data11.value = Array.isArray(result.weekly.MA50) ? result.weekly.MA50 : [];
+    data12.value = Array.isArray(result.weekly.MA200) ? result.weekly.MA200 : [];
   } catch (error) {
     error.value = error.message;
   }
@@ -1141,10 +1147,6 @@ let useAlternateData = false;
 const isLoading = ref(true)
 const charttype = ref('Candlestick')
 const isBarChart = ref(false);
-
-const chartTypeIcon = computed(() => {
-  return isBarChart.value ? candlesIcon : barsIcon;
-});
 
 function toggleChartType() {
   isBarChart.value = !isBarChart.value;
@@ -1307,12 +1309,6 @@ onMounted(async () => {
         updateLastRecordedValue(changes);
       }
     });
-
-    // Modified toggleChartTypeUI function
-    function toggleChartTypeUI() {
-      isBarChart.value = !isBarChart.value;
-      toggleChartType();
-    }
 
     const Histogram = chart.addHistogramSeries({
       color: theme.volume,
@@ -1592,11 +1588,11 @@ watch([priceTarget, showPriceTarget], ([newTarget, visible]) => {
     chart.subscribeCrosshairMove(param => {
       if (param.time) {
         let changes;
-        if (chartView.value === 'Daily Chart') {
-          changes = calculateChanges(data.value);
-        } else if (chartView.value === 'Weekly Chart') {
-          changes = calculateChanges(data7.value); // Use weekly data for weekly chart view
-        }
+if (chartView.value === 'Daily Chart') {
+  changes = calculateChanges(data.value);
+} else if (chartView.value === 'Weekly Chart') {
+  changes = calculateChanges(data7.value);
+}
 
         const currentChange = changes.find(change => change.time === param.time);
         if (currentChange) {
@@ -1715,12 +1711,12 @@ watch([priceTarget, showPriceTarget], ([newTarget, visible]) => {
 
 });
 
-async function toggleChartView() {
+function setChartView(view) {
   isLoading.value = true;
-  chartView.value = chartView.value === 'Daily Chart' ? 'Weekly Chart' : 'Daily Chart';
-  useAlternateData = !useAlternateData;
-  await fetchChartData();
-  await fetchPriceTarget();
+  chartView.value = view;
+  useAlternateData = (view === 'Weekly Chart');
+  fetchChartData();
+  fetchPriceTarget();
   isLoading.value = false;
 }
 
@@ -2345,15 +2341,6 @@ const isAssetInWatchlist = (ticker, symbol) => {
   }
   return false;
 };
-
-const noteContent = ref('');
-const characterCount = ref(0);
-
-const updateCharacterCount = () => {
-  characterCount.value = noteContent.value.length;
-};
-
-const watchlistName = ref('');
 
 const hiddenList = ref([]);
 
@@ -3549,6 +3536,26 @@ function closeEditor() {
 }
 
 .navbtng:hover {
+  opacity: 1;
+}
+
+.navbt {
+  background-color: transparent;
+  color: var(--text1);
+  text-align: center;
+  justify-content: center;
+  cursor: pointer;
+  border: solid var(--text2) 1px;
+  border-radius: 5px;
+  padding: 12px;
+  opacity: 0.60;
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  display: flex;
+}
+
+.navbt:hover {
   opacity: 1;
 }
 
