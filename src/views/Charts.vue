@@ -1236,16 +1236,18 @@ const dataTypes = [
 const selectedDataType = ref('daily');
 
 function setChartView(view) {
-  isLoading.value = true;
+  // Update selectedDataType instantly for fast UI feedback
   chartView.value = view;
-  // Find the corresponding dataType value
   const typeObj = dataTypes.find(dt => dt.label === view);
   if (typeObj) {
     selectedDataType.value = typeObj.value;
   }
-  fetchChartData();
-  fetchPriceTarget();
-  isLoading.value = false;
+  // Now fetch data (async) after UI update
+  isLoading.value = true;
+  fetchChartData().finally(() => {
+    fetchPriceTarget();
+    isLoading.value = false;
+  });
 }
 
 const defaultStyles = getComputedStyle(document.documentElement);
@@ -1295,6 +1297,11 @@ function resizeChart() {
 
     function toggleChartType() {
   isBarChart.value = !isBarChart.value;
+}
+
+function formatChartTime(timeStr) {
+  // Converts '2025-07-16T14:00' to Unix timestamp (seconds)
+  return Math.floor(new Date(timeStr).getTime() / 1000);
 }
 
 // mounts chart (including volume)
@@ -1381,18 +1388,82 @@ onMounted(async () => {
       updateChartData();
     }
 
-    function updateChartData() {
-      const typeObj = dataTypes.find(dt => dt.value === selectedDataType.value);
-      if (!typeObj) return;
-      const changes = calculateChanges(typeObj.data());
-      barSeries.setData(changes);
-      updateLastRecordedValue(changes);
+function updateChartData() {
+  const typeObj = dataTypes.find(dt => dt.value === selectedDataType.value);
+  if (!typeObj) return;
+  const changes = calculateChanges(typeObj.data());
+  barSeries.setData(changes);
+  updateLastRecordedValue(changes);
+
+  // --- Time scale formatting and series visibility for intraday ---
+  const isIntraday = ["intraday5m", "intraday15m", "intraday30m", "intraday1hr"].includes(selectedDataType.value);
+  // Set correct tickMarkFormatter for each chart type
+  if (isIntraday) {
+    chartInstance.value.timeScale().applyOptions({
+      timeVisible: true,
+      secondsVisible: false,
+      tickMarkFormatter: (time, locale) => {
+        if (typeof time !== 'number' || isNaN(time)) return '';
+        const date = new Date(time * 1000);
+        return date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+      }
+    });
+  } else {
+    chartInstance.value.timeScale().applyOptions({
+      timeVisible: true,
+      secondsVisible: false,
+      tickMarkFormatter: (time, tickMarkType, locale) => {
+        if (typeof time !== 'number' || isNaN(time)) return '';
+        const date = new Date(time * 1000);
+        return date.toLocaleDateString(locale, { year: 'numeric', month: 'numeric', day: 'numeric' });
+      }
+    });
+  }
+
+  // Clear all series before updating to prevent leftover data
+  Histogram.setData([]);
+  MaSeries1.setData([]);
+  MaSeries2.setData([]);
+  MaSeries3.setData([]);
+  MaSeries4.setData([]);
+
+  if (isIntraday) {
+    if (!typeObj.volume() || typeObj.volume().length === 0) {
+      Histogram.applyOptions({ visible: false });
+    } else {
       Histogram.setData(typeObj.volume());
-      MaSeries1.setData(typeObj.ma[0]());
-      MaSeries2.setData(typeObj.ma[1]());
-      MaSeries3.setData(typeObj.ma[2]());
-      MaSeries4.setData(typeObj.ma[3]());
+      Histogram.applyOptions({ visible: true });
     }
+    // Show intraday moving averages if data exists and toggles are on
+    if (typeObj.ma[0]().length > 0) {
+      MaSeries1.setData(typeObj.ma[0]());
+      MaSeries1.applyOptions({ visible: showMA1.value });
+    }
+    if (typeObj.ma[1]().length > 0) {
+      MaSeries2.setData(typeObj.ma[1]());
+      MaSeries2.applyOptions({ visible: showMA2.value });
+    }
+    if (typeObj.ma[2]().length > 0) {
+      MaSeries3.setData(typeObj.ma[2]());
+      MaSeries3.applyOptions({ visible: showMA3.value });
+    }
+    if (typeObj.ma[3]().length > 0) {
+      MaSeries4.setData(typeObj.ma[3]());
+      MaSeries4.applyOptions({ visible: showMA4.value });
+    }
+  } else {
+    Histogram.setData(typeObj.volume());
+    Histogram.applyOptions({ visible: true });
+    MaSeries1.setData(typeObj.ma[0]());
+    MaSeries1.applyOptions({ visible: showMA1.value });
+    MaSeries2.setData(typeObj.ma[1]());
+    MaSeries2.applyOptions({ visible: showMA2.value });
+    MaSeries3.setData(typeObj.ma[2]());
+    MaSeries3.applyOptions({ visible: showMA3.value });
+    MaSeries4.setData(typeObj.ma[3]());
+    MaSeries4.applyOptions({ visible: showMA4.value });
+  }
+}
 
     watch(isBarChart, () => {
       updateChartType();
@@ -1411,13 +1482,13 @@ onMounted(async () => {
       });
       watch(typeObj.volume, () => {
         if (selectedDataType.value === typeObj.value) {
-          Histogram.setData(typeObj.volume());
+          updateChartData();
         }
       });
       typeObj.ma.forEach((maFn, idx) => {
         watch(maFn, () => {
           if (selectedDataType.value === typeObj.value) {
-            [MaSeries1, MaSeries2, MaSeries3, MaSeries4][idx].setData(maFn());
+            updateChartData();
           }
         });
       });
@@ -1553,8 +1624,14 @@ watch([priceTarget, showPriceTarget], ([newTarget, visible]) => {
           percentageChange = (change / previousPoint.close) * 100;
         }
 
+        // Convert intraday time strings to Unix timestamp
+        let chartTime = currentPoint.time;
+        if (typeof chartTime === 'string' && chartTime.includes('T')) {
+          chartTime = formatChartTime(chartTime);
+        }
+
         changes.push({
-          time: currentPoint.time,
+          time: chartTime,
           open: currentPoint.open,
           high: currentPoint.high,
           low: currentPoint.low,
@@ -1563,7 +1640,18 @@ watch([priceTarget, showPriceTarget], ([newTarget, visible]) => {
           percentageChange: percentageChange.toFixed(2) + '%',
         });
       }
-      return changes;
+      // Sort by time ascending and remove duplicates
+      const uniqueChanges = [];
+      const seenTimes = new Set();
+      changes
+        .sort((a, b) => a.time - b.time)
+        .forEach(item => {
+          if (!seenTimes.has(item.time)) {
+            uniqueChanges.push(item);
+            seenTimes.add(item.time);
+          }
+        });
+      return uniqueChanges;
     }
 
     watch(data, (newData) => {
