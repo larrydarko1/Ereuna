@@ -1092,6 +1092,30 @@ const data9 = ref([]); // weekly 10MA
 const data10 = ref([]); // weekly 20MA
 const data11 = ref([]); // weekly 50MA
 const data12 = ref([]); // weekly 200MA
+const data13 = ref([]); // 5m OHLC
+const data14 = ref([]); // 5m Volume
+const data15 = ref([]); // 5m MA10
+const data16 = ref([]); // 5m MA20
+const data17 = ref([]); // 5m MA50
+const data18 = ref([]); // 5m MA200
+const data19 = ref([]); // 15m OHLC
+const data20 = ref([]); // 15m Volume
+const data21 = ref([]); // 15m MA10
+const data22 = ref([]); // 15m MA20
+const data23 = ref([]); // 15m MA50
+const data24 = ref([]); // 15m MA200
+const data25 = ref([]); // 30m OHLC
+const data26 = ref([]); // 30m Volume
+const data27 = ref([]); // 30m MA10
+const data28 = ref([]); // 30m MA20
+const data29 = ref([]); // 30m MA50
+const data30 = ref([]); // 30m MA200
+const data31 = ref([]); // 1hr OHLC
+const data32 = ref([]); // 1hr Volume
+const data33 = ref([]); // 1hr MA10
+const data34 = ref([]); // 1hr MA20
+const data35 = ref([]); // 1hr MA50
+const data36 = ref([]); // 1hr MA200
 const SplitsDate = ref([]); // Splits Data - just date
 const DividendsDate = ref([]); // Dividends Data 
 const priceTarget = ref(null);
@@ -1123,20 +1147,54 @@ async function fetchChartData() {
     const response = await fetch(`/api/${symbol}/chartdata`, { headers: { 'X-API-KEY': apiKey } });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const result = await response.json();
+
     // Daily
-    data.value = Array.isArray(result.daily.ohlc) ? result.daily.ohlc : [];
-    data2.value = Array.isArray(result.daily.volume) ? result.daily.volume : [];
-    data3.value = Array.isArray(result.daily.MA10) ? result.daily.MA10 : [];
-    data4.value = Array.isArray(result.daily.MA20) ? result.daily.MA20 : [];
-    data5.value = Array.isArray(result.daily.MA50) ? result.daily.MA50 : [];
-    data6.value = Array.isArray(result.daily.MA200) ? result.daily.MA200 : [];
+    data.value = Array.isArray(result.daily?.ohlc) ? result.daily.ohlc : [];
+    data2.value = Array.isArray(result.daily?.volume) ? result.daily.volume : [];
+    data3.value = Array.isArray(result.daily?.MA10) ? result.daily.MA10 : [];
+    data4.value = Array.isArray(result.daily?.MA20) ? result.daily.MA20 : [];
+    data5.value = Array.isArray(result.daily?.MA50) ? result.daily.MA50 : [];
+    data6.value = Array.isArray(result.daily?.MA200) ? result.daily.MA200 : [];
+
     // Weekly
-    data7.value = Array.isArray(result.weekly.ohlc) ? result.weekly.ohlc : [];
-    data8.value = Array.isArray(result.weekly.volume) ? result.weekly.volume : [];
-    data9.value = Array.isArray(result.weekly.MA10) ? result.weekly.MA10 : [];
-    data10.value = Array.isArray(result.weekly.MA20) ? result.weekly.MA20 : [];
-    data11.value = Array.isArray(result.weekly.MA50) ? result.weekly.MA50 : [];
-    data12.value = Array.isArray(result.weekly.MA200) ? result.weekly.MA200 : [];
+    data7.value = Array.isArray(result.weekly?.ohlc) ? result.weekly.ohlc : [];
+    data8.value = Array.isArray(result.weekly?.volume) ? result.weekly.volume : [];
+    data9.value = Array.isArray(result.weekly?.MA10) ? result.weekly.MA10 : [];
+    data10.value = Array.isArray(result.weekly?.MA20) ? result.weekly.MA20 : [];
+    data11.value = Array.isArray(result.weekly?.MA50) ? result.weekly.MA50 : [];
+    data12.value = Array.isArray(result.weekly?.MA200) ? result.weekly.MA200 : [];
+
+    // Intraday 5m
+    data13.value = Array.isArray(result.intraday5m?.ohlc) ? result.intraday5m.ohlc : [];
+    data14.value = Array.isArray(result.intraday5m?.volume) ? result.intraday5m.volume : [];
+    data15.value = Array.isArray(result.intraday5m?.MA10) ? result.intraday5m.MA10 : [];
+    data16.value = Array.isArray(result.intraday5m?.MA20) ? result.intraday5m.MA20 : [];
+    data17.value = Array.isArray(result.intraday5m?.MA50) ? result.intraday5m.MA50 : [];
+    data18.value = Array.isArray(result.intraday5m?.MA200) ? result.intraday5m.MA200 : [];
+
+    // Intraday 15m
+    data19.value = Array.isArray(result.intraday15m?.ohlc) ? result.intraday15m.ohlc : [];
+    data20.value = Array.isArray(result.intraday15m?.volume) ? result.intraday15m.volume : [];
+    data21.value = Array.isArray(result.intraday15m?.MA10) ? result.intraday15m.MA10 : [];
+    data22.value = Array.isArray(result.intraday15m?.MA20) ? result.intraday15m.MA20 : [];
+    data23.value = Array.isArray(result.intraday15m?.MA50) ? result.intraday15m.MA50 : [];
+    data24.value = Array.isArray(result.intraday15m?.MA200) ? result.intraday15m.MA200 : [];
+
+    // Intraday 30m
+    data25.value = Array.isArray(result.intraday30m?.ohlc) ? result.intraday30m.ohlc : [];
+    data26.value = Array.isArray(result.intraday30m?.volume) ? result.intraday30m.volume : [];
+    data27.value = Array.isArray(result.intraday30m?.MA10) ? result.intraday30m.MA10 : [];
+    data28.value = Array.isArray(result.intraday30m?.MA20) ? result.intraday30m.MA20 : [];
+    data29.value = Array.isArray(result.intraday30m?.MA50) ? result.intraday30m.MA50 : [];
+    data30.value = Array.isArray(result.intraday30m?.MA200) ? result.intraday30m.MA200 : [];
+
+    // Intraday 1hr
+    data31.value = Array.isArray(result.intraday1hr?.ohlc) ? result.intraday1hr.ohlc : [];
+    data32.value = Array.isArray(result.intraday1hr?.volume) ? result.intraday1hr.volume : [];
+    data33.value = Array.isArray(result.intraday1hr?.MA10) ? result.intraday1hr.MA10 : [];
+    data34.value = Array.isArray(result.intraday1hr?.MA20) ? result.intraday1hr.MA20 : [];
+    data35.value = Array.isArray(result.intraday1hr?.MA50) ? result.intraday1hr.MA50 : [];
+    data36.value = Array.isArray(result.intraday1hr?.MA200) ? result.intraday1hr.MA200 : [];
   } catch (error) {
     error.value = error.message;
   }

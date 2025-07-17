@@ -162,8 +162,99 @@ export default function (app, deps) {
                     MA50: weeklyData.length ? calcMA(weeklyData, 50) : [],
                     MA200: weeklyData.length ? calcMA(weeklyData, 200) : [],
                 };
-                // Response
-                res.json({ daily, weekly });
+
+                // --- Intraday collections ---
+                const intraday5mColl = db.collection('OHCLVData5m');
+                const intraday5mData = await intraday5mColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+
+                const intraday15mColl = db.collection('OHCLVData15m');
+                const intraday15mData = await intraday15mColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+
+                const intraday30mColl = db.collection('OHCLVData30m');
+                const intraday30mData = await intraday30mColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+
+                const intraday1hrColl = db.collection('OHCLVData1hr');
+                const intraday1hrData = await intraday1hrColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+
+                // Format intraday 5m
+                const intraday5m = {
+                    ohlc: intraday5mData.length ? intraday5mData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 16),
+                        open: parseFloat(item.open.toString().slice(0, 8)),
+                        high: parseFloat(item.high.toString().slice(0, 8)),
+                        low: parseFloat(item.low.toString().slice(0, 8)),
+                        close: parseFloat(item.close.toString().slice(0, 8)),
+                    })) : [],
+                    volume: intraday5mData.length ? intraday5mData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 16),
+                        value: item.volume,
+                    })) : [],
+                    MA10: intraday5mData.length ? calcMA(intraday5mData, 10, 'datetime') : [],
+                    MA20: intraday5mData.length ? calcMA(intraday5mData, 20, 'datetime') : [],
+                    MA50: intraday5mData.length ? calcMA(intraday5mData, 50, 'datetime') : [],
+                    MA200: intraday5mData.length ? calcMA(intraday5mData, 200, 'datetime') : [],
+                };
+
+                // Format intraday 15m
+                const intraday15m = {
+                    ohlc: intraday15mData.length ? intraday15mData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 16),
+                        open: parseFloat(item.open.toString().slice(0, 8)),
+                        high: parseFloat(item.high.toString().slice(0, 8)),
+                        low: parseFloat(item.low.toString().slice(0, 8)),
+                        close: parseFloat(item.close.toString().slice(0, 8)),
+                    })) : [],
+                    volume: intraday15mData.length ? intraday15mData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 16),
+                        value: item.volume,
+                    })) : [],
+                    MA10: intraday15mData.length ? calcMA(intraday15mData, 10, 'datetime') : [],
+                    MA20: intraday15mData.length ? calcMA(intraday15mData, 20, 'datetime') : [],
+                    MA50: intraday15mData.length ? calcMA(intraday15mData, 50, 'datetime') : [],
+                    MA200: intraday15mData.length ? calcMA(intraday15mData, 200, 'datetime') : [],
+                };
+
+                // Format intraday 30m
+                const intraday30m = {
+                    ohlc: intraday30mData.length ? intraday30mData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 16),
+                        open: parseFloat(item.open.toString().slice(0, 8)),
+                        high: parseFloat(item.high.toString().slice(0, 8)),
+                        low: parseFloat(item.low.toString().slice(0, 8)),
+                        close: parseFloat(item.close.toString().slice(0, 8)),
+                    })) : [],
+                    volume: intraday30mData.length ? intraday30mData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 16),
+                        value: item.volume,
+                    })) : [],
+                    MA10: intraday30mData.length ? calcMA(intraday30mData, 10, 'datetime') : [],
+                    MA20: intraday30mData.length ? calcMA(intraday30mData, 20, 'datetime') : [],
+                    MA50: intraday30mData.length ? calcMA(intraday30mData, 50, 'datetime') : [],
+                    MA200: intraday30mData.length ? calcMA(intraday30mData, 200, 'datetime') : [],
+                };
+
+                // Format intraday 1hr
+                const intraday1hr = {
+                    ohlc: intraday1hrData.length ? intraday1hrData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 16),
+                        open: parseFloat(item.open.toString().slice(0, 8)),
+                        high: parseFloat(item.high.toString().slice(0, 8)),
+                        low: parseFloat(item.low.toString().slice(0, 8)),
+                        close: parseFloat(item.close.toString().slice(0, 8)),
+                    })) : [],
+                    volume: intraday1hrData.length ? intraday1hrData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 16),
+                        value: item.volume,
+                    })) : [],
+                    MA10: intraday1hrData.length ? calcMA(intraday1hrData, 10, 'datetime') : [],
+                    MA20: intraday1hrData.length ? calcMA(intraday1hrData, 20, 'datetime') : [],
+                    MA50: intraday1hrData.length ? calcMA(intraday1hrData, 50, 'datetime') : [],
+                    MA200: intraday1hrData.length ? calcMA(intraday1hrData, 200, 'datetime') : [],
+                };
+
+                // response:
+                res.json({ daily, weekly, intraday5m, intraday15m, intraday30m, intraday1hr });
+
             } catch (error) {
                 logger.error({
                     msg: 'Unified Chart Data Retrieval Error',
