@@ -114,12 +114,14 @@
           <div id="legend"></div>
           <div id="legend2">
             <div style="display: flex; gap: 5px;">
-              <button class="navbt" @click="setChartView('5 min')">5m</button>
-               <button class="navbt" @click="setChartView('15 min')">15m</button>
-               <button class="navbt" @click="setChartView('30 min')">30m</button>
-               <button class="navbt" @click="setChartView('1 hour')">1hr</button>
-               <button class="navbt" @click="setChartView('Daily Chart')">1D</button>
-               <button class="navbt" @click="setChartView('Weekly Chart')">1W</button>
+                <button
+    v-for="type in chartTypes"
+    :key="type.value"
+    class="navbt"
+    @click="setChartView(type.label)"
+  >
+    {{ type.shortLabel }}
+  </button>
             </div>
             <button class="navbtng" v-b-tooltip.hover title="Change Chart type" @click="toggleChartType"
               aria-label="Toggle chart type">
@@ -1201,13 +1203,37 @@ async function fetchChartData() {
 }
 
 let chartView = ref('Daily Chart');
-let useAlternateData = false;
+
 const isLoading = ref(true)
 const charttype = ref('Candlestick')
 const isBarChart = ref(false);
 
-function toggleChartType() {
-  isBarChart.value = !isBarChart.value;
+const chartTypes = [
+  { label: 'Daily Chart', value: 'daily', shortLabel: '1D' },
+  { label: 'Weekly Chart', value: 'weekly', shortLabel: '1W' },
+  // Add more types as needed
+];
+
+
+// Chart data type selection (multi-option)
+const dataTypes = [
+  { label: 'Daily Chart', value: 'daily', data: () => data.value, volume: () => data2.value, ma: [() => data3.value, () => data4.value, () => data5.value, () => data6.value] },
+  { label: 'Weekly Chart', value: 'weekly', data: () => data7.value, volume: () => data8.value, ma: [() => data9.value, () => data10.value, () => data11.value, () => data12.value] },
+  // Add more types here as needed
+];
+const selectedDataType = ref('daily');
+
+function setChartView(view) {
+  isLoading.value = true;
+  chartView.value = view;
+  // Find the corresponding dataType value
+  const typeObj = dataTypes.find(dt => dt.label === view);
+  if (typeObj) {
+    selectedDataType.value = typeObj.value;
+  }
+  fetchChartData();
+  fetchPriceTarget();
+  isLoading.value = false;
 }
 
 const defaultStyles = getComputedStyle(document.documentElement);
@@ -1306,6 +1332,7 @@ onMounted(async () => {
     });
     chartInstance.value = chart;
 
+
     let barSeries = chart.addCandlestickSeries({
       downColor: theme.negative,
       upColor: theme.positive,
@@ -1316,19 +1343,15 @@ onMounted(async () => {
       priceLineVisible: true,
     });
 
-    function toggleChartType() {
-      // Remove the existing series
+    function updateChartType() {
       chart.removeSeries(barSeries);
-
       if (isBarChart.value) {
-        // Create a bar series
         barSeries = chart.addBarSeries({
           downColor: theme.negative,
           upColor: theme.positive,
           priceLineVisible: true,
         });
       } else {
-        // Create a candlestick series
         barSeries = chart.addCandlestickSeries({
           downColor: theme.negative,
           upColor: theme.positive,
@@ -1339,33 +1362,50 @@ onMounted(async () => {
           priceLineVisible: true,
         });
       }
-
-      // Update the data for the new series
-      const currentData = useAlternateData ? data7.value : data.value;
-      const changes = calculateChanges(currentData);
-      barSeries.setData(changes);
+      updateChartData();
     }
 
-    // Watch for changes in the chart type
+    function updateChartData() {
+      const typeObj = dataTypes.find(dt => dt.value === selectedDataType.value);
+      if (!typeObj) return;
+      const changes = calculateChanges(typeObj.data());
+      barSeries.setData(changes);
+      updateLastRecordedValue(changes);
+      Histogram.setData(typeObj.volume());
+      // MA series
+      MaSeries1.setData(typeObj.ma[0]());
+      MaSeries2.setData(typeObj.ma[1]());
+      MaSeries3.setData(typeObj.ma[2]());
+      MaSeries4.setData(typeObj.ma[3]());
+    }
+
     watch(isBarChart, () => {
-      toggleChartType();
+      updateChartType();
     });
 
-    // Update the existing watchers (keep these as they were)
-    watch(data, (newData) => {
-      const changes = calculateChanges(newData);
-      if (!useAlternateData) {
-        barSeries.setData(changes);
-        updateLastRecordedValue(changes);
-      }
+    watch(selectedDataType, () => {
+      updateChartData();
     });
 
-    watch(data7, (newData7) => {
-      const changes = calculateChanges(newData7);
-      if (useAlternateData) {
-        barSeries.setData(changes);
-        updateLastRecordedValue(changes);
-      }
+    // Watchers for data updates
+    dataTypes.forEach(typeObj => {
+      watch(typeObj.data, () => {
+        if (selectedDataType.value === typeObj.value) {
+          updateChartData();
+        }
+      });
+      watch(typeObj.volume, () => {
+        if (selectedDataType.value === typeObj.value) {
+          Histogram.setData(typeObj.volume());
+        }
+      });
+      typeObj.ma.forEach((maFn, idx) => {
+        watch(maFn, () => {
+          if (selectedDataType.value === typeObj.value) {
+            [MaSeries1, MaSeries2, MaSeries3, MaSeries4][idx].setData(maFn());
+          }
+        });
+      });
     });
 
     const Histogram = chart.addHistogramSeries({
@@ -1645,13 +1685,8 @@ watch([priceTarget, showPriceTarget], ([newTarget, visible]) => {
 
     chart.subscribeCrosshairMove(param => {
       if (param.time) {
-        let changes;
-if (chartView.value === 'Daily Chart') {
-  changes = calculateChanges(data.value);
-} else if (chartView.value === 'Weekly Chart') {
-  changes = calculateChanges(data7.value);
-}
-
+        const typeObj = dataTypes.find(dt => dt.value === selectedDataType.value);
+        const changes = calculateChanges(typeObj.data());
         const currentChange = changes.find(change => change.time === param.time);
         if (currentChange) {
           const priceOpen = currentChange.open.toFixed(2);
@@ -1660,22 +1695,18 @@ if (chartView.value === 'Daily Chart') {
           const priceClose = currentChange.close.toFixed(2);
           const priceChange = currentChange.change;
           const changePerc = currentChange.percentageChange;
-
-          // Check if the current candle is up or down
           const isUp = priceClose > priceOpen;
           const className = isUp ? 'positive' : 'negative';
-
           firstRow.innerHTML = `
-        <strong class="${className}"><span style="color: ${theme.text1}">Open:</span> ${priceOpen}</strong>
-        <strong class="${className}"><span style="color: ${theme.text1}">High:</span> ${priceHigh}</strong>
-        <strong class="${className}"><span style="color:${theme.text1}">Low:</span> ${priceLow}</strong>
-        <strong class="${className}"><span style="color: ${theme.text1}">Close:</span> ${priceClose}</strong>
-        <strong class="${className}">${priceChange}</strong>
-        <strong class="${className}">${changePerc}</strong>
-      `;
+            <strong class="${className}"><span style="color: ${theme.text1}">Open:</span> ${priceOpen}</strong>
+            <strong class="${className}"><span style="color: ${theme.text1}">High:</span> ${priceHigh}</strong>
+            <strong class="${className}"><span style="color:${theme.text1}">Low:</span> ${priceLow}</strong>
+            <strong class="${className}"><span style="color: ${theme.text1}">Close:</span> ${priceClose}</strong>
+            <strong class="${className}">${priceChange}</strong>
+            <strong class="${className}">${changePerc}</strong>
+          `;
         }
       }
-
     });
 
     function calculateReturns(data) {
@@ -1769,13 +1800,10 @@ if (chartView.value === 'Daily Chart') {
 
 });
 
-function setChartView(view) {
-  isLoading.value = true;
-  chartView.value = view;
-  useAlternateData = (view === 'Weekly Chart');
-  fetchChartData();
-  fetchPriceTarget();
-  isLoading.value = false;
+
+// UI handler for chart data type selection
+function handleDataTypeSelection(type) {
+  setChartDataType(type);
 }
 
 onBeforeUnmount(() => {
