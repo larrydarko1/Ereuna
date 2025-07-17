@@ -118,6 +118,7 @@
     v-for="type in chartTypes"
     :key="type.value"
     class="navbt"
+    :class="{ selected: selectedDataType === type.value }"
     @click="setChartView(type.label)"
   >
     {{ type.shortLabel }}
@@ -1209,17 +1210,23 @@ const charttype = ref('Candlestick')
 const isBarChart = ref(false);
 
 const chartTypes = [
+  { label: 'Intraday 5m', value: 'intraday5m', shortLabel: '5m' },
+  { label: 'Intraday 15m', value: 'intraday15m', shortLabel: '15m' },
+  { label: 'Intraday 30m', value: 'intraday30m', shortLabel: '30m' },
+  { label: 'Intraday 1hr', value: 'intraday1hr', shortLabel: '1h' },
   { label: 'Daily Chart', value: 'daily', shortLabel: '1D' },
   { label: 'Weekly Chart', value: 'weekly', shortLabel: '1W' },
-  // Add more types as needed
 ];
 
 
 // Chart data type selection (multi-option)
 const dataTypes = [
+  { label: 'Intraday 5m', value: 'intraday5m', data: () => data13.value, volume: () => data14.value, ma: [() => data15.value, () => data16.value, () => data17.value, () => data18.value] },
+  { label: 'Intraday 15m', value: 'intraday15m', data: () => data19.value, volume: () => data20.value, ma: [() => data21.value, () => data22.value, () => data23.value, () => data24.value] },
+  { label: 'Intraday 30m', value: 'intraday30m', data: () => data25.value, volume: () => data26.value, ma: [() => data27.value, () => data28.value, () => data29.value, () => data30.value] },
+  { label: 'Intraday 1hr', value: 'intraday1hr', data: () => data31.value, volume: () => data32.value, ma: [() => data33.value, () => data34.value, () => data35.value, () => data36.value] },
   { label: 'Daily Chart', value: 'daily', data: () => data.value, volume: () => data2.value, ma: [() => data3.value, () => data4.value, () => data5.value, () => data6.value] },
   { label: 'Weekly Chart', value: 'weekly', data: () => data7.value, volume: () => data8.value, ma: [() => data9.value, () => data10.value, () => data11.value, () => data12.value] },
-  // Add more types here as needed
 ];
 const selectedDataType = ref('daily');
 
@@ -3643,6 +3650,12 @@ function closeEditor() {
 
 .navbt:hover {
   opacity: 1;
+}
+
+.navbt.selected {
+  opacity: 1;
+  color: var(--accent1);
+  border: solid var(--accent1) 1px;
 }
 
 .chart-type-icon {
