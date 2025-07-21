@@ -2342,6 +2342,8 @@
 />
 <EditColumn
   v-if="showEditColumn"
+  :user="user"
+  :apiKey="apiKey"
   :notification="notification"
   :showEditColumn="showEditColumn"
    @close="showEditColumn = false"

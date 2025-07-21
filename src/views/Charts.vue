@@ -938,7 +938,7 @@ async function searchNotes() {
     const data = await response.json();
     BeautifulNotes.value = data;
   } catch (err) {
-    error.value = err.message;
+
   } finally {
     loading.value = false;
   }

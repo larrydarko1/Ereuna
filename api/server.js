@@ -153,6 +153,6 @@ Users(app, { validate, validationSchemas, sanitizeInput, logger, securityLogger,
 Notes(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, obfuscateUsername, MongoClient, uri });
 Charts(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri });
 Watchlists(app, { validate, validationSchemas, validationSets, body, sanitizeInput, logger, obfuscateUsername, MongoClient, uri });
-Screener(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, obfuscateUsername, MongoClient, uri, crypto });
+Screener(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, obfuscateUsername, MongoClient, uri, crypto, query });
 Maintenance(app, { validate, body, sanitizeInput, logger, MongoClient, uri, crypto });
 Portfolio(app, { validate, validationSchemas, body, query, sanitizeInput, logger, MongoClient, uri });

@@ -37,6 +37,7 @@
       </div>
       <div class="modal-actions">
         <button type="button" class="trade-btn" @click="submitEditColumn">Save</button>
+        <button type="button" class="reset-btn" @click="resetColumns">Reset</button>
         <button type="button" class="cancel-btn" @click="close">Cancel</button>
       </div>
     </div>
@@ -44,16 +45,26 @@
 </template>
 
 <script setup>
+// Reset selected columns and persist to backend
+async function resetColumns() {
+  selectedAttributes.value = [];
+  //await submitEditColumn();
+}
 import { ref, defineProps, defineEmits } from 'vue'
 
+// Define component props
 const props = defineProps({
   notification: { type: Object, required: true },
   showEditColumn: { type: Object, required: true },
-  error: { type: Object, required: false }
+  error: { type: Object, required: false },
+  user: { type: String, required: true },
+  apiKey: { type: String, required: true },
 })
 
+// Emit events for closing the modal and inserting columns
 const emit = defineEmits(['close', 'insert'])
 
+// Define available attributes for the screener
 const attributes = [
   { label: 'Price', value: 'price' },
   { label: 'Market Cap', value: 'market_cap' },
@@ -101,22 +112,49 @@ const attributes = [
   { label: 'Intrinsic Value', value: 'price_target' },
 ]
 
-const selectedAttributes = ref([])
 
+const selectedAttributes = ref([]) // Reactive variable to hold selected attributes
+
+// Close the modal
 function close() {
   emit('close')
 }
 
+// Load columns from backend and log payload
+async function loadColumns() {
+  try {
+    const response = await fetch(`/api/get/columns?user=${encodeURIComponent(props.user)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': props.apiKey,
+      }
+    });
+    const data = await response.json();
+    const payloadList = Array.isArray(data.columns) ? data.columns : [];
+    const validValues = attributes.map(a => a.value);
+    selectedAttributes.value = payloadList.filter(v => validValues.includes(v));
+  } catch (err) {
+    selectedAttributes.value = [];
+    props.notification.value.show('Failed to load columns');
+  }
+}
+
+loadColumns()
+
+// Add an attribute to the selected list
 function addAttribute(attrValue) {
   if (!selectedAttributes.value.includes(attrValue)) {
     selectedAttributes.value.push(attrValue)
   }
 }
 
+// Remove an attribute from the selected list
 function removeAttribute(attrValue) {
   selectedAttributes.value = selectedAttributes.value.filter(v => v !== attrValue)
 }
 
+// Move the selected attribute up in the list
 function moveUp(idx) {
   if (idx > 0) {
     const arr = selectedAttributes.value
@@ -125,6 +163,7 @@ function moveUp(idx) {
   }
 }
 
+// Move the selected attribute down in the list
 function moveDown(idx) {
   if (idx < selectedAttributes.value.length - 1) {
     const arr = selectedAttributes.value
@@ -133,19 +172,51 @@ function moveDown(idx) {
   }
 }
 
+// Get the label for a given attribute value
 function getLabel(attrValue) {
   const found = attributes.find(a => a.value === attrValue)
   return found ? found.label : attrValue
 }
 
-function submitEditColumn() {
+// Submit the selected columns to the server
+async function submitEditColumn() {
   if (selectedAttributes.value.length === 0) {
     props.notification.value.show('Please select at least one column');
     return;
   }
-  emit('insert', [...selectedAttributes.value])
-  emit('close')
+  // Send PATCH request to update columns
+  try {
+    const endpoint = `/api/update/columns`;
+    const payload = {
+      user: props.user,
+      columns: [...selectedAttributes.value]
+    };
+
+    const response = await fetch(endpoint, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': props.apiKey,
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const responseData = await response.json();
+
+    if (response.ok) {
+      emit('close');
+    } else {
+      props.notification.value.show(responseData.message || 'Failed to update columns');
+    }
+  } catch (err) {
+    if (props.error) props.error.value = err.message;
+    props.notification.value.show(err.message);
+  }
 }
+
+
+// Call loadColumns directly for testing
+loadColumns();
 </script>
 
 <style scoped>
@@ -308,6 +379,22 @@ h2 {
 }
 .trade-btn:hover {
   background: var(--accent2);
+}
+
+.reset-btn {
+  background: var(--accent2);
+  color: var(--text1);
+  border: none;
+  border-radius: 7px;
+  padding: 10px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-right: 7px;
+  transition: background 0.18s;
+}
+.reset-btn:hover {
+  background: var(--accent1);
 }
 
 .cancel-btn {
