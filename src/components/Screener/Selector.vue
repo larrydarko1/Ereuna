@@ -85,7 +85,7 @@ function toggleDropdown() {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 280px;
+  min-width: 295px;
   height: 32px;
   background: var(--base2);
   border: 1.5px solid var(--base2);
