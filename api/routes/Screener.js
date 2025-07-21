@@ -1,4 +1,4 @@
-import { body, param, } from '../utils/validationUtils.js';
+import { body, param } from '../utils/validationUtils.js';
 
 export default function (app, deps) {
     const {
@@ -10,7 +10,8 @@ export default function (app, deps) {
         obfuscateUsername,
         MongoClient,
         uri,
-        crypto
+        crypto,
+        query
     } = deps;
 
     // endpoint that handles creation of new screeners 
@@ -9659,5 +9660,102 @@ export default function (app, deps) {
                 });
             }
         });
+
+    // --- PATCH update table columns for a user ---
+    app.patch('/update/columns', validate([
+        body('columns').isArray({ min: 1 }).withMessage('Columns must be a non-empty array'),
+        body('user').isString().trim().notEmpty().withMessage('User is required')
+    ]), async (req, res) => {
+        let client;
+        try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+
+            const { user, columns } = req.body;
+            const sanitizedUser = sanitizeInput(user);
+
+            client = new MongoClient(uri);
+            await client.connect();
+            const db = client.db('EreunaDB');
+            const usersCollection = db.collection('Users');
+
+            // Update or insert the Table array for the user
+            const updateResult = await usersCollection.updateOne(
+                { Username: sanitizedUser },
+                { $set: { Table: columns } },
+                { upsert: true }
+            );
+
+            if (updateResult.matchedCount === 0 && updateResult.upsertedCount === 1) {
+                return res.status(201).json({ message: 'Table created for user' });
+            } else if (updateResult.modifiedCount === 1) {
+                return res.status(200).json({ message: 'Table updated for user' });
+            } else {
+                return res.status(200).json({ message: 'No changes made to Table' });
+            }
+        } catch (error) {
+            logger.error({
+                msg: 'An error occurred while updating Table columns',
+                error: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+                route: req.originalUrl,
+                method: req.method,
+                user: req.body?.user
+            });
+            return res.status(500).json({ message: 'An error occurred while updating Table columns' });
+        } finally {
+            if (client) await client.close();
+        }
+    });
+
+    // --- GET table columns for a user ---
+    app.get('/get/columns', validate([
+        query('user').isString().trim().notEmpty().withMessage('User is required')
+    ]), async (req, res) => {
+        let client;
+        try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+
+            const user = req.query.user;
+            const sanitizedUser = sanitizeInput(user);
+
+            client = new MongoClient(uri);
+            await client.connect();
+            const db = client.db('EreunaDB');
+            const usersCollection = db.collection('Users');
+
+            const userDoc = await usersCollection.findOne(
+                { Username: sanitizedUser },
+                { projection: { Table: 1 } }
+            );
+
+            if (!userDoc || !Array.isArray(userDoc.Table)) {
+                return res.status(404).json({ message: 'No columns found for user' });
+            }
+
+            return res.status(200).json({ columns: userDoc.Table });
+        } catch (error) {
+            logger.error({
+                msg: 'An error occurred while retrieving Table columns',
+                error: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+                route: req.originalUrl,
+                method: req.method,
+                user: req.query?.user
+            });
+            return res.status(500).json({ message: 'An error occurred while retrieving Table columns' });
+        } finally {
+            if (client) await client.close();
+        }
+    });
 
 };
