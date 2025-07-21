@@ -375,6 +375,10 @@ export default function (app, deps) {
                 { order: 9, tag: 'News', name: 'News', hidden: false },
             ],
             WatchPanel: ['SPY', 'QQQ', 'DIA', 'IWM', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'NFLX', 'BTCUSD', 'ETHUSD'],
+            Table: [
+                'name', 'price', 'perc_change', 'rs_score1w', 'rs_score1m', 'rs_score4m', 'adv1w', 'adv1m', 'adv4m', 'adv1y',
+                'exchange', 'sector', 'industry', 'country', 'isin', 'market_cap', 'pe_ratio', 'ps_ratio', 'peg', 'dividend_yield', 'eps'
+            ]
         };
 
         try {
