@@ -25,7 +25,9 @@
           @deleteScreener="DeleteScreener"
           :getScreenerImage="getScreenerImage"
         />
-         <div class="navmenu">
+         <div class="navmenu" style="margin-left: 2px;">
+         <button class="edit-watch-panel-btn" :class="{ 'edit-watch-panel-btn2': showEditColumn }"
+            @click="showEditColumn = !showEditColumn">Edit Table</button>
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
             @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover title="Create New Screener">
            <svg class="img2" viewBox="0 0 512 512" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
@@ -2317,7 +2319,7 @@
         <div class="results"></div>
       </div>
       <div id="resultsDiv" :class="{ 'hidden-mobile': selected !== 'list' }">
-<CreateScreener
+        <CreateScreener
   v-if="showCreateScreener"
   :user="user"
   :apiKey="apiKey"
@@ -2337,6 +2339,12 @@
   :GetScreeners="GetScreeners"
   :error="error"
   @close="handleRenameScreenerClose"
+/>
+<EditColumn
+  v-if="showEditColumn"
+  :notification="notification"
+  :showEditColumn="showEditColumn"
+   @close="showEditColumn = false"
 />
         <div class="navmenu-mobile">
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
@@ -2937,7 +2945,7 @@
                                             </g>
                                           </g>
                                         </svg>
-                                        <p>Hide Stock</p>
+                                        <p>Hide Asset</p>
                                       </div>
                                       <div class="nested-dropdown"
                                         style="display: flex; flex-direction: row; align-items: center; height: 14px;">
@@ -3033,7 +3041,7 @@
                                 </div>
                               </div>
                               <div id="sidebar-r" :class="{ 'hidden-mobile': selected !== 'charts' }">
-                                <h1 class="title3">WEEKLY CHART</h1>
+                                <h1 style="margin-top: 2px;" class="title3">WEEKLY CHART</h1>
                                 <div class="chart-container">
                                   <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
                                     <Loader />
@@ -3079,6 +3087,7 @@ import Selector from '@/components/Screener/Selector.vue';
 import Loader from '@/components/loader.vue'
 import CreateScreener from '@/components/Screener/CreateScreener.vue';
 import RenameScreener from '@/components/Screener/RenameScreener.vue';
+import EditColumn from '@/components/Screener/EditColumn.vue';
 import { computed, onMounted, ref, watch, nextTick, reactive, toRef } from 'vue';
 import { createChart, ColorType } from 'lightweight-charts';
 import { useStore } from 'vuex';
@@ -3235,6 +3244,7 @@ const isLoading2 = ref(true)
 
 const showCreateScreener = ref(false) // shows menu for creating new watchlist 
 const showRenameScreener = ref(false) // shows menu for renaming selected watchlist 
+const showEditColumn = ref(false) // shows menu for editing columns in screener
 const showSearch = ref(false) // shows searchbar 
 const selectedScreener = ref('') // selectes current screener 
 const selectedSymbol = ref(''); // similar to selectedItem 
@@ -6702,6 +6712,34 @@ function select(option) {
   selected.value = option
 }
 
+const themes = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
+const currentTheme = ref('default');
+
+async function setTheme(newTheme) {
+  const root = document.documentElement;
+  root.classList.remove(...themes);
+  root.classList.add(newTheme);
+  localStorage.setItem('user-theme', newTheme);
+  try {
+    const response = await fetch('/api/theme', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({ theme: newTheme, username: user }),
+    });
+    const data = await response.json();
+    if (data.message === 'Theme updated') {
+      currentTheme.value = newTheme;
+    } else {
+      error.value = data.message;
+    }
+  } catch (error) {
+    error.value = error.message;
+  }
+}
+
 async function loadTheme() {
   try {
     const response = await fetch('/api/load-theme', {
@@ -7952,6 +7990,56 @@ input:checked+.slider:before {
   /* Indicates to users that it has a tooltip */
   position: relative;
   /* Positioning context for the tooltip */
+}
+
+.edit-watch-panel-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 5px;
+  padding: 5px 8px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text1);
+  border-radius: 4px;
+  background-color: transparent;
+  outline: none;
+  border: solid 1px var(--base4);
+  box-shadow: none;
+  appearance: none;
+  -webkit-appearance: none;
+  white-space: nowrap;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.edit-watch-panel-btn2 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 5px;
+  padding: 5px 8px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text1);
+  border-radius: 4px;
+  background-color: transparent;
+  outline: none;
+  border: solid 1px var(--accent1);
+  box-shadow: none;
+  appearance: none;
+  -webkit-appearance: none;
+  white-space: nowrap;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.edit-watch-panel-btn:hover,
+.edit-watch-panel-btn:focus {
+  background-color: var(--base3);
+  color: var(--text1);
+}
+
+.edit-watch-panel-btn:active {
+  background-color: var(--base4);
 }
 
 .tooltip2 {
