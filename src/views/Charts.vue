@@ -3972,10 +3972,11 @@ function closeEditor() {
   user-select: none;
   text-align: center;
   padding: 0px 4px;
-  /* minimal padding */
-  font-size: 0.175rem;
-  /* extremely small font size */
   line-height: 0.5;
+}
+
+.hidden-message p{
+font-size: 8px;
 }
 
 /* the sphere thingy neat watchlist, counts how many elements are inside it */
