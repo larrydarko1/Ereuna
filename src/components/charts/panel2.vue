@@ -1,3 +1,51 @@
+<template>
+  <div class="watch-panel-editor-backdrop" @click.self="$emit('close')">
+    <div class="watch-panel-editor-modal">
+      <h2>Edit Summary Fields</h2>
+      <div class="sections-list">
+        <div
+          v-for="(field, index) in summaryFields"
+          :key="index"
+          class="section-mini"
+          :class="{ 'hidden-section': field.hidden }"
+          draggable="true"
+          @dragstart="dragStart($event, index)"
+          @dragover="dragOver($event)"
+          @drop="drop($event, index)"
+        >
+          <span class="mobile-arrows">
+            <button
+              class="arrow-btn"
+              :disabled="index === 0"
+              @click="moveFieldUp(index)"
+              aria-label="Move up"
+            >▲</button>
+            <button
+              class="arrow-btn"
+              :disabled="index === summaryFields.length - 1"
+              @click="moveFieldDown(index)"
+              aria-label="Move down"
+            >▼</button>
+          </span>
+          <button
+            class="hide-button"
+            :class="{ 'hidden-button': field.hidden }"
+            @click="toggleHidden(index)"
+          >
+            {{ field.hidden ? 'Add' : 'Remove' }}
+          </button>
+          <span class="section-name">{{ field.name }}</span>
+        </div>
+      </div>
+      <div class="nav-buttons">
+        <button class="nav-button" @click="$emit('close')">Close</button>
+        <button class="nav-button" @click="resetOrder">Reset</button>
+        <button class="nav-button" @click="updatePanel2">Submit</button>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup>
 import { ref, defineEmits, onMounted } from 'vue';
 import { useStore } from 'vuex';
@@ -132,14 +180,12 @@ async function fetchPanel2() {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     
     const newPanel = await response.json();
-    console.log('Fetched panel data:', newPanel); // Debugging log
 
     // Defensive: fallback to default if empty
     summaryFields.value = (newPanel.panel2 && newPanel.panel2.length)
       ? newPanel.panel2
       : initialFields.map(field => ({ ...field }));
 
-    console.log('Updated summaryFields:', summaryFields.value); // Debugging log
   } catch (error) {
     console.error('Error fetching panel data:', error);
   }
@@ -171,54 +217,6 @@ function moveFieldDown(index) {
 
 </script>
 
-<template>
-  <div class="watch-panel-editor-backdrop" @click.self="$emit('close')">
-    <div class="watch-panel-editor-modal">
-      <h2>Edit Summary Fields</h2>
-      <div class="sections-list">
-        <div
-          v-for="(field, index) in summaryFields"
-          :key="index"
-          class="section-mini"
-          :class="{ 'hidden-section': field.hidden }"
-          draggable="true"
-          @dragstart="dragStart($event, index)"
-          @dragover="dragOver($event)"
-          @drop="drop($event, index)"
-        >
-          <span class="mobile-arrows">
-            <button
-              class="arrow-btn"
-              :disabled="index === 0"
-              @click="moveFieldUp(index)"
-              aria-label="Move up"
-            >▲</button>
-            <button
-              class="arrow-btn"
-              :disabled="index === summaryFields.length - 1"
-              @click="moveFieldDown(index)"
-              aria-label="Move down"
-            >▼</button>
-          </span>
-          <button
-            class="hide-button"
-            :class="{ 'hidden-button': field.hidden }"
-            @click="toggleHidden(index)"
-          >
-            {{ field.hidden ? 'Add' : 'Remove' }}
-          </button>
-          <span class="section-name">{{ field.name }}</span>
-        </div>
-      </div>
-      <div class="nav-buttons">
-        <button class="nav-button" @click="$emit('close')">Close</button>
-        <button class="nav-button" @click="resetOrder">Reset</button>
-        <button class="nav-button" @click="updatePanel2">Submit</button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <style scoped>
 .watch-panel-editor-backdrop {
   position: fixed;
@@ -233,7 +231,7 @@ function moveFieldDown(index) {
 
 .watch-panel-editor-modal {
   background: color-mix(in srgb, var(--base2) 85%, transparent);
-  color: var(--text1);
+  color: var(--text3);
   padding: 2.5rem 2rem 2rem 2rem;
   border-radius: 18px;
   min-width: 340px;
@@ -291,7 +289,7 @@ function moveFieldDown(index) {
 
 .hidden-section {
   background-color: transparent;
-  color: var(--text2);
+  color: var(--text3);
   border: none;
   opacity: 0.5;
   text-decoration: line-through;
@@ -357,7 +355,7 @@ function moveFieldDown(index) {
   border-radius: 8px;
   border: none;
   background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
-  color: var(--text2);
+  color: var(--text3);
   font-weight: 600;
   font-size: 1.05rem;
   cursor: pointer;

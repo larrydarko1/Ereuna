@@ -67,14 +67,6 @@
   <div class="sphere-gradient"></div>
   <!--rest of the content goes inside this div-->
   <div class="features">
-    <div id="partners">
-      <h2 style="cursor: default;">PARTNERS</h2>
-      <div style="display: flex; justify-content: center; align-items: center; gap: 10%;">
-    <img class="logo" src="@/assets/images/logos/tiingo.png" alt="" draggable="false">
-    <img class="logo" src="@/assets/images/logos/tradingview.png" alt="" draggable="false">
-</div>
-    </div>
-    <!-- Features Section -->
     <div id="features">
       <br>
       <h2 style="cursor: default;">FEATURES</h2>

@@ -8,20 +8,32 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-// THEMES for app proper
+// default theme for overall site / DON'T TOUCH THESE SASS ELEMENTS!!!
+$accent1: #8c8dfe;
+$accent2: #a9a5ff;
+$accent3: #cfcbff;
+$text1: #ffffff;
+$text2: #cad3f5;
+$text3: #a4adcb;
+$text4: #010B13;
+$base1: #1a1b26;
+$base2: #24283b;
+$base3: #414868;
+$base4: #16161e;
 
+// THEMES for app proper
 .default {
     --accent1: #8c8dfe;
     --accent2: #a9a5ff;
     --accent3: #cfcbff;
     --accent4: #a9a5ff53; //just for selected overlay screener 
-    --text1: #ffffff;
-    --text2: #cad3f5;
+    --text1: #c0caf5;
+    --text2: #a9b1d6;
     --text3: #000000;
-    --base1: #181926;
-    --base2: #25273a;
-    --base3: #35385a;
-    --base4: #1e2030;
+    --base1: #1a1b26;
+    --base2: #24283b;
+    --base3: #414868;
+    --base4: #16161e;
     --positive: #4caf50;
     --negative: #90bff9;
     --volume: #4d4d4d;
@@ -29,7 +41,7 @@
     --ma3: #ffeb3b; //50MA
     --ma2: #2862ff; //20MA
     --ma1: #00bcd4; //10MA
-    --glassbg: #25273ad7;
+    --glassbg: #24283bdd;
     --gradient1: linear-gradient(90deg, rgba(140, 141, 254, 0.18) 0%, rgba(140, 141, 254, 0.08) 100%);
 }
 
@@ -1127,16 +1139,3 @@
     --ma2: #1778aa; // 20MA
     --ma1: #7e57c2; // 10MA
 }
-
-// default theme for overall site / DON'T TOUCH THESE SASS ELEMENTS!!!
-$accent1: #8c8dfe;
-$accent2: #a9a5ff;
-$accent3: #cfcbff;
-$text1: #ffffff;
-$text2: #cad3f5;
-$text3: #a4adcb;
-$text4: #010B13;
-$base1: #181926;
-$base2: #25273a;
-$base3: #35385a;
-$base4: #1e2030;
