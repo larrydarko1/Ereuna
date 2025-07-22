@@ -368,7 +368,7 @@ h2 {
 .trade-btn {
   background: var(--accent1);
   margin-right: 7px;
-  color: var(--text1);
+  color: var(--text3);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;
@@ -383,7 +383,7 @@ h2 {
 
 .reset-btn {
   background: var(--accent2);
-  color: var(--text1);
+  color: var(--text3);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;

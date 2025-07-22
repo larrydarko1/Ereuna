@@ -1336,18 +1336,19 @@ onMounted(() => {
 
     &.selected {
       background: var(--accent1);
-      color: var(--text1);
+      color: var(--text3);
     }
 
     &:hover {
       background: var(--accent2);
+      color: var(--text3);
     }
   }
 }
 
 .trade-btn {
   background: var(--accent1);
-  color: var(--text1);
+  color: var(--text3);
   border: none;
   border-radius: 6px;
   padding: 10px 24px;
@@ -1373,7 +1374,7 @@ onMounted(() => {
 
 .trade-btn2 {
   background: var(--negative);
-  color: var(--text1);
+  color: var(--text3);
   border: none;
   border-radius: 6px;
   padding: 10px 24px;
