@@ -181,6 +181,8 @@ const props = defineProps({
   watchlist: Object,
   getImagePath: Function,
   getWatchlistIcon: Function,
+  user: { type: String, required: true },
+  apiKey: { type: String, required: true },
 });
 
 const emit = defineEmits(['toggle-watchlist', 'hide-stock', 'select-row', 'keydown', 'scroll']);

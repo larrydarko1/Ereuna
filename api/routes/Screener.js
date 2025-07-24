@@ -283,7 +283,55 @@ export default function (app, deps) {
             }
         });
 
-    // endpoint that sends unfiltered database data into screener results (minus hidden list for user)
+    // Map frontend keys to backend fields
+    const fieldMap = {
+        name: 'Name',
+        perc_change: 'todaychange',
+        price: 'Close',
+        sector: 'Sector',
+        exchange: 'Exchange',
+        dividend_yield: 'DividendYield',
+        rs_score1m: 'RSScore1M',
+        rs_score4m: 'RSScore4M',
+        rs_score1w: 'RSScore1W',
+        eps: 'EPS',
+        country: 'Country',
+        adv1w: 'ADV1W',
+        adv1m: 'ADV1M',
+        adv4m: 'ADV4M',
+        adv1y: 'ADV1Y',
+        market_cap: 'MarketCapitalization',
+        volume: 'Volume',
+        ipo: 'IPO',
+        assettype: 'AssetType',
+        pe_ratio: 'PERatio',
+        ps_ratio: 'PriceToSalesRatioTTM',
+        fcf: 'FCF',
+        cash: 'Cash',
+        current_debt: 'CurrentDebt',
+        current_assets: 'CurrentAssets',
+        current_liabilities: 'CurrentLiabilities',
+        current_ratio: 'CurrentRatio',
+        roe: 'ROE',
+        roa: 'ROA',
+        peg: 'PEGRatio',
+        currency: 'Currency',
+        pb_ratio: 'PriceToBookRatio',
+        industry: 'Industry',
+        book_value: 'BookValue',
+        shares: 'SharesOutstanding',
+        all_time_high: 'AlltimeHigh',
+        low_52w: 'fiftytwoWeekLow',
+        high_52w: 'fiftytwoWeekHigh',
+        all_time_low: 'AlltimeLow',
+        gap: 'Gap',
+        ev: 'EV',
+        rsi: 'RSI',
+        price_target: 'PriceTarget',
+        isin: 'ISIN'
+    };
+
+    // endpoint that sends filtered database data into screener results (minus hidden list for user)
     app.get('/:user/screener/results/all',
         validate([
             validationSchemas.userParam('user')
@@ -299,7 +347,6 @@ export default function (app, deps) {
             let client;
             try {
                 const apiKey = req.header('x-api-key');
-
                 const sanitizedKey = sanitizeInput(apiKey);
 
                 if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
@@ -331,38 +378,48 @@ export default function (app, deps) {
 
                 const hiddenSymbols = userDoc.Hidden || [];
 
+                // Build projection based on Table array
+                const projection = { Symbol: 1, _id: 0 };
+                if (Array.isArray(userDoc.Table)) {
+                    userDoc.Table.forEach(key => {
+                        if (fieldMap[key]) {
+                            if (key === 'price') {
+                                // Special handling for Close
+                                projection['Close'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] };
+                            } else if (key === 'volume') {
+                                // Special handling for Volume
+                                projection['Volume'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "5. volume", input: "$$item.v" } } } }, 0] };
+                            } else if ([
+                                'fcf', 'cash', 'current_debt', 'current_assets', 'current_liabilities', 'current_ratio', 'roe', 'roa'
+                            ].includes(key)) {
+                                // Special handling for quarterlyFinancials fields
+                                const qfMap = {
+                                    fcf: 'freeCashFlow',
+                                    cash: 'cashAndEq',
+                                    current_debt: 'debtCurrent',
+                                    current_assets: 'assetsCurrent',
+                                    current_liabilities: 'liabilitiesCurrent',
+                                    current_ratio: 'currentRatio',
+                                    roe: 'roe',
+                                    roa: 'roa',
+                                };
+                                const field = qfMap[key];
+                                if (field) {
+                                    projection[qfMap[key]] = { $ifNull: [{ $getField: { field: qfMap[key], input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
+                                }
+                            } else {
+                                projection[fieldMap[key]] = 1;
+                            }
+                        }
+                    });
+                }
+
                 // Filter the AssetInfo collection using the 'Hidden' array
                 const assetInfoCollection = db.collection('AssetInfo');
-                const filteredAssets = await assetInfoCollection.find({
-                    Symbol: { $nin: hiddenSymbols }
-                }, {
-                    projection: {
-                        Symbol: 1,
-                        Name: 1,
-                        ISIN: 1,
-                        MarketCapitalization: 1,
-                        Close: { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
-                        PERatio: 1,
-                        PEGRatio: 1,
-                        PriceToSalesRatioTTM: 1,
-                        DividendYield: 1,
-                        EPS: 1,
-                        Sector: 1,
-                        Industry: 1,
-                        Exchange: 1,
-                        Country: 1,
-                        RSScore1W: 1,
-                        RSScore1M: 1,
-                        RSScore4M: 1,
-                        todaychange: 1,
-                        ytdchange: 1,
-                        ADV1W: 1,
-                        ADV1M: 1,
-                        ADV4M: 1,
-                        ADV1Y: 1,
-                        _id: 0
-                    }
-                }).toArray();
+                const filteredAssets = await assetInfoCollection.find(
+                    { Symbol: { $nin: hiddenSymbols } },
+                    { projection }
+                ).toArray();
 
                 res.json(filteredAssets);
             } catch (error) {

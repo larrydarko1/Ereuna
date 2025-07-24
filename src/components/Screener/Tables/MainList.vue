@@ -1,43 +1,33 @@
 <template>
-     <div class="ml-RES">
-            <div class="ml-Header">
-              <div style="min-width: 100px;">
-                <h1 style="background-color: var(--base1)" :key="resultListLength">RESULTS: {{ resultListLength }}</h1>
-              </div>
-              <div style="min-width: 0px;"></div>
-              <div style="min-width: 70px;">Ticker</div>
-              <div style="min-width: 300px;">Name</div>
-              <div style="min-width: 100px;">Price</div>
-              <div style="min-width: 70px;">Chg%</div>
-              <div style="min-width: 120px;">Technical Score (1W)</div>
-              <div style="min-width: 120px;">Technical Score (1M)</div>
-              <div style="min-width: 120px;">Technical Score (4M)</div>
-              <div style="min-width: 100px;">ADV (1W)</div>
-              <div style="min-width: 100px;">ADV (1M)</div>
-              <div style="min-width: 100px;">ADV (4M)</div>
-              <div style="min-width: 100px;">ADV (1Y)</div>
-              <div style="min-width: 120px;">Exchange</div>
-              <div style="min-width: 120px;">Sector</div>
-              <div style="min-width: 200px;">Industry</div>
-              <div style="min-width: 120px;">Location</div>
-              <div style="min-width: 100px;">ISIN</div>
-              <div style="min-width: 150px;">Market Cap</div>
-              <div style="min-width: 70px;">PE Ratio</div>
-              <div style="min-width: 70px;">PS Ratio</div>
-              <div style="min-width: 70px;">PEG Ratio</div>
-              <div style="min-width: 100px;">Dividend Yield (TTM)</div>
-              <div style="min-width: 70px;">EPS</div>
-            </div>
+     <div class="ml-RES" :style="{ minWidth: columnsMinWidth + 'px' }">
+           <div class="ml-Header">
+  <div style="min-width: 100px;">
+    <h1 style="background-color: var(--base1)" :key="resultListLength">RESULTS: {{ resultListLength }}</h1>
+  </div>
+  <div style="min-width: 0px;"></div>
+  <div class="ml-btsymbol">Ticker</div>
+  <div v-for="col in selectedAttributes" :key="col" :style="getColumnStyle(col)">
+    {{ getColumnLabel(col) }}
+  </div>
+</div>
             <div class="ml-wlist-container" @scroll.passive="handleScroll1">
-              <div id="ml-wlist"
-                style="display: flex; flex-direction: row; width: 100vw; height: 35px; align-items: center;"
-                tabindex="0" @keydown="handleKeydown" @click="selectRow(asset.Symbol)"
-                v-for="(asset, index) in currentResults" :key="asset.Symbol" :class="[
-                  index % 2 === 0 ? 'ml-even' : 'ml-odd',
-                  { 'ml-selected': selectedItem === asset.Symbol }
-                ]" :data-symbol="asset.Symbol">
-                <div style="min-width: 50px;; position: relative;">
-                  <button class="ml-dropdown-btn">
+<div
+  id="ml-wlist"
+  :style="{ display: 'flex', flexDirection: 'row', height: '35px', alignItems: 'center'}"
+  tabindex="0"
+  @keydown="handleKeydown"
+  @click="selectRow(asset.Symbol)"
+  v-for="(asset, index) in currentResults"
+  :key="asset.Symbol"
+  :class="[
+    index % 2 === 0 ? 'ml-even' : 'ml-odd',
+    { 'ml-selected': selectedItem === asset.Symbol }
+  ]"
+  :data-symbol="asset.Symbol"
+>
+  <div style="min-width: 50px; position: relative;">
+    <!-- Dropdown button and menu (static) -->
+    <button class="ml-dropdown-btn">
                     <svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                       <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -54,8 +44,8 @@
                       </g>
                     </svg>
                   </button>
-                  <div class="ml-dropdown-menu">
-                    <div @click="hideStock(asset)" @click.stop
+    <div class="ml-dropdown-menu">
+       <div @click="hideStock(asset)" @click.stop
                       style="display: flex; flex-direction: row; align-items: center; height: 14px;">
                       <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 24 24"
                         fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -103,42 +93,17 @@
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-                <div style="min-width: 50px;">
-                  <img :src="getImagePath(asset)" class="ml-img" />
-                </div>
-                <div style="min-width: 70px;" class="ml-btsymbol">{{ asset.Symbol }}</div>
-                <div style="min-width: 300px;">{{ asset.Name }}</div>
-                <div style="min-width: 100px;">{{ asset.Close }}</div>
-                <div style="min-width: 70px;" :class="asset.todaychange > 0 ? 'positive ' : 'negative'">{{
-                  (asset.todaychange * 100).toFixed(2) }}%</div>
-                <div style="min-width: 120px;">{{ asset.RSScore1W }}</div>
-                <div style="min-width: 120px;">{{ asset.RSScore1M }}</div>
-                <div style="min-width: 120px;">{{ asset.RSScore4M }}</div>
-                <div style="min-width: 100px;">{{ asset.ADV1W !== null && !isNaN(asset.ADV1W) ? asset.ADV1W.toFixed(2) +
-                  '%' : '-' }}</div>
-                <div style="min-width: 100px;">{{ asset.ADV1M !== null && !isNaN(asset.ADV1M) ? asset.ADV1M.toFixed(2) +
-                  '%' : '-' }}</div>
-                <div style="min-width: 100px;">{{ asset.ADV4M !== null && !isNaN(asset.ADV4M) ? asset.ADV4M.toFixed(2) +
-                  '%' : '-' }}</div>
-                <div style="min-width: 100px;">{{ asset.ADV1Y !== null && !isNaN(asset.ADV1Y) ? asset.ADV1Y.toFixed(2) +
-                  '%' : '-' }}</div>
-                <div style="min-width: 120px;">{{ asset.Exchange }}</div>
-                <div style="min-width: 120px;">{{ asset.Sector }}</div>
-                <div style="min-width: 200px;">{{ asset.Industry }}</div>
-                <div style="min-width: 120px;">{{ asset.Country }}</div>
-                <div style="min-width: 100px;">{{ asset.ISIN }}</div>
-                <div style="min-width: 150px;">{{ parseInt(asset.MarketCapitalization).toLocaleString() }}</div>
-                <div style="min-width: 70px;"> {{ asset.PERatio < 0 ? '-' : Math.floor(asset.PERatio) }}</div>
-                    <div style="min-width: 70px;"> {{ asset.PriceToSalesRatioTTM < 0 ? '-' :
-                      Math.floor(asset.PriceToSalesRatioTTM) }}</div>
-                        <div style="min-width: 70px;">{{ asset.PEGRatio < 0 ? '-' : Math.floor(asset.PEGRatio) }}</div>
-                            <div style="min-width: 100px;">{{ asset.DividendYield === null || asset.DividendYield ===
-                              undefined || asset.DividendYield === 0 || isNaN(asset.DividendYield * 100) ? '-' :
-                              ((asset.DividendYield * 100).toFixed(2) + '%') }}</div>
-                            <div style="min-width: 70px;">{{ parseFloat(asset.EPS).toFixed(2) }}</div>
-                        </div>
+    </div>
+  </div>
+  <div style="min-width: 50px;">
+    <img :src="getImagePath(asset)" class="ml-img" />
+  </div>
+  <div class="ml-btsymbol">{{ asset.Symbol }}</div>
+  <div v-for="col in selectedAttributes" :key="col" :style="getColumnStyle(col)"
+    :class="getColumnClass(asset, col)">
+    {{ getColumnValue(asset, col) }}
+  </div>
+</div>
                         <div class="ml-results2">
                         </div>
                     </div>
@@ -146,7 +111,21 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue';
+import { ref, defineProps, defineEmits, computed, onMounted } from 'vue';
+
+// Returns a class for todaychange column based on value
+function getColumnClass(asset, col) {
+  const attr = attributes.find(a => a.value === col);
+  if (!attr) return '';
+  if (attr.backend === 'todaychange') {
+    const value = asset[attr.backend];
+    if (typeof value === 'number') {
+      if (value > 0) return 'positive';
+      if (value < 0) return 'negative';
+    }
+  }
+  return '';
+}
 
 const props = defineProps({
   resultListLength: Number,
@@ -155,6 +134,8 @@ const props = defineProps({
   watchlist: Object,
   getImagePath: Function,
   getWatchlistIcon: Function,
+  user: { type: String, required: true },
+  apiKey: { type: String, required: true },
 });
 
 const emit = defineEmits(['scroll', 'keydown', 'select-row', 'hide-stock', 'toggle-watchlist']);
@@ -178,13 +159,206 @@ function hideStock(asset) {
 function toggleWatchlist(ticker, symbol) {
   emit('toggle-watchlist', { ticker, symbol });
 }
+
+const attributes = [
+  { label: 'Symbol', value: 'symbol', backend: 'Symbol' },
+  { label: 'Name', value: 'name', backend: 'Name' },
+  { label: 'ISIN', value: 'isin', backend: 'ISIN' },
+  { label: 'Market Cap', value: 'market_cap', backend: 'MarketCapitalization' },
+  { label: 'Price', value: 'price', backend: 'Close' },
+  { label: 'Volume', value: 'volume', backend: 'Volume' },
+  { label: 'IPO', value: 'ipo', backend: 'IPO' },
+  { label: 'Asset Type', value: 'assettype', backend: 'AssetType' },
+  { label: 'P/E Ratio', value: 'pe_ratio', backend: 'PERatio' },
+  { label: 'PEG', value: 'peg', backend: 'PEGRatio' },
+  { label: 'PB Ratio', value: 'pb_ratio', backend: 'PriceToBookRatio' },
+  { label: 'Price/Sales', value: 'ps_ratio', backend: 'PriceToSalesRatioTTM' },
+  { label: 'Dividend Yield', value: 'dividend_yield', backend: 'DividendYield' },
+  { label: 'EPS', value: 'eps', backend: 'EPS' },
+  { label: 'FCF', value: 'fcf', backend: 'freeCashFlow' },
+  { label: 'Cash', value: 'cash', backend: 'cashAndEq' },
+  { label: 'Current Debt', value: 'current_debt', backend: 'debtCurrent' },
+  { label: 'Current Assets', value: 'current_assets', backend: 'assetsCurrent' },
+  { label: 'Current Liabilities', value: 'current_liabilities', backend: 'liabilitiesCurrent' },
+  { label: 'Current Ratio', value: 'current_ratio', backend: 'currentRatio' },
+  { label: 'ROE', value: 'roe', backend: 'roe' },
+  { label: 'ROA', value: 'roa', backend: 'roa' },
+  { label: 'Currency', value: 'currency', backend: 'Currency' },
+  { label: 'Book Value', value: 'book_value', backend: 'BookValue' },
+  { label: 'Shares Outstanding', value: 'shares', backend: 'SharesOutstanding' },
+  { label: 'Sector', value: 'sector', backend: 'Sector' },
+  { label: 'Industry', value: 'industry', backend: 'Industry' },
+  { label: 'Exchange', value: 'exchange', backend: 'Exchange' },
+  { label: 'Country', value: 'country', backend: 'Country' },
+  { label: 'Technical Score (1W)', value: 'rs_score1w', backend: 'RSScore1W' },
+  { label: 'Technical Score (1M)', value: 'rs_score1m', backend: 'RSScore1M' },
+  { label: 'Technical Score (4M)', value: 'rs_score4m', backend: 'RSScore4M' },
+  { label: 'ADV (1W)', value: 'adv1w', backend: 'ADV1W' },
+  { label: 'ADV (1M)', value: 'adv1m', backend: 'ADV1M' },
+  { label: 'ADV (4M)', value: 'adv4m', backend: 'ADV4M' },
+  { label: 'ADV (1Y)', value: 'adv1y', backend: 'ADV1Y' },
+  { label: '% Change', value: 'perc_change', backend: 'todaychange' },
+  { label: 'All Time High', value: 'all_time_high', backend: 'AlltimeHigh' },
+  { label: 'All Time Low', value: 'all_time_low', backend: 'AlltimeLow' },
+  { label: '52W High', value: 'high_52w', backend: 'fiftytwoWeekHigh' },
+  { label: '52W Low', value: 'low_52w', backend: 'fiftytwoWeekLow' },
+  { label: 'Gap', value: 'gap', backend: 'Gap' },
+  { label: 'EV', value: 'ev', backend: 'EV' },
+  { label: 'RSI', value: 'rsi', backend: 'RSI' },
+  { label: 'Price Target', value: 'price_target', backend: 'PriceTarget' },
+];
+
+function getColumnLabel(col) {
+  const found = attributes.find(a => a.value === col);
+  return found ? found.label : col;
+}
+
+function getColumnValue(asset, col) {
+  const attr = attributes.find(a => a.value === col);
+  if (!attr) return '-';
+  const value = asset[attr.backend];
+  // Map backend keys to formatting rules (type-safe)
+  const formatRules = {
+    DividendYield: v => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
+    EPS: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    todaychange: v => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
+    ADV1W: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    ADV1M: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    ADV4M: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    ADV1Y: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    MarketCapitalization: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    SharesOutstanding: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    PERatio: v => (typeof v === 'number' && v > 0 ? Math.round(v) : '-'),
+    PriceToSalesRatioTTM: v => (typeof v === 'number' && v > 0 ? Math.round(v) : '-'),
+    PEGRatio: v => (typeof v === 'number' && v > 0 ? Math.round(v) : '-'),
+    Volume: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    EV: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    Gap: v => (typeof v === 'number' ? v.toFixed(2) + '%' : '-'),
+    PriceTarget: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    RSI: v => (typeof v === 'number' && v >= 0 ? v.toFixed(2) : '-'),
+    fiftytwoWeekHigh: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    fiftytwoWeekLow: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    AlltimeHigh: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    AlltimeLow: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    BookValue: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    PriceToBookRatio: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    freeCashFlow: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    cashAndEq: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    debtCurrent: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    assetsCurrent: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    liabilitiesCurrent: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    currentRatio: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    roe: v => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
+    roa: v => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
+    IPO: v => {
+      if (!v) return '-';
+      const date = new Date(v);
+      if (isNaN(date.getTime())) return '-';
+      return date.toISOString().slice(0, 10);
+    },
+    Currency: v => (typeof v === 'string' ? v.toUpperCase() : (v ?? '-')),
+  };
+  const formatter = formatRules[attr.backend];
+  if (formatter) return formatter(value);
+  return value ?? '-';
+}
+
+const styleMap = {
+  price: 100,
+  market_cap: 150,
+  volume: 100,
+  ipo: 120,
+  assettype: 120,
+  sector: 120,
+  exchange: 120,
+  country: 120,
+  pe_ratio: 70,
+  ps_ratio: 70,
+  fcf: 100,
+  cash: 100,
+  current_debt: 100,
+  current_assets: 100,
+  current_liabilities: 100,
+  current_ratio: 100,
+  roe: 100,
+  roa: 100,
+  peg: 70,
+  eps: 70,
+  name: 300,
+  pb_ratio: 70,
+  dividend_yield: 100,
+  currency: 70,
+  industry: 200,
+  book_value: 100,
+  shares: 100,
+  rs_score1w: 120,
+  rs_score1m: 120,
+  rs_score4m: 120,
+  all_time_high: 100,
+  all_time_low: 100,
+  high_52w: 100,
+  low_52w: 100,
+  perc_change: 70,
+  isin: 100,
+  gap: 70,
+  ev: 100,
+  adv1w: 100,
+  adv1m: 100,
+  adv4m: 100,
+  adv1y: 100,
+  rsi: 70,
+  price_target: 100,
+};
+
+function getColumnStyle(col) {
+  const width = styleMap[col] || 100;
+  return `min-width: ${width}px;`;
+}
+
+const selectedAttributes = ref([]) // Reactive variable to hold selected attributes
+
+// Load columns from backend and log payload
+async function loadColumns() {
+  try {
+    const response = await fetch(`/api/get/columns?user=${encodeURIComponent(props.user)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': props.apiKey,
+      }
+    });
+    const data = await response.json();
+    const payloadList = Array.isArray(data.columns) ? data.columns : [];
+    const validValues = attributes.map(a => a.value);
+    selectedAttributes.value = payloadList.filter(v => validValues.includes(v));
+  } catch (err) {
+    selectedAttributes.value = [];
+    props.notification.value.show('Failed to load columns');
+  }
+}
+
+onMounted(loadColumns);
+
+const columnsMinWidth = computed(() => {
+  // Always include Ticker column (min-width: 70px) and image column (min-width: 50px)
+  let sum = 70 + 50 + 51; // 51px for the dropdown button
+  for (const col of selectedAttributes.value) {
+    sum += styleMap[col] || 100;
+  }
+  return sum;
+});
+
+onMounted(() => {
+  loadColumns();
+  console.log('currentResults:', props.currentResults);
+});
+
 </script>
 
 <style scoped>
 
 .ml-RES {
   border: none;
-  width: 100%;
 }
 
 .ml-Header {
@@ -194,16 +368,12 @@ function toggleWatchlist(ticker, symbol) {
   border: none;
   display: flex;
   flex-direction: row;
-  width: 100vw;
   height: 30px;
   align-items: center;
-  min-width: 2610px;
 }
 
 .ml-wlist-container {
   height: 800px;
-  width: 100%;
-  min-width: 2610px;
   overflow-y: scroll;
   z-index: 1000;
 }
@@ -218,7 +388,6 @@ function toggleWatchlist(ticker, symbol) {
   color: var(--text1);
   border: none;
   word-break: break-all;
-  min-width: 2610px;
 }
 
 .ml-odd {
@@ -226,7 +395,6 @@ function toggleWatchlist(ticker, symbol) {
   text-align: center;
   color: var(--text1);
   word-break: break-all;
-  min-width: 2610px;
 }
 
 .ml-even:hover,
@@ -333,9 +501,17 @@ function toggleWatchlist(ticker, symbol) {
 
 .ml-results2 {
   background-color: var(--base1);
-  width: 100vw;
   color: var(--text1);
   border: none;
   height: 200px;
+}
+
+.ml-btsymbol {
+  min-width: 70px;
+  border-right: solid 1px var(--base3);
+  height: 100%;
+  align-items: center;
+  display: flex;
+  justify-content: center;
 }
 </style>
