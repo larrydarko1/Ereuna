@@ -2420,8 +2420,10 @@
           </button>
         </div>
         <div v-if="listMode === 'main'">
-         <MainList
+<MainList
   :resultListLength="resultListLength"
+  :user="user"
+  :apiKey="apiKey"
   :currentResults="currentResults"
   :selectedItem="selectedItem"
   :watchlist="watchlist"
@@ -2431,12 +2433,14 @@
   @keydown="handleKeydown"
   @select-row="selectRow"
   @hide-stock="hideStock"
-   @toggle-watchlist="({ ticker, symbol }) => toggleWatchlist(ticker, symbol)"
+  @toggle-watchlist="({ ticker, symbol }) => toggleWatchlist(ticker, symbol)"
 />
               </div>
               <div v-else-if="listMode === 'filter'">
                   <FilterList
     :currentResults="currentResults"
+    :user="user"
+    :apiKey="apiKey"
     :resultListLength="resultListLength"
     :selectedItem="selectedItem"
     :watchlist="watchlist"
@@ -2452,6 +2456,8 @@
                     <div v-else-if="listMode === 'hidden'">
                       <HiddenList
                         :currentResults="currentResults"
+                        :user="user"
+                        :apiKey="apiKey"
                         :resultListLength="resultListLength"
                         :selectedItem="selectedItem"
                         :watchlist="watchlist"
@@ -2467,6 +2473,8 @@
                           <div v-else-if="listMode === 'combined'">
                             <CombinedList
                               :resultListLength="resultListLength"
+                              :user="user"
+                              :apiKey="apiKey"
                               :currentResults="currentResults"
                               :selectedItem="selectedItem"
                               :watchlist="watchlist"
@@ -6305,7 +6313,6 @@ async function confirmResetScreener() {
 const toggleAssetType = (index) => {
   selectedAssetTypes.value[index] = !selectedAssetTypes.value[index]; // Toggle the selected state
 };
-
 </script>
 
 <style lang="scss" scoped>
@@ -7039,6 +7046,7 @@ input:checked+.slider:before {
   margin: none;
   align-self: center;
   justify-content: center;
+  padding: 7px 3px;
 }
 
 .snavbtn {

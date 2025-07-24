@@ -111,14 +111,12 @@ const attributes = [
   { label: 'RSI', value: 'rsi' },
   { label: 'Intrinsic Value', value: 'price_target' },
 ]
-
-
-const selectedAttributes = ref([]) // Reactive variable to hold selected attributes
-
 // Close the modal
 function close() {
   emit('close')
 }
+
+const selectedAttributes = ref([]) // Reactive variable to hold selected attributes
 
 // Load columns from backend and log payload
 async function loadColumns() {
@@ -204,6 +202,7 @@ async function submitEditColumn() {
     const responseData = await response.json();
 
     if (response.ok) {
+      await loadColumns();
       emit('close');
     } else {
       props.notification.value.show(responseData.message || 'Failed to update columns');
@@ -321,11 +320,13 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 360px;
+  overflow-y: scroll;
 }
 .selected-chip {
   background: var(--base4);
   color: var(--text1);
-  border-radius: 14px;
+  border-radius: 10px;
   padding: 7px 12px;
   font-size: 1rem;
   display: flex;
