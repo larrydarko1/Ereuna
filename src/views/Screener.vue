@@ -2346,7 +2346,10 @@
   :apiKey="apiKey"
   :notification="notification"
   :showEditColumn="showEditColumn"
-   @close="showEditColumn = false"
+  :selectedAttributes="selectedAttributes"
+  @update-columns="handleUpdateColumns"
+  @reload-columns="loadColumns"
+  @close="showEditColumn = false"
 />
         <div class="navmenu-mobile">
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
@@ -2422,13 +2425,12 @@
         <div v-if="listMode === 'main'">
 <MainList
   :resultListLength="resultListLength"
-  :user="user"
-  :apiKey="apiKey"
   :currentResults="currentResults"
   :selectedItem="selectedItem"
   :watchlist="watchlist"
   :getImagePath="getImagePath"
   :getWatchlistIcon="getWatchlistIcon"
+  :selectedAttributes="selectedAttributes"
   @scroll="handleScroll1"
   @keydown="handleKeydown"
   @select-row="selectRow"
@@ -6313,6 +6315,40 @@ async function confirmResetScreener() {
 const toggleAssetType = (index) => {
   selectedAssetTypes.value[index] = !selectedAssetTypes.value[index]; // Toggle the selected state
 };
+
+const selectedAttributes = ref([]);
+
+async function loadColumns() {
+  try {
+    const response = await fetch(`/api/get/columns?user=${encodeURIComponent(user)}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': apiKey,
+        }
+      });
+    const data = await response.json();
+    // Accept only valid values (should match MainList/EditColumn attributes)
+    const validValues = [
+      'price','market_cap','volume','ipo','assettype','sector','exchange','country','pe_ratio','ps_ratio','fcf','cash','current_debt','current_assets','current_liabilities','current_ratio','roe','roa','peg','eps','pb_ratio','dividend_yield','name','currency','industry','book_value','shares','rs_score1w','rs_score1m','rs_score4m','all_time_high','all_time_low','high_52w','low_52w','perc_change','isin','gap','ev','adv1w','adv1m','adv4m','adv1y','rsi','price_target'
+    ];
+    selectedAttributes.value = (Array.isArray(data.columns) ? data.columns : []).filter(v => validValues.includes(v));
+  } catch (err) {
+    selectedAttributes.value = [];
+    notification.value.show('Failed to load columns');
+  }
+}
+
+function handleUpdateColumns(newColumns) {
+  selectedAttributes.value = [...newColumns];
+  loadColumns();
+  GetScreenerResultsAll()
+}
+
+onMounted(() => {
+  loadColumns();
+});
 </script>
 
 <style lang="scss" scoped>

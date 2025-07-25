@@ -134,8 +134,7 @@ const props = defineProps({
   watchlist: Object,
   getImagePath: Function,
   getWatchlistIcon: Function,
-  user: { type: String, required: true },
-  apiKey: { type: String, required: true },
+  selectedAttributes: { type: Array, required: true },
 });
 
 const emit = defineEmits(['scroll', 'keydown', 'select-row', 'hide-stock', 'toggle-watchlist']);
@@ -315,42 +314,13 @@ function getColumnStyle(col) {
   return `min-width: ${width}px;`;
 }
 
-const selectedAttributes = ref([]) // Reactive variable to hold selected attributes
-
-// Load columns from backend and log payload
-async function loadColumns() {
-  try {
-    const response = await fetch(`/api/get/columns?user=${encodeURIComponent(props.user)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': props.apiKey,
-      }
-    });
-    const data = await response.json();
-    const payloadList = Array.isArray(data.columns) ? data.columns : [];
-    const validValues = attributes.map(a => a.value);
-    selectedAttributes.value = payloadList.filter(v => validValues.includes(v));
-  } catch (err) {
-    selectedAttributes.value = [];
-    props.notification.value.show('Failed to load columns');
-  }
-}
-
-onMounted(loadColumns);
-
 const columnsMinWidth = computed(() => {
   // Always include Ticker column (min-width: 70px) and image column (min-width: 50px)
   let sum = 70 + 50 + 51; // 51px for the dropdown button
-  for (const col of selectedAttributes.value) {
+  for (const col of props.selectedAttributes) {
     sum += styleMap[col] || 100;
   }
   return sum;
-});
-
-onMounted(() => {
-  loadColumns();
-  console.log('currentResults:', props.currentResults);
 });
 
 </script>

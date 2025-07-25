@@ -11,8 +11,8 @@
               v-for="attr in attributes"
               :key="attr.value"
               class="chip"
-              :class="{ selected: selectedAttributes.includes(attr.value) }"
-              @click="addAttribute(attr.value)"
+          :class="{ selected: localSelected.includes(attr.value) }"
+          @click="addAttribute(attr.value)"
             >
               {{ attr.label }}
             </div>
@@ -20,16 +20,16 @@
         </div>
         <div class="selected-attributes">
           <div class="section-label">Selected Columns</div>
-          <div v-if="selectedAttributes.length === 0" class="empty-selected">No columns selected.</div>
+          <div v-if="localSelected.length === 0" class="empty-selected">No columns selected.</div>
           <div v-else class="selected-list">
             <div
-              v-for="(attrValue, idx) in selectedAttributes"
+              v-for="(attrValue, idx) in localSelected"
               :key="attrValue"
               class="selected-chip"
             >
               <span>{{ getLabel(attrValue) }}</span>
               <button class="move-btn" @click="moveUp(idx)" :disabled="idx === 0" title="Move Up">▲</button>
-              <button class="move-btn" @click="moveDown(idx)" :disabled="idx === selectedAttributes.length - 1" title="Move Down">▼</button>
+              <button class="move-btn" @click="moveDown(idx)" :disabled="idx === localSelected.length - 1" title="Move Down">▼</button>
               <button class="remove-btn" @click="removeAttribute(attrValue)" title="Remove">✕</button>
             </div>
           </div>
@@ -45,12 +45,7 @@
 </template>
 
 <script setup>
-// Reset selected columns and persist to backend
-async function resetColumns() {
-  selectedAttributes.value = [];
-  //await submitEditColumn();
-}
-import { ref, defineProps, defineEmits } from 'vue'
+import { ref, defineProps, defineEmits, watch } from 'vue'
 
 // Define component props
 const props = defineProps({
@@ -59,10 +54,11 @@ const props = defineProps({
   error: { type: Object, required: false },
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
+  selectedAttributes: { type: Array, required: true },
 })
 
-// Emit events for closing the modal and inserting columns
-const emit = defineEmits(['close', 'insert'])
+// Emit events for closing the modal, updating columns, and reloading data
+const emit = defineEmits(['close', 'insert', 'update-columns', 'reload-columns'])
 
 // Define available attributes for the screener
 const attributes = [
@@ -115,58 +111,39 @@ const attributes = [
 function close() {
   emit('close')
 }
+const localSelected = ref([...props.selectedAttributes]);
 
-const selectedAttributes = ref([]) // Reactive variable to hold selected attributes
-
-// Load columns from backend and log payload
-async function loadColumns() {
-  try {
-    const response = await fetch(`/api/get/columns?user=${encodeURIComponent(props.user)}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': props.apiKey,
-      }
-    });
-    const data = await response.json();
-    const payloadList = Array.isArray(data.columns) ? data.columns : [];
-    const validValues = attributes.map(a => a.value);
-    selectedAttributes.value = payloadList.filter(v => validValues.includes(v));
-  } catch (err) {
-    selectedAttributes.value = [];
-    props.notification.value.show('Failed to load columns');
-  }
-}
-
-loadColumns()
+watch(() => props.selectedAttributes, (val) => {
+  localSelected.value = [...val];
+});
 
 // Add an attribute to the selected list
 function addAttribute(attrValue) {
-  if (!selectedAttributes.value.includes(attrValue)) {
-    selectedAttributes.value.push(attrValue)
+  if (!localSelected.value.includes(attrValue)) {
+    localSelected.value.push(attrValue)
   }
 }
 
 // Remove an attribute from the selected list
 function removeAttribute(attrValue) {
-  selectedAttributes.value = selectedAttributes.value.filter(v => v !== attrValue)
+  localSelected.value = localSelected.value.filter(v => v !== attrValue)
 }
 
 // Move the selected attribute up in the list
 function moveUp(idx) {
   if (idx > 0) {
-    const arr = selectedAttributes.value
+    const arr = localSelected.value
     ;[arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]
-    selectedAttributes.value = [...arr]
+    localSelected.value = [...arr]
   }
 }
 
 // Move the selected attribute down in the list
 function moveDown(idx) {
-  if (idx < selectedAttributes.value.length - 1) {
-    const arr = selectedAttributes.value
+  if (idx < localSelected.value.length - 1) {
+    const arr = localSelected.value
     ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
-    selectedAttributes.value = [...arr]
+    localSelected.value = [...arr]
   }
 }
 
@@ -178,7 +155,7 @@ function getLabel(attrValue) {
 
 // Submit the selected columns to the server
 async function submitEditColumn() {
-  if (selectedAttributes.value.length === 0) {
+  if (localSelected.value.length === 0) {
     props.notification.value.show('Please select at least one column');
     return;
   }
@@ -187,7 +164,7 @@ async function submitEditColumn() {
     const endpoint = `/api/update/columns`;
     const payload = {
       user: props.user,
-      columns: [...selectedAttributes.value]
+      columns: [...localSelected.value]
     };
 
     const response = await fetch(endpoint, {
@@ -202,7 +179,8 @@ async function submitEditColumn() {
     const responseData = await response.json();
 
     if (response.ok) {
-      await loadColumns();
+      emit('update-columns', [...localSelected.value]);
+      emit('reload-columns');
       emit('close');
     } else {
       props.notification.value.show(responseData.message || 'Failed to update columns');
@@ -213,9 +191,11 @@ async function submitEditColumn() {
   }
 }
 
-
-// Call loadColumns directly for testing
-loadColumns();
+// Reset selected columns and persist to backend
+async function resetColumns() {
+  localSelected.value = [];
+  // Optionally, call submitEditColumn() here if you want to auto-save
+}
 </script>
 
 <style scoped>
