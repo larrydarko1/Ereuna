@@ -2441,13 +2441,12 @@
               <div v-else-if="listMode === 'filter'">
                   <FilterList
     :currentResults="currentResults"
-    :user="user"
-    :apiKey="apiKey"
     :resultListLength="resultListLength"
     :selectedItem="selectedItem"
     :watchlist="watchlist"
     :getImagePath="getImagePath"
     :getWatchlistIcon="getWatchlistIcon"
+    :selectedAttributes="selectedAttributes"
     @scroll="handleScroll2"
     @keydown="handleKeydown"
     @select-row="selectRow"
@@ -2458,13 +2457,12 @@
                     <div v-else-if="listMode === 'hidden'">
                       <HiddenList
                         :currentResults="currentResults"
-                        :user="user"
-                        :apiKey="apiKey"
                         :resultListLength="resultListLength"
                         :selectedItem="selectedItem"
                         :watchlist="watchlist"
                         :getImagePath="getImagePath"
                         :getWatchlistIcon="getWatchlistIcon"
+                        :selectedAttributes="selectedAttributes"
                         @scroll="handleScroll3"
                         @keydown="handleKeydown"
                         @select-row="selectRow"
@@ -2475,13 +2473,12 @@
                           <div v-else-if="listMode === 'combined'">
                             <CombinedList
                               :resultListLength="resultListLength"
-                              :user="user"
-                              :apiKey="apiKey"
                               :currentResults="currentResults"
                               :selectedItem="selectedItem"
                               :watchlist="watchlist"
                               :getImagePath="getImagePath"
                               :getWatchlistIcon="getWatchlistIcon"
+                              :selectedAttributes="selectedAttributes"
                               @scroll="handleScroll4"
                               @keydown="handleKeydown"
                               @select-row="selectRow"
@@ -3873,6 +3870,7 @@ async function DeleteScreener(screenerName) {
   await GetCompoundedResults();
 }
 
+// get filtered screener results by screener name
 async function fetchScreenerResults(screenerName) {
   try {
     const response = await fetch(`/api/screener/${user}/results/filtered/${screenerName}`, {
@@ -6343,7 +6341,9 @@ async function loadColumns() {
 function handleUpdateColumns(newColumns) {
   selectedAttributes.value = [...newColumns];
   loadColumns();
-  GetScreenerResultsAll()
+  GetScreenerResultsAll();
+  GetCompoundedResults();
+  GetHiddenResults();
 }
 
 onMounted(() => {
