@@ -3,6 +3,7 @@ v1.0.7
 - new session for direct communication for platform added
 - started adding Archie
 - started adding portfolio simulations 
+- screener colummns are now customizable
 ---
 v1.0.6
 - added news

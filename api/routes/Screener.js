@@ -1191,37 +1191,92 @@ export default function (app, deps) {
                     return res.json([]);
                 }
 
-                // Filter the AssetInfo collection to only include symbols in the 'Hidden' array
+
+                // Dynamic projection logic based on userDoc.Table (like /:user/screener/results/all)
+                const projection = { Symbol: 1, _id: 0 };
+                const fieldMap = {
+                    symbol: 'Symbol',
+                    name: 'Name',
+                    isin: 'ISIN',
+                    market_cap: 'MarketCapitalization',
+                    price: 'Close',
+                    volume: 'Volume',
+                    ipo: 'IPO',
+                    assettype: 'AssetType',
+                    pe_ratio: 'PERatio',
+                    peg: 'PEGRatio',
+                    pb_ratio: 'PriceToBookRatio',
+                    ps_ratio: 'PriceToSalesRatioTTM',
+                    dividend_yield: 'DividendYield',
+                    eps: 'EPS',
+                    fcf: 'freeCashFlow',
+                    cash: 'cashAndEq',
+                    current_debt: 'debtCurrent',
+                    current_assets: 'assetsCurrent',
+                    current_liabilities: 'liabilitiesCurrent',
+                    current_ratio: 'currentRatio',
+                    roe: 'roe',
+                    roa: 'roa',
+                    currency: 'Currency',
+                    book_value: 'BookValue',
+                    shares: 'SharesOutstanding',
+                    sector: 'Sector',
+                    industry: 'Industry',
+                    exchange: 'Exchange',
+                    country: 'Country',
+                    rs_score1w: 'RSScore1W',
+                    rs_score1m: 'RSScore1M',
+                    rs_score4m: 'RSScore4M',
+                    adv1w: 'ADV1W',
+                    adv1m: 'ADV1M',
+                    adv4m: 'ADV4M',
+                    adv1y: 'ADV1Y',
+                    perc_change: 'todaychange',
+                    all_time_high: 'AlltimeHigh',
+                    all_time_low: 'AlltimeLow',
+                    high_52w: 'fiftytwoWeekHigh',
+                    low_52w: 'fiftytwoWeekLow',
+                    gap: 'Gap',
+                    ev: 'EV',
+                    rsi: 'RSI',
+                    price_target: 'PriceTarget',
+                };
+                if (Array.isArray(userDoc?.Table)) {
+                    userDoc.Table.forEach(key => {
+                        if (fieldMap[key]) {
+                            if (key === 'price') {
+                                projection['Close'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] };
+                            } else if (key === 'volume') {
+                                projection['Volume'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "5. volume", input: "$$item.v" } } } }, 0] };
+                            } else if ([
+                                'fcf', 'cash', 'current_debt', 'current_assets', 'current_liabilities', 'current_ratio', 'roe', 'roa'
+                            ].includes(key)) {
+                                const qfMap = {
+                                    fcf: 'freeCashFlow',
+                                    cash: 'cashAndEq',
+                                    current_debt: 'debtCurrent',
+                                    current_assets: 'assetsCurrent',
+                                    current_liabilities: 'liabilitiesCurrent',
+                                    current_ratio: 'currentRatio',
+                                    roe: 'roe',
+                                    roa: 'roa',
+                                };
+                                const field = qfMap[key];
+                                if (field) {
+                                    projection[field] = { $ifNull: [{ $getField: { field, input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
+                                }
+                            } else {
+                                projection[fieldMap[key]] = 1;
+                            }
+                        }
+                    });
+                }
+
                 const assetInfoCollection = db.collection('AssetInfo');
                 const filteredAssets = await assetInfoCollection.find({
                     Symbol: { $in: hiddenSymbols }
                 }, {
-                    projection: {
-                        Symbol: 1,
-                        Name: 1,
-                        ISIN: 1,
-                        MarketCapitalization: 1,
-                        Close: { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
-                        PERatio: 1,
-                        PEGRatio: 1,
-                        PriceToSalesRatioTTM: 1,
-                        DividendYield: 1,
-                        EPS: 1,
-                        Sector: 1,
-                        Industry: 1,
-                        Exchange: 1,
-                        Country: 1,
-                        RSScore1W: 1,
-                        RSScore1M: 1,
-                        RSScore4M: 1,
-                        ADV1W: 1,
-                        ADV1M: 1,
-                        ADV4M: 1,
-                        ADV1Y: 1,
-                        todaychange: 1,
-                        ytdchange: 1,
-                        _id: 0
-                    }
+                    projection
                 }).toArray();
 
                 res.json(filteredAssets);
@@ -5776,54 +5831,101 @@ export default function (app, deps) {
                     }
                 });
 
-                const aggregation = [
-                    {
-                        $match: query
-                    },
-                    {
-                        $addFields: {
-                            Close: {
-                                $arrayElemAt: [
-                                    {
-                                        $map: {
-                                            input: { $objectToArray: "$TimeSeries" },
-                                            as: "item",
-                                            in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                        }
-                                    },
-                                    0
-                                ]
+                // Dynamic projection logic based on userDoc.Table (like /:user/screener/results/all)
+                // fieldMap should be defined at the top of this file or imported if shared
+                const usersCollection2 = db.collection('Users');
+                const userDoc2 = await usersCollection2.findOne({ Username: user });
+                const projection = { Symbol: 1, _id: 0 };
+                const fieldMap = {
+                    symbol: 'Symbol',
+                    name: 'Name',
+                    isin: 'ISIN',
+                    market_cap: 'MarketCapitalization',
+                    price: 'Close',
+                    volume: 'Volume',
+                    ipo: 'IPO',
+                    assettype: 'AssetType',
+                    pe_ratio: 'PERatio',
+                    peg: 'PEGRatio',
+                    pb_ratio: 'PriceToBookRatio',
+                    ps_ratio: 'PriceToSalesRatioTTM',
+                    dividend_yield: 'DividendYield',
+                    eps: 'EPS',
+                    fcf: 'freeCashFlow',
+                    cash: 'cashAndEq',
+                    current_debt: 'debtCurrent',
+                    current_assets: 'assetsCurrent',
+                    current_liabilities: 'liabilitiesCurrent',
+                    current_ratio: 'currentRatio',
+                    roe: 'roe',
+                    roa: 'roa',
+                    currency: 'Currency',
+                    book_value: 'BookValue',
+                    shares: 'SharesOutstanding',
+                    sector: 'Sector',
+                    industry: 'Industry',
+                    exchange: 'Exchange',
+                    country: 'Country',
+                    rs_score1w: 'RSScore1W',
+                    rs_score1m: 'RSScore1M',
+                    rs_score4m: 'RSScore4M',
+                    adv1w: 'ADV1W',
+                    adv1m: 'ADV1M',
+                    adv4m: 'ADV4M',
+                    adv1y: 'ADV1Y',
+                    perc_change: 'todaychange',
+                    all_time_high: 'AlltimeHigh',
+                    all_time_low: 'AlltimeLow',
+                    high_52w: 'fiftytwoWeekHigh',
+                    low_52w: 'fiftytwoWeekLow',
+                    gap: 'Gap',
+                    ev: 'EV',
+                    rsi: 'RSI',
+                    price_target: 'PriceTarget',
+                };
+                if (Array.isArray(userDoc2?.Table)) {
+                    userDoc2.Table.forEach(key => {
+                        if (fieldMap[key]) {
+                            if (key === 'price') {
+                                projection['Close'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] };
+                            } else if (key === 'volume') {
+                                projection['Volume'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "5. volume", input: "$$item.v" } } } }, 0] };
+                            } else if ([
+                                'fcf', 'cash', 'current_debt', 'current_assets', 'current_liabilities', 'current_ratio', 'roe', 'roa'
+                            ].includes(key)) {
+                                const qfMap = {
+                                    fcf: 'freeCashFlow',
+                                    cash: 'cashAndEq',
+                                    current_debt: 'debtCurrent',
+                                    current_assets: 'assetsCurrent',
+                                    current_liabilities: 'liabilitiesCurrent',
+                                    current_ratio: 'currentRatio',
+                                    roe: 'roe',
+                                    roa: 'roa',
+                                };
+                                const field = qfMap[key];
+                                if (field) {
+                                    projection[field] = { $ifNull: [{ $getField: { field, input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
+                                }
+                            } else {
+                                projection[fieldMap[key]] = 1;
                             }
                         }
-                    }
+                    });
+                }
+
+                const aggregation = [
+                    { $match: query },
+                    {
+                        $addFields: {
+                            Close: projection['Close'] || undefined,
+                            Volume: projection['Volume'] || undefined,
+                        }
+                    },
+                    { $project: projection }
                 ];
 
-                const filteredAssets = await assetInfoCollection.aggregate(aggregation).project({
-                    Symbol: 1,
-                    Name: 1,
-                    ISIN: 1,
-                    MarketCapitalization: 1,
-                    Close: 1,
-                    PERatio: 1,
-                    PEGRatio: 1,
-                    PriceToSalesRatioTTM: 1,
-                    DividendYield: 1,
-                    EPS: 1,
-                    Sector: 1,
-                    Industry: 1,
-                    Exchange: 1,
-                    Country: 1,
-                    RSScore1W: 1,
-                    RSScore1M: 1,
-                    RSScore4M: 1,
-                    ADV1W: 1,
-                    ADV1M: 1,
-                    ADV4M: 1,
-                    ADV1Y: 1,
-                    todaychange: 1,
-                    _id: 0
-                }).toArray();
-
+                const filteredAssets = await assetInfoCollection.aggregate(aggregation).toArray();
                 res.send(filteredAssets);
             } catch (error) {
                 logger.error('Error fetching screener results', {
@@ -7009,48 +7111,120 @@ export default function (app, deps) {
                         });
 
                         aggregation.push({ $match: query });
-                        aggregation.push({
-                            $addFields: {
-                                Close: {
-                                    $arrayElemAt: [
-                                        {
-                                            $map: {
-                                                input: { $objectToArray: "$TimeSeries" },
-                                                as: "item",
-                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                            }
-                                        },
-                                        0
-                                    ]
-                                }
-                            }
-                        });
 
-                        const filteredAssets = await assetInfoCollection.aggregate(aggregation).project({
-                            Symbol: 1,
-                            Name: 1,
-                            ISIN: 1,
-                            MarketCapitalization: 1,
-                            Close: 1,
-                            PERatio: 1,
-                            PEGRatio: 1,
-                            PriceToSalesRatioTTM: 1,
-                            DividendYield: 1,
-                            EPS: 1,
-                            Sector: 1,
-                            Industry: 1,
-                            Exchange: 1,
-                            Country: 1,
-                            RSScore1W: 1,
-                            RSScore1M: 1,
-                            RSScore4M: 1,
-                            ADV1W: 1,
-                            ADV1M: 1,
-                            ADV4M: 1,
-                            ADV1Y: 1,
-                            todaychange: 1,
-                            _id: 0
-                        }).toArray();
+
+                        // Improved dynamic projection and flattening logic
+                        const fieldMap = {
+                            symbol: 'Symbol',
+                            name: 'Name',
+                            isin: 'ISIN',
+                            market_cap: 'MarketCapitalization',
+                            price: 'Close',
+                            volume: 'Volume',
+                            ipo: 'IPO',
+                            assettype: 'AssetType',
+                            pe_ratio: 'PERatio',
+                            peg: 'PEGRatio',
+                            pb_ratio: 'PriceToBookRatio',
+                            ps_ratio: 'PriceToSalesRatioTTM',
+                            dividend_yield: 'DividendYield',
+                            eps: 'EPS',
+                            fcf: 'freeCashFlow',
+                            cash: 'cashAndEq',
+                            current_debt: 'debtCurrent',
+                            current_assets: 'assetsCurrent',
+                            current_liabilities: 'liabilitiesCurrent',
+                            current_ratio: 'currentRatio',
+                            roe: 'roe',
+                            roa: 'roa',
+                            currency: 'Currency',
+                            book_value: 'BookValue',
+                            shares: 'SharesOutstanding',
+                            sector: 'Sector',
+                            industry: 'Industry',
+                            exchange: 'Exchange',
+                            country: 'Country',
+                            rs_score1w: 'RSScore1W',
+                            rs_score1m: 'RSScore1M',
+                            rs_score4m: 'RSScore4M',
+                            adv1w: 'ADV1W',
+                            adv1m: 'ADV1M',
+                            adv4m: 'ADV4M',
+                            adv1y: 'ADV1Y',
+                            perc_change: 'todaychange',
+                            all_time_high: 'AlltimeHigh',
+                            all_time_low: 'AlltimeLow',
+                            high_52w: 'fiftytwoWeekHigh',
+                            low_52w: 'fiftytwoWeekLow',
+                            gap: 'Gap',
+                            ev: 'EV',
+                            rsi: 'RSI',
+                            price_target: 'PriceTarget',
+                        };
+
+                        // Always include Symbol for frontend keying
+                        let projection = { Symbol: 1, _id: 0 };
+                        let addFields = {};
+
+                        if (userDoc && Array.isArray(userDoc.Table)) {
+                            userDoc.Table.forEach(attr => {
+                                const backendField = fieldMap[attr] || attr;
+                                // Special handling for 'price'/'Close'
+                                if (attr === 'price' || attr === 'Close') {
+                                    addFields['Close'] = {
+                                        $arrayElemAt: [
+                                            {
+                                                $map: {
+                                                    input: { $objectToArray: "$TimeSeries" },
+                                                    as: "item",
+                                                    in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                }
+                                            },
+                                            0
+                                        ]
+                                    };
+                                    projection['Close'] = 1;
+                                    return;
+                                }
+                                // Special handling for 'volume'
+                                if (attr === 'volume' || attr === 'Volume') {
+                                    addFields['Volume'] = {
+                                        $arrayElemAt: [
+                                            {
+                                                $map: {
+                                                    input: { $objectToArray: "$TimeSeries" },
+                                                    as: "item",
+                                                    in: { $getField: { field: "5. volume", input: "$$item.v" } }
+                                                }
+                                            },
+                                            0
+                                        ]
+                                    };
+                                    projection['Volume'] = 1;
+                                    return;
+                                }
+                                // Special handling for quarterly fields
+                                const quarterlyFields = [
+                                    'roe', 'roa', 'currentRatio', 'assetsCurrent', 'liabilitiesCurrent',
+                                    'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin',
+                                    'debtEquity', 'bookVal'
+                                ];
+                                if (quarterlyFields.includes(backendField)) {
+                                    addFields[backendField] = { $ifNull: [{ $getField: { field: backendField, input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
+                                    projection[backendField] = 1;
+                                    return;
+                                }
+                                projection[backendField] = 1;
+                            });
+                        }
+
+                        // Build aggregation pipeline
+                        if (Object.keys(addFields).length > 0) {
+                            aggregation.push({ $addFields: addFields });
+                        }
+                        aggregation.push({ $project: projection });
+
+                        const filteredAssets = await assetInfoCollection.aggregate(aggregation).toArray();
 
                         filteredAssets.forEach(asset => {
                             const key = asset.Symbol;
