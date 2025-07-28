@@ -557,7 +557,7 @@ def getHistoricalCryptoPrice():
         ticker_lower = ticker.lower()
         url = (
             f'https://api.tiingo.com/tiingo/crypto/prices'
-            f'?tickers={ticker_lower}&startDate=2025-07-03&resampleFreq=1Day&token={api_key}'
+            f'?tickers={ticker_lower}&startDate=2025-07-20&resampleFreq=1Day&token={api_key}'
         )
         response = requests.get(url)
         
