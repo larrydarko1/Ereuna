@@ -112,6 +112,9 @@ export default function (app, deps) {
                 // --- Weekly ---
                 const weeklyColl = db.collection('OHCLVData2');
                 const weeklyData = await weeklyColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                // --- 1 Minute ---
+                const intraday1mColl = db.collection('OHCLVData1m');
+                const intraday1mData = await intraday1mColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
                 // Helper for MA
                 function calcMA(Data, period) {
                     if (Data.length < period) return [];
@@ -161,6 +164,24 @@ export default function (app, deps) {
                     MA20: weeklyData.length ? calcMA(weeklyData, 20) : [],
                     MA50: weeklyData.length ? calcMA(weeklyData, 50) : [],
                     MA200: weeklyData.length ? calcMA(weeklyData, 200) : [],
+                };
+                // Format intraday 1m
+                const intraday1m = {
+                    ohlc: intraday1mData.length ? intraday1mData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 19),
+                        open: parseFloat(item.open.toString().slice(0, 8)),
+                        high: parseFloat(item.high.toString().slice(0, 8)),
+                        low: parseFloat(item.low.toString().slice(0, 8)),
+                        close: parseFloat(item.close.toString().slice(0, 8)),
+                    })) : [],
+                    volume: intraday1mData.length ? intraday1mData.map(item => ({
+                        time: item.timestamp.toISOString().slice(0, 19),
+                        value: item.volume,
+                    })) : [],
+                    MA10: intraday1mData.length ? calcMA(intraday1mData, 10, 'datetime') : [],
+                    MA20: intraday1mData.length ? calcMA(intraday1mData, 20, 'datetime') : [],
+                    MA50: intraday1mData.length ? calcMA(intraday1mData, 50, 'datetime') : [],
+                    MA200: intraday1mData.length ? calcMA(intraday1mData, 200, 'datetime') : [],
                 };
 
                 // --- Intraday collections ---
@@ -253,7 +274,7 @@ export default function (app, deps) {
                 };
 
                 // response:
-                res.json({ daily, weekly, intraday5m, intraday15m, intraday30m, intraday1hr });
+                res.json({ daily, weekly, intraday1m, intraday5m, intraday15m, intraday30m, intraday1hr });
 
             } catch (error) {
                 logger.error({
