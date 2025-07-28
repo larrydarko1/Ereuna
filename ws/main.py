@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import websockets
 import ssl
 import asyncio
-from pymongo import MongoClient
+import motor.motor_asyncio
 import traceback
 from aggregator import start_aggregator, aggregate_higher_timeframes
 
@@ -24,8 +24,8 @@ app.add_middleware(
 
 # MongoDB connection setup
 MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
-mongo_client = MongoClient(MONGO_URI)
-db = mongo_client['EreunaDB']
+mongo_client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URI)
+db = mongo_client.get_database('EreunaDB')
 
 message_queue = asyncio.Queue(maxsize=100000)  # Holds latest messages
 
@@ -214,7 +214,7 @@ async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
                 else:
                     continue
                 # Fetch previous close from MongoDB (or cache if you have it)
-                asset_doc = db.AssetInfo.find_one({"Symbol": symbol.upper()})
+                asset_doc = await db.AssetInfo.find_one({"Symbol": symbol.upper()})
                 previous_close = None
                 if asset_doc and "TimeSeries" in asset_doc and asset_doc["TimeSeries"]:
                     ts_dict = asset_doc["TimeSeries"]
@@ -271,7 +271,7 @@ async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
                 else:
                     continue
                 # Fetch previous close from MongoDB
-                asset_doc = db.AssetInfo.find_one({"Symbol": symbol.upper()})
+                asset_doc = await db.AssetInfo.find_one({"Symbol": symbol.upper()})
                 previous_close = None
                 if asset_doc and "TimeSeries" in asset_doc and asset_doc["TimeSeries"]:
                     ts_dict = asset_doc["TimeSeries"]
@@ -323,7 +323,7 @@ async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
     await websocket.accept()
     try:
         # Fetch user's WatchPanel list from Users collection
-        user_doc = db.Users.find_one({"Username": user})
+        user_doc = await db.Users.find_one({"Username": user})
         if not user_doc or "WatchPanel" not in user_doc:
             await websocket.send_text(json.dumps({"error": "User or WatchPanel not found"}))
             await websocket.close()
@@ -351,7 +351,7 @@ async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
                         continue
 
                     # Fetch previous close from MongoDB (or cache if you have it)
-                    asset_doc = db.AssetInfo.find_one({"Symbol": symbol.upper()})
+                    asset_doc = await db.AssetInfo.find_one({"Symbol": symbol.upper()})
                     previous_close = None
                     if asset_doc and "TimeSeries" in asset_doc and asset_doc["TimeSeries"]:
                         ts_dict = asset_doc["TimeSeries"]
@@ -402,7 +402,7 @@ async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
                     continue
 
                 # Fetch previous close from MongoDB
-                asset_doc = db.AssetInfo.find_one({"Symbol": symbol.upper()})
+                asset_doc = await db.AssetInfo.find_one({"Symbol": symbol.upper()})
                 previous_close = None
                 if asset_doc and "TimeSeries" in asset_doc and asset_doc["TimeSeries"]:
                     ts_dict = asset_doc["TimeSeries"]

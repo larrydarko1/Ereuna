@@ -1124,6 +1124,12 @@ const data33 = ref([]); // 1hr MA10
 const data34 = ref([]); // 1hr MA20
 const data35 = ref([]); // 1hr MA50
 const data36 = ref([]); // 1hr MA200
+const data37 = ref([]); // 1m OHLC
+const data38 = ref([]); // 1m Volume
+const data39 = ref([]); // 1m MA10
+const data40 = ref([]); // 1m MA20
+const data41 = ref([]); // 1m MA50
+const data42 = ref([]); // 1m MA200
 const SplitsDate = ref([]); // Splits Data - just date
 const DividendsDate = ref([]); // Dividends Data 
 const priceTarget = ref(null);
@@ -1203,6 +1209,14 @@ async function fetchChartData() {
     data34.value = Array.isArray(result.intraday1hr?.MA20) ? result.intraday1hr.MA20 : [];
     data35.value = Array.isArray(result.intraday1hr?.MA50) ? result.intraday1hr.MA50 : [];
     data36.value = Array.isArray(result.intraday1hr?.MA200) ? result.intraday1hr.MA200 : [];
+
+    // Intraday 1m
+    data37.value = Array.isArray(result.intraday1m?.ohlc) ? result.intraday1m.ohlc : [];
+    data38.value = Array.isArray(result.intraday1m?.volume) ? result.intraday1m.volume : [];
+    data39.value = Array.isArray(result.intraday1m?.MA10) ? result.intraday1m.MA10 : [];
+    data40.value = Array.isArray(result.intraday1m?.MA20) ? result.intraday1m.MA20 : [];
+    data41.value = Array.isArray(result.intraday1m?.MA50) ? result.intraday1m.MA50 : [];
+    data42.value = Array.isArray(result.intraday1m?.MA200) ? result.intraday1m.MA200 : [];
   } catch (error) {
     error.value = error.message;
   }
@@ -1215,6 +1229,7 @@ const charttype = ref('C')
 const isBarChart = ref(false);
 
 const chartTypes = [
+  { label: 'Intraday 1m', value: 'intraday1m', shortLabel: '1m' },
   { label: 'Intraday 5m', value: 'intraday5m', shortLabel: '5m' },
   { label: 'Intraday 15m', value: 'intraday15m', shortLabel: '15m' },
   { label: 'Intraday 30m', value: 'intraday30m', shortLabel: '30m' },
@@ -1226,6 +1241,7 @@ const chartTypes = [
 
 // Chart data type selection (multi-option)
 const dataTypes = [
+  { label: 'Intraday 1m', value: 'intraday1m', data: () => data37.value, volume: () => data38.value, ma: [() => data39.value, () => data40.value, () => data41.value, () => data42.value] },
   { label: 'Intraday 5m', value: 'intraday5m', data: () => data13.value, volume: () => data14.value, ma: [() => data15.value, () => data16.value, () => data17.value, () => data18.value] },
   { label: 'Intraday 15m', value: 'intraday15m', data: () => data19.value, volume: () => data20.value, ma: [() => data21.value, () => data22.value, () => data23.value, () => data24.value] },
   { label: 'Intraday 30m', value: 'intraday30m', data: () => data25.value, volume: () => data26.value, ma: [() => data27.value, () => data28.value, () => data29.value, () => data30.value] },
@@ -1396,7 +1412,7 @@ function updateChartData() {
   updateLastRecordedValue(changes);
 
   // --- Time scale formatting and series visibility for intraday ---
-  const isIntraday = ["intraday5m", "intraday15m", "intraday30m", "intraday1hr"].includes(selectedDataType.value);
+  const isIntraday = ["intraday1m","intraday5m", "intraday15m", "intraday30m", "intraday1hr"].includes(selectedDataType.value);
   // Set correct tickMarkFormatter for each chart type
   if (isIntraday) {
     chartInstance.value.timeScale().applyOptions({
