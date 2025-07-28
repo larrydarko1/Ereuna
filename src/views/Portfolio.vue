@@ -74,6 +74,38 @@
           @imported="() => { fetchPortfolio(); fetchTransactionHistory(); fetchCash(); }"
         />
     </div>
+   <div class="portfolio-archetype">
+  <div class="archetype-flex">
+    <svg class="archetype-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      <g id="SVGRepo_iconCarrier">
+        <circle cx="34.52" cy="11.43" r="5.82" :stroke="text2" :fill="text2"/>
+        <circle cx="53.63" cy="31.6" r="5.82" :stroke="text2" :fill="text2"/>
+        <circle cx="34.52" cy="50.57" r="5.82" :stroke="text2" :fill="text2" />
+        <circle cx="15.16" cy="42.03" r="5.82" :stroke="text2" :fill="text2" />
+        <circle cx="15.16" cy="19.27" r="5.82" :stroke="text2" :fill="text2" />
+        <circle cx="34.51" cy="29.27" r="4.7" :stroke="text2" :fill="text2" />
+        <line x1="20.17" y1="16.3" x2="28.9" y2="12.93" :stroke="text2" />
+        <line x1="38.6" y1="15.59" x2="49.48" y2="27.52" :stroke="text2" />
+        <line x1="50.07" y1="36.2" x2="38.67" y2="46.49" :stroke="text2" />
+        <line x1="18.36" y1="24.13" x2="30.91" y2="46.01" :stroke="text2" />
+        <line x1="20.31" y1="44.74" x2="28.7" y2="48.63" :stroke="text2" />
+        <line x1="17.34" y1="36.63" x2="31.37" y2="16.32" :stroke="text2" />
+        <line x1="20.52" y1="21.55" x2="30.34" y2="27.1" :stroke="text2" />
+        <line x1="39.22" y1="29.8" x2="47.81" y2="30.45" :stroke="text2" />
+        <line x1="34.51" y1="33.98" x2="34.52" y2="44.74" :stroke="text2" />
+      </g>
+    </svg>
+    <div class="archetype-content">
+      <div class="archetype-header">
+        <h2>Archetype: {{ currentArchetype.name }}</h2>
+        <span :class="['archetype-badge', currentArchetype.type]">
+          {{ currentArchetype.type === 'good' ? 'Good Archetype' : 'Bad Archetype' }}
+        </span>
+      </div>
+      <p>{{ currentArchetype.desc }}</p>
+    </div>
+  </div>
+</div>
     <div class="portfolio-summary">
       <div class="summary-card">
   <div class="summary-title">Total Value</div>
@@ -1292,6 +1324,29 @@ onMounted(() => {
   selectPortfolio(0);
 });
 
+// --- Archetype Definitions --- for the Portfolio Archetype feature
+const archetypes = [
+  { name: "The Disciplined Planner", desc: "Follows a tested strategy, manages risk well, and sticks to the plan.", type: "good" },
+  { name: "The Adaptive Strategist", desc: "Adjusts to market conditions, maximizes opportunities, and learns from mistakes.", type: "good" },
+  { name: "The Patient Investor", desc: "Benefits from compounding and long-term trends, rarely trades on emotion.", type: "good" },
+  { name: "The Diversifier", desc: "Reduces risk through diversification across assets and strategies.", type: "good" },
+  { name: "The Boom & Buster", desc: "Goes all-in with leverage, riding big wins—until one loss wipes out everything.", type: "bad" },
+  { name: "The Stopless Hero", desc: "Refuses to use stop-losses, letting small losses snowball into disasters.", type: "bad" },
+  { name: "The FOMO Chaser", desc: "Buys tops and sells bottoms, always late to the party, driven by hype and fear of missing out.", type: "bad" },
+  { name: "The Averager", desc: "Keeps doubling down on losers, hoping for a turnaround that rarely comes.", type: "bad" },
+  { name: "The Risk Ignorer", desc: "Puts too much on one trade or ignores diversification, exposing themselves to huge drawdowns.", type: "bad" },
+  { name: "The Planless Gambler", desc: "Trades on gut feeling, rumors, or tips—never with a real plan or system.", type: "bad" },
+  { name: "The Revenge Trader", desc: "Tries to win back losses with bigger, riskier bets, digging the hole deeper.", type: "bad" },
+  { name: "The Emotional Reactor", desc: "Lets fear, greed, or frustration dictate every move, abandoning logic and discipline.", type: "bad" },
+  { name: "The Market Ignorer", desc: "Uses the same strategy in all conditions, never adapting to volatility or trends.", type: "bad" },
+  { name: "The Overtrader", desc: "Trades too often, chasing every move and racking up fees and mistakes.", type: "bad" }
+];
+
+// Computed property to determine the current archetype based on selected portfolio index
+const currentArchetype = computed(() => {
+  // Placeholder: assign archetype by selectedPortfolioIndex
+  return archetypes[selectedPortfolioIndex.value % archetypes.length];
+});
 
 </script>
 
@@ -1344,6 +1399,89 @@ onMounted(() => {
       color: var(--text3);
     }
   }
+}
+/* Archetype display styling */
+.portfolio-archetype {
+  background: var(--base2);
+  border-radius: 10px;
+  border: 1px solid var(--base3);
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.08);
+  padding: 10px 14px;
+  margin: 18px 0 24px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 260px;
+  color: var(--text1);
+  position: relative;
+
+    .archetype-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .archetype-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
+  }
+
+    .archetype-icon {
+    width: 32px;
+    min-width: 32px;
+    margin-right: 18px;
+    margin-top: 2px;
+  }
+
+    .archetype-flex {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    position: relative;
+  }
+
+  h2 {
+    color: var(--accent1);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0;
+  }
+}
+
+.archetype-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 5px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 6px 0 rgba(0,0,0,0.08);
+  border: none;
+  margin-left: 2px;
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  z-index: 2;
+
+  &.good {
+    background: linear-gradient(90deg, var(--positive) 60%, var(--positive) 100%);
+    color: var(--text3);
+  }
+
+  &.bad {
+    background: linear-gradient(90deg, var(--negative) 60%, var(--negative) 100%);
+    color: var(--text3);
+  }
+}
+
+.portfolio-archetype p {
+  color: var(--text2);
+  font-size: 1.05rem;
+  margin-bottom: 0;
+  line-height: 1.5;
 }
 
 .trade-btn {

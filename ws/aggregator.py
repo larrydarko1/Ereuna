@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger("aggregator")
 logger.setLevel(logging.INFO)
 
-def get_5min_bucket(ts):
+def get_1min_bucket(ts):
     # ts: ISO8601 string or epoch ms
     if isinstance(ts, (int, float)):
         dt = datetime.utcfromtimestamp(ts / 1000).replace(tzinfo=timezone.utc)
@@ -14,13 +14,11 @@ def get_5min_bucket(ts):
         dt = datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone(timezone.utc)
     else:
         raise ValueError("Unknown timestamp format")
-    dt = dt.replace(second=0, microsecond=0)
-    minute = (dt.minute // 5) * 5
-    return dt.replace(minute=minute)
+    return dt.replace(second=0, microsecond=0)
 
 async def start_aggregator(message_queue, mongo_client):
     db = mongo_client['EreunaDB']
-    collection = db['OHCLVData5m']
+    collection = db['OHCLVData1m']
     candles = {}  # {(symbol, bucket): candle_dict}
 
     try:
@@ -45,7 +43,7 @@ async def start_aggregator(message_queue, mongo_client):
                 else:
                     continue
 
-                bucket = get_5min_bucket(ts)
+                bucket = get_1min_bucket(ts)
                 key = (symbol, bucket)
                 candle = candles.get(key)
                 if not candle:
@@ -67,7 +65,7 @@ async def start_aggregator(message_queue, mongo_client):
                 finished = []
                 docs = []
                 for (sym, bkt), cndl in candles.items():
-                    if now >= bkt + timedelta(minutes=5):
+                    if now >= bkt + timedelta(minutes=1):
                         docs.append({
                             "timestamp": cndl["timestamp"],
                             "tickerID": cndl["tickerID"],
@@ -82,7 +80,7 @@ async def start_aggregator(message_queue, mongo_client):
                         await asyncio.get_event_loop().run_in_executor(
                             None, lambda: collection.insert_many(docs)
                         )
-                        logger.info(f"Inserted {len(docs)} OHCLVData5m candles")
+                        logger.info(f"Inserted {len(docs)} OHCLVData1m candles")
                     except Exception as e:
                         logger.error(f"MongoDB insert error: {e}")
                     for k in finished:
@@ -108,39 +106,50 @@ async def start_aggregator(message_queue, mongo_client):
                 await asyncio.get_event_loop().run_in_executor(
                     None, lambda: collection.insert_many(docs)
                 )
-                logger.info(f"Aggregator shutdown: flushed {len(docs)} candles")
+                logger.info(f"Aggregator shutdown: flushed {len(docs)} 1m candles")
             except Exception as e:
                 logger.error(f"MongoDB insert error on shutdown: {e}")
                 
 async def aggregate_higher_timeframes(mongo_client):
     db = mongo_client['EreunaDB']
-    col_5m = db['OHCLVData5m']
+    col_1m = db['OHCLVData1m']
     configs = [
-        {"minutes": 15, "collection": db['OHCLVData15m'], "window": 3},
-        {"minutes": 30, "collection": db['OHCLVData30m'], "window": 6},
-        {"minutes": 60, "collection": db['OHCLVData1hr'], "window": 12},
+        {"minutes": 5, "collection": db['OHCLVData5m'], "window": 5},
+        {"minutes": 15, "collection": db['OHCLVData15m'], "window": 15},
+        {"minutes": 30, "collection": db['OHCLVData30m'], "window": 30},
+        {"minutes": 60, "collection": db['OHCLVData1hr'], "window": 60},
+        {"minutes": 1440, "collection": db['OHCLVData'], "window": 1440},  # Daily aggregation
     ]
 
     while True:
         try:
             now = datetime.utcnow().replace(second=0, microsecond=0, tzinfo=timezone.utc)
-            since = now - timedelta(hours=1)
-            symbols = col_5m.distinct("tickerID", {"timestamp": {"$gte": since}})
+            since = now - timedelta(days=2)
+            symbols = col_1m.distinct("tickerID", {"timestamp": {"$gte": since}})
             for cfg in configs:
                 tf = cfg["minutes"]
                 window = cfg["window"]
                 col = cfg["collection"]
                 for symbol in symbols:
                     # Find the latest completed bucket for this timeframe
-                    last_bucket = now - timedelta(minutes=now.minute % tf, seconds=now.second, microseconds=now.microsecond)
-                    last_complete = last_bucket - timedelta(minutes=tf)
-                    # Get the N 5m candles for this bucket
-                    candles = list(col_5m.find(
+                    if tf == 1440:
+                        # Daily bucket: truncate to midnight UTC
+                        last_bucket = now.replace(hour=0, minute=0, second=0, microsecond=0)
+                        last_complete = last_bucket - timedelta(days=1)
+                        start = last_complete
+                        end = last_complete + timedelta(days=1)
+                    else:
+                        last_bucket = now - timedelta(minutes=now.minute % tf, seconds=now.second, microseconds=now.microsecond)
+                        last_complete = last_bucket - timedelta(minutes=tf)
+                        start = last_complete
+                        end = last_complete + timedelta(minutes=tf)
+                    # Get the N 1m candles for this bucket
+                    candles = list(col_1m.find(
                         {
                             "tickerID": symbol,
                             "timestamp": {
-                                "$gte": last_complete,
-                                "$lt": last_complete + timedelta(minutes=tf)
+                                "$gte": start,
+                                "$lt": end
                             }
                         }
                     ).sort("timestamp", 1))
@@ -150,7 +159,7 @@ async def aggregate_higher_timeframes(mongo_client):
                         h = max(c["high"] for c in candles)
                         l = min(c["low"] for c in candles)
                         doc = {
-                            "timestamp": last_complete,
+                            "timestamp": start,
                             "tickerID": symbol,
                             "open": o,
                             "close": c,
@@ -162,9 +171,9 @@ async def aggregate_higher_timeframes(mongo_client):
                         except Exception as e:
                             # Ignore duplicate key errors, log others
                             if "duplicate key" not in str(e):
-                                logger.error(f"Insert error for {symbol} {last_complete}: {e}")
+                                logger.error(f"Insert error for {symbol} {start}: {e}")
             logger.info("Higher timeframe aggregation complete")
         except Exception as e:
             logger.error(f"Error in higher timeframe aggregation: {e}")
-        await asyncio.sleep(300)  # Run every 5 minutes
+        await asyncio.sleep(60)  # Run every minute for 1m candles
         
