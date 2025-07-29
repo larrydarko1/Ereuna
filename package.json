@@ -12,8 +12,7 @@
     "dbstop": "brew services stop mongodb-community@7.0",
     "docker": "docker-compose up --build",
     "dbup": "mongodump --db=EreunaDB --out=mongodb-init/dump",
-    "scraper": "cd /server uvicorn main:app --reload",
-    "websocket": "cd ws && uvicorn main:app --reload"
+    "websocket": "cd server && uvicorn main:app --reload"
   },
   "dependencies": {
     "@stripe/stripe-js": "^5.0.0",

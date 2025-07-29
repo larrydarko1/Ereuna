@@ -1,6 +1,0 @@
-fastapi
-uvicorn
-websockets
-python-dotenv
-pymongo
-pytz
