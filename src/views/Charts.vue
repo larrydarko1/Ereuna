@@ -124,7 +124,7 @@
     {{ type.shortLabel }}
   </button>
             </div>
-            <div style="display: flex; gap: 5px;">
+            <div style="display: flex; gap: 5px; justify-content: flex-end;">
               <button class="navbt" v-b-tooltip.hover title="Change Chart type" @click="toggleChartType"
               aria-label="Toggle chart type">
               {{ isBarChart ? 'C' : 'B' }}
