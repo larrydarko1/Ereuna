@@ -427,23 +427,6 @@ function setupCardAnimations() {
   border: solid 1px $accent3;
 }
 
-.beta-tag-on-video {
-  position: absolute;
-  top: 70%;
-  left: 50%;
-  transform: translateX(-50%) rotate(-5deg);
-  border: solid 2px $accent1;
-  width: 150px;
-  border-radius: 5px;
-  color: $accent1;
-  text-align: center;
-  letter-spacing: 2px;
-  font-weight: bold;
-  padding: 3px;
-  margin-top: 20px;
-  font-size: 20px;
-}
-
 .pricing-cards {
   display: flex;
   flex-direction: row;
@@ -452,8 +435,8 @@ function setupCardAnimations() {
 }
 
 .sphere-gradient {
-  position: fixed;
-  top: 110%;
+  position: absolute;
+  top: 100%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 400px;
@@ -646,7 +629,7 @@ a:hover{
 }
 
 .features{
-  background-color: transparent;
+  background-color: $base4;
   width: 100%;
   z-index: 2px;
   position: absolute;
@@ -725,40 +708,6 @@ a:hover{
   animation: border-animation 3s ease infinite;
 }
 
-.comparison-table {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  border-radius: 10px;
-  overflow: hidden;
-  background: linear-gradient(to top, #f7f7f7, #f7f7f7);
-  background-image: linear-gradient(to bottom, #8c8dfe1a, #8c8efe09);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.05);
-}
-
-.table-header, .table-row {
-  display: flex;
-  color: $text1;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-}
-
-.table-header {
-  background-color: $base2;
-  font-weight: bold;
-}
-
-.table-cell {
-  flex: 1;
-  padding: 10px;
-  color: #dcdcdc;
-}
-
-.table-cell:first-child {
-  flex: 2;
-}
-
 .icon2{
   width: 20px;
   height: 20px;
@@ -782,12 +731,12 @@ a:hover{
 }
 
 .faq-card {
-  background-color: $base4;
+  background-color: $base2;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 80%;
-  color: whitesmoke;
+  color: $text2;
 }
 
 .faq-question {
@@ -843,7 +792,7 @@ a:hover{
 }
 
 .pricing-card{
-  background-color: $base4;
+  background-color: $base2;
   border-radius: 10px;
   align-items: center;
   text-align: center;
@@ -876,34 +825,24 @@ a:hover{
 /* Modern Comparison Table Redesign */
 .comparison-table {
   width: 100%;
-  max-width: 1000px;
+  max-width: 1300px;
   margin: 2.5rem auto 2rem auto;
-  background: linear-gradient(135deg, #232946 60%, #1a1a2e 100%);
   border-radius: 1.5rem;
-  box-shadow: 0 4px 24px rgba(30, 41, 59, 0.10), 0 1.5px 6px rgba(30, 41, 59, 0.06);
   overflow: hidden;
   font-size: 1.08rem;
+  background-color: $base2;
 }
 .table-header {
   display: flex;
-  background: linear-gradient(90deg, #6366f1 60%, #818cf8 100%);
   color: #fff;
   font-weight: 700;
   font-size: 1.15rem;
   padding: 1.1rem 0.5rem 1.1rem 0.5rem;
-  border-bottom: 1px solid #3b3b5c;
 }
 .table-row {
   display: flex;
-  background: rgba(255,255,255,0.01);
-  transition: background 0.18s;
 }
-.table-row:nth-child(even) {
-  background: rgba(99,102,241,0.07);
-}
-.table-row:hover {
-  background: rgba(99,102,241,0.13);
-}
+
 .table-cell {
   flex: 1 1 0;
   padding: 1rem 0.5rem;
@@ -1007,7 +946,7 @@ a:hover{
   text-align: center;
   padding: 60px 20px;
   overflow: hidden;
-  background-color: $base4;
+  background-color: $base2;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.05);
   margin-top: 40px;
 }
@@ -1173,8 +1112,6 @@ a.social {
 .pricebtn.full-width:hover {
   background: $accent2;
 }
-
-// ...existing code...
 
 .back-to-top:hover {
   opacity: 1;

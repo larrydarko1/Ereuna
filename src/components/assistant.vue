@@ -11,15 +11,49 @@
           class="icon"
           key="icon"
         >
-          <!-- AI SVG Icon -->
-          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="32" height="32"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>ai-solid</title> <g id="Layer_2" data-name="Layer 2"> <g id="invisible_box" data-name="invisible box"> <rect width="48" height="48" fill="none"></rect> </g> <g id="Q3_icons" data-name="Q3 icons"> <g> <path d="M17.9,2h-.4L7.6,6.6a1,1,0,0,0-.6.9v7.4l-.6.5-4,3.3a.8.8,0,0,0-.4.8v9a.9.9,0,0,0,.4.8l4,3.3.6.5v7.4a1,1,0,0,0,.6.9l9.9,4.5h.4l.6-.2,4-2.7V25.5H21a1.5,1.5,0,0,1,0-3h1.5V4.9l-4-2.7ZM9,13.5l2.8,1.9a1.5,1.5,0,0,1,.4,2.1,1.4,1.4,0,0,1-1.2.7,1.1,1.1,0,0,1-.8-.3L9,17.1Zm-5,9H7.5a1.5,1.5,0,0,1,0,3H4Zm5,8.4,1.2-.8a1.4,1.4,0,0,1,2,.4,1.5,1.5,0,0,1-.4,2.1L9,34.5ZM19.5,18.6l-4,4v2.8l4,4v5.2l-3.4,3.5a2.1,2.1,0,0,1-1.1.4,2.1,2.1,0,0,1-1.1-.4,1.6,1.6,0,0,1,0-2.2l2.6-2.5V30.6l-4-4V21.4l4-4V14.6l-2.6-2.5a1.6,1.6,0,1,1,2.2-2.2l3.4,3.5Z"></path> <path d="M45.6,18.7l-4-3.3-.6-.5V7.5a1,1,0,0,0-.6-.9L30.5,2.1h-.4l-.6.2-4,2.7V22.5H27a1.5,1.5,0,0,1,0,3H25.5V43.1l4,2.7.6.2h.4l9.9-4.5a1,1,0,0,0,.6-.9V33.1l.6-.5,4-3.3a.9.9,0,0,0,.4-.8v-9A.8.8,0,0,0,45.6,18.7ZM39,17.1l-1.2.8a1.1,1.1,0,0,1-.8.3,1.4,1.4,0,0,1-1.2-.7,1.5,1.5,0,0,1,.4-2.1L39,13.5ZM28.5,29.4l4-4V22.6l-4-4V13.4l3.4-3.5a1.6,1.6,0,0,1,2.2,2.2l-2.6,2.5v2.8l4,4v5.2l-4,4v2.8l2.6,2.5a1.6,1.6,0,0,1,0,2.2,1.7,1.7,0,0,1-2.2,0l-3.4-3.5ZM39,34.5l-2.8-1.9a1.5,1.5,0,0,1-.4-2.1,1.4,1.4,0,0,1,2-.4l1.2.8Zm5-9H40.5a1.5,1.5,0,0,1,0-3H44Z"></path> </g> </g> </g> </g></svg>
+          <svg class="archetype-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <g id="SVGRepo_iconCarrier">
+              <circle cx="34.52" cy="11.43" r="5.82" stroke="var(--text2)" fill="var(--text2)"/>
+              <circle cx="53.63" cy="31.6" r="5.82" stroke="var(--text2)" fill="var(--text2)"/>
+              <circle cx="34.52" cy="50.57" r="5.82" stroke="var(--text2)" fill="var(--text2)" />
+              <circle cx="15.16" cy="42.03" r="5.82" stroke="var(--text2)" fill="var(--text2)" />
+              <circle cx="15.16" cy="19.27" r="5.82" stroke="var(--text2)" fill="var(--text2)" />
+              <circle cx="34.51" cy="29.27" r="4.7" stroke="var(--text2)" fill="var(--text2)" />
+              <line x1="20.17" y1="16.3" x2="28.9" y2="12.93" stroke="var(--text2)" stroke-width="2.2" />
+              <line x1="38.6" y1="15.59" x2="49.48" y2="27.52" stroke="var(--text2)" stroke-width="2.2" />
+              <line x1="50.07" y1="36.2" x2="38.67" y2="46.49" stroke="var(--text2)" stroke-width="2.2" />
+              <line x1="18.36" y1="24.13" x2="30.91" y2="46.01" stroke="var(--text2)" stroke-width="2.2" />
+              <line x1="20.31" y1="44.74" x2="28.7" y2="48.63" stroke="var(--text2)" stroke-width="2.2" />
+              <line x1="17.34" y1="36.63" x2="31.37" y2="16.32" stroke="var(--text2)" stroke-width="2.2" />
+              <line x1="20.52" y1="21.55" x2="30.34" y2="27.1" stroke="var(--text2)" stroke-width="2.2" />
+              <line x1="39.22" y1="29.8" x2="47.81" y2="30.45" stroke="var(--text2)" stroke-width="2.2" />
+              <line x1="34.51" y1="33.98" x2="34.52" y2="44.74" stroke="var(--text2)" stroke-width="2.2" />
+            </g>
+          </svg>
         </span>
       </transition>
       <transition name="input-expand">
         <div v-if="expanded" class="assistant-input-inner" :class="{ 'with-chat': messages.length > 0 }" @click.stop>
           <span v-if="!iconHidden" class="icon input-icon">
-            <!-- AI SVG Icon -->
-            <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="28" height="28"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>ai-solid</title> <g id="Layer_2" data-name="Layer 2"> <g id="invisible_box" data-name="invisible box"> <rect width="48" height="48" fill="none"></rect> </g> <g id="Q3_icons" data-name="Q3 icons"> <g> <path d="M17.9,2h-.4L7.6,6.6a1,1,0,0,0-.6.9v7.4l-.6.5-4,3.3a.8.8,0,0,0-.4.8v9a.9.9,0,0,0,.4.8l4,3.3.6.5v7.4a1,1,0,0,0,.6.9l9.9,4.5h.4l.6-.2,4-2.7V25.5H21a1.5,1.5,0,0,1,0-3h1.5V4.9l-4-2.7ZM9,13.5l2.8,1.9a1.5,1.5,0,0,1,.4,2.1,1.4,1.4,0,0,1-1.2.7,1.1,1.1,0,0,1-.8-.3L9,17.1Zm-5,9H7.5a1.5,1.5,0,0,1,0,3H4Zm5,8.4,1.2-.8a1.4,1.4,0,0,1,2,.4,1.5,1.5,0,0,1-.4,2.1L9,34.5ZM19.5,18.6l-4,4v2.8l4,4v5.2l-3.4,3.5a2.1,2.1,0,0,1-1.1.4,2.1,2.1,0,0,1-1.1-.4,1.6,1.6,0,0,1,0-2.2l2.6-2.5V30.6l-4-4V21.4l4-4V14.6l-2.6-2.5a1.6,1.6,0,1,1,2.2-2.2l3.4,3.5Z"></path> <path d="M45.6,18.7l-4-3.3-.6-.5V7.5a1,1,0,0,0-.6-.9L30.5,2.1h-.4l-.6.2-4,2.7V22.5H27a1.5,1.5,0,0,1,0,3H25.5V43.1l4,2.7.6.2h.4l9.9-4.5a1,1,0,0,0,.6-.9V33.1l.6-.5,4-3.3a.9.9,0,0,0,.4-.8v-9A.8.8,0,0,0,45.6,18.7ZM39,17.1l-1.2.8a1.1,1.1,0,0,1-.8.3,1.4,1.4,0,0,1-1.2-.7,1.5,1.5,0,0,1,.4-2.1L39,13.5ZM28.5,29.4l4-4V22.6l-4-4V13.4l3.4-3.5a1.6,1.6,0,0,1,2.2,2.2l-2.6,2.5v2.8l4,4v5.2l-4,4v2.8l2.6,2.5a1.6,1.6,0,0,1,0,2.2,1.7,1.7,0,0,1-2.2,0l-3.4-3.5ZM39,34.5l-2.8-1.9a1.5,1.5,0,0,1-.4-2.1,1.4,1.4,0,0,1,2-.4l1.2.8Zm5-9H40.5a1.5,1.5,0,0,1,0-3H44Z"></path> </g> </g> </g> </g></svg>
+            <svg class="archetype-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+              <g id="SVGRepo_iconCarrier">
+                <circle cx="34.52" cy="11.43" r="5.82" stroke="var(--text2)" fill="var(--text2)"/>
+                <circle cx="53.63" cy="31.6" r="5.82" stroke="var(--text2)" fill="var(--text2)"/>
+                <circle cx="34.52" cy="50.57" r="5.82" stroke="var(--text2)" fill="var(--text2)" />
+                <circle cx="15.16" cy="42.03" r="5.82" stroke="var(--text2)" fill="var(--text2)" />
+                <circle cx="15.16" cy="19.27" r="5.82" stroke="var(--text2)" fill="var(--text2)" />
+                <circle cx="34.51" cy="29.27" r="4.7" stroke="var(--text2)" fill="var(--text2)" />
+                <line x1="20.17" y1="16.3" x2="28.9" y2="12.93" stroke="var(--text2)" stroke-width="2.2" />
+                <line x1="38.6" y1="15.59" x2="49.48" y2="27.52" stroke="var(--text2)" stroke-width="2.2" />
+                <line x1="50.07" y1="36.2" x2="38.67" y2="46.49" stroke="var(--text2)" stroke-width="2.2" />
+                <line x1="18.36" y1="24.13" x2="30.91" y2="46.01" stroke="var(--text2)" stroke-width="2.2" />
+                <line x1="20.31" y1="44.74" x2="28.7" y2="48.63" stroke="var(--text2)" stroke-width="2.2" />
+                <line x1="17.34" y1="36.63" x2="31.37" y2="16.32" stroke="var(--text2)" stroke-width="2.2" />
+                <line x1="20.52" y1="21.55" x2="30.34" y2="27.1" stroke="var(--text2)" stroke-width="2.2" />
+                <line x1="39.22" y1="29.8" x2="47.81" y2="30.45" stroke="var(--text2)" stroke-width="2.2" />
+                <line x1="34.51" y1="33.98" x2="34.52" y2="44.74" stroke="var(--text2)" stroke-width="2.2" />
+              </g>
+            </svg>
           </span>
           <div v-if="messages.length > 0" class="assistant-chat">
             <div v-for="(msg, i) in messages" :key="i" :class="['chat-msg', msg.role]">
@@ -114,7 +148,7 @@ function submit() {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @use '../style.scss' as *;
 
 .assistant-sphere {
@@ -261,5 +295,14 @@ function submit() {
     transform: none;
     box-shadow: 0 4px 24px rgba(0,0,0,0.18);
   }
+}
+.archetype-icon {
+  display: block;
+  width: 32px;
+  height: 32px;
+  min-width: 28px;
+  min-height: 28px;
+  max-width: 100%;
+  max-height: 100%;
 }
 </style>

@@ -671,3 +671,29 @@ def create_user_portfolios(username=None):
     ]
     result = portfolios_collection.insert_many(docs)
     print(f"Created {len(result.inserted_ids)} portfolios for user '{username}'.")
+
+async def update_exchanges():
+    asset_info_collection = db['AssetInfo']
+
+    try:
+        # Find the documents in AssetInfo with Exchange attribute (async)
+        pipeline = [
+            {'$match': {'Exchange': {'$exists': True}}},
+            {'$project': {'_id': 0, 'Symbol': 1, 'Exchange': 1}}
+        ]
+        asset_info_data = [doc async for doc in asset_info_collection.aggregate(pipeline)]
+
+        # Loop through each document in AssetInfo
+        for document in asset_info_data:
+            # Check if the Exchange value is NYSE ARCA or NYSE MKT
+            if document['Exchange'] in ['NYSE ARCA', 'NYSE MKT']:
+                # Update the Exchange value to NYSE (async)
+                await asset_info_collection.update_one(
+                    {'Symbol': document['Symbol']},
+                    {'$set': {'Exchange': 'NYSE'}}
+                )
+                print(f'Updated exchange for symbol: {document["Symbol"]}')
+    except Exception as e:
+        print(f'Error updating exchanges - {str(e)}')
+        
+#getHistoricalCryptoPrice()

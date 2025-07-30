@@ -2,7 +2,11 @@
   <div v-if="visible" class="modal-overlay" @click.self="close">
     <div class="modal-content">
       <button class="modal-close" @click="close" aria-label="Close">&times;</button>
-      <h2 class="contract-header">Terms of Service & Privacy Policy</h2>
+      <div style="display: flex;">
+         <img class="icon" src="@/assets/icons/ereuna.png" alt="Owl Icon" draggable="false">
+      <h2 class="contract-header" style="margin-right: 1rem;">|</h2>
+         <h2 class="contract-header">Terms of Service & Privacy Policy</h2>
+      </div>
       <div class="modal-body">
         <h2 class="contract-title">1. INTRODUCTION</h2>
         <p>These Terms and Conditions and Privacy Policy ("Terms") govern the use of the Ereuna platform ("Platform") and the services provided by Ereuna Ltd. ("Company"). By using the Platform, you ("User") agree to be bound by these Terms.</p>
@@ -122,7 +126,7 @@ const close = () => emit('close')
 .contract-header {
   margin-top: 2rem;
   font-size: 1.5rem;
-  color: $accent1;
+  color: $text1;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -134,4 +138,8 @@ const close = () => emit('close')
   color: $text2;
   p { margin-bottom: 1.1rem; }
 }
+
+.icon {
+    height: 60px; 
+  }
 </style>

@@ -3558,7 +3558,7 @@ function closeEditor() {
 }
 
 .select-container .watchlist-dropdown-menu div:hover {
-  background-color: var(--accent2);
+  background-color: var(--base2);
   border-radius: 5px;
 }
 
@@ -3759,7 +3759,7 @@ function closeEditor() {
 }
 
 .watchlist-dropdown-menu3>div:hover {
-  background-color: var(--accent2);
+  background-color: var(--base2);
   border-radius: 5px;
 }
 
@@ -3806,8 +3806,9 @@ function closeEditor() {
 }
 
 .dropdown-item:hover {
-  background-color: var(--accent2);
+  background-color: var(--base2);
   border-radius: 5px;
+  cursor: pointer;
 }
 
 .dropdown-item img {

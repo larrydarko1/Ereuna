@@ -7367,7 +7367,7 @@ input:checked+.slider:before {
 }
 
 .dropdown-menu>div:hover {
-  background-color: var(--accent2);
+  background-color: var(--base2);
 }
 
 .dropdown-btn:hover+.dropdown-menu,
@@ -7409,7 +7409,7 @@ input:checked+.slider:before {
 }
 
 .watchlist-item:hover {
-  background-color: var(--accent2);
+  background-color: var(--base2);
 }
 
 .watchlist-item input[type="checkbox"] {
@@ -7656,7 +7656,7 @@ input[type="date"] {
 }
 
 .changeperc-dropdown-menu>div:hover {
-  background-color: var(--accent2);
+  background-color: var(--base2);
 }
 
 .changeperc-dropdown-btn:hover+.changeperc-dropdown-menu,
@@ -7724,7 +7724,7 @@ input[type="date"] {
 .ma20-dropdown-menu>div:hover,
 .ma10-dropdown-menu>div:hover,
 .price-dropdown-menu>div:hover {
-  background-color: var(--accent1);
+  background-color: var(--base2);
 }
 
 .ma200-dropdown-btn:hover+.ma200-dropdown-menu,
