@@ -1320,6 +1320,159 @@ function formatChartTime(timeStr) {
   return Math.floor(new Date(timeStr).getTime() / 1000);
 }
 
+// --- Real-time WebSocket chart updates integration ---
+let chartWs = null;
+let wsReconnectTimeout = null;
+let wsActiveSymbol = null;
+
+function clearAllChartArrays() {
+  // Clear all chart data arrays for all timeframes
+  [data, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11, data12,
+   data13, data14, data15, data16, data17, data18, data19, data20, data21, data22, data23, data24,
+   data25, data26, data27, data28, data29, data30, data31, data32, data33, data34, data35, data36,
+   data37, data38, data39, data40, data41, data42].forEach(arr => { arr.value = []; });
+}
+
+function closeChartWebSocket() {
+  if (chartWs) {
+    chartWs.onclose = null;
+    chartWs.onerror = null;
+    chartWs.onmessage = null;
+    chartWs.close();
+    chartWs = null;
+  }
+  if (wsReconnectTimeout) {
+    clearTimeout(wsReconnectTimeout);
+    wsReconnectTimeout = null;
+  }
+}
+
+
+function openChartWebSocket(symbol) {
+  closeChartWebSocket();
+  wsActiveSymbol = symbol;
+  let wsUrl;
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    wsUrl = `ws://localhost:8000/ws/chartdata?ticker=${symbol}`;
+  } else {
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    wsUrl = `${protocol}://${window.location.host}/ws/chartdata?ticker=${symbol}`;
+  }
+  chartWs = new WebSocket(wsUrl);
+
+  // Map backend timeframes to correct frontend arrays
+  const tfMap = {
+    '1m': data37,
+    '5m': data13,
+    '15m': data19,
+    '30m': data25,
+    '60m': data31,
+    '1440m': data,
+    '10080m': data7,
+    // fallback for legacy keys
+    '1hr': data31,
+    'daily': data,
+    'weekly': data7
+  };
+
+  chartWs.onmessage = (event) => {
+    try {
+      const msg = JSON.parse(event.data);
+      // Handle initial payload (if backend sends it)
+      if (msg.type === 'init' && msg.data) {
+        clearAllChartArrays();
+        Object.entries(msg.data).forEach(([tf, candles]) => {
+          const arr = tfMap[tf];
+          if (!arr) return;
+          arr.value = candles.map(c => ({
+            time: c.time,
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close
+          }));
+          arr.value = [...arr.value];
+        });
+        if (typeof updateChartData === 'function') updateChartData();
+        return;
+      }
+      // Handle new candle
+      if (msg.type === 'new_candle' && msg.timeframe && msg.candle) {
+        const arr = tfMap[msg.timeframe];
+        if (!arr) return;
+        const cndl = msg.candle;
+        // Only push if new (by time)
+        if (arr.value.length === 0 || arr.value[arr.value.length-1].time !== cndl.time) {
+          arr.value.push({
+            time: cndl.time,
+            open: cndl.open,
+            high: cndl.high,
+            low: cndl.low,
+            close: cndl.close
+          });
+          arr.value = [...arr.value];
+          // Force chart update if this is the active chart type
+          // selectedDataType is like 'daily', 'intraday1m', etc. Map accordingly if needed
+          // For now, just always update
+          if (typeof updateChartData === 'function') updateChartData();
+        }
+        return;
+      }
+      // Handle error
+      if (msg.error) {
+        console.error('[WS] Error:', msg.error);
+      }
+    } catch (err) {
+      console.error('[WS] Parse error:', err, event.data);
+    }
+  };
+
+  chartWs.onerror = (e) => {
+    // Fallback to REST if error
+    closeChartWebSocket();
+    wsReconnectTimeout = setTimeout(() => {
+      fetchChartData();
+    }, 1000);
+  };
+  chartWs.onclose = () => {
+    // Try to reconnect after a delay, or fallback to REST
+    wsReconnectTimeout = setTimeout(() => {
+      if (wsActiveSymbol === (defaultSymbol || selectedItem)) {
+        openChartWebSocket(wsActiveSymbol);
+      } else {
+        fetchChartData();
+      }
+    }, 2000);
+  };
+}
+
+// Watch for symbol changes to re-open WebSocket and clear arrays
+watch(() => defaultSymbol, (newSymbol, oldSymbol) => {
+  if (newSymbol && newSymbol !== oldSymbol) {
+    clearAllChartArrays();
+    openChartWebSocket(newSymbol);
+  }
+});
+watch(() => selectedItem, (newSymbol, oldSymbol) => {
+  if (newSymbol && newSymbol !== oldSymbol) {
+    clearAllChartArrays();
+    openChartWebSocket(newSymbol);
+  }
+});
+
+// On mount, open WebSocket for initial symbol
+onMounted(() => {
+  const symbol = defaultSymbol || selectedItem;
+  if (symbol) {
+    openChartWebSocket(symbol);
+  }
+});
+
+// On unmount, close WebSocket
+onBeforeUnmount(() => {
+  closeChartWebSocket();
+});
+
 // mounts chart (including volume)
 onMounted(async () => {
   try {
