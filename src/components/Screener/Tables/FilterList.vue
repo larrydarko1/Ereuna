@@ -415,7 +415,7 @@ const columnsMinWidth = computed(() => {
 }
 
 .ml-dropdown-menu>div:hover {
-  background-color: var(--accent2);
+  background-color: var(--base2);
 }
 
 .ml-dropdown-btn:hover + .ml-dropdown-menu,
@@ -462,7 +462,7 @@ const columnsMinWidth = computed(() => {
 }
 
 .ml-watchlist-item:hover {
-  background-color: var(--accent2);
+  background-color: var(--base2);
 }
 
 .ml-watchlist-item input[type="checkbox"] {

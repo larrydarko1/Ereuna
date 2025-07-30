@@ -3,6 +3,16 @@ import json
 from datetime import datetime, timedelta, timezone
 import logging
 import motor.motor_asyncio
+from organizer import updateTimeSeries
+
+# Helper coroutine to periodically call updateTimeSeries (for price screener query)
+async def periodic_update_time_series(mongo_client, interval=300):
+    while True:
+        try:
+            await updateTimeSeries(mongo_client)
+        except Exception as e:
+            logging.getLogger("aggregator").error(f"Error in updateTimeSeries: {e}")
+        await asyncio.sleep(interval)
 
 logger = logging.getLogger("aggregator")
 logger.setLevel(logging.INFO)
@@ -26,6 +36,8 @@ async def start_aggregator(message_queue, mongo_client):
     collection = db.get_collection('OHCLVData1m')
     candles = {}  # {(symbol, bucket): candle_dict}
 
+    # Start periodic updateTimeSeries in the background
+    update_task = asyncio.create_task(periodic_update_time_series(mongo_client, interval=300))
     try:
         processed_count = 0
         anomaly_count = 0
@@ -98,6 +110,7 @@ async def start_aggregator(message_queue, mongo_client):
             if anomaly_count > 0 and anomaly_count % 10 == 0:
                 logger.warning(f"Aggregator anomalies detected: {anomaly_count}")
     except asyncio.CancelledError:
+        update_task.cancel()
         # On shutdown, flush all remaining candles
         docs = []
         for cndl in candles.values():

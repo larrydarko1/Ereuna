@@ -405,7 +405,7 @@ function getColumnClass(asset, col) {
 }
 
 .ml-dropdown-menu>div:hover {
-  background-color: var(--accent2);
+  background-color: var(--base2);
 }
 
 .ml-dropdown-btn:hover + .ml-dropdown-menu,
@@ -452,7 +452,7 @@ function getColumnClass(asset, col) {
 }
 
 .ml-watchlist-item:hover {
-  background-color: var(--accent2);
+  background-color: var(--base2);
 }
 
 .ml-watchlist-item input[type="checkbox"] {
