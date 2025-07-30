@@ -1,3 +1,4 @@
+
 import os
 import json
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
@@ -8,7 +9,10 @@ import ssl
 import asyncio
 import motor.motor_asyncio
 import traceback
-from aggregator import start_aggregator, aggregate_higher_timeframes
+from aggregator import start_aggregator, aggregate_higher_timeframes, pubsub_channels
+from bson import ObjectId
+from dateutil.parser import isoparse
+import datetime
 
 load_dotenv()
 TIINGO_API_KEY = os.getenv('TIINGO_KEY')
@@ -455,113 +459,168 @@ def calcMA(data, period):
 async def websocket_chartdata(websocket: WebSocket, ticker: str = Query(...)):
     await websocket.accept()
     ticker = ticker.upper()
+    timeframes = [
+        ("1m", db['OHCLVData1m'], 1440),
+        ("5m", db['OHCLVData5m'], 288),
+        ("15m", db['OHCLVData15m'], 96),
+        ("30m", db['OHCLVData30m'], 48),
+        ("60m", db['OHCLVData1hr'], 24),
+        ("1440m", db['OHCLVData'], 2000),  # daily
+        ("10080m", db['OHCLVData2'], 500),  # weekly
+    ]
+    queues = []
+    tasks = []
     try:
-        while True:
-            # --- Daily ---
-            dailyColl = db['OHCLVData']
-            dailyData = await dailyColl.find({'tickerID': ticker}).sort('timestamp', 1).to_list(length=2000)
-            # --- Weekly ---
-            weeklyColl = db['OHCLVData2']
-            weeklyData = await weeklyColl.find({'tickerID': ticker}).sort('timestamp', 1).to_list(length=500)
-            # --- 1 Minute ---
-            intraday1mColl = db['OHCLVData1m']
-            intraday1mData = await intraday1mColl.find({'tickerID': ticker}).sort('timestamp', 1).to_list(length=1440)
-            # --- Intraday collections ---
-            intraday5mColl = db['OHCLVData5m']
-            intraday5mData = await intraday5mColl.find({'tickerID': ticker}).sort('timestamp', 1).to_list(length=288)
-            intraday15mColl = db['OHCLVData15m']
-            intraday15mData = await intraday15mColl.find({'tickerID': ticker}).sort('timestamp', 1).to_list(length=96)
-            intraday30mColl = db['OHCLVData30m']
-            intraday30mData = await intraday30mColl.find({'tickerID': ticker}).sort('timestamp', 1).to_list(length=48)
-            intraday1hrColl = db['OHCLVData1hr']
-            intraday1hrData = await intraday1hrColl.find({'tickerID': ticker}).sort('timestamp', 1).to_list(length=24)
-
-            def format_candles(data, time_fmt):
-                return [{
-                    'time': item['timestamp'].isoformat() if hasattr(item['timestamp'], 'isoformat') else str(item['timestamp']),
+        # Send initial historical data for all timeframes
+        initial_payload = {}
+        for tf, coll, length in timeframes:
+            data = await coll.find({'tickerID': ticker}).sort('timestamp', 1).to_list(length=length)
+            candles = []
+            for item in data:
+                # Prepare base candle
+                candle = {
                     'open': float(str(item['open'])[:8]),
                     'high': float(str(item['high'])[:8]),
                     'low': float(str(item['low'])[:8]),
                     'close': float(str(item['close'])[:8])
-                } for item in data] if data else []
+                }
+                ts_val = item['timestamp']
+                dt = None
+                if isinstance(ts_val, (int, float)):
+                    dt = datetime.datetime.utcfromtimestamp(ts_val)
+                elif hasattr(ts_val, 'isoformat'):
+                    try:
+                        dt = ts_val
+                    except Exception:
+                        pass
+                elif isinstance(ts_val, str):
+                    try:
+                        dt = isoparse(ts_val)
+                    except Exception:
+                        pass
+                if dt is not None:
+                    if tf in ["1m", "5m", "15m", "30m", "60m"]:
+                        candle['time'] = int(dt.timestamp())
+                    elif tf in ["1440m", "10080m"]:
+                        candle['time'] = dt.strftime("%Y-%m-%d")
+                    else:
+                        candle['time'] = int(dt.timestamp())
+                else:
+                    candle['time'] = str(ts_val)
+                candles.append(candle)
+            initial_payload[tf] = candles
+        await websocket.send_text(json.dumps({'type': 'init', 'data': initial_payload}))
 
-            def format_volume(data, time_fmt):
-                return [{
-                    'time': item['timestamp'].isoformat() if hasattr(item['timestamp'], 'isoformat') else str(item['timestamp']),
-                    'value': item.get('volume', 0)
-                } for item in data] if data else []
+        # Subscribe to all timeframes for this ticker
+        for tf, _, _ in timeframes:
+            q = asyncio.Queue()
+            pubsub_channels[(ticker, tf)].append(q)
+            queues.append((tf, q))
 
-            daily = {
-                'ohlc': format_candles(dailyData, 'date'),
-                'volume': format_volume(dailyData, 'date'),
-                'MA10': calcMA(dailyData, 10),
-                'MA20': calcMA(dailyData, 20),
-                'MA50': calcMA(dailyData, 50),
-                'MA200': calcMA(dailyData, 200)
-            }
-            weekly = {
-                'ohlc': format_candles(weeklyData, 'date'),
-                'volume': format_volume(weeklyData, 'date'),
-                'MA10': calcMA(weeklyData, 10),
-                'MA20': calcMA(weeklyData, 20),
-                'MA50': calcMA(weeklyData, 50),
-                'MA200': calcMA(weeklyData, 200)
-            }
-            intraday1m = {
-                'ohlc': format_candles(intraday1mData, 'datetime'),
-                'volume': format_volume(intraday1mData, 'datetime'),
-                'MA10': calcMA(intraday1mData, 10),
-                'MA20': calcMA(intraday1mData, 20),
-                'MA50': calcMA(intraday1mData, 50),
-                'MA200': calcMA(intraday1mData, 200)
-            }
-            intraday5m = {
-                'ohlc': format_candles(intraday5mData, 'datetime'),
-                'volume': format_volume(intraday5mData, 'datetime'),
-                'MA10': calcMA(intraday5mData, 10),
-                'MA20': calcMA(intraday5mData, 20),
-                'MA50': calcMA(intraday5mData, 50),
-                'MA200': calcMA(intraday5mData, 200)
-            }
-            intraday15m = {
-                'ohlc': format_candles(intraday15mData, 'datetime'),
-                'volume': format_volume(intraday15mData, 'datetime'),
-                'MA10': calcMA(intraday15mData, 10),
-                'MA20': calcMA(intraday15mData, 20),
-                'MA50': calcMA(intraday15mData, 50),
-                'MA200': calcMA(intraday15mData, 200)
-            }
-            intraday30m = {
-                'ohlc': format_candles(intraday30mData, 'datetime'),
-                'volume': format_volume(intraday30mData, 'datetime'),
-                'MA10': calcMA(intraday30mData, 10),
-                'MA20': calcMA(intraday30mData, 20),
-                'MA50': calcMA(intraday30mData, 50),
-                'MA200': calcMA(intraday30mData, 200)
-            }
-            intraday1hr = {
-                'ohlc': format_candles(intraday1hrData, 'datetime'),
-                'volume': format_volume(intraday1hrData, 'datetime'),
-                'MA10': calcMA(intraday1hrData, 10),
-                'MA20': calcMA(intraday1hrData, 20),
-                'MA50': calcMA(intraday1hrData, 50),
-                'MA200': calcMA(intraday1hrData, 200)
-            }
-
-            payload = {
-                'daily': daily,
-                'weekly': weekly,
-                'intraday1m': intraday1m,
-                'intraday5m': intraday5m,
-                'intraday15m': intraday15m,
-                'intraday30m': intraday30m,
-                'intraday1hr': intraday1hr
-            }
-            await websocket.send_text(json.dumps(payload))
-            await asyncio.sleep(10)
+        while True:
+            try:
+                tasks = [asyncio.create_task(q.get()) for _, q in queues]
+                done, pending = await asyncio.wait(
+                    tasks,
+                    return_when=asyncio.FIRST_COMPLETED
+                )
+                for finished in done:
+                    # Find which queue this task belonged to
+                    for idx, task in enumerate(tasks):
+                        if task is finished:
+                            tf, _ = queues[idx]
+                            break
+                    cndl = finished.result()
+                    # Clean and format candle for frontend: ObjectId->str, datetime->iso, time->ISO 8601 string
+                    def clean_candle(obj):
+                        if isinstance(obj, dict):
+                            return {k: clean_candle(v) for k, v in obj.items()}
+                        elif isinstance(obj, list):
+                            return [clean_candle(i) for i in obj]
+                        elif isinstance(obj, ObjectId):
+                            return str(obj)
+                        elif isinstance(obj, (datetime.datetime, datetime.date)):
+                            # Always output as ISO 8601 string with 'Z' if UTC
+                            if obj.tzinfo is not None:
+                                return obj.astimezone(datetime.timezone.utc).replace(tzinfo=None).isoformat() + 'Z'
+                            return obj.isoformat()
+                        else:
+                            return obj
+                    cndl_clean = clean_candle(cndl)
+                    # Set 'time' field for Lightweight Charts compatibility
+                    # Intraday (1m, 5m, 15m, 30m, 60m): time = UNIX timestamp (int, seconds)
+                    # Daily/Weekly (1440m, 10080m): time = 'YYYY-MM-DD' string
+                    if 'timestamp' in cndl_clean:
+                        ts_val = cndl_clean['timestamp']
+                        # Try to parse timestamp as datetime
+                        dt = None
+                        if isinstance(ts_val, (int, float)):
+                            dt = datetime.datetime.utcfromtimestamp(ts_val)
+                        elif isinstance(ts_val, str):
+                            try:
+                                dt = isoparse(ts_val)
+                            except Exception:
+                                pass
+                        if dt is not None:
+                            if tf in ["1m", "5m", "15m", "30m", "60m"]:
+                                cndl_clean['time'] = int(dt.timestamp())
+                            elif tf in ["1440m", "10080m"]:
+                                cndl_clean['time'] = dt.strftime("%Y-%m-%d")
+                            else:
+                                cndl_clean['time'] = int(dt.timestamp())
+                        else:
+                            # fallback: just pass as string
+                            cndl_clean['time'] = str(ts_val)
+                        del cndl_clean['timestamp']
+                    print(f"[WS] Sending new_candle: timeframe={tf}, candle={cndl_clean}")
+                    await websocket.send_text(json.dumps({"type": "new_candle", "timeframe": tf, "candle": cndl_clean}))
+                # Cancel all pending tasks to avoid warnings
+                for p in pending:
+                    p.cancel()
+                    try:
+                        await p
+                    except asyncio.CancelledError:
+                        pass
+            except WebSocketDisconnect:
+                # Client disconnected, break loop and cleanup
+                break
+            except Exception as e:
+                import traceback
+                print(f"Exception in /ws/chartdata loop: {e}")
+                traceback.print_exc()
+                try:
+                    await websocket.send_text(json.dumps({'error': str(e)}))
+                except Exception:
+                    pass
+                break
+    except WebSocketDisconnect:
+        print("WebSocketDisconnect: client closed connection on /ws/chartdata")
     except Exception as e:
-        await websocket.send_text(json.dumps({'error': str(e)}))
-        await websocket.close()
+        import traceback
+        print(f"Exception in /ws/chartdata: {e}")
+        traceback.print_exc()
+        try:
+            await websocket.send_text(json.dumps({'error': str(e)}))
+        except Exception:
+            pass
+    finally:
+        # Clean up any tasks left (if loop exited with tasks still pending)
+        for t in tasks:
+            if not t.done():
+                t.cancel()
+                try:
+                    await t
+                except asyncio.CancelledError:
+                    pass
+        for tf, q in queues:
+            try:
+                pubsub_channels[(ticker, tf)].remove(q)
+            except (KeyError, ValueError):
+                pass
+        try:
+            await websocket.close()
+        except Exception:
+            pass
 
 # To run: uvicorn ws.main:app --reload
 # wscat -c "ws://localhost:8000/ws/stream"

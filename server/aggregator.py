@@ -1,18 +1,18 @@
+
 import asyncio
 import json
 from datetime import datetime, timedelta, timezone
 import logging
 import motor.motor_asyncio
 from organizer import updateTimeSeries
+from collections import defaultdict
 
-# Helper coroutine to periodically call updateTimeSeries (for price screener query)
-async def periodic_update_time_series(mongo_client, interval=300):
-    while True:
-        try:
-            await updateTimeSeries(mongo_client)
-        except Exception as e:
-            logging.getLogger("aggregator").error(f"Error in updateTimeSeries: {e}")
-        await asyncio.sleep(interval)
+# Global pubsub registry: { (symbol, timeframe): [asyncio.Queue, ...] }
+pubsub_channels = defaultdict(list)
+
+async def publish_candle(symbol, timeframe, candle):
+    for queue in pubsub_channels[(symbol, timeframe)]:
+        await queue.put(candle)
 
 logger = logging.getLogger("aggregator")
 logger.setLevel(logging.INFO)
@@ -36,8 +36,6 @@ async def start_aggregator(message_queue, mongo_client):
     collection = db.get_collection('OHCLVData1m')
     candles = {}  # {(symbol, bucket): candle_dict}
 
-    # Start periodic updateTimeSeries in the background
-    update_task = asyncio.create_task(periodic_update_time_series(mongo_client, interval=300))
     try:
         processed_count = 0
         anomaly_count = 0
@@ -100,6 +98,9 @@ async def start_aggregator(message_queue, mongo_client):
                     try:
                         await collection.insert_many(docs)
                         processed_count += len(docs)
+                        # Publish each new candle to pubsub
+                        for cndl in docs:
+                            await publish_candle(cndl["tickerID"], "1m", cndl)
                     except Exception as e:
                         logger.error(f"MongoDB insert error: {e}, docs: {docs}")
                     for k in finished:
@@ -110,7 +111,6 @@ async def start_aggregator(message_queue, mongo_client):
             if anomaly_count > 0 and anomaly_count % 10 == 0:
                 logger.warning(f"Aggregator anomalies detected: {anomaly_count}")
     except asyncio.CancelledError:
-        update_task.cancel()
         # On shutdown, flush all remaining candles
         docs = []
         for cndl in candles.values():
@@ -126,6 +126,9 @@ async def start_aggregator(message_queue, mongo_client):
             try:
                 await collection.insert_many(docs)
                 logger.info(f"Aggregator shutdown: flushed {len(docs)} 1m candles")
+                # Publish remaining candles on shutdown
+                for cndl in docs:
+                    await publish_candle(cndl["tickerID"], "1m", cndl)
             except Exception as e:
                 logger.error(f"MongoDB insert error on shutdown: {e}")
                 
@@ -200,6 +203,8 @@ async def aggregate_higher_timeframes(mongo_client):
                             await col.delete_one({"tickerID": symbol, "timestamp": start})
                             await col.insert_one(doc)
                             processed_count += 1
+                            # Publish new higher timeframe candle to pubsub
+                            await publish_candle(symbol, f"{tf}m", doc)
                         except Exception as e:
                             logger.error(f"Insert error for {symbol} {start}: {e}")
                             anomaly_count += 1
