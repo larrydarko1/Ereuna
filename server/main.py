@@ -35,36 +35,61 @@ message_queue = asyncio.Queue(maxsize=100000)  # Holds latest messages
 # In-memory cache for latest quotes per symbol
 latest_quotes = {}  # {symbol: tiingo_data_dict}
 
-crypto_symbols = ["BTCEUR", "ETHEUR"]
-stock_symbols = ["RDDT", "TSLA"]
 
-def crypto_filter(msg):
-    return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) > 0 and msg["data"][0] == "Q"
+# Only stocks/ETFs: get tickers from DB at startup
+stock_symbols = []
+ssl_ctx = ssl._create_unverified_context()
+
 def stock_filter(msg):
     return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) >= 3
 
-crypto_ws_url = "wss://api.tiingo.com/crypto"
-crypto_subscribe_msg = {
-    "eventName": "subscribe",
-    "authorization": TIINGO_API_KEY,
-    "eventData": {
-        "tickers": crypto_symbols,
-        "channels": ["trades"],
-        "thresholdLevel": 2
-    }
-}
-stock_ws_url = "wss://api.tiingo.com/iex"
-stock_subscribe_msg = {
-    "eventName": "subscribe",
-    "authorization": TIINGO_API_KEY,
-    "eventData": {
-        "thresholdLevel": 6,
-        "tickers": stock_symbols
-    }
-}
-ssl_ctx = ssl._create_unverified_context()
+
+import time
+import signal
+import sys
+
+
+# Bandwidth tracking for stocks
+
+
+# Bandwidth tracking for stocks only
+stock_bandwidth_stats = {}  # {symbol: {'bytes': int, 'messages': int}}
+stock_bandwidth_history = {}  # {symbol: [(timestamp, bytes)]}
+last_report_time = 0
+MARKET_OPEN_HOUR = 13  # UTC 13:30 (9:30am ET)
+MARKET_CLOSE_HOUR = 20  # UTC 20:00 (4:00pm ET)
+MARKET_OPEN_MINUTE = 30
+MARKET_CLOSE_MINUTE = 0
+
+def print_total_bandwidth():
+    print("\n=== TOTAL BANDWIDTH USAGE PER TICKER (STOCKS) ===")
+    total_bytes = 0
+    total_msgs = 0
+    for symbol, stats in stock_bandwidth_stats.items():
+        print(f"{symbol.upper()}: {stats['bytes']/1024/1024:.2f} MB, {stats['messages']} msgs")
+        total_bytes += stats['bytes']
+        total_msgs += stats['messages']
+    print(f"TOTAL STOCKS: {total_bytes/1024/1024:.2f} MB, {total_msgs} msgs (all stock/ETF tickers)")
+    print("===============================================\n")
+
+# Print totals on shutdown
+def handle_shutdown(signum, frame):
+    print("\nReceived shutdown signal. Printing total bandwidth usage...")
+    print_total_bandwidth()
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, handle_shutdown)
+signal.signal(signal.SIGTERM, handle_shutdown)
+
+def is_market_hours():
+    now = datetime.datetime.utcnow()
+    open_time = now.replace(hour=MARKET_OPEN_HOUR, minute=MARKET_OPEN_MINUTE, second=0, microsecond=0)
+    close_time = now.replace(hour=MARKET_CLOSE_HOUR, minute=MARKET_CLOSE_MINUTE, second=0, microsecond=0)
+    return open_time <= now <= close_time
+
 
 async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
+    global last_report_time
     while True:
         try:
             async with websockets.connect(ws_url, ssl=ssl_ctx) as tiingo_ws:
@@ -80,28 +105,74 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                         if tiingo_data.get("messageType") in ("I", "H"):
                             continue
                         if filter_fn(tiingo_data):
-                            # --- Cache the latest quote ---
                             d = tiingo_data.get("data")
                             service = tiingo_data.get("service")
+                            # --- Bandwidth measurement for stocks only ---
                             if service == "iex" and isinstance(d, list) and len(d) > 2:
                                 symbol = d[1].lower()
+                                msg_bytes = len(msg.encode("utf-8"))
+                                stats = stock_bandwidth_stats.setdefault(symbol, {'bytes': 0, 'messages': 0})
+                                stats['bytes'] += msg_bytes
+                                stats['messages'] += 1
+                                # Save history for periodic reporting
+                                history = stock_bandwidth_history.setdefault(symbol, [])
+                                history.append((time.time(), msg_bytes))
+                                # --- Cache the latest quote ---
                                 latest_quotes[symbol] = tiingo_data
-                            elif service == "crypto_data" and isinstance(d, list) and len(d) > 5:
-                                symbol = d[1].lower()
-                                latest_quotes[symbol] = tiingo_data
-                            # --- End cache ---
-                            try:
-                                await message_queue.put(json.dumps(tiingo_data))
-                            except asyncio.QueueFull:
-                                await message_queue.get()
-                                await message_queue.put(json.dumps(tiingo_data))
+                                # --- End cache ---
+                                try:
+                                    await message_queue.put(json.dumps(tiingo_data))
+                                except asyncio.QueueFull:
+                                    await message_queue.get()
+                                    await message_queue.put(json.dumps(tiingo_data))
+                    # --- Periodic bandwidth report (every 60s, only during market hours) ---
+                    now = time.time()
+                    if is_market_hours() and (now - last_report_time > 60):
+                        print("\n--- Bandwidth usage per ticker (last 60s, market hours only) ---")
+                        for symbol, history in stock_bandwidth_history.items():
+                            cutoff = now - 60
+                            bytes_last_min = sum(b for t, b in history if t >= cutoff)
+                            msgs_last_min = sum(1 for t, b in history if t >= cutoff)
+                            print(f"STOCK {symbol.upper()}: {bytes_last_min/1024:.2f} KB/min, {msgs_last_min} msgs/min")
+                        print("-------------------------------------------------------------\n")
+                        print_total_bandwidth()
+                        last_report_time = now
+                        # Optionally, prune old history to save memory
+                        for symbol in stock_bandwidth_history:
+                            stock_bandwidth_history[symbol] = [(t, b) for t, b in stock_bandwidth_history[symbol] if t >= now - 300]
         except Exception as e:
             print(f"Exception in relay_tiingo: {e}")
+            print_total_bandwidth()
             await asyncio.sleep(5)  # Retry after delay
 
+
+# On startup, fetch all stock/ETF tickers from AssetInfo and subscribe
 @app.on_event("startup")
 async def startup_event():
-    asyncio.create_task(relay_tiingo(crypto_ws_url, crypto_subscribe_msg, ssl_ctx, crypto_filter))
+    global stock_symbols
+    # Fetch tickers from AssetInfo where AssetType is Stock or ETF
+    assetinfo_coll = db.AssetInfo
+    cursor = assetinfo_coll.find({"AssetType": {"$in": ["Stock", "ETF"]}}, {"Symbol": 1})
+    symbols = set()
+    async for doc in cursor:
+        syms = doc.get("Symbol")
+        if isinstance(syms, list):
+            for s in syms:
+                if isinstance(s, str):
+                    symbols.add(s.upper())
+        elif isinstance(syms, str):
+            symbols.add(syms.upper())
+    stock_symbols = sorted(symbols)
+    print(f"[Startup] Subscribing to {len(stock_symbols)} stock/ETF tickers from AssetInfo.")
+    stock_ws_url = "wss://api.tiingo.com/iex"
+    stock_subscribe_msg = {
+        "eventName": "subscribe",
+        "authorization": TIINGO_API_KEY,
+        "eventData": {
+            "thresholdLevel": 6,
+            "tickers": stock_symbols
+        }
+    }
     asyncio.create_task(relay_tiingo(stock_ws_url, stock_subscribe_msg, ssl_ctx, stock_filter))
     asyncio.create_task(start_aggregator(message_queue, mongo_client))
     asyncio.create_task(aggregate_higher_timeframes(mongo_client))
@@ -135,6 +206,7 @@ async def websocket_raw(websocket: WebSocket):
 
         
 
+
 @app.websocket("/ws/symbols")
 async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
     await websocket.accept()
@@ -149,13 +221,9 @@ async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
                 if service == "iex" and isinstance(d, list) and len(d) > 2:
                     price = float(d[2])
                     await websocket.send_text(f"{symbol.upper()}: {price}")
-                elif service == "crypto_data" and isinstance(d, list) and len(d) > 5:
-                    price = float(d[5])
-                    await websocket.send_text(f"{symbol.upper()}: {price}")
             except (WebSocketDisconnect, RuntimeError):
                 return
         else:
-            # If no cached data, send a placeholder or skip (optionally fetch from DB)
             try:
                 await websocket.send_text(f"{symbol.upper()}: No recent data available")
             except (WebSocketDisconnect, RuntimeError):
@@ -167,26 +235,14 @@ async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
             try:
                 data = json.loads(msg)
                 d = data.get("data")
-                # Crypto: ["Q", "btcusd", ... , price, ...]
-                if isinstance(d, list):
-                    # Crypto
-                    if len(d) > 4 and isinstance(d[1], str) and data.get("service") == "crypto_data":
-                        symbol = d[1].upper()
-                        price = float(d[5])
-                        if symbol.lower() in symbol_set:
-                            try:
-                                await websocket.send_text(f"{symbol}: {price}")
-                            except (WebSocketDisconnect, RuntimeError):
-                                return
-                    # IEX (stocks/ETFs)
-                    elif len(d) > 2 and isinstance(d[1], str) and data.get("service") == "iex":
-                        symbol = d[1].upper()
-                        price = float(d[2])
-                        if symbol.lower() in symbol_set:
-                            try:
-                                await websocket.send_text(f"{symbol}: {price}")
-                            except (WebSocketDisconnect, RuntimeError):
-                                return
+                if isinstance(d, list) and len(d) > 2 and isinstance(d[1], str) and data.get("service") == "iex":
+                    symbol = d[1].upper()
+                    price = float(d[2])
+                    if symbol.lower() in symbol_set:
+                        try:
+                            await websocket.send_text(f"{symbol}: {price}")
+                        except (WebSocketDisconnect, RuntimeError):
+                            return
             except Exception:
                 continue
     except WebSocketDisconnect:
@@ -195,6 +251,7 @@ async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
         print(f"WebSocket error: {e}")
         await websocket.close()
         
+
 
 @app.websocket("/ws/assetinfo")
 async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
@@ -211,9 +268,6 @@ async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
                 if service == "iex" and isinstance(d, list) and len(d) > 2:
                     latest_close = float(d[2])
                     timestamp = d[0]
-                elif service == "crypto_data" and isinstance(d, list) and len(d) > 5:
-                    latest_close = float(d[5])
-                    timestamp = d[2]
                 else:
                     continue
                 # Fetch previous close from MongoDB (or cache if you have it)
@@ -244,7 +298,6 @@ async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
             except (WebSocketDisconnect, RuntimeError):
                 return
         else:
-            # If no cached data, send a placeholder or skip (optionally fetch from DB)
             try:
                 await websocket.send_text(json.dumps({"symbol": symbol.upper(), "error": "No recent data available"}))
             except (WebSocketDisconnect, RuntimeError):
@@ -257,20 +310,12 @@ async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
                 data = json.loads(msg)
                 d = data.get("data")
                 service = data.get("service")
-                # Stocks (IEX)
                 if service == "iex" and isinstance(d, list) and len(d) > 2:
                     symbol = d[1].lower()
                     if symbol not in symbols:
                         continue
                     latest_close = float(d[2])
                     timestamp = d[0]
-                # Crypto
-                elif service == "crypto_data" and isinstance(d, list) and len(d) > 5:
-                    symbol = d[1].lower()
-                    if symbol not in symbols:
-                        continue
-                    latest_close = float(d[5])
-                    timestamp = d[2]
                 else:
                     continue
                 # Fetch previous close from MongoDB
@@ -321,6 +366,7 @@ async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
         traceback.print_exc()
         await websocket.close()
 
+
 @app.websocket("/ws/watchpanel")
 async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
     await websocket.accept()
@@ -338,7 +384,6 @@ async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
             await websocket.close()
             return
 
-
         # Send the latest cached value for each symbol before streaming
         for symbol in watchpanel_symbols:
             cached = latest_quotes.get(symbol)
@@ -348,8 +393,6 @@ async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
                 try:
                     if service == "iex" and isinstance(d, list) and len(d) > 2:
                         latest_close = float(d[2])
-                    elif service == "crypto_data" and isinstance(d, list) and len(d) > 5:
-                        latest_close = float(d[5])
                     else:
                         continue
 
@@ -375,7 +418,6 @@ async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
                 except (WebSocketDisconnect, RuntimeError):
                     return
             else:
-                # If no cached data, send a placeholder or skip (optionally fetch from DB)
                 try:
                     await websocket.send_text(json.dumps({"Symbol": symbol.upper(), "error": "No recent data available"}))
                 except (WebSocketDisconnect, RuntimeError):
@@ -389,15 +431,10 @@ async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
                 d = data.get("data")
                 service = data.get("service")
 
-                # Determine symbol and latest price
                 if service == "iex" and isinstance(d, list) and len(d) > 2:
                     symbol = d[1].lower()
                     latest_close = float(d[2])
                     timestamp = d[0]
-                elif service == "crypto_data" and isinstance(d, list) and len(d) > 5:
-                    symbol = d[1].lower()
-                    latest_close = float(d[5])
-                    timestamp = d[2]
                 else:
                     continue
 

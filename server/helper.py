@@ -35,7 +35,7 @@ def getMonday(timestamp):
  
 # function to remove documents with a specific timestamp from the OHCLVData2 collection   
 def remove_documents_with_timestamp(timestamp_str):
-    weekly_collection = db["OHCLVData2"]
+    weekly_collection = db["OHCLVData"]
     timestamp = dt.datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f+00:00')
     weekly_collection.delete_many({'timestamp': timestamp})
 
