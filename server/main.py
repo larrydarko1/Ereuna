@@ -1,4 +1,3 @@
-
 import os
 import json
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
@@ -572,7 +571,6 @@ async def websocket_chartdata(websocket: WebSocket, ticker: str = Query(...)):
                             # fallback: just pass as string
                             cndl_clean['time'] = str(ts_val)
                         del cndl_clean['timestamp']
-                    print(f"[WS] Sending new_candle: timeframe={tf}, candle={cndl_clean}")
                     await websocket.send_text(json.dumps({"type": "new_candle", "timeframe": tf, "candle": cndl_clean}))
                 # Cancel all pending tasks to avoid warnings
                 for p in pending:
