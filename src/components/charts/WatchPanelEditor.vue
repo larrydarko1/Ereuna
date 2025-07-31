@@ -155,7 +155,7 @@ function close() {
   border-radius: 5px;
   border: none;
   background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
-  color: var(--text1);
+  color: var(--text3);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
@@ -165,10 +165,12 @@ function close() {
   background: var(--base3);
   cursor: not-allowed;
   opacity: 0.7;
+  color: var(--text1);
 }
 .symbol-input-row button:not(:disabled):hover {
   transform: translateY(-2px) scale(1.04);
   background: linear-gradient(90deg, var(--accent2) 0%, var(--accent1) 100%);
+
 }
 
 .symbols-list {
@@ -202,7 +204,7 @@ function close() {
   border-radius: 6px;
   border: none;
   background: linear-gradient(90deg, var(--negative) 0%, var(--accent1) 100%);
-  color: var(--text1);
+  color: var(--text3);
   font-weight: 500;
   font-size: 0.95rem;
   cursor: pointer;
@@ -220,7 +222,7 @@ function close() {
   border-radius: 8px;
   border: none;
   background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
-  color: var(--text2);
+  color: var(--text3);
   font-weight: 600;
   font-size: 1.05rem;
   cursor: pointer;
@@ -228,7 +230,7 @@ function close() {
 }
 .watch-panel-editor-modal > button:last-of-type:hover {
   background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
-  color: var(--text4);
+  color: var(--text3);
   transform: scale(1.03);
 }
 </style>
