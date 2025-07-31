@@ -6,8 +6,10 @@
   :user="user"
   :apiKey="apiKey"
   :Tier="Tier"
+  :watchPanel="watchPanel"
+  :fetchWatchPanel="fetchWatchPanel"
   :defaultSymbol="defaultSymbol"
-  @select-symbol="(symbol) => { defaultSymbol = symbol; searchTicker(symbol); }"
+  @select-symbol="(symbol) => { defaultSymbol = symbol; selectRow(symbol); }"
   @open-editor="openEditor"
 >
   <WatchPanelEditor
@@ -18,6 +20,7 @@
     :fetchWatchPanel="fetchWatchPanel"
     :notify="(msg) => notification.value.show(msg)"
     @close="closeEditor"
+    @update="fetchWatchPanel"
   />
 </WatchPanel>
     <div class="mobilenav">
@@ -370,8 +373,6 @@ import { reactive, onMounted, onBeforeUnmount, ref, watch, computed, nextTick } 
 import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
 import Loader from '@/components/loader.vue';
 import Sortable from 'sortablejs';
-import barsIcon from '@/assets/icons/bars.png';
-import candlesIcon from '@/assets/icons/candles.png';
 import NotificationPopup from '@/components/NotificationPopup.vue';
 import { useStore } from 'vuex';
 import SearchBar from '@/components/charts/Search.vue';
@@ -480,6 +481,7 @@ async function initializeComponent() {
       await fetchNews(),
       await fetchHiddenList(),
       await fetchPanel(),
+      await fetchWatchPanel(),
       await fetchTier(),
     ]);
 
@@ -1219,6 +1221,33 @@ async function fetchChartData() {
     data42.value = Array.isArray(result.intraday1m?.MA200) ? result.intraday1m.MA200 : [];
   } catch (error) {
     error.value = error.message;
+  }
+}
+
+const watchPanel = ref([]);
+
+// Function to fetch user's WatchPanel data
+async function fetchWatchPanel() {
+  try {
+    const headers = {
+      'x-api-key': apiKey
+    };
+    const response = await fetch(`/api/watchpanel/${user}`, {
+      headers: headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const newWatchPanel = await response.json();
+    watchPanel.value = newWatchPanel;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+    // Optionally handle other errors
   }
 }
 

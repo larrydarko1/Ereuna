@@ -1,11 +1,11 @@
 <template>
   <div class="watch-panel-container" style="display: flex; align-items: center; justify-content: space-between;">
     <div class="watch-panel" style="display: flex; gap: 8px;">
-      <template v-if="watchPanel.length > 0">
-        <div class="watch-panel-track" :class="{ 'scrolling': watchPanel.length > 12 }">
-          <template v-for="repeat in watchPanel.length > 12 ? 2 : 1">
-            <button v-for="(ticker, i) in watchPanel" :key="repeat + '-' + i"
-              :class="{ active: defaultSymbol === ticker.Symbol, 'index-btn': true }"
+      <template v-if="props.watchPanel.length > 0">
+        <div class="watch-panel-track" :class="{ 'scrolling': props.watchPanel.length > 12 }">
+          <template v-for="repeat in props.watchPanel.length > 12 ? 2 : 1">
+            <button v-for="(ticker, i) in props.watchPanel" :key="repeat + '-' + i"
+              :class="{ active: props.defaultSymbol === ticker.Symbol, 'index-btn': true }"
               @click="selectSymbol(ticker.Symbol)">
               {{ ticker.Symbol }}
               <span :class="parseFloat(ticker.percentageReturn) > 0 ? 'positive' : 'negative'">
@@ -35,26 +35,17 @@ const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
   Tier: { type: String, required: true },
-  defaultSymbol: { type: String, required: true }
+  defaultSymbol: { type: String, required: true },
+  watchPanel: {
+    type: Array,
+    default: () => []
+  },
+  fetchWatchPanel: Function,
 });
 const emit = defineEmits(['select-symbol', 'open-editor']);
 
-const watchPanel = ref([]);
-
 function selectSymbol(symbol) {
   emit('select-symbol', symbol);
-}
-
-// Fetch WatchPanel data
-async function fetchWatchPanel() {
-  try {
-    const headers = { 'x-api-key': props.apiKey };
-    const response = await fetch(`/api/watchpanel/${props.user}`, { headers });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    watchPanel.value = await response.json();
-  } catch (error) {
-    // Optionally handle errors
-  }
 }
 
 // WebSocket for real-time updates
@@ -74,11 +65,11 @@ function WatchPanelWebSocket() {
     try {
       const data = JSON.parse(event.data);
       if (data.Symbol && data.percentageReturn) {
-        const idx = watchPanel.value.findIndex(item => item.Symbol === data.Symbol);
+        const idx = props.watchPanel.findIndex(item => item.Symbol === data.Symbol);
         if (idx !== -1) {
-          watchPanel.value[idx].percentageReturn = data.percentageReturn;
+          props.watchPanel.value[idx].percentageReturn = data.percentageReturn;
         } else {
-          watchPanel.value.push(data);
+          props.watchPanel.value.push(data);
         }
       }
     } catch (err) {
@@ -104,7 +95,7 @@ watch(
     if (newTier === 'Premium' && newUser) {
       WatchPanelWebSocket();
     } else if (newUser) {
-      fetchWatchPanel();
+      props.fetchWatchPanel();
       if (ws) {
         ws.close();
         ws = null;
@@ -118,7 +109,14 @@ onMounted(() => {
   if (props.Tier === 'Premium' && props.user) {
     WatchPanelWebSocket();
   } else if (props.user) {
-    fetchWatchPanel();
+    props.fetchWatchPanel();
   }
 });
 </script>
+
+<style scoped>
+.no-symbols {
+  color: var(--text2);
+}
+
+</style>
