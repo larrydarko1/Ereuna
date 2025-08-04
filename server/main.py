@@ -1,3 +1,7 @@
+import sys
+sys.path.append('.')
+from organizer import Daily
+import datetime as dt
 import os
 import json
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
@@ -83,6 +87,9 @@ signal.signal(signal.SIGTERM, handle_shutdown)
 
 def is_market_hours():
     now = datetime.datetime.utcnow()
+    # Exclude weekends (Saturday=5, Sunday=6)
+    if now.weekday() >= 5:
+        return False
     open_time = now.replace(hour=MARKET_OPEN_HOUR, minute=MARKET_OPEN_MINUTE, second=0, microsecond=0)
     close_time = now.replace(hour=MARKET_CLOSE_HOUR, minute=MARKET_CLOSE_MINUTE, second=0, microsecond=0)
     return open_time <= now <= close_time
@@ -145,37 +152,109 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
             print_total_bandwidth()
             await asyncio.sleep(5)  # Retry after delay
 
-
-# On startup, fetch all stock/ETF tickers from AssetInfo and subscribe
-@app.on_event("startup")
-async def startup_event():
+# --- Market hours background manager ---
+async def market_hours_manager():
     global stock_symbols
-    # Fetch tickers from AssetInfo where AssetType is Stock or ETF
+    tiingo_task = None
+    aggregator_task = None
+    higher_tf_task = None
+    subscribed = False
     assetinfo_coll = db.AssetInfo
-    cursor = assetinfo_coll.find({"AssetType": {"$in": ["Stock", "ETF"]}}, {"Symbol": 1})
-    symbols = set()
-    async for doc in cursor:
-        syms = doc.get("Symbol")
-        if isinstance(syms, list):
-            for s in syms:
-                if isinstance(s, str):
-                    symbols.add(s.upper())
-        elif isinstance(syms, str):
-            symbols.add(syms.upper())
-    stock_symbols = sorted(symbols)
-    print(f"[Startup] Subscribing to {len(stock_symbols)} stock/ETF tickers from AssetInfo.")
-    stock_ws_url = "wss://api.tiingo.com/iex"
-    stock_subscribe_msg = {
-        "eventName": "subscribe",
-        "authorization": TIINGO_API_KEY,
-        "eventData": {
-            "thresholdLevel": 6,
-            "tickers": stock_symbols
-        }
-    }
-    asyncio.create_task(relay_tiingo(stock_ws_url, stock_subscribe_msg, ssl_ctx, stock_filter))
-    asyncio.create_task(start_aggregator(message_queue, mongo_client))
-    asyncio.create_task(aggregate_higher_timeframes(mongo_client))
+    while True:
+        try:
+            if is_market_hours():
+                if not subscribed:
+                    # Fetch tickers from AssetInfo where AssetType is Stock or ETF
+                    cursor = assetinfo_coll.find({"AssetType": {"$in": ["Stock", "ETF"]}}, {"Symbol": 1})
+                    symbols = set()
+                    async for doc in cursor:
+                        syms = doc.get("Symbol")
+                        if isinstance(syms, list):
+                            for s in syms:
+                                if isinstance(s, str):
+                                    symbols.add(s.upper())
+                        elif isinstance(syms, str):
+                            symbols.add(syms.upper())
+                    stock_symbols = sorted(symbols)
+                    print(f"[MarketHours] Subscribing to {len(stock_symbols)} stock/ETF tickers from AssetInfo.")
+                    stock_ws_url = "wss://api.tiingo.com/iex"
+                    stock_subscribe_msg = {
+                        "eventName": "subscribe",
+                        "authorization": TIINGO_API_KEY,
+                        "eventData": {
+                            "thresholdLevel": 6,
+                            "tickers": stock_symbols
+                        }
+                    }
+                    tiingo_task = asyncio.create_task(relay_tiingo(stock_ws_url, stock_subscribe_msg, ssl_ctx, stock_filter))
+                    aggregator_task = asyncio.create_task(start_aggregator(message_queue, mongo_client))
+                    higher_tf_task = asyncio.create_task(aggregate_higher_timeframes(mongo_client))
+                    subscribed = True
+            else:
+                if subscribed:
+                    print("[MarketHours] Market closed. Cancelling Tiingo and aggregator tasks.")
+                    for t in [tiingo_task, aggregator_task, higher_tf_task]:
+                        if t:
+                            t.cancel()
+                            try:
+                                await t
+                            except Exception:
+                                pass
+                    tiingo_task = None
+                    aggregator_task = None
+                    higher_tf_task = None
+                    subscribed = False
+            await asyncio.sleep(10)  # Check every 10 seconds
+        except Exception as e:
+            print(f"[MarketHours] Exception in market_hours_manager: {e}")
+            import traceback
+            traceback.print_exc()
+            await asyncio.sleep(10)
+
+# Start the market hours manager on startup
+@app.on_event("startup")
+async def start_market_hours_manager():
+    asyncio.create_task(market_hours_manager())
+
+
+# --- Concise Scheduler for Daily() ---
+SCHED_CLOSE_HOUR = 20  # UTC 20:00 (4:00pm ET)
+SCHED_CLOSE_MIN = 0
+SCHED_DELAY_HOURS = 3
+
+def is_trading_day(dtobj):
+    return dtobj.weekday() < 5
+
+def next_run_time(now=None):
+    now = now or dt.datetime.utcnow()
+    # Today's market close
+    today_close = now.replace(hour=SCHED_CLOSE_HOUR, minute=SCHED_CLOSE_MIN, second=0, microsecond=0)
+    if is_trading_day(now) and now < today_close:
+        return today_close + dt.timedelta(hours=SCHED_DELAY_HOURS)
+    # Find next trading day
+    for i in range(1, 8):
+        candidate = now + dt.timedelta(days=i)
+        if is_trading_day(candidate):
+            return candidate.replace(hour=SCHED_CLOSE_HOUR, minute=SCHED_CLOSE_MIN, second=0, microsecond=0) + dt.timedelta(hours=SCHED_DELAY_HOURS)
+
+async def daily_scheduler():
+    while True:
+        now = dt.datetime.utcnow()
+        run_at = next_run_time(now)
+        wait = (run_at - now).total_seconds()
+        if wait > 0:
+            print(f"[Scheduler] Next Daily() at {run_at} UTC ({wait/60:.1f} min)")
+            await asyncio.sleep(wait)
+        else:
+            print("[Scheduler] Running Daily() now (missed scheduled time)")
+        try:
+            await Daily()
+        except Exception as e:
+            print(f"[Scheduler] Exception in Daily(): {e}")
+
+@app.on_event("startup")
+async def start_daily_scheduler():
+    asyncio.create_task(daily_scheduler())
 
 @app.websocket("/ws/stream")
 async def websocket_stream(websocket: WebSocket):
@@ -203,8 +282,6 @@ async def websocket_raw(websocket: WebSocket):
     except Exception as e:
         print(f"WebSocket error: {e}")
         await websocket.close()
-
-        
 
 
 @app.websocket("/ws/symbols")

@@ -1,5 +1,4 @@
 <template>
-
   <body>
     <Header />
     <Assistant />
@@ -105,2217 +104,369 @@
         </div>
       </div>
       <div id="filters" :class="{ 'hidden-mobile': selected !== 'filters' }">
-      <div :class="[showPriceInputs ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Price</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'price')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPriceInputs" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showPriceInputs">
-            <div class="row">
-              <input class="left input" id="left-p" type="text" placeholder="min">
-              <input class="right input" id="right-p" type="text" placeholder="max">
-            </div>
-            <div class="row" style="flex-direction: row;">
-              <button class="btns" style="float:right" @click="SetPrice()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('price')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showMarketCapInputs ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Market Cap (1000s)</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'market-cap')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showMarketCapInputs">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showMarketCapInputs">
-            <div class="row">
-              <input class="left input" id="left-mc" type="text" placeholder="min">
-              <input class="right input" id="right-mc" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetMarketCap()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('Marketcap')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showIPOInputs ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>IPO Date</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'ipo')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showIPOInputs">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showIPOInputs">
-            <div class="row">
-              <input class="left input" id="left-ipo" type="date" placeholder="min">
-              <input class="right input" id="right-ipo" type="date" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetIpoDate()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('IPO')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[ShowAssetType ? 'param-s2-expanded' : 'param-s1']">
-  <div class="row">
-    <div
-      style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-      <p>Asset Type</p>
-      <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-        @mouseover="handleMouseOver($event, 'assetType')" @mouseout="handleMouseOut">
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-        <g id="SVGRepo_iconCarrier">
-          <path
-            d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-            stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-          <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-            stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-          <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-            stroke-linejoin="round"></path>
-        </g>
-      </svg>
-    </div>
-    <label style="float:right" class="switch">
-      <input type="checkbox" v-model="ShowAssetType">
-      <span class="slider round"></span>
-    </label>
-  </div>
-  <div style="border: none" v-if="ShowAssetType">
-    <div class="row2">
-      <div class="check" v-for="(asset, index) in AssetTypes" :key="index">
-        <div :id="`asset-type-${index}`" class="custom-checkbox" :class="{ checked: selectedAssetTypes[index] }"
-          @click="toggleAssetType(index)">
-          <span class="checkmark"></span>
-          {{ asset }}
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <button class="btns2" style="float:right" @click="SetAssetType">
-        <!-- Same SVG as before -->
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-          style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-          xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-          xmlns:xlink="http://www.w3.org/1999/xlink">
-          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-          <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-          <g id="SVGRepo_iconCarrier">
-            <path
-              d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-            </path>
-            <g></g>
-          </g>
-        </svg>
-      </button>
-      <button class="btns2r" style="float:right" @click="Reset('AssetType')">
-        <!-- Same SVG as before -->
-        <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-          transform="rotate(90)">
-          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-          <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-          <g id="SVGRepo_iconCarrier">
-            <path
-              d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-              fill-rule="evenodd"></path>
-          </g>
-        </svg>
-      </button>
-    </div>
-  </div>
-</div>
-        <div :class="[ShowSector ? 'param-s2-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Sector</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'sector')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="ShowSector">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none" v-if="ShowSector">
-            <div class="row2">
-              <div class="check" v-for="(sector, index) in Sectors" :key="index">
-                <div :id="`sector-${index}`" class="custom-checkbox" :class="{ checked: selectedSectors[index] }"
-                  @click="toggleSector(index)">
-                  <span class="checkmark"></span>
-                  {{ sector }}
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <button class="btns2" style="float:right" @click="SetSector">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btns2r" style="float:right" @click="Reset('Sector')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[ShowExchange ? 'param-s3-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Exchange</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'exchange')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="ShowExchange">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none" v-if="ShowExchange">
-            <div class="row2">
-              <div class="check" v-for="(exchange, index) in Exchanges" :key="index">
-                <div :id="`exchange-${index}`" class="custom-checkbox" :class="{ checked: selectedExchanges[index] }"
-                  @click="toggleExchange(index)">
-                  <span class="checkmark"></span>
-                  {{ exchange }}
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <button class="btns3" style="float:right" @click="SetExchange">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btns3r" style="float:right" @click="Reset('Exchange')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[ShowCountry ? 'param-s9-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Country</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'country')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="ShowCountry">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none" v-if="ShowCountry">
-            <div class="row2">
-              <div class="check" v-for="(country, index) in Country" :key="index">
-                <div :id="`country-${index}`" class="custom-checkbox" :class="{ checked: selectedCountries[index] }"
-                  @click="toggleCountry(index)">
-                  <span class="checkmark"></span>
-                  {{ country }}
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <button class="btns3" style="float:right" @click="SetCountry">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btns3r" style="float:right" @click="Reset('Country')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showPEInputs ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>PE Ratio</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'pe')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPEInputs" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showPEInputs">
-            <div class="row">
-              <input class="left input" id="left-pe" type="text" placeholder="min">
-              <input class="right input" id="right-pe" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetPE()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('PE')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showPSInputs ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>PS Ratio</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'ps')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPSInputs" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showPSInputs">
-            <div class="row">
-              <input class="left input" id="left-ps" type="text" placeholder="min">
-              <input class="right input" id="right-ps" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetPSRatio()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('PS')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showPEGInputs ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>PEG Ratio</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'peg')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPEGInputs" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showPEGInputs">
-            <div class="row">
-              <input class="left input" id="left-peg" type="text" placeholder="min">
-              <input class="right input" id="right-peg" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetPEG()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('PEG')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showEPSInputs ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div>
-              <div
-                style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-                <p>EPS</p>
-                <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                  @mouseover="handleMouseOver($event, 'eps')" @mouseout="handleMouseOut">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                      stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                    <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                      stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                    <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                      stroke-linejoin="round"></path>
-                  </g>
-                </svg>
-              </div>
-              <label style="float:right" class="switch">
-                <input type="checkbox" id="price-check" v-model="showEPSInputs" style="border: none;">
-                <span class="slider round"></span>
-              </label>
-            </div>
-          </div>
-          <div style="border: none;" v-if="showEPSInputs">
-            <div class="row">
-              <input class="left input" id="left-eps" type="text" placeholder="min">
-              <input class="right input" id="right-eps" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetEPS()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('EPS')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showPBInputs ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>PB Ratio</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'pb')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPBInputs" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showPBInputs">
-            <div class="row">
-              <input class="left input" id="left-pb" type="text" placeholder="min">
-              <input class="right input" id="right-pb" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetPBRatio()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('PB')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showDivYieldInputs ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Dividend Yield TTM (%)</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'div')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showDivYieldInputs" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showDivYieldInputs">
-            <div class="row">
-              <input class="left input" id="left-divyield" type="text" placeholder="min">
-              <input class="right input" id="right-divyield" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetDivYield()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('DivYield')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showFundYoYQoQ ? 'param-s5-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Revenue / Earnings / EPS Growth</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'growth')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showFundYoYQoQ" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showFundYoYQoQ">
-            <div class="DataInputs">
-              <p>Revenue Growth (YoY)</p>
-              <input id="left-RevYoY" class="input" type="text" placeholder="min">
-              <input id="right-RevYoY" class="input" type="text" placeholder="max">
-              <p>Revenue Growth (QoQ)</p>
-              <input id="left-RevQoQ" class="input" type="text" placeholder="min">
-              <input id="right-RevQoQ" class="input" type="text" placeholder="max">
-              <p>Earnings Growth (YoY)</p>
-              <input id="left-EarningsYoY" class="input" type="text" placeholder="min">
-              <input id="right-EarningsYoY" class="input" type="text" placeholder="max">
-              <p>Earnings Growth (QoQ)</p>
-              <input id="left-EarningsQoQ" class="input" type="text" placeholder="min">
-              <input id="right-EarningsQoQ" class="input" type="text" placeholder="max">
-              <p>EPS Growth (YoY)</p>
-              <input id="left-EPSYoY" class="input" type="text" placeholder="min">
-              <input id="right-EPSYoY" class="input" type="text" placeholder="max">
-              <p>EPS Growth (QoQ)</p>
-              <input id="left-EPSQoQ" class="input" type="text" placeholder="min">
-              <input id="right-EPSQoQ" class="input" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns5" style="float:right" @click="SetFundamentalGrowth()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btns5r" style="float:right" @click="Reset('FundGrowth')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showPricePerf ? 'param-s6-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Price Performance</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'perf')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPricePerf" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showPricePerf">
-            <div class="DataInputs11">
-              <p style="text-align: center;">Change %</p>
-              <div style="display: flex; justify-content: center; align-items: center; border: none;">
-                <input class="input" id="changeperc1" type="text" style="width: 70px; margin: 0 5px;" placeholder="Min">
-                <input class="input" id="changeperc2" type="text" style="width: 70px; margin: 0 5px;" placeholder="Max">
-                <div class="changeperc-select-container">
-                  <div class="changeperc-dropdown-btn">
-                    <p class="selected-value">{{ changepercSelect }}</p>
-                  </div>
-                  <div class="changeperc-dropdown-menu">
-                    <div v-for="(option, index) in changepercOptions" :key="index"
-                      @click="selectChangepercOption(option)">
-                      {{ option }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div style="border: none;">
-                <p style="text-align: center;">% off 52weekhigh</p>
-                <div style="display: flex; justify-content: center; align-items: center; border:none;">
-                  <input class="input" type="text" id="weekhigh1" style="width: 70px; margin: 0 5px;" placeholder="Min">
-                  <input class="input" type="text" id="weekhigh2" style="width: 70px; margin: 0 5px;" placeholder="Max">
-                </div>
-                <p style="text-align: center;">% off 52weeklow</p>
-                <div style="display: flex; justify-content: center; align-items: center; border:none;">
-                  <input class="input" type="text" id="weeklow1" style="width: 70px; margin: 0 5px;" placeholder="Min">
-                  <input class="input" type="text" id="weeklow2" style="width: 70px; margin: 0 5px;" placeholder="Max">
-                </div>
-              </div>
-              <div style="display: flex; flex-direction: column; align-items: center; border:none;">
-                <br>
-                <div class="custom-checkbox" :class="{ checked: allTimeHigh }" @click="toggleAllTimeHigh">
-                  <span class="checkmark"></span>
-                  New All time High
-                </div>
-                <div class="custom-checkbox" :class="{ checked: allTimeLow }" @click="toggleAllTimeLow">
-                  <span class="checkmark"></span>
-                  New All time Low
-                </div>
-              </div>
-              <br>
-              <div style="display: flex; flex-direction: column; align-items: center; border: none;">
-                <div style="display: flex; align-items: center; border: none;">
-                  <p style="margin-right: 10px;">200 DMA</p>
-                  <div class="ma200-select-container">
-                    <div class="ma200-dropdown-btn">
-                      <p class="selected-value">{{ ma200Select }}</p>
-                    </div>
-                    <div class="ma200-dropdown-menu">
-                      <div v-for="(option, index) in ma200Options" :key="index" @click="selectMa200Option(option)">
-                        {{ option }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div style="display: flex; align-items: center; border: none;">
-                  <p style="margin-right: 10px;">50 DMA</p>
-                  <div class="ma50-select-container">
-                    <div class="ma50-dropdown-btn">
-                      <p class="selected-value">{{ ma50Select }}</p>
-                    </div>
-                    <div class="ma50-dropdown-menu">
-                      <div v-for="(option, index) in ma50Options" :key="index" @click="selectMa50Option(option)">
-                        {{ option }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div style="display: flex; align-items: center; border: none;">
-                  <p style="margin-right: 10px;">20 DMA</p>
-                  <div class="ma20-select-container">
-                    <div class="ma20-dropdown-btn">
-                      <p class="selected-value">{{ ma20Select }}</p>
-                    </div>
-                    <div class="ma20-dropdown-menu">
-                      <div v-for="(option, index) in ma20Options" :key="index" @click="selectMa20Option(option)">
-                        {{ option }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div style="display: flex; align-items: center; border: none;">
-                  <p style="margin-right: 10px;">10 DMA</p>
-                  <div class="ma10-select-container">
-                    <div class="ma10-dropdown-btn">
-                      <p class="selected-value">{{ ma10Select }}</p>
-                    </div>
-                    <div class="ma10-dropdown-menu">
-                      <div v-for="(option, index) in ma10Options" :key="index" @click="selectMa10Option(option)">
-                        {{ option }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div style="display: flex; align-items: center; border: none;">
-                  <p style="margin-right: 10px;">Price</p>
-                  <div class="price-select-container">
-                    <div class="price-dropdown-btn">
-                      <p class="selected-value">{{ priceSelect }}</p>
-                    </div>
-                    <div class="price-dropdown-menu">
-                      <div v-for="(option, index) in priceOptions" :key="index" @click="selectPriception(option)">
-                        {{ option }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <button class="btns6" style="float:right" @click="SetPricePerformance()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btns6r" style="float:right" @click="Reset('PricePerformance')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showRSscore ? 'param-s8-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Technical Score</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'rs')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showRSscore" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showRSscore">
-            <div class="DataInputs10">
-              <p>Technical Score (1W)</p>
-              <input class="input" type="number" placeholder="min (1)" id="RSscore1Winput1" name="input5" min="1"
-                max="100">
-              <input class="input" type="number" placeholder="max (100)" id="RSscore1Winput2" name="input6" min="1"
-                max="100">
-              <p>Technical Score (1M)</p>
-              <input class="input" type="number" placeholder="min (1)" id="RSscore1Minput1" name="input1" min="1"
-                max="100">
-              <input class="input" type="number" placeholder="max (100)" id="RSscore1Minput2" name="input2" min="1"
-                max="100">
-              <p>Technical Score (4M)</p>
-              <input class="input" type="number" placeholder="min (1)" id="RSscore4Minput1" name="input3" min="1"
-                max="100">
-              <input class="input" type="number" placeholder="max (100)" id="RSscore4Minput2" name="input4" min="1"
-                max="100">
-            </div>
-            <div class="row">
-              <button class="btns8" style="float:right" @click="SetRSscore()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btns8r" style="float:right" @click="Reset('RSscore')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showVolume ? 'param-s7-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Volume</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'volume')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showVolume" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showVolume">
-            <div class="DataInputs4">
-              <p>Relative Volume</p>
-              <div style="display: flex; align-items: center;">
-                <input class="input" id="left-relvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;">
-                <input class="input" id="right-relvol" type="text" placeholder="max"
-                  style="width: 70px; margin: 0 5px;">
-                <div class="relvol-select-container" style="margin-left: 5px;">
-                  <div class="relvol-dropdown-btn">
-                    <p class="selected-value">{{ relVolSelect }}</p>
-                  </div>
-                  <div class="relvol-dropdown-menu">
-                    <div v-for="(option, index) in relVolOptions" :key="index" @click="selectRelVolOption(option)">
-                      {{ option }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <p>Average Volume (1000s)</p>
-              <div style="display: flex; align-items: center;">
-                <input class="input" id="left-avgvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;">
-                <input class="input" id="right-avgvol" type="text" placeholder="max"
-                  style="width: 70px; margin: 0 5px;">
-                <div class="avgvol-select-container" style="margin-left: 5px;">
-                  <div class="avgvol-dropdown-btn">
-                    <p class="selected-value">{{ avgVolSelect }}</p>
-                  </div>
-                  <div class="avgvol-dropdown-menu">
-                    <div v-for="(option, index) in avgVolOptions" :key="index" @click="selectAvgVolOption(option)">
-                      {{ option }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <button class="btns7" style="float:right" @click="SetVolume()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btns7r" style="float:right" @click="Reset('Volume')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showADV ? 'param-s10-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Average Daily Volatility (ADV)</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'adv')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showADV" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showADV">
-            <div class="DataInputs10">
-              <p>ADV (1W)</p>
-              <input class="input" type="number" placeholder="min (%)" id="ADV1Winput1" name="input1">
-              <input class="input" type="number" placeholder="max (%)" id="ADV1Winput2" name="input2">
-              <p>ADV (1M)</p>
-              <input class="input" type="number" placeholder="min (%)" id="ADV1Minput1" name="input3">
-              <input class="input" type="number" placeholder="max (%)" id="ADV1Minput2" name="input4">
-              <p>ADV (4M)</p>
-              <input class="input" type="number" placeholder="min (%)" id="ADV4Minput1" name="input5">
-              <input class="input" type="number" placeholder="max (%)" id="ADV4Minput2" name="input6">
-              <p>ADV (1Y)</p>
-              <input class="input" type="number" placeholder="min (%)" id="ADV1Yinput1" name="input7">
-              <input class="input" type="number" placeholder="max (%)" id="ADV1Yinput2" name="input8">
-            </div>
-            <div class="row">
-              <button class="btns8" style="float:right" @click="SetADV()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btns8r" style="float:right" @click="Reset('ADV')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showROE ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Return of Equity (ROE)</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'roe')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showROE" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showROE">
-            <div class="row">
-              <input class="left input" id="left-roe" type="text" placeholder="min">
-              <input class="right input" id="right-roe" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetROE()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('ROE')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showROA ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Return of Assets (ROA)</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'roa')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showROA" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showROA">
-            <div class="row">
-              <input class="left input" id="left-roa" type="text" placeholder="min">
-              <input class="right input" id="right-roa" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetROA()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('ROA')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showCurrentRatio ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Current Ratio</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'current-ratio')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="current-ratio-check" v-model="showCurrentRatio" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showCurrentRatio">
-            <div class="row">
-              <input class="left input" id="left-current-ratio" type="text" placeholder="min">
-              <input class="right input" id="right-current-ratio" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetCurrentRatio()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('CurrentRatio')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showCurrentAssets ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Current Assets (1000s)</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'current-assets')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showCurrentAssets">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showCurrentAssets">
-            <div class="row">
-              <input class="left input" id="left-ca" type="text" placeholder="min">
-              <input class="right input" id="right-ca" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetCurrentAssets()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('CurrentAssets')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showCurrentLiabilities ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Current Liabilities (1000s)</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'current-liabilities')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showCurrentLiabilities">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showCurrentLiabilities">
-            <div class="row">
-              <input class="left input" id="left-cl" type="text" placeholder="min">
-              <input class="right input" id="right-cl" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetCurrentLiabilities()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('CurrentLiabilities')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showCurrentDebt ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Current Debt (1000s)</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'current-debt')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showCurrentDebt">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showCurrentDebt">
-            <div class="row">
-              <input class="left input" id="left-cd" type="text" placeholder="min">
-              <input class="right input" id="right-cd" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetCurrentDebt()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('CurrentDebt')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showCashEquivalents ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Cash & Equivalents (1000s)</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'casheq')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showCashEquivalents">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showCashEquivalents">
-            <div class="row">
-              <input class="left input" id="left-ce" type="text" placeholder="min">
-              <input class="right input" id="right-ce" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetCashEquivalents()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('CashEquivalents')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showFreeCashFlow ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Free Cash Flow (1000s)</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'fcf')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showFreeCashFlow">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showFreeCashFlow">
-            <div class="row">
-              <input class="left input" id="left-fcf" type="text" placeholder="min">
-              <input class="right input" id="right-fcf" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetFreeCashFlow()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('FCF')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showProfitMargin ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Profit Margin</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'profit-margin')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="profit-margin-check" v-model="showProfitMargin" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showProfitMargin">
-            <div class="row">
-              <input class="left input" id="left-pm" type="text" placeholder="min">
-              <input class="right input" id="right-pm" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetProfitMargin()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('ProfitMargin')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showGrossMargin ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Gross Margin</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'gross-margin')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="gross-margin-check" v-model="showGrossMargin" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showGrossMargin">
-            <div class="row">
-              <input class="left input" id="left-gm" type="text" placeholder="min">
-              <input class="right input" id="right-gm" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetGrossMargin()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('GrossMargin')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showDebtToEquityRatio ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Debt to Equity Ratio</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'debt-equity')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="debt-to-equity-check" v-model="showDebtToEquityRatio" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showDebtToEquityRatio">
-            <div class="row">
-              <input class="left input" id="left-der" type="text" placeholder="min">
-              <input class="right input" id="right-der" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetDebtToEquityRatio()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('DebtEquity')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showBookValue ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Book Value (1000s)</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'book-value')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="book-value-check" v-model="showBookValue" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showBookValue">
-            <div class="row">
-              <input class="left input" id="left-bv" type="text" placeholder="min">
-              <input class="right input" id="right-bv" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetBookValue()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('BookValue')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showEV ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>EV (Enterprise Value) - 1000s</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'ev')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="ev-check" v-model="showEV" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showEV">
-            <div class="row">
-              <input class="left input" id="left-ev" type="text" placeholder="min">
-              <input class="right input" id="right-ev" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetEV()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('EV')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showRSI ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>RSI (Relative Strength Index)</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'rsi')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="rsi-check" v-model="showRSI" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showRSI">
-            <div class="row">
-              <input class="left input" id="left-rsi" type="number" placeholder="min" min="1" max="100">
-              <input class="right input" id="right-rsi" type="number" placeholder="max" min="1" max="100">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetRSI()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('RSI')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :class="[showGap ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Gap %</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'gap')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="gap-percent-check" v-model="showGap" style="border: none;">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none;" v-if="showGap">
-            <div class="row">
-              <input class="left input" id="left-gap" type="text" placeholder="min">
-              <input class="right input" id="right-gap" type="text" placeholder="max">
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetGapPercent()">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g id="Icon"></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="Reset('Gap')">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+       <Price
+  :user="user"
+  :apiKey="apiKey"
+  :notification="notification"
+  :selectedScreener="selectedScreener"
+  @fetchScreeners="handleFetchScreeners"
+  @handleMouseOver="handleMouseOver"
+  @handleMouseOut="handleMouseOut"
+  :isScreenerError="isScreenerError"
+  @reset="Reset('price')"
+/>
+     <MarketCap
+       :user="user"
+  :apiKey="apiKey"
+  :notification="notification"
+  :selectedScreener="selectedScreener"
+  @fetchScreeners="handleFetchScreeners"
+  @handleMouseOver="handleMouseOver"
+  @handleMouseOut="handleMouseOut"
+  :isScreenerError="isScreenerError"
+  @reset="Reset('Marketcap')"
+  />
+       <IPO 
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('IPO')"
+       />
+       <AssetType 
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('AssetType')"
+       />
+       <Sector 
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('Sector')"
+       />
+       <Exchange
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('Exchange')"
+       />
+       <Country
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('Country')"
+       />
+       <PE
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('PE')"
+       />
+        <PS
+        :user="user"
+        :apiKey="apiKey"
+        :notification="notification"
+        :selectedScreener="selectedScreener"
+        @fetchScreeners="handleFetchScreeners"
+        @handleMouseOver="handleMouseOver"
+        @handleMouseOut="handleMouseOut"
+        :isScreenerError="isScreenerError"
+        @reset="Reset('PS')"
+        />
+       <PEG
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('PEG')"
+       />
+       <EPS
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('EPS')"
+       />
+       <PB
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('PB')"
+       />
+        <DivYield
+        :user="user"
+        :apiKey="apiKey"
+        :notification="notification"
+        :selectedScreener="selectedScreener"
+        @fetchScreeners="handleFetchScreeners"
+        @handleMouseOver="handleMouseOver"
+        @handleMouseOut="handleMouseOut"
+        :isScreenerError="isScreenerError"
+        @reset="Reset('DivYield')"
+        />
+       <ShowFundYoYQoQ
+        :user="user"
+        :apiKey="apiKey"
+        :notification="notification"
+        :selectedScreener="selectedScreener"
+        @fetchScreeners="handleFetchScreeners"
+        @handleMouseOver="handleMouseOver"
+        @handleMouseOut="handleMouseOut"
+        :isScreenerError="isScreenerError"
+        @reset="Reset('FundGrowth')"
+       />
+       <PricePerf
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('PricePerformance')"
+       />
+       <RSscore
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('RSscore')"
+       />
+       <Volume
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('Volume')"
+       />
+       <ADV
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('ADV')"
+       />
+       <ROE
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('ROE')"
+       />
+       <ROA
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('ROA')"
+       />
+       <CurrentRatio
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('CurrentRatio')"
+       />
+       <CurrentAsset
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('CurrentAssets')"
+       />
+     <CurrentLiability
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('CurrentLiabilities')"
+     />
+       <CurrentDebt
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('CurrentDebt')"
+       />
+       <CashEquivalents
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('CashEquivalents')"
+       />
+       <FCF
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('FCF')"
+       />
+       <ProfitMargin
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('ProfitMargin')"
+       />
+       <GrossMargin
+       :user="user"
+       :apiKey="apiKey"
+       :notification="notification"
+       :selectedScreener="selectedScreener"
+       @fetchScreeners="handleFetchScreeners"
+       @handleMouseOver="handleMouseOver"
+       @handleMouseOut="handleMouseOut"
+       :isScreenerError="isScreenerError"
+       @reset="Reset('GrossMargin')"
+       />
+        <DebtEquity
+          :user="user"
+          :apiKey="apiKey"
+          :notification="notification"
+          :selectedScreener="selectedScreener"
+          @fetchScreeners="handleFetchScreeners"
+          @handleMouseOver="handleMouseOver"
+          @handleMouseOut="handleMouseOut"
+          :isScreenerError="isScreenerError"
+          @reset="Reset('DebtEquity')"
+        />
+       <BookValue
+         :user="user"
+         :apiKey="apiKey"
+         :notification="notification"
+         :selectedScreener="selectedScreener"
+         @fetchScreeners="handleFetchScreeners"
+         @handleMouseOver="handleMouseOver"
+         @handleMouseOut="handleMouseOut"
+         :isScreenerError="isScreenerError"
+         @reset="Reset('BookValue')"
+       />
+       <EV
+         :user="user"
+         :apiKey="apiKey"
+         :notification="notification"
+         :selectedScreener="selectedScreener"
+         @fetchScreeners="handleFetchScreeners"
+         @handleMouseOver="handleMouseOver"
+         @handleMouseOut="handleMouseOut"
+         :isScreenerError="isScreenerError"
+         @reset="Reset('EV')"
+       />
+        <RSI
+          :user="user"
+          :apiKey="apiKey"
+          :notification="notification"
+          :selectedScreener="selectedScreener"
+          @fetchScreeners="handleFetchScreeners"
+          @handleMouseOver="handleMouseOver"
+          @handleMouseOut="handleMouseOut"
+          :isScreenerError="isScreenerError"
+          @reset="Reset('RSI')"
+        />
+        <Gap
+          :user="user"
+          :apiKey="apiKey"
+          :notification="notification"
+          :selectedScreener="selectedScreener"
+          @fetchScreeners="handleFetchScreeners"
+          @handleMouseOver="handleMouseOver"
+          @handleMouseOut="handleMouseOut"
+          :isScreenerError="isScreenerError"
+          @reset="Reset('Gap')"
+        />
         <div class="results"></div>
       </div>
       <div id="resultsDiv" :class="{ 'hidden-mobile': selected !== 'list' }">
@@ -2544,6 +695,41 @@ import FilterList from '@/components/Screener/Tables/FilterList.vue';
 import HiddenList from '@/components/Screener/Tables/HiddenList.vue';
 import CombinedList from '@/components/Screener/Tables/CombinedList.vue';
 
+//filter components
+import Price from '@/components/Screener/Parameters/Price.vue';
+import MarketCap from '@/components/Screener/Parameters/MarketCap.vue';
+import IPO from '@/components/Screener/Parameters/IPO.vue';
+import AssetType from '@/components/Screener/Parameters/AssetType.vue';
+import Sector from '@/components/Screener/Parameters/Sector.vue';
+import Exchange from '@/components/Screener/Parameters/Exchange.vue';
+import Country from '@/components/Screener/Parameters/Country.vue';
+import PE from '@/components/Screener/Parameters/PE.vue';
+import PS from '@/components/Screener/Parameters/PS.vue';
+import PEG from '@/components/Screener/Parameters/PEG.vue';
+import EPS from '@/components/Screener/Parameters/EPS.vue';
+import PB from '@/components/Screener/Parameters/PB.vue';
+import DivYield from '@/components/Screener/Parameters/DivYield.vue';
+import ShowFundYoYQoQ from '@/components/Screener/Parameters/ShowFundYoYQoQ.vue';
+import PricePerf from '@/components/Screener/Parameters/PricePerf.vue';
+import RSscore from '@/components/Screener/Parameters/RSscore.vue';
+import Volume from '@/components/Screener/Parameters/Volume.vue';
+import ADV from '@/components/Screener/Parameters/ADV.vue';
+import ROE from '@/components/Screener/Parameters/ROE.vue';
+import ROA from '@/components/Screener/Parameters/ROA.vue';
+import CurrentRatio from '@/components/Screener/Parameters/CurrentRatio.vue';
+import CurrentAsset from '@/components/Screener/Parameters/CurrentAsset.vue';
+import CurrentLiability from '@/components/Screener/Parameters/CurrentLiability.vue';
+import CurrentDebt from '@/components/Screener/Parameters/CurrentDebt.vue';
+import CashEquivalents from '@/components/Screener/Parameters/CashEquivalents.vue';
+import FCF from '@/components/Screener/Parameters/FCF.vue';
+import ProfitMargin from '@/components/Screener/Parameters/ProfitMargin.vue';
+import GrossMargin from '@/components/Screener/Parameters/GrossMargin.vue';
+import DebtEquity from '@/components/Screener/Parameters/DebtEquity.vue';
+import BookValue from '@/components/Screener/Parameters/BookValue.vue';
+import EV from '@/components/Screener/Parameters/EV.vue';
+import RSI from '@/components/Screener/Parameters/RSI.vue';
+import Gap from '@/components/Screener/Parameters/Gap.vue';
+
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 //user import - user session 
 const store = useStore();
@@ -2699,42 +885,7 @@ const showEditColumn = ref(false) // shows menu for editing columns in screener
 const showSearch = ref(false) // shows searchbar 
 const selectedScreener = ref('') // selectes current screener 
 const selectedSymbol = ref(''); // similar to selectedItem 
-let showMarketCapInputs = ref(false);
-let ShowSector = ref(false);
-let ShowAssetType = ref(false);
-let ShowExchange = ref(false);
-let ShowCountry = ref(false);
-let showPEInputs = ref(false);
-let showPEForwInputs = ref(false);
-let showPEGInputs = ref(false);
-let showEPSInputs = ref(false);
-let showPSInputs = ref(false);
-let showPBInputs = ref(false);
-let showBetaInputs = ref(false);
-let showFundYoYQoQ = ref(false);
-let showPricePerf = ref(false);
-let showRSscore = ref(false);
-let showADV = ref(false);
-let showVolume = ref(false);
-let showDivYieldInputs = ref(false);
-let showIPOInputs = ref(false);
-let showROE = ref(false);
-let showROA = ref(false);
-let showCurrentRatio = ref(false);
-let showCurrentAssets = ref(false);
-let showCurrentLiabilities = ref(false);
-let showCurrentDebt = ref(false);
-let showCashEquivalents = ref(false);
-let showFreeCashFlow = ref(false);
-let showProfitMargin = ref(false);
-let showGrossMargin = ref(false);
-let showDebtToEquityRatio = ref(false);
-let showBookValue = ref(false);
-let showEV = ref(false);
-let showRSI = ref(false);
-let showGap = ref(false);
 const listMode = ref('main');
-
 const ImagePaths = ref([]);
 
 // Async function to fetch symbols and exchanges
@@ -3271,14 +1422,6 @@ const compoundedResults = ref([]) // it will store all compounded screener resul
 const hideList = ref([]); // stores hidden list of users
 const ScreenersName = ref([]); // stores all user's screeners
 const currentList = ref([]); // Initialize currentList as an empty array
-const AssetTypes = ref([]); // hosts all available asset types
-const selectedAssetTypes = ref([]);
-const Sectors = ref([]); // hosts all available sectors 
-const selectedSectors = ref([]);
-const Exchanges = ref([]); // hosts all available exchanges 
-const selectedExchanges = ref([]);
-const Country = ref([]); // hosts all available countries 
-const selectedCountries = ref([]);
 const screenerSummary = ref([]); // stores all params for a screener, summary bottom right below charts 
 
 //related to lists / toggle
@@ -3412,103 +1555,6 @@ async function GetScreeners() {
   }
 }
 GetScreeners();
-
-// add and or modifies market cap value and sends it
-async function SetMarketCap() {
-  try {
-
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftPrice = parseFloat(document.getElementById('left-mc').value);
-    const rightPrice = parseFloat(document.getElementById('right-mc').value);
-
-    if (leftPrice >= rightPrice) {
-      throw new Error('Min price cannot be higher than or equal to max price');
-    }
-
-    const response = await fetch('/api/screener/marketcap', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (data.message === 'market cap updated successfully') {
-      try {
-        await fetchScreenerResults(selectedScreener.value);
-      } catch (error) {
-        error.value = error.message;
-      }
-    } else {
-      throw new Error('Error updating range');
-    }
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-// add and or modifies market cap value and sends it
-async function SetIpoDate() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftPrice = document.getElementById('left-ipo').value;
-    const rightPrice = document.getElementById('right-ipo').value;
-
-    const response = await fetch('/api/screener/ipo-date', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (data.message === 'ipo updated successfully') {
-      try {
-        await fetchScreenerResults(selectedScreener.value);
-      } catch (error) {
-        error.value = error.message;
-      }
-    } else {
-      throw new Error('Error updating range');
-    }
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
 
 // hides a stock in screener and puts in in hidden list 
 async function hideStock(asset) {
@@ -3649,204 +1695,6 @@ async function ShowStock(asset) {
   }
 }
 
-// generates options for checkboxes for sectors
-async function GetAssetTypes() {
-  try {
-    const response = await fetch('/api/screener/asset-type', {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-    const data = await response.json();
-    AssetTypes.value = data;
-    selectedAssetTypes.value = new Array(data.length).fill(false); // Initialize selection state
-  } catch (error) {
-    error.value = error.message;
-  }
-}
-GetAssetTypes();
-
-// generates options for checkboxes for sectors
-async function GetSectors() {
-  try {
-    const response = await fetch('/api/screener/sectors', {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-    const data = await response.json();
-    Sectors.value = data;
-    selectedSectors.value = new Array(data.length).fill(false); // Initialize selection state
-  } catch (error) {
-    error.value = error.message;
-  }
-}
-GetSectors();
-
-const toggleSector = (index) => {
-  selectedSectors.value[index] = !selectedSectors.value[index]; // Toggle the selected state
-};
-
-// generates options for checkboxes for exchanges 
-async function GetExchanges() {
-  try {
-    const response = await fetch('/api/screener/exchange', {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-    const data = await response.json();
-    Exchanges.value = data;
-    selectedExchanges.value = new Array(data.length).fill(false); // Initialize selection state
-  } catch (error) {
-    error.value = error.message;
-  }
-}
-GetExchanges();
-
-const toggleExchange = (index) => {
-  selectedExchanges.value[index] = !selectedExchanges.value[index]; // Toggle the selected state
-};
-
-// generates options for checkboxes for country 
-async function GetCountry() {
-  try {
-    const response = await fetch('/api/screener/country', {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-    const data = await response.json();
-    Country.value = data;
-    selectedCountries.value = new Array(data.length).fill(false); // Initialize selection state
-  } catch (error) {
-    error.value = error.message;
-  }
-}
-GetCountry();
-
-const toggleCountry = (index) => {
-  selectedCountries.value[index] = !selectedCountries.value[index]; // Toggle the selected state
-};
-
-// Sends asset types data to update screener
-async function SetAssetType() {
-  const selected = AssetTypes.value.filter((_, index) => selectedAssetTypes.value[index]); // Get selected asset types
-
-  try {
-    const response = await fetch('/api/screener/asset-types', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ 
-        assetTypes: selected, 
-        screenerName: selectedScreener.value, 
-        user: user 
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    await fetchScreenerResults(selectedScreener.value); // Update the list after setting asset types
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-// sends sectors data to update screener
-async function SetSector() {
-  const selected = Sectors.value.filter((_, index) => selectedSectors.value[index]); // Get selected sectors
-
-  try {
-    const response = await fetch('/api/screener/sectors', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ sectors: selected, screenerName: selectedScreener.value, user: user })
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    await fetchScreenerResults(selectedScreener.value); // Update the list after setting the sector
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-// sends exchanges data to update screener
-async function SetExchange() {
-  const selected = Exchanges.value.filter((_, index) => selectedExchanges.value[index]); // Get selected exchanges
-
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const response = await fetch('/api/screener/exchange', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ exchanges: selected, screenerName: selectedScreener.value, user: user })
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    await fetchScreenerResults(selectedScreener.value); // Update the list after setting the exchange
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-// sends country data to update screener
-async function SetCountry() {
-  const selected = Country.value.filter((_, index) => selectedCountries.value[index]); // Get selected countries
-
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const response = await fetch('/api/screener/country', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ countries: selected, screenerName: selectedScreener.value, user: user })
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    await fetchScreenerResults(selectedScreener.value); // Update the list after setting the country
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
 // deletes screeners 
 async function DeleteScreener(screenerName) {
   const apiUrl = `/api/${user}/delete/screener/${screenerName}`;
@@ -3903,616 +1751,6 @@ async function fetchPerformanceResults(symbol) {
     PerformanceResults.value.push(performanceData);
   } catch (error) {
     error.value = error.message;
-  }
-}
-
-// adds and modifies PE Ratio value for screener 
-async function SetPE() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftPrice = parseFloat(document.getElementById('left-pe').value)
-    const rightPrice = parseFloat(document.getElementById('right-pe').value)
-
-    if (leftPrice >= rightPrice) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/pe', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating price range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-// adds and modifies PEG Ratio value for screener 
-async function SetPEG() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftPrice = parseFloat(document.getElementById('left-peg').value)
-    const rightPrice = parseFloat(document.getElementById('right-peg').value)
-
-    if (leftPrice >= rightPrice) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/peg', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      throw new Error('Error updating price range')
-    }
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-let showPriceInputs = ref(false);
-
-// adds and modifies price value for screener 
-async function SetPrice() {
-  try {
-
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftPrice = parseFloat(document.getElementById('left-p').value)
-    const rightPrice = parseFloat(document.getElementById('right-p').value)
-
-    if (leftPrice >= rightPrice) {
-      throw new Error('Min price cannot be higher than or equal to max price')
-    }
-
-    const response = await fetch('/api/screener/price', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'Price range updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      throw new Error('Error updating price range')
-    }
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-// adds and modifies EPS value for screener 
-async function SetEPS() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftPrice = parseFloat(document.getElementById('left-eps').value)
-    const rightPrice = parseFloat(document.getElementById('right-eps').value)
-
-    if (leftPrice >= rightPrice) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/eps', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      throw new Error('Error updating price range')
-    }
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-// adds and modifies PS Ratio value for screener 
-async function SetPSRatio() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftPrice = parseFloat(document.getElementById('left-ps').value)
-    const rightPrice = parseFloat(document.getElementById('right-ps').value)
-
-    if (leftPrice >= rightPrice) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/ps-ratio', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      throw new Error('Error updating price range')
-    }
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-// adds and modifies PB Ratio value for screener 
-async function SetPBRatio() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftPrice = parseFloat(document.getElementById('left-pb').value)
-    const rightPrice = parseFloat(document.getElementById('right-pb').value)
-
-    if (leftPrice >= rightPrice) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/pb-ratio', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    }
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-  await fetchScreenerResults(selectedScreener.value);
-}
-
-// adds and modifies dividend yield value for screener 
-async function SetDivYield() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftPrice = parseFloat(document.getElementById('left-divyield').value)
-    const rightPrice = parseFloat(document.getElementById('right-divyield').value)
-
-    if (leftPrice >= rightPrice) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/div-yield', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      throw new Error('Error updating price range')
-    }
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-// adds and modifies YoY and/or Qoq value for screener 
-async function SetFundamentalGrowth() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftRevYoY = parseFloat(document.getElementById('left-RevYoY').value);
-    const rightRevYoY = parseFloat(document.getElementById('right-RevYoY').value);
-    const leftRevQoQ = parseFloat(document.getElementById('left-RevQoQ').value);
-    const rightRevQoQ = parseFloat(document.getElementById('right-RevQoQ').value);
-    const leftEarningsYoY = parseFloat(document.getElementById('left-EarningsYoY').value);
-    const rightEarningsYoY = parseFloat(document.getElementById('right-EarningsYoY').value);
-    const leftEarningsQoQ = parseFloat(document.getElementById('left-EarningsQoQ').value);
-    const rightEarningsQoQ = parseFloat(document.getElementById('right-EarningsQoQ').value);
-    const leftEPSYoY = parseFloat(document.getElementById('left-EPSYoY').value);
-    const rightEPSYoY = parseFloat(document.getElementById('right-EPSYoY').value);
-    const leftEPSQoQ = parseFloat(document.getElementById('left-EPSQoQ').value);
-    const rightEPSQoQ = parseFloat(document.getElementById('right-EPSQoQ').value);
-
-    const response = await fetch('/api/screener/fundamental-growth', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minRevYoY: leftRevYoY,
-        maxRevYoY: rightRevYoY,
-        minRevQoQ: leftRevQoQ,
-        maxRevQoQ: rightRevQoQ,
-        minEarningsYoY: leftEarningsYoY,
-        maxEarningsYoY: rightEarningsYoY,
-        minEarningsQoQ: leftEarningsQoQ,
-        maxEarningsQoQ: rightEarningsQoQ,
-        minEPSYoY: leftEPSYoY,
-        maxEPSYoY: rightEPSYoY,
-        minEPSQoQ: leftEPSQoQ,
-        maxEPSQoQ: rightEPSQoQ,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json();
-
-    if (data.message === 'updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      throw new Error('Error updating')
-    }
-  } catch (error) {
-    if (error.response && error.response.status === 400) {
-      error.value = error.response.data.message;
-      // Display an error message to the user
-    } else {
-      error.value = error.message;
-      await fetchScreenerResults(selectedScreener.value);
-    }
-  }
-}
-
-// updates screener value with volume parameters 
-async function SetVolume() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const value1 = parseFloat(document.getElementById('left-relvol').value)
-    const value2 = parseFloat(document.getElementById('right-relvol').value)
-    const value3 = parseFloat(document.getElementById('left-avgvol').value * 1000)
-    const value4 = parseFloat(document.getElementById('right-avgvol').value * 1000)
-    const relVolOption = relVolSelect.value
-    const avgVolOption = avgVolSelect.value
-
-    const response = await fetch('/api/screener/volume', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        value1: value1,
-        value2: value2,
-        value3: value3,
-        value4: value4,
-        relVolOption: relVolOption,
-        avgVolOption: avgVolOption,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      throw new Error('Error updating price range')
-    }
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-// updates screener value with RS Score parameters 
-async function SetRSscore() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const value1 = parseFloat(document.getElementById('RSscore1Minput1').value)
-    const value2 = parseFloat(document.getElementById('RSscore1Minput2').value)
-    const value3 = parseFloat(document.getElementById('RSscore4Minput1').value)
-    const value4 = parseFloat(document.getElementById('RSscore4Minput2').value)
-    const value5 = parseFloat(document.getElementById('RSscore1Winput1').value)
-    const value6 = parseFloat(document.getElementById('RSscore1Winput2').value)
-
-    const response = await fetch('/api/screener/rs-score', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        value1: value1,
-        value2: value2,
-        value3: value3,
-        value4: value4,
-        value5: value5,
-        value6: value6,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      throw new Error('Error updating range')
-    }
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-// updates screener value with ADV parameters 
-async function SetADV() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const value1 = parseFloat(document.getElementById('ADV1Winput1').value).toFixed(2);
-    const value2 = parseFloat(document.getElementById('ADV1Winput2').value).toFixed(2);
-    const value3 = parseFloat(document.getElementById('ADV1Minput1').value).toFixed(2);
-    const value4 = parseFloat(document.getElementById('ADV1Minput2').value).toFixed(2);
-    const value5 = parseFloat(document.getElementById('ADV4Minput1').value).toFixed(2);
-    const value6 = parseFloat(document.getElementById('ADV4Minput2').value).toFixed(2);
-    const value7 = parseFloat(document.getElementById('ADV1Yinput1').value).toFixed(2);
-    const value8 = parseFloat(document.getElementById('ADV1Yinput2').value).toFixed(2);
-
-    const response = await fetch('/api/screener/adv', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        value1: value1,
-        value2: value2,
-        value3: value3,
-        value4: value4,
-        value5: value5,
-        value6: value6,
-        value7: value7,
-        value8: value8,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      throw new Error('Error updating range')
-    }
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-// updates screener value with price performance parameters 
-async function SetPricePerformance() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-    const changeperc1 = parseFloat(document.getElementById('changeperc1').value) / 100;
-    const changeperc2 = parseFloat(document.getElementById('changeperc2').value) / 100;
-    const changepercselect = changepercSelect.value;
-    const weekhigh1 = parseFloat(document.getElementById('weekhigh1').value);
-    const weekhigh2 = parseFloat(document.getElementById('weekhigh2').value);
-    const weeklow1 = parseFloat(document.getElementById('weeklow1').value);
-    const weeklow2 = parseFloat(document.getElementById('weeklow2').value);
-    const alltimehigh = allTimeHigh.value ? 'yes' : 'no';
-    const alltimelow = allTimeLow.value ? 'yes' : 'no';
-    const ma200 = ma200Select.value;
-    const ma50 = ma50Select.value;
-    const ma20 = ma20Select.value;
-    const ma10 = ma10Select.value;
-    const pricevalue = priceSelect.value;
-
-    const response = await fetch('/api/screener/price-performance', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        value1: changeperc1,
-        value2: changeperc2,
-        value3: changepercselect,
-        value4: weekhigh1,
-        value5: weekhigh2,
-        value6: weeklow1,
-        value7: weeklow2,
-        value8: alltimehigh,
-        value9: alltimelow,
-        value10: ma200,
-        value11: ma50,
-        value12: ma20,
-        value13: ma10,
-        value14: pricevalue,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json();
-
-    if (data.message === 'updated successfully') {
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      throw new Error('Error updating')
-    }
-  } catch (error) {
-    if (error.response && error.response.status === 400) {
-      error.value = error.response.data.message;
-      await fetchScreenerResults(selectedScreener.value);
-    } else {
-      error.value = error.message;
-      await fetchScreenerResults(selectedScreener.value);
-    }
   }
 }
 
@@ -5110,851 +2348,7 @@ async function ExcludeScreener(screener) {
   currentList.value = compoundedResults.value;
 }
 
-const getScreenerImage = (screener) => {
-  const includeSvg = `
-   <svg height=20 width=20 fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-      <g id="SVGRepo_iconCarrier">
-        <path d="M9 9h6v6H9z"></path>
-        <path d="M19 17V7c0-1.103-.897-2-2-2H7c-1.103 0-2 .897-2 2v10c0 1.103.897 2 2 2h10c1.103 0 2-.897 2-2zM7 7h10l.002 10H7V7z"></path>
-      </g>
-    </svg>
-  `;
-  const excludeSvg = ` <svg height=20 width=20 fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-      <g id="SVGRepo_iconCarrier">
-        <path d="M7 5c-1.103 0-2 .897-2 2v10c0 1.103.897 2 2 2h10c1.103 0 2-.897 2-2V7c0-1.103-.897-2-2-2H7zm0 12V7h10l.002 10H7z"></path>
-      </g>
-    </svg>
-  `;
-  return screener.Include ? includeSvg : excludeSvg;
-};
-
 const screenerName = ref('');
-
-const searchQuery = ref('');
-
-const toUpperCase = () => {
-  searchQuery.value = searchQuery.value.toUpperCase();
-};
-
-const changepercOptions = ref([
-  '-',
-  '1D',
-  '1W',
-  '1M',
-  '4M',
-  '6M',
-  '1Y',
-  'YTD'
-]);
-
-const ma200Options = ref([
-  '-',
-  'abv50',
-  'abv20',
-  'abv10',
-  'abvPrice',
-  'blw50',
-  'blw20',
-  'blw10',
-  'blwPrice'
-]);
-
-const ma50Options = ref([
-  '-',
-  'abv200',
-  'abv20',
-  'abv10',
-  'abvPrice',
-  'blw200',
-  'blw20',
-  'blw10',
-  'blwPrice'
-]);
-
-const ma20Options = ref([
-  '-',
-  'abv200',
-  'abv50',
-  'abv10',
-  'abvPrice',
-  'blw200',
-  'blw50',
-  'blw10',
-  'blwPrice'
-]);
-
-const ma10Options = ref([
-  '-',
-  'abv200',
-  'abv50',
-  'abv20',
-  'abvPrice',
-  'blw200',
-  'blw50',
-  'blw20',
-  'blwPrice'
-]);
-
-const priceOptions = ref([
-  '-',
-  'abv200',
-  'abv50',
-  'abv20',
-  'abv10',
-  'blw200',
-  'blw50',
-  'blw20',
-  'blw10'
-]);
-
-const changepercSelect = ref('-');
-const ma200Select = ref('-');
-const ma50Select = ref('-');
-const ma20Select = ref('-');
-const ma10Select = ref('-');
-const priceSelect = ref('-');
-
-function selectChangepercOption(option) {
-  changepercSelect.value = option;
-}
-
-function selectMa200Option(option) {
-  ma200Select.value = option;
-}
-
-function selectMa50Option(option) {
-  ma50Select.value = option;
-}
-
-function selectMa20Option(option) {
-  ma20Select.value = option;
-}
-
-function selectMa10Option(option) {
-  ma10Select.value = option;
-}
-
-function selectPriception(option) {
-  priceSelect.value = option;
-}
-
-const allTimeHigh = ref(false);
-const allTimeLow = ref(false);
-
-function toggleAllTimeHigh() {
-  allTimeHigh.value = !allTimeHigh.value;
-}
-
-function toggleAllTimeLow() {
-  allTimeLow.value = !allTimeLow.value;
-}
-
-const relVolOptions = ref([
-  '-',
-  '1W',
-  '1M',
-  '6M',
-  '1Y'
-]);
-
-const avgVolOptions = ref([
-  '-',
-  '1W',
-  '1M',
-  '6M',
-  '1Y'
-]);
-
-const relVolSelect = ref('-');
-const avgVolSelect = ref('-');
-
-function selectRelVolOption(option) {
-  relVolSelect.value = option;
-}
-
-function selectAvgVolOption(option) {
-  avgVolSelect.value = option;
-}
-
-async function SetROE() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftROE = parseFloat(document.getElementById('left-roe').value)
-    const rightROE = parseFloat(document.getElementById('right-roe').value)
-
-    if (leftROE >= rightROE) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/roe', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftROE,
-        maxPrice: rightROE,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating ROE range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetROA() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftROA = parseFloat(document.getElementById('left-roa').value)
-    const rightROA = parseFloat(document.getElementById('right-roa').value)
-
-    if (leftROA >= rightROA) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/roa', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftROA,
-        maxPrice: rightROA,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating ROA range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetCurrentRatio() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftCurrentRatio = parseFloat(document.getElementById('left-current-ratio').value)
-    const rightCurrentRatio = parseFloat(document.getElementById('right-current-ratio').value)
-
-    if (leftCurrentRatio >= rightCurrentRatio) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/current-ratio', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftCurrentRatio,
-        maxPrice: rightCurrentRatio,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating Current Ratio range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetCurrentAssets() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftCurrentAssets = parseFloat(document.getElementById('left-ca').value)
-    const rightCurrentAssets = parseFloat(document.getElementById('right-ca').value)
-
-    if (leftCurrentAssets >= rightCurrentAssets) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/current-assets', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftCurrentAssets,
-        maxPrice: rightCurrentAssets,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating Current Assets range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetCurrentLiabilities() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftCurrentLiabilities = parseFloat(document.getElementById('left-cl').value)
-    const rightCurrentLiabilities = parseFloat(document.getElementById('right-cl').value)
-
-    if (leftCurrentLiabilities >= rightCurrentLiabilities) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/current-liabilities', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftCurrentLiabilities,
-        maxPrice: rightCurrentLiabilities,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating Current Liabilities range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetCurrentDebt() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftCurrentDebt = parseFloat(document.getElementById('left-cd').value)
-    const rightCurrentDebt = parseFloat(document.getElementById('right-cd').value)
-
-    if (leftCurrentDebt >= rightCurrentDebt) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/current-debt', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftCurrentDebt,
-        maxPrice: rightCurrentDebt,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating Current Debt range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetCashEquivalents() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftCashEquivalents = parseFloat(document.getElementById('left-ce').value)
-    const rightCashEquivalents = parseFloat(document.getElementById('right-ce').value)
-
-    if (leftCashEquivalents >= rightCashEquivalents) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/cash-equivalents', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftCashEquivalents,
-        maxPrice: rightCashEquivalents,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating Cash Equivalents range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetFreeCashFlow() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftFreeCashFlow = parseFloat(document.getElementById('left-fcf').value)
-    const rightFreeCashFlow = parseFloat(document.getElementById('right-fcf').value)
-
-    if (leftFreeCashFlow >= rightFreeCashFlow) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/free-cash-flow', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftFreeCashFlow,
-        maxPrice: rightFreeCashFlow,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating Free Cash Flow range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetProfitMargin() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftProfitMargin = parseFloat(document.getElementById('left-pm').value) / 100
-    const rightProfitMargin = parseFloat(document.getElementById('right-pm').value) / 100
-
-    if (leftProfitMargin >= rightProfitMargin) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/profit-margin', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftProfitMargin,
-        maxPrice: rightProfitMargin,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating Profit Margin range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetGrossMargin() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftGrossMargin = parseFloat(document.getElementById('left-gm').value) / 100
-    const rightGrossMargin = parseFloat(document.getElementById('right-gm').value) / 100
-
-    if (leftGrossMargin >= rightGrossMargin) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/gross-margin', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftGrossMargin,
-        maxPrice: rightGrossMargin,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating Gross Margin range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetDebtToEquityRatio() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftDebtToEquityRatio = parseFloat(document.getElementById('left-der').value)
-    const rightDebtToEquityRatio = parseFloat(document.getElementById('right-der').value)
-
-    if (leftDebtToEquityRatio >= rightDebtToEquityRatio) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/debt-to-equity-ratio', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftDebtToEquityRatio,
-        maxPrice: rightDebtToEquityRatio,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating Debt to Equity Ratio range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetBookValue() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftBookValue = parseFloat(document.getElementById('left-bv').value)
-    const rightBookValue = parseFloat(document.getElementById('right-bv').value)
-
-    if (leftBookValue >= rightBookValue) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/book-value', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftBookValue,
-        maxPrice: rightBookValue,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating Book Value range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetEV() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftEV = parseFloat(document.getElementById('left-ev').value)
-    const rightEV = parseFloat(document.getElementById('right-ev').value)
-
-    if (leftEV >= rightEV) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/ev', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftEV,
-        maxPrice: rightEV,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating EV range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetRSI() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftRSI = parseFloat(document.getElementById('left-rsi').value)
-    const rightRSI = parseFloat(document.getElementById('right-rsi').value)
-
-    if (leftRSI >= rightRSI) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/rsi', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftRSI,
-        maxPrice: rightRSI,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating RSI range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
-async function SetGapPercent() {
-  try {
-    if (!selectedScreener.value) {
-      isScreenerError.value = true
-      throw new Error('Please select a screener')
-    }
-
-    const leftGapPercent = parseFloat(document.getElementById('left-gap').value)
-    const rightGapPercent = parseFloat(document.getElementById('right-gap').value)
-
-    if (leftGapPercent >= rightGapPercent) {
-      throw new Error('Min cannot be higher than or equal to max')
-    }
-
-    const response = await fetch('/api/screener/gap-percent', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({
-        minPrice: leftGapPercent,
-        maxPrice: rightGapPercent,
-        screenerName: selectedScreener.value,
-        user: user
-      })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating Gap % range')
-    }
-    await fetchScreenerResults(selectedScreener.value);
-  } catch (error) {
-    error.value = error.message;
-    await fetchScreenerResults(selectedScreener.value);
-  }
-}
-
 
 const showTooltip = ref(false)
 let tooltipText = ref('');
@@ -5965,7 +2359,7 @@ function handleMouseOver(event, id) {
   showTooltip.value = true
   const element = event.target
   const svgRect = element.parentNode.getBoundingClientRect()
-  tooltipTop.value = svgRect.top + window.scrollY + svgRect.height - 45;
+  tooltipTop.value = svgRect.top + window.scrollY + svgRect.height - 100;
   tooltipLeft.value = svgRect.left + window.scrollX + svgRect.width + 10;
   tooltipText.value = getTooltipText(id)
 }
@@ -6037,7 +2431,7 @@ function getTooltipText(id) {
     case 'gap':
       return 'Gap % is a measure of the percentage change in a stock\'s price from the previous day\'s close to the current day\'s open. It is calculated as (Current Open - Previous Close) / Previous Close. A positive gap % indicates an upward price movement, while a negative gap % indicates a downward price movement.';
     case 'assetType':
-      return 'Category of the asset, in this case we support Stocks, ETFs, and cryptocurrencies.';
+      return 'Category of the asset, in this case we support Stocks and ETFs.';
       default:
       return '';
   }
@@ -6310,10 +2704,6 @@ async function confirmResetScreener() {
   }
 }
 
-const toggleAssetType = (index) => {
-  selectedAssetTypes.value[index] = !selectedAssetTypes.value[index]; // Toggle the selected state
-};
-
 const selectedAttributes = ref([]);
 
 async function loadColumns() {
@@ -6349,6 +2739,11 @@ function handleUpdateColumns(newColumns) {
 onMounted(() => {
   loadColumns();
 });
+
+
+async function handleFetchScreeners(val) {
+  await fetchScreenerResults(val);
+}
 </script>
 
 <style lang="scss" scoped>
@@ -6413,6 +2808,8 @@ onMounted(() => {
   position: relative;
 }
 
+/* 
+
 .param-s1-expanded {
   margin: 3px;
   padding: 5px;
@@ -6422,6 +2819,8 @@ onMounted(() => {
   height: 120px;
   position: relative;
 }
+*/
+
 
 .param-s2 {
   margin: 3px;
@@ -6531,14 +2930,6 @@ onMounted(() => {
   border: none;
   height: 500px;
   position: relative;
-}
-
-
-.DataInputs {
-  position: absolute;
-  left: 17%;
-  top: 10%;
-  border: none;
 }
 
 .DataInputs2 {
@@ -7615,131 +4006,6 @@ input[type="date"] {
   appearance: textfield;
 }
 
-.changeperc-select-container {
-  position: relative;
-  background-color: var(--base2);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  width: 20px;
-  height: 5px;
-  border-radius: 5px;
-  margin-left: 4px;
-  padding: 7px;
-  z-index: 1000;
-  border: solid 2px var(--base1);
-}
-
-.changeperc-dropdown-btn {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.changeperc-dropdown-menu {
-  display: none;
-  cursor: pointer;
-  width: 125px;
-  position: absolute;
-  z-index: 1000;
-  top: -10px;
-  left: 20px;
-}
-
-.changeperc-dropdown-menu>div {
-  background-color: var(--base2);
-  padding: 5px;
-  height: 14px;
-  display: flex;
-  align-items: center;
-}
-
-.changeperc-dropdown-menu>div:hover {
-  background-color: var(--base2);
-}
-
-.changeperc-dropdown-btn:hover+.changeperc-dropdown-menu,
-.changeperc-dropdown-menu:hover {
-  display: block;
-}
-
-.ma200-select-container,
-.ma50-select-container,
-.ma20-select-container,
-.ma10-select-container,
-.price-select-container {
-  position: relative;
-  background-color: var(--base2);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  width: 40px;
-  height: 5px;
-  border-radius: 5px;
-  margin-left: 4px;
-  padding: 7px;
-  border: solid 2px var(--base1);
-}
-
-.ma200-dropdown-btn,
-.ma50-dropdown-btn,
-.ma20-dropdown-btn,
-.ma10-dropdown-btn,
-.price-dropdown-btn {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.ma200-dropdown-menu,
-.ma50-dropdown-menu,
-.ma20-dropdown-menu,
-.ma10-dropdown-menu,
-.price-dropdown-menu {
-  display: none;
-  cursor: pointer;
-  width: 125px;
-  position: absolute;
-  z-index: 1000;
-  top: -10px;
-  left: 20px;
-}
-
-.ma200-dropdown-menu>div,
-.ma50-dropdown-menu>div,
-.ma20-dropdown-menu>div,
-.ma10-dropdown-menu>div,
-.price-dropdown-menu>div {
-  background-color: var(--base2);
-  padding: 5px;
-  height: 14px;
-  display: flex;
-  align-items: center;
-}
-
-.ma200-dropdown-menu>div:hover,
-.ma50-dropdown-menu>div:hover,
-.ma20-dropdown-menu>div:hover,
-.ma10-dropdown-menu>div:hover,
-.price-dropdown-menu>div:hover {
-  background-color: var(--base2);
-}
-
-.ma200-dropdown-btn:hover+.ma200-dropdown-menu,
-.ma200-dropdown-menu:hover,
-.ma50-dropdown-btn:hover+.ma50-dropdown-menu,
-.ma50-dropdown-menu:hover,
-.ma20-dropdown-btn:hover+.ma20-dropdown-menu,
-.ma20-dropdown-menu:hover,
-.ma10-dropdown-btn:hover+.ma10-dropdown-menu,
-.ma10-dropdown-menu:hover,
-.price-dropdown-btn:hover+.price-dropdown-menu,
-.price-dropdown-menu:hover {
-  display: block;
-}
-
 .reset-modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -7800,61 +4066,6 @@ input[type="date"] {
 .reset-modal .trade-btn:hover {
   background: var(--accent2);
   color: #fff;
-}
-
-.relvol-select-container,
-.avgvol-select-container {
-  position: relative;
-  background-color: var(--base2);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  width: 40px;
-  height: 5px;
-  border-radius: 5px;
-  margin-left: 4px;
-  padding: 7px;
-  border: solid 2px var(--base1);
-}
-
-.relvol-dropdown-btn,
-.avgvol-dropdown-btn {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.relvol-dropdown-menu,
-.avgvol-dropdown-menu {
-  display: none;
-  cursor: pointer;
-  width: 125px;
-  position: absolute;
-  z-index: 1000;
-  top: -10px;
-  left: 20px;
-}
-
-.relvol-dropdown-menu>div,
-.avgvol-dropdown-menu>div {
-  background-color: var(--base2);
-  padding: 5px;
-  height: 14px;
-  display: flex;
-  align-items: center;
-}
-
-.relvol-dropdown-menu>div:hover,
-.avgvol-dropdown-menu>div:hover {
-  background-color: var(--accent1);
-}
-
-.relvol-dropdown-btn:hover+.relvol-dropdown-menu,
-.relvol-dropdown-menu:hover,
-.avgvol-dropdown-btn:hover+.avgvol-dropdown-menu,
-.avgvol-dropdown-menu:hover {
-  display: block;
 }
 
 .wlist-container {

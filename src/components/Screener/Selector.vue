@@ -56,14 +56,38 @@ const props = defineProps({
   selectedScreener: String,
   isScreenerError: Boolean,
   showDropdown: Boolean,
-  getScreenerImage: Function
 });
+
 const emit = defineEmits([
   'selectScreener',
   'excludeScreener',
   'deleteScreener',
   'update:showDropdown'
 ]);
+
+
+function getScreenerImage(screener) {
+  const includeSvg = `
+    <svg height=30 width=30 fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path d="M9 9h6v6H9z"></path>
+        <path d="M19 17V7c0-1.103-.897-2-2-2H7c-1.103 0-2 .897-2 2v10c0 1.103.897 2 2 2h10c1.103 0 2-.897 2-2zM7 7h10l.002 10H7V7z"></path>
+      </g>
+    </svg>
+  `;
+  const excludeSvg = `
+    <svg height=30 width=30 fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <path d="M7 5c-1.103 0-2 .897-2 2v10c0 1.103.897 2 2 2h10c1.103 0 2-.897 2-2V7c0-1.103-.897-2-2-2H7zm0 12V7h10l.002 10H7z"></path>
+      </g>
+    </svg>
+  `;
+  return screener.Include ? includeSvg : excludeSvg;
+}
 
 const showDropdown = ref(false);
 
@@ -148,49 +172,57 @@ function toggleDropdown() {
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.13));
 }
 
-.screener-dropdown-container {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  background: var(--glassbg);
-  border-radius: 0 0 18px 18px;
-  border: none;
-  border-top: none;
-  margin-top: 2px;
-  padding: 1rem 0 1.1rem 0;
-  animation: screener-dropdown-fade 0.22s cubic-bezier(0.4,0,0.2,1);
-  backdrop-filter: blur(12px) saturate(1.2);
-  -webkit-backdrop-filter: blur(12px) saturate(1.2);
-  z-index: 1000;
-}
+
+  .screener-dropdown-container {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 180px;
+    min-width: 100%;
+    max-height: 230px;
+    overflow-y: auto;
+    background: var(--base4);
+    border-radius: 0 0 8px 8px;
+    border: none;
+    margin-top: 2px;
+    padding: 4px 0 6px 0;
+    box-shadow: 0 2px 12px 0 rgba(0,0,0,0.10);
+    z-index: 1000;
+    display: block;
+    animation: screener-dropdown-fade 0.18s cubic-bezier(0.4,0,0.2,1);
+  }
 @keyframes screener-dropdown-fade {
-  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
 
 .screener-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 0 14px;
+  gap: 2px;
+  padding: 0 6px;
 }
 .screener-wrapper > div {
-  border-radius: 10px;
-  padding: 0.6rem 1.4rem 0.6rem 0.9rem;
-  font-size: 1.08rem;
+  border-radius: 5px;
+  padding: 7px 12px 7px 6px;
+  font-size: 1.05rem;
   font-weight: 500;
   color: var(--text1);
   display: flex;
   align-items: center;
-  transition: background 0.22s, color 0.22s, box-shadow 0.22s, border 0.22s;
+  transition: background 0.18s, color 0.18s;
   cursor: pointer;
   position: relative;
-  padding: 0;
-  border: 1.5px solid transparent;
+  border: none;
+  background: var(--base4);
 }
-.screener-wrapper > div.screener-selected, .screener-wrapper > div:hover {
- background: var(--gradient1);
+.screener-wrapper > div.screener-selected {
+  background: var(--accent4);
+  color: var(--text1);
+}
+.screener-wrapper > div:hover {
+  background: var(--base2);
   color: var(--accent3);
 }
 
@@ -211,18 +243,20 @@ function toggleDropdown() {
   box-shadow: 0 1.5px 8px 0 rgba(0,230,216,0.04);
 }
 .screener-icondlt2:hover {
-  background: rgba(0,230,216,0.18);
+  background: var(--base2);
   opacity: 1;
-  box-shadow: 0 2px 12px 0 rgba(0,230,216,0.13);
 }
 .screener-img3 {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border: none;
   cursor: pointer;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.13));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
 }
-
 
 .screener-error-border {
   border: 1.5px solid #ff4d4f !important;
