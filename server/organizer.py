@@ -405,18 +405,14 @@ async def getPrice():
                 if doc['divCash'] != 0 and doc['divCash'] != 0.0:
                     Dividends(doc['tickerID'], doc['timestamp'], doc['divCash'])
 
-            # Insert daily documents, preventing duplicates (async)
+            # For each new daily document, delete any existing with same tickerID and timestamp, then insert
             for daily_doc in daily_data_dict:
-                existing_daily_doc = await daily_collection.find_one({
-                    'tickerID': daily_doc['tickerID'], 
+                await daily_collection.delete_many({
+                    'tickerID': daily_doc['tickerID'],
                     'timestamp': daily_doc['timestamp']
                 })
-                
-                if not existing_daily_doc:
-                    await daily_collection.insert_one(daily_doc)
-                    print(f"Inserted daily document for {daily_doc['tickerID']} on {daily_doc['timestamp']}")
-                else:
-                    print(f"Daily document for {daily_doc['tickerID']} on {daily_doc['timestamp']} already exists")
+                await daily_collection.insert_one(daily_doc)
+                print(f"Upserted daily document for {daily_doc['tickerID']} on {daily_doc['timestamp']}")
 
         else:
             print("No data found for the specified tickers.")
