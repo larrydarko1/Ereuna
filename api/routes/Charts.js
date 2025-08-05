@@ -615,14 +615,14 @@ export default function (app, deps) {
 
             const doc = await assetInfoCollection.findOne(
                 { Symbol: symbol },
-                { projection: { PriceTarget: 1, _id: 0 } }
+                { projection: { IntrinsicValue: 1, _id: 0 } }
             );
 
-            if (!doc || typeof doc.PriceTarget === 'undefined') {
+            if (!doc || typeof doc.IntrinsicValue === 'undefined') {
                 return res.status(404).json({ message: 'Price target not found' });
             }
 
-            return res.status(200).json({ symbol, priceTarget: doc.PriceTarget });
+            return res.status(200).json({ symbol, priceTarget: doc.IntrinsicValue });
         } catch (error) {
             logger.error({
                 msg: 'Error retrieving price target',

@@ -85,3 +85,21 @@ async def Delist(delisted):
             print(f"Processed {i+1} out of {len(delisted)} assets")
         except Exception as e:
             print(f"Error processing {asset}: {e}")
+            
+async def prune_intraday_collections():
+    current_date = dt.datetime.now()
+    time_period = dt.timedelta(days=14)
+    date_threshold = current_date - time_period
+
+    intraday_collections = [
+        'OHCLVData15m',
+        'OHCLVData1hr',
+        'OHCLVData1m',
+        'OHCLVData30m',
+        'OHCLVData5m'
+    ]
+
+    for collection_name in intraday_collections:
+        collection = db[collection_name]
+        result = await collection.delete_many({'timestamp': {'$lt': date_threshold}})
+        print(f"Pruned {result.deleted_count} documents from {collection_name}")
