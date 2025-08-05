@@ -1,5 +1,5 @@
 #from ipo import IPO, updateSummarySingle, getSummary2Single, getSplitsSingle, getDividendsSingle, getFinancialsSingle
-from delist import Delist, scanDelisted
+from delist import Delist, scanDelisted, prune_intraday_collections
 import os
 import time
 import requests
@@ -1757,6 +1757,7 @@ async def Daily():
     tasks = [
         updateWeekly(),
         scanDelisted(),
+        prune_intraday_collections(),
         updateDailyRatios(),
         updateTimeSeries(),
         getDividendYieldTTM(),
