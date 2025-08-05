@@ -467,6 +467,17 @@
           :isScreenerError="isScreenerError"
           @reset="Reset('Gap')"
         />
+        <IntrinsicValue 
+          :user="user"
+          :apiKey="apiKey"
+          :notification="notification"
+          :selectedScreener="selectedScreener"
+          @fetchScreeners="handleFetchScreeners"
+          @handleMouseOver="handleMouseOver"
+          @handleMouseOut="handleMouseOut"
+          :isScreenerError="isScreenerError"
+          @reset="Reset('IV')"
+        />
         <div class="results"></div>
       </div>
       <div id="resultsDiv" :class="{ 'hidden-mobile': selected !== 'list' }">
@@ -729,6 +740,7 @@ import BookValue from '@/components/Screener/Parameters/BookValue.vue';
 import EV from '@/components/Screener/Parameters/EV.vue';
 import RSI from '@/components/Screener/Parameters/RSI.vue';
 import Gap from '@/components/Screener/Parameters/Gap.vue';
+import IntrinsicValue from '@/components/Screener/Parameters/IntrinsicValue.vue';
 
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 //user import - user session 
@@ -2058,6 +2070,7 @@ const valueMap = {
   'RSI': 'RSI',
   'Gap': 'Gap',
   'AssetType': 'AssetType',
+  'IV': 'IV',
 };
 
 // function that resets indivudal values for screeners 
@@ -2112,7 +2125,7 @@ async function SummaryScreener() {
       'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W', 'RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'CurrentPrice', 'NewHigh',
       'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio',
       'assetsCurrent', 'liabilitiesCurrent', 'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin', 'debtEquity', 'bookVal', 'EV',
-      'RSI', 'Gap', 'AssetTypes'
+      'RSI', 'Gap', 'AssetTypes', 'IV'
     ];
 
     const attributeMapping = {
@@ -2163,7 +2176,8 @@ async function SummaryScreener() {
       'EV': 'Enterprise Value',
       'RSI': 'RSI',
       'Gap': 'Gap %',
-      'AssetTypes': 'Asset Types'
+      'AssetTypes': 'Asset Types',
+      'IV': 'IV'
     };
 
     const valueMapping = {
@@ -2432,6 +2446,16 @@ function getTooltipText(id) {
       return 'Gap % is a measure of the percentage change in a stock\'s price from the previous day\'s close to the current day\'s open. It is calculated as (Current Open - Previous Close) / Previous Close. A positive gap % indicates an upward price movement, while a negative gap % indicates a downward price movement.';
     case 'assetType':
       return 'Category of the asset, in this case we support Stocks and ETFs.';
+    case 'iv':
+      return `Intrinsic Value (IV) estimates a stock's true worth using a Discounted Cash Flow (DCF) model. We calculate IV by:
+      1. Summing the last 20 quarters of Free Cash Flow (FCF) to get annual FCF for the past 5 years.
+      2. Calculating the 5-year Compound Annual Growth Rate (CAGR) of FCF.
+      3. Projecting FCF for the next 5 years using this CAGR.
+      4. Discounting these projected FCFs to present value at a 10% rate.
+      5. Adding a terminal value (using the Gordon Growth Model with a 2.5% growth rate) and discounting it.
+      6. Adding net cash (cash minus debt) from the latest quarter.
+      7. Dividing the total by shares outstanding to get IV per share.
+      This approach helps assess if a stock is undervalued or overvalued based on its future cash flow potential.`;
       default:
       return '';
   }
@@ -2719,7 +2743,7 @@ async function loadColumns() {
     const data = await response.json();
     // Accept only valid values (should match MainList/EditColumn attributes)
     const validValues = [
-      'price','market_cap','volume','ipo','assettype','sector','exchange','country','pe_ratio','ps_ratio','fcf','cash','current_debt','current_assets','current_liabilities','current_ratio','roe','roa','peg','eps','pb_ratio','dividend_yield','name','currency','industry','book_value','shares','rs_score1w','rs_score1m','rs_score4m','all_time_high','all_time_low','high_52w','low_52w','perc_change','isin','gap','ev','adv1w','adv1m','adv4m','adv1y','rsi','price_target'
+      'price','market_cap','volume','ipo','assettype','sector','exchange','country','pe_ratio','ps_ratio','fcf','cash','current_debt','current_assets','current_liabilities','current_ratio','roe','roa','peg','eps','pb_ratio','dividend_yield','name','currency','industry','book_value','shares','rs_score1w','rs_score1m','rs_score4m','all_time_high','all_time_low','high_52w','low_52w','perc_change','isin','gap','ev','adv1w','adv1m','adv4m','adv1y','rsi','intrinsic_value'
     ];
     selectedAttributes.value = (Array.isArray(data.columns) ? data.columns : []).filter(v => validValues.includes(v));
   } catch (err) {

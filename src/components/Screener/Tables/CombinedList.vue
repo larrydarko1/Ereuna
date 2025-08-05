@@ -181,7 +181,7 @@ const attributes = [
   { label: 'Gap', value: 'gap', backend: 'Gap' },
   { label: 'EV', value: 'ev', backend: 'EV' },
   { label: 'RSI', value: 'rsi', backend: 'RSI' },
-  { label: 'Price Target', value: 'price_target', backend: 'PriceTarget' },
+  { label: 'Intrinsic Value', value: 'intrinsic_value', backend: 'IntrinsicValue' },
 ];
 
 function getColumnLabel(col) {
@@ -210,7 +210,6 @@ function getColumnValue(asset, col) {
     Volume: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
     EV: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
     Gap: v => (typeof v === 'number' ? v.toFixed(2) + '%' : '-'),
-    PriceTarget: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
     RSI: v => (typeof v === 'number' && v >= 0 ? v.toFixed(2) : '-'),
     fiftytwoWeekHigh: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
     fiftytwoWeekLow: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
@@ -283,7 +282,7 @@ const styleMap = {
   adv4m: 100,
   adv1y: 100,
   rsi: 70,
-  price_target: 100,
+  intrinsic_value: 150,
 };
 
 function getColumnStyle(col) {

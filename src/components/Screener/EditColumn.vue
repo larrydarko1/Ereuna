@@ -105,7 +105,7 @@ const attributes = [
   { label: 'ADV (4M)', value: 'adv4m' },
   { label: 'ADV (1Y)', value: 'adv1y' },
   { label: 'RSI', value: 'rsi' },
-  { label: 'Intrinsic Value', value: 'price_target' },
+  { label: 'Intrinsic Value', value: 'intrinsic_value' },
 ]
 // Close the modal
 function close() {

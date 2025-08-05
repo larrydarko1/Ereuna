@@ -327,7 +327,7 @@ export default function (app, deps) {
         gap: 'Gap',
         ev: 'EV',
         rsi: 'RSI',
-        price_target: 'PriceTarget',
+        intrinsic_value: 'IntrinsicValue',
         isin: 'ISIN'
     };
 
@@ -1239,7 +1239,7 @@ export default function (app, deps) {
                     gap: 'Gap',
                     ev: 'EV',
                     rsi: 'RSI',
-                    price_target: 'PriceTarget',
+                    intrinsic_value: 'IntrinsicValue',
                 };
                 if (Array.isArray(userDoc?.Table)) {
                     userDoc.Table.forEach(key => {
@@ -2179,145 +2179,6 @@ export default function (app, deps) {
             }
         });
 
-    // endpoint that updates screener document with Forward PE parameters 
-    app.patch('/screener/forward-pe', validate([
-        validationSchemas.user(),
-        validationSchemas.screenerNameBody(),
-        validationSchemas.minPrice(),
-        validationSchemas.maxPrice()
-    ]),
-        async (req, res) => {
-            let minPrice, maxPrice, screenerName, Username;
-
-            try {
-                const apiKey = req.header('x-api-key');
-
-                const sanitizedKey = sanitizeInput(apiKey);
-
-                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                    logger.warn('Invalid API key', {
-                        providedApiKey: !!sanitizedKey
-                    });
-
-                    return res.status(401).json({
-                        message: 'Unauthorized API Access'
-                    });
-                }
-                // Sanitize inputs
-                minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
-                maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
-                screenerName = sanitizeInput(req.body.screenerName || '');
-                Username = sanitizeInput(req.body.user || '');
-
-                // Validate inputs
-                if (!screenerName) {
-                    return res.status(400).json({ message: 'Screener name is required' });
-                }
-                if (!Username) {
-                    return res.status(400).json({ message: 'Username is required' });
-                }
-                if (isNaN(minPrice) && isNaN(maxPrice)) {
-                    return res.status(400).json({ message: 'Both min Forward PE and max Forward PE cannot be empty' });
-                }
-
-                let client;
-                try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-
-                    const db = client.db('EreunaDB');
-                    const collection = db.collection('Screeners');
-                    const assetInfoCollection = db.collection('AssetInfo');
-
-                    // Set default minPrice to 1 if it is not provided or is less than 1
-                    if (isNaN(minPrice) || minPrice < 1) {
-                        minPrice = 1; // Minimum Forward PE typically starts at 1
-                    }
-
-                    // If maxPrice is empty, find the highest Forward PE
-                    if (isNaN(maxPrice)) {
-                        const highestForwardPEDoc = await assetInfoCollection.find({
-                            ForwardPE: { $gte: 0 } // Filter to exclude negative ForwardPE
-                        })
-                            .sort({ ForwardPE: -1 }) // Sort by ForwardPE descending
-                            .limit(1) // Get the highest value
-                            .project({ ForwardPE: 1 }) // Only return the ForwardPE field
-                            .toArray();
-
-                        if (highestForwardPEDoc.length > 0) {
-                            maxPrice = highestForwardPEDoc[0].ForwardPE; // Set maxPrice to the highest ForwardPE
-                        } else {
-                            return res.status(404).json({ message: 'No assets found to determine maximum Forward PE' });
-                        }
-                    }
-
-                    // Ensure minPrice is less than maxPrice
-                    if (minPrice >= maxPrice) {
-                        return res.status(400).json({ message: 'Min Forward PE cannot be higher than or equal to max Forward PE' });
-                    }
-
-                    const filter = {
-                        UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
-                        Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
-                    };
-
-                    const existingScreener = await collection.findOne(filter);
-                    if (!existingScreener) {
-                        return res.status(404).json({
-                            message: 'Screener not found',
-                            details: 'No matching screener exists for the given user and name'
-                        });
-                    }
-
-                    const updateDoc = { $set: { ForwardPE: [minPrice, maxPrice] } };
-                    const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
-
-                    if (!result) {
-                        return res.status(404).json({
-                            message: 'Screener not found',
-                            details: 'Unable to update screener'
-                        });
-                    }
-
-                    res.json({
-                        message: 'Forward PE range updated successfully',
-                        updatedScreener: result.value
-                    });
-
-                } catch (dbError) {
-                    logger.error('Database Operation Error', {
-                        error: dbError.message,
-                        stack: dbError.stack,
-                        Username,
-                        screenerName
-                    });
-                    res.status(500).json({
-                        message: 'Database operation failed',
-                        error: dbError.message
-                    });
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn('Error closing database connection', {
-                                error: closeError.message
-                            });
-                        }
-                    }
-                }
-            } catch (error) {
-                logger.error('Forward PE Update Error', {
-                    message: error.message,
-                    stack: error.stack
-                });
-                res.status(500).json({
-                    message: 'Internal Server Error',
-                    error: error.message
-                });
-            }
-        });
-
     // endpoint that updates screener document with PEG parameters 
     app.patch('/screener/peg', validate([
         validationSchemas.user(),
@@ -2873,165 +2734,6 @@ export default function (app, deps) {
                 }
             } catch (error) {
                 logger.error('PB Ratio Update Error', {
-                    message: error.message,
-                    stack: error.stack
-                });
-                res.status(500).json({
-                    message: 'Internal Server Error',
-                    error: error.message
-                });
-            }
-        });
-
-    // endpoint that updates screener document with Beta parameters 
-    app.patch('/screener/beta', validate([
-        validationSchemas.user(),
-        validationSchemas.screenerNameBody(),
-        validationSchemas.minPrice(),
-        validationSchemas.maxPrice()
-    ]),
-        async (req, res) => {
-            let minPrice, maxPrice, screenerName, Username;
-
-            try {
-                const apiKey = req.header('x-api-key');
-
-                const sanitizedKey = sanitizeInput(apiKey);
-
-                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                    logger.warn('Invalid API key', {
-                        providedApiKey: !!sanitizedKey
-                    });
-
-                    return res.status(401).json({
-                        message: 'Unauthorized API Access'
-                    });
-                }
-                // Sanitize inputs
-                minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
-                maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
-                screenerName = sanitizeInput(req.body.screenerName || '');
-                Username = sanitizeInput(req.body.user || '');
-
-                // Validate inputs
-                if (!screenerName) {
-                    return res.status(400).json({ message: 'Screener name is required' });
-                }
-                if (!Username) {
-                    return res.status(400).json({ message: 'Username is required' });
-                }
-                if (isNaN(minPrice) && isNaN(maxPrice)) {
-                    return res.status(400).json({ message: 'Both min Beta and max Beta cannot be empty' });
-                }
-
-                let client;
-                try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-
-                    const db = client.db('EreunaDB');
-                    const collection = db.collection('Screeners');
-                    const assetInfoCollection = db.collection('AssetInfo');
-
-                    // If minPrice is empty, find the lowest Beta excluding 'None' and '-'
-                    if (isNaN(minPrice) && !isNaN(maxPrice)) {
-                        const lowestBetaDoc = await assetInfoCollection.find({
-                            Beta: {
-                                $ne: 'None',
-                                $ne: '-',
-                                $type: 'number' // Ensure it's a numeric value
-                            }
-                        })
-                            .sort({ Beta: 1 }) // Sort by Beta ascending
-                            .limit(1) // Get the lowest value
-                            .project({ Beta: 1 }) // Only return the Beta field
-                            .toArray();
-
-                        if (lowestBetaDoc.length > 0) {
-                            minPrice = lowestBetaDoc[0].Beta; // Set minPrice to the lowest Beta
-                        } else {
-                            return res.status(404).json({ message: 'No assets found to determine minimum Beta' });
-                        }
-                    }
-
-                    // If maxPrice is empty, find the highest Beta excluding 'None' and '-'
-                    if (isNaN(maxPrice) && !isNaN(minPrice)) {
-                        const highestBetaDoc = await assetInfoCollection.find({
-                            Beta: {
-                                $ne: 'None',
-                                $ne: '-',
-                                $type: 'number' // Ensure it's a numeric value
-                            }
-                        })
-                            .sort({ Beta: -1 }) // Sort by Beta descending
-                            .limit(1) // Get the highest value
-                            .project({ Beta: 1 }) // Only return the Beta field
-                            .toArray();
-
-                        if (highestBetaDoc.length > 0) {
-                            maxPrice = highestBetaDoc[0].Beta; // Set maxPrice to the highest Beta
-                        } else {
-                            return res.status(404).json({ message: 'No assets found to determine maximum Beta' });
-                        }
-                    }
-
-                    // Ensure minPrice is less than maxPrice
-                    if (minPrice >= maxPrice) {
-                        return res.status(400).json({ message: 'Min Beta cannot be higher than or equal to max Beta' });
-                    }
-
-                    const filter = {
-                        UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
-                        Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
-                    };
-
-                    const existingScreener = await collection.findOne(filter);
-                    if (!existingScreener) {
-                        return res.status(404).json({
-                            message: 'Screener not found',
-                            details: 'No matching screener exists for the given user and name'
-                        });
-                    }
-
-                    const updateDoc = { $set: { Beta: [minPrice, maxPrice] } };
-                    const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
-
-                    if (!result) {
-                        return res.status(404).json({
-                            message: 'Screener not found',
-                            details: 'Unable to update screener'
-                        });
-                    }
-
-                    res.json({
-                        message: 'Beta range updated successfully',
-                        updatedScreener: result.value
-                    });
-
-                } catch (dbError) {
-                    logger.error('Database Operation Error', {
-                        error: dbError.message,
-                        stack: dbError.stack,
-                        Username,
-                        screenerName
-                    });
-                    res.status(500).json({
-                        message: 'Database operation failed',
-                        error: dbError.message
-                    });
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn('Error closing database connection', {
-                                error: closeError.message
-                            });
-                        }
-                    }
-                }
-            } catch (error) {
-                logger.error('Beta Update Error', {
                     message: error.message,
                     stack: error.stack
                 });
@@ -4381,7 +4083,7 @@ export default function (app, deps) {
                     'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta',
                     'DivYield', 'FundGrowth', 'PricePerformance', 'RSscore', 'Volume', 'ADV', 'ROE', 'ROA', 'CurrentRatio', 'CurrentAssets',
                     'CurrentLiabilities', 'CurrentDebt', 'CashEquivalents', 'FCF', 'ProfitMargin', 'GrossMargin',
-                    'DebtEquity', 'BookValue', 'EV', 'RSI', 'Gap', 'AssetType'
+                    'DebtEquity', 'BookValue', 'EV', 'RSI', 'Gap', 'AssetType', 'IV'
                 ])
                 .withMessage('Invalid parameter to reset')
         ]),
@@ -4565,6 +4267,9 @@ export default function (app, deps) {
                     case 'Gap':
                         updateDoc.$unset.Gap = '';
                         break;
+                    case 'IV':
+                        updateDoc.$unset.IV = '';
+                        break;
                     default:
                         // Log unknown value attempt
                         requestLogger.warn('Attempted to reset with unknown parameter', {
@@ -4672,7 +4377,7 @@ export default function (app, deps) {
                         RSScore1W: 1, RSScore1M: 1, RSScore4M: 1, MA10: 1, MA20: 1, MA50: 1, MA200: 1, CurrentPrice: 1, NewHigh: 1, NewLow: 1, PercOffWeekHigh: 1,
                         PercOffWeekLow: 1, changePerc: 1, IPO: 1, ADV1W: 1, ADV1M: 1, ADV4M: 1, ADV1Y: 1, ROE: 1, ROA: 1, currentRatio: 1,
                         assetsCurrent: 1, liabilitiesCurrent: 1, debtCurrent: 1, cashAndEq: 1, freeCashFlow: 1, profitMargin: 1, grossMargin: 1,
-                        debtEquity: 1, bookVal: 1, EV: 1, RSI: 1, Gap: 1, AssetType: 1
+                        debtEquity: 1, bookVal: 1, EV: 1, RSI: 1, Gap: 1, AssetType: 1, IV: 1,
                     };
 
                     const cursor = assetInfoCollection.find(query, { projection: projection });
@@ -4756,6 +4461,7 @@ export default function (app, deps) {
                         EV: document.EV,
                         RSI: document.RSI,
                         Gap: document.Gap,
+                        IV: document.IV
                     };
 
                     res.json(response);
@@ -5087,6 +4793,10 @@ export default function (app, deps) {
 
                 if (screenerData.Gap && screenerData.Gap[0] !== 0 && screenerData.Gap[1] !== 0) {
                     screenerFilters.Gap = screenerData.Gap;
+                }
+
+                if (screenerData.IV && screenerData.IV[0] !== 0 && screenerData.IV[1] !== 0) {
+                    screenerFilters.IV = screenerData.IV;
                 }
 
                 // Filter the AssetInfo collection 
@@ -5826,6 +5536,12 @@ export default function (app, deps) {
                                 $lt: screenerFilters.Gap[1]
                             };
                             break;
+                        case 'IV':
+                            query.IntrinsicValue = {
+                                $gt: screenerFilters.IV[0],
+                                $lt: screenerFilters.IV[1]
+                            };
+                            break;
                         default:
                             break;
                     }
@@ -5881,7 +5597,7 @@ export default function (app, deps) {
                     gap: 'Gap',
                     ev: 'EV',
                     rsi: 'RSI',
-                    price_target: 'PriceTarget',
+                    intrinsic_value: 'IntrinsicValue',
                 };
                 if (Array.isArray(userDoc2?.Table)) {
                     userDoc2.Table.forEach(key => {
@@ -6010,7 +5726,7 @@ export default function (app, deps) {
                         'AvgVolume1M', 'RelVolume1M', 'AvgVolume6M', 'RelVolume6M', 'AvgVolume1Y', 'RelVolume1Y', '1mchange', '1ychange', '4mchange',
                         '6mchange', 'todaychange', 'weekchange', 'ytdchange', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio',
                         'assetsCurrent', 'liabilitiesCurrent', 'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin', 'debtEquity', 'bookVal', 'EV',
-                        'RSI', 'Gap', 'AssetTypes',
+                        'RSI', 'Gap', 'AssetTypes', 'IV'
                     ];
 
                     const filteredData = attributes.reduce((acc, attribute) => {
@@ -6372,6 +6088,10 @@ export default function (app, deps) {
 
                         if (screenerData.Gap && screenerData.Gap[0] !== 0 && screenerData.Gap[1] !== 0) {
                             screenerFilters.Gap = screenerData.Gap;
+                        }
+
+                        if (screenerData.IV && screenerData.IV[0] !== 0 && screenerData.IV[1] !== 0) {
+                            screenerFilters.IV = screenerData.IV;
                         }
 
                         Object.keys(screenerFilters).forEach((key) => {
@@ -7105,6 +6825,12 @@ export default function (app, deps) {
                                         $lt: screenerFilters.Gap[1]
                                     };
                                     break;
+                                case 'IV':
+                                    query.IntrinsicValue = {
+                                        $gt: screenerFilters.IV[0],
+                                        $lt: screenerFilters.IV[1]
+                                    };
+                                    break;
                                 default:
                                     break;
                             }
@@ -7159,7 +6885,7 @@ export default function (app, deps) {
                             gap: 'Gap',
                             ev: 'EV',
                             rsi: 'RSI',
-                            price_target: 'PriceTarget',
+                            intrinsic_value: 'IntrinsicValue',
                         };
 
                         // Always include Symbol for frontend keying
@@ -9989,4 +9715,160 @@ export default function (app, deps) {
         }
     });
 
+    // endpoint that updates screener document with Intrinsic Value (IV) parameters
+    app.patch('/screener/intrinsic-value', validate([
+        validationSchemas.user(),
+        validationSchemas.screenerNameBody(),
+        validationSchemas.minPrice(),
+        validationSchemas.maxPrice()
+    ]),
+        async (req, res) => {
+            let minPrice, maxPrice, screenerName, Username;
+
+            try {
+                const apiKey = req.header('x-api-key');
+                const sanitizedKey = sanitizeInput(apiKey);
+
+                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                    logger.warn('Invalid API key', {
+                        providedApiKey: !!sanitizedKey
+                    });
+
+                    return res.status(401).json({
+                        message: 'Unauthorized API Access'
+                    });
+                }
+                // Sanitize inputs
+                minPrice = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+                maxPrice = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+                screenerName = sanitizeInput(req.body.screenerName || '');
+                Username = sanitizeInput(req.body.user || '');
+
+                // Validate inputs
+                if (!screenerName) {
+                    return res.status(400).json({ message: 'Screener name is required' });
+                }
+                if (!Username) {
+                    return res.status(400).json({ message: 'Username is required' });
+                }
+                if (isNaN(minPrice) && isNaN(maxPrice)) {
+                    return res.status(400).json({ message: 'Both min IV and max IV cannot be empty' });
+                }
+
+                let client;
+                try {
+                    client = new MongoClient(uri);
+                    await client.connect();
+
+                    const db = client.db('EreunaDB');
+                    const collection = db.collection('Screeners');
+                    const assetInfoCollection = db.collection('AssetInfo');
+
+                    // If minPrice is not provided, set to the minimum IV in the database
+                    if (isNaN(minPrice)) {
+                        const lowestIVDoc = await assetInfoCollection.find({
+                            IntrinsicValue: { $ne: 'None', $ne: null, $ne: undefined },
+                            IntrinsicValue: { $gt: 0 }
+                        })
+                            .sort({ IntrinsicValue: 1 })
+                            .limit(1)
+                            .project({ IntrinsicValue: 1 })
+                            .toArray();
+
+                        if (lowestIVDoc.length > 0) {
+                            minPrice = Math.floor(lowestIVDoc[0].IntrinsicValue * 100) / 100;
+                        } else {
+                            return res.status(404).json({
+                                message: 'No assets found to determine minimum Intrinsic Value',
+                                details: 'Unable to find a valid Intrinsic Value in the database'
+                            });
+                        }
+                    }
+
+                    // If maxPrice is not provided, set to the maximum IV in the database
+                    if (isNaN(maxPrice)) {
+                        const highestIVDoc = await assetInfoCollection.find({
+                            IntrinsicValue: { $ne: 'None', $ne: null, $ne: undefined },
+                            IntrinsicValue: { $gt: 0 }
+                        })
+                            .sort({ IntrinsicValue: -1 })
+                            .limit(1)
+                            .project({ IntrinsicValue: 1 })
+                            .toArray();
+
+                        if (highestIVDoc.length > 0) {
+                            maxPrice = Math.ceil(highestIVDoc[0].IntrinsicValue * 100) / 100;
+                        } else {
+                            return res.status(404).json({
+                                message: 'No assets found to determine maximum Intrinsic Value',
+                                details: 'Unable to find a valid Intrinsic Value in the database'
+                            });
+                        }
+                    }
+
+                    if (minPrice >= maxPrice) {
+                        return res.status(400).json({ message: 'Min IV cannot be higher than or equal to max IV' });
+                    }
+
+                    const filter = {
+                        UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+                        Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+                    };
+
+                    const existingScreener = await collection.findOne(filter);
+                    if (!existingScreener) {
+                        return res.status(404).json({
+                            message: 'Screener not found',
+                            details: 'No matching screener exists for the given user and name'
+                        });
+                    }
+
+                    const updateDoc = { $set: { IV: [minPrice, maxPrice] } };
+                    const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+                    if (!result) {
+                        return res.status(404).json({
+                            message: 'Screener not found',
+                            details: 'No matching screener exists for the given user and name'
+                        });
+                    }
+
+                    res.json({
+                        message: 'Intrinsic Value range updated successfully',
+                        updatedScreener: result.value
+                    });
+
+                } catch (dbError) {
+                    logger.error('Database Operation Error', {
+                        error: dbError.message,
+                        stack: dbError.stack,
+                        Username,
+                        screenerName
+                    });
+                    res.status(500).json({
+                        message: 'Database operation failed',
+                        error: dbError.message
+                    });
+                } finally {
+                    if (client) {
+                        try {
+                            await client.close();
+                        } catch (closeError) {
+                            logger.warn('Error closing database connection', {
+                                error: closeError.message
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                logger.error('Intrinsic Value Update Error', {
+                    message: error.message,
+                    stack: error.stack
+                });
+                res.status(500).json({
+                    message: 'Internal Server Error',
+                    error: error.message
+                });
+            }
+        });
 };

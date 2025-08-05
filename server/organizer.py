@@ -1673,81 +1673,81 @@ async def generate_weekly_candles():
                 await weekly_collection.insert_one(weekly_doc)
         print(f"Weekly candles generated for {ticker}")
         
-def classify_and_price_target(stock_doc):
-    pe = stock_doc.get('PERatio', None)
-    peg = stock_doc.get('PEGRatio', None)
-    dividend_yield = stock_doc.get('DividendYield', 0) or 0
-    price_to_book = stock_doc.get('PriceToBookRatio', None)
-    price_to_sales = stock_doc.get('PriceToSalesRatioTTM', None)
-    eps = stock_doc.get('EPS', None)
-    book_value = stock_doc.get('BookValue', None)
-    market_cap = stock_doc.get('MarketCapitalization', None)
-    shares_out = stock_doc.get('SharesOutstanding', None)
-    quarterly_earnings = stock_doc.get('quarterlyEarnings', [])
+def calculate_intrinsic_value(stock_doc):
+    # DCF-based intrinsic value calculation (Buffett-style, including net cash)
     quarterly_financials = stock_doc.get('quarterlyFinancials', [])
-    price = None
+    shares_out = stock_doc.get('SharesOutstanding', None)
+    if not quarterly_financials or len(quarterly_financials) < 20 or not shares_out or shares_out <= 0:
+        return {'type': None, 'intrinsic_value': None}
 
-    # Try to get current price if possible
-    if market_cap and shares_out and shares_out > 0:
-        price = market_cap / shares_out
+    # Extract last 20 quarters of free cash flow (FCF)
+    fcf_list = []
+    for q in quarterly_financials[:20]:
+        fcf = q.get('freeCashFlow')
+        if fcf is not None:
+            try:
+                fcf_list.append(float(fcf))
+            except Exception:
+                continue
+    if len(fcf_list) < 20:
+        return {'type': None, 'intrinsic_value': None}
 
-    # Calculate TTM EPS if possible
-    if (not eps or eps < 2) and quarterly_earnings and len(quarterly_earnings) >= 4:
-        try:
-            eps = sum([qe.get('reportedEPS', 0) or 0 for qe in quarterly_earnings[:4]])
-        except Exception:
-            pass
-
-    # Calculate recent revenue growth (last 4 quarters)
-    revenue_growth = None
-    if len(quarterly_financials) >= 5:
-        try:
-            rev_now = quarterly_financials[0].get('totalRevenue', None)
-            rev_past = quarterly_financials[4].get('totalRevenue', None)
-            if rev_now and rev_past and rev_past != 0:
-                revenue_growth = (rev_now - rev_past) / rev_past
-        except Exception:
-            revenue_growth = None
-
-    # Classification logic
-    is_growth = False
-    if (pe and pe > 25) or (peg and peg > 1.5) or (dividend_yield < 0.01) or (revenue_growth and revenue_growth > 0.10):
-        is_growth = True
-    if (dividend_yield > 0.025 and pe and pe < 20 and (revenue_growth is not None and revenue_growth < 0.05)):
-        is_growth = False
-
-    stock_type = 'growth' if is_growth else 'mature'
-
-    # Price target logic
-    price_target = None
-    if eps and eps > 0:
-        if stock_type == 'growth':
-            target_pe = 25 if not pe or pe > 25 else pe
-            price_target = eps * target_pe
+    # Calculate annual FCF for each of the last 5 years
+    annual_fcfs = [sum(fcf_list[i*4:(i+1)*4]) for i in range(5)]
+    # Calculate 5-year CAGR of FCF
+    try:
+        start_fcf = annual_fcfs[-1]
+        end_fcf = annual_fcfs[0]
+        if start_fcf > 0 and end_fcf > 0:
+            years = 4
+            fcf_cagr = (end_fcf / start_fcf) ** (1/years) - 1
         else:
-            target_pe = 15 if not pe or pe > 15 else pe
-            price_target = eps * target_pe
-    elif price:
-        price_target = price  # fallback to current price
+            fcf_cagr = 0.0
+    except Exception:
+        fcf_cagr = 0.0
+
+    # Use most recent annual FCF as base
+    base_fcf = annual_fcfs[0]
+    discount_rate = 0.10  # 10% fixed
+    terminal_growth = 0.025  # 2.5% fixed
+    forecast_years = 5
+
+    # Forecast FCF for next 5 years
+    projected_fcfs = [base_fcf * ((1 + fcf_cagr) ** i) for i in range(1, forecast_years + 1)]
+    # Discount projected FCFs
+    discounted_fcfs = [fcf / ((1 + discount_rate) ** i) for i, fcf in enumerate(projected_fcfs, 1)]
+
+    # Terminal value (Gordon Growth Model)
+    terminal_value = (projected_fcfs[-1] * (1 + terminal_growth)) / (discount_rate - terminal_growth)
+    discounted_terminal = terminal_value / ((1 + discount_rate) ** forecast_years)
+
+    # Add net cash (cash and equivalents - total debt) from the most recent quarter
+    latest_q = quarterly_financials[0]
+    cash = latest_q.get('cashAndEquivalents', 0) or 0
+    debt = latest_q.get('totalDebt', 0) or 0
+    net_cash = cash - debt
+
+    intrinsic_equity_value = sum(discounted_fcfs) + discounted_terminal + net_cash
+    intrinsic_value_per_share = intrinsic_equity_value / shares_out if shares_out else None
 
     return {
-        'type': stock_type,
-        'price_target': round(price_target, 2) if price_target else None
+        'type': 'Stock',
+        'intrinsic_value': round(intrinsic_value_per_share, 2) if intrinsic_value_per_share else None
     }
     
-async def update_price_targets():
+async def update_intrinsic_values():
     asset_info_collection = db['AssetInfo']
     count = 0
     async for doc in asset_info_collection.find({}):
-        result = classify_and_price_target(doc)
-        price_target = result.get('price_target')
-        if price_target is not None:
+        result = calculate_intrinsic_value(doc)
+        intrinsic_value = result.get('intrinsic_value')
+        if intrinsic_value is not None:
             await asset_info_collection.update_one(
                 {'_id': doc['_id']},
-                {'$set': {'PriceTarget': float(price_target)}}
+                {'$set': {'IntrinsicValue': float(intrinsic_value)}}
             )
             count += 1
-    print(f"Updated PriceTarget for {count} documents in AssetInfo.")
+    print(f"Updated IntrinsicValue for {count} documents in AssetInfo.")
     
 async def Daily():
     # Run getPrice first (sequentially)
@@ -1766,7 +1766,7 @@ async def Daily():
         calculateADV(),
         calculateAlltimehighlowandperc52wk(),
         calculatePerc(),
-        update_price_targets(),
+        update_intrinsic_values(),
     ]
 
     start_time = time.time()
