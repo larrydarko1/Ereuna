@@ -48,12 +48,12 @@ function onSymbolSelect(symbol) {
   emit('symbol-selected', symbol);
 }
 
-const data7 = ref([]); // Weekly OHCL Data
-const data8 = ref([]); // Weekly Volume Data
-const data9 = ref([]); // weekly 10MA
-const data10 = ref([]); // weekly 20MA
-const data11 = ref([]); // weekly 50MA
-const data12 = ref([]); // weekly 200MA
+const data = ref([]); // Weekly OHCL Data
+const data2 = ref([]); // Weekly Volume Data
+const data3 = ref([]); // weekly 10MA
+const data4 = ref([]); // weekly 20MA
+const data5 = ref([]); // weekly 50MA
+const data6 = ref([]); // weekly 200MA
 
 async function fetchChartData(symbolParam) {
   isChartLoading1.value = true;
@@ -63,12 +63,12 @@ async function fetchChartData(symbolParam) {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const result = await response.json();
     // Weekly
-    data7.value = result.weekly.ohlc || [];
-    data8.value = result.weekly.volume || [];
-    data9.value = result.weekly.MA10 || null;
-    data10.value = result.weekly.MA20 || null;
-    data11.value = result.weekly.MA50 || null;
-    data12.value = result.weekly.MA200 || null;
+    data.value = result.weekly.ohlc || [];
+    data2.value = result.weekly.volume || [];
+    data3.value = result.weekly.MA10 || null;
+    data4.value = result.weekly.MA20 || null;
+    data5.value = result.weekly.MA50 || null;
+    data6.value = result.weekly.MA200 || null;
   } catch (error) {
     console.error(error);
   } finally {
@@ -202,49 +202,49 @@ onMounted(async () => {
     }
   });
 
-  watch(data7, (newData7) => {
-    barSeries.setData(newData7);
+  watch(data, (newData) => {
+    barSeries.setData(newData);
   });
 
-  watch(data8, (newData8) => {
-    Histogram.setData(newData8);
+  watch(data2, (newData2) => {
+    Histogram.setData(newData2);
   });
 
-  watch(data9, (newData9) => {
-    if (newData9 === null) {
+  watch(data3, (newData3) => {
+    if (newData3 === null) {
       MaSeries1.setData([]); // Clear the series data when null
     } else {
-      MaSeries1.setData(newData9);
+      MaSeries1.setData(newData3);
     }
   });
 
-  watch(data10, (newData10) => {
-    if (newData10 === null) {
+  watch(data4, (newData4) => {
+    if (newData4 === null) {
       MaSeries2.setData([]); // Clear the series data when null
     } else {
-      MaSeries2.setData(newData10);
+      MaSeries2.setData(newData4);
     }
   });
 
-  watch(data11, (newData11) => {
-    if (newData11 === null) {
+  watch(data5, (newData5) => {
+    if (newData5 === null) {
       MaSeries3.setData([]); // Clear the series data when null
     } else {
-      MaSeries3.setData(newData11);
+      MaSeries3.setData(newData5);
     }
   });
 
-  watch(data12, (newData12) => {
-    if (newData12 === null) {
+  watch(data6, (newData6) => {
+    if (newData6 === null) {
       MaSeries4.setData([]); // Clear the series data when null
     } else {
-      MaSeries4.setData(newData12);
+      MaSeries4.setData(newData6);
     }
   });
 
-  watch(data8, (newData8) => {
-    const relativeVolumeData = newData8.map((dataPoint, index) => {
-      const averageVolume = calculateAverageVolume(newData8, index);
+  watch(data2, (newData2) => {
+    const relativeVolumeData = newData2.map((dataPoint, index) => {
+      const averageVolume = calculateAverageVolume(newData2, index);
       const relativeVolume = dataPoint.value / averageVolume;
       const color = relativeVolume > 2 ? theme.accent1 : theme.volume; // green for above-average volume, gray for below-average volume
       return {
