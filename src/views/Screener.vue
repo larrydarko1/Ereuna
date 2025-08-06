@@ -950,7 +950,6 @@ async function setCharts(symbol) {
   defaultSymbol = symbol;
   selectedSymbol.value = symbol;
   selectedItem.value = symbol;
-  await fetchChartData();
   await updateUserDefaultSymbol(symbol);
 }
 

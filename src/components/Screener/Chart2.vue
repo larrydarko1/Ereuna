@@ -60,7 +60,7 @@ async function fetchChartData(symbolParam) {
   isChartLoading2.value = true;
   try {
     let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol || props.selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/chartdata`, { headers: { 'X-API-KEY': props.apiKey } });
+    const response = await fetch(`/api/${symbol}/chartdata-dl`, { headers: { 'X-API-KEY': props.apiKey } });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const result = await response.json();
     // Daily
