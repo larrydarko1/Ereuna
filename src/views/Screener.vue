@@ -650,23 +650,23 @@
                           </div>
                               </div>
                               <div id="sidebar-r" :class="{ 'hidden-mobile': selected !== 'charts' }">
-                                <h1 style="margin-top: 2px;" class="title3">WEEKLY CHART</h1>
-                                <div class="chart-container">
-                                  <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
-                                    <Loader />
-                                  </div>
-                                  <div id="wk-chart" ref="wkchart" style="width: 100%; height: 250px;"
-                                    :class="{ 'hidden': isChartLoading1 || isLoading1 }"></div>
-                                </div>
+                            <Chart1
+                              :apiKey="apiKey"
+                              :defaultSymbol="defaultSymbol"
+                              :selectedItem="selectedItem"
+                              :selectedSymbol="selectedSymbol"
+                              :updateUserDefaultSymbol="updateUserDefaultSymbol"
+                              @symbol-selected="setCharts"
+                            />
+                             <Chart2
+                              :apiKey="apiKey"
+                              :defaultSymbol="defaultSymbol"
+                              :selectedItem="selectedItem"
+                              :selectedSymbol="selectedSymbol"
+                              :updateUserDefaultSymbol="updateUserDefaultSymbol"
+                              @symbol-selected="setCharts"
+                            />
 
-                                <h1 class="title3">DAILY CHART</h1>
-                                <div class="chart-container">
-                                  <div class="loading-container2" v-if="isChartLoading2 || isLoading2">
-                                    <Loader />
-                                  </div>
-                                  <div id="dl-chart" ref="dlchart" style="width: 100%; height: 250px;"
-                                    :class="{ 'hidden': isChartLoading2 || isLoading2 }"></div>
-                                </div>
                                 <h1 class="title3">SUMMARY</h1>
                                 <div style="padding-top: 5px; border:none" id="summary">
                                   <div style="color: whitesmoke; text-align: center; border: none; overflow: scroll">
@@ -691,20 +691,26 @@
 <script setup>
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
-import Assistant from '@/components/assistant.vue';
 import Selector from '@/components/Screener/Selector.vue';
-import Loader from '@/components/loader.vue'
+import Assistant from '@/components/assistant.vue';
+import { computed, onMounted, ref, watch, nextTick, reactive, toRef } from 'vue';
+import { useStore } from 'vuex';
+import NotificationPopup from '@/components/NotificationPopup.vue';
+
+// popups 
 import CreateScreener from '@/components/Screener/CreateScreener.vue';
 import RenameScreener from '@/components/Screener/RenameScreener.vue';
 import EditColumn from '@/components/Screener/EditColumn.vue';
-import { computed, onMounted, ref, watch, nextTick, reactive, toRef } from 'vue';
-import { createChart, ColorType } from 'lightweight-charts';
-import { useStore } from 'vuex';
-import NotificationPopup from '@/components/NotificationPopup.vue';
+
+// list components
 import MainList from '@/components/Screener/Tables/MainList.vue';
 import FilterList from '@/components/Screener/Tables/FilterList.vue';
 import HiddenList from '@/components/Screener/Tables/HiddenList.vue';
 import CombinedList from '@/components/Screener/Tables/CombinedList.vue';
+
+// charts components
+import Chart1 from '@/components/Screener/Chart1.vue'; // weekly chart
+import Chart2 from '@/components/Screener/Chart2.vue'; // daily chart
 
 //filter components
 import Price from '@/components/Screener/Parameters/Price.vue';
@@ -775,7 +781,7 @@ const toggleWatchlist = async (ticker, symbol) => {
 };
 
 // consts for infinite scrolling
-const limit = ref(200)
+const limit = ref(100)
 const offset = ref(0)
 
 //pair to handling infinite scrolling in main list 
@@ -883,18 +889,13 @@ onMounted(async () => {
   await fetchPerformanceResults(defaultSymbol);
   selectedSymbol.value = defaultSymbol;
   selectedItem.value = defaultSymbol;
+  fetchSymbolsAndExchanges();
+  getWatchlists();
 });
-
-// these 4 are related to the loading animations of the two charts 
-let isChartLoading1 = ref(false);
-let isChartLoading2 = ref(false);
-const isLoading1 = ref(true)
-const isLoading2 = ref(true)
 
 const showCreateScreener = ref(false) // shows menu for creating new watchlist 
 const showRenameScreener = ref(false) // shows menu for renaming selected watchlist 
 const showEditColumn = ref(false) // shows menu for editing columns in screener
-const showSearch = ref(false) // shows searchbar 
 const selectedScreener = ref('') // selectes current screener 
 const selectedSymbol = ref(''); // similar to selectedItem 
 const listMode = ref('main');
@@ -944,22 +945,13 @@ function getImagePath(item) {
   return new URL('/src/assets/images/Blank.svg', import.meta.url).href; // Default to Blank.svg
 }
 
-// Call the function when component is mounted
-onMounted(() => {
-  fetchSymbolsAndExchanges();
-});
-
 //selected item a displays charts 
 async function setCharts(symbol) {
-  isChartLoading1.value = true;
-  isChartLoading2.value = true;
   defaultSymbol = symbol;
   selectedSymbol.value = symbol;
   selectedItem.value = symbol;
   await fetchChartData();
   await updateUserDefaultSymbol(symbol);
-  isChartLoading1.value = false;
-  isChartLoading2.value = false;
 }
 
 //functionality for keydown 
@@ -984,7 +976,6 @@ const currentResults = computed(() => {
 
 function selectRow(symbol) {
   if (!symbol) return;
-
   selectedItem.value = symbol;
   setCharts(symbol);
   updateSelectedIndex();
@@ -1012,416 +1003,6 @@ function handleKeydown(event) {
     }
   }
 }
-
-// CHARTS SECTION
-const data = ref([]); // Daily OHCL Data
-const data2 = ref([]); // Daily Volume Data
-const data3 = ref([]); // daily 10MA
-const data4 = ref([]); // daily 20MA
-const data5 = ref([]); // daily 50MA
-const data6 = ref([]); // daily 200MA
-const data7 = ref([]); // Weekly OHCL Data
-const data8 = ref([]); // Weekly Volume Data
-const data9 = ref([]); // weekly 10MA
-const data10 = ref([]); // weekly 20MA
-const data11 = ref([]); // weekly 50MA
-const data12 = ref([]); // weekly 200MA
-
-async function fetchChartData() {
-  try {
-    let symbol = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/chartdata`, { headers: { 'X-API-KEY': apiKey } });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const result = await response.json();
-    // Daily
-    data.value = result.daily.ohlc || [];
-    data2.value = result.daily.volume || [];
-    data3.value = result.daily.MA10 || null;
-    data4.value = result.daily.MA20 || null;
-    data5.value = result.daily.MA50 || null;
-    data6.value = result.daily.MA200 || null;
-    // Weekly
-    data7.value = result.weekly.ohlc || [];
-    data8.value = result.weekly.volume || [];
-    data9.value = result.weekly.MA10 || null;
-    data10.value = result.weekly.MA20 || null;
-    data11.value = result.weekly.MA50 || null;
-    data12.value = result.weekly.MA200 || null;
-  } catch (error) {
-    error.value = error.message;
-  }
-}
-
-const defaultStyles = getComputedStyle(document.documentElement);
-const theme = {
-  accent1: defaultStyles.getPropertyValue('--accent1'),
-  accent2: defaultStyles.getPropertyValue('--accent2'),
-  accent3: defaultStyles.getPropertyValue('--accent3'),
-  accent4: defaultStyles.getPropertyValue('--accent4'),
-  text1: defaultStyles.getPropertyValue('--text1'),
-  text2: defaultStyles.getPropertyValue('--text2'),
-  text3: defaultStyles.getPropertyValue('--text3'),
-  base1: defaultStyles.getPropertyValue('--base1'),
-  base2: defaultStyles.getPropertyValue('--base2'),
-  base3: defaultStyles.getPropertyValue('--base3'),
-  base4: defaultStyles.getPropertyValue('--base4'),
-  positive: defaultStyles.getPropertyValue('--positive'),
-  negative: defaultStyles.getPropertyValue('--negative'),
-  volume: defaultStyles.getPropertyValue('--volume'),
-  ma1: defaultStyles.getPropertyValue('--ma1'),
-  ma2: defaultStyles.getPropertyValue('--ma2'),
-  ma3: defaultStyles.getPropertyValue('--ma3'),
-  ma4: defaultStyles.getPropertyValue('--ma4'),
-};
-
-const dlchart = ref(null);
-const wkchart = ref(null);
-
-// mounts daily chart (including volume)
-onMounted(async () => {
-
-  await fetchUserDefaultSymbol();
-
-  nextTick();
-
-  const chartDiv = dlchart.value;
-  const rect = chartDiv.getBoundingClientRect();
-  const width = window.innerWidth <= 1150 ? 400 : rect.width;
-  const height = rect.height <= 1150 ? 250 : rect.width;
-  const chart = createChart(chartDiv, {
-    height: height,
-    width: width,
-    layout: {
-      background: {
-        type: ColorType.Solid,
-        color: theme.base1,
-      },
-      textColor: theme.text1,
-    },
-    grid: {
-      vertLines: {
-        color: 'transparent',
-      },
-      horzLines: {
-        color: 'transparent',
-      }
-    }, crosshair: {
-      vertLine: {
-        color: "transparent",
-        labelBackgroundColor: "transparent",
-      },
-      horzLine: {
-        color: "transparent",
-        labelBackgroundColor: "transparent",
-      },
-    },
-    timeScale: {
-      barSpacing: 2,
-      minBarSpacing: 0.1,
-      rightOffset: 20,
-    },
-  });
-
-  const barSeries = chart.addCandlestickSeries({
-    downColor: theme.negative,
-    upColor: theme.positive,
-    borderDownColor: theme.negative,
-    borderUpColor: theme.positive,
-    wickDownColor: theme.negative,
-    wickUpColor: theme.positive,
-    priceLineVisible: false,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-  });
-
-  const Histogram = chart.addHistogramSeries({
-    color: theme.text1,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    priceLineVisible: false,
-    priceFormat: {
-      type: 'volume',
-    },
-    priceScaleId: '',
-  });
-
-  const MaSeries1 = chart.addLineSeries({
-    color: theme.ma1,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    priceLineVisible: false,
-    lineWidth: 1,
-  });
-
-  const MaSeries2 = chart.addLineSeries({
-    color: theme.ma2,
-    lineWidth: 1,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    priceLineVisible: false,
-  });
-
-  const MaSeries3 = chart.addLineSeries({
-    color: theme.ma3,
-    lineWidth: 1,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    priceLineVisible: false,
-  });
-
-  const MaSeries4 = chart.addLineSeries({
-    color: theme.ma4,
-    lineWidth: 1,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    priceLineVisible: false,
-  });
-
-  Histogram.priceScale().applyOptions({
-    scaleMargins: {
-      top: 0.9,
-      bottom: 0,
-    }
-  });
-
-  watch(data, (newData) => {
-    barSeries.setData(newData);
-  });
-
-  watch(data2, (newData2) => {
-    Histogram.setData(newData2);
-  });
-
-  watch(data3, (newData3) => {
-    if (newData3 === null) {
-      MaSeries1.setData([]); // Clear the series data when null
-    } else {
-      MaSeries1.setData(newData3);
-    }
-  });
-
-  watch(data4, (newData4) => {
-    if (newData4 === null) {
-      MaSeries2.setData([]); // Clear the series data when null
-    } else {
-      MaSeries2.setData(newData4);
-    }
-  });
-
-  watch(data5, (newData5) => {
-    if (newData5 === null) {
-      MaSeries3.setData([]); // Clear the series data when null
-    } else {
-      MaSeries3.setData(newData5);
-    }
-  });
-
-  watch(data6, (newData6) => {
-    if (newData6 === null) {
-      MaSeries4.setData([]); // Clear the series data when null
-    } else {
-      MaSeries4.setData(newData6);
-    }
-  });
-
-  watch(data2, (newData2) => {
-    const relativeVolumeData = newData2.map((dataPoint, index) => {
-      const averageVolume = calculateAverageVolume(newData2, index);
-      const relativeVolume = dataPoint.value / averageVolume;
-      const color = relativeVolume > 2 ? theme.accent1 : theme.volume; // green for above-average volume, gray for below-average volume
-      return {
-        time: dataPoint.time, // add the time property
-        value: dataPoint.value,
-        color,
-      };
-    });
-    Histogram.setData(relativeVolumeData);
-  });
-
-  function calculateAverageVolume(data, index) {
-    const windowSize = 365; // adjust this value to change the window size for calculating average volume
-    const start = Math.max(0, index - windowSize + 1);
-    const end = index + 1;
-    const sum = data.slice(start, end).reduce((acc, current) => acc + current.value, 0);
-    return sum / (end - start);
-  }
-
-  await fetchChartData();
-
-  isLoading1.value = false
-
-});
-
-// mounts Weekly chart (including volume)
-onMounted(async () => {
-
-  const chartDiv = wkchart.value;
-  const rect = chartDiv.getBoundingClientRect();
-  const width = window.innerWidth <= 1150 ? 400 : rect.width;
-  const height = rect.height <= 1150 ? 250 : rect.width;
-  const chart = createChart(chartDiv, {
-    height: height,
-    width: width,
-    layout: {
-      background: {
-        type: ColorType.Solid,
-        color: theme.base1,
-      },
-      textColor: theme.text1,
-    },
-    grid: {
-      vertLines: {
-        color: 'transparent',
-      },
-      horzLines: {
-        color: 'transparent',
-      }
-    }, crosshair: {
-      vertLine: {
-        color: "transparent",
-        labelBackgroundColor: "transparent",
-      },
-      horzLine: {
-        color: "transparent",
-        labelBackgroundColor: "transparent",
-      },
-    },
-    timeScale: {
-      barSpacing: 0.7,
-      minBarSpacing: 0.1,
-      rightOffset: 50,
-    },
-  });
-
-  const barSeries = chart.addCandlestickSeries({
-    downColor: theme.negative,
-    upColor: theme.positive,
-    borderDownColor: theme.negative,
-    borderUpColor: theme.positive,
-    wickDownColor: theme.negative,
-    wickUpColor: theme.positive,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    priceLineVisible: false,
-  });
-
-  const Histogram = chart.addHistogramSeries({
-    color: theme.text1,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    priceLineVisible: false,
-    priceFormat: {
-      type: 'volume',
-    },
-    priceScaleId: '',
-  });
-
-  const MaSeries1 = chart.addLineSeries({
-    color: theme.ma1,
-    lineWidth: 1,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    priceLineVisible: false,
-  });
-
-  const MaSeries2 = chart.addLineSeries({
-    color: theme.ma2,
-    lineWidth: 1,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    priceLineVisible: false,
-  });
-
-  const MaSeries3 = chart.addLineSeries({
-    color: theme.ma3,
-    lineWidth: 1,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    priceLineVisible: false,
-  });
-
-  const MaSeries4 = chart.addLineSeries({
-    color: theme.ma4,
-    lineWidth: 1,
-    lastValueVisible: false,
-    crosshairMarkerVisible: false,
-    priceLineVisible: false,
-  });
-
-  Histogram.priceScale().applyOptions({
-    scaleMargins: {
-      top: 0.9,
-      bottom: 0,
-    }
-  });
-
-  watch(data7, (newData7) => {
-    barSeries.setData(newData7);
-  });
-
-  watch(data8, (newData8) => {
-    Histogram.setData(newData8);
-  });
-
-  watch(data9, (newData9) => {
-    if (newData9 === null) {
-      MaSeries1.setData([]); // Clear the series data when null
-    } else {
-      MaSeries1.setData(newData9);
-    }
-  });
-
-  watch(data10, (newData10) => {
-    if (newData10 === null) {
-      MaSeries2.setData([]); // Clear the series data when null
-    } else {
-      MaSeries2.setData(newData10);
-    }
-  });
-
-  watch(data11, (newData11) => {
-    if (newData11 === null) {
-      MaSeries3.setData([]); // Clear the series data when null
-    } else {
-      MaSeries3.setData(newData11);
-    }
-  });
-
-  watch(data12, (newData12) => {
-    if (newData12 === null) {
-      MaSeries4.setData([]); // Clear the series data when null
-    } else {
-      MaSeries4.setData(newData12);
-    }
-  });
-
-  watch(data8, (newData8) => {
-    const relativeVolumeData = newData8.map((dataPoint, index) => {
-      const averageVolume = calculateAverageVolume(newData8, index);
-      const relativeVolume = dataPoint.value / averageVolume;
-      const color = relativeVolume > 2 ? theme.accent1 : theme.volume; // green for above-average volume, gray for below-average volume
-      return {
-        time: dataPoint.time, // add the time property
-        value: dataPoint.value,
-        color,
-      };
-    });
-    Histogram.setData(relativeVolumeData);
-  });
-
-  function calculateAverageVolume(data, index) {
-    const windowSize = 365; // adjust this value to change the window size for calculating average volume
-    const start = Math.max(0, index - windowSize + 1);
-    const end = index + 1;
-    const sum = data.slice(start, end).reduce((acc, current) => acc + current.value, 0);
-    return sum / (end - start);
-  }
-
-  await fetchChartData();
-
-  isLoading2.value = false
-
-});
 
 let autoplayRunning = false;
 let autoplayIndex = 0;
@@ -1752,6 +1333,7 @@ async function fetchScreenerResults(screenerName) {
   }
 }
 
+// index results?
 async function fetchPerformanceResults(symbol) {
   try {
     const response = await fetch(`/api/screener/performance/${symbol}`, {
@@ -2177,7 +1759,7 @@ async function SummaryScreener() {
       'RSI': 'RSI',
       'Gap': 'Gap %',
       'AssetTypes': 'Asset Types',
-      'IV': 'IV'
+      'IV': 'Intrinsic Value'
     };
 
     const valueMapping = {
@@ -2257,10 +1839,6 @@ async function getWatchlists() {
     error.value = error.message;
   }
 }
-
-onMounted(() => {
-  getWatchlists();
-});
 
 async function addtoWatchlist(ticker, symbol, $event) {
   const isChecked = $event.target.checked;
@@ -2764,7 +2342,6 @@ onMounted(() => {
   loadColumns();
 });
 
-
 async function handleFetchScreeners(val) {
   await fetchScreenerResults(val);
 }
@@ -2812,567 +2389,14 @@ async function handleFetchScreeners(val) {
   text-align: center;
 }
 
-.param-s {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 80px;
-  position: relative;
-}
-
-.param-s1 {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 20px;
-  position: relative;
-}
-
-/* 
-
-.param-s1-expanded {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 120px;
-  position: relative;
-}
-*/
-
-
-.param-s2 {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 20px;
-  position: relative;
-}
-
-.param-s2-expanded {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 170px;
-  position: relative;
-}
-
-.param-s3 {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 20px;
-  position: relative;
-}
-
-.param-s3-expanded {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 120px;
-  position: relative;
-}
-
-.param-s5-expanded {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 500px;
-  position: relative;
-}
-
-.param-s6-expanded {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 450px;
-  position: relative;
-}
-
-.param-s7-expanded {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 200px;
-  position: relative;
-}
-
-.param-s8-expanded {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 400px;
-  position: relative;
-}
-
-.param-s9 {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 20px;
-  position: relative;
-}
-
-.param-s9-expanded {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 450px;
-  position: relative;
-}
-
-.param-s10-expanded {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
-  background-color: var(--base2);
-  border: none;
-  height: 500px;
-  position: relative;
-}
-
-.DataInputs2 {
-  position: absolute;
-  left: 25%;
-  top: 10%;
-  border: none;
-}
-
-.DataInputs4 {
-  position: absolute;
-  left: 5%;
-  top: 15%;
-  border: none;
-}
-
-.DataInputs4 input {
-  width: 50px;
-  margin-right: 5px;
-}
-
-.DataInputs4 p {
-  font-weight: bold;
-}
-
-.DataInputs10 {
-  position: absolute;
-  left: 0%;
-  top: 10%;
-  border: none;
-}
-
-.DataInputs10 input {
-  margin-right: 5px;
-}
-
-.DataInputs10 p {
-  font-weight: bold;
-}
-
-.DataInputs11 {
-  position: absolute;
-  left: 10%;
-  top: 10%;
-  border: none;
-}
-
-.DataInputs11 p {
-  font-weight: bold;
-}
-
-.DataInputs input {
-  width: 50px;
-  margin-right: 10px;
-}
-
-.DataInputs p {
-  font-weight: bold;
-}
-
-.param-s2 input {
-  border: none;
-  text-align: center;
-  align-items: center;
-  justify-content: center;
-}
-
-.param-s3 input {
-  border: none;
-  text-align: center;
-  align-items: center;
-  justify-content: center;
-}
-
-.param-s .row {
-  clear: both;
-  justify-content: space-between;
-  padding: none;
-  margin: none;
-}
-
-.param-s button {
-  background-color: var(--base2);
-  border: none;
-  color: var(--text1);
-  padding: 5px;
-  position: absolute;
-  top: 70%;
-  left: 87%;
-}
-
-.param-s button:hover {
-  background-color: var(--accent1);
-}
-
-.param-s1 .row {
-  clear: both;
-  justify-content: space-between;
-  padding: none;
-  margin: none;
-}
-
-.btns {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 89%;
-}
-
-.btnsr {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 80%;
-}
-
-.btns2 {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 89%;
-}
-
-.btns2r {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 80%;
-}
-
-.btns3 {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 89%;
-}
-
-.btns3r {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 80%;
-}
-
-.btns5 {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 89%;
-}
-
-.btns5r {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 80%;
-}
-
-.btns6 {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 89%;
-}
-
-.btns6r {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 80%;
-}
-
-.btns7 {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 89%;
-}
-
-.btns7r {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 80%;
-}
-
-.btns8 {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 89%;
-}
-
-.btns8r {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 80%;
-}
-
-.param-s2 button {
-  background-color: var(--base2);
-  border: none;
-  color: var(--text1);
-  padding: 5px;
-  position: absolute;
-  top: 80%;
-  left: 87%;
-}
-
-.param-s2 button:hover {
-  background-color: var(--accent1);
-}
-
-.param-s3 button {
-  background-color: var(--base2);
-  border: none;
-  color: var(--text1);
-  padding: 5px;
-  position: absolute;
-  top: 65%;
-  left: 87%;
-}
-
-.param-s3 button:hover {
-  background-color: var(--accent1);
-}
-
-.left {
-  border: none;
-  outline: none;
-  display: inline-flex;
-  width: 100px;
-  height: 15px;
-  margin: 5px;
-  position: absolute;
-  top: 35%;
-  left: 2%;
-}
-
-.right {
-  border: none;
-  outline: none;
-  display: inline-flex;
-  width: 100px;
-  height: 15px;
-  margin: 5px;
-  position: absolute;
-  top: 60%;
-  left: 2%;
-}
-
-.param-s p {
-  font-weight: bold;
-  margin: none;
-  padding: none;
-  position: absolute;
-  top: 0%;
-  left: 2%;
-}
-
-.param-s2 p {
-  font-weight: bold;
-  margin: none;
-  padding: none;
-  position: absolute;
-  top: 0%;
-  left: 2%;
-}
-
-.param-s3 p {
-  font-weight: bold;
-  margin: none;
-  padding: none;
-  position: absolute;
-  top: 0%;
-  left: 2%;
-}
-
-.row {
-  border: none;
-  margin: none;
-  padding: none;
-}
-
-.row2 {
-  border: none;
-  margin: none;
-  padding: none;
-  position: absolute;
-  left: 2%;
-  top: 40px;
-  float: left;
-}
-
-.row3 {
-  border: none;
-  margin: none;
-  padding: none;
-  position: absolute;
-  top: 35%;
-  left: 2%;
-  float: left;
-}
-
 .check {
   float: left;
-}
-
-h1 {
-  background-color: var(--base2);
-  color: var(--text2);
-  text-align: center;
-  padding: 3.5px;
-  margin: 0;
 }
 
 label,
 input,
 p {
   border: none;
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 20px;
-  margin: none;
-  padding: none;
-}
-
-/* Hide default HTML checkbox */
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-  margin: none;
-  padding: none;
-}
-
-/* The slider */
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--base3);
-  -webkit-transition: .3s;
-  transition: .3s;
-  margin: none;
-  padding: none;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 13px;
-  width: 13px;
-  left: 2px;
-  bottom: 3.5px;
-  background-color: var(--text3);
-  -webkit-transition: .3s;
-  transition: .3s;
-  margin: none;
-  padding: none;
-}
-
-input:checked+.slider {
-  background-color: var(--accent1);
-}
-
-input:focus+.slider {
-  box-shadow: 0 0 1px var(--accent1);
-}
-
-input:checked+.slider:before {
-  -webkit-transform: translateX(13px);
-  -ms-transform: translateX(13px);
-  transform: translateX(22px);
-}
-
-/* Rounded sliders */
-.slider.round {
-  border-radius: 17px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
 }
 
 .screens {
@@ -3447,11 +2471,6 @@ input:checked+.slider:before {
 
 .title {
   width: 100%;
-}
-
-#wk-chart,
-#dl-chart {
-  background-repeat: no-repeat;
 }
 
 .img {
@@ -3685,73 +2704,6 @@ input:checked+.slider:before {
 .no-border {
   border: none;
   border-style: none;
-}
-
-.loading-container1 {
-  position: absolute;
-  top: 0%;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  border: none;
-}
-
-.loading-container2 {
-  position: absolute;
-  top: -32%;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  border: none;
-}
-
-.searchDiv {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: var(--base2);
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  z-index: 1000;
-}
-
-.searchDiv input {
-  outline: none;
-  height: 20px;
-  border-radius: 5px;
-  padding-left: 5px;
-}
-
-.searchDiv button {
-  height: 21px;
-  background-color: var(--accent1);
-  outline: none;
-  border: none;
-  border-radius: 5px;
-  position: absolute;
-  right: 0.3px;
-}
-
-.searchDiv button:hover {
-  height: 21px;
-  background-color: var(--accent2);
-  outline: none;
-  border: none;
-  cursor: pointer;
 }
 
 .img3 {
@@ -4184,30 +3136,26 @@ input[type="date"] {
   display: none;
 }
 
-.chart-container {
-  position: relative;
-  width: 100%;
-  height: 250px;
-}
-
-.loading-container1,
-.loading-container2 {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--base1);
-  z-index: 10;
-}
-
 .hidden {
   visibility: hidden;
 }
 
+.title3 {
+  border: none;
+  width: 98%;
+  margin: none;
+  align-self: center;
+  justify-content: center;
+  padding: 7px 3px;
+}
+
+h1 {
+  background-color: var(--base2);
+  color: var(--text2);
+  text-align: center;
+  padding: 3.5px;
+  margin: 0;
+}
 
 @media (min-width: 1151px) {
 
