@@ -5,7 +5,6 @@ import logging
 import motor.motor_asyncio
 from organizer import updateTimeSeries
 from collections import defaultdict
-from intraday_aggregation import aggregate_intraday_candles
 
 # Global pubsub registry: { (symbol, timeframe): [asyncio.Queue, ...] }
 pubsub_channels = defaultdict(list)
@@ -49,12 +48,8 @@ async def start_aggregator(message_queue, mongo_client):
                     logger.warning(f"Malformed data: {data}")
                     continue
 
-                # --- Parse symbol, price, timestamp for both crypto and stocks ---
-                if service == "crypto_data" and len(d) > 5:
-                    symbol = d[1].upper()
-                    price = float(d[5])
-                    ts = d[2]
-                elif service == "iex" and len(d) > 2:
+                # --- Parse symbol, price, timestamp for IEX data only ---
+                if service == "iex" and len(d) > 2:
                     symbol = d[1].upper()
                     price = float(d[2])
                     ts = d[0]
