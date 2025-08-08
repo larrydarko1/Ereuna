@@ -47,14 +47,9 @@ ssl_ctx = ssl._create_unverified_context()
 def stock_filter(msg):
     return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) >= 3
 
-
 import time
 import signal
 import sys
-
-
-# Bandwidth tracking for stocks
-
 
 # Bandwidth tracking for stocks only
 stock_bandwidth_stats = {}  # {symbol: {'bytes': int, 'messages': int}}
@@ -63,7 +58,7 @@ last_report_time = 0
 MARKET_OPEN_HOUR = 13  # UTC 13:30 (9:30am ET)
 MARKET_CLOSE_HOUR = 20  # UTC 20:00 (4:00pm ET)
 MARKET_OPEN_MINUTE = 30
-MARKET_CLOSE_MINUTE = 0
+MARKET_CLOSE_MINUTE = 1
 
 def print_total_bandwidth():
     print("\n=== TOTAL BANDWIDTH USAGE PER TICKER (STOCKS) ===")
@@ -227,15 +222,14 @@ def is_trading_day(dtobj):
 
 def next_run_time(now=None):
     now = now or dt.datetime.utcnow()
-    # Today's market close
-    today_close = now.replace(hour=SCHED_CLOSE_HOUR, minute=SCHED_CLOSE_MIN, second=0, microsecond=0)
-    if is_trading_day(now) and now < today_close:
-        return today_close + dt.timedelta(hours=SCHED_DELAY_HOURS)
-    # Find next trading day
+    today_sched = now.replace(hour=23, minute=0, second=0, microsecond=0)
+    if is_trading_day(now) and now < today_sched:
+        return today_sched
+    # Otherwise, find next trading day
     for i in range(1, 8):
         candidate = now + dt.timedelta(days=i)
         if is_trading_day(candidate):
-            return candidate.replace(hour=SCHED_CLOSE_HOUR, minute=SCHED_CLOSE_MIN, second=0, microsecond=0) + dt.timedelta(hours=SCHED_DELAY_HOURS)
+            return candidate.replace(hour=23, minute=0, second=0, microsecond=0)
 
 async def daily_scheduler():
     while True:
