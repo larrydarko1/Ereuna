@@ -1,6 +1,7 @@
 import sys
 sys.path.append('.')
 from organizer import Daily
+from intraday_aggregation import aggregate_intraday_candles
 import datetime as dt
 import os
 import json
@@ -91,7 +92,6 @@ def is_market_hours():
 
 
 async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
-    global last_report_time
     while True:
         try:
             async with websockets.connect(ws_url, ssl=ssl_ctx) as tiingo_ws:
@@ -116,9 +116,6 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                                 stats = stock_bandwidth_stats.setdefault(symbol, {'bytes': 0, 'messages': 0})
                                 stats['bytes'] += msg_bytes
                                 stats['messages'] += 1
-                                # Save history for periodic reporting
-                                history = stock_bandwidth_history.setdefault(symbol, [])
-                                history.append((time.time(), msg_bytes))
                                 # --- Cache the latest quote ---
                                 latest_quotes[symbol] = tiingo_data
                                 # --- End cache ---
@@ -127,21 +124,6 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                                 except asyncio.QueueFull:
                                     await message_queue.get()
                                     await message_queue.put(json.dumps(tiingo_data))
-                    # --- Periodic bandwidth report (every 60s, only during market hours) ---
-                    now = time.time()
-                    if is_market_hours() and (now - last_report_time > 60):
-                        print("\n--- Bandwidth usage per ticker (last 60s, market hours only) ---")
-                        for symbol, history in stock_bandwidth_history.items():
-                            cutoff = now - 60
-                            bytes_last_min = sum(b for t, b in history if t >= cutoff)
-                            msgs_last_min = sum(1 for t, b in history if t >= cutoff)
-                            print(f"STOCK {symbol.upper()}: {bytes_last_min/1024:.2f} KB/min, {msgs_last_min} msgs/min")
-                        print("-------------------------------------------------------------\n")
-                        print_total_bandwidth()
-                        last_report_time = now
-                        # Optionally, prune old history to save memory
-                        for symbol in stock_bandwidth_history:
-                            stock_bandwidth_history[symbol] = [(t, b) for t, b in stock_bandwidth_history[symbol] if t >= now - 300]
         except Exception as e:
             print(f"Exception in relay_tiingo: {e}")
             print_total_bandwidth()
@@ -211,12 +193,6 @@ async def market_hours_manager():
 async def start_market_hours_manager():
     asyncio.create_task(market_hours_manager())
 
-
-# --- Concise Scheduler for Daily() ---
-SCHED_CLOSE_HOUR = 20  # UTC 20:00 (4:00pm ET)
-SCHED_CLOSE_MIN = 0
-SCHED_DELAY_HOURS = 3
-
 def is_trading_day(dtobj):
     return dtobj.weekday() < 5
 
@@ -249,6 +225,48 @@ async def daily_scheduler():
 @app.on_event("startup")
 async def start_daily_scheduler():
     asyncio.create_task(daily_scheduler())
+
+# --- Intraday Aggregation Fallback Scheduler ---
+SCHED_INTRADAY_HOUR = 20  # 20:00 UTC (4:00pm ET)
+SCHED_INTRADAY_MIN = 1
+
+def next_intraday_run_time(now=None):
+    now = now or dt.datetime.utcnow()
+    today_sched = now.replace(hour=SCHED_INTRADAY_HOUR, minute=SCHED_INTRADAY_MIN, second=0, microsecond=0)
+    if is_trading_day(now) and now < today_sched:
+        return today_sched
+    # Otherwise, find next trading day
+    for i in range(1, 8):
+        candidate = now + dt.timedelta(days=i)
+        if is_trading_day(candidate):
+            return candidate.replace(hour=SCHED_INTRADAY_HOUR, minute=SCHED_INTRADAY_MIN, second=0, microsecond=0)
+
+async def intraday_aggregation_scheduler():
+    while True:
+        now = dt.datetime.utcnow()
+        run_at = next_intraday_run_time(now)
+        wait = (run_at - now).total_seconds()
+        if wait > 0:
+            print(f"[Scheduler] Next intraday aggregation at {run_at} UTC ({wait/60:.1f} min)")
+            await asyncio.sleep(wait)
+        else:
+            print("[Scheduler] Running intraday aggregation now (missed scheduled time)")
+        try:
+            # Run fallback aggregation for each intraday timeframe
+            print("[Intraday Aggregation] Backfilling 5m candles...")
+            await aggregate_intraday_candles(db, 'OHCLVData1m', 'OHCLVData5m', 5)
+            print("[Intraday Aggregation] Backfilling 15m candles...")
+            await aggregate_intraday_candles(db, 'OHCLVData1m', 'OHCLVData15m', 15)
+            print("[Intraday Aggregation] Backfilling 30m candles...")
+            await aggregate_intraday_candles(db, 'OHCLVData1m', 'OHCLVData30m', 30)
+            print("[Intraday Aggregation] Backfilling 1hr candles...")
+            await aggregate_intraday_candles(db, 'OHCLVData1m', 'OHCLVData1hr', 60)
+        except Exception as e:
+            print(f"[Scheduler] Exception in intraday aggregation: {e}")
+
+@app.on_event("startup")
+async def start_intraday_aggregation_scheduler():
+    asyncio.create_task(intraday_aggregation_scheduler())
 
 @app.websocket("/ws/stream")
 async def websocket_stream(websocket: WebSocket):
