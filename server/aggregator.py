@@ -5,6 +5,7 @@ import logging
 import motor.motor_asyncio
 from organizer import updateTimeSeries
 from collections import defaultdict
+from intraday_aggregation import aggregate_intraday_candles
 
 # Global pubsub registry: { (symbol, timeframe): [asyncio.Queue, ...] }
 pubsub_channels = defaultdict(list)
@@ -216,4 +217,3 @@ async def aggregate_higher_timeframes(mongo_client):
             logger.error(f"Error in higher timeframe aggregation: {e}")
             anomaly_count += 1
         await asyncio.sleep(60)  # Run every minute for 1m candles
-        

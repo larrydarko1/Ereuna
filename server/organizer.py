@@ -5,12 +5,16 @@ import time
 import requests
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import datetime as dt
 from dotenv import load_dotenv
 import motor.motor_asyncio
 from pymongo import UpdateOne, DeleteOne, InsertOne
 import asyncio
+import logging
+
+logger = logging.getLogger("organizer")
+logger.setLevel(logging.INFO)
 
 from helper import (
     maintenanceMode,
@@ -1778,4 +1782,6 @@ async def Daily():
     #await fetchNews()
 
 if __name__ == '__main__':  
-   asyncio.run(Daily())
+    import motor.motor_asyncio
+    # Make sure db is defined as in your main code
+    asyncio.run(Daily())
