@@ -126,7 +126,8 @@ async def start_aggregator(message_queue, mongo_client):
                     await publish_candle(cndl["tickerID"], "1m", cndl)
             except Exception as e:
                 logger.error(f"MongoDB insert error on shutdown: {e}")
-                
+
+#DOESN'T WORK, FIX IT (try it)             
 async def aggregate_higher_timeframes(mongo_client):
     # Ensure mongo_client is a Motor client
     if not hasattr(mongo_client, 'get_database'):
@@ -135,80 +136,75 @@ async def aggregate_higher_timeframes(mongo_client):
     db = mongo_client.get_database('EreunaDB')
     col_1m = db.get_collection('OHCLVData1m')
     configs = [
-        {"minutes": 5, "collection": db.get_collection('OHCLVData5m'), "window": 5},
-        {"minutes": 15, "collection": db.get_collection('OHCLVData15m'), "window": 15},
-        {"minutes": 30, "collection": db.get_collection('OHCLVData30m'), "window": 30},
-        {"minutes": 60, "collection": db.get_collection('OHCLVData1hr'), "window": 60},
-        {"minutes": 1440, "collection": db.get_collection('OHCLVData'), "window": 1440},  # Daily aggregation
-        {"minutes": 10080, "collection": db.get_collection('OHCLVData2'), "window": 10080},  # Weekly aggregation
+        {"minutes": 5, "collection": db.get_collection('OHCLVData5m')},
+        {"minutes": 15, "collection": db.get_collection('OHCLVData15m')},
+        {"minutes": 30, "collection": db.get_collection('OHCLVData30m')},
+        {"minutes": 60, "collection": db.get_collection('OHCLVData1hr')},
+        {"minutes": 1440, "collection": db.get_collection('OHCLVData')},  # Daily aggregation
+        {"minutes": 10080, "collection": db.get_collection('OHCLVData2')},  # Weekly aggregation
     ]
 
-    processed_count = 0
-    anomaly_count = 0
     while True:
         try:
             now = datetime.utcnow().replace(second=0, microsecond=0, tzinfo=timezone.utc)
-            since = now - timedelta(days=2)
-            symbols = await col_1m.distinct("tickerID", {"timestamp": {"$gte": since}})
+            symbols = await col_1m.distinct("tickerID", {"timestamp": {"$gte": now - timedelta(days=7)}})
             for cfg in configs:
                 tf = cfg["minutes"]
-                window = cfg["window"]
                 col = cfg["collection"]
+                bucket_delta = timedelta(minutes=tf)
+                delete_ops = []
+                insert_docs = []
+                publish_ops = []
                 for symbol in symbols:
-                    # Always update the current bucket every minute
+                    min_candle = await col_1m.find_one({"tickerID": symbol}, sort=[("timestamp", 1)])
+                    max_candle = await col_1m.find_one({"tickerID": symbol}, sort=[("timestamp", -1)])
+                    if not min_candle or not max_candle:
+                        continue
+                    min_time = min_candle["timestamp"]
+                    max_time = max_candle["timestamp"]
                     if tf == 1440:
-                        # Daily bucket: truncate to midnight UTC
-                        bucket_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-                        start = bucket_start
-                        end = bucket_start + timedelta(days=1)
+                        bucket_start = min_time.replace(hour=0, minute=0, second=0, microsecond=0)
                     elif tf == 10080:
-                        # Weekly bucket: truncate to start of week (Monday 00:00 UTC)
-                        weekday = now.weekday()
-                        week_start = now - timedelta(days=weekday, hours=now.hour, minutes=now.minute, seconds=now.second, microseconds=now.microsecond)
-                        start = week_start
-                        end = week_start + timedelta(days=7)
+                        weekday = min_time.weekday()
+                        bucket_start = min_time - timedelta(days=weekday, hours=min_time.hour, minutes=min_time.minute, seconds=min_time.second, microseconds=min_time.microsecond)
                     else:
-                        bucket_start = now - timedelta(minutes=now.minute % tf, seconds=now.second, microseconds=now.microsecond)
-                        start = bucket_start
-                        end = bucket_start + timedelta(minutes=tf)
-                    candles = await col_1m.find(
-                        {
+                        bucket_start = min_time - timedelta(minutes=min_time.minute % tf, seconds=min_time.second, microseconds=min_time.microsecond)
+                    last_bucket = None
+                    while bucket_start <= now:
+                        bucket_end = bucket_start + bucket_delta
+                        candles = await col_1m.find({
                             "tickerID": symbol,
-                            "timestamp": {
-                                "$gte": start,
-                                "$lt": end
+                            "timestamp": {"$gte": bucket_start, "$lt": bucket_end}
+                        }).sort("timestamp", 1).to_list(length=None)
+                        if candles:
+                            doc = {
+                                "timestamp": bucket_start,
+                                "tickerID": symbol,
+                                "open": candles[0]["open"],
+                                "close": candles[-1]["close"],
+                                "high": max(c["high"] for c in candles),
+                                "low": min(c["low"] for c in candles),
+                                "volume": sum(c.get("volume", 0) for c in candles),
+                                "count": len(candles)
                             }
-                        }
-                    ).sort("timestamp", 1).to_list(length=window)
-                    if len(candles) > 0:
-                        o = candles[0]["open"]
-                        c = candles[-1]["close"]
-                        h = max(c["high"] for c in candles)
-                        l = min(c["low"] for c in candles)
-                        doc = {
-                            "timestamp": start,
-                            "tickerID": symbol,
-                            "open": o,
-                            "close": c,
-                            "high": h,
-                            "low": l,
-                            "count": len(candles)
-                        }
-                        try:
-                            await col.delete_one({"tickerID": symbol, "timestamp": start})
-                            await col.insert_one(doc)
-                            processed_count += 1
-                            # Publish new higher timeframe candle to pubsub
-                            await publish_candle(symbol, f"{tf}m", doc)
-                        except Exception as e:
-                            logger.error(f"Insert error for {symbol} {start}: {e}")
-                            anomaly_count += 1
-                    else:
-                        logger.info(f"No data for {symbol} {start} in {tf}m bucket")
-                        anomaly_count += 1
-            if anomaly_count > 0 and anomaly_count % 10 == 0:
-                logger.warning(f"Aggregation anomalies detected: {anomaly_count}")
+                            last_bucket = (symbol, bucket_start, doc)
+                        bucket_start += bucket_delta
+                    # Only update the most recent (in-progress) bucket for this symbol/timeframe
+                    if last_bucket:
+                        symbol, bucket_start, doc = last_bucket
+                        delete_ops.append({"tickerID": symbol, "timestamp": bucket_start})
+                        insert_docs.append(doc)
+                        publish_ops.append((symbol, f"{tf}m", doc))
+                if delete_ops and insert_docs:
+                    try:
+                        # Delete all in-progress buckets in batch
+                        await col.delete_many({"$or": delete_ops})
+                        # Insert all new in-progress docs in batch
+                        await col.insert_many(insert_docs)
+                        for symbol, tf_str, doc in publish_ops:
+                            await publish_candle(symbol, tf_str, doc)
+                    except Exception as e:
+                        logger.error(f"Batch delete/insert error for {col.name}: {e}")
         except Exception as e:
             logger.error(f"Error in higher timeframe aggregation: {e}")
-            anomaly_count += 1
-        await asyncio.sleep(60)  # Run every minute for 1m candles
+        await asyncio.sleep(60)  # Run every minute

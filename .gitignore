@@ -22,3 +22,5 @@ mongodb-init
 *.njsproj
 *.sln
 *.sw?
+__pycache__/
+__pycache__
