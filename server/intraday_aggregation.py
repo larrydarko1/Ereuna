@@ -66,3 +66,4 @@ async def update30mCandles(db):
 # 1hr candles
 async def update1hrCandles(db):
     await aggregate_intraday_candles(db, 'OHCLVData1m', 'OHCLVData1hr', 60)
+
