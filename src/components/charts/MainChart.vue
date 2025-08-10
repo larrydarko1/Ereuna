@@ -1,5 +1,11 @@
 <template>
-                                <div class="chart-container">
+  <EditChart 
+    v-if="showEditChart" 
+    @close="showEditChart = false" 
+    :apiKey="props.apiKey"
+    :user="props.user"
+  />
+                               <div class="chart-container">
                                   <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
                                     <Loader />
                                   </div>
@@ -24,6 +30,9 @@
     </button>
   </div>
   <div style="display: flex; gap: 5px; justify-content: flex-end;">
+    <button class="navbt2" @click="showEditChart = true">
+      Edit Chart
+    </button>
     <button class="navbt" v-b-tooltip.hover title="Change Chart type" @click="toggleChartType"
       aria-label="Toggle chart type">
       {{ isBarChart ? 'C' : 'B' }}
@@ -54,6 +63,9 @@
 import Loader from '@/components/loader.vue'
 import { onMounted, ref, watch, computed  } from 'vue';
 import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
+import EditChart from '@/components/charts/EditChart.vue';
+
+const showEditChart = ref(false); // display popup for editing indicators of chart
 
 const props = defineProps({
   apiKey: {
@@ -609,6 +621,7 @@ font-weight: bold;
   height: 20px;
   align-items: center;
   display: flex;
+  font-weight: bold;
 }
 
 .navbt:hover {
@@ -616,6 +629,34 @@ font-weight: bold;
 }
 
 .navbt.selected {
+  opacity: 1;
+  background-color: var(--text1);
+  color: var(--base2);
+  border: solid var(--text1) 1px;
+}
+
+.navbt2 {
+  background-color: var(--text2);
+  color: var(--base1);
+  text-align: center;
+  justify-content: center;
+  cursor: pointer;
+  border: solid var(--text2) 1px;
+  border-radius: 5px;
+  padding: 12px;
+  opacity: 0.60;
+  width: 89px;
+  height: 20px;
+  align-items: center;
+  display: flex;
+  font-weight: bold;
+}
+
+.navbt2:hover {
+  opacity: 1;
+}
+
+.navbt2.selected {
   opacity: 1;
   background-color: var(--text1);
   color: var(--base2);

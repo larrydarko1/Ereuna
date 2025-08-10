@@ -776,4 +776,69 @@ export default function (app, deps) {
         }
     });
 
+    // Endpoint to save chart settings for a user
+    app.post('/chart-settings', async (req, res) => {
+        // Accept both lowercase and uppercase header
+        const apiKey = req.header('x-api-key') || req.header('X-API-KEY');
+        const sanitizedKey = sanitizeInput(apiKey);
+        if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+            logger.warn('Invalid API key', { providedApiKey: sanitizedKey, expected: process.env.VITE_EREUNA_KEY });
+            return res.status(401).json({ message: 'Unauthorized API Access' });
+        }
+
+        const user = req.query.user;
+        if (!user) {
+            return res.status(400).json({ message: 'Missing user query parameter' });
+        }
+
+        const { indicators, intrinsicValue } = req.body;
+        if (!Array.isArray(indicators) || typeof intrinsicValue !== 'object') {
+            return res.status(400).json({ message: 'Invalid payload' });
+        }
+
+        let client;
+        try {
+            client = new MongoClient(uri);
+            await client.connect();
+            const db = client.db('EreunaDB');
+            const usersCollection = db.collection('Users');
+
+            // Find the user by Username
+            const userDoc = await usersCollection.findOne({ Username: user });
+            if (!userDoc) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            // Prepare the new ChartSettings array (replace or upsert)
+            const newSettings = { indicators, intrinsicValue };
+
+            // If ChartSettings exists, replace it; otherwise, create it
+            await usersCollection.updateOne(
+                { Username: user },
+                { $set: { ChartSettings: newSettings } },
+                { upsert: false }
+            );
+
+            res.status(200).json({ message: 'Chart settings saved successfully' });
+        } catch (error) {
+            logger.error({
+                msg: 'Error saving chart settings',
+                user,
+                error: error.message
+            });
+            res.status(500).json({ message: 'Internal Server Error' });
+        } finally {
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    logger.warn({
+                        msg: 'Database Client Closure Failed',
+                        error: closeError.message
+                    });
+                }
+            }
+        }
+    });
+
 };

@@ -83,9 +83,20 @@
 </template>
 
 <script setup>
+
 import { ref, defineEmits } from 'vue'
 const emit = defineEmits(['close', 'save'])
 
+const props = defineProps({
+  apiKey: {
+    type: String,
+    required: true
+  },
+  user: {
+    type: String,
+    required: true
+  }
+})
 
 const indicators = ref([
   { type: 'SMA', timeframe: 200, visible: true },
@@ -110,7 +121,37 @@ function selectType(idx, type) {
   dropdownOpen.value = null
 }
 
-function saveSettings() {
+async function postChartSettings() {
+  // Prepare the payload (only indicators and intrinsicValue)
+  const payload = {
+    indicators: indicators.value.map(ind => ({
+      type: ind.type,
+      timeframe: ind.timeframe,
+      visible: ind.visible
+    })),
+    intrinsicValue: {
+      visible: showIntrinsicValue.value
+    }
+  }
+  try {
+    await fetch(`/api/chart-settings?user=${encodeURIComponent(props.user)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': props.apiKey
+        },
+        body: JSON.stringify(payload)
+      }
+    )
+  } catch (e) {
+    // Optionally handle error
+    console.error('Failed to save chart settings', e)
+  }
+}
+
+async function saveSettings() {
+  await postChartSettings()
   emit('save', { indicators: indicators.value, showIntrinsicValue: showIntrinsicValue.value })
   close()
 }
@@ -129,19 +170,12 @@ function close() {
   padding: 8px 10px;
   background: var(--base1);
   border-radius: 7px;
-  box-shadow: 0 1px 3px 0 rgba(0,0,0,0.04);
   border: 1px solid var(--base3);
   transition: box-shadow 0.18s, border-color 0.18s, filter 0.2s, opacity 0.2s;
   position: relative;
-  margin-bottom: 2px;
 }
 .indicator-row-compact:hover {
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.10);
   border-color: var(--accent1);
-}
-
-.intrinsic-module {
-  margin-bottom: 2px;
 }
 
 .indicator-module {
@@ -161,7 +195,7 @@ function close() {
   transition: color 0.2s, text-decoration 0.2s;
 }
 .indicator-module.indicator-hidden .indicator-label {
-  color: var(--text3);
+  color: var(--text2);
   text-decoration: line-through;
 }
 .indicator-piece {
@@ -405,7 +439,7 @@ input[type="number"]:focus {
 
 .trade-btn {
   background: var(--accent1);
-  color: var(--text1);
+  color: var(--text3);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;

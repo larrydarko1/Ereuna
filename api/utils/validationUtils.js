@@ -375,6 +375,7 @@ const validate = (validations) => {
 
 // Input Sanitization
 const sanitizeInput = (input) => {
+    if (typeof input !== 'string') return '';
     return validator.trim(validator.escape(input));
 };
 
