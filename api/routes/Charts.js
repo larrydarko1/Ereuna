@@ -801,4 +801,51 @@ export default function (app, deps) {
         }
     });
 
+    // Endpoint to get chart indicator settings for a user
+    app.get('/:user/indicators', async (req, res) => {
+        const apiKey = req.header('x-api-key') || req.header('X-API-KEY');
+        const sanitizedKey = sanitizeInput(apiKey);
+        if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+            logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+            return res.status(401).json({ message: 'Unauthorized API Access' });
+        }
+
+        const user = req.params.user;
+        if (!user) {
+            return res.status(400).json({ message: 'Missing user parameter' });
+        }
+
+        let client;
+        try {
+            client = new MongoClient(uri);
+            await client.connect();
+            const db = client.db('EreunaDB');
+            const usersCollection = db.collection('Users');
+            const userDoc = await usersCollection.findOne({ Username: user });
+            if (!userDoc || !userDoc.ChartSettings) {
+                return res.status(404).json({ message: 'ChartSettings not found for user' });
+            }
+            // Return the indicators array (or the whole ChartSettings if you want)
+            return res.status(200).json(userDoc.ChartSettings.indicators || []);
+        } catch (error) {
+            logger.error({
+                msg: 'Error retrieving chart indicators',
+                user,
+                error: error.message
+            });
+            return res.status(500).json({ message: 'Internal Server Error' });
+        } finally {
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    logger.warn({
+                        msg: 'Database Client Closure Failed',
+                        error: closeError.message
+                    });
+                }
+            }
+        }
+    });
+
 };

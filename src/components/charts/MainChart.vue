@@ -5,6 +5,7 @@
     @settings-saved="onSettingsSaved"
     :apiKey="props.apiKey"
     :user="props.user"
+    :indicatorList="indicatorList"
   />
                                <div class="chart-container">
                                   <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
@@ -53,6 +54,15 @@
       {{ ohlcDisplay.changeRaw >= 0 ? '+' : '' }}{{ ohlcDisplay.changeRaw }}
       {{ ohlcDisplay.changeRaw >= 0 ? '+' : '' }}{{ ohlcDisplay.changePct }}%
     </span>
+  </span>
+</div>
+<div id="legend4">
+  <span
+    v-for="indicator in activeIndicators"
+    :key="indicator.label"
+    :style="{ color: indicator.color }"
+  >
+    {{ indicator.label }}
   </span>
 </div>
                                   <div id="wk-chart" ref="wkchart" style="width: 100%; height: 250px;"
@@ -469,7 +479,8 @@ const ohlcDisplay = computed(() => {
   return { open, high, low, close, changeRaw, changePct };
 });
 
-const hiddenList = ref([]);
+const hiddenList = ref([]); // stores hidden tickers for user (for hidden badge in chart)
+const indicatorList = ref([]); // stores in indicators settings for each user
 
 async function fetchHiddenList() {
   try {
@@ -479,14 +490,30 @@ async function fetchHiddenList() {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
     hiddenList.value = data.Hidden;
-    console.log('Hidden list fetched:', hiddenList.value); // Move log here
   } catch (err) {
     console.error('Error fetching hidden list:', err); // Log errors
   }
 }
 
+// Fetch indicator list from backend
+async function fetchIndicatorList() {
+  try {
+    // Adjust the endpoint as needed for your backend
+    const response = await fetch(`/api/${props.user}/indicators`, {
+      headers: { 'X-API-KEY': props.apiKey },
+    });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+    indicatorList.value = data;
+    console.log('Indicator list fetched:', indicatorList.value);
+  } catch (err) {
+    console.error('Error fetching indicator list:', err);
+  }
+}
+
 onMounted(() => {
   fetchHiddenList();
+  fetchIndicatorList();
 });
 
 const isInHiddenList = (item) => {
@@ -497,7 +524,26 @@ const isInHiddenList = (item) => {
 function onSettingsSaved() {
   // Use current symbol and timeframe
   fetchChartData();
+  fetchIndicatorList();
 }
+
+// Computed property for active indicators in the chart
+const activeIndicators = computed(() => {
+  // Map of data refs for each indicator slot (assumes max 4 indicators)
+  const dataRefs = [data3, data4, data5, data6];
+  const colorRefs = [theme.ma1, theme.ma2, theme.ma3, theme.ma4];
+  const indicators = [];
+  if (!Array.isArray(indicatorList.value)) return indicators;
+  indicatorList.value.forEach((indicator, idx) => {
+    if (indicator.visible && dataRefs[idx] && dataRefs[idx].value && dataRefs[idx].value.length > 0) {
+      indicators.push({
+        label: `${indicator.type} (${indicator.timeframe})`,
+        color: colorRefs[idx] || theme.text2
+      });
+    }
+  });
+  return indicators;
+});
 </script>
 
 <style scoped>
@@ -613,6 +659,23 @@ h1 {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  gap: 2px;
+}
+
+#legend4 {
+  position: absolute;
+  top: 7%;
+  left: 0;
+  z-index: 1000;
+  background-color: transparent;
+  color: var(--text2);
+  border: none;
+  margin-top: 20px;
+  margin-left: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 2px;
 }
 
