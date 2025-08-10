@@ -2688,7 +2688,8 @@ function closeEditor() {
   cursor: pointer;
   width: 100%;
   padding: 10px;
-  color: var(--text1);
+  color: var(--text3);
+  font-weight: bold;
   transition: background-color 0.5s ease-in-out;
 }
 
@@ -2715,28 +2716,6 @@ function closeEditor() {
   text-align: center;
   background-color: var(--base2);
   color: rgba(var(--text2), 0.40);
-}
-
-/* buttons inside chart, top right */
-.navbtng {
-  background-color: transparent;
-  color: var(--text1);
-  text-align: center;
-  justify-content: center;
-  cursor: pointer;
-  border: solid var(--text2) 1px;
-  border-radius: 5px;
-  padding: 15px;
-  opacity: 0.60;
-  width: 95px;
-  height: 25px;
-  align-items: center;
-  margin: 2px;
-  display: flex;
-}
-
-.navbtng:hover {
-  opacity: 1;
 }
 
 .imgm {
@@ -3042,92 +3021,6 @@ function closeEditor() {
   outline: none;
 }
 
-.popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--base1);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-
-.popup-content {
-  background-color: var(--base2);
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  width: 70%;
-  height: 60%;
-  overflow: scroll;
-  color: rgba(var(--text1), 0.70);
-}
-
-.financials-header {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  color: var(--text1);
-  border-radius: 5px;
-  min-width: 100px;
-}
-
-.attribute-name {
-  text-align: left;
-  min-width: 270px;
-  background-color: var(--base1);
-  padding: 10px 5px;
-  border-radius: 5px;
-  margin-right: 5px;
-  color: var(--text1);
-}
-
-.fiscal-year {
-  text-align: center;
-  min-width: 100px;
-  background-color: var(--base1);
-  padding: 10px 0;
-  border-radius: 5px;
-  margin-right: 5px;
-}
-
-.financials-row {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-}
-
-.financial-value {
-  text-align: center;
-  min-width: 100px;
-  border-bottom: 1px solid var(--base1);
-  padding-bottom: 10px;
-  padding-top: 10px;
-  color: var(--text1);
-  border-radius: 5px;
-  margin-right: 5px;
-  background-color: rgba(var(--base3), 0.15);
-  position: relative;
-}
-
-.toggle-button {
-  margin: 3px;
-  padding: 5px;
-  border: none;
-  border-radius: 5px;
-  background-color: var(--accent1);
-  color: var(--text1);
-  transition: background-color 0.5s ease-in-out;
-}
-
-.toggle-button:hover {
-  cursor: pointer;
-  background-color: var(--accent2);
-}
-
 .watch-panel-container {
   display: flex;
   align-items: center;
@@ -3212,13 +3105,6 @@ function closeEditor() {
 .index-btn.active {
   background-color: var(--base1);
   color: var(--text1);
-}
-
-.percentage-box {
-  position: absolute;
-  top: -7px;
-  right: -5px;
-  background-color: transparent;
 }
 
 .tooltip {
