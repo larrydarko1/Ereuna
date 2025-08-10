@@ -8,13 +8,6 @@
 <div class="image-background">
   <h3 class="quote">{{ quote.text }}</h3>
 <p class="author">— {{ quote.author }}</p>
-  <p class="footnote">Developed with 🤬 by <a href="https://github.com/larrydarko1" target="_blank">Lorenzo Mazzola</a><br>
-    Crypto Donations: <br>
-    BTC: bc1qv7lhtuzcv9k0zktgfetdg43g2ll3jtta0z5x5c
-    <br>
-    ETH: 0x150b03B3904D877e2399F6302c5Db5f332170304
-    <br>
-    XMR: 449bkU2MvFh1oiRZGYT72BAfF6uj3kPa1TJfBmPT1agNYFyrifsSW1reEGjrwgG9UujoV4EEEB14PMpDkVGinc3QGFwfVcw</p>
   <img class="bg" src="@/assets/images/bg.png" alt="" draggable="false">
 </div>
 <div class="login container">
