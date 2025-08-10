@@ -84,7 +84,7 @@
 
 <script setup>
 
-import { ref, defineEmits } from 'vue'
+import { ref, defineEmits, watch } from 'vue'
 const emit = defineEmits(['close', 'save'])
 
 const props = defineProps({
@@ -95,15 +95,20 @@ const props = defineProps({
   user: {
     type: String,
     required: true
+  },
+  indicatorList: {
+    type: Array,
+    required: true
   }
 })
 
-const indicators = ref([
-  { type: 'SMA', timeframe: 200, visible: true },
-  { type: 'SMA', timeframe: 50, visible: true },
-  { type: 'SMA', timeframe: 20, visible: true },
-  { type: 'SMA', timeframe: 10, visible: true },
-])
+// Initialize indicators from prop
+const indicators = ref(props.indicatorList.map(ind => ({ ...ind })));
+
+// Watch for prop changes and update indicators
+watch(() => props.indicatorList, (newList) => {
+  indicators.value = newList.map(ind => ({ ...ind }));
+}, { immediate: true });
 
 function toggleIndicatorVisibility(idx) {
   indicators.value[idx].visible = !indicators.value[idx].visible
