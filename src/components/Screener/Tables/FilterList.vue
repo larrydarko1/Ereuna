@@ -368,12 +368,12 @@ const columnsMinWidth = computed(() => {
 
 .ml-even:hover,
 .ml-odd:hover {
-  background-color: var(--accent4);
+  background-color: var(--base3);
   cursor: pointer;
 }
 
 .ml-selected {
-  background-color: var(--accent4);
+  background-color: var(--base3);
   color: var(--text1);
 }
 

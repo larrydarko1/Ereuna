@@ -236,7 +236,7 @@ function moveSectionDown(index) {
 
 .sections-list {
   margin-bottom: 1.5rem;
-  max-height: 220px;
+  max-height: 390px;
   overflow-y: auto;
   padding-right: 2px;
   display: flex;

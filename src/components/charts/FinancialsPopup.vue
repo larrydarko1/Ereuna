@@ -1,7 +1,7 @@
 <template>
   <div v-if="showPopup" class="popup">
     <div class="popup-content">
-      <div class="toggle-button-container">
+      <div>
         <button @click="toggleFinancials" class="toggle-button">
           {{ isAnnualFinancials ? 'Switch to Quarterly Reports' : 'Switch to Annual Reports' }}
         </button>
@@ -184,3 +184,157 @@ function handleMouseOut() {
 }
 </script>
 
+<style scoped>
+
+.arrow-up {
+  font-size: 1em;
+  line-height: 0.8em;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  color: var(--positive);
+  margin-left: 7px;
+}
+
+.arrow-up::after {
+  content: "\25B2";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--positive);
+}
+
+.arrow-down {
+  font-size: 1em;
+  line-height: 0.1em;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  color: var(--negative);
+  margin-left: 7px;
+}
+
+.arrow-down::after {
+  content: "\25BC";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--negative);
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--base1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.popup-content {
+  background-color: var(--base2);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  width: 70%;
+  height: 60%;
+  overflow: scroll;
+  color: rgba(var(--text1), 0.70);
+}
+
+.financials-header {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  color: var(--text1);
+  border-radius: 5px;
+  min-width: 100px;
+}
+
+.attribute-name {
+  text-align: left;
+  min-width: 270px;
+  background-color: var(--base1);
+  padding: 10px 5px;
+  border-radius: 5px;
+  margin-right: 5px;
+  color: var(--text1);
+}
+
+.fiscal-year {
+  text-align: center;
+  min-width: 100px;
+  background-color: var(--base1);
+  padding: 10px 0;
+  border-radius: 5px;
+  margin-right: 5px;
+}
+
+.financials-row {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+
+.financial-value {
+  text-align: center;
+  min-width: 100px;
+  border-bottom: 1px solid var(--base1);
+  padding-bottom: 10px;
+  padding-top: 10px;
+  color: var(--text1);
+  border-radius: 5px;
+  margin-right: 5px;
+  background-color: rgba(var(--base3), 0.15);
+  position: relative;
+}
+
+.toggle-button {
+  margin: 3px;
+  padding: 5px;
+  border: none;
+  border-radius: 5px;
+  background-color: var(--accent1);
+  color: var(--text1);
+  transition: background-color 0.5s ease-in-out;
+}
+
+.toggle-button:hover {
+  cursor: pointer;
+  background-color: var(--accent2);
+}
+
+.percentage-box {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  background-color: transparent;
+}
+
+.tooltip {
+  position: absolute;
+  background-color: var(--base1);
+  border: 1px solid var(--accent3);
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 10000000000;
+  width: 200px;
+}
+
+.tooltip-text {
+  color: var(--text1);
+}
+
+.question-img {
+  width: 15px;
+  cursor: pointer;
+  margin-left: 5px;
+}
+</style>
