@@ -95,6 +95,7 @@ export default function (app, deps) {
         validate(validationSets.chartData),
         async (req, res) => {
             const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+            const timeframe = req.query.timeframe || 'daily';
             let client;
             try {
                 const apiKey = req.header('x-api-key');
@@ -106,175 +107,177 @@ export default function (app, deps) {
                 client = new MongoClient(uri);
                 await client.connect();
                 const db = client.db('EreunaDB');
-                // --- Daily ---
-                const dailyColl = db.collection('OHCLVData');
-                const dailyData = await dailyColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-                // --- Weekly ---
-                const weeklyColl = db.collection('OHCLVData2');
-                const weeklyData = await weeklyColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-                // --- 1 Minute ---
-                const intraday1mColl = db.collection('OHCLVData1m');
-                const intraday1mData = await intraday1mColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
                 // Helper for MA
-                function calcMA(Data, period) {
+                function calcMA(Data, period, timeType = 'date') {
                     if (Data.length < period) return [];
                     const arr = [];
                     for (let i = period - 1; i < Data.length; i++) {
                         const sum = Data.slice(i - period + 1, i + 1).reduce((acc, curr) => acc + curr.close, 0);
                         const average = sum / period;
                         arr.push({
-                            time: Data[i].timestamp.toISOString().slice(0, 10),
+                            time: timeType === 'datetime' ? Data[i].timestamp.toISOString().slice(0, 19) : Data[i].timestamp.toISOString().slice(0, 10),
                             value: parseFloat(average.toFixed(2)),
                         });
                     }
                     return arr;
                 }
-                // Format daily (always object with arrays)
-                const daily = {
-                    ohlc: dailyData.length ? dailyData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 10),
-                        open: parseFloat(item.open.toString().slice(0, 8)),
-                        high: parseFloat(item.high.toString().slice(0, 8)),
-                        low: parseFloat(item.low.toString().slice(0, 8)),
-                        close: parseFloat(item.close.toString().slice(0, 8)),
-                    })) : [],
-                    volume: dailyData.length ? dailyData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 10),
-                        value: item.volume,
-                    })) : [],
-                    MA10: dailyData.length ? calcMA(dailyData, 10) : [],
-                    MA20: dailyData.length ? calcMA(dailyData, 20) : [],
-                    MA50: dailyData.length ? calcMA(dailyData, 50) : [],
-                    MA200: dailyData.length ? calcMA(dailyData, 200) : [],
-                };
-                // Format weekly (always object with arrays)
-                const weekly = {
-                    ohlc: weeklyData.length ? weeklyData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 10),
-                        open: parseFloat(item.open.toString().slice(0, 8)),
-                        high: parseFloat(item.high.toString().slice(0, 8)),
-                        low: parseFloat(item.low.toString().slice(0, 8)),
-                        close: parseFloat(item.close.toString().slice(0, 8)),
-                    })) : [],
-                    volume: weeklyData.length ? weeklyData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 10),
-                        value: item.volume,
-                    })) : [],
-                    MA10: weeklyData.length ? calcMA(weeklyData, 10) : [],
-                    MA20: weeklyData.length ? calcMA(weeklyData, 20) : [],
-                    MA50: weeklyData.length ? calcMA(weeklyData, 50) : [],
-                    MA200: weeklyData.length ? calcMA(weeklyData, 200) : [],
-                };
-                // Format intraday 1m
-                const intraday1m = {
-                    ohlc: intraday1mData.length ? intraday1mData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 19),
-                        open: parseFloat(item.open.toString().slice(0, 8)),
-                        high: parseFloat(item.high.toString().slice(0, 8)),
-                        low: parseFloat(item.low.toString().slice(0, 8)),
-                        close: parseFloat(item.close.toString().slice(0, 8)),
-                    })) : [],
-                    volume: intraday1mData.length ? intraday1mData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 19),
-                        value: item.volume,
-                    })) : [],
-                    MA10: intraday1mData.length ? calcMA(intraday1mData, 10, 'datetime') : [],
-                    MA20: intraday1mData.length ? calcMA(intraday1mData, 20, 'datetime') : [],
-                    MA50: intraday1mData.length ? calcMA(intraday1mData, 50, 'datetime') : [],
-                    MA200: intraday1mData.length ? calcMA(intraday1mData, 200, 'datetime') : [],
+
+                let data = {
+                    ohlc: [],
+                    volume: [],
+                    MA1: [],
+                    MA2: [],
+                    MA3: [],
+                    MA4: []
                 };
 
-                // --- Intraday collections ---
-                const intraday5mColl = db.collection('OHCLVData5m');
-                const intraday5mData = await intraday5mColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                switch (timeframe) {
+                    case 'daily': {
+                        const dailyColl = db.collection('OHCLVData');
+                        const dailyData = await dailyColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                        data.ohlc = dailyData.length ? dailyData.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 10),
+                            open: parseFloat(item.open.toString().slice(0, 8)),
+                            high: parseFloat(item.high.toString().slice(0, 8)),
+                            low: parseFloat(item.low.toString().slice(0, 8)),
+                            close: parseFloat(item.close.toString().slice(0, 8)),
+                        })) : [];
+                        data.volume = dailyData.length ? dailyData.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 10),
+                            value: item.volume,
+                        })) : [];
+                        data.MA1 = dailyData.length ? calcMA(dailyData, 10) : [];
+                        data.MA2 = dailyData.length ? calcMA(dailyData, 20) : [];
+                        data.MA3 = dailyData.length ? calcMA(dailyData, 50) : [];
+                        data.MA4 = dailyData.length ? calcMA(dailyData, 200) : [];
+                        break;
+                    }
+                    case 'weekly': {
+                        const weeklyColl = db.collection('OHCLVData2');
+                        const weeklyData = await weeklyColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                        data.ohlc = weeklyData.length ? weeklyData.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 10),
+                            open: parseFloat(item.open.toString().slice(0, 8)),
+                            high: parseFloat(item.high.toString().slice(0, 8)),
+                            low: parseFloat(item.low.toString().slice(0, 8)),
+                            close: parseFloat(item.close.toString().slice(0, 8)),
+                        })) : [];
+                        data.volume = weeklyData.length ? weeklyData.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 10),
+                            value: item.volume,
+                        })) : [];
+                        data.MA1 = weeklyData.length ? calcMA(weeklyData, 10) : [];
+                        data.MA2 = weeklyData.length ? calcMA(weeklyData, 20) : [];
+                        data.MA3 = weeklyData.length ? calcMA(weeklyData, 50) : [];
+                        data.MA4 = weeklyData.length ? calcMA(weeklyData, 200) : [];
+                        break;
+                    }
+                    case 'intraday1m': {
+                        const coll = db.collection('OHCLVData1m');
+                        const arr = await coll.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                        data.ohlc = arr.length ? arr.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 19),
+                            open: parseFloat(item.open.toString().slice(0, 8)),
+                            high: parseFloat(item.high.toString().slice(0, 8)),
+                            low: parseFloat(item.low.toString().slice(0, 8)),
+                            close: parseFloat(item.close.toString().slice(0, 8)),
+                        })) : [];
+                        data.volume = arr.length ? arr.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 19),
+                            value: item.volume,
+                        })) : [];
+                        data.MA1 = arr.length ? calcMA(arr, 10, 'datetime') : [];
+                        data.MA2 = arr.length ? calcMA(arr, 20, 'datetime') : [];
+                        data.MA3 = arr.length ? calcMA(arr, 50, 'datetime') : [];
+                        data.MA4 = arr.length ? calcMA(arr, 200, 'datetime') : [];
+                        break;
+                    }
+                    case 'intraday5m': {
+                        const coll = db.collection('OHCLVData5m');
+                        const arr = await coll.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                        data.ohlc = arr.length ? arr.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 16),
+                            open: parseFloat(item.open.toString().slice(0, 8)),
+                            high: parseFloat(item.high.toString().slice(0, 8)),
+                            low: parseFloat(item.low.toString().slice(0, 8)),
+                            close: parseFloat(item.close.toString().slice(0, 8)),
+                        })) : [];
+                        data.volume = arr.length ? arr.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 16),
+                            value: item.volume,
+                        })) : [];
+                        data.MA1 = arr.length ? calcMA(arr, 10, 'datetime') : [];
+                        data.MA2 = arr.length ? calcMA(arr, 20, 'datetime') : [];
+                        data.MA3 = arr.length ? calcMA(arr, 50, 'datetime') : [];
+                        data.MA4 = arr.length ? calcMA(arr, 200, 'datetime') : [];
+                        break;
+                    }
+                    case 'intraday15m': {
+                        const coll = db.collection('OHCLVData15m');
+                        const arr = await coll.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                        data.ohlc = arr.length ? arr.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 16),
+                            open: parseFloat(item.open.toString().slice(0, 8)),
+                            high: parseFloat(item.high.toString().slice(0, 8)),
+                            low: parseFloat(item.low.toString().slice(0, 8)),
+                            close: parseFloat(item.close.toString().slice(0, 8)),
+                        })) : [];
+                        data.volume = arr.length ? arr.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 16),
+                            value: item.volume,
+                        })) : [];
+                        data.MA1 = arr.length ? calcMA(arr, 10, 'datetime') : [];
+                        data.MA2 = arr.length ? calcMA(arr, 20, 'datetime') : [];
+                        data.MA3 = arr.length ? calcMA(arr, 50, 'datetime') : [];
+                        data.MA4 = arr.length ? calcMA(arr, 200, 'datetime') : [];
+                        break;
+                    }
+                    case 'intraday30m': {
+                        const coll = db.collection('OHCLVData30m');
+                        const arr = await coll.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                        data.ohlc = arr.length ? arr.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 16),
+                            open: parseFloat(item.open.toString().slice(0, 8)),
+                            high: parseFloat(item.high.toString().slice(0, 8)),
+                            low: parseFloat(item.low.toString().slice(0, 8)),
+                            close: parseFloat(item.close.toString().slice(0, 8)),
+                        })) : [];
+                        data.volume = arr.length ? arr.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 16),
+                            value: item.volume,
+                        })) : [];
+                        data.MA1 = arr.length ? calcMA(arr, 10, 'datetime') : [];
+                        data.MA2 = arr.length ? calcMA(arr, 20, 'datetime') : [];
+                        data.MA3 = arr.length ? calcMA(arr, 50, 'datetime') : [];
+                        data.MA4 = arr.length ? calcMA(arr, 200, 'datetime') : [];
+                        break;
+                    }
+                    case 'intraday1hr': {
+                        const coll = db.collection('OHCLVData1hr');
+                        const arr = await coll.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                        data.ohlc = arr.length ? arr.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 16),
+                            open: parseFloat(item.open.toString().slice(0, 8)),
+                            high: parseFloat(item.high.toString().slice(0, 8)),
+                            low: parseFloat(item.low.toString().slice(0, 8)),
+                            close: parseFloat(item.close.toString().slice(0, 8)),
+                        })) : [];
+                        data.volume = arr.length ? arr.map(item => ({
+                            time: item.timestamp.toISOString().slice(0, 16),
+                            value: item.volume,
+                        })) : [];
+                        data.MA1 = arr.length ? calcMA(arr, 10, 'datetime') : [];
+                        data.MA2 = arr.length ? calcMA(arr, 20, 'datetime') : [];
+                        data.MA3 = arr.length ? calcMA(arr, 50, 'datetime') : [];
+                        data.MA4 = arr.length ? calcMA(arr, 200, 'datetime') : [];
+                        break;
+                    }
+                    default: {
+                        return res.status(400).json({ message: 'Invalid timeframe' });
+                    }
+                }
 
-                const intraday15mColl = db.collection('OHCLVData15m');
-                const intraday15mData = await intraday15mColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-                const intraday30mColl = db.collection('OHCLVData30m');
-                const intraday30mData = await intraday30mColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-                const intraday1hrColl = db.collection('OHCLVData1hr');
-                const intraday1hrData = await intraday1hrColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
-
-                // Format intraday 5m
-                const intraday5m = {
-                    ohlc: intraday5mData.length ? intraday5mData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 16),
-                        open: parseFloat(item.open.toString().slice(0, 8)),
-                        high: parseFloat(item.high.toString().slice(0, 8)),
-                        low: parseFloat(item.low.toString().slice(0, 8)),
-                        close: parseFloat(item.close.toString().slice(0, 8)),
-                    })) : [],
-                    volume: intraday5mData.length ? intraday5mData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 16),
-                        value: item.volume,
-                    })) : [],
-                    MA10: intraday5mData.length ? calcMA(intraday5mData, 10, 'datetime') : [],
-                    MA20: intraday5mData.length ? calcMA(intraday5mData, 20, 'datetime') : [],
-                    MA50: intraday5mData.length ? calcMA(intraday5mData, 50, 'datetime') : [],
-                    MA200: intraday5mData.length ? calcMA(intraday5mData, 200, 'datetime') : [],
-                };
-
-                // Format intraday 15m
-                const intraday15m = {
-                    ohlc: intraday15mData.length ? intraday15mData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 16),
-                        open: parseFloat(item.open.toString().slice(0, 8)),
-                        high: parseFloat(item.high.toString().slice(0, 8)),
-                        low: parseFloat(item.low.toString().slice(0, 8)),
-                        close: parseFloat(item.close.toString().slice(0, 8)),
-                    })) : [],
-                    volume: intraday15mData.length ? intraday15mData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 16),
-                        value: item.volume,
-                    })) : [],
-                    MA10: intraday15mData.length ? calcMA(intraday15mData, 10, 'datetime') : [],
-                    MA20: intraday15mData.length ? calcMA(intraday15mData, 20, 'datetime') : [],
-                    MA50: intraday15mData.length ? calcMA(intraday15mData, 50, 'datetime') : [],
-                    MA200: intraday15mData.length ? calcMA(intraday15mData, 200, 'datetime') : [],
-                };
-
-                // Format intraday 30m
-                const intraday30m = {
-                    ohlc: intraday30mData.length ? intraday30mData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 16),
-                        open: parseFloat(item.open.toString().slice(0, 8)),
-                        high: parseFloat(item.high.toString().slice(0, 8)),
-                        low: parseFloat(item.low.toString().slice(0, 8)),
-                        close: parseFloat(item.close.toString().slice(0, 8)),
-                    })) : [],
-                    volume: intraday30mData.length ? intraday30mData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 16),
-                        value: item.volume,
-                    })) : [],
-                    MA10: intraday30mData.length ? calcMA(intraday30mData, 10, 'datetime') : [],
-                    MA20: intraday30mData.length ? calcMA(intraday30mData, 20, 'datetime') : [],
-                    MA50: intraday30mData.length ? calcMA(intraday30mData, 50, 'datetime') : [],
-                    MA200: intraday30mData.length ? calcMA(intraday30mData, 200, 'datetime') : [],
-                };
-
-                // Format intraday 1hr
-                const intraday1hr = {
-                    ohlc: intraday1hrData.length ? intraday1hrData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 16),
-                        open: parseFloat(item.open.toString().slice(0, 8)),
-                        high: parseFloat(item.high.toString().slice(0, 8)),
-                        low: parseFloat(item.low.toString().slice(0, 8)),
-                        close: parseFloat(item.close.toString().slice(0, 8)),
-                    })) : [],
-                    volume: intraday1hrData.length ? intraday1hrData.map(item => ({
-                        time: item.timestamp.toISOString().slice(0, 16),
-                        value: item.volume,
-                    })) : [],
-                    MA10: intraday1hrData.length ? calcMA(intraday1hrData, 10, 'datetime') : [],
-                    MA20: intraday1hrData.length ? calcMA(intraday1hrData, 20, 'datetime') : [],
-                    MA50: intraday1hrData.length ? calcMA(intraday1hrData, 50, 'datetime') : [],
-                    MA200: intraday1hrData.length ? calcMA(intraday1hrData, 200, 'datetime') : [],
-                };
-
-                // response:
-                res.json({ daily, weekly, intraday1m, intraday5m, intraday15m, intraday30m, intraday1hr });
+                res.json(data);
 
             } catch (error) {
                 logger.error({
