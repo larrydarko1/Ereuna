@@ -363,6 +363,15 @@ export default function (app, deps) {
             PROMOCODE: promoCode,
             HashedAuthKey: await argon2.hash(rawAuthKey),
             MFA: false,
+            ChartSettings: {
+                indicators: [
+                    { type: 'SMA', timeframe: 200, visible: true },
+                    { type: 'SMA', timeframe: 50, visible: true },
+                    { type: 'SMA', timeframe: 20, visible: true },
+                    { type: 'SMA', timeframe: 10, visible: true }
+                ],
+                intrinsicValue: { visible: true }
+            },
             panel: [
                 { order: 1, tag: 'Summary', name: 'Summary', hidden: false },
                 { order: 2, tag: 'EpsTable', name: 'EPS Growth Table', hidden: false },
