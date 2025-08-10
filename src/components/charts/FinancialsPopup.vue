@@ -1,5 +1,5 @@
 <template>
-  <div v-if="showPopup" class="popup">
+  <div v-if="showPopup" class="popup" @click.self="$emit('close')">
     <div class="popup-content">
       <div>
         <button @click="toggleFinancials" class="toggle-button">
@@ -8,46 +8,48 @@
         <button class="toggle-button" @click="$emit('close')">Close</button>
       </div>
       <br>
-      <div class="financials-header">
-        <div class="attribute-name">Attribute</div>
-        <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="fiscal-year">
-          {{ getQuarterAndYear(financial.fiscalDateEnding) }}
-        </div>
-      </div>
-      <div
-        v-for="(attribute, index) in Object.keys(currentFinancials[0]).filter(attr => attr !== 'fiscalDateEnding')"
-        :key="index" class='financials-row'>
-        <div class="attribute-name" style="display: grid; grid-template-columns: 1fr auto;">
-          {{ attributeMap[attribute] || attribute }}
-          <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-            @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut">
-            <path
-              d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-              stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round">
-            </path>
-            <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-              stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-            <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088"
-              stroke-linecap="round" stroke-linejoin="round"></path>
-          </svg>
-        </div>
-        <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="financial-value">
-          {{ isNaN(parseInt(financial[attribute])) ? '-' : parseInt(financial[attribute]).toLocaleString() }}
-          <div class="percentage-box"
-            :class="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0 ? 'positive' : 'negative'">
-            {{ isNaN(parseFloat(getPercentageDifference(financial, attribute))) ? '-' :
-              getPercentageDifference(financial, attribute) }}
-            <span
-              v-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0"
-              class="arrow-up"></span>
-            <span v-else-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute)))"
-              class="arrow-down"></span>
+      <div class="financials-scroll-container">
+        <div class="financials-header">
+          <div class="attribute-name">Attribute</div>
+          <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="fiscal-year">
+            {{ getQuarterAndYear(financial.fiscalDateEnding) }}
           </div>
         </div>
-      </div>
-      <div class="tooltip-container">
-        <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
-          <span class="tooltip-text">{{ tooltipText }}</span>
+        <div
+          v-for="(attribute, index) in Object.keys(currentFinancials[0]).filter(attr => attr !== 'fiscalDateEnding')"
+          :key="index" class='financials-row'>
+          <div class="attribute-name" style="display: grid; grid-template-columns: 1fr auto;">
+            {{ attributeMap[attribute] || attribute }}
+            <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+              @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut">
+              <path
+                d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round">
+              </path>
+              <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088"
+                stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+          <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="financial-value">
+            {{ isNaN(parseInt(financial[attribute])) ? '-' : parseInt(financial[attribute]).toLocaleString() }}
+            <div class="percentage-box"
+              :class="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0 ? 'positive' : 'negative'">
+              {{ isNaN(parseFloat(getPercentageDifference(financial, attribute))) ? '-' :
+                getPercentageDifference(financial, attribute) }}
+              <span
+                v-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0"
+                class="arrow-up"></span>
+              <span v-else-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute)))"
+                class="arrow-down"></span>
+            </div>
+          </div>
+        </div>
+        <div class="tooltip-container">
+          <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
+            <span class="tooltip-text">{{ tooltipText }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -186,6 +188,14 @@ function handleMouseOut() {
 
 <style scoped>
 
+.percentage-box {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  background-color: transparent;
+  z-index: 500000000000000;
+}
+
 .arrow-up {
   font-size: 1em;
   line-height: 0.8em;
@@ -226,16 +236,15 @@ function handleMouseOut() {
 
 .popup {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--base1);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: color-mix(in srgb, var(--base1) 70%, transparent);
+  backdrop-filter: blur(4px);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 10000;
 }
+
 
 .popup-content {
   background-color: var(--base2);
@@ -244,8 +253,15 @@ function handleMouseOut() {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   width: 70%;
   height: 60%;
-  overflow: scroll;
+  /* Remove overflow here, handled by inner container */
   color: rgba(var(--text1), 0.70);
+}
+
+.financials-scroll-container {
+  width: 100%;
+  height: 90%;
+  overflow: auto;
+  white-space: nowrap;
 }
 
 .financials-header {
@@ -255,6 +271,7 @@ function handleMouseOut() {
   color: var(--text1);
   border-radius: 5px;
   min-width: 100px;
+  font-weight: bold;
 }
 
 .attribute-name {
@@ -265,6 +282,7 @@ function handleMouseOut() {
   border-radius: 5px;
   margin-right: 5px;
   color: var(--text1);
+  font-weight: bold;
 }
 
 .fiscal-year {
@@ -291,30 +309,27 @@ function handleMouseOut() {
   color: var(--text1);
   border-radius: 5px;
   margin-right: 5px;
-  background-color: rgba(var(--base3), 0.15);
+  background-color: var(--base1);
   position: relative;
 }
 
 .toggle-button {
   margin: 3px;
   padding: 5px;
+  border-radius: 8px;
   border: none;
-  border-radius: 5px;
-  background-color: var(--accent1);
-  color: var(--text1);
-  transition: background-color 0.5s ease-in-out;
+  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  color: var(--text3);
+  font-weight: 600;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
 }
 
 .toggle-button:hover {
-  cursor: pointer;
-  background-color: var(--accent2);
-}
-
-.percentage-box {
-  position: absolute;
-  top: -7px;
-  right: -5px;
-  background-color: transparent;
+  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  color: var(--text4);
+  transform: scale(1.03);
 }
 
 .tooltip {
@@ -326,6 +341,8 @@ function handleMouseOut() {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   z-index: 10000000000;
   width: 200px;
+  white-space: normal !important;
+  word-break: break-word;
 }
 
 .tooltip-text {
