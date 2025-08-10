@@ -97,13 +97,13 @@ const props = defineProps({
 
 let isChartLoading1 = ref(false); // Local loader for this chart
 let isLoading1 = ref(false); // If you want a second loader, keep this, else remove
-
 const data = ref([]); // OHCL Data
 const data2 = ref([]); // Volume Data
 const data3 = ref([]); // 10MA
 const data4 = ref([]); // 20MA
 const data5 = ref([]); // 50MA
 const data6 = ref([]); // 200MA
+const IntrinsicValue = ref(null); // stores Intrinsic Value for price line 
 
 function isIntraday(timeframe) {
   return ['intraday1m', 'intraday5m', 'intraday15m', 'intraday30m', 'intraday1hr'].includes(timeframe);
@@ -132,12 +132,13 @@ async function fetchChartData(symbolParam, timeframeParam) {
           const sorted = (arr || []).sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
           return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
         };
-    data.value = transform(result.ohlc);
-    data2.value = transform(result.volume);
-    data3.value = transform(result.MA1);
-    data4.value = transform(result.MA2);
-    data5.value = transform(result.MA3);
-    data6.value = transform(result.MA4);
+  data.value = transform(result.ohlc);
+  data2.value = transform(result.volume);
+  data3.value = transform(result.MA1);
+  data4.value = transform(result.MA2);
+  data5.value = transform(result.MA3);
+  data6.value = transform(result.MA4);
+  IntrinsicValue.value = result.intrinsicValue ?? null;
   } catch (error) {
     console.error(error);
   } finally {
@@ -318,7 +319,6 @@ onMounted(async () => {
     }
   });
   
-
   watch(data2, (newData2) => {
     Histogram.setData(newData2);
   });
