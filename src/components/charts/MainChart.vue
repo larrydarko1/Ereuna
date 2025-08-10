@@ -2,6 +2,7 @@
   <EditChart 
     v-if="showEditChart" 
     @close="showEditChart = false" 
+    @settings-saved="onSettingsSaved"
     :apiKey="props.apiKey"
     :user="props.user"
   />
@@ -113,23 +114,24 @@ async function fetchChartData(symbolParam, timeframeParam) {
   try {
     let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol).toUpperCase();
     let timeframe = timeframeParam || selectedDataType.value || 'daily';
-    const response = await fetch(`/api/${symbol}/chartdata?timeframe=${timeframe}`, {
+    let user = encodeURIComponent(props.user);
+    const response = await fetch(`/api/${symbol}/chartdata?timeframe=${timeframe}&user=${user}`, {
       headers: { 'X-API-KEY': props.apiKey }
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const result = await response.json();
     const transform = isIntraday(timeframe)
-  ? (arr) => {
-      const sorted = (arr || [])
-        .map(item => ({ ...item, time: Math.floor(new Date(item.time).getTime() / 1000) }))
-        .sort((a, b) => a.time - b.time);
-      // Remove duplicates
-      return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
-    }
-  : (arr) => {
-      const sorted = (arr || []).sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
-      return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
-    };
+      ? (arr) => {
+          const sorted = (arr || [])
+            .map(item => ({ ...item, time: Math.floor(new Date(item.time).getTime() / 1000) }))
+            .sort((a, b) => a.time - b.time);
+          // Remove duplicates
+          return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
+        }
+      : (arr) => {
+          const sorted = (arr || []).sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
+          return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
+        };
     data.value = transform(result.ohlc);
     data2.value = transform(result.volume);
     data3.value = transform(result.MA1);
@@ -462,6 +464,12 @@ onMounted(() => {
 const isInHiddenList = (item) => {
   return hiddenList.value.includes(item);
 };
+
+// Handle chart refresh after settings are saved
+function onSettingsSaved() {
+  // Use current symbol and timeframe
+  fetchChartData();
+}
 </script>
 
 <style scoped>

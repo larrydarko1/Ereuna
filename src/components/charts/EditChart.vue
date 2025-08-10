@@ -153,6 +153,7 @@ async function postChartSettings() {
 async function saveSettings() {
   await postChartSettings()
   emit('save', { indicators: indicators.value, showIntrinsicValue: showIntrinsicValue.value })
+  emit('settings-saved') // Notify parent to refresh chart data
   close()
 }
 
