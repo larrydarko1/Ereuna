@@ -222,6 +222,13 @@ export default function (app, deps) {
                             data[`MA${idx + 1}`] = maArr;
                         });
                     }
+                    // Add IntrinsicValue if enabled
+                    if (chartSettings.intrinsicValue && chartSettings.intrinsicValue.visible) {
+                        const assetInfo = await db.collection('AssetInfo').findOne({ Symbol: ticker });
+                        if (assetInfo && typeof assetInfo.IntrinsicValue !== 'undefined') {
+                            data.intrinsicValue = assetInfo.IntrinsicValue;
+                        }
+                    }
                 } else {
                     // Default: provide 10, 20, 50, 200 SMA
                     data.MA1 = arr.length ? calcMA(arr, 10, timeFormat) : [];
