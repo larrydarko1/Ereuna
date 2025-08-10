@@ -377,6 +377,34 @@ onMounted(async () => {
   // Initial fetch
   await fetchChartData();
   updateMainSeries();
+
+  // Add price line for IntrinsicValue
+  let intrinsicPriceLine = null;
+  function updateIntrinsicPriceLine() {
+    if (!mainSeries) return;
+    if (intrinsicPriceLine) {
+      mainSeries.removePriceLine(intrinsicPriceLine);
+      intrinsicPriceLine = null;
+    }
+    if (IntrinsicValue.value !== null && !isNaN(IntrinsicValue.value)) {
+      intrinsicPriceLine = mainSeries.createPriceLine({
+        price: Number(IntrinsicValue.value),
+        color: theme.base3,
+        lineWidth: 2,
+        lineStyle: 2, // Dashed
+        axisLabelVisible: true,
+        title: 'Intrinsic Value',
+        labelVisible: true,
+      });
+    }
+  }
+
+  // Watch IntrinsicValue and update price line
+  watch(IntrinsicValue, updateIntrinsicPriceLine);
+  // Also update on chart type change (mainSeries changes)
+  watch(isBarChart, updateIntrinsicPriceLine);
+  // Initial draw
+  updateIntrinsicPriceLine();
   isLoading1.value = false;
 });
 function toggleChartType() {
