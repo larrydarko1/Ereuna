@@ -119,39 +119,82 @@ function isIntraday(timeframe) {
   return ['intraday1m', 'intraday5m', 'intraday15m', 'intraday30m', 'intraday1hr'].includes(timeframe);
 }
 
+
+// --- WebSocket chart data fetcher ---
+let ws = null;
+let wsReconnectTimeout = null;
+function closeChartWS() {
+  if (ws) {
+    ws.close();
+    ws = null;
+  }
+  if (wsReconnectTimeout) {
+    clearTimeout(wsReconnectTimeout);
+    wsReconnectTimeout = null;
+  }
+}
+
 async function fetchChartData(symbolParam, timeframeParam) {
   isChartLoading1.value = true;
+  closeChartWS();
   try {
     let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol).toUpperCase();
     let timeframe = timeframeParam || selectedDataType.value || 'daily';
     let user = encodeURIComponent(props.user);
-    const response = await fetch(`/api/${symbol}/chartdata?timeframe=${timeframe}&user=${user}`, {
-      headers: { 'X-API-KEY': props.apiKey }
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const result = await response.json();
-    const transform = isIntraday(timeframe)
-      ? (arr) => {
-          const sorted = (arr || [])
-            .map(item => ({ ...item, time: Math.floor(new Date(item.time).getTime() / 1000) }))
-            .sort((a, b) => a.time - b.time);
-          // Remove duplicates
-          return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
-        }
-      : (arr) => {
-          const sorted = (arr || []).sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
-          return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
-        };
-  data.value = transform(result.ohlc);
-  data2.value = transform(result.volume);
-  data3.value = transform(result.MA1);
-  data4.value = transform(result.MA2);
-  data5.value = transform(result.MA3);
-  data6.value = transform(result.MA4);
-  IntrinsicValue.value = result.intrinsicValue ?? null;
+    // Use websocket endpoint
+  let wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  // Use backend host/port directly (adjust if needed for prod)
+  let wsUrl = `${wsProto}://localhost:8000/ws/chartdata?ticker=${symbol}&timeframe=${timeframe}&user=${user}`;
+    ws = new WebSocket(wsUrl);
+    ws.onopen = () => {
+      // No-op, server sends initial data
+    };
+    ws.onmessage = (event) => {
+      let msg;
+      try {
+        msg = JSON.parse(event.data);
+      } catch (e) {
+        console.error('WebSocket parse error', e, event.data);
+        return;
+      }
+      if (msg.type === 'init' || msg.type === 'update') {
+        const result = msg.data;
+        const transform = isIntraday(timeframe)
+          ? (arr) => {
+              const sorted = (arr || [])
+                .map(item => ({ ...item, time: Math.floor(new Date(item.time).getTime() / 1000) }))
+                .sort((a, b) => a.time - b.time);
+              return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
+            }
+          : (arr) => {
+              const sorted = (arr || []).sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
+              return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
+            };
+        data.value = transform(result.ohlc);
+        data2.value = transform(result.volume);
+        data3.value = transform(result.MA1);
+        data4.value = transform(result.MA2);
+        data5.value = transform(result.MA3);
+        data6.value = transform(result.MA4);
+        IntrinsicValue.value = result.intrinsicValue ?? null;
+        isChartLoading1.value = false;
+      } else if (msg.error) {
+        console.error('WebSocket error:', msg.error);
+      }
+    };
+    ws.onerror = (e) => {
+      console.error('WebSocket error', e);
+    };
+    ws.onclose = (e) => {
+      // Try to reconnect after a delay
+      if (!e.wasClean) {
+        wsReconnectTimeout = setTimeout(() => {
+          fetchChartData(symbol, timeframe);
+        }, 2000);
+      }
+    };
   } catch (error) {
     console.error(error);
-  } finally {
     isChartLoading1.value = false;
   }
 }
@@ -204,21 +247,34 @@ onMounted(async () => {
       horzLines: {
         color: 'transparent',
       }
-    }, crosshair: {
+    },
+    crosshair: {
       mode: CrosshairMode.Normal,
-        vertLine: {
-          color: theme.base3,
-          labelBackgroundColor: theme.base3,
-        },
-        horzLine: {
-          color: theme.base3,
-          labelBackgroundColor: theme.base3,
+      vertLine: {
+        color: theme.base3,
+        labelBackgroundColor: theme.base3,
+      },
+      horzLine: {
+        color: theme.base3,
+        labelBackgroundColor: theme.base3,
       },
     },
     timeScale: {
       barSpacing: 3,
       minBarSpacing: 0.1,
       rightOffset: 50,
+      timeVisible: true,
+      secondsVisible: false,
+      timeFormatter: (timestamp) => {
+        const d = new Date(timestamp * 1000);
+        // If time is midnight, show only date
+        if (d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0) {
+          return d.toISOString().slice(0, 10);
+        } else {
+          // Show HH:MM for intraday
+          return d.toISOString().slice(11, 16);
+        }
+      },
     },
   });
 
