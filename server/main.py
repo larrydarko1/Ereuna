@@ -13,7 +13,7 @@ import ssl
 import asyncio
 import motor.motor_asyncio
 import traceback
-from aggregator import start_aggregator, aggregate_higher_timeframes, pubsub_channels
+from aggregator import start_aggregator, pubsub_channels
 from bson import ObjectId
 from dateutil.parser import isoparse
 import datetime
@@ -165,7 +165,6 @@ async def market_hours_manager():
                     }
                     tiingo_task = asyncio.create_task(relay_tiingo(stock_ws_url, stock_subscribe_msg, ssl_ctx, stock_filter))
                     aggregator_task = asyncio.create_task(start_aggregator(message_queue, mongo_client))
-                    higher_tf_task = asyncio.create_task(aggregate_higher_timeframes(mongo_client))
                     subscribed = True
             else:
                 if subscribed:
@@ -565,148 +564,213 @@ async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
         print(f"WebSocket error: {e}")
         traceback.print_exc()
         await websocket.close()
-        
-def calcMA(data, period):
-    if len(data) < period:
-        return []
-    arr = []
-    for i in range(period - 1, len(data)):
-        window = data[i - period + 1:i + 1]
-        sum_close = sum(item['close'] for item in window)
-        average = sum_close / period
-        arr.append({
-            'time': window[-1]['timestamp'].isoformat() if hasattr(window[-1]['timestamp'], 'isoformat') else str(window[-1]['timestamp']),
-            'value': round(average, 2)
-        })
-    return arr
 
+
+# --- WebSocket endpoint for chart data, matching REST API logic ---
 @app.websocket('/ws/chartdata')
-async def websocket_chartdata(websocket: WebSocket, ticker: str = Query(...)):
+async def websocket_chartdata(
+    websocket: WebSocket,
+    ticker: str = Query(...),
+    timeframe: str = Query('daily'),
+    user: str = Query(None)
+):
     await websocket.accept()
     ticker = ticker.upper()
-    timeframes = [
-        ("1m", db['OHCLVData1m'], 1440),
-        ("5m", db['OHCLVData5m'], 288),
-        ("15m", db['OHCLVData15m'], 96),
-        ("30m", db['OHCLVData30m'], 48),
-        ("60m", db['OHCLVData1hr'], 24),
-        ("1440m", db['OHCLVData'], 2000),  # daily
-        ("10080m", db['OHCLVData2'], 500),  # weekly
-    ]
-    queues = []
-    tasks = []
+    # Map timeframe to collection and time format
+    tf_map = {
+        'daily':   (db['OHCLVData'], 'date', 2000),
+        'weekly':  (db['OHCLVData2'], 'date', 500),
+        'intraday1m':   (db['OHCLVData1m'], 'datetime', 1440),
+        'intraday5m':   (db['OHCLVData5m'], 'datetime', 288),
+        'intraday15m':  (db['OHCLVData15m'], 'datetime', 96),
+        'intraday30m':  (db['OHCLVData30m'], 'datetime', 48),
+        'intraday1hr':  (db['OHCLVData1hr'], 'datetime', 24),
+    }
+    if timeframe not in tf_map:
+        await websocket.send_text(json.dumps({'error': 'Invalid timeframe'}))
+        await websocket.close()
+        return
+    coll, timeType, length = tf_map[timeframe]
+    # Get user chart settings if user param is present
+    chartSettings = None
+    if user:
+        user_doc = await db.Users.find_one({'Username': user})
+        if user_doc and user_doc.get('ChartSettings'):
+            chartSettings = user_doc['ChartSettings']
+    # Fetch historical data (most recent N, in correct order)
+    arr = await coll.find({'tickerID': ticker}).sort('timestamp', -1).to_list(length=length)
+    arr = list(reversed(arr))
+    # Build OHLC and volume arrays
+    ohlc = [
+        {
+            'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
+            'open': float(str(item['open'])[:8]),
+            'high': float(str(item['high'])[:8]),
+            'low': float(str(item['low'])[:8]),
+            'close': float(str(item['close'])[:8])
+        }
+        for item in arr
+    ] if arr else []
+    # Use 0 for missing volume in 1m timeframe
+    if timeframe == 'intraday1m':
+        volume = [
+            {
+                'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
+                'value': item.get('volume', 0)
+            }
+            for item in arr
+        ] if arr else []
+    else:
+        volume = [
+            {
+                'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
+                'value': item['volume']
+            }
+            for item in arr
+        ] if arr else []
+    # Calculate MAs/EMAs
+    def calcMA_py(Data, period, timeType = 'date'):
+        if len(Data) < period:
+            return []
+        arr = []
+        for i in range(period - 1, len(Data)):
+            window = Data[i - period + 1:i + 1]
+            sum_close = sum(item['close'] for item in window)
+            average = sum_close / period
+            arr.append({
+                'time': window[-1]['timestamp'].isoformat()[:19] if timeType == 'datetime' else window[-1]['timestamp'].isoformat()[:10],
+                'value': round(average, 2)
+            })
+        return arr
+    def calcEMA_py(Data, period, timeType = 'date'):
+        if len(Data) < period:
+            return []
+        arr = []
+        k = 2 / (period + 1)
+        emaPrev = sum(item['close'] for item in Data[:period]) / period
+        for i in range(period - 1, len(Data)):
+            close = Data[i]['close']
+            if i == period - 1:
+                arr.append({
+                    'time': Data[i]['timestamp'].isoformat()[:19] if timeType == 'datetime' else Data[i]['timestamp'].isoformat()[:10],
+                    'value': round(emaPrev, 2)
+                })
+            else:
+                emaPrev = close * k + emaPrev * (1 - k)
+                arr.append({
+                    'time': Data[i]['timestamp'].isoformat()[:19] if timeType == 'datetime' else Data[i]['timestamp'].isoformat()[:10],
+                    'value': round(emaPrev, 2)
+                })
+        return arr
+    ma_data = {}
+    if chartSettings and isinstance(chartSettings.get('indicators'), list):
+        for idx, indicator in enumerate(chartSettings['indicators']):
+            if not indicator.get('visible'):
+                continue
+            if indicator.get('type') == 'EMA':
+                maArr = calcEMA_py(arr, indicator.get('timeframe', 10), timeType)
+            else:
+                maArr = calcMA_py(arr, indicator.get('timeframe', 10), timeType)
+            ma_data[f'MA{idx+1}'] = maArr
+    else:
+        # Default: provide 10, 20, 50, 200 SMA
+        ma_data['MA1'] = calcMA_py(arr, 10, timeType) if arr else []
+        ma_data['MA2'] = calcMA_py(arr, 20, timeType) if arr else []
+        ma_data['MA3'] = calcMA_py(arr, 50, timeType) if arr else []
+        ma_data['MA4'] = calcMA_py(arr, 200, timeType) if arr else []
+    # IntrinsicValue
+    intrinsicValue = None
+    if chartSettings and chartSettings.get('intrinsicValue', {}).get('visible'):
+        assetInfo = await db.AssetInfo.find_one({'Symbol': ticker})
+        if assetInfo and 'IntrinsicValue' in assetInfo:
+            intrinsicValue = assetInfo['IntrinsicValue']
+    # Build initial payload
+    payload = {
+        'ohlc': ohlc,
+        'volume': volume,
+        **ma_data
+    }
+    if intrinsicValue is not None:
+        payload['intrinsicValue'] = intrinsicValue
+    await websocket.send_text(json.dumps({'type': 'init', 'data': payload}))
+    # Subscribe to pubsub for this ticker/timeframe
+    pubsub_tf = {
+        'daily': '1440m',
+        'weekly': '10080m',
+        'intraday1m': '1m',
+        'intraday5m': '5m',
+        'intraday15m': '15m',
+        'intraday30m': '30m',
+        'intraday1hr': '60m',
+    }[timeframe]
+    q = asyncio.Queue()
+    pubsub_channels[(ticker, pubsub_tf)].append(q)
     try:
-        # Send initial historical data for all timeframes
-        initial_payload = {}
-        for tf, coll, length in timeframes:
-            data = await coll.find({'tickerID': ticker}).sort('timestamp', 1).to_list(length=length)
-            candles = []
-            for item in data:
-                # Prepare base candle
-                candle = {
-                    'open': float(str(item['open'])[:8]),
-                    'high': float(str(item['high'])[:8]),
-                    'low': float(str(item['low'])[:8]),
-                    'close': float(str(item['close'])[:8])
-                }
-                ts_val = item['timestamp']
-                dt = None
-                if isinstance(ts_val, (int, float)):
-                    dt = datetime.datetime.utcfromtimestamp(ts_val)
-                elif hasattr(ts_val, 'isoformat'):
-                    try:
-                        dt = ts_val
-                    except Exception:
-                        pass
-                elif isinstance(ts_val, str):
-                    try:
-                        dt = isoparse(ts_val)
-                    except Exception:
-                        pass
-                if dt is not None:
-                    if tf in ["1m", "5m", "15m", "30m", "60m"]:
-                        candle['time'] = int(dt.timestamp())
-                    elif tf in ["1440m", "10080m"]:
-                        candle['time'] = dt.strftime("%Y-%m-%d")
-                    else:
-                        candle['time'] = int(dt.timestamp())
-                else:
-                    candle['time'] = str(ts_val)
-                candles.append(candle)
-            initial_payload[tf] = candles
-        await websocket.send_text(json.dumps({'type': 'init', 'data': initial_payload}))
-
-        # Subscribe to all timeframes for this ticker
-        for tf, _, _ in timeframes:
-            q = asyncio.Queue()
-            pubsub_channels[(ticker, tf)].append(q)
-            queues.append((tf, q))
-
         while True:
             try:
-                tasks = [asyncio.create_task(q.get()) for _, q in queues]
-                done, pending = await asyncio.wait(
-                    tasks,
-                    return_when=asyncio.FIRST_COMPLETED
-                )
-                for finished in done:
-                    # Find which queue this task belonged to
-                    for idx, task in enumerate(tasks):
-                        if task is finished:
-                            tf, _ = queues[idx]
-                            break
-                    cndl = finished.result()
-                    # Clean and format candle for frontend: ObjectId->str, datetime->iso, time->ISO 8601 string
-                    def clean_candle(obj):
-                        if isinstance(obj, dict):
-                            return {k: clean_candle(v) for k, v in obj.items()}
-                        elif isinstance(obj, list):
-                            return [clean_candle(i) for i in obj]
-                        elif isinstance(obj, ObjectId):
-                            return str(obj)
-                        elif isinstance(obj, (datetime.datetime, datetime.date)):
-                            # Always output as ISO 8601 string with 'Z' if UTC
-                            if obj.tzinfo is not None:
-                                return obj.astimezone(datetime.timezone.utc).replace(tzinfo=None).isoformat() + 'Z'
-                            return obj.isoformat()
+                cndl = await q.get()
+                arr.append(cndl)
+                if len(arr) > length:
+                    arr = arr[-length:]
+                # Update ohlc/volume
+                ohlc = [
+                    {
+                        'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
+                        'open': float(str(item['open'])[:8]),
+                        'high': float(str(item['high'])[:8]),
+                        'low': float(str(item['low'])[:8]),
+                        'close': float(str(item['close'])[:8])
+                    }
+                    for item in arr
+                ]
+                # Use 0 for missing volume in 1m timeframe
+                if timeframe == 'intraday1m':
+                    volume = [
+                        {
+                            'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
+                            'value': item.get('volume', 0)
+                        }
+                        for item in arr
+                    ]
+                else:
+                    volume = [
+                        {
+                            'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
+                            'value': item['volume']
+                        }
+                        for item in arr
+                    ]
+                # Recalc MAs/EMAs
+                ma_data = {}
+                if chartSettings and isinstance(chartSettings.get('indicators'), list):
+                    for idx, indicator in enumerate(chartSettings['indicators']):
+                        if not indicator.get('visible'):
+                            continue
+                        if indicator.get('type') == 'EMA':
+                            maArr = calcEMA_py(arr, indicator.get('timeframe', 10), timeType)
                         else:
-                            return obj
-                    cndl_clean = clean_candle(cndl)
-                    # Set 'time' field for Lightweight Charts compatibility
-                    # Intraday (1m, 5m, 15m, 30m, 60m): time = UNIX timestamp (int, seconds)
-                    # Daily/Weekly (1440m, 10080m): time = 'YYYY-MM-DD' string
-                    if 'timestamp' in cndl_clean:
-                        ts_val = cndl_clean['timestamp']
-                        # Try to parse timestamp as datetime
-                        dt = None
-                        if isinstance(ts_val, (int, float)):
-                            dt = datetime.datetime.utcfromtimestamp(ts_val)
-                        elif isinstance(ts_val, str):
-                            try:
-                                dt = isoparse(ts_val)
-                            except Exception:
-                                pass
-                        if dt is not None:
-                            if tf in ["1m", "5m", "15m", "30m", "60m"]:
-                                cndl_clean['time'] = int(dt.timestamp())
-                            elif tf in ["1440m", "10080m"]:
-                                cndl_clean['time'] = dt.strftime("%Y-%m-%d")
-                            else:
-                                cndl_clean['time'] = int(dt.timestamp())
-                        else:
-                            # fallback: just pass as string
-                            cndl_clean['time'] = str(ts_val)
-                        del cndl_clean['timestamp']
-                    await websocket.send_text(json.dumps({"type": "new_candle", "timeframe": tf, "candle": cndl_clean}))
-                # Cancel all pending tasks to avoid warnings
-                for p in pending:
-                    p.cancel()
-                    try:
-                        await p
-                    except asyncio.CancelledError:
-                        pass
+                            maArr = calcMA_py(arr, indicator.get('timeframe', 10), timeType)
+                        ma_data[f'MA{idx+1}'] = maArr
+                else:
+                    ma_data['MA1'] = calcMA_py(arr, 10, timeType) if arr else []
+                    ma_data['MA2'] = calcMA_py(arr, 20, timeType) if arr else []
+                    ma_data['MA3'] = calcMA_py(arr, 50, timeType) if arr else []
+                    ma_data['MA4'] = calcMA_py(arr, 200, timeType) if arr else []
+                # IntrinsicValue (only recalc if needed)
+                intrinsicValue = None
+                if chartSettings and chartSettings.get('intrinsicValue', {}).get('visible'):
+                    assetInfo = await db.AssetInfo.find_one({'Symbol': ticker})
+                    if assetInfo and 'IntrinsicValue' in assetInfo:
+                        intrinsicValue = assetInfo['IntrinsicValue']
+                update_payload = {
+                    'ohlc': ohlc,
+                    'volume': volume,
+                    **ma_data
+                }
+                if intrinsicValue is not None:
+                    update_payload['intrinsicValue'] = intrinsicValue
+                await websocket.send_text(json.dumps({'type': 'update', 'data': update_payload}))
             except WebSocketDisconnect:
-                # Client disconnected, break loop and cleanup
                 break
             except Exception as e:
                 import traceback
@@ -717,30 +781,11 @@ async def websocket_chartdata(websocket: WebSocket, ticker: str = Query(...)):
                 except Exception:
                     pass
                 break
-    except WebSocketDisconnect:
-        print("WebSocketDisconnect: client closed connection on /ws/chartdata")
-    except Exception as e:
-        import traceback
-        print(f"Exception in /ws/chartdata: {e}")
-        traceback.print_exc()
-        try:
-            await websocket.send_text(json.dumps({'error': str(e)}))
-        except Exception:
-            pass
     finally:
-        # Clean up any tasks left (if loop exited with tasks still pending)
-        for t in tasks:
-            if not t.done():
-                t.cancel()
-                try:
-                    await t
-                except asyncio.CancelledError:
-                    pass
-        for tf, q in queues:
-            try:
-                pubsub_channels[(ticker, tf)].remove(q)
-            except (KeyError, ValueError):
-                pass
+        try:
+            pubsub_channels[(ticker, pubsub_tf)].remove(q)
+        except (KeyError, ValueError):
+            pass
         try:
             await websocket.close()
         except Exception:
@@ -752,4 +797,4 @@ async def websocket_chartdata(websocket: WebSocket, ticker: str = Query(...)):
 # wscat -c "ws://localhost:8000/ws/watchpanel?user=LarryDarko"
 # wscat -c "ws://localhost:8000/ws/symbols?symbols=RDDT,TSLA"
 # wscat -c "ws://localhost:8000/ws/raw" - this listens to raw messages to better understand the data structure
-# wscat -c "ws://localhost:8000/ws/chartdata?ticker=TSLA"
+# wscat -c "ws://localhost:8000/ws/chartdata?ticker=TSLA&timeframe=daily&user=LarryDarko"
