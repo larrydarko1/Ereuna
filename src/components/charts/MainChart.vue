@@ -292,9 +292,9 @@ onMounted(async () => {
         borderUpColor: theme.positive,
         wickDownColor: theme.negative,
         wickUpColor: theme.positive,
-        lastValueVisible: false,
+        lastValueVisible: true,
         crosshairMarkerVisible: false,
-        priceLineVisible: false,
+        priceLineVisible: true,
       });
     } else {
       mainSeries = chart.addCandlestickSeries({
@@ -304,9 +304,9 @@ onMounted(async () => {
         borderUpColor: theme.positive,
         wickDownColor: theme.negative,
         wickUpColor: theme.positive,
-        lastValueVisible: false,
+        lastValueVisible: true,
         crosshairMarkerVisible: false,
-        priceLineVisible: false,
+        priceLineVisible: true,
       });
     }
     mainSeries.setData(data.value);
