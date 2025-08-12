@@ -706,13 +706,28 @@ async def websocket_chartdata(
     q = asyncio.Queue()
     pubsub_channels[(ticker, pubsub_tf)].append(q)
     try:
+        in_progress_candle = None
         while True:
             try:
                 cndl = await q.get()
-                arr.append(cndl)
-                if len(arr) > length:
-                    arr = arr[-length:]
-                # Update ohlc/volume
+                # Check if this is a finalized candle (has 'final': True)
+                is_final = cndl.get('final', False)
+                if is_final:
+                    arr.append(cndl)
+                    if len(arr) > length:
+                        arr = arr[-length:]
+                    in_progress_candle = None
+                else:
+                    # In-progress candle: update or append
+                    in_progress_candle = cndl
+                # Build ohlc array: arr + in-progress candle (if any and not duplicate)
+                ohlc_arr = arr.copy()
+                if in_progress_candle:
+                    if not ohlc_arr or ohlc_arr[-1]['timestamp'] != in_progress_candle['timestamp']:
+                        ohlc_arr.append(in_progress_candle)
+                    else:
+                        ohlc_arr[-1] = in_progress_candle
+                # Format ohlc for frontend
                 ohlc = [
                     {
                         'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
@@ -721,7 +736,7 @@ async def websocket_chartdata(
                         'low': float(str(item['low'])[:8]),
                         'close': float(str(item['close'])[:8])
                     }
-                    for item in arr
+                    for item in ohlc_arr
                 ]
                 # Use 0 for missing volume in 1m timeframe
                 if timeframe == 'intraday1m':
@@ -730,7 +745,7 @@ async def websocket_chartdata(
                             'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
                             'value': item.get('volume', 0)
                         }
-                        for item in arr
+                        for item in ohlc_arr
                     ]
                 else:
                     volume = [
@@ -738,7 +753,7 @@ async def websocket_chartdata(
                             'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
                             'value': item['volume']
                         }
-                        for item in arr
+                        for item in ohlc_arr
                     ]
                 # Recalc MAs/EMAs
                 ma_data = {}
@@ -747,15 +762,15 @@ async def websocket_chartdata(
                         if not indicator.get('visible'):
                             continue
                         if indicator.get('type') == 'EMA':
-                            maArr = calcEMA_py(arr, indicator.get('timeframe', 10), timeType)
+                            maArr = calcEMA_py(ohlc_arr, indicator.get('timeframe', 10), timeType)
                         else:
-                            maArr = calcMA_py(arr, indicator.get('timeframe', 10), timeType)
+                            maArr = calcMA_py(ohlc_arr, indicator.get('timeframe', 10), timeType)
                         ma_data[f'MA{idx+1}'] = maArr
                 else:
-                    ma_data['MA1'] = calcMA_py(arr, 10, timeType) if arr else []
-                    ma_data['MA2'] = calcMA_py(arr, 20, timeType) if arr else []
-                    ma_data['MA3'] = calcMA_py(arr, 50, timeType) if arr else []
-                    ma_data['MA4'] = calcMA_py(arr, 200, timeType) if arr else []
+                    ma_data['MA1'] = calcMA_py(ohlc_arr, 10, timeType) if ohlc_arr else []
+                    ma_data['MA2'] = calcMA_py(ohlc_arr, 20, timeType) if ohlc_arr else []
+                    ma_data['MA3'] = calcMA_py(ohlc_arr, 50, timeType) if ohlc_arr else []
+                    ma_data['MA4'] = calcMA_py(ohlc_arr, 200, timeType) if ohlc_arr else []
                 # IntrinsicValue (only recalc if needed)
                 intrinsicValue = None
                 if chartSettings and chartSettings.get('intrinsicValue', {}).get('visible'):
@@ -769,6 +784,9 @@ async def websocket_chartdata(
                 }
                 if intrinsicValue is not None:
                     update_payload['intrinsicValue'] = intrinsicValue
+                import logging
+                logger = logging.getLogger("chartdata_ws")
+                logger.info(f"Sending update to frontend: ticker={ticker}, timeframe={timeframe}, update_payload={update_payload}")
                 await websocket.send_text(json.dumps({'type': 'update', 'data': update_payload}))
             except WebSocketDisconnect:
                 break
