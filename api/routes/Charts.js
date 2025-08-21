@@ -848,4 +848,77 @@ export default function (app, deps) {
         }
     });
 
+    // Endpoint to import symbols into a user's watchlist
+    app.post('/:user/import/watchlist', async (req, res) => {
+        const apiKey = req.header('x-api-key') || req.header('X-API-KEY');
+        const sanitizedKey = sanitizeInput(apiKey);
+        if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+            logger.warn('Invalid API key', { providedApiKey: sanitizedKey, expected: process.env.VITE_EREUNA_KEY });
+            return res.status(401).json({ message: 'Unauthorized API Access' });
+        }
+
+        const user = req.params.user;
+        if (!user) {
+            return res.status(400).json({ message: 'Missing user parameter' });
+        }
+
+        const { watchlistName, symbols } = req.body;
+        // Watchlist name validation: 3-25 chars, letters, numbers, underscores only
+        const validNameRegex = /^[a-zA-Z0-9_]{3,25}$/;
+        if (!watchlistName || typeof watchlistName !== 'string' || !validNameRegex.test(watchlistName)) {
+            return res.status(400).json({ message: 'Invalid watchlist name' });
+        }
+        if (!Array.isArray(symbols) || symbols.length === 0) {
+            return res.status(400).json({ message: 'Invalid payload' });
+        }
+        // Backend symbol validation: only allow A-Z, 0-9, max 20 chars, no spaces or special chars
+        const validSymbolRegex = /^[A-Z0-9]{1,20}$/i;
+        const sanitizedSymbols = symbols
+            .map(s => typeof s === 'string' ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : '')
+            .filter((s, i, arr) => validSymbolRegex.test(s) && arr.indexOf(s) === i);
+        if (sanitizedSymbols.length === 0) {
+            return res.status(400).json({ message: 'No valid symbols in payload' });
+        }
+
+        let client;
+        try {
+            client = new MongoClient(uri);
+            await client.connect();
+            const db = client.db('EreunaDB');
+            const watchlistsCollection = db.collection('Watchlists');
+            // Find the watchlist by UsernameID and Name
+            const watchlistDoc = await watchlistsCollection.findOne({ UsernameID: user, Name: watchlistName });
+            if (!watchlistDoc) {
+                return res.status(404).json({ message: 'Watchlist not found' });
+            }
+            // Update the List array with the sanitized symbols
+            await watchlistsCollection.updateOne(
+                { UsernameID: user, Name: watchlistName },
+                { $set: { List: sanitizedSymbols } },
+                { upsert: false }
+            );
+
+            res.status(200).json({ message: 'Watchlist imported successfully' });
+        } catch (error) {
+            logger.error({
+                msg: 'Error importing watchlist',
+                user,
+                watchlistName,
+                error: error.message
+            });
+            res.status(500).json({ message: 'Internal Server Error' });
+        } finally {
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    logger.warn({
+                        msg: 'Database Client Closure Failed',
+                        error: closeError.message
+                    });
+                }
+            }
+        }
+    });
+
 };

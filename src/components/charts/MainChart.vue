@@ -137,14 +137,35 @@ function closeChartWS() {
 async function fetchChartData(symbolParam, timeframeParam) {
   isChartLoading1.value = true;
   closeChartWS();
-  try {
-    let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol).toUpperCase();
-    let timeframe = timeframeParam || selectedDataType.value || 'daily';
-    let user = encodeURIComponent(props.user);
-    // Use websocket endpoint
+  let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol).toUpperCase();
+  let timeframe = timeframeParam || selectedDataType.value || 'daily';
+  let user = encodeURIComponent(props.user);
   let wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  // Use backend host/port directly (adjust if needed for prod)
   let wsUrl = `${wsProto}://localhost:8000/ws/chartdata?ticker=${symbol}&timeframe=${timeframe}&user=${user}`;
+  let restUrl = `/api/${symbol}/chartdata?timeframe=${timeframe}&user=${user}`;
+  let triedRest = false;
+  function handleChartData(result) {
+    const transform = isIntraday(timeframe)
+      ? (arr) => {
+          const sorted = (arr || [])
+            .map(item => ({ ...item, time: Math.floor(new Date(item.time).getTime() / 1000) }))
+            .sort((a, b) => a.time - b.time);
+          return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
+        }
+      : (arr) => {
+          const sorted = (arr || []).sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
+          return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
+        };
+    data.value = transform(result.ohlc);
+    data2.value = transform(result.volume);
+    data3.value = transform(result.MA1);
+    data4.value = transform(result.MA2);
+    data5.value = transform(result.MA3);
+    data6.value = transform(result.MA4);
+    IntrinsicValue.value = result.intrinsicValue ?? null;
+    isChartLoading1.value = false;
+  }
+  try {
     ws = new WebSocket(wsUrl);
     ws.onopen = () => {
       // No-op, server sends initial data
@@ -158,36 +179,32 @@ async function fetchChartData(symbolParam, timeframeParam) {
         return;
       }
       if (msg.type === 'init' || msg.type === 'update') {
-        const result = msg.data;
-        const transform = isIntraday(timeframe)
-          ? (arr) => {
-              const sorted = (arr || [])
-                .map(item => ({ ...item, time: Math.floor(new Date(item.time).getTime() / 1000) }))
-                .sort((a, b) => a.time - b.time);
-              return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
-            }
-          : (arr) => {
-              const sorted = (arr || []).sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
-              return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
-            };
-        data.value = transform(result.ohlc);
-        data2.value = transform(result.volume);
-        data3.value = transform(result.MA1);
-        data4.value = transform(result.MA2);
-        data5.value = transform(result.MA3);
-        data6.value = transform(result.MA4);
-        IntrinsicValue.value = result.intrinsicValue ?? null;
-        isChartLoading1.value = false;
+        handleChartData(msg.data);
       } else if (msg.error) {
         console.error('WebSocket error:', msg.error);
       }
     };
-    ws.onerror = (e) => {
+    ws.onerror = async (e) => {
       console.error('WebSocket error', e);
+      if (!triedRest) {
+        triedRest = true;
+        // Fallback to REST API
+        try {
+          const response = await fetch(restUrl, {
+            headers: { 'X-API-KEY': props.apiKey },
+          });
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          const result = await response.json();
+          handleChartData(result);
+        } catch (err) {
+          console.error('REST API fallback error:', err);
+          isChartLoading1.value = false;
+        }
+      }
     };
     ws.onclose = (e) => {
       // Try to reconnect after a delay
-      if (!e.wasClean) {
+      if (!e.wasClean && !triedRest) {
         wsReconnectTimeout = setTimeout(() => {
           fetchChartData(symbol, timeframe);
         }, 2000);
@@ -195,7 +212,21 @@ async function fetchChartData(symbolParam, timeframeParam) {
     };
   } catch (error) {
     console.error(error);
-    isChartLoading1.value = false;
+    // Fallback to REST API if WebSocket setup fails
+    if (!triedRest) {
+      triedRest = true;
+      try {
+        const response = await fetch(restUrl, {
+          headers: { 'X-API-KEY': props.apiKey },
+        });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const result = await response.json();
+        handleChartData(result);
+      } catch (err) {
+        console.error('REST API fallback error:', err);
+        isChartLoading1.value = false;
+      }
+    }
   }
 }
 
@@ -561,7 +592,6 @@ async function fetchIndicatorList() {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
     indicatorList.value = data;
-    console.log('Indicator list fetched:', indicatorList.value);
   } catch (err) {
     console.error('Error fetching indicator list:', err);
   }

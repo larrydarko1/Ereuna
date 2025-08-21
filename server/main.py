@@ -96,34 +96,53 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
         try:
             async with websockets.connect(ws_url, ssl=ssl_ctx) as tiingo_ws:
                 await tiingo_ws.send(json.dumps(subscribe_msg))
-                while True:
-                    msg = await tiingo_ws.recv()
-                    try:
-                        tiingo_data = json.loads(msg)
-                    except Exception as e:
-                        print(f"JSON decode error: {e}")
-                        continue
-                    if isinstance(tiingo_data, dict):
-                        if tiingo_data.get("messageType") in ("I", "H"):
+                try:
+                    while True:
+                        msg = await tiingo_ws.recv()
+                        try:
+                            tiingo_data = json.loads(msg)
+                        except Exception as e:
+                            print(f"JSON decode error: {e}")
                             continue
-                        if filter_fn(tiingo_data):
-                            d = tiingo_data.get("data")
-                            service = tiingo_data.get("service")
-                            # --- Bandwidth measurement for stocks only ---
-                            if service == "iex" and isinstance(d, list) and len(d) > 2:
-                                symbol = d[1].lower()
-                                msg_bytes = len(msg.encode("utf-8"))
-                                stats = stock_bandwidth_stats.setdefault(symbol, {'bytes': 0, 'messages': 0})
-                                stats['bytes'] += msg_bytes
-                                stats['messages'] += 1
-                                # --- Cache the latest quote ---
-                                latest_quotes[symbol] = tiingo_data
-                                # --- End cache ---
-                                try:
-                                    await message_queue.put(json.dumps(tiingo_data))
-                                except asyncio.QueueFull:
-                                    await message_queue.get()
-                                    await message_queue.put(json.dumps(tiingo_data))
+                        if isinstance(tiingo_data, dict):
+                            if tiingo_data.get("messageType") in ("I", "H"):
+                                continue
+                            if filter_fn(tiingo_data):
+                                d = tiingo_data.get("data")
+                                service = tiingo_data.get("service")
+                                # --- Bandwidth measurement for stocks only ---
+                                if service == "iex" and isinstance(d, list) and len(d) > 2:
+                                    symbol = d[1].lower()
+                                    msg_bytes = len(msg.encode("utf-8"))
+                                    stats = stock_bandwidth_stats.setdefault(symbol, {'bytes': 0, 'messages': 0})
+                                    stats['bytes'] += msg_bytes
+                                    stats['messages'] += 1
+                                    # --- Cache the latest quote ---
+                                    latest_quotes[symbol] = tiingo_data
+                                    # --- End cache ---
+                                    try:
+                                        await message_queue.put(json.dumps(tiingo_data))
+                                    except asyncio.QueueFull:
+                                        await message_queue.get()
+                                        await message_queue.put(json.dumps(tiingo_data))
+                except Exception as inner_e:
+                    print(f"relay_tiingo inner exception: {inner_e}")
+                    # --- Explicitly unsubscribe from all tickers before closing ---
+                    try:
+                        # Build unsubscribe message using the same tickers as subscribe_msg
+                        unsubscribe_msg = {
+                            "eventName": "unsubscribe",
+                            "authorization": subscribe_msg.get("authorization"),
+                            "eventData": {
+                                "tickers": subscribe_msg.get("eventData", {}).get("tickers", [])
+                            }
+                        }
+                        await tiingo_ws.send(json.dumps(unsubscribe_msg))
+                        print(f"Sent explicit unsubscribe for tickers: {unsubscribe_msg['eventData']['tickers']}")
+                    except Exception as unsub_e:
+                        print(f"Error sending unsubscribe: {unsub_e}")
+                    # Now close the websocket (context manager will handle)
+                    raise inner_e
         except Exception as e:
             print(f"Exception in relay_tiingo: {e}")
             print_total_bandwidth()

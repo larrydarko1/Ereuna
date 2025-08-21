@@ -7,7 +7,6 @@
         <div class="user-wrapper">
           <div class="user-wrapper2">
             <h1 class="user">{{ user }}</h1>
-            <h2 class="tier">{{ Tier }}</h2>
           </div>
           <h2 class="subscription-remaining">{{ expirationDays !== null ? expirationDays +
             ' subscription days remaining' : 'Loading...' }}</h2>
@@ -388,11 +387,9 @@
           </template>
           <template v-else>Loading...</template>
         </span>
-        <span><strong>Current Tier:</strong> {{ Tier || 'Loading...' }}</span>
       </div>
       <div class="subscription-actions" style="margin-top: 18px;">
         <button class="userbtn">Renew</button>
-        <button class="userbtn" :disabled="Tier === 'Premium'">Upgrade</button>
         <button class="userbtn refund-btn">Ask for Refund</button>
       </div>
     </div>
@@ -1254,7 +1251,7 @@ p {
 /* buttons for settings */
 .userbtn {
   background-color: var(--accent1);
-  color: var(--text1);
+  color: var(--text3);
   border-radius: 5px;
   border: none;
   outline: none;
