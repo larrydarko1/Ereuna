@@ -91,15 +91,6 @@
         </div>
         <div class="feature-card-modern">
           <div class="feature-icon-modern">
-            <img src="@/assets/icons/savings.png" alt="" draggable="false" />
-          </div>
-          <div class="feature-title-modern">Unbeatable Value</div>
-          <div class="feature-desc-modern">
-            Core subscription offers one of the cheapest and most affordable professional financial markets screening and research solution on the market, focusing on essential EOD and core fundamental data that drives informed decision-making.
-          </div>
-        </div>
-        <div class="feature-card-modern">
-          <div class="feature-icon-modern">
             <svg width="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6.22209 4.60105C6.66665 4.304 7.13344 4.04636 7.6171 3.82976C8.98898 3.21539 9.67491 2.9082 10.5875 3.4994C11.5 4.09061 11.5 5.06041 11.5 7.00001V8.50001C11.5 10.3856 11.5 11.3284 12.0858 11.9142C12.6716 12.5 13.6144 12.5 15.5 12.5H17C18.9396 12.5 19.9094 12.5 20.5006 13.4125C21.0918 14.3251 20.7846 15.011 20.1702 16.3829C19.9536 16.8666 19.696 17.3334 19.399 17.7779C18.3551 19.3402 16.8714 20.5578 15.1355 21.2769C13.3996 21.9959 11.4895 22.184 9.64665 21.8175C7.80383 21.4509 6.11109 20.5461 4.78249 19.2175C3.45389 17.8889 2.5491 16.1962 2.18254 14.3534C1.81598 12.5105 2.00412 10.6004 2.72315 8.86451C3.44218 7.12861 4.65982 5.64492 6.22209 4.60105Z" fill="currentColor"></path> <path d="M21.446 7.06901C20.6342 5.00831 18.9917 3.36579 16.931 2.55398C15.3895 1.94669 14 3.34316 14 5.00002V9.00002C14 9.5523 14.4477 10 15 10H19C20.6569 10 22.0533 8.61055 21.446 7.06901Z" fill="currentColor"></path> </g></svg>
           </div>
           <div class="feature-title-modern">Portfolio Simulations</div>
@@ -116,100 +107,14 @@
             Meet Archie, your AI-powered trading assistant. Trained on millions of financial market documents, Archie suggests trades tailored to your preferred style, recognizes patterns to help predict outcomes, and adapts to your needs by learning from your simulated portfolios. Get personalized, data-driven insights and smarter trading decisions—instantly.
           </div>
         </div>
-        <div class="feature-card-modern">
-          <div class="feature-icon-modern">
-            <svg width="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M4 16.937L10 9.43701L15 13.437L20.5 6.93701" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <circle cx="10" cy="8.93701" r="2" fill="currentColor"></circle> <path d="M16.8125 14C16.8125 15.1046 15.9171 16 14.8125 16C13.7079 16 12.8125 15.1046 12.8125 14C12.8125 12.8954 13.7079 12 14.8125 12C15.9171 12 16.8125 12.8954 16.8125 14Z" fill="currentColor"></path> <circle cx="4" cy="16.937" r="2" fill="currentColor"></circle> <path d="M22.5 7.00002C22.5 8.10459 21.6046 9.00002 20.5 9.00002C19.3954 9.00002 18.5 8.10459 18.5 7.00002C18.5 5.89545 19.3954 5.00002 20.5 5.00002C21.6046 5.00002 22.5 5.89545 22.5 7.00002Z" fill="currentColor"></path> </g></svg>
-          </div>
-          <div class="feature-title-modern">Mini-Charts</div>
-          <div class="feature-desc-modern">
-            Experience lightning-fast, lightweight charting with our hard fork of TradingView's Lightweight Charts library. Mini-Charts delivers all the essential tools you need to analyze price action and trends—without the clutter. Perfect for quick, effective market analysis right in your workflow.
-          </div>
-        </div>
       </div>
-   <!-- Tradeoff Section -->
-   <div id="tradeoff">
-  <h2 style="cursor: default;">THE TRADEOFF</h2>
-  <div class="comparison-table" style="cursor: default;">
-    <div class="table-header">
-      <div class="table-cell" style="font-size: 16px;">Feature</div>
-      <div class="table-cell" style="font-size: 16px;">Ereuna (Core)</div>
-      <div class="table-cell" style="font-size: 16px;">Ereuna (Premium)</div>
-      <div class="table-cell" style="font-size: 16px;">Other Platforms</div>
-    </div>
-    <div class="table-row">
-      <div class="table-cell" style="font-weight: bold; font-size: 14px;">Price</div>
-      <div class="table-cell" style="font-size: 12px;">5.99€ / Month</div>
-      <div class="table-cell" style="font-size: 12px;">14.99€ / Month</div>
-      <div class="table-cell" style="font-size: 12px;">20€ / Month (up to 150€+)</div>
-    </div>
-    <div class="table-row">
-      <div class="table-cell" style="font-weight: bold; font-size: 14px;">Intraday / Real Time Data</div>
-      <div class="table-cell" style="font-size: 12px;">EOD Only</div>
-      <div class="table-cell" style="font-size: 12px;">Yes</div>
-      <div class="table-cell" style="font-size: 12px;">Yes</div>
-    </div>
-    <div class="table-row">
-      <div class="table-cell" style="font-weight: bold; font-size: 14px;">Fundamental Data</div>
-      <div class="table-cell" style="font-size: 12px;">Yes</div>
-      <div class="table-cell" style="font-size: 12px;">Yes</div>
-      <div class="table-cell" style="font-size: 12px;">Yes</div>
-    </div>
-    <div class="table-row">
-      <div class="table-cell" style="font-weight: bold; font-size: 14px;">Financial Instruments / Coverage </div>
-      <div class="table-cell" style="font-size: 12px;">US Equity / ETFs, Crypto</div>
-      <div class="table-cell" style="font-size: 12px;">US Equity / ETFs, Crypto</div>
-      <div class="table-cell" style="font-size: 12px;">It varies</div>
-    </div>
-    <div class="table-row">
-      <div class="table-cell" style="font-weight: bold; font-size: 14px;">Integrated Market News</div>
-      <div class="table-cell" style="font-size: 12px;">Yes</div>
-      <div class="table-cell" style="font-size: 12px;">Yes</div>
-      <div class="table-cell" style="font-size: 12px;">It varies</div>
-    </div>
-    <div class="table-row">
-      <div class="table-cell" style="font-weight: bold; font-size: 14px;">Alerts</div>
-      <div class="table-cell" style="font-size: 12px;">No</div>
-      <div class="table-cell" style="font-size: 12px;">No</div>
-      <div class="table-cell" style="font-size: 12px;">Yes</div>
-    </div>
-  </div>
-</div>
-
     <!-- Pricing Section -->
+     <div class="division"></div>
     <div class="content-section" id="pricing" style="cursor: default;">
-      <h2 style="text-align: center; font-size: 20px; color: whitesmoke;">PRICING</h2>
        <div class="pricing-cards">
-     <div class="pricing-card">
-<div class="pricing-header">
-  <h3>CORE</h3>
-  <div class="price-container">
-    <span class="feature">5.99€</span>
-    <span class="mini-title"> / month (VAT Excluded)</span>
-  </div>
-</div>
-  <div class="feature-list">
-    <div class="feature-item">
-      <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-       Coverage of 11.000+ Financial Assets (Cryptocurrencies, US Stocks / ETFs)
-    </div>
-    <div class="feature-item">
-      <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      65+ years of price data (Daily and Weekly, Intraday is held for 2 weeks only), 30+ years of financial statements
-    </div>
-    <div class="feature-item">
-      <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      One-Click Multi-Screener and other time saving features, 50+ screening parameters
-    </div>
-    <div class="feature-item">
-      <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days
-    </div>
-  </div>
-<!--<button class="pricebtn full-width">Get Started</button>-->  
-</div>
       <div class="pricing-card">
 <div class="pricing-header">
-  <h3>PREMIUM</h3>
+  <h3>ALL FEATURES, ONE TIER</h3>
   <div class="price-container">
     <span class="feature">14.99€</span>
     <span class="mini-title"> / month (VAT Excluded)</span>
@@ -222,7 +127,7 @@
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      Coverage of 11.000+ Financial Assets (Cryptocurrencies, US Stocks / ETFs)
+      Coverage of 8000+ Financial Assets (US Stocks / ETFs)
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
@@ -237,20 +142,14 @@
       No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days
     </div>
   </div>
- 
+ <button class="pricebtn full-width">Join Now</button> 
 </div>
 </div>
     </div>
-
-   <!-- Call-to-Action Section -->
-   <div class="cta-section" >
-    <h2 style="text-align: center; font-size: 30px; color: whitesmoke;cursor: default;">Ready to Get Started?</h2>
-     <div class="navbtn3" @click="$router.push('/signup')">Join Now</div> 
-    </div>
-  
     <div style="padding: 30px">
 
     </div>
+    <div class="sphere-gradient2"></div>
 <!-- FAQ Section -->
 <div class="content-section" id="faq">
     <h2 style="text-align: center; font-size: 20px; color: whitesmoke; cursor: default;">FREQUENTLY ASKED QUESTIONS</h2>
@@ -337,14 +236,9 @@ function redirectToSign() {
 
 
 const faqs = ref([
-{ 
-    question: 'Who is this platform designed for?', 
-    answer: 'This platform is specifically designed for retail traders with mid to long-term investment horizons, including swing traders and position traders, as well as investors seeking to conduct thorough research. the aim to provide a low-cost, professional-grade solution for stock screening and fundamental data analysis, catering to individuals who struggle to afford average monthly subscription fees for features they may not necessarily need. By streamlining services and focusing on essential tools, the mission is to make high-quality research accessible to a wider audience.', 
-    show: true 
-  },
   { 
     question: 'Will there be more financial instruments added in the future?', 
-    answer: 'Yes, as the platform grows, there are plans to add more financial instruments to the platform, including derivatives such as ETFs, stocks from other stock markets beyond the US, and cryptocurrencies. This expansion will provide users with a more comprehensive suite of investment options and enhance their overall experience.', 
+    answer: 'Yes, as the platform grows, there are plans to add more financial instruments to the platform, such as European Stocks, Asian Stocks, Forex and Cryptocurrencies.', 
     show: true 
   },
   { question: 'What is the payment method?', answer: 'Credit Card via Stripe, cryptocurrencies will be added in the future.', show: true },
@@ -449,6 +343,24 @@ function setupCardAnimations() {
     #fff 100%);
   filter: blur(100px);
   z-index: 0;
+  opacity: 0.20;
+}
+
+.sphere-gradient2 {
+  position: absolute;
+  top: 40%;
+  right: -35%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, #8c8dfe 0%, 
+    #8c8dfe 30%, 
+    #a3a4fe 50%, 
+    #c5c6fe 70%, 
+    #fff 100%);
+  filter: blur(100px);
+  z-index: 500;
   opacity: 0.20;
 }
 
@@ -597,7 +509,7 @@ a:hover{
   border-radius: 5px;
   background-color: $accent1;
   font-size: 1.5rem;
-  color: $text1;
+  color: $text4;
   padding: 15px 30px;
   cursor: pointer;
   position: relative;
@@ -629,7 +541,7 @@ a:hover{
 }
 
 .features{
-  background-color: $base4;
+  background-color: $base1;
   width: 100%;
   z-index: 2px;
   position: absolute;
@@ -640,6 +552,14 @@ a:hover{
   background-color: $base4;
   padding-bottom: 40px;
   padding-top: 30px;
+}
+
+.division{
+  margin-top: 5%;
+  margin-bottom: 5%;
+  border-bottom: 2px solid $accent3;
+  width: 100%;
+  background: transparent;
 }
 
 #tradeoff{
@@ -822,38 +742,7 @@ a:hover{
   margin: 25px;
 }
 
-/* Modern Comparison Table Redesign */
-.comparison-table {
-  width: 100%;
-  max-width: 1300px;
-  margin: 2.5rem auto 2rem auto;
-  border-radius: 1.5rem;
-  overflow: hidden;
-  font-size: 1.08rem;
-  background-color: $base2;
-}
-.table-header {
-  display: flex;
-  color: #fff;
-  font-weight: 700;
-  font-size: 1.15rem;
-  padding: 1.1rem 0.5rem 1.1rem 0.5rem;
-}
-.table-row {
-  display: flex;
-}
 
-.table-cell {
-  flex: 1 1 0;
-  padding: 1rem 0.5rem;
-  text-align: center;
-  color: #f3f4f6;
-  font-weight: 500;
-  border-right: 1px solid #232946;
-}
-.table-cell:last-child {
-  border-right: none;
-}
 @media (max-width: 700px) {
   .comparison-table, .table-header, .table-row {
     flex-direction: column;
@@ -869,77 +758,57 @@ a:hover{
     border-bottom: none;
   }
 }
-/* Modern Feature Cards Redesign */
+
+/* Simplified & Elegant Feature Cards Modern */
 .feature-cards-modern {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 2.5rem;
-  margin: 3.5rem 0 2rem 0;
+  gap: 2rem;
+  margin: 3rem 0 2rem 0;
 }
 .feature-card-modern {
-  background: linear-gradient(135deg, #232946 60%, #1a1a2e 100%);
-  border-radius: 1.5rem;
-  box-shadow: 0 4px 24px rgba(30, 41, 59, 0.10), 0 1.5px 6px rgba(30, 41, 59, 0.06);
-  padding: 2.5rem 2rem 2rem 2rem;
-  width: 320px;
-  min-height: 250px;
+  background: $base2;
+  border-radius: 1rem;
+  box-shadow: 0 2px 12px rgba(30,41,59,0.08);
+  padding: 2rem 1.5rem;
+  width: 270px;
+  min-height: 140px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  transition: box-shadow 0.25s, transform 0.18s;
-  position: relative;
-  overflow: hidden;
-  color: #f3f4f6;
-}
-.feature-card-modern::before {
-  content: '';
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 100px;
-  height: 100px;
-  background: rgba(99, 102, 241, 0.08);
-  border-radius: 50%;
-  z-index: 0;
+  align-items: flex-start;
+  transition: box-shadow 0.2s, transform 0.15s;
+  color: $text1;
+  border: 1px solid $accent3;
 }
 .feature-card-modern:hover {
-  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.18), 0 2px 8px rgba(30, 41, 59, 0.10);
-  transform: translateY(-6px) scale(1.025);
+  box-shadow: 0 6px 24px rgba(99,102,241,0.10);
+  transform: translateY(-4px) scale(1.02);
 }
 .feature-icon-modern {
-  z-index: 1;
-  background: linear-gradient(135deg, #6366f1 60%, #818cf8 100%);
-  border-radius: 50%;
-  padding: 1.1rem;
-  margin-bottom: 1.2rem;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.10);
+  margin-bottom: 1rem;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .feature-icon-modern img, .feature-icon-modern svg {
-  width: 48px;
-  height: 48px;
-  filter: drop-shadow(0 1px 2px rgba(99,102,241,0.10));
+  width: 32px;
+  height: 32px;
 }
 .feature-title-modern {
-  z-index: 1;
-  text-align: center;
-  margin: 0 0 0.7rem 0;
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #f3f4f6;
-  letter-spacing: 0.01em;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: $accent2;
+  text-align: left;
 }
 .feature-desc-modern {
-  z-index: 1;
+  font-size: 1rem;
+  color: $text2;
   margin: 0;
-  color: #cbd5e1;
-  font-size: 1.08rem;
-  line-height: 1.6;
-  font-weight: 400;
-  text-align: center;
+  text-align: left;
 }
 
 .cta-section {
@@ -959,7 +828,7 @@ h2{
 }
 
 .footer {
-  background: $base4;
+  background: $base2;
   color: $text2;
   padding: 2rem 8rem 8rem 8rem; /* top right bottom left */
   border-top: 1px solid $accent3;
@@ -1011,7 +880,7 @@ h2{
   padding: 1rem 0;
   color: $text2;
   gap: 20px;
-  background: $base2;
+  background: $base4;
 }
 
 .footer-bottom p, .footer-bottom a{
@@ -1106,6 +975,7 @@ a.social {
   color: $text4;
   border: none;
   cursor: pointer;
+  font-weight: bold;
   transition: background 0.2s;
 }
 
@@ -1507,7 +1377,4 @@ a.social {
 }
 
 }
-
-
-
 </style>

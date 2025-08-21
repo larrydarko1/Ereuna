@@ -109,6 +109,7 @@ export default function (app, deps) {
                     Number: portfolioNumber,
                     portfolio: [],
                     trades: [],
+                    BaseValue: 0,
                     cash: 0
                 };
                 await portfoliosCollection.insertOne(portfolioDoc);
@@ -256,7 +257,7 @@ export default function (app, deps) {
             // Reset trades, portfolio, and cash for this portfolio
             await portfoliosCollection.updateOne(
                 { Username: sanitizedUser, Number: portfolioNumber },
-                { $set: { trades: [], portfolio: [], cash: 0 } }
+                { $set: { trades: [], portfolio: [], cash: 0, BaseValue: 0 } }
             );
 
             return res.status(200).json({ message: 'Portfolio and trade history reset successfully' });
@@ -308,6 +309,14 @@ export default function (app, deps) {
             await client.connect();
             const db = client.db('EreunaDB');
             const portfoliosCollection = db.collection('Portfolios');
+            // Check if BaseValue is 0, and set it to the deposit amount if so
+            const portfolioDoc = await portfoliosCollection.findOne({ Username: sanitizedUser, Number: portfolioNumber });
+            if (portfolioDoc && (typeof portfolioDoc.BaseValue === 'number') && portfolioDoc.BaseValue === 0) {
+                await portfoliosCollection.updateOne(
+                    { Username: sanitizedUser, Number: portfolioNumber },
+                    { $set: { BaseValue: sanitizedAmount } }
+                );
+            }
             // Add cash to portfolio's cash balance
             await portfoliosCollection.updateOne(
                 { Username: sanitizedUser, Number: portfolioNumber },
@@ -358,12 +367,15 @@ export default function (app, deps) {
             const portfoliosCollection = db.collection('Portfolios');
             const portfolioDoc = await portfoliosCollection.findOne(
                 { Username: username, Number: portfolioNumber },
-                { projection: { cash: 1 } }
+                { projection: { cash: 1, BaseValue: 1 } }
             );
             if (!portfolioDoc) {
                 return res.status(404).json({ message: 'Portfolio not found' });
             }
-            return res.status(200).json({ cash: portfolioDoc.cash || 0 });
+            return res.status(200).json({
+                cash: portfolioDoc.cash || 0,
+                BaseValue: typeof portfolioDoc.BaseValue === 'number' ? portfolioDoc.BaseValue : 0
+            });
         } catch (error) {
             return res.status(500).json({ message: 'An error occurred while retrieving cash balance' });
         } finally {

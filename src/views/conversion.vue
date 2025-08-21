@@ -23,35 +23,8 @@
       </div>
       <!-- Subscription Selection Section -->
 <div class="subscription-section">
-  <h2 class="subtitle">Choose Your Plan</h2>
-  
-  <div class="plan-options">
-  <div class="plan-card" :class="{ 'selected-plan': selectedPlan === 'core' }" @click="selectedPlan = 'core'">
-    <div class="plan-header">CORE</div>
-    <div class="plan-price">€5.99<span> / month</span></div>
-    <ul class="plan-features">
-      <li>Coverage of 11.000+ Financial Assets (Cryptocurrencies, US Stocks / ETFs)</li>
-      <li>65+ years of price data (Daily and Weekly, Intraday is held for 2 weeks only), 30+ years of financial statements</li>
-      <li>One-Click Multi-Screener and other time saving features, 50+ screening parameters</li>
-      <li>No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days</li>
-    </ul>
-  </div>
-  
-  <div class="plan-card" :class="{ 'selected-plan': selectedPlan === 'premium' }" @click="selectedPlan = 'premium'">
-    <div class="plan-header">PREMIUM</div>
-    <div class="plan-price">€14.99<span> / month</span></div>
-    <ul class="plan-features">
-      <li>Real-time Data Support</li>
-      <li>Coverage of 11.000+ Financial Assets (Cryptocurrencies, US Stocks / ETFs)</li>
-      <li>65+ years of price data (Daily and Weekly, Intraday is held for 2 weeks only), 30+ years of financial statements</li>
-      <li>One-Click Multi-Screener and other time saving features, 50+ screening parameters</li>
-      <li>No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days</li>
-    </ul>
-  </div>
-</div>
-  
+  <h2 class="subtitle">Subscription</h2>
   <div class="duration-selection">
-    <h3 class="subtitle">Subscription Duration</h3>
     <div class="duration-options">
       <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 1 }" @click="selectedDuration = 1">
         1 Month
@@ -477,29 +450,19 @@ const selectedCountryObj = computed(() =>
   countries.find(c => c.code === selectedCountry.value) || countries[0]
 );
 
-// Add these variables at the top of your <script setup> section
-const selectedPlan = ref('core'); // Default to core plan
+// Only premium plan is available
+const selectedPlan = ref('premium');
 const selectedDuration = ref(1);  // Default to 1 month
 const selectedCountry = ref('MT'); // Default to Malta
 
-// Add this function to calculate the total price
 function calculateTotalPrice() {
-  const prices = {
-    core: 5.99,
-    premium: 14.99
-  };
-  let basePrice = prices[selectedPlan.value];
+  const basePrice = 14.99;
   let totalMonths = selectedDuration.value;
   let totalPrice = basePrice * totalMonths;
-
-  // Find VAT rate for selected country
   const country = countries.find(c => c.code === selectedCountry.value);
   const vatRate = country ? country.vat : 0;
-
-  // Add VAT
   const vatAmount = totalPrice * vatRate;
   const totalWithVat = totalPrice + vatAmount;
-
   return totalWithVat.toFixed(2);
 }
 
@@ -508,12 +471,8 @@ onMounted(async () => {
   if (!stripe.value) {
     stripe.value = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
   }
-  
   // Create card element
   initializeStripe();
-  
-  // Set default subscription option
-  selectOption(1);
 });
 
 // Initialize Stripe elements

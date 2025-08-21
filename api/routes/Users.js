@@ -242,6 +242,7 @@ export default function (app, deps) {
                     Username: sanitizedUsername,
                     Number: i + 1,
                     trades: [],
+                    BaseValue: 0,
                     portfolio: [],
                     cash: 0
                 }));

@@ -124,6 +124,13 @@
             </svg>
             Rename Watchlist
           </button>
+          <button class="dropdown-item" @click="exportWatchlist" v-b-tooltip.hover title="Export Watchlist">
+            <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 16V4M12 16L8 12M12 16L16 12" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="4" y="18" width="16" height="2" rx="1" fill="var(--text1)"/>
+            </svg>
+            Export Watchlist
+          </button>
         </div>
       </div>
     </div>
@@ -146,8 +153,12 @@ const emit = defineEmits([
   'autoPlay',
   'showCreateNoteModal',
   'showCreateWatchlistModal',
-  'showRenameWatchlistModal'
+  'showRenameWatchlistModal',
+  'exportWatchlist'
 ]);
+function exportWatchlist() {
+  emit('exportWatchlist', props.selectedWatchlist);
+}
 
 function filterWatchlist(watch) {
   emit('filterWatchlist', watch);

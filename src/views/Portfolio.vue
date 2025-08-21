@@ -256,6 +256,34 @@
   <div class="summary-title">Sortino Ratio</div>
   <div class="summary-value">{{ sortinoRatio }}</div>
 </div>
+<div class="summary-card">
+  <div class="summary-title">Biggest Winner</div>
+  <div class="summary-value positive">
+    <template v-if="biggestWinner.ticker">
+      {{ biggestWinner.ticker }} (+${{ biggestWinner.amount }})
+    </template>
+    <template v-else>
+      -
+    </template>
+    <div v-if="biggestWinner.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
+      Trades: {{ biggestWinner.tradeCount }}
+    </div>
+  </div>
+</div>
+<div class="summary-card">
+  <div class="summary-title">Biggest Loser</div>
+  <div class="summary-value negative">
+    <template v-if="biggestLoser.ticker">
+      {{ biggestLoser.ticker }} (-${{ biggestLoser.amount }})
+    </template>
+    <template v-else>
+      -
+    </template>
+    <div v-if="biggestLoser.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
+      Trades: {{ biggestLoser.tradeCount }}
+    </div>
+  </div>
+</div>
     </div>
     <div class="portfolio-linechart-container">
       <div class="linechart-fixed-height">
@@ -277,6 +305,7 @@
               <th>Current Price</th>
               <th>Total Value</th>
               <th>PnL (%)</th>
+                <th>PnL ($)</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -310,6 +339,11 @@
         {{ getPnLPercent(position) > 0 ? '+' : '' }}{{ getPnLPercent(position) }}%
       </span>
     </td>
+      <td :class="getPnLClass(position)">
+        <span v-if="latestQuotes[position.Symbol] !== undefined">
+          {{ getPnLDollar(position) > 0 ? '+' : '' }}${{ getPnLDollar(position) }}
+        </span>
+      </td>
     <td>
       <button class="action-btn"
         @click="openSellModal({ symbol: position.Symbol, shares: position.Shares, price: position.AvgPrice })">
@@ -325,6 +359,7 @@
     <td>-</td>
     <td>-</td>
     <td>${{ cash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
+    <td>-</td>
     <td>-</td>
     <td></td>
   </tr>
@@ -536,6 +571,13 @@ const pieChartData = computed(() => {
     ]
   };
 });
+
+function getPnLDollar(position) {
+  const close = latestQuotes.value[position.Symbol];
+  if (close === undefined || close === null) return '';
+  if (!position.AvgPrice) return '';
+  return ((close - position.AvgPrice) * position.Shares).toFixed(2);
+}
 
 
 const pieOptions = {
@@ -928,6 +970,7 @@ async function confirmResetPortfolio() {
 }
 
 const cash = ref(0); // Holds the user's cash balance
+const baseValue = ref(0); // Holds the BaseValue from backend
 
 async function fetchCash() {
   try {
@@ -946,6 +989,7 @@ async function fetchCash() {
 
     const data = await response.json();
     cash.value = data.cash || 0; // Assign the cash value
+    baseValue.value = data.BaseValue || 0; // Assign the BaseValue
 
   } catch (error) {
     if (error.name === 'AbortError') {
@@ -955,7 +999,11 @@ async function fetchCash() {
   }
 }
 
-
+// Realized P/L vs BaseValue
+const realizedPLvsBaseValue = computed(() => {
+  if (!baseValue.value || baseValue.value === 0) return 0;
+  return totalPortfolioValue2.value - baseValue.value;
+});
 
 const totalPortfolioValue2 = computed(() => {
   const positionsValue = portfolio.value.reduce((sum, pos) => {
@@ -1050,6 +1098,79 @@ function getClosedPositions() {
   }
   return positions;
 }
+
+// Biggest winner and loser by ticker (realized P/L)
+const biggestWinner = computed(() => {
+  const plByTicker = {};
+  let lots = {};
+  const tradeCounts = {};
+  for (const tx of sortedTransactionHistory.value.slice().reverse()) {
+    if (!tx.Symbol || !tx.Action) continue;
+    if (tx.Action === 'Buy') {
+      lots[tx.Symbol] = lots[tx.Symbol] || [];
+      lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price });
+    tradeCounts[tx.Symbol] = (tradeCounts[tx.Symbol] || 0) + 1;
+    } else if (tx.Action === 'Sell') {
+      let sharesToSell = tx.Shares;
+      lots[tx.Symbol] = lots[tx.Symbol] || [];
+      while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
+        let lot = lots[tx.Symbol][0];
+        let sellShares = Math.min(lot.shares, sharesToSell);
+        const pl = (tx.Price - lot.price) * sellShares;
+        plByTicker[tx.Symbol] = (plByTicker[tx.Symbol] || 0) + pl;
+        lot.shares -= sellShares;
+        sharesToSell -= sellShares;
+        if (lot.shares === 0) lots[tx.Symbol].shift();
+      }
+    tradeCounts[tx.Symbol] = (tradeCounts[tx.Symbol] || 0) + 1;
+    }
+  }
+  let maxTicker = null;
+  let maxPL = 0;
+  for (const [ticker, pl] of Object.entries(plByTicker)) {
+    if (pl > maxPL || maxTicker === null) {
+      maxPL = pl;
+      maxTicker = ticker;
+    }
+  }
+  return maxTicker ? { ticker: maxTicker, amount: maxPL.toFixed(2), tradeCount: tradeCounts[maxTicker] || 0 } : { ticker: null, amount: null, tradeCount: 0 };
+});
+
+const biggestLoser = computed(() => {
+  const plByTicker = {};
+  let lots = {};
+  const tradeCounts = {};
+  for (const tx of sortedTransactionHistory.value.slice().reverse()) {
+    if (!tx.Symbol || !tx.Action) continue;
+    if (tx.Action === 'Buy') {
+      lots[tx.Symbol] = lots[tx.Symbol] || [];
+      lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price });
+    tradeCounts[tx.Symbol] = (tradeCounts[tx.Symbol] || 0) + 1;
+    } else if (tx.Action === 'Sell') {
+      let sharesToSell = tx.Shares;
+      lots[tx.Symbol] = lots[tx.Symbol] || [];
+      while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
+        let lot = lots[tx.Symbol][0];
+        let sellShares = Math.min(lot.shares, sharesToSell);
+        const pl = (tx.Price - lot.price) * sellShares;
+        plByTicker[tx.Symbol] = (plByTicker[tx.Symbol] || 0) + pl;
+        lot.shares -= sellShares;
+        sharesToSell -= sellShares;
+        if (lot.shares === 0) lots[tx.Symbol].shift();
+      }
+    tradeCounts[tx.Symbol] = (tradeCounts[tx.Symbol] || 0) + 1;
+    }
+  }
+  let minTicker = null;
+  let minPL = 0;
+  for (const [ticker, pl] of Object.entries(plByTicker)) {
+    if (pl < minPL || minTicker === null) {
+      minPL = pl;
+      minTicker = ticker;
+    }
+  }
+  return minTicker ? { ticker: minTicker, amount: Math.abs(minPL).toFixed(2), tradeCount: tradeCounts[minTicker] || 0 } : { ticker: null, amount: null, tradeCount: 0 };
+});
 
 // Average hold time for winners (days)
 const avgHoldTimeWinners = computed(() => {
