@@ -45,6 +45,7 @@
     "nodemon": "^3.1.4",
     "os-browserify": "^0.3.0",
     "otpauth": "^9.3.6",
+    "pdf-lib": "^1.17.1",
     "pinia": "^2.2.5",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",

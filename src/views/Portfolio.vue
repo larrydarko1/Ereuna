@@ -23,6 +23,17 @@
        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
       <button class="trade-btn" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)" @click="showImportPopup = true">Import</button>
       <button class="trade-btn" @click="exportPortfolioData">Export</button>
+  <button class="trade-btn" @click="showDownloadPopup = true">Download</button>
+<DownloadPortfolioPopup
+  v-if="showDownloadPopup"
+  :portfolio="portfolioWithComputed"
+  :transactionHistory="transactionHistory"
+  :cash="cash"
+  :stats="portfolioStats"
+  :biggestWinner="biggestWinner"
+  :biggestLoser="biggestLoser"
+  @close="showDownloadPopup = false"
+/>
     </div>
       </div>
        <div v-if="showResetDialog" class="reset-modal-overlay">
@@ -438,6 +449,7 @@ import { useStore } from 'vuex';
 import annotationPlugin from 'chartjs-plugin-annotation';
 import Assistant from '@/components/assistant.vue';
 import ImportPortfolioPopup from '@/components/Portfolio/ImportPortfolioPopup.vue';
+import DownloadPortfolioPopup from '@/components/Portfolio/DownloadPortfolioPopup.vue'
 
 // access user from store 
 const store = useStore();
@@ -478,6 +490,7 @@ const sellPosition = ref({ symbol: '', shares: 0, price: 0 })
 const showAddCashModal = ref(false)
 const showLossesInfo = ref(false)
 const showImportPopup = ref(false)
+const showDownloadPopup = ref(false)
 
 function openSellModal(position) {
   sellPosition.value = { ...position }
@@ -1454,6 +1467,53 @@ const currentArchetype = computed(() => {
   // Placeholder: assign archetype by selectedPortfolioIndex
   return archetypes[selectedPortfolioIndex.value % archetypes.length];
 });
+
+// Gather all portfolio stats into a single object for export
+const portfolioStats = computed(() => ({
+  totalValue: totalPortfolioValue2.value,
+  baseValue: baseValue.value,
+  activePositions: totalPortfolioValue.value,
+  cash: cash.value,
+  totalPL: totalPL.value,
+  totalPLPercent: totalPLPercent.value,
+  unrealizedPL: unrealizedPL.value,
+  unrealizedPLPercent: unrealizedPLPercent.value,
+  realizedPL: realizedPL.value,
+  realizedPLPercent: realizedPLPercent.value,
+  avgPositionSize: avgPositionSize.value,
+  avgHoldTimeWinners: avgHoldTimeWinners.value,
+  avgHoldTimeLosers: avgHoldTimeLosers.value,
+  avgGain: avgGain.value,
+  avgLoss: avgLoss.value,
+  avgGainAbs: avgGainAbs.value,
+  avgLossAbs: avgLossAbs.value,
+  gainLossRatio: gainLossRatio.value,
+  riskRewardRatio: riskRewardRatio.value,
+  winnerCount: winnerCount.value,
+  winnerPercent: winnerPercent.value,
+  loserCount: loserCount.value,
+  loserPercent: loserPercent.value,
+  breakevenCount: breakevenCount.value,
+  breakevenPercent: breakevenPercent.value,
+  profitFactor: profitFactor.value,
+  sortinoRatio: sortinoRatio.value,
+}))
+
+const portfolioWithComputed = computed(() =>
+  portfolio.value.map(pos => ({
+    ...pos,
+    CurrentPrice: latestQuotes.value[pos.Symbol] ?? null,
+    TotalValue: latestQuotes.value[pos.Symbol] !== undefined
+      ? (latestQuotes.value[pos.Symbol] * pos.Shares)
+      : null,
+    PnLDollar: latestQuotes.value[pos.Symbol] !== undefined
+      ? ((latestQuotes.value[pos.Symbol] - pos.AvgPrice) * pos.Shares)
+      : null,
+    PnLPercent: latestQuotes.value[pos.Symbol] !== undefined
+      ? (((latestQuotes.value[pos.Symbol] - pos.AvgPrice) / pos.AvgPrice) * 100)
+      : null
+  }))
+);
 
 </script>
 

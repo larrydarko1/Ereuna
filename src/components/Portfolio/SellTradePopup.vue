@@ -202,7 +202,7 @@ input:focus { border-color: var(--accent1); background: var(--base4); }
 }
 .trade-btn {
   background: var(--accent1);
-  color: var(--text1);
+  color: var(--text3);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;
