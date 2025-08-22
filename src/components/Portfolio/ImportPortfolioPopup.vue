@@ -1,6 +1,6 @@
 <template>
-  <div class="import-modal-overlay">
-    <div class="import-modal">
+  <div class="import-modal-overlay" @click="$emit('close')">
+    <div class="import-modal" @click.stop>
       <h3>Import Portfolio</h3>
       <p>Select a CSV file exported from Ereuna to import your portfolio, transaction history, and cash.</p>
       <input type="file" accept=".csv" @change="handleImportFile" />
@@ -219,7 +219,7 @@ input[type="file"]:focus {
 }
 .trade-btn {
   background: var(--accent1);
-  color: var(--text1);
+  color: var(--text3);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;
