@@ -276,17 +276,84 @@ async function downloadPDF() {
       y = rowY - badgeHeight - 12;
     }
     y -= 18;
-    // Portfolio Positions Table (moved up)
-    page.drawText('Active Positions:', { x: 40, y, size: 15, font, color: accent1 });
-    y -= 18;
+    // Portfolio Positions Table (modern table style)
+    const tableX = 40;
+    const tableY = y;
+    const tableWidth = 522; // 3 badges * 174px
+    const rowHeight = 22;
     const headers = ['Symbol', 'Shares', 'Avg Price', 'Current Price', 'Total Value', 'PnL ($)', 'PnL (%)'];
-    let xStart = 40;
-    let colWidths = [70, 60, 70, 90, 90, 70, 70];
-    headers.forEach((h, i) => {
-      page.drawText(h, { x: xStart + colWidths.slice(0, i).reduce((a, b) => a + b, 0), y, size: 11, font, color: text1 });
+    const colWidths = [70, 60, 70, 90, 90, 70, 72];
+    // Draw table header background
+    page.drawRectangle({
+      x: tableX,
+      y: tableY - rowHeight,
+      width: tableWidth,
+      height: rowHeight,
+      color: base1
     });
-    y -= 14;
-    props.portfolio.forEach((item, idx) => {
+    // Draw header text
+    let colX = tableX;
+    headers.forEach((h, i) => {
+      page.drawText(h, { x: colX + 10, y: tableY - 16, size: 11, font, color: accent1 });
+      colX += colWidths[i];
+    });
+    // Draw rows with dynamic page creation
+    let rowY = tableY - rowHeight;
+    let currentPage = page;
+    const pageHeight = 800;
+    const topMargin = 40;
+    const bottomMargin = 40;
+    const minY = bottomMargin;
+    let portfolioRows = props.portfolio || [];
+    for (let idx = 0; idx < portfolioRows.length; idx++) {
+      rowY -= rowHeight;
+      // If not enough space, create new page and reset rowY
+      if (rowY < minY) {
+        currentPage = pdfDoc.addPage([600, pageHeight]);
+        // Fill background color for new page
+        currentPage.drawRectangle({
+          x: 0,
+          y: 0,
+          width: 600,
+          height: pageHeight,
+          color: base1
+        });
+        // Draw table header background
+        currentPage.drawRectangle({
+          x: tableX,
+          y: pageHeight - topMargin - rowHeight,
+          width: tableWidth,
+          height: rowHeight,
+          color: base1
+        });
+        // Draw header text
+        let colX = tableX;
+        headers.forEach((h, i) => {
+          currentPage.drawText(h, { x: colX + 10, y: pageHeight - topMargin - 16, size: 11, font, color: accent1 });
+          colX += colWidths[i];
+        });
+        rowY = pageHeight - topMargin - rowHeight;
+      }
+      // Alternate row background
+      if (idx % 2 === 0) {
+        currentPage.drawRectangle({
+          x: tableX,
+          y: rowY,
+          width: tableWidth,
+          height: rowHeight,
+          color: rgb(0.13, 0.14, 0.19)
+        });
+      }
+      // Draw grid lines
+      currentPage.drawLine({
+        start: { x: tableX, y: rowY },
+        end: { x: tableX + tableWidth, y: rowY },
+        thickness: 0.7,
+        color: base2
+      });
+      // Draw cell text
+      let cellX = tableX;
+      const item = portfolioRows[idx];
       const symbol = item.Symbol || item.ticker || '-';
       const shares = item.Shares !== undefined ? item.Shares : '-';
       const avgPrice = item.AvgPrice !== undefined ? `$${Number(item.AvgPrice).toFixed(2)}` : '-';
@@ -296,27 +363,102 @@ async function downloadPDF() {
       const pnlPercent = item.PnLPercent !== undefined ? `${Number(item.PnLPercent).toFixed(2)}%` : '-';
       const row = [symbol, shares, avgPrice, currentPrice, totalValue, pnlDollar, pnlPercent];
       row.forEach((v, i) => {
-        page.drawText(String(v), { x: xStart + colWidths.slice(0, i).reduce((a, b) => a + b, 0), y, size: 10, font, color: text2 });
+        currentPage.drawText(String(v), { x: cellX + 10, y: rowY + 6, size: 10, font, color: text2 });
+        cellX += colWidths[i];
       });
-      y -= 13;
-      if (y < 60) return;
+    }
+    // Draw outer border
+    page.drawRectangle({
+      x: tableX,
+      y: tableY - rowHeight - (props.portfolio.length * rowHeight),
+      width: tableWidth,
+      height: rowHeight + (props.portfolio.length * rowHeight),
+      color: undefined
     });
-    y -= 10;
-    // Transaction History Table (last, sorted by most recent)
-    page.drawText('Transaction History:', { x: 40, y, size: 15, font, color: accent1 });
-    y -= 18;
+    y = tableY - rowHeight - (props.portfolio.length * rowHeight) - 24;
+    // Transaction History Table (modern table style)
+    const txTableX = 40;
+    const txTableY = y;
+    const txTableWidth = 522;
+    const txRowHeight = 22;
     const txHeaders = ['Date', 'Symbol', 'Action', 'Shares', 'Price', 'Commission', 'Total'];
-    txHeaders.forEach((h, i) => {
-      page.drawText(h, { x: xStart + colWidths.slice(0, i).reduce((a, b) => a + b, 0), y, size: 11, font, color: text1 });
+    const txColWidths = [70, 60, 70, 90, 90, 70, 72];
+    // Draw table header background
+    page.drawRectangle({
+      x: txTableX,
+      y: txTableY - txRowHeight,
+      width: txTableWidth,
+      height: txRowHeight,
+      color: base1
     });
-    y -= 14;
+    // Draw header text
+    let txColX = txTableX;
+    txHeaders.forEach((h, i) => {
+      page.drawText(h, { x: txColX + 10, y: txTableY - 16, size: 11, font, color: accent1 });
+      txColX += txColWidths[i];
+    });
     // Sort transactionHistory by date descending
     const sortedTx = [...(props.transactionHistory || [])].sort((a, b) => {
       const dateA = new Date(a.Date);
       const dateB = new Date(b.Date);
       return dateB - dateA;
     });
-    sortedTx.forEach((tx, idx) => {
+    // Draw rows with dynamic page creation
+    let txRowY = txTableY - txRowHeight;
+    let txCurrentPage = currentPage;
+    const txPageHeight = 800;
+    const txTopMargin = 40;
+    const txBottomMargin = 40;
+    const txMinY = txBottomMargin;
+    for (let idx = 0; idx < sortedTx.length; idx++) {
+      txRowY -= txRowHeight;
+      // If not enough space, create new page and reset txRowY
+      if (txRowY < txMinY) {
+        txCurrentPage = pdfDoc.addPage([600, txPageHeight]);
+        // Fill background color for new page
+        txCurrentPage.drawRectangle({
+          x: 0,
+          y: 0,
+          width: 600,
+          height: txPageHeight,
+          color: base1
+        });
+        // Draw table header background
+        txCurrentPage.drawRectangle({
+          x: txTableX,
+          y: txPageHeight - txTopMargin - txRowHeight,
+          width: txTableWidth,
+          height: txRowHeight,
+          color: base1
+        });
+        // Draw header text
+        let txColX = txTableX;
+        txHeaders.forEach((h, i) => {
+          txCurrentPage.drawText(h, { x: txColX + 10, y: txPageHeight - txTopMargin - 16, size: 11, font, color: accent1 });
+          txColX += txColWidths[i];
+        });
+        txRowY = txPageHeight - txTopMargin - txRowHeight;
+      }
+      // Alternate row background
+      if (idx % 2 === 0) {
+        txCurrentPage.drawRectangle({
+          x: txTableX,
+          y: txRowY,
+          width: txTableWidth,
+          height: txRowHeight,
+          color: rgb(0.13, 0.14, 0.19)
+        });
+      }
+      // Draw grid lines
+      txCurrentPage.drawLine({
+        start: { x: txTableX, y: txRowY },
+        end: { x: txTableX + txTableWidth, y: txRowY },
+        thickness: 0.7,
+        color: base2
+      });
+      // Draw cell text
+      let txCellX = txTableX;
+      const tx = sortedTx[idx];
       const date = tx.Date ? tx.Date.slice(0, 10) : '-';
       const symbol = tx.Symbol || '-';
       const action = tx.Action || '-';
@@ -326,11 +468,42 @@ async function downloadPDF() {
       const total = tx.Total !== undefined ? `$${Number(tx.Total).toFixed(2)}` : '-';
       const row = [date, symbol, action, shares, price, commission, total];
       row.forEach((v, i) => {
-        page.drawText(String(v), { x: xStart + colWidths.slice(0, i).reduce((a, b) => a + b, 0), y, size: 10, font, color: text2 });
+        txCurrentPage.drawText(String(v), { x: txCellX + 10, y: txRowY + 6, size: 10, font, color: text2 });
+        txCellX += txColWidths[i];
       });
-      y -= 13;
-      if (y < 40) return;
+    }
+    // Draw outer border
+    page.drawRectangle({
+      x: txTableX,
+      y: txTableY - txRowHeight - (sortedTx.length * txRowHeight),
+      width: txTableWidth,
+      height: txRowHeight + (sortedTx.length * txRowHeight),
+      color: undefined
     });
+    y = txTableY - txRowHeight - (sortedTx.length * txRowHeight) - 24;
+
+    // Add disclaimer to the bottom of the last page BEFORE saving
+    const lastPage = pdfDoc.getPages()[pdfDoc.getPageCount() - 1];
+  const disclaimerLines = [
+    'Disclaimer: All data in this report is simulated and does not constitute real financial transactions.',
+    'Ereuna is not a financial institution and does not handle, process, or facilitate any actual trades or investments.',
+    'This report is provided for informational and educational purposes only and should not be considered financial advice.',
+    'Ereuna assumes no responsibility or liability for any decisions made based on this report.'
+  ];
+  const disclaimerFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const disclaimerFontSize = 9;
+  let yPos = 32 + (disclaimerLines.length - 1) * (disclaimerFontSize + 3);
+  disclaimerLines.forEach(line => {
+    const disclaimerWidth = disclaimerFont.widthOfTextAtSize(line, disclaimerFontSize);
+    lastPage.drawText(line, {
+      x: (600 - disclaimerWidth) / 2,
+      y: yPos,
+      size: disclaimerFontSize,
+      font: disclaimerFont,
+      color: text2
+    });
+    yPos -= (disclaimerFontSize + 3);
+  });
 
     // Download PDF
     const pdfBytes = await pdfDoc.save();
