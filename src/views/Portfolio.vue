@@ -20,9 +20,10 @@
         <button class="trade-btn" @click="showTradeModal = true">New Trade</button>
         <button class="trade-btn" style="margin-left: 12px;" @click="showAddCashModal = true">Add Cash</button>
         <button class="trade-btn2" style="margin-left: 12px;" @click="showResetDialog = true">Reset</button>
-        <button class="trade-btn" style="margin-left: 12px;" @click="showLossesInfo = true">Archetypes</button>
-       <button class="trade-btn" style="margin-left: 12px;" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)" @click="showImportPopup = true">Import</button>
-        <button class="trade-btn" style="margin-left: 12px;" @click="exportPortfolioData">Export</button>
+       <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
+      <button class="trade-btn" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)" @click="showImportPopup = true">Import</button>
+      <button class="trade-btn" @click="exportPortfolioData">Export</button>
+    </div>
       </div>
        <div v-if="showResetDialog" class="reset-modal-overlay">
       <div class="reset-modal">
@@ -98,7 +99,7 @@
     <div class="archetype-content">
       <div class="archetype-header">
         <h2>Archetype: {{ currentArchetype.name }}</h2>
-        <span :class="['archetype-badge', currentArchetype.type]">
+        <span @click="showLossesInfo = true" :class="['archetype-badge', currentArchetype.type]">
           {{ currentArchetype.type === 'good' ? 'Good Archetype' : 'Bad Archetype' }}
         </span>
       </div>
@@ -1571,6 +1572,7 @@ const currentArchetype = computed(() => {
   top: 10px;
   right: 14px;
   z-index: 2;
+  cursor: pointer;
 
   &.good {
     background: linear-gradient(90deg, var(--positive) 60%, var(--positive) 100%);
