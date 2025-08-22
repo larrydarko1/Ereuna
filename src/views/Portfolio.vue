@@ -19,7 +19,7 @@
       <div>
         <button class="trade-btn" @click="showTradeModal = true">New Trade</button>
         <button class="trade-btn" style="margin-left: 12px;" @click="showAddCashModal = true">Add Cash</button>
-        <button class="trade-btn2" style="margin-left: 12px;" @click="showResetDialog = true">Reset All</button>
+        <button class="trade-btn2" style="margin-left: 12px;" @click="showResetDialog = true">Reset</button>
         <button class="trade-btn" style="margin-left: 12px;" @click="showLossesInfo = true">Archetypes</button>
        <button class="trade-btn" style="margin-left: 12px;" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)" @click="showImportPopup = true">Import</button>
         <button class="trade-btn" style="margin-left: 12px;" @click="exportPortfolioData">Export</button>
@@ -117,7 +117,7 @@
   </div>
 </div>
   <div class="summary-card">
-  <div class="summary-title">Portfolio Value</div>
+  <div class="summary-title">Active Positions</div>
   <div class="summary-value">
     ${{ totalPortfolioValue.toLocaleString(undefined, {
       minimumFractionDigits: 2,
@@ -859,8 +859,8 @@ const totalPortfolioCost = computed(() => {
 });
 
 // --- Realized, Unrealized, and Total P/L ---
+// Realized P/L: sum of profits/losses from closed trades (FIFO)
 const realizedPL = computed(() => {
-  // Track realized P/L for each symbol
   let realized = 0;
   let lots = {};
   for (const tx of sortedTransactionHistory.value.slice()) {
@@ -881,11 +881,15 @@ const realizedPL = computed(() => {
       }
     }
   }
+  // If no active positions, realizedPL should be totalPL
+  if (portfolio.value.length === 0 && baseValue.value) {
+    return totalPortfolioValue2.value - baseValue.value;
+  }
   return realized;
 });
 
+// Unrealized P/L: value of open positions minus their cost basis
 const unrealizedPL = computed(() => {
-  // For current holdings, use current price
   let pl = 0;
   for (const pos of portfolio.value) {
     const close = latestQuotes.value[pos.Symbol];
@@ -895,46 +899,27 @@ const unrealizedPL = computed(() => {
   return pl;
 });
 
-const totalPL = computed(() => realizedPL.value + unrealizedPL.value);
+// Total P/L: (cash + value of open positions) - baseValue
+const totalPL = computed(() => {
+  if (!baseValue.value || baseValue.value === 0) return 0;
+  return totalPortfolioValue2.value - baseValue.value;
+});
 
+// Total P/L (%) based on baseValue
 const totalPLPercent = computed(() => {
-  const cost = totalPortfolioCost.value;
-  if (!cost) return '';
-  return ((totalPL.value / cost) * 100).toFixed(2);
+  if (!baseValue.value || baseValue.value === 0) return '';
+  return ((totalPL.value / baseValue.value) * 100).toFixed(2);
 });
 
 const unrealizedPLPercent = computed(() => {
-  const cost = totalPortfolioCost.value;
-  if (!cost) return '';
-  return ((unrealizedPL.value / cost) * 100).toFixed(2);
+  if (!baseValue.value || baseValue.value === 0) return '';
+  return ((unrealizedPL.value / baseValue.value) * 100).toFixed(2);
 });
 
+// Realized P/L (%) based on baseValue
 const realizedPLPercent = computed(() => {
-  // Track realized P/L and cost basis for sold shares only
-  let realized = 0;
-  let costBasis = 0;
-  let lots = {};
-  for (const tx of sortedTransactionHistory.value.slice()) {
-    if (!tx.Symbol || !tx.Action) continue;
-    if (tx.Action === 'Buy') {
-      lots[tx.Symbol] = lots[tx.Symbol] || [];
-      lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price });
-    } else if (tx.Action === 'Sell') {
-      let sharesToSell = tx.Shares;
-      lots[tx.Symbol] = lots[tx.Symbol] || [];
-      while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
-        let lot = lots[tx.Symbol][0];
-        let sellShares = Math.min(lot.shares, sharesToSell);
-        realized += (tx.Price - lot.price) * sellShares;
-        costBasis += lot.price * sellShares;
-        lot.shares -= sellShares;
-        sharesToSell -= sellShares;
-        if (lot.shares === 0) lots[tx.Symbol].shift();
-      }
-    }
-  }
-  if (!costBasis) return '';
-  return ((realized / costBasis) * 100).toFixed(2);
+  if (!baseValue.value || baseValue.value === 0) return '';
+  return ((realizedPL.value / baseValue.value) * 100).toFixed(2);
 });
 
 function getPercOfPortfolio(position) {
