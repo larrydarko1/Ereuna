@@ -4,7 +4,7 @@
       <h3>Download Portfolio</h3>
       <div class="download-options">
         <button class="input" @click="downloadPDF">PDF (for presentation and sharing.)</button>
-        <button class="input" @click="downloadCSV">CSV (for import/export, data only.)</button>
+        <button class="input" @click="exportPortfolioData">CSV (for import/export, data only.)</button>
       </div>
       <div v-if="error" class="download-error">{{ error }}</div>
       <div class="download-actions">
@@ -510,7 +510,7 @@ async function downloadPDF() {
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'portfolio_report.pdf';
+    link.download = `portfolio_export_${new Date().toISOString().slice(0,10)}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -519,9 +519,55 @@ async function downloadPDF() {
   }
 }
 
-function downloadCSV() {
-  error.value = '';
-  alert('CSV download will be implemented here.');
+// --- Export Portfolio Data ---
+function exportPortfolioData() {
+  // Helper to convert array of objects to CSV
+   function arrayToCSV(arr, headers) {
+    const escape = v => {
+      let str = String(v ?? '');
+      // Prefix dangerous values with a single quote to prevent CSV injection
+      if (/^[=+\-@]/.test(str)) str = "'" + str;
+      return '"' + str.replace(/"/g, '""') + '"';
+    };
+    return [
+      headers.join(','),
+      ...arr.map(row => headers.map(h => escape(row[h] ?? '')).join(','))
+    ].join('\n');
+  }
+
+
+  // Portfolio section
+  const portfolioHeaders = ['Symbol', 'Shares', 'AvgPrice'];
+  const portfolioCSV = arrayToCSV(props.portfolio, portfolioHeaders);
+
+  // Transaction history section
+  const txHeaders = ['Date', 'Symbol', 'Action', 'Shares', 'Price', 'Commission', 'Total'];
+  const txCSV = arrayToCSV(props.transactionHistory, txHeaders);
+
+  // Cash section
+  const cashCSV = `Cash Balance\n${props.cash}`;
+
+  // Combine sections
+  const csvContent = [
+    'Portfolio',
+    portfolioCSV,
+    '',
+    'Transaction History',
+    txCSV,
+    '',
+    cashCSV
+  ].join('\n\n');
+
+  // Download
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `portfolio_export_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 </script>
 
