@@ -22,8 +22,7 @@
         <button class="trade-btn2" style="margin-left: 12px;" @click="showResetDialog = true">Reset</button>
        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
       <button class="trade-btn" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)" @click="showImportPopup = true">Import</button>
-      <button class="trade-btn" @click="exportPortfolioData">Export</button>
-  <button class="trade-btn" @click="showDownloadPopup = true">Download</button>
+  <button class="trade-btn" @click="showDownloadPopup = true">Export</button>
 <DownloadPortfolioPopup
   v-if="showDownloadPopup"
   :portfolio="portfolioWithComputed"
@@ -1378,56 +1377,6 @@ const tradeReturnsChartOptions = computed(() => {
     }
   };
 });
-
-// --- Export Portfolio Data ---
-function exportPortfolioData() {
-  // Helper to convert array of objects to CSV
-   function arrayToCSV(arr, headers) {
-    const escape = v => {
-      let str = String(v ?? '');
-      // Prefix dangerous values with a single quote to prevent CSV injection
-      if (/^[=+\-@]/.test(str)) str = "'" + str;
-      return '"' + str.replace(/"/g, '""') + '"';
-    };
-    return [
-      headers.join(','),
-      ...arr.map(row => headers.map(h => escape(row[h] ?? '')).join(','))
-    ].join('\n');
-  }
-
-  // Portfolio section
-  const portfolioHeaders = ['Symbol', 'Shares', 'AvgPrice'];
-  const portfolioCSV = arrayToCSV(portfolio.value, portfolioHeaders);
-
-  // Transaction history section
-  const txHeaders = ['Date', 'Symbol', 'Action', 'Shares', 'Price', 'Commission', 'Total'];
-  const txCSV = arrayToCSV(transactionHistory.value, txHeaders);
-
-  // Cash section
-  const cashCSV = `Cash Balance\n${cash.value}`;
-
-  // Combine sections
-  const csvContent = [
-    'Portfolio',
-    portfolioCSV,
-    '',
-    'Transaction History',
-    txCSV,
-    '',
-    cashCSV
-  ].join('\n\n');
-
-  // Download
-  const blob = new Blob([csvContent], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `portfolio_export_${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
 
 // --- Portfolio Switching Logic ---
 const selectedPortfolioIndex = ref(0);
