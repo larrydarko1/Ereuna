@@ -137,7 +137,7 @@ function closeChartWS() {
 async function fetchChartData(symbolParam, timeframeParam) {
   isChartLoading1.value = true;
   closeChartWS();
-  let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol).toUpperCase();
+  let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol);
   let timeframe = timeframeParam || selectedDataType.value || 'daily';
   let user = encodeURIComponent(props.user);
   let wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';

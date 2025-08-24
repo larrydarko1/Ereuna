@@ -370,7 +370,7 @@ const columnsMinWidth = computed(() => {
   width: 20px;
   height: 20px;
   border: none;
-  border-radius: 25px;
+  border-radius: 25%;
 }
 
 .ml-dropdown-menu {

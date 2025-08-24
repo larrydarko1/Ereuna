@@ -2167,7 +2167,7 @@ function handleImportWatchlistRefresh() {
   width: calc(100% - 30px);
   /* Make space for the button */
   outline: none;
-  color: var(--base3);
+  color: var(--text2);
   /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s;
   /* Smooth transition for focus effects */
