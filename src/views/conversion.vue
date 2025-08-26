@@ -451,7 +451,6 @@ const selectedCountryObj = computed(() =>
 );
 
 // Only premium plan is available
-const selectedPlan = ref('premium');
 const selectedDuration = ref(1);  // Default to 1 month
 const selectedCountry = ref('MT'); // Default to Malta
 

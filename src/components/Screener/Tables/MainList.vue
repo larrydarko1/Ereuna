@@ -1,8 +1,8 @@
 <template>
      <div class="ml-RES" :style="{ minWidth: columnsMinWidth + 'px' }">
            <div class="ml-Header">
-  <div style="min-width: 100px;">
-    <h1 style="background-color: var(--base1)" :key="resultListLength">RESULTS: {{ resultListLength }}</h1>
+  <div style="min-width: 50px;">
+
   </div>
   <div style="min-width: 0px;"></div>
   <div class="ml-btsymbol">Ticker</div>
@@ -95,9 +95,6 @@
                     </div>
     </div>
   </div>
-  <div style="min-width: 50px;">
-    <img :src="getImagePath(asset)" class="ml-img" />
-  </div>
   <div class="ml-btsymbol">{{ asset.Symbol }}</div>
   <div v-for="col in selectedAttributes" :key="col" :style="getColumnStyle(col)"
     :class="getColumnClass(asset, col)">
@@ -132,7 +129,6 @@ const props = defineProps({
   currentResults: Array,
   selectedItem: String,
   watchlist: Object,
-  getImagePath: Function,
   getWatchlistIcon: Function,
   selectedAttributes: { type: Array, required: true },
 });

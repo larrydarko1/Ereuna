@@ -1248,26 +1248,32 @@ async def calculateAlltimehighlowandperc52wk():
             pipeline = [
                 {'$match': {'tickerID': ticker}},
                 {'$sort': {'timestamp': -1}},
-                {'$project': {'_id': 0, 'close': 1}}
+                {'$project': {'_id': 0, 'high': 1, 'low': 1, 'close': 1}}
             ]
             documents = [doc async for doc in ohclv_data_collection.aggregate(pipeline)]
 
+            high_values = []
+            low_values = []
             close_values = []
             for doc in documents:
-                close_value = doc['close']
                 try:
-                    close_value = float(close_value)
+                    high_value = float(doc.get('high', 0))
+                    low_value = float(doc.get('low', 0))
+                    close_value = float(doc.get('close', 0))
+                    high_values.append(high_value)
+                    low_values.append(low_value)
                     close_values.append(close_value)
-                except ValueError:
-                    print(f"Warning: Non-numeric value '{close_value}' found in 'close' field for ticker {ticker}")
+                except (ValueError, TypeError):
+                    print(f"Warning: Non-numeric value found in OHCLV fields for ticker {ticker}")
 
-            if close_values:
-                alltime_high = max(close_values)
-                alltime_low = min(close_values)
+            if high_values and low_values and close_values:
+                alltime_high = max(high_values)
+                alltime_low = min(low_values)
                 recent_close = close_values[0]
-                closes_52wk = close_values[:252]  # Most recent 252 closes (approx 1 year)
-                fiftytwo_week_high = max(closes_52wk) if closes_52wk else 0
-                fiftytwo_week_low = min(closes_52wk) if closes_52wk else 0
+                highs_52wk = high_values[:252]  # Most recent 252 highs (approx 1 year)
+                lows_52wk = low_values[:252]    # Most recent 252 lows (approx 1 year)
+                fiftytwo_week_high = max(highs_52wk) if highs_52wk else 0
+                fiftytwo_week_low = min(lows_52wk) if lows_52wk else 0
             else:
                 alltime_high = 0
                 alltime_low = 0

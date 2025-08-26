@@ -5,7 +5,6 @@
    <WatchPanel
   :user="user"
   :apiKey="apiKey"
-  :Tier="Tier"
   :watchPanel="watchPanel"
   :fetchWatchPanel="fetchWatchPanel"
   :defaultSymbol="defaultSymbol"
@@ -369,34 +368,6 @@ const showNotification = () => {
   notification.value.show('This is a custom notification message!');
 };
 
-let Tier = ref(); // user tier
-
-// function to retrieve the tier for each user
-async function fetchTier() {
-  try {
-    const headers = {
-      'x-api-key': apiKey
-    };
-
-    const response = await fetch(`/api/tier?username=${user}`, {
-      headers: headers
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newTier = await response.json();
-    Tier.value = newTier.Tier;
-
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    console.error('Error fetching tier:', error);
-  }
-}
-
 const showDropdown = ref(false);
 const showPopup = ref(false) // div for financial statements
 const showCreateNoteModal = ref(false)
@@ -450,7 +421,6 @@ async function initializeComponent() {
       await fetchNews(),
       await fetchPanel(),
       await fetchWatchPanel(),
-      await fetchTier(),
     ]);
 
     isLoading2.value = false;
