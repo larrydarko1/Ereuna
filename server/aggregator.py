@@ -136,12 +136,31 @@ async def start_aggregator(message_queue, mongo_client):
                     for k in finished:
                         candles.pop(k, None)
 
-                # --- Higher timeframe candle logic ---
+                # --- Higher timeframe candle logic (mirroring 1m logic) ---
                 for tf, minutes in HIGHER_TIMEFRAMES.items():
                     bucket_start, bucket_end = get_bucket(ts, minutes)
                     tf_key = (symbol, tf)
                     tf_candle = pending_candles.get(tf_key)
                     if not tf_candle or tf_candle.get('end') != bucket_end:
+                        # Finalize previous candle if exists and not finalized
+                        if tf_candle and not tf_candle.get('final', False):
+                            tf_candle['final'] = True
+                            tf_coll_name = f'OHCLVData{tf}' if tf != '1hr' else 'OHCLVData1hr'
+                            tf_coll = db.get_collection(tf_coll_name)
+                            doc = {
+                                'tickerID': symbol,
+                                'timestamp': tf_candle['start'],
+                                'open': tf_candle['open'],
+                                'high': tf_candle['high'],
+                                'low': tf_candle['low'],
+                                'close': tf_candle['close'],
+                                'volume': tf_candle['volume']
+                            }
+                            try:
+                                await tf_coll.insert_one(doc)
+                            except Exception as e:
+                                logger.error(f"Error inserting {tf} candle: {e}")
+                            await publish_candle(symbol, tf, {**doc, 'final': True})
                         # Start new candle
                         pending_candles[tf_key] = {
                             'open': price,
@@ -161,7 +180,7 @@ async def start_aggregator(message_queue, mongo_client):
                     if isinstance(d, dict) and 'volume' in d:
                         pending_candles[tf_key]['volume'] += float(d['volume'])
 
-                    # Publish the current state of the pending higher timeframe candle
+                    # Publish the current state of the pending higher timeframe candle (with final: False)
                     await publish_candle(symbol, tf, {
                         'tickerID': symbol,
                         'open': pending_candles[tf_key]['open'],

@@ -427,7 +427,7 @@
 
 <script setup>
 import Header from '@/components/Header.vue';
-import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import TradePopup from '@/components/Portfolio/trade.vue'
 import SellTradePopup from '@/components/Portfolio/SellTradePopup.vue'
 import AddCashPopup from '@/components/Portfolio/addCash.vue'
@@ -454,34 +454,6 @@ import DownloadPortfolioPopup from '@/components/Portfolio/DownloadPortfolioPopu
 const store = useStore();
 let user = store.getters.getUser;
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
-let Tier = ref(); // user tier
-
-// function to retrieve the tier for each user
-async function fetchTier() {
-  try {
-    const headers = {
-      'x-api-key': apiKey
-    };
-
-    const response = await fetch(`/api/tier?username=${user}`, {
-      headers: headers
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newTier = await response.json();
-    Tier.value = newTier.Tier;
-
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    console.error('Error fetching tier:', error);
-  }
-}
-fetchTier()
 
 const showTradeModal = ref(false)
 const showSellModal = ref(false)
@@ -753,7 +725,6 @@ async function fetchPortfolio() {
 }
 
 const latestQuotes = ref({}); // { [symbol]: price }
-const wsRef = ref(null);
 
 async function fetchQuotes() {
   if (!portfolio.value.length) return;
@@ -770,64 +741,13 @@ async function fetchQuotes() {
   }
 }
 
-function connectWebSocket() {
-  if (wsRef.value) wsRef.value.close();
-  if (!portfolio.value.length) return;
-
-  const symbols = portfolio.value.map(p => p.Symbol).join(',');
-  const ws = new WebSocket(`ws://localhost:8000/ws/symbols?symbols=${symbols}`);
-  wsRef.value = ws;
-
- ws.onmessage = (event) => {
-  // Expecting format: "AAPL: 213.805"
-  const text = event.data;
-  const [symbol, price] = text.split(':').map(s => s.trim());
-  if (symbol && price && !isNaN(price)) {
-    // Ensure Vue reactivity
-    latestQuotes.value = { ...latestQuotes.value, [symbol]: parseFloat(price) };
-  }
-};
-
-  ws.onclose = () => {
-    wsRef.value = null;
-  };
-}
-
-function disconnectWebSocket() {
-  if (wsRef.value) {
-    wsRef.value.close();
-    wsRef.value = null;
-  }
-}
-
-// Watch for changes in Tier or portfolio to switch logic
-watch([Tier, portfolio], ([newTier]) => {
-  if (newTier === 'Premium') {
-    disconnectWebSocket();
-    connectWebSocket();
-  } else {
-    disconnectWebSocket();
-    fetchQuotes();
-  }
-}, { immediate: true, deep: true });
-
-onMounted(() => {
-  if (Tier.value === 'Core') {
-    fetchQuotes();
-    // Optionally, set up polling interval
-    // setInterval(fetchQuotes, 10000);
-  } else if (Tier.value === 'Premium') {
-    connectWebSocket();
-  }
-});
-
-onUnmounted(() => {
-  disconnectWebSocket();
-});
-
-// Refetch quotes whenever portfolio changes
+// Fetch quotes whenever portfolio changes
 watch(portfolio, (newVal) => {
   if (newVal.length) fetchQuotes();
+});
+
+onMounted(() => {
+  fetchQuotes();
 });
 
 function getPnLPercent(position) {

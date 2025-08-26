@@ -25,6 +25,7 @@
           :getScreenerImage="getScreenerImage"
         />
          <div class="navmenu" style="margin-left: 2px;">
+          <h1 class="results-count" :key="resultListLength">RESULTS: {{ resultListLength }}</h1>
          <button class="edit-watch-panel-btn" :class="{ 'edit-watch-panel-btn2': showEditColumn }"
             @click="showEditColumn = !showEditColumn">Edit Table</button>
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
@@ -586,11 +587,9 @@
         </div>
         <div v-if="listMode === 'main'">
 <MainList
-  :resultListLength="resultListLength"
   :currentResults="currentResults"
   :selectedItem="selectedItem"
   :watchlist="watchlist"
-  :getImagePath="getImagePath"
   :getWatchlistIcon="getWatchlistIcon"
   :selectedAttributes="selectedAttributes"
   @scroll="handleScroll1"
@@ -603,10 +602,8 @@
               <div v-else-if="listMode === 'filter'">
                   <FilterList
     :currentResults="currentResults"
-    :resultListLength="resultListLength"
     :selectedItem="selectedItem"
     :watchlist="watchlist"
-    :getImagePath="getImagePath"
     :getWatchlistIcon="getWatchlistIcon"
     :selectedAttributes="selectedAttributes"
     @scroll="handleScroll2"
@@ -619,10 +616,8 @@
                     <div v-else-if="listMode === 'hidden'">
                       <HiddenList
                         :currentResults="currentResults"
-                        :resultListLength="resultListLength"
                         :selectedItem="selectedItem"
                         :watchlist="watchlist"
-                        :getImagePath="getImagePath"
                         :getWatchlistIcon="getWatchlistIcon"
                         :selectedAttributes="selectedAttributes"
                         @scroll="handleScroll3"
@@ -634,11 +629,9 @@
                           </div>
                           <div v-else-if="listMode === 'combined'">
                             <CombinedList
-                              :resultListLength="resultListLength"
                               :currentResults="currentResults"
                               :selectedItem="selectedItem"
                               :watchlist="watchlist"
-                              :getImagePath="getImagePath"
                               :getWatchlistIcon="getWatchlistIcon"
                               :selectedAttributes="selectedAttributes"
                               @scroll="handleScroll4"
@@ -847,25 +840,6 @@ const handleScroll4 = (event) => {
 // related to retrieving user default symbol and updating it 
 let defaultSymbol = localStorage.getItem('defaultSymbol');
 
-async function fetchUserDefaultSymbol() {
-  try {
-    if (!user) return null;
-
-    const response = await fetch(`/api/${user}/default-symbol`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-    if (!response.ok) throw new Error('Failed to fetch default symbol');
-
-    const data = await response.json();
-    return data.defaultSymbol;
-  } catch (error) {
-    error.value = error.message;
-    return null;
-  }
-}
-
 async function updateUserDefaultSymbol(symbol) {
   try {
     if (!user) return;
@@ -886,10 +860,8 @@ async function updateUserDefaultSymbol(symbol) {
 }
 
 onMounted(async () => {
-  await fetchPerformanceResults(defaultSymbol);
   selectedSymbol.value = defaultSymbol;
   selectedItem.value = defaultSymbol;
-  fetchSymbolsAndExchanges();
   getWatchlists();
 });
 
@@ -899,51 +871,6 @@ const showEditColumn = ref(false) // shows menu for editing columns in screener
 const selectedScreener = ref('') // selectes current screener 
 const selectedSymbol = ref(''); // similar to selectedItem 
 const listMode = ref('main');
-const ImagePaths = ref([]);
-
-// Async function to fetch symbols and exchanges
-async function fetchSymbolsAndExchanges() {
-  try {
-    const response = await fetch('/api/symbols-exchanges', {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    // Map the data to the required format for ImagePaths
-    ImagePaths.value = data.map(item => {
-      // Construct the image path using the URL constructor
-      const imagePath = new URL(`/src/assets/images/${item.Exchange}/${item.Symbol}.svg`, import.meta.url).href;
-
-      return {
-        symbol: item.Symbol,
-        exchange: item.Exchange,
-        path: imagePath
-      };
-    });
-  } catch (error) {
-    error.value = error.message;
-  }
-}
-
-function getImagePath(item) {
-  // If item is an object, use its Symbol
-  const symbol = typeof item === 'object' ? item.Symbol : item;
-
-  const imageObject = ImagePaths.value.find(image => image.symbol === symbol);
-
-  if (imageObject) {
-    return imageObject.path;
-  }
-
-  return new URL('/src/assets/images/Blank.svg', import.meta.url).href; // Default to Blank.svg
-}
 
 //selected item a displays charts 
 async function setCharts(symbol) {
@@ -1327,21 +1254,6 @@ async function fetchScreenerResults(screenerName) {
     filterResults.value = data;
     currentList.value = [...data]; // Update currentList with the new data
     await SummaryScreener();
-  } catch (error) {
-    error.value = error.message;
-  }
-}
-
-// index results?
-async function fetchPerformanceResults(symbol) {
-  try {
-    const response = await fetch(`/api/screener/performance/${symbol}`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-    const performanceData = await response.json();
-    PerformanceResults.value.push(performanceData);
   } catch (error) {
     error.value = error.message;
   }
@@ -2199,36 +2111,6 @@ async function loadTheme() {
 
 loadTheme()
 
-let Tier = ref(); // user tier
-
-// function to retrieve tier for each user
-async function fetchTier() {
-  try {
-    const headers = {
-      'x-api-key': apiKey
-    };
-
-    const response = await fetch(`/api/tier?username=${user}`, {
-      headers: headers
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newTier = await response.json();
-    Tier.value = newTier.Tier;
-
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    console.error('Error fetching tier:', error);
-  }
-}
-
-fetchTier()
-
 function arrayToCSV(data) {
   if (!data.length) return '';
   const keys = Object.keys(data[0]);
@@ -2535,6 +2417,25 @@ p {
   box-shadow: none;
   appearance: none;
   -webkit-appearance: none;
+}
+
+.results-count {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 5px;
+  padding: 5px 8px;
+  text-decoration: none;
+  color: var(--text1);
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  background-color: transparent;
+  outline: none;
+  border: none;
+  box-shadow: none;
+  appearance: none;
+  -webkit-appearance: none;
+  min-width: 70px;
 }
 
 .snavbtn span {

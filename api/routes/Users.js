@@ -357,7 +357,6 @@ export default function (app, deps) {
             Paid: false,
             PaymentMethod: 'Credit Card',
             SubscriptionPlan: subscriptionPlan,
-            Tier: 'Core',
             Hidden: [],
             Created: new Date(),
             defaultSymbol: 'NVDA',
@@ -2817,42 +2816,6 @@ export default function (app, deps) {
                 return res.status(404).json({ message: 'User not found' });
             }
             return res.status(200).json({ panel: userDocument.panel || [] });
-        } catch (error) {
-            handleError(error, requestLogger, req);
-            return res.status(500).json({ message: 'An error occurred while retrieving the panel list' });
-        } finally {
-            if (client) await client.close();
-        }
-    });
-
-    // endpoint to get the current tier
-    app.get('/tier', validate([
-        validationSchemas.usernameQuery()
-    ]), async (req, res) => {
-        const requestLogger = createRequestLogger(req);
-        let client;
-        try {
-            const apiKey = req.header('x-api-key');
-            const sanitizedKey = sanitizeInput(apiKey);
-            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                logger.warn('Invalid API key', {
-                    providedApiKey: !!sanitizedKey
-                });
-                return res.status(401).json({
-                    message: 'Unauthorized API Access'
-                });
-            }
-            const { username } = req.query;
-            const sanitizedUser = sanitizeInput(username);
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
-            const usersCollection = db.collection('Users');
-            const userDocument = await usersCollection.findOne({ Username: sanitizedUser }, { projection: { Tier: 1 } });
-            if (!userDocument) {
-                return res.status(404).json({ message: 'User not found' });
-            }
-            return res.status(200).json({ Tier: userDocument.Tier });
         } catch (error) {
             handleError(error, requestLogger, req);
             return res.status(500).json({ message: 'An error occurred while retrieving the panel list' });

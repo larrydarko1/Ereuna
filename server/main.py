@@ -619,7 +619,41 @@ async def websocket_chartdata(
     # Fetch historical data (most recent N, in correct order)
     arr = await coll.find({'tickerID': ticker}).sort('timestamp', -1).to_list(length=length)
     arr = list(reversed(arr))
-    # Build OHLC and volume arrays
+
+    # Check for cached in-progress candle
+    pubsub_tf = {
+        'daily': '1440m',
+        'weekly': '10080m',
+        'intraday1m': '1m',
+        'intraday5m': '5m',
+        'intraday15m': '15m',
+        'intraday30m': '30m',
+        'intraday1hr': '60m',
+    }[timeframe]
+    cached_candle = None
+    # Find the latest in-progress candle in pubsub_channels (if any)
+    q_list = pubsub_channels.get((ticker, pubsub_tf), [])
+    if q_list:
+        # Try to get the last published candle from any queue (if available)
+        # This is a workaround, ideally you should keep a separate cache for in-progress candles
+        try:
+            # If queues have items, get the last one
+            for q in q_list:
+                if not q.empty():
+                    cached_candle = await q.get()
+                    # Put it back so we don't consume it
+                    await q.put(cached_candle)
+                    break
+        except Exception:
+            pass
+
+    # Build OHLC and volume arrays, append cached candle if available and not duplicate
+    ohlc_arr = arr.copy()
+    if cached_candle and (not ohlc_arr or ohlc_arr[-1]['timestamp'] != cached_candle['timestamp']):
+        ohlc_arr.append(cached_candle)
+    elif cached_candle and ohlc_arr and ohlc_arr[-1]['timestamp'] == cached_candle['timestamp']:
+        ohlc_arr[-1] = cached_candle
+
     ohlc = [
         {
             'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
@@ -628,8 +662,8 @@ async def websocket_chartdata(
             'low': float(str(item['low'])[:8]),
             'close': float(str(item['close'])[:8])
         }
-        for item in arr
-    ] if arr else []
+        for item in ohlc_arr
+    ] if ohlc_arr else []
     # Use 0 for missing volume in 1m timeframe
     if timeframe == 'intraday1m':
         volume = [
@@ -637,16 +671,16 @@ async def websocket_chartdata(
                 'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
                 'value': item.get('volume', 0)
             }
-            for item in arr
-        ] if arr else []
+            for item in ohlc_arr
+        ] if ohlc_arr else []
     else:
         volume = [
             {
                 'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
                 'value': item['volume']
             }
-            for item in arr
-        ] if arr else []
+            for item in ohlc_arr
+        ] if ohlc_arr else []
     # Calculate MAs/EMAs
     def calcMA_py(Data, period, timeType = 'date'):
         if len(Data) < period:

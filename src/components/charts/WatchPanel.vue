@@ -29,12 +29,11 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { onMounted } from 'vue';
 
 const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
-  Tier: { type: String, required: true },
   defaultSymbol: { type: String, required: true },
   watchPanel: {
     type: Array,
@@ -47,68 +46,9 @@ const emit = defineEmits(['select-symbol', 'open-editor']);
 function selectSymbol(symbol) {
   emit('select-symbol', symbol);
 }
-
-// WebSocket for real-time updates
-let ws = null;
-function WatchPanelWebSocket() {
-  if (ws) ws.close();
-  let wsUrl;
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    wsUrl = `ws://localhost:8000/ws/watchpanel?user=${props.user}`;
-  } else {
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    wsUrl = `${protocol}://${window.location.host}/ws/watchpanel?user=${props.user}`;
-  }
-  ws = new WebSocket(wsUrl);
-
-  ws.onmessage = (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      if (data.Symbol && data.percentageReturn) {
-        const idx = props.watchPanel.findIndex(item => item.Symbol === data.Symbol);
-        if (idx !== -1) {
-          props.watchPanel.value[idx].percentageReturn = data.percentageReturn;
-        } else {
-          props.watchPanel.value.push(data);
-        }
-      }
-    } catch (err) {
-      console.error('WatchPanel WebSocket message error:', err, event.data);
-    }
-  };
-
-  ws.onerror = (err) => {
-    console.error('WatchPanel WebSocket error:', err);
-  };
-
-  ws.onclose = () => {
-    ws = null;
-    // Optionally implement reconnect logic here
-    console.warn('WatchPanel WebSocket closed');
-  };
-}
-
-// React to Tier/user changes
-watch(
-  () => [props.Tier, props.user],
-  ([newTier, newUser]) => {
-    if (newTier === 'Premium' && newUser) {
-      WatchPanelWebSocket();
-    } else if (newUser) {
-      props.fetchWatchPanel();
-      if (ws) {
-        ws.close();
-        ws = null;
-      }
-    }
-  },
-  { immediate: true }
-);
-
+// Fetch watch panel data on mount
 onMounted(() => {
-  if (props.Tier === 'Premium' && props.user) {
-    WatchPanelWebSocket();
-  } else if (props.user) {
+  if (props.user) {
     props.fetchWatchPanel();
   }
 });
