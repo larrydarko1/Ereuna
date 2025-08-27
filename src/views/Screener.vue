@@ -948,56 +948,57 @@ watch(screenerResults, (newValue) => {
   currentList.value = newValue;
 });
 
-const resultListLength = computed(() => currentList.value.length);
+const resultListLength = computed(() => {
+  switch (listMode.value) {
+    case 'main':
+      return screenerResults.value.length;
+    case 'filter':
+      return filterResults.value.length;
+    case 'hidden':
+      return HiddenResults.value.length;
+    case 'combined':
+      return compoundedResults.value.length;
+    default:
+      return 0;
+  }
+});
+
+const lastFilterMode = ref(null);
 
 // displays hidden results 
 function showHiddenResults() {
-  if (listMode.value === 'main') {
+  if (listMode.value === 'hidden') {
+    untoggleSpecialList();
+  } else {
     listMode.value = 'hidden';
     currentList.value = HiddenResults.value;
   }
-  else if (listMode.value === 'combined') {
-    listMode.value = 'hidden';
-    currentList.value = HiddenResults.value;
-  }
-  else if (listMode.value === 'filter') {
-    listMode.value = 'hidden';
-    currentList.value = HiddenResults.value;
-  }
-  else {
-    listMode.value = 'main';
-    currentList.value = screenerResults.value;
-  }
-  nextTick(() => {
-  });
+  nextTick(() => {});
 }
-
 // displays compounded results 
 function showCombinedResults() {
-  if (listMode.value === 'main') {
+  if (listMode.value === 'combined') {
+    untoggleSpecialList();
+  } else {
     listMode.value = 'combined';
     currentList.value = compoundedResults.value;
   }
-  else if (listMode.value === 'hidden') {
-    listMode.value = 'combined';
-    currentList.value = compoundedResults.value;
-  }
-  else if (listMode.value === 'filter') {
-    listMode.value = 'combined';
-    currentList.value = compoundedResults.value;
-  }
-  else {
-    listMode.value = 'main';
-    currentList.value = screenerResults.value;
-  }
-  nextTick(() => {
-  });
+  nextTick(() => {});
 }
 
 // displays filter results 
 async function showFilterResults() {
   listMode.value = 'filter';
   currentList.value = filterResults.value;
+  lastFilterMode.value = 'filter';
+}
+
+function untoggleSpecialList() {
+  if (lastFilterMode.value === 'filter') {
+    showFilterResults();
+  } else {
+    showMainResults();
+  }
 }
 
 //updates hidden counter after showStock() is called 
