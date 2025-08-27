@@ -1,7 +1,7 @@
 <template>
-  <Header />
+    <Header />
   <Assistant />
-  <section class="portfolio-container">
+  <section class="portfolio-container scrollable-content">
     <div class="portfolio-header">
       <div>
          <h1>Simulated Portfolio</h1>
@@ -1660,10 +1660,7 @@ const portfolioWithComputed = computed(() =>
     color: var(--accent1);
     font-weight: 600;
     border-bottom: 2px solid var(--base3);
-    position: sticky;
-    top: 0;
     background: var(--base2);
-    z-index: 1;
   }
 
   td {
@@ -1734,5 +1731,10 @@ const portfolioWithComputed = computed(() =>
   background: var(--base1);
   color: var(--accent1);
   font-weight: 600;
+}
+
+.scrollable-content {
+  height: calc(100vh - 72px);
+  overflow-y: auto;
 }
 </style>

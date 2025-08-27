@@ -155,24 +155,14 @@ async def market_hours_manager():
     aggregator_task = None
     higher_tf_task = None
     subscribed = False
-    assetinfo_coll = db.AssetInfo
+    # assetinfo_coll = db.AssetInfo  # Not used for now
     while True:
         try:
             if is_market_hours():
                 if not subscribed:
-                    # Fetch tickers from AssetInfo where AssetType is Stock or ETF
-                    cursor = assetinfo_coll.find({"AssetType": {"$in": ["Stock", "ETF"]}}, {"Symbol": 1})
-                    symbols = set()
-                    async for doc in cursor:
-                        syms = doc.get("Symbol")
-                        if isinstance(syms, list):
-                            for s in syms:
-                                if isinstance(s, str):
-                                    symbols.add(s.upper())
-                        elif isinstance(syms, str):
-                            symbols.add(syms.upper())
-                    stock_symbols = sorted(symbols)
-                    print(f"[MarketHours] Subscribing to {len(stock_symbols)} stock/ETF tickers from AssetInfo.")
+                    # Use hardcoded tickers for testing
+                    stock_symbols = ['TSLA', 'AAPL']
+                    print(f"[MarketHours] Subscribing to {len(stock_symbols)} stock/ETF tickers: {stock_symbols}")
                     stock_ws_url = "wss://api.tiingo.com/iex"
                     stock_subscribe_msg = {
                         "eventName": "subscribe",
@@ -244,76 +234,6 @@ async def daily_scheduler():
 async def start_daily_scheduler():
     asyncio.create_task(daily_scheduler())
 
-# --- Intraday Aggregation Fallback Scheduler ---
-SCHED_INTRADAY_HOUR = 20  # 20:00 UTC (4:00pm ET)
-SCHED_INTRADAY_MIN = 1
-
-def next_intraday_run_time(now=None):
-    now = now or dt.datetime.utcnow()
-    today_sched = now.replace(hour=SCHED_INTRADAY_HOUR, minute=SCHED_INTRADAY_MIN, second=0, microsecond=0)
-    if is_trading_day(now) and now < today_sched:
-        return today_sched
-    # Otherwise, find next trading day
-    for i in range(1, 8):
-        candidate = now + dt.timedelta(days=i)
-        if is_trading_day(candidate):
-            return candidate.replace(hour=SCHED_INTRADAY_HOUR, minute=SCHED_INTRADAY_MIN, second=0, microsecond=0)
-
-async def intraday_aggregation_scheduler():
-    while True:
-        now = dt.datetime.utcnow()
-        run_at = next_intraday_run_time(now)
-        wait = (run_at - now).total_seconds()
-        if wait > 0:
-            print(f"[Scheduler] Next intraday aggregation at {run_at} UTC ({wait/60:.1f} min)")
-            await asyncio.sleep(wait)
-        else:
-            print("[Scheduler] Running intraday aggregation now (missed scheduled time)")
-        try:
-            # Run fallback aggregation for each intraday timeframe
-            print("[Intraday Aggregation] Backfilling 5m candles...")
-            await aggregate_intraday_candles(db, 'OHCLVData1m', 'OHCLVData5m', 5)
-            print("[Intraday Aggregation] Backfilling 15m candles...")
-            await aggregate_intraday_candles(db, 'OHCLVData1m', 'OHCLVData15m', 15)
-            print("[Intraday Aggregation] Backfilling 30m candles...")
-            await aggregate_intraday_candles(db, 'OHCLVData1m', 'OHCLVData30m', 30)
-            print("[Intraday Aggregation] Backfilling 1hr candles...")
-            await aggregate_intraday_candles(db, 'OHCLVData1m', 'OHCLVData1hr', 60)
-        except Exception as e:
-            print(f"[Scheduler] Exception in intraday aggregation: {e}")
-
-@app.on_event("startup")
-async def start_intraday_aggregation_scheduler():
-    asyncio.create_task(intraday_aggregation_scheduler())
-
-@app.websocket("/ws/stream")
-async def websocket_stream(websocket: WebSocket):
-    await websocket.accept()
-    try:
-        while True:
-            msg = await message_queue.get()
-            await websocket.send_text(msg)
-    except WebSocketDisconnect:
-        pass
-    except Exception as e:
-        print(f"WebSocket error: {e}")
-        await websocket.close()
-        
-# for looking at raw messages
-@app.websocket("/ws/raw")
-async def websocket_raw(websocket: WebSocket):
-    await websocket.accept()
-    try:
-        while True:
-            msg = await message_queue.get()
-            await websocket.send_text(msg)
-    except WebSocketDisconnect:
-        pass
-    except Exception as e:
-        print(f"WebSocket error: {e}")
-        await websocket.close()
-
-
 @app.websocket("/ws/symbols")
 async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
     await websocket.accept()
@@ -357,233 +277,6 @@ async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
     except Exception as e:
         print(f"WebSocket error: {e}")
         await websocket.close()
-        
-
-
-@app.websocket("/ws/assetinfo")
-async def websocket_assetinfo(websocket: WebSocket, tickers: str = Query(...)):
-    await websocket.accept()
-    symbols = set(s.lower() for s in tickers.split(","))
-
-    # Send the latest cached value for each symbol before streaming
-    for symbol in symbols:
-        cached = latest_quotes.get(symbol)
-        if cached:
-            d = cached.get("data")
-            service = cached.get("service")
-            try:
-                if service == "iex" and isinstance(d, list) and len(d) > 2:
-                    latest_close = float(d[2])
-                    timestamp = d[0]
-                else:
-                    continue
-                # Fetch previous close from MongoDB (or cache if you have it)
-                asset_doc = await db.AssetInfo.find_one({"Symbol": symbol.upper()})
-                previous_close = None
-                if asset_doc and "TimeSeries" in asset_doc and asset_doc["TimeSeries"]:
-                    ts_dict = asset_doc["TimeSeries"]
-                    if isinstance(ts_dict, dict):
-                        ts = next(iter(ts_dict.values()))
-                        prev_close_val = ts.get("4. close")
-                        try:
-                            previous_close = float(prev_close_val)
-                        except (TypeError, ValueError):
-                            continue
-                if previous_close is not None and previous_close != 0:
-                    close_diff = latest_close - previous_close
-                    percent_change = (close_diff / previous_close) * 100
-                    payload = {
-                        "symbol": symbol.upper(),
-                        "close": latest_close,
-                        "closeDiff": f"{close_diff:+.2f}",
-                        "latestClose": latest_close,
-                        "percentChange": f"{percent_change:+.2f}%",
-                        "previousClose": previous_close,
-                        "timestamp": timestamp
-                    }
-                    await websocket.send_text(json.dumps(payload))
-            except (WebSocketDisconnect, RuntimeError):
-                return
-        else:
-            try:
-                await websocket.send_text(json.dumps({"symbol": symbol.upper(), "error": "No recent data available"}))
-            except (WebSocketDisconnect, RuntimeError):
-                return
-
-    try:
-        while True:
-            msg = await message_queue.get()
-            try:
-                data = json.loads(msg)
-                d = data.get("data")
-                service = data.get("service")
-                if service == "iex" and isinstance(d, list) and len(d) > 2:
-                    symbol = d[1].lower()
-                    if symbol not in symbols:
-                        continue
-                    latest_close = float(d[2])
-                    timestamp = d[0]
-                else:
-                    continue
-                # Fetch previous close from MongoDB
-                asset_doc = await db.AssetInfo.find_one({"Symbol": symbol.upper()})
-                previous_close = None
-                if asset_doc and "TimeSeries" in asset_doc and asset_doc["TimeSeries"]:
-                    ts_dict = asset_doc["TimeSeries"]
-                    if isinstance(ts_dict, dict):
-                        ts = next(iter(ts_dict.values()))
-                        prev_close_val = ts.get("4. close")
-                        try:
-                            previous_close = float(prev_close_val)
-                        except (TypeError, ValueError) as err:
-                            print(f"AssetInfo endpoint error: invalid '4. close' value: {prev_close_val} (type: {type(prev_close_val)}) for symbol {symbol.upper()}")
-                            traceback.print_exc()
-                            continue
-                    else:
-                        print(f"AssetInfo endpoint error: TimeSeries is not a dict for {symbol.upper()}")
-                        continue
-                if previous_close is not None and previous_close != 0:
-                    close_diff = latest_close - previous_close
-                    percent_change = (close_diff / previous_close) * 100
-                    payload = {
-                        "symbol": symbol.upper(),
-                        "close": latest_close,
-                        "closeDiff": f"{close_diff:+.2f}",
-                        "latestClose": latest_close,
-                        "percentChange": f"{percent_change:+.2f}%",
-                        "previousClose": previous_close,
-                        "timestamp": timestamp
-                    }
-                    try:
-                        await websocket.send_text(json.dumps(payload))
-                    except (WebSocketDisconnect, RuntimeError):
-                        return
-                else:
-                    print(f"AssetInfo endpoint error: missing or zero previous_close for {symbol}, got: {previous_close}")
-            except (WebSocketDisconnect, RuntimeError):
-                return
-            except Exception as e:
-                print(f"AssetInfo endpoint error: {e}")
-                traceback.print_exc()
-                continue
-    except WebSocketDisconnect:
-        pass
-    except Exception as e:
-        print(f"WebSocket error: {e}")
-        traceback.print_exc()
-        await websocket.close()
-
-
-@app.websocket("/ws/watchpanel")
-async def websocket_watchpanel(websocket: WebSocket, user: str = Query(...)):
-    await websocket.accept()
-    try:
-        # Fetch user's WatchPanel list from Users collection
-        user_doc = await db.Users.find_one({"Username": user})
-        if not user_doc or "WatchPanel" not in user_doc:
-            await websocket.send_text(json.dumps({"error": "User or WatchPanel not found"}))
-            await websocket.close()
-            return
-
-        watchpanel_symbols = [s.lower() for s in user_doc["WatchPanel"] if isinstance(s, str)]
-        if not watchpanel_symbols:
-            await websocket.send_text(json.dumps({"error": "No symbols in WatchPanel"}))
-            await websocket.close()
-            return
-
-        # Send the latest cached value for each symbol before streaming
-        for symbol in watchpanel_symbols:
-            cached = latest_quotes.get(symbol)
-            if cached:
-                d = cached.get("data")
-                service = cached.get("service")
-                try:
-                    if service == "iex" and isinstance(d, list) and len(d) > 2:
-                        latest_close = float(d[2])
-                    else:
-                        continue
-
-                    # Fetch previous close from MongoDB (or cache if you have it)
-                    asset_doc = await db.AssetInfo.find_one({"Symbol": symbol.upper()})
-                    previous_close = None
-                    if asset_doc and "TimeSeries" in asset_doc and asset_doc["TimeSeries"]:
-                        ts_dict = asset_doc["TimeSeries"]
-                        if isinstance(ts_dict, dict):
-                            ts = next(iter(ts_dict.values()))
-                            prev_close_val = ts.get("4. close")
-                            try:
-                                previous_close = float(prev_close_val)
-                            except (TypeError, ValueError):
-                                continue
-                    if previous_close is not None and previous_close != 0:
-                        percent_change = (latest_close - previous_close) / previous_close * 100
-                        payload = {
-                            "Symbol": symbol.upper(),
-                            "percentageReturn": f"{percent_change:+.2f}%"
-                        }
-                        await websocket.send_text(json.dumps(payload))
-                except (WebSocketDisconnect, RuntimeError):
-                    return
-            else:
-                try:
-                    await websocket.send_text(json.dumps({"Symbol": symbol.upper(), "error": "No recent data available"}))
-                except (WebSocketDisconnect, RuntimeError):
-                    return
-
-        # Now continue streaming new updates as they arrive
-        while True:
-            msg = await message_queue.get()
-            try:
-                data = json.loads(msg)
-                d = data.get("data")
-                service = data.get("service")
-
-                if service == "iex" and isinstance(d, list) and len(d) > 2:
-                    symbol = d[1].lower()
-                    latest_close = float(d[2])
-                    timestamp = d[0]
-                else:
-                    continue
-
-                if symbol not in watchpanel_symbols:
-                    continue
-
-                # Fetch previous close from MongoDB
-                asset_doc = await db.AssetInfo.find_one({"Symbol": symbol.upper()})
-                previous_close = None
-                if asset_doc and "TimeSeries" in asset_doc and asset_doc["TimeSeries"]:
-                    ts_dict = asset_doc["TimeSeries"]
-                    if isinstance(ts_dict, dict):
-                        ts = next(iter(ts_dict.values()))
-                        prev_close_val = ts.get("4. close")
-                        try:
-                            previous_close = float(prev_close_val)
-                        except (TypeError, ValueError):
-                            continue
-                    else:
-                        continue
-
-                if previous_close is not None and previous_close != 0:
-                    percent_change = (latest_close - previous_close) / previous_close * 100
-                    payload = {
-                        "Symbol": symbol.upper(),
-                        "percentageReturn": f"{percent_change:+.2f}%"
-                    }
-                    try:
-                        await websocket.send_text(json.dumps(payload))
-                    except (WebSocketDisconnect, RuntimeError):
-                        return
-            except (WebSocketDisconnect, RuntimeError):
-                return
-            except Exception:
-                continue
-    except WebSocketDisconnect:
-        pass
-    except Exception as e:
-        print(f"WebSocket error: {e}")
-        traceback.print_exc()
-        await websocket.close()
-
 
 # --- WebSocket endpoint for chart data, matching REST API logic ---
 @app.websocket('/ws/chartdata')
@@ -628,7 +321,7 @@ async def websocket_chartdata(
         'intraday5m': '5m',
         'intraday15m': '15m',
         'intraday30m': '30m',
-        'intraday1hr': '60m',
+        'intraday1hr': '1hr',
     }[timeframe]
     cached_candle = None
     # Find the latest in-progress candle in pubsub_channels (if any)
@@ -861,11 +554,3 @@ async def websocket_chartdata(
             await websocket.close()
         except Exception:
             pass
-
-# To run: uvicorn ws.main:app --reload
-# wscat -c "ws://localhost:8000/ws/stream"
-# wscat -c "ws://localhost:8000/ws/assetinfo?tickers=TSLA,AAPL,BTCUSD"
-# wscat -c "ws://localhost:8000/ws/watchpanel?user=LarryDarko"
-# wscat -c "ws://localhost:8000/ws/symbols?symbols=RDDT,TSLA"
-# wscat -c "ws://localhost:8000/ws/raw" - this listens to raw messages to better understand the data structure
-# wscat -c "ws://localhost:8000/ws/chartdata?ticker=TSLA&timeframe=daily&user=LarryDarko"

@@ -2071,7 +2071,7 @@ function handleImportWatchlistRefresh() {
   z-index: 10;
   margin: 2px;
   box-sizing: border-box;
-  height: 200px;
+  height: 145px;
 }
 
 #sidebar-right {
@@ -2573,7 +2573,7 @@ function handleImportWatchlistRefresh() {
 
 .wlist:hover {
   cursor: pointer;
-  background-color: rgba(var(--base2), 0.80);
+  background-color: var(--base3);
 }
 
 .wlist .dbtn {
@@ -2586,7 +2586,7 @@ function handleImportWatchlistRefresh() {
 }
 
 .wlist.selected {
-  background-color: var(--accent4);
+  background-color: var(--base3);
   background-size: 400% 100%;
   color: var(--text1);
 }
