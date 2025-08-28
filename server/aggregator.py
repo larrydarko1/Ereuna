@@ -38,23 +38,45 @@ def get_1min_bucket(ts):
         raise ValueError("Unknown timestamp format")
     return dt.replace(second=0, microsecond=0)
 
+"""
+Module-level caches and helper
+"""
+candles = {}  # {(symbol, bucket): candle_dict} for 1m candles
+pending_candles = {}  # {(symbol, timeframe): candle_dict} for higher timeframes
+
+def get_latest_in_progress_candle(symbol, timeframe):
+    """
+    Returns the latest in-progress candle for the given symbol and timeframe.
+    For '1m', finds the candle in 'candles' with the latest timestamp for symbol.
+    For higher timeframes, returns from 'pending_candles'.
+    """
+    if timeframe == '1m':
+        relevant = [(k, v) for k, v in candles.items() if k[0] == symbol]
+        if not relevant:
+            return None
+        latest = max(relevant, key=lambda x: x[0][1])
+        cndl = latest[1]
+        return {**cndl, 'final': False}
+    else:
+        cndl = pending_candles.get((symbol, timeframe))
+        if cndl and not cndl.get('final', False):
+            return cndl.copy()
+        return None
+
+HIGHER_TIMEFRAMES = {
+    '5m': 5,
+    '15m': 15,
+    '30m': 30,
+    '1hr': 60
+}
+
 async def start_aggregator(message_queue, mongo_client):
-    # In-memory cache for pending higher timeframe candles
-    # Structure: { (symbol, timeframe): { 'open': ..., 'high': ..., ... , 'start': datetime, 'end': datetime, 'final': bool } }
-    pending_candles = {}
-    HIGHER_TIMEFRAMES = {
-        '5m': 5,
-        '15m': 15,
-        '30m': 30,
-        '1hr': 60
-    }
     # Ensure mongo_client is a Motor client
     if not hasattr(mongo_client, 'get_database'):
         logger.error("mongo_client is not a Motor client. Please use motor.motor_asyncio.AsyncIOMotorClient.")
         raise TypeError("mongo_client must be a Motor AsyncIOMotorClient instance.")
     db = mongo_client.get_database('EreunaDB')
     collection = db.get_collection('OHCLVData1m')
-    candles = {}  # {(symbol, bucket): candle_dict}
 
     try:
         processed_count = 0

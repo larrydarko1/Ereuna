@@ -12,7 +12,6 @@ import motor.motor_asyncio
 from pymongo import UpdateOne, DeleteOne, InsertOne
 import asyncio
 import logging
-from intraday_aggregation import aggregate_intraday_candles
 
 logger = logging.getLogger("organizer")
 logger.setLevel(logging.INFO)
