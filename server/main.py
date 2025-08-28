@@ -90,22 +90,41 @@ def is_market_hours():
     close_time = now.replace(hour=MARKET_CLOSE_HOUR, minute=MARKET_CLOSE_MINUTE, second=0, microsecond=0)
     return open_time <= now <= close_time
 
+# Subscription management
 manual_override_active = False
-tiingo_ws = None
+current_subscription_id = None  # Stores active subscriptionId
+current_tickers = []           # Stores tickers for current subscription
+current_subscribe_msg = None   # Stores last subscribe message
+current_tiingo_ws = None       # Stores active websocket
 
 async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
+    global current_subscription_id, current_tickers, current_subscribe_msg, current_tiingo_ws
     while True:
+        if manual_override_active:
+            print("[relay_tiingo] Manual override active, stopping relay loop.")
+            break
         try:
             async with websockets.connect(ws_url, ssl=ssl_ctx) as tiingo_ws:
+                current_tiingo_ws = tiingo_ws
                 await tiingo_ws.send(json.dumps(subscribe_msg))
-                # Log the full response object after subscribing
+                current_subscribe_msg = subscribe_msg
                 try:
                     subscribe_response = await asyncio.wait_for(tiingo_ws.recv(), timeout=5)
                     print(f"[relay_tiingo] Initial subscribe response: {subscribe_response}")
+                    try:
+                        resp_obj = json.loads(subscribe_response)
+                        current_subscription_id = resp_obj.get('data', {}).get('subscriptionId')
+                        print(f"[relay_tiingo] Extracted subscriptionId: {current_subscription_id}")
+                        current_tickers = subscribe_msg.get("eventData", {}).get("tickers", [])
+                    except Exception as e:
+                        print(f"[relay_tiingo] Error parsing subscriptionId: {e}")
                 except Exception as e:
                     print(f"[relay_tiingo] Error receiving initial subscribe response: {e}")
                 try:
                     while True:
+                        if manual_override_active:
+                            print("[relay_tiingo] Manual override active, closing websocket and exiting.")
+                            break
                         msg = await tiingo_ws.recv()
                         try:
                             tiingo_data = json.loads(msg)
@@ -118,16 +137,13 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                             if filter_fn(tiingo_data):
                                 d = tiingo_data.get("data")
                                 service = tiingo_data.get("service")
-                                # --- Bandwidth measurement for stocks only ---
                                 if service == "iex" and isinstance(d, list) and len(d) > 2:
                                     symbol = d[1].lower()
                                     msg_bytes = len(msg.encode("utf-8"))
                                     stats = stock_bandwidth_stats.setdefault(symbol, {'bytes': 0, 'messages': 0})
                                     stats['bytes'] += msg_bytes
                                     stats['messages'] += 1
-                                    # --- Cache the latest quote ---
                                     latest_quotes[symbol] = tiingo_data
-                                    # --- End cache ---
                                     try:
                                         await message_queue.put(json.dumps(tiingo_data))
                                     except asyncio.QueueFull:
@@ -135,20 +151,18 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                                         await message_queue.put(json.dumps(tiingo_data))
                 except Exception as inner_e:
                     print(f"relay_tiingo inner exception: {inner_e}")
-                    # --- Explicitly unsubscribe from all tickers before closing ---
                     try:
-                        # Per Tiingo docs 3.3.2, unsubscribe by sending a subscribe event with an empty tickers array (updates active tickers)
                         unsubscribe_msg = {
-                            "eventName": "subscribe",
+                            "eventName": "unsubscribe",
                             "authorization": subscribe_msg.get("authorization"),
                             "eventData": {
-                                "tickers": []
+                                "subscriptionId": current_subscription_id,
+                                "tickers": current_tickers
                             }
                         }
-                        print("[relay_tiingo] Triggering unsubscribe: sending subscribe with empty tickers array...")
+                        print(f"[relay_tiingo] Triggering unsubscribe: {unsubscribe_msg}")
                         await tiingo_ws.send(json.dumps(unsubscribe_msg))
-                        print("[relay_tiingo] Sent unsubscribe (subscribe with empty tickers array)")
-                        # Try to receive and log Tiingo response after unsubscribe
+                        print("[relay_tiingo] Sent unsubscribe (with subscriptionId)")
                         try:
                             response = await asyncio.wait_for(tiingo_ws.recv(), timeout=2)
                             print(f"[relay_tiingo] Tiingo response after unsubscribe: {response}")
@@ -158,12 +172,21 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                             print(f"[relay_tiingo] Error receiving Tiingo response after unsubscribe: {resp_e}")
                     except Exception as unsub_e:
                         print(f"Error sending unsubscribe: {unsub_e}")
-                    # Now close the websocket (context manager will handle)
+                    current_subscription_id = None
+                    current_tickers = []
+                    current_subscribe_msg = None
+                    current_tiingo_ws = None
+                    if manual_override_active:
+                        print("[relay_tiingo] Manual override active after exception, exiting relay loop.")
+                        break
                     raise inner_e
         except Exception as e:
             print(f"Exception in relay_tiingo: {e}")
             print_total_bandwidth()
-            await asyncio.sleep(5)  # Retry after delay
+            if manual_override_active:
+                print("[relay_tiingo] Manual override active after outer exception, exiting relay loop.")
+                break
+            await asyncio.sleep(5)
 
 # --- Market hours background manager ---
 async def market_hours_manager():
@@ -177,17 +200,27 @@ async def market_hours_manager():
     stock_subscribe_msg = None
     # tiingo_ws is now always global
     while True:
+        if manual_override_active:
+            print("[MarketHours] Manual override active, stopping market hours manager loop.")
+            # Cancel relay and aggregator tasks if running
+            for t in [tiingo_task, aggregator_task, higher_tf_task]:
+                if t:
+                    t.cancel()
+                    try:
+                        await t
+                    except Exception:
+                        pass
+            break
         try:
             if is_market_hours():
+                if manual_override_active:
+                    print("[MarketHours] Manual override active: stopping subscription attempts.")
+                    break
                 if not subscribed:
                     # Use hardcoded tickers for testing
-                    if manual_override_active:
-                        tickers_to_subscribe = []
-                        print(f"[MarketHours] Manual override active: subscribing to empty tickers array (unsubscribe all)")
-                    else:
-                        stock_symbols = ['AAPL']
-                        tickers_to_subscribe = stock_symbols
-                        print(f"[MarketHours] Subscribing to {len(stock_symbols)} stock/ETF tickers: {stock_symbols}")
+                    stock_symbols = ['TSLA']
+                    tickers_to_subscribe = stock_symbols
+                    print(f"[MarketHours] Subscribing to {len(stock_symbols)} stock/ETF tickers: {stock_symbols}")
                     stock_subscribe_msg = {
                         "eventName": "subscribe",
                         "authorization": TIINGO_API_KEY,
@@ -209,13 +242,14 @@ async def market_hours_manager():
                     # Send unsubscribe message before closing connection
                     try:
                         unsubscribe_msg = {
-                            "eventName": "subscribe",
+                            "eventName": "unsubscribe",
                             "authorization": TIINGO_API_KEY,
                             "eventData": {
-                                "tickers": []
+                                "subscriptionId": current_subscription_id,
+                                "tickers": current_tickers
                             }
                         }
-                        print("[MarketHours] Sending unsubscribe message to Tiingo...")
+                        print(f"[MarketHours] Sending unsubscribe message to Tiingo: {unsubscribe_msg}")
                         if tiingo_ws:
                             await tiingo_ws.send(json.dumps(unsubscribe_msg))
                             try:
@@ -255,27 +289,23 @@ async def start_market_hours_manager():
     asyncio.create_task(market_hours_manager())
 
 # --- Admin endpoint to manually unsubscribe all tickers ---
-
 @app.post("/admin/unsubscribe_all")
 async def admin_unsubscribe_all():
     global tiingo_ws, manual_override_active
     manual_override_active = True
     unsubscribe_msg = {
-        "eventName": "subscribe",
+        "eventName": "unsubscribe",
         "authorization": TIINGO_API_KEY,
         "eventData": {
-            "tickers": []
+            "subscriptionId": current_subscription_id,
+            "tickers": current_tickers
         }
     }
     try:
-        await tiingo_ws.send(json.dumps(unsubscribe_msg))
-        try:
-            response = await asyncio.wait_for(tiingo_ws.recv(), timeout=20)
-            print(f"[Admin] Unsubscribe response: {response}")
-        except Exception as resp_e:
-            response = None
-            print(f"[Admin] No response or error after unsubscribe: {resp_e}")
-        return {"status": "unsubscribed", "response": response}
+        await current_tiingo_ws.send(json.dumps(unsubscribe_msg))
+        print(f"[Admin] Unsubscribe message sent.")
+        # Do not call recv() here; relay_tiingo will handle the response.
+        return {"status": "unsubscribed", "message": "Unsubscribe message sent."}
     except Exception as e:
         print(f"[Admin] Error during unsubscribe: {e}")
         return {"status": "error", "message": str(e)}
