@@ -129,16 +129,25 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                     print(f"relay_tiingo inner exception: {inner_e}")
                     # --- Explicitly unsubscribe from all tickers before closing ---
                     try:
-                        # Build unsubscribe message using the same tickers as subscribe_msg
+                        # Per Tiingo docs 3.3.2, unsubscribe by sending a subscribe event with an empty tickers array
                         unsubscribe_msg = {
-                            "eventName": "unsubscribe",
+                            "eventName": "subscribe",
                             "authorization": subscribe_msg.get("authorization"),
                             "eventData": {
-                                "tickers": subscribe_msg.get("eventData", {}).get("tickers", [])
+                                "tickers": []
                             }
                         }
+                        print("[relay_tiingo] Triggering unsubscribe: sending subscribe with empty tickers array...")
                         await tiingo_ws.send(json.dumps(unsubscribe_msg))
-                        print(f"Sent explicit unsubscribe for tickers: {unsubscribe_msg['eventData']['tickers']}")
+                        print("[relay_tiingo] Sent unsubscribe (subscribe with empty tickers array)")
+                        # Try to receive and log Tiingo response after unsubscribe
+                        try:
+                            response = await asyncio.wait_for(tiingo_ws.recv(), timeout=2)
+                            print(f"[relay_tiingo] Tiingo response after unsubscribe: {response}")
+                        except asyncio.TimeoutError:
+                            print("[relay_tiingo] No response from Tiingo after unsubscribe (timeout)")
+                        except Exception as resp_e:
+                            print(f"[relay_tiingo] Error receiving Tiingo response after unsubscribe: {resp_e}")
                     except Exception as unsub_e:
                         print(f"Error sending unsubscribe: {unsub_e}")
                     # Now close the websocket (context manager will handle)
@@ -233,50 +242,6 @@ async def daily_scheduler():
 @app.on_event("startup")
 async def start_daily_scheduler():
     asyncio.create_task(daily_scheduler())
-
-@app.websocket("/ws/symbols")
-async def websocket_symbols(websocket: WebSocket, symbols: str = Query(...)):
-    await websocket.accept()
-    symbol_set = set(s.lower() for s in symbols.split(","))
-    # Send the latest cached value for each symbol before streaming
-    for symbol in symbol_set:
-        cached = latest_quotes.get(symbol)
-        if cached:
-            d = cached.get("data")
-            service = cached.get("service")
-            try:
-                if service == "iex" and isinstance(d, list) and len(d) > 2:
-                    price = float(d[2])
-                    await websocket.send_text(f"{symbol.upper()}: {price}")
-            except (WebSocketDisconnect, RuntimeError):
-                return
-        else:
-            try:
-                await websocket.send_text(f"{symbol.upper()}: No recent data available")
-            except (WebSocketDisconnect, RuntimeError):
-                return
-
-    try:
-        while True:
-            msg = await message_queue.get()
-            try:
-                data = json.loads(msg)
-                d = data.get("data")
-                if isinstance(d, list) and len(d) > 2 and isinstance(d[1], str) and data.get("service") == "iex":
-                    symbol = d[1].upper()
-                    price = float(d[2])
-                    if symbol.lower() in symbol_set:
-                        try:
-                            await websocket.send_text(f"{symbol}: {price}")
-                        except (WebSocketDisconnect, RuntimeError):
-                            return
-            except Exception:
-                continue
-    except WebSocketDisconnect:
-        pass
-    except Exception as e:
-        print(f"WebSocket error: {e}")
-        await websocket.close()
 
 # --- WebSocket endpoint for chart data, matching REST API logic ---
 @app.websocket('/ws/chartdata')
@@ -447,7 +412,7 @@ async def websocket_chartdata(
         'intraday5m': '5m',
         'intraday15m': '15m',
         'intraday30m': '30m',
-        'intraday1hr': '60m',
+        'intraday1hr': '1hr',
     }[timeframe]
     q = asyncio.Queue()
     pubsub_channels[(ticker, pubsub_tf)].append(q)
