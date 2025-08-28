@@ -13,12 +13,22 @@ import ssl
 import asyncio
 import motor.motor_asyncio
 import traceback
+import logging
 from aggregator import start_aggregator, pubsub_channels
 from bson import ObjectId
 from dateutil.parser import isoparse
 import datetime
 
 load_dotenv()
+
+# --- Logging setup ---
+LOG_FILE = 'websocket.log'
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(name)s %(message)s',
+    handlers=[logging.FileHandler(LOG_FILE), logging.StreamHandler()]
+)
+logger = logging.getLogger("websocket")
 TIINGO_API_KEY = os.getenv('TIINGO_KEY')
 
 app = FastAPI()
@@ -99,27 +109,30 @@ current_tiingo_ws = None       # Stores active websocket
 
 async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
     global current_subscription_id, current_tickers, current_subscribe_msg, current_tiingo_ws
+    logger.info(f"Starting relay_tiingo for tickers: {subscribe_msg.get('eventData', {}).get('tickers', [])}")
     while True:
         if manual_override_active:
-            print("[relay_tiingo] Manual override active, stopping relay loop.")
+            logger.info("[relay_tiingo] Manual override active, stopping relay loop.")
             break
         try:
+            logger.info(f"Connecting to Tiingo websocket: {ws_url}")
             async with websockets.connect(ws_url, ssl=ssl_ctx) as tiingo_ws:
                 current_tiingo_ws = tiingo_ws
+                logger.info(f"Sending subscribe message: {subscribe_msg}")
                 await tiingo_ws.send(json.dumps(subscribe_msg))
                 current_subscribe_msg = subscribe_msg
                 try:
                     subscribe_response = await asyncio.wait_for(tiingo_ws.recv(), timeout=5)
-                    print(f"[relay_tiingo] Initial subscribe response: {subscribe_response}")
+                    logger.info(f"[relay_tiingo] Initial subscribe response: {subscribe_response}")
                     try:
                         resp_obj = json.loads(subscribe_response)
                         current_subscription_id = resp_obj.get('data', {}).get('subscriptionId')
-                        print(f"[relay_tiingo] Extracted subscriptionId: {current_subscription_id}")
+                        logger.info(f"[relay_tiingo] Extracted subscriptionId: {current_subscription_id}")
                         current_tickers = subscribe_msg.get("eventData", {}).get("tickers", [])
                     except Exception as e:
-                        print(f"[relay_tiingo] Error parsing subscriptionId: {e}")
+                        logger.error(f"[relay_tiingo] Error parsing subscriptionId: {e}")
                 except Exception as e:
-                    print(f"[relay_tiingo] Error receiving initial subscribe response: {e}")
+                    logger.error(f"[relay_tiingo] Error receiving initial subscribe response: {e}")
                 try:
                     while True:
                         if manual_override_active:
@@ -129,7 +142,7 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                         try:
                             tiingo_data = json.loads(msg)
                         except Exception as e:
-                            print(f"JSON decode error: {e}")
+                            logger.error(f"JSON decode error: {e}")
                             continue
                         if isinstance(tiingo_data, dict):
                             if tiingo_data.get("messageType") in ("I", "H"):
@@ -147,10 +160,11 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                                     try:
                                         await message_queue.put(json.dumps(tiingo_data))
                                     except asyncio.QueueFull:
+                                        logger.warning(f"Message queue full, dropping oldest for symbol: {symbol}")
                                         await message_queue.get()
                                         await message_queue.put(json.dumps(tiingo_data))
                 except Exception as inner_e:
-                    print(f"relay_tiingo inner exception: {inner_e}")
+                    logger.error(f"relay_tiingo inner exception: {inner_e}")
                     try:
                         unsubscribe_msg = {
                             "eventName": "unsubscribe",
@@ -160,31 +174,31 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                                 "tickers": current_tickers
                             }
                         }
-                        print(f"[relay_tiingo] Triggering unsubscribe: {unsubscribe_msg}")
+                        logger.info(f"[relay_tiingo] Triggering unsubscribe: {unsubscribe_msg}")
                         await tiingo_ws.send(json.dumps(unsubscribe_msg))
-                        print("[relay_tiingo] Sent unsubscribe (with subscriptionId)")
+                        logger.info("[relay_tiingo] Sent unsubscribe (with subscriptionId)")
                         try:
                             response = await asyncio.wait_for(tiingo_ws.recv(), timeout=2)
-                            print(f"[relay_tiingo] Tiingo response after unsubscribe: {response}")
+                            logger.info(f"[relay_tiingo] Tiingo response after unsubscribe: {response}")
                         except asyncio.TimeoutError:
-                            print("[relay_tiingo] No response from Tiingo after unsubscribe (timeout)")
+                            logger.warning("[relay_tiingo] No response from Tiingo after unsubscribe (timeout)")
                         except Exception as resp_e:
-                            print(f"[relay_tiingo] Error receiving Tiingo response after unsubscribe: {resp_e}")
+                            logger.error(f"[relay_tiingo] Error receiving Tiingo response after unsubscribe: {resp_e}")
                     except Exception as unsub_e:
-                        print(f"Error sending unsubscribe: {unsub_e}")
+                        logger.error(f"Error sending unsubscribe: {unsub_e}")
                     current_subscription_id = None
                     current_tickers = []
                     current_subscribe_msg = None
                     current_tiingo_ws = None
                     if manual_override_active:
-                        print("[relay_tiingo] Manual override active after exception, exiting relay loop.")
+                        logger.info("[relay_tiingo] Manual override active after exception, exiting relay loop.")
                         break
                     raise inner_e
         except Exception as e:
-            print(f"Exception in relay_tiingo: {e}")
+            logger.error(f"Exception in relay_tiingo: {e}")
             print_total_bandwidth()
             if manual_override_active:
-                print("[relay_tiingo] Manual override active after outer exception, exiting relay loop.")
+                logger.info("[relay_tiingo] Manual override active after outer exception, exiting relay loop.")
                 break
             await asyncio.sleep(5)
 
@@ -199,9 +213,10 @@ async def market_hours_manager():
     ws_url = "wss://api.tiingo.com/iex"
     stock_subscribe_msg = None
     # tiingo_ws is now always global
+    logger.info("Starting market_hours_manager loop.")
     while True:
         if manual_override_active:
-            print("[MarketHours] Manual override active, stopping market hours manager loop.")
+            logger.info("[MarketHours] Manual override active, stopping market hours manager loop.")
             # Cancel relay and aggregator tasks if running
             for t in [tiingo_task, aggregator_task, higher_tf_task]:
                 if t:
@@ -220,7 +235,7 @@ async def market_hours_manager():
                     # Use hardcoded tickers for testing
                     stock_symbols = ['TSLA']
                     tickers_to_subscribe = stock_symbols
-                    print(f"[MarketHours] Subscribing to {len(stock_symbols)} stock/ETF tickers: {stock_symbols}")
+                    logger.info(f"[MarketHours] Subscribing to {len(stock_symbols)} stock/ETF tickers: {stock_symbols}")
                     stock_subscribe_msg = {
                         "eventName": "subscribe",
                         "authorization": TIINGO_API_KEY,
@@ -249,19 +264,19 @@ async def market_hours_manager():
                                 "tickers": current_tickers
                             }
                         }
-                        print(f"[MarketHours] Sending unsubscribe message to Tiingo: {unsubscribe_msg}")
+                        logger.info(f"[MarketHours] Sending unsubscribe message to Tiingo: {unsubscribe_msg}")
                         if tiingo_ws:
                             await tiingo_ws.send(json.dumps(unsubscribe_msg))
                             try:
                                 response = await asyncio.wait_for(tiingo_ws.recv(), timeout=2)
-                                print(f"[MarketHours] Tiingo response after unsubscribe: {response}")
+                                logger.info(f"[MarketHours] Tiingo response after unsubscribe: {response}")
                             except asyncio.TimeoutError:
-                                print("[MarketHours] No response from Tiingo after unsubscribe (timeout)")
+                                logger.warning("[MarketHours] No response from Tiingo after unsubscribe (timeout)")
                             except Exception as resp_e:
-                                print(f"[MarketHours] Error receiving Tiingo response after unsubscribe: {resp_e}")
+                                logger.error(f"[MarketHours] Error receiving Tiingo response after unsubscribe: {resp_e}")
                             await tiingo_ws.close()
                     except Exception as unsub_e:
-                        print(f"[MarketHours] Error sending unsubscribe: {unsub_e}")
+                        logger.error(f"[MarketHours] Error sending unsubscribe: {unsub_e}")
                     # Cancel relay and aggregator tasks
                     for t in [tiingo_task, aggregator_task, higher_tf_task]:
                         if t:
@@ -277,7 +292,7 @@ async def market_hours_manager():
                     subscribed = False
             await asyncio.sleep(10)  # Check every 10 seconds
         except Exception as e:
-            print(f"[MarketHours] Exception in market_hours_manager: {e}")
+            logger.error(f"[MarketHours] Exception in market_hours_manager: {e}")
             import traceback
             traceback.print_exc()
             await asyncio.sleep(10)
@@ -286,6 +301,7 @@ async def market_hours_manager():
 # Start the market hours manager on startup
 @app.on_event("startup")
 async def start_market_hours_manager():
+    logger.info("Starting market_hours_manager task on startup.")
     asyncio.create_task(market_hours_manager())
 
 # --- Admin endpoint to manually unsubscribe all tickers ---
@@ -302,25 +318,29 @@ async def admin_unsubscribe_all():
         }
     }
     try:
+        logger.info(f"[Admin] Sending unsubscribe_all: {unsubscribe_msg}")
         await current_tiingo_ws.send(json.dumps(unsubscribe_msg))
-        print(f"[Admin] Unsubscribe message sent.")
+        logger.info(f"[Admin] Unsubscribe message sent.")
         # Do not call recv() here; relay_tiingo will handle the response.
         return {"status": "unsubscribed", "message": "Unsubscribe message sent."}
     except Exception as e:
-        print(f"[Admin] Error during unsubscribe: {e}")
+        logger.error(f"[Admin] Error during unsubscribe: {e}")
         return {"status": "error", "message": str(e)}
 
 # --- WebSocket endpoint for operator to monitor raw Tiingo stream ---
 @app.websocket("/ws/tiingo_raw")
 async def websocket_tiingo_raw(websocket: WebSocket):
+    logger.info("Operator connected to /ws/tiingo_raw websocket.")
     await websocket.accept()
     try:
         while True:
             msg = await message_queue.get()
+            logger.info(f"Sending raw Tiingo message to operator: {msg[:200]}...")
             await websocket.send_text(msg)
     except WebSocketDisconnect:
-        pass
+        logger.info("Operator disconnected from /ws/tiingo_raw websocket.")
     except Exception as e:
+        logger.error(f"Error in /ws/tiingo_raw websocket: {e}")
         await websocket.send_text(json.dumps({"error": str(e)}))
     finally:
         await websocket.close()
@@ -366,6 +386,7 @@ async def websocket_chartdata(
     timeframe: str = Query('daily'),
     user: str = Query(None)
 ):
+    logger.info(f"Client connected to /ws/chartdata: ticker={ticker}, timeframe={timeframe}, user={user}")
     await websocket.accept()
     ticker = ticker.upper()
     # Map timeframe to collection and time format
@@ -379,6 +400,7 @@ async def websocket_chartdata(
         'intraday1hr':  (db['OHCLVData1hr'], 'datetime', 24),
     }
     if timeframe not in tf_map:
+        logger.warning(f"Invalid timeframe requested: {timeframe}")
         await websocket.send_text(json.dumps({'error': 'Invalid timeframe'}))
         await websocket.close()
         return
@@ -531,12 +553,12 @@ async def websocket_chartdata(
     }[timeframe]
     q = asyncio.Queue()
     pubsub_channels[(ticker, pubsub_tf)].append(q)
+    logger.info(f"Subscribed to pubsub for {ticker} ({pubsub_tf})")
     try:
         in_progress_candle = None
         while True:
             try:
                 cndl = await q.get()
-                # Check if this is a finalized candle (has 'final': True)
                 is_final = cndl.get('final', False)
                 if is_final:
                     arr.append(cndl)
@@ -544,16 +566,13 @@ async def websocket_chartdata(
                         arr = arr[-length:]
                     in_progress_candle = None
                 else:
-                    # In-progress candle: update or append
                     in_progress_candle = cndl
-                # Build ohlc array: arr + in-progress candle (if any and not duplicate)
                 ohlc_arr = arr.copy()
                 if in_progress_candle:
                     if not ohlc_arr or ohlc_arr[-1]['timestamp'] != in_progress_candle['timestamp']:
                         ohlc_arr.append(in_progress_candle)
                     else:
                         ohlc_arr[-1] = in_progress_candle
-                # Format ohlc for frontend
                 ohlc = [
                     {
                         'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
@@ -564,7 +583,6 @@ async def websocket_chartdata(
                     }
                     for item in ohlc_arr
                 ]
-                # Use 0 for missing volume in 1m timeframe
                 if timeframe == 'intraday1m':
                     volume = [
                         {
@@ -581,7 +599,6 @@ async def websocket_chartdata(
                         }
                         for item in ohlc_arr
                     ]
-                # Recalc MAs/EMAs
                 ma_data = {}
                 if chartSettings and isinstance(chartSettings.get('indicators'), list):
                     for idx, indicator in enumerate(chartSettings['indicators']):
@@ -597,7 +614,6 @@ async def websocket_chartdata(
                     ma_data['MA2'] = calcMA_py(ohlc_arr, 20, timeType) if ohlc_arr else []
                     ma_data['MA3'] = calcMA_py(ohlc_arr, 50, timeType) if ohlc_arr else []
                     ma_data['MA4'] = calcMA_py(ohlc_arr, 200, timeType) if ohlc_arr else []
-                # IntrinsicValue (only recalc if needed)
                 intrinsicValue = None
                 if chartSettings and chartSettings.get('intrinsicValue', {}).get('visible'):
                     assetInfo = await db.AssetInfo.find_one({'Symbol': ticker})
@@ -610,15 +626,13 @@ async def websocket_chartdata(
                 }
                 if intrinsicValue is not None:
                     update_payload['intrinsicValue'] = intrinsicValue
-                import logging
-                logger = logging.getLogger("chartdata_ws")
-                logger.info(f"Sending update to frontend: ticker={ticker}, timeframe={timeframe}, update_payload={update_payload}")
                 await websocket.send_text(json.dumps({'type': 'update', 'data': update_payload}))
             except WebSocketDisconnect:
+                logger.info(f"Client disconnected from /ws/chartdata: ticker={ticker}, timeframe={timeframe}, user={user}")
                 break
             except Exception as e:
+                logger.error(f"Exception in /ws/chartdata loop: {e}")
                 import traceback
-                print(f"Exception in /ws/chartdata loop: {e}")
                 traceback.print_exc()
                 try:
                     await websocket.send_text(json.dumps({'error': str(e)}))

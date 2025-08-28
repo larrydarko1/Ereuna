@@ -22,9 +22,6 @@ def get_bucket(ts, minutes):
 pubsub_channels = defaultdict(list)
 
 async def publish_candle(symbol, timeframe, candle):
-    import logging
-    logger = logging.getLogger("aggregator")
-    logger.info(f"Publishing candle: symbol={symbol}, timeframe={timeframe}, candle={candle}")
     for queue in pubsub_channels[(symbol, timeframe)]:
         await queue.put(candle)
 
