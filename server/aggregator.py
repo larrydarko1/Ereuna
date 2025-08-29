@@ -1,10 +1,11 @@
 import asyncio
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, time as dt_time
 import logging
 import motor.motor_asyncio
 from organizer import updateTimeSeries
 from collections import defaultdict
+import pytz
 
 def get_bucket(ts, minutes):
     if isinstance(ts, (int, float)):
@@ -63,6 +64,7 @@ def get_latest_in_progress_candle(symbol, timeframe):
             return cndl.copy()
         return None
 
+
 HIGHER_TIMEFRAMES = {
     '5m': 5,
     '15m': 15,
@@ -70,13 +72,19 @@ HIGHER_TIMEFRAMES = {
     '1hr': 60
 }
 
+# Daily candle cache: {(symbol): candle_dict}
+pending_daily_candles = {}
+
 async def start_aggregator(message_queue, mongo_client):
     # Ensure mongo_client is a Motor client
     if not hasattr(mongo_client, 'get_database'):
         logger.error("mongo_client is not a Motor client. Please use motor.motor_asyncio.AsyncIOMotorClient.")
         raise TypeError("mongo_client must be a Motor AsyncIOMotorClient instance.")
+
     db = mongo_client.get_database('EreunaDB')
     collection = db.get_collection('OHCLVData1m')
+    daily_collection = db.get_collection('OHCLVData')
+    MARKET_CLOSE_UTC_HOUR = 20  # 20:00 UTC is 16:00 US/Eastern
 
     try:
         processed_count = 0
@@ -155,6 +163,7 @@ async def start_aggregator(message_queue, mongo_client):
                     for k in finished:
                         candles.pop(k, None)
 
+
                 # --- Higher timeframe candle logic (mirroring 1m logic) ---
                 for tf, minutes in HIGHER_TIMEFRAMES.items():
                     bucket_start, bucket_end = get_bucket(ts, minutes)
@@ -211,6 +220,71 @@ async def start_aggregator(message_queue, mongo_client):
                         'final': False
                     })
 
+                # --- Daily candle logic (UTC) ---
+                # Use UTC midnight for candle timestamp, finalize at market close (20:00 UTC)
+                if isinstance(ts, (int, float)):
+                    dt_utc = datetime.utcfromtimestamp(ts / 1000).replace(tzinfo=timezone.utc)
+                elif isinstance(ts, str):
+                    dt_utc = datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone(timezone.utc)
+                else:
+                    raise ValueError("Unknown timestamp format")
+
+                day_start_utc = dt_utc.replace(hour=0, minute=0, second=0, microsecond=0)
+                market_close_utc = day_start_utc.replace(hour=MARKET_CLOSE_UTC_HOUR, minute=0, second=0, microsecond=0)
+                if market_close_utc <= day_start_utc:
+                    market_close_utc += timedelta(days=1)
+
+                daily_key = symbol
+                daily_candle = pending_daily_candles.get(daily_key)
+                if not daily_candle or daily_candle.get('end') != market_close_utc:
+                    # Finalize previous daily candle if exists and not finalized
+                    if daily_candle and not daily_candle.get('final', False):
+                        daily_candle['final'] = True
+                        doc = {
+                            'tickerID': symbol,
+                            'timestamp': daily_candle['start'],
+                            'open': daily_candle['open'],
+                            'high': daily_candle['high'],
+                            'low': daily_candle['low'],
+                            'close': daily_candle['close'],
+                            'volume': daily_candle['volume']
+                        }
+                        try:
+                            await daily_collection.insert_one(doc)
+                        except Exception as e:
+                            logger.error(f"Error inserting daily candle: {e}")
+                        await publish_candle(symbol, '1d', {**doc, 'final': True})
+                    # Start new daily candle
+                    pending_daily_candles[daily_key] = {
+                        'open': price,
+                        'high': price,
+                        'low': price,
+                        'close': price,
+                        'volume': 0,
+                        'start': day_start_utc,
+                        'end': market_close_utc,
+                        'final': False
+                    }
+                else:
+                    daily_candle['high'] = max(daily_candle['high'], price)
+                    daily_candle['low'] = min(daily_candle['low'], price)
+                    daily_candle['close'] = price
+                # Optionally, accumulate volume if available in d
+                if isinstance(d, dict) and 'volume' in d:
+                    pending_daily_candles[daily_key]['volume'] += float(d['volume'])
+
+                # Publish the current state of the pending daily candle (with final: False)
+                await publish_candle(symbol, '1d', {
+                    'tickerID': symbol,
+                    'open': pending_daily_candles[daily_key]['open'],
+                    'high': pending_daily_candles[daily_key]['high'],
+                    'low': pending_daily_candles[daily_key]['low'],
+                    'close': pending_daily_candles[daily_key]['close'],
+                    'volume': pending_daily_candles[daily_key]['volume'],
+                    'timestamp': pending_daily_candles[daily_key]['start'],
+                    'final': False
+                })
+
                 # Finalize and persist higher timeframe candles if their interval is over
                 for tf, minutes in HIGHER_TIMEFRAMES.items():
                     tf_key = (symbol, tf)
@@ -234,6 +308,26 @@ async def start_aggregator(message_queue, mongo_client):
                             logger.error(f"Error inserting {tf} candle: {e}")
                         await publish_candle(symbol, tf, {**doc, 'final': True})
                         del pending_candles[tf_key]
+
+                # Finalize and persist daily candles if their interval is over (market close)
+                daily_candle = pending_daily_candles.get(symbol)
+                if daily_candle and not daily_candle['final'] and now >= daily_candle['end']:
+                    daily_candle['final'] = True
+                    doc = {
+                        'tickerID': symbol,
+                        'timestamp': daily_candle['start'],
+                        'open': daily_candle['open'],
+                        'high': daily_candle['high'],
+                        'low': daily_candle['low'],
+                        'close': daily_candle['close'],
+                        'volume': daily_candle['volume']
+                    }
+                    try:
+                        await daily_collection.insert_one(doc)
+                    except Exception as e:
+                        logger.error(f"Error inserting daily candle: {e}")
+                    await publish_candle(symbol, '1d', {**doc, 'final': True})
+                    del pending_daily_candles[symbol]
             except Exception as e:
                 logger.error(f"Aggregator message error: {e}, msg: {msg}")
                 anomaly_count += 1
