@@ -334,7 +334,6 @@ async def websocket_tiingo_raw(websocket: WebSocket):
     try:
         while True:
             msg = await message_queue.get()
-            logger.info(f"Sending raw Tiingo message to operator: {msg[:200]}...")
             await websocket.send_text(msg)
     except WebSocketDisconnect:
         logger.info("Operator disconnected from /ws/tiingo_raw websocket.")
@@ -388,15 +387,15 @@ async def websocket_chartdata(
     logger.info(f"Client connected to /ws/chartdata: ticker={ticker}, timeframe={timeframe}, user={user}")
     await websocket.accept()
     ticker = ticker.upper()
-    # Map timeframe to collection and time format
+    # Map timeframe to collection and time format / last number is cap on how many documents we send for performance issues
     tf_map = {
         'daily':   (db['OHCLVData'], 'date', 2000),
         'weekly':  (db['OHCLVData2'], 'date', 500),
-        'intraday1m':   (db['OHCLVData1m'], 'datetime', 1440),
-        'intraday5m':   (db['OHCLVData5m'], 'datetime', 288),
-        'intraday15m':  (db['OHCLVData15m'], 'datetime', 96),
-        'intraday30m':  (db['OHCLVData30m'], 'datetime', 48),
-        'intraday1hr':  (db['OHCLVData1hr'], 'datetime', 24),
+        'intraday1m':   (db['OHCLVData1m'], 'datetime', None),
+        'intraday5m':   (db['OHCLVData5m'], 'datetime', None),
+        'intraday15m':  (db['OHCLVData15m'], 'datetime', None),
+        'intraday30m':  (db['OHCLVData30m'], 'datetime', None),
+        'intraday1hr':  (db['OHCLVData1hr'], 'datetime', None),
     }
     if timeframe not in tf_map:
         logger.warning(f"Invalid timeframe requested: {timeframe}")
@@ -416,8 +415,8 @@ async def websocket_chartdata(
 
     # Check for cached in-progress candle using aggregator's cache
     pubsub_tf = {
-        'daily': '1440m',
-        'weekly': '10080m',
+        'daily': '1d',
+        'weekly': '1w',
         'intraday1m': '1m',
         'intraday5m': '5m',
         'intraday15m': '15m',
@@ -551,8 +550,8 @@ async def websocket_chartdata(
     await websocket.send_text(json.dumps({'type': 'init', 'data': payload}))
     # Subscribe to pubsub for this ticker/timeframe
     pubsub_tf = {
-        'daily': '1440m',
-        'weekly': '10080m',
+        'daily': '1d',
+        'weekly': '1w',
         'intraday1m': '1m',
         'intraday5m': '5m',
         'intraday15m': '15m',
