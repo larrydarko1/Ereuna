@@ -294,6 +294,7 @@ export default function (app, deps) {
         validate(validationSets.chartData),
         async (req, res) => {
             const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+            const before = req.query.before;
             let client;
             try {
                 const apiKey = req.header('x-api-key');
@@ -307,7 +308,18 @@ export default function (app, deps) {
                 const db = client.db('EreunaDB');
                 // Only fetch daily data from OHCLVData
                 const dailyColl = db.collection('OHCLVData');
-                const dailyData = await dailyColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                let query = { tickerID: ticker };
+                if (before) {
+                    let beforeDate = new Date(before);
+                    if (!isNaN(beforeDate.getTime())) {
+                        query.timestamp = { $lt: beforeDate };
+                    }
+                }
+                let dailyData = await dailyColl.find(query)
+                    .sort({ timestamp: -1 })
+                    .limit(500)
+                    .toArray();
+                dailyData = dailyData.reverse();
                 // Helper for MA
                 function calcMA(Data, period) {
                     if (Data.length < period) return [];
@@ -363,6 +375,7 @@ export default function (app, deps) {
         validate(validationSets.chartData),
         async (req, res) => {
             const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+            const before = req.query.before;
             let client;
             try {
                 const apiKey = req.header('x-api-key');
@@ -376,7 +389,18 @@ export default function (app, deps) {
                 const db = client.db('EreunaDB');
                 // Only fetch weekly data from OHCLVData2
                 const weeklyColl = db.collection('OHCLVData2');
-                const weeklyData = await weeklyColl.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                let query = { tickerID: ticker };
+                if (before) {
+                    let beforeDate = new Date(before);
+                    if (!isNaN(beforeDate.getTime())) {
+                        query.timestamp = { $lt: beforeDate };
+                    }
+                }
+                let weeklyData = await weeklyColl.find(query)
+                    .sort({ timestamp: -1 })
+                    .limit(500)
+                    .toArray();
+                weeklyData = weeklyData.reverse();
                 // Helper for MA
                 function calcMA(Data, period) {
                     if (Data.length < period) return [];

@@ -38,12 +38,12 @@ const props = defineProps({
 });
 
 
-let isChartLoading1 = ref(false); // Local loader for this chart
-let isLoading1 = ref(false); // If you want a second loader, keep this, else remove
+let isChartLoading1 = ref(false);
+let isLoading1 = ref(false);
+let isLoadingMore = false;
+let allDataLoaded = false;
 
 const emit = defineEmits(['symbol-selected']);
-
-
 function onSymbolSelect(symbol) {
   emit('symbol-selected', symbol);
 }
@@ -55,24 +55,60 @@ const data4 = ref([]); // weekly 20MA
 const data5 = ref([]); // weekly 50MA
 const data6 = ref([]); // weekly 200MA
 
-async function fetchChartData(symbolParam) {
-  isChartLoading1.value = true;
+async function fetchChartData(symbolParam, before = null, append = false) {
+  if (!append) isChartLoading1.value = true;
+  let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol || props.selectedItem).toUpperCase();
+  let url = `/api/${symbol}/chartdata-wk?limit=500`;
+  if (before) url += `&before=${encodeURIComponent(before)}`;
   try {
-    let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol || props.selectedItem).toUpperCase();
-    const response = await fetch(`/api/${symbol}/chartdata-wk`, { headers: { 'X-API-KEY': props.apiKey } });
+    const response = await fetch(url, { headers: { 'X-API-KEY': props.apiKey } });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const result = await response.json();
-    // Weekly
-    data.value = result.weekly.ohlc || [];
-    data2.value = result.weekly.volume || [];
-    data3.value = result.weekly.MA10 || null;
-    data4.value = result.weekly.MA20 || null;
-    data5.value = result.weekly.MA50 || null;
-    data6.value = result.weekly.MA200 || null;
+    const ohlc = result.weekly.ohlc || [];
+    const volume = result.weekly.volume || [];
+    // Indicator arrays
+    const ma10 = result.weekly.MA10 || [];
+    const ma20 = result.weekly.MA20 || [];
+    const ma50 = result.weekly.MA50 || [];
+    const ma200 = result.weekly.MA200 || [];
+    if (append) {
+      // Prepend older data, avoid duplicates
+      const existingTimes = new Set(data.value.map(d => d.time));
+      const newOhlc = ohlc.filter(d => !existingTimes.has(d.time));
+      data.value = [...newOhlc, ...data.value];
+      const existingVolTimes = new Set(data2.value.map(d => d.time));
+      const newVolume = volume.filter(d => !existingVolTimes.has(d.time));
+      data2.value = [...newVolume, ...data2.value];
+
+      // Prepend indicators, avoid duplicates
+      const prependMA = (oldArr, newArr) => {
+        if (!Array.isArray(oldArr)) oldArr = [];
+        if (!Array.isArray(newArr)) newArr = [];
+        const existingMATimes = new Set(oldArr.map(d => d.time));
+        const filteredNewArr = newArr.filter(d => !existingMATimes.has(d.time));
+        return [...filteredNewArr, ...oldArr];
+      };
+      data3.value = prependMA(data3.value, ma10);
+      data4.value = prependMA(data4.value, ma20);
+      data5.value = prependMA(data5.value, ma50);
+      data6.value = prependMA(data6.value, ma200);
+    } else {
+      data.value = ohlc;
+      data2.value = volume;
+      data3.value = ma10;
+      data4.value = ma20;
+      data5.value = ma50;
+      data6.value = ma200;
+    }
+    // If less than 500, no more data to load
+    if (ohlc.length < 500) {
+      allDataLoaded = true;
+    }
   } catch (error) {
     console.error(error);
+    allDataLoaded = true;
   } finally {
-    isChartLoading1.value = false;
+    if (!append) isChartLoading1.value = false;
   }
 }
 
@@ -266,13 +302,31 @@ onMounted(async () => {
 
   // Initial fetch
   await fetchChartData();
-
   isLoading1.value = false;
+
+  chart.timeScale().subscribeVisibleLogicalRangeChange(async (range) => {
+    if (isLoadingMore || allDataLoaded) return;
+    if (range && range.from < 20) {
+      isLoadingMore = true;
+      const oldest = data.value.length > 0 ? data.value[0].time : null;
+      if (!oldest) {
+        isLoadingMore = false;
+        return;
+      }
+      try {
+        await fetchChartData(null, oldest, true);
+      } catch (err) {
+        console.error('Lazy load error:', err);
+      }
+      isLoadingMore = false;
+    }
+  });
 });
 
 // Watch for prop changes to selectedSymbol and update chart
 watch(() => props.selectedSymbol, (newSymbol, oldSymbol) => {
   if (newSymbol && newSymbol !== oldSymbol) {
+    allDataLoaded = false;
     fetchChartData(newSymbol);
   }
 });
