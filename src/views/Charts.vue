@@ -2563,8 +2563,6 @@ function handleImportWatchlistRefresh() {
 .wlist {
   background-color: var(--base2);
   height: 30px;
-  margin-top: 2px;
-  border-left: var(--base4) solid 1px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2587,7 +2585,6 @@ function handleImportWatchlistRefresh() {
 
 .wlist.selected {
   background-color: var(--base3);
-  background-size: 400% 100%;
   color: var(--text1);
 }
 

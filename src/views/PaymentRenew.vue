@@ -4,32 +4,6 @@
       <h1>Subscription Expired</h1>
       <p>Your subscription has expired. Please renew to resume access to all features.</p>
     </div>
-    <!-- Subscription Selection Section -->
-    <div class="subscription-section">
-      <h2 class="subtitle">Choose Your Plan</h2>
-      <div class="plan-options">
-        <div class="plan-card" :class="{ 'selected-plan': selectedPlan === 'core' }" @click="selectedPlan = 'core'">
-          <div class="plan-header">CORE</div>
-          <div class="plan-price">€5.99<span> / month</span></div>
-          <ul class="plan-features">
-            <li>Coverage of 11.000+ Financial Assets (Cryptocurrencies, US Stocks / ETFs)</li>
-            <li>65+ years of price data (Daily and Weekly, Intraday is held for 2 weeks only), 30+ years of financial statements</li>
-            <li>One-Click Multi-Screener and other time saving features, 50+ screening parameters</li>
-            <li>No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days</li>
-          </ul>
-        </div>
-        <div class="plan-card" :class="{ 'selected-plan': selectedPlan === 'premium' }" @click="selectedPlan = 'premium'">
-          <div class="plan-header">PREMIUM</div>
-          <div class="plan-price">€14.99<span> / month</span></div>
-          <ul class="plan-features">
-            <li>Real-time Data Support</li>
-            <li>Coverage of 11.000+ Financial Assets (Cryptocurrencies, US Stocks / ETFs)</li>
-            <li>65+ years of price data (Daily and Weekly, Intraday is held for 2 weeks only), 30+ years of financial statements</li>
-            <li>One-Click Multi-Screener and other time saving features, 50+ screening parameters</li>
-            <li>No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days</li>
-          </ul>
-        </div>
-      </div>
       <div class="duration-selection">
         <h3 class="subtitle">Subscription Duration</h3>
         <div class="duration-options">
@@ -64,8 +38,8 @@
         </div>
         <p class="total-text">Total: <span>€{{ calculateTotalPrice() }}</span></p>
       </div>
+      <button class="renew-button">Renew Subscription</button>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -391,6 +365,22 @@ function initializeStripe() {
   &:hover {
     background: $accent1;
     color: $text4;
+  }
+}
+
+.renew-button{
+  width: 100%;
+  background: $accent1;
+  color: $text4;
+  border: none;
+  border-radius: 5px;
+  padding: 12px 16px;
+  font-size: 2rem;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: $accent2;
   }
 }
 

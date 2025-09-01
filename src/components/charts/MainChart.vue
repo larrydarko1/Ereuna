@@ -77,6 +77,9 @@ import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
 import EditChart from '@/components/charts/EditChart.vue';
 
 const showEditChart = ref(false); // display popup for editing indicators of chart
+  // --- Lazy loading logic ---
+  let isLoadingMore = false;
+  let allDataLoaded = false;
 
 const props = defineProps({
   apiKey: {
@@ -137,6 +140,9 @@ function closeChartWS() {
 async function fetchChartData(symbolParam, timeframeParam) {
   isChartLoading1.value = true;
   closeChartWS();
+  // Reset lazy loading flags for new symbol/timeframe
+  isLoadingMore = false;
+  allDataLoaded = false;
   let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol);
   let timeframe = timeframeParam || selectedDataType.value || 'daily';
   let user = encodeURIComponent(props.user);
@@ -503,6 +509,98 @@ onMounted(async () => {
   // Initial draw
   updateIntrinsicPriceLine();
   isLoading1.value = false;
+
+  chart.timeScale().subscribeVisibleLogicalRangeChange(async (range) => {
+    if (isLoadingMore || allDataLoaded) return;
+    // Only for daily/weekly
+    if (selectedDataType.value !== 'daily' && selectedDataType.value !== 'weekly') return;
+    // If user scrolls near the left edge (first 20 bars)
+    if (range && range.from < 20) {
+      isLoadingMore = true;
+      // Get oldest loaded date
+      const oldest = data.value.length > 0 ? data.value[0].time : null;
+      if (!oldest) {
+        isLoadingMore = false;
+        return;
+      }
+      // Fetch next batch (older data)
+      try {
+        const symbol = props.selectedSymbol || props.defaultSymbol;
+        const timeframe = selectedDataType.value;
+        // Use oldest date as 'before' param
+        const url = `/api/${symbol}/chartdata?timeframe=${timeframe}&user=${props.user}&before=${oldest}`;
+        const response = await fetch(url, {
+          headers: { 'X-API-KEY': props.apiKey },
+        });
+        if (!response.ok) throw new Error('Failed to fetch more data');
+        const result = await response.json();
+        // If no more data, stop loading
+        if (!result.ohlc || result.ohlc.length === 0) {
+          allDataLoaded = true;
+          isLoadingMore = false;
+          return;
+        }
+        // Ensure new batch is in ascending order
+        let newOhlc = [...result.ohlc];
+        if (newOhlc.length > 1 && newOhlc[0].time > newOhlc[newOhlc.length - 1].time) {
+          newOhlc = newOhlc.reverse();
+        }
+        // Filter out duplicates (by time)
+        const existingTimes = new Set(data.value.map(d => d.time));
+        newOhlc = newOhlc.filter(d => !existingTimes.has(d.time));
+        // Prepend new data to existing
+        data.value = [...newOhlc, ...data.value];
+        // Repeat for volume and MAs
+        let newVolume = result.volume || [];
+        if (newVolume.length > 1 && newVolume[0].time > newVolume[newVolume.length - 1].time) {
+          newVolume = newVolume.reverse();
+        }
+        const existingVolTimes = new Set(data2.value.map(d => d.time));
+        newVolume = newVolume.filter(d => !existingVolTimes.has(d.time));
+        data2.value = [...newVolume, ...data2.value];
+        if (result.MA1) {
+          let newMA1 = result.MA1;
+          if (newMA1.length > 1 && newMA1[0].time > newMA1[newMA1.length - 1].time) {
+            newMA1 = newMA1.reverse();
+          }
+          const existingMA1Times = new Set(data3.value.map(d => d.time));
+          newMA1 = newMA1.filter(d => !existingMA1Times.has(d.time));
+          data3.value = [...newMA1, ...data3.value];
+        }
+        if (result.MA2) {
+          let newMA2 = result.MA2;
+          if (newMA2.length > 1 && newMA2[0].time > newMA2[newMA2.length - 1].time) {
+            newMA2 = newMA2.reverse();
+          }
+          const existingMA2Times = new Set(data4.value.map(d => d.time));
+          newMA2 = newMA2.filter(d => !existingMA2Times.has(d.time));
+          data4.value = [...newMA2, ...data4.value];
+        }
+        if (result.MA3) {
+          let newMA3 = result.MA3;
+          if (newMA3.length > 1 && newMA3[0].time > newMA3[newMA3.length - 1].time) {
+            newMA3 = newMA3.reverse();
+          }
+          const existingMA3Times = new Set(data5.value.map(d => d.time));
+          newMA3 = newMA3.filter(d => !existingMA3Times.has(d.time));
+          data5.value = [...newMA3, ...data5.value];
+        }
+        if (result.MA4) {
+          let newMA4 = result.MA4;
+          if (newMA4.length > 1 && newMA4[0].time > newMA4[newMA4.length - 1].time) {
+            newMA4 = newMA4.reverse();
+          }
+          const existingMA4Times = new Set(data6.value.map(d => d.time));
+          newMA4 = newMA4.filter(d => !existingMA4Times.has(d.time));
+          data6.value = [...newMA4, ...data6.value];
+        }
+        updateMainSeries();
+      } catch (err) {
+        console.error('Lazy load error:', err);
+      }
+      isLoadingMore = false;
+    }
+  });
 });
 function toggleChartType() {
   isBarChart.value = !isBarChart.value;
