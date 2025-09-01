@@ -1591,7 +1591,7 @@ export default function (app, deps) {
             // Find all news where the ticker is in the tickers array
             const news = await newsCollection.find({
                 tickers: sanitizedTicker
-            }).sort({ publishedDate: -1 }).toArray();
+            }).sort({ publishedDate: -1 }).limit(5).toArray();
 
             if (!news || news.length === 0) {
                 return res.status(404).json({ message: 'No news found' });

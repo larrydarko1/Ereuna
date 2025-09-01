@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue'
+import { ref } from 'vue'
 const emit = defineEmits(['close', 'refresh-notes'])
 
 const props = defineProps({
@@ -39,7 +39,6 @@ const props = defineProps({
   defaultSymbol: String,
   showCreateNote: Boolean,
   notification: Object,
-  searchNotes: Function
 })
 
 const noteContent = ref('')

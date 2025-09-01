@@ -64,7 +64,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineEmits, defineProps } from 'vue'
+import { ref, computed } from 'vue'
 const emit = defineEmits(['close', 'trade', 'refresh-history'])
 
 const props = defineProps({

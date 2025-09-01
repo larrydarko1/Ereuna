@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, watch, computed } from 'vue'
+import { ref, watch, computed } from 'vue'
 const props = defineProps({
   symbol: String,
   maxShares: Number,

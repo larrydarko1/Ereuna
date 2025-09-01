@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, defineProps } from 'vue'
+import { ref } from 'vue'
 const emit = defineEmits(['close', 'refresh'])
 const props = defineProps({
   user: String,
