@@ -96,6 +96,7 @@ export default function (app, deps) {
         async (req, res) => {
             const ticker = sanitizeInput(req.params.ticker.toUpperCase());
             const timeframe = req.query.timeframe || 'daily';
+            const before = req.query.before; // New: for lazy loading older data
             let client;
             try {
                 const apiKey = req.header('x-api-key');
@@ -193,7 +194,40 @@ export default function (app, deps) {
                         return res.status(400).json({ message: 'Invalid timeframe' });
                 }
 
-                const arr = await coll.find({ tickerID: ticker }).sort({ timestamp: 1 }).toArray();
+                // Cap results for daily/weekly (lazy loading)
+                let arr;
+                if (timeframe === 'daily') {
+                    let query = { tickerID: ticker };
+                    if (before) {
+                        // Parse before as ISO date string
+                        let beforeDate = new Date(before);
+                        if (!isNaN(beforeDate.getTime())) {
+                            query.timestamp = { $lt: beforeDate };
+                        }
+                    }
+                    arr = await coll.find(query)
+                        .sort({ timestamp: -1 }) // Most recent first
+                        .limit(1250)
+                        .toArray();
+                    arr = arr.reverse(); // Oldest first for chart
+                } else if (timeframe === 'weekly') {
+                    let query = { tickerID: ticker };
+                    if (before) {
+                        let beforeDate = new Date(before);
+                        if (!isNaN(beforeDate.getTime())) {
+                            query.timestamp = { $lt: beforeDate };
+                        }
+                    }
+                    arr = await coll.find(query)
+                        .sort({ timestamp: -1 })
+                        .limit(260)
+                        .toArray();
+                    arr = arr.reverse();
+                } else {
+                    arr = await coll.find({ tickerID: ticker })
+                        .sort({ timestamp: 1 })
+                        .toArray();
+                }
                 let data = {
                     ohlc: arr.length ? arr.map(item => ({
                         time: timeFormat === 'datetime' ? item.timestamp.toISOString().slice(0, 19) : item.timestamp.toISOString().slice(0, 10),
