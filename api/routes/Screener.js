@@ -360,6 +360,13 @@ export default function (app, deps) {
                 }
                 const user = sanitizeInput(req.params.user);
 
+                // Pagination parameters
+                let page = parseInt(req.query.page, 10) || 1;
+                let limit = parseInt(req.query.limit, 10) || 100;
+                if (limit > 500) limit = 500; // Prevent excessive load
+                if (page < 1) page = 1;
+                const skip = (page - 1) * limit;
+
                 client = new MongoClient(uri);
                 await client.connect();
 
@@ -416,12 +423,22 @@ export default function (app, deps) {
 
                 // Filter the AssetInfo collection using the 'Hidden' array
                 const assetInfoCollection = db.collection('AssetInfo');
+                const totalCount = await assetInfoCollection.countDocuments({ Symbol: { $nin: hiddenSymbols } });
                 const filteredAssets = await assetInfoCollection.find(
                     { Symbol: { $nin: hiddenSymbols } },
                     { projection }
-                ).toArray();
+                )
+                    .skip(skip)
+                    .limit(limit)
+                    .toArray();
 
-                res.json(filteredAssets);
+                res.json({
+                    page,
+                    limit,
+                    totalCount,
+                    totalPages: Math.ceil(totalCount / limit),
+                    data: filteredAssets
+                });
             } catch (error) {
                 requestLogger.error('Error fetching screener results', {
                     error: error.message,
@@ -435,6 +452,2644 @@ export default function (app, deps) {
                 }
             }
         });
+
+    // endpoint that sends hidden list of user in results 
+    app.get('/:user/screener/results/hidden',
+        validate([
+            validationSchemas.userParam('user')
+        ]),
+        async (req, res) => {
+            let client;
+            try {
+                const apiKey = req.header('x-api-key');
+
+                const sanitizedKey = sanitizeInput(apiKey);
+
+                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                    logger.warn('Invalid API key', {
+                        providedApiKey: !!sanitizedKey
+                    });
+
+                    return res.status(401).json({
+                        message: 'Unauthorized API Access'
+                    });
+                }
+                // Sanitize input
+                const user = sanitizeInput(req.params.user);
+
+                client = new MongoClient(uri);
+                await client.connect();
+                const db = client.db('EreunaDB');
+
+                // Find the user document and extract the 'Hidden' array
+                const usersCollection = db.collection('Users');
+                const userDoc = await usersCollection.findOne({ Username: user });
+
+                if (!userDoc) {
+                    logger.warn('Hidden Results - User Not Found', {
+                        username: obfuscateUsername(user)
+                    });
+                    return res.status(404).json({
+                        message: 'User not found',
+                        username: obfuscateUsername(user)
+                    });
+                }
+
+                // Check if hidden symbols exist
+                const hiddenSymbols = userDoc.Hidden || [];
+                if (hiddenSymbols.length === 0) {
+                    return res.json({
+                        page: 1,
+                        limit: 100,
+                        totalCount: 0,
+                        totalPages: 1,
+                        data: []
+                    });
+                }
+
+                // Pagination parameters
+                let page = parseInt(req.query.page, 10) || 1;
+                let limit = parseInt(req.query.limit, 10) || 100;
+                if (limit > 500) limit = 500;
+                if (page < 1) page = 1;
+                const skip = (page - 1) * limit;
+
+                // Dynamic projection logic based on userDoc.Table (like /:user/screener/results/all)
+                const projection = { Symbol: 1, _id: 0 };
+                const fieldMap = {
+                    symbol: 'Symbol',
+                    name: 'Name',
+                    isin: 'ISIN',
+                    market_cap: 'MarketCapitalization',
+                    price: 'Close',
+                    volume: 'Volume',
+                    ipo: 'IPO',
+                    assettype: 'AssetType',
+                    pe_ratio: 'PERatio',
+                    peg: 'PEGRatio',
+                    pb_ratio: 'PriceToBookRatio',
+                    ps_ratio: 'PriceToSalesRatioTTM',
+                    dividend_yield: 'DividendYield',
+                    eps: 'EPS',
+                    fcf: 'freeCashFlow',
+                    cash: 'cashAndEq',
+                    current_debt: 'debtCurrent',
+                    current_assets: 'assetsCurrent',
+                    current_liabilities: 'liabilitiesCurrent',
+                    current_ratio: 'currentRatio',
+                    roe: 'roe',
+                    roa: 'roa',
+                    currency: 'Currency',
+                    book_value: 'BookValue',
+                    shares: 'SharesOutstanding',
+                    sector: 'Sector',
+                    industry: 'Industry',
+                    exchange: 'Exchange',
+                    country: 'Country',
+                    rs_score1w: 'RSScore1W',
+                    rs_score1m: 'RSScore1M',
+                    rs_score4m: 'RSScore4M',
+                    adv1w: 'ADV1W',
+                    adv1m: 'ADV1M',
+                    adv4m: 'ADV4M',
+                    adv1y: 'ADV1Y',
+                    perc_change: 'todaychange',
+                    all_time_high: 'AlltimeHigh',
+                    all_time_low: 'AlltimeLow',
+                    high_52w: 'fiftytwoWeekHigh',
+                    low_52w: 'fiftytwoWeekLow',
+                    gap: 'Gap',
+                    ev: 'EV',
+                    rsi: 'RSI',
+                    intrinsic_value: 'IntrinsicValue',
+                };
+                if (Array.isArray(userDoc?.Table)) {
+                    userDoc.Table.forEach(key => {
+                        if (fieldMap[key]) {
+                            if (key === 'price') {
+                                projection['Close'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] };
+                            } else if (key === 'volume') {
+                                projection['Volume'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "5. volume", input: "$$item.v" } } } }, 0] };
+                            } else if ([
+                                'fcf', 'cash', 'current_debt', 'current_assets', 'current_liabilities', 'current_ratio', 'roe', 'roa'
+                            ].includes(key)) {
+                                const qfMap = {
+                                    fcf: 'freeCashFlow',
+                                    cash: 'cashAndEq',
+                                    current_debt: 'debtCurrent',
+                                    current_assets: 'assetsCurrent',
+                                    current_liabilities: 'liabilitiesCurrent',
+                                    current_ratio: 'currentRatio',
+                                    roe: 'roe',
+                                    roa: 'roa',
+                                };
+                                const field = qfMap[key];
+                                if (field) {
+                                    projection[field] = { $ifNull: [{ $getField: { field, input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
+                                }
+                            } else {
+                                projection[fieldMap[key]] = 1;
+                            }
+                        }
+                    });
+                }
+
+                const assetInfoCollection = db.collection('AssetInfo');
+                const totalCount = await assetInfoCollection.countDocuments({ Symbol: { $in: hiddenSymbols } });
+                const filteredAssets = await assetInfoCollection.find({
+                    Symbol: { $in: hiddenSymbols }
+                }, {
+                    projection
+                })
+                    .skip(skip)
+                    .limit(limit)
+                    .toArray();
+
+                res.json({
+                    page,
+                    limit,
+                    totalCount,
+                    totalPages: Math.ceil(totalCount / limit),
+                    data: filteredAssets
+                });
+
+            } catch (error) {
+                // Log the error with sensitive information redacted
+                logger.error('Hidden Results Retrieval Error', {
+                    message: error.message,
+                    stack: error.stack,
+                    username: obfuscateUsername(req.params.user)
+                });
+
+                res.status(500).json({
+                    message: 'Internal Server Error',
+                    error: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred'
+                });
+            } finally {
+                if (client) {
+                    try {
+                        await client.close();
+                    } catch (closeError) {
+                        logger.warn('Error closing database connection', {
+                            error: closeError.message
+                        });
+                    }
+                }
+            }
+        }
+    );
+
+    // endpoint that sends filtered results for screener
+    app.get('/screener/:user/results/filtered/:name',
+        validate([
+            param('user')
+                .trim()
+                .notEmpty().withMessage('Username is required')
+                .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+                .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
+
+            param('name')
+                .trim()
+                .notEmpty().withMessage('Screener name is required')
+                .isLength({ min: 1, max: 20 }).withMessage('Screener name must be between 1 and 20 characters')
+                .matches(/^[a-zA-Z0-9\s_\-+()]+$/).withMessage('Screener name can only contain letters, numbers, spaces, underscores, hyphens, plus, and parentheses')
+        ]),
+        async (req, res) => {
+            const user = sanitizeInput(req.params.user); // Sanitize user input
+            const screenerName = sanitizeInput(req.params.name); // Sanitize screener name input
+
+            try {
+                const apiKey = req.header('x-api-key');
+
+                const sanitizedKey = sanitizeInput(apiKey);
+
+                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                    logger.warn('Invalid API key', {
+                        providedApiKey: !!sanitizedKey
+                    });
+
+                    return res.status(401).json({
+                        message: 'Unauthorized API Access'
+                    });
+                }
+                const client = new MongoClient(uri);
+                await client.connect();
+                const db = client.db('EreunaDB');
+
+                const usersCollection = db.collection('Users');
+                const userDoc = await usersCollection.findOne({ Username: user });
+                if (!userDoc) {
+                    logger.warn('User  not found', { user: obfuscateUsername(user) });
+                    return res.status(404).json({ message: 'User  not found' });
+                }
+
+                const hiddenSymbols = userDoc.Hidden;
+
+                const screenersCollection = db.collection('Screeners');
+                const screenerData = await screenersCollection.findOne({ UsernameID: user, Name: screenerName });
+                if (!screenerData) {
+                    logger.warn('Screener data not found', { user: obfuscateUsername(user), screenerName: screenerName });
+                    return res.status(404).json({ message: 'Screener data not found' });
+                }
+
+                // Extract filters from screenerData
+                const screenerFilters = {};
+
+                if (screenerData.Price && screenerData.Price[0] !== 0 && screenerData.Price[1] !== 0) {
+                    screenerFilters.Price = screenerData.Price;
+                }
+
+                if (screenerData.MarketCap && screenerData.MarketCap[0] !== 0 && screenerData.MarketCap[1] !== 0) {
+                    screenerFilters.MarketCap = screenerData.MarketCap;
+                }
+
+                if (screenerData.Sectors && screenerData.Sectors.length > 0) {
+                    screenerFilters.sectors = screenerData.Sectors;
+                }
+
+                if (screenerData.AssetTypes && screenerData.AssetTypes.length > 0) {
+                    screenerFilters.assetTypes = screenerData.AssetTypes;
+                }
+
+                if (screenerData.Exchanges && screenerData.Exchanges.length > 0) {
+                    screenerFilters.exchanges = screenerData.Exchanges;
+                }
+
+                if (screenerData.Countries && screenerData.Countries.length > 0) {
+                    screenerFilters.countries = screenerData.Countries;
+                }
+
+                if (screenerData.NewHigh && screenerData.NewHigh.length > 0) {
+                    screenerFilters.NewHigh = screenerData.NewHigh;
+                }
+
+                if (screenerData.NewLow && screenerData.NewLow.length > 0) {
+                    screenerFilters.NewLow = screenerData.NewLow;
+                }
+
+                if (screenerData.MA200 && screenerData.MA200.length > 0) {
+                    screenerFilters.MA200 = screenerData.MA200;
+                }
+
+                if (screenerData.MA50 && screenerData.MA50.length > 0) {
+                    screenerFilters.MA50 = screenerData.MA50;
+                }
+
+                if (screenerData.MA20 && screenerData.MA20.length > 0) {
+                    screenerFilters.MA20 = screenerData.MA20;
+                }
+
+                if (screenerData.MA10 && screenerData.MA10.length > 0) {
+                    screenerFilters.MA10 = screenerData.MA10;
+                }
+
+                if (screenerData.CurrentPrice && screenerData.CurrentPrice.length > 0) {
+                    screenerFilters.CurrentPrice = screenerData.CurrentPrice;
+                }
+
+                if (screenerData.PE && screenerData.PE[0] !== 0 && screenerData.PE[1] !== 0) {
+                    screenerFilters.PE = screenerData.PE;
+                }
+
+                if (screenerData.ForwardPE && screenerData.ForwardPE[0] !== 0 && screenerData.ForwardPE[1] !== 0) {
+                    screenerFilters.ForwardPE = screenerData.ForwardPE;
+                }
+
+                if (screenerData.PEG && screenerData.PEG[0] !== 0 && screenerData.PEG[1] !== 0) {
+                    screenerFilters.PEG = screenerData.PEG;
+                }
+
+                if (screenerData.EPS && screenerData.EPS[0] !== 0 && screenerData.EPS[1] !== 0) {
+                    screenerFilters.EPS = screenerData.EPS;
+                }
+
+                if (screenerData.PS && screenerData.PS[0] !== 0 && screenerData.PS[1] !== 0) {
+                    screenerFilters.PS = screenerData.PS;
+                }
+
+                if (screenerData.PB && screenerData.PB[0] !== 0 && screenerData.PB[1] !== 0) {
+                    screenerFilters.PB = screenerData.PB;
+                }
+
+                if (screenerData.Beta && screenerData.Beta[0] !== 0 && screenerData.Beta[1] !== 0) {
+                    screenerFilters.Beta = screenerData.Beta;
+                }
+
+                if (screenerData.DivYield && screenerData.DivYield[0] !== 0 && screenerData.DivYield[1] !== 0) {
+                    screenerFilters.DivYield = screenerData.DivYield;
+                }
+
+                if (screenerData.EPSQoQ && screenerData.EPSQoQ[0] !== 0 && screenerData.EPSQoQ[1] !== 0) {
+                    screenerFilters.EPSQoQ = screenerData.EPSQoQ;
+                }
+
+                if (screenerData.EPSYoY && screenerData.EPSYoY[0] !== 0 && screenerData.EPSYoY[1] !== 0) {
+                    screenerFilters.EPSYoY = screenerData.EPSYoY;
+                }
+
+                if (screenerData.EarningsQoQ && screenerData.EarningsQoQ[0] !== 0 && screenerData.EarningsQoQ[1] !== 0) {
+                    screenerFilters.EarningsQoQ = screenerData.EarningsQoQ;
+                }
+
+                if (screenerData.EarningsYoY && screenerData.EarningsYoY[0] !== 0 && screenerData.EarningsYoY[1] !== 0) {
+                    screenerFilters.EarningsYoY = screenerData.EarningsYoY;
+                }
+
+                if (screenerData.RevQoQ && screenerData.RevQoQ[0] !== 0 && screenerData.RevQoQ[1] !== 0) {
+                    screenerFilters.RevQoQ = screenerData.RevQoQ;
+                }
+
+                if (screenerData.RevYoY && screenerData.RevYoY[0] !== 0 && screenerData.RevYoY[1] !== 0) {
+                    screenerFilters.RevYoY = screenerData.RevYoY;
+                }
+
+                if (screenerData.AvgVolume1W && screenerData.AvgVolume1W[0] !== 0 && screenerData.AvgVolume1W[1] !== 0) {
+                    screenerFilters.AvgVolume1W = screenerData.AvgVolume1W;
+                }
+
+                if (screenerData.AvgVolume1M && screenerData.AvgVolume1M[0] !== 0 && screenerData.AvgVolume1M[1] !== 0) {
+                    screenerFilters.AvgVolume1M = screenerData.AvgVolume1M;
+                }
+
+                if (screenerData.AvgVolume6M && screenerData.AvgVolume6M[0] !== 0 && screenerData.AvgVolume6M[1] !== 0) {
+                    screenerFilters.AvgVolume6M = screenerData.AvgVolume6M;
+                }
+
+                if (screenerData.AvgVolume1Y && screenerData.AvgVolume1Y[0] !== 0 && screenerData.AvgVolume1Y[1] !== 0) {
+                    screenerFilters.AvgVolume1Y = screenerData.AvgVolume1Y;
+                }
+
+                if (screenerData.RelVolume1W && screenerData.RelVolume1W[0] !== 0 && screenerData.RelVolume1W[1] !== 0) {
+                    screenerFilters.RelVolume1W = screenerData.RelVolume1W;
+                }
+
+                if (screenerData.RelVolume1M && screenerData.RelVolume1M[0] !== 0 && screenerData.RelVolume1M[1] !== 0) {
+                    screenerFilters.RelVolume1M = screenerData.RelVolume1M;
+                }
+
+                if (screenerData.RelVolume6M && screenerData.RelVolume6M[0] !== 0 && screenerData.RelVolume6M[1] !== 0) {
+                    screenerFilters.RelVolume6M = screenerData.RelVolume6M;
+                }
+
+                if (screenerData.RelVolume1Y && screenerData.RelVolume1Y[0] !== 0 && screenerData.RelVolume1Y[1] !== 0) {
+                    screenerFilters.RelVolume1Y = screenerData.RelVolume1Y;
+                }
+
+                if (screenerData.RSScore1W && screenerData.RSScore1W[0] !== 0 && screenerData.RSScore1W[1] !== 0) {
+                    screenerFilters.RSScore1W = screenerData.RSScore1W;
+                }
+
+                if (screenerData.RSScore1M && screenerData.RSScore1M[0] !== 0 && screenerData.RSScore1M[1] !== 0) {
+                    screenerFilters.RSScore1M = screenerData.RSScore1M;
+                }
+
+                if (screenerData.RSScore4M && screenerData.RSScore4M[0] !== 0 && screenerData.RSScore4M[1] !== 0) {
+                    screenerFilters.RSScore4M = screenerData.RSScore4M;
+                }
+
+                if (screenerData.ADV1W && screenerData.ADV1W[0] !== 0 && screenerData.ADV1W[1] !== 0) {
+                    screenerFilters.ADV1W = screenerData.ADV1W;
+                }
+
+                if (screenerData.ADV1M && screenerData.ADV1M[0] !== 0 && screenerData.ADV1M[1] !== 0) {
+                    screenerFilters.ADV1M = screenerData.ADV1M;
+                }
+
+                if (screenerData.ADV4M && screenerData.ADV4M[0] !== 0 && screenerData.ADV4M[1] !== 0) {
+                    screenerFilters.ADV4M = screenerData.ADV4M;
+                }
+
+                if (screenerData.ADV1Y && screenerData.ADV1Y[0] !== 0 && screenerData.ADV1Y[1] !== 0) {
+                    screenerFilters.ADV1Y = screenerData.ADV1Y;
+                }
+
+                if (screenerData.PercOffWeekHigh && screenerData.PercOffWeekHigh[0] !== 0 && screenerData.PercOffWeekHigh[1] !== 0) {
+                    screenerFilters.PercOffWeekHigh = screenerData.PercOffWeekHigh;
+                }
+
+                if (screenerData.PercOffWeekLow && screenerData.PercOffWeekLow[0] !== 0 && screenerData.PercOffWeekLow[1] !== 0) {
+                    screenerFilters.PercOffWeekLow = screenerData.PercOffWeekLow;
+                }
+
+                if (screenerData.IPO && screenerData.IPO[0] !== 0 && screenerData.IPO[1] !== 0) {
+                    screenerFilters.IPO = screenerData.IPO;
+                }
+
+                if (screenerData.changePerc &&
+                    screenerData.changePerc[0] !== 0 &&
+                    screenerData.changePerc[1] !== 0) {
+                    screenerFilters.changePerc = screenerData.changePerc;
+                    if (screenerData.changePerc[2] && screenerData.changePerc[2].length > 0) {
+                        screenerFilters.changePerc[2] = screenerData.changePerc[2];
+                    }
+                }
+
+                if (screenerData.ROE && screenerData.ROE[0] !== 0 && screenerData.ROE[1] !== 0) {
+                    screenerFilters.ROE = screenerData.ROE;
+                }
+
+                if (screenerData.ROA && screenerData.ROA[0] !== 0 && screenerData.ROA[1] !== 0) {
+                    screenerFilters.ROA = screenerData.ROA;
+                }
+
+                if (screenerData.currentRatio && screenerData.currentRatio[0] !== 0 && screenerData.currentRatio[1] !== 0) {
+                    screenerFilters.currentRatio = screenerData.currentRatio;
+                }
+
+                if (screenerData.assetsCurrent && screenerData.assetsCurrent[0] !== 0 && screenerData.assetsCurrent[1] !== 0) {
+                    screenerFilters.assetsCurrent = screenerData.assetsCurrent;
+                }
+
+                if (screenerData.liabilitiesCurrent && screenerData.liabilitiesCurrent[0] !== 0 && screenerData.liabilitiesCurrent[1] !== 0) {
+                    screenerFilters.liabilitiesCurrent = screenerData.liabilitiesCurrent;
+                }
+
+                if (screenerData.debtCurrent && screenerData.debtCurrent[0] !== 0 && screenerData.debtCurrent[1] !== 0) {
+                    screenerFilters.debtCurrent = screenerData.debtCurrent;
+                }
+
+                if (screenerData.cashAndEq && screenerData.cashAndEq[0] !== 0 && screenerData.cashAndEq[1] !== 0) {
+                    screenerFilters.cashAndEq = screenerData.cashAndEq;
+                }
+
+                if (screenerData.freeCashFlow && screenerData.freeCashFlow[0] !== 0 && screenerData.freeCashFlow[1] !== 0) {
+                    screenerFilters.freeCashFlow = screenerData.freeCashFlow;
+                }
+
+                if (screenerData.profitMargin && screenerData.profitMargin[0] !== 0 && screenerData.profitMargin[1] !== 0) {
+                    screenerFilters.profitMargin = screenerData.profitMargin;
+                }
+
+                if (screenerData.grossMargin && screenerData.grossMargin[0] !== 0 && screenerData.grossMargin[1] !== 0) {
+                    screenerFilters.grossMargin = screenerData.grossMargin;
+                }
+
+                if (screenerData.debtEquity && screenerData.debtEquity[0] !== 0 && screenerData.debtEquity[1] !== 0) {
+                    screenerFilters.debtEquity = screenerData.debtEquity;
+                }
+
+                if (screenerData.bookVal && screenerData.bookVal[0] !== 0 && screenerData.bookVal[1] !== 0) {
+                    screenerFilters.bookVal = screenerData.bookVal;
+                }
+
+                if (screenerData.EV && screenerData.EV[0] !== 0 && screenerData.EV[1] !== 0) {
+                    screenerFilters.EV = screenerData.EV;
+                }
+
+                if (screenerData.RSI && screenerData.RSI[0] !== 0 && screenerData.RSI[1] !== 0) {
+                    screenerFilters.RSI = screenerData.RSI;
+                }
+
+                if (screenerData.Gap && screenerData.Gap[0] !== 0 && screenerData.Gap[1] !== 0) {
+                    screenerFilters.Gap = screenerData.Gap;
+                }
+
+                if (screenerData.IV && screenerData.IV[0] !== 0 && screenerData.IV[1] !== 0) {
+                    screenerFilters.IV = screenerData.IV;
+                }
+
+                // Filter the AssetInfo collection 
+                const assetInfoCollection = db.collection('AssetInfo');
+                const query = {
+                    Symbol: { $nin: hiddenSymbols }
+                };
+
+                Object.keys(screenerFilters).forEach((key) => {
+                    switch (key) {
+                        case 'Price':
+                            query.$expr = {
+                                $and: [
+                                    { $gt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[0]] },
+                                    { $lt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[1]] }
+                                ]
+                            };
+                            break;
+                        case 'MarketCap':
+                            query.MarketCapitalization = {
+                                $gt: screenerFilters.MarketCap[0],
+                                $lt: screenerFilters.MarketCap[1]
+                            };
+                            break;
+                        case 'IPO':
+                            query.IPO = {
+                                $gt: screenerFilters.IPO[0],
+                                $lt: screenerFilters.IPO[1]
+                            };
+                            break;
+                        case 'sectors':
+                            query.Sector = { $in: screenerFilters.sectors };
+                            break;
+                        case 'assetTypes':
+                            query.AssetType = { $in: screenerFilters.assetTypes };
+                            break;
+                        case 'exchanges':
+                            query.Exchange = { $in: screenerFilters.exchanges };
+                            break;
+                        case 'countries':
+                            query.Country = { $in: screenerFilters.countries };
+                            break;
+                        case 'PE':
+                            query.PERatio = {
+                                $gt: screenerFilters.PE[0],
+                                $lt: screenerFilters.PE[1]
+                            };
+                            break;
+                        case 'ForwardPE':
+                            query.ForwardPE = {
+                                $gt: screenerFilters.ForwardPE[0],
+                                $lt: screenerFilters.ForwardPE[1]
+                            };
+                            break;
+                        case 'PEG':
+                            query.PEGRatio = {
+                                $gt: screenerFilters.PEG[0],
+                                $lt: screenerFilters.PEG[1]
+                            };
+                            break;
+                        case 'EPS':
+                            query.EPS = {
+                                $gt: screenerFilters.EPS[0],
+                                $lt: screenerFilters.EPS[1]
+                            };
+                            break;
+                        case 'PS':
+                            query.PriceToSalesRatioTTM = {
+                                $gt: screenerFilters.PS[0],
+                                $lt: screenerFilters.PS[1]
+                            };
+                            break;
+                        case 'PB':
+                            query.PriceToBookRatio = {
+                                $gt: screenerFilters.PB[0],
+                                $lt: screenerFilters.PB[1]
+                            };
+                            break;
+                        case 'Beta':
+                            query.Beta = {
+                                $gt: screenerFilters.Beta[0],
+                                $lt: screenerFilters.Beta[1]
+                            };
+                            break;
+                        case 'DivYield':
+                            query.DividendYield = {
+                                $gt: screenerFilters.DivYield[0],
+                                $lt: screenerFilters.DivYield[1]
+                            };
+                            break;
+                        case 'EPSQoQ':
+                            query.EPSQoQ = {
+                                $gt: screenerFilters.EPSQoQ[0],
+                                $lt: screenerFilters.EPSQoQ[1]
+                            };
+                            break;
+                        case 'EPSYoY':
+                            query.EPSYoY = {
+                                $gt: screenerFilters.EPSYoY[0],
+                                $lt: screenerFilters.EPSYoY[1]
+                            };
+                            break;
+                        case 'EarningsQoQ':
+                            query.EarningsQoQ = {
+                                $gt: screenerFilters.EarningsQoQ[0],
+                                $lt: screenerFilters.EarningsQoQ[1]
+                            };
+                            break;
+                        case 'EarningsYoY':
+                            query.EarningsYoY = {
+                                $gt: screenerFilters.EarningsYoY[0],
+                                $lt: screenerFilters.EarningsYoY[1]
+                            };
+                            break;
+                        case 'RevQoQ':
+                            query.RevQoQ = {
+                                $gt: screenerFilters.RevQoQ[0],
+                                $lt: screenerFilters.RevQoQ[1]
+                            };
+                            break;
+                        case 'RevYoY':
+                            query.RevYoY = {
+                                $gt: screenerFilters.RevYoY[0],
+                                $lt: screenerFilters.RevYoY[1]
+                            };
+                            break;
+                        case 'AvgVolume1W':
+                            query.AvgVolume1W = {
+                                $gt: screenerFilters.AvgVolume1W[0],
+                                $lt: screenerFilters.AvgVolume1W[1]
+                            };
+                            break;
+                        case 'AvgVolume1M':
+                            query.AvgVolume1M = {
+                                $gt: screenerFilters.AvgVolume1M[0],
+                                $lt: screenerFilters.AvgVolume1M[1]
+                            };
+                            break;
+                        case 'AvgVolume6M':
+                            query.AvgVolume6M = {
+                                $gt: screenerFilters.AvgVolume6M[0],
+                                $lt: screenerFilters.AvgVolume6M[1]
+                            };
+                            break;
+                        case 'AvgVolume1Y':
+                            query.AvgVolume1Y = {
+                                $gt: screenerFilters.AvgVolume1Y[0],
+                                $lt: screenerFilters.AvgVolume1Y[1]
+                            };
+                            break;
+                        case 'RelVolume1W':
+                            query.RelVolume1W = {
+                                $gt: screenerFilters.RelVolume1W[0],
+                                $lt: screenerFilters.RelVolume1W[1]
+                            };
+                            break;
+                        case 'RelVolume1M':
+                            query.RelVolume1M = {
+                                $gt: screenerFilters.RelVolume1M[0],
+                                $lt: screenerFilters.RelVolume1M[1]
+                            };
+                            break;
+                        case 'RelVolume6M':
+                            query.RelVolume6M = {
+                                $gt: screenerFilters.RelVolume6M[0],
+                                $lt: screenerFilters.RelVolume6M[1]
+                            };
+                            break;
+                        case 'RelVolume1Y':
+                            query.RelVolume1Y = {
+                                $gt: screenerFilters.RelVolume1Y[0],
+                                $lt: screenerFilters.RelVolume1Y[1]
+                            };
+                            break;
+                        case 'RSScore1W':
+                            query.RSScore1W = {
+                                $gte: Math.max(screenerFilters.RSScore1W[0], 1),
+                                $lte: Math.min(screenerFilters.RSScore1W[1], 100)
+                            };
+                            break;
+                        case 'RSScore1M':
+                            query.RSScore1M = {
+                                $gte: Math.max(screenerFilters.RSScore1M[0], 1),
+                                $lte: Math.min(screenerFilters.RSScore1M[1], 100)
+                            };
+                            break;
+                        case 'RSScore4M':
+                            query.RSScore4M = {
+                                $gte: Math.max(screenerFilters.RSScore4M[0], 1),
+                                $lte: Math.min(screenerFilters.RSScore4M[1], 100)
+                            };
+                            break;
+                        case 'ADV1W':
+                            query.ADV1W = {
+                                $gt: screenerFilters.ADV1W[0],
+                                $lt: screenerFilters.ADV1W[1]
+                            };
+                            break;
+                        case 'ADV1M':
+                            query.ADV1M = {
+                                $gt: screenerFilters.ADV1M[0],
+                                $lt: screenerFilters.ADV1M[1]
+                            };
+                            break;
+                        case 'ADV4M':
+                            query.ADV4M = {
+                                $gt: screenerFilters.ADV4M[0],
+                                $lt: screenerFilters.ADV4M[1]
+                            };
+                            break;
+                        case 'ADV1Y':
+                            query.ADV1Y = {
+                                $gt: screenerFilters.ADV1Y[0],
+                                $lt: screenerFilters.ADV1Y[1]
+                            };
+                            break;
+                        case 'changePerc':
+                            switch (screenerFilters.changePerc[2]) {
+                                case '1D':
+                                    query.todaychange = {
+                                        $gt: screenerFilters.changePerc[0],
+                                        $lt: screenerFilters.changePerc[1]
+                                    };
+                                    break;
+                                case '1W':
+                                    query.weekchange = {
+                                        $gt: screenerFilters.changePerc[0],
+                                        $lt: screenerFilters.changePerc[1]
+                                    };
+                                    break;
+                                case '1M':
+                                    query['1mchange'] = {
+                                        $gt: screenerFilters.changePerc[0],
+                                        $lt: screenerFilters.changePerc[1]
+                                    };
+                                    break;
+                                case '4M':
+                                    query['4mchange'] = {
+                                        $gt: screenerFilters.changePerc[0],
+                                        $lt: screenerFilters.changePerc[1]
+                                    };
+                                    break;
+                                case '6M':
+                                    query['6mchange'] = {
+                                        $gt: screenerFilters.changePerc[0],
+                                        $lt: screenerFilters.changePerc[1]
+                                    };
+                                    break;
+                                case '1Y':
+                                    query['1ychange'] = {
+                                        $gt: screenerFilters.changePerc[0],
+                                        $lt: screenerFilters.changePerc[1]
+                                    };
+                                    break;
+                                case 'YTD':
+                                    query.ytdchange = {
+                                        $gt: screenerFilters.changePerc[0],
+                                        $lt: screenerFilters.changePerc[1]
+                                    };
+                                    break;
+                            }
+                            break;
+                        case 'PercOffWeekHigh':
+                            query.percoff52WeekHigh = {
+                                $gt: -screenerFilters.PercOffWeekHigh[0] / 100,
+                                $lt: 0.0001
+                            };
+                            break;
+                        case 'PercOffWeekLow':
+                            query.percoff52WeekLow = {
+                                $gt: screenerFilters.PercOffWeekLow[0] / 100,
+                                $lt: screenerFilters.PercOffWeekLow[1] / 100
+                            };
+                            break;
+                        case 'NewHigh':
+                            if (screenerFilters.NewHigh === 'yes') {
+                                query.$expr = {
+                                    $gt: [
+                                        { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
+                                        "$AlltimeHigh"
+                                    ]
+                                };
+                            }
+                            break;
+                        case 'NewLow':
+                            if (screenerFilters.NewLow === 'yes') {
+                                query.$expr = {
+                                    $lt: [
+                                        { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
+                                        "$AlltimeLow"
+                                    ]
+                                };
+                            }
+                            break;
+                        case 'MA200':
+                            if (screenerFilters.MA200 === 'abv50') {
+                                query.$expr = { $gt: ["$MA200", "$MA50"] };
+                            } else if (screenerFilters.MA200 === 'abv20') {
+                                query.$expr = { $gt: ["$MA200", "$MA20"] };
+                            } else if (screenerFilters.MA200 === 'abv10') {
+                                query.$expr = { $gt: ["$MA200", "$MA10"] };
+                            } else if (screenerFilters.MA200 === 'abvPrice') {
+                                query.$expr = {
+                                    $gt: [
+                                        "$MA200",
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        }
+                                    ]
+                                };
+                            } else if (screenerFilters.MA200 === 'blw50') {
+                                query.$expr = { $lt: ["$MA200", "$MA50"] };
+                            } else if (screenerFilters.MA200 === 'blw20') {
+                                query.$expr = { $lt: ["$MA200", "$MA20"] };
+                            } else if (screenerFilters.MA200 === 'blw10') {
+                                query.$expr = { $lt: ["$MA200", "$MA10"] };
+                            } else if (screenerFilters.MA200 === 'blwPrice') {
+                                query.$expr = {
+                                    $lt: [
+                                        "$MA200",
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        }
+                                    ]
+                                };
+                            }
+                            break;
+
+                        case 'MA50':
+                            if (screenerFilters.MA50 === 'abv200') {
+                                query.$expr = { $gt: ["$MA50", "$MA200"] };
+                            } else if (screenerFilters.MA50 === 'abv20') {
+                                query.$expr = { $gt: ["$MA50", "$MA20"] };
+                            } else if (screenerFilters.MA50 === 'abv10') {
+                                query.$expr = { $gt: ["$MA50", "$MA10"] };
+                            } else if (screenerFilters.MA50 === 'abvPrice') {
+                                query.$expr = {
+                                    $gt: [
+                                        "$MA50",
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        }
+                                    ]
+                                };
+                            } else if (screenerFilters.MA50 === 'blw200') {
+                                query.$expr = { $lt: ["$MA50", "$MA200"] };
+                            } else if (screenerFilters.MA50 === 'blw20') {
+                                query.$expr = { $lt: ["$MA50", "$MA20"] };
+                            } else if (screenerFilters.MA50 === 'blw10') {
+                                query.$expr = { $lt: ["$MA50", "$MA10"] };
+                            } else if (screenerFilters.MA50 === 'blwPrice') {
+                                query.$expr = {
+                                    $lt: [
+                                        "$MA50",
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        }
+                                    ]
+                                };
+                            }
+                            break;
+
+                        case 'MA20':
+                            if (screenerFilters.MA20 === 'abv200') {
+                                query.$expr = { $gt: ["$MA20", "$MA200"] };
+                            } else if (screenerFilters.MA20 === 'abv50') {
+                                query.$expr = { $gt: ["$MA20", "$MA50"] };
+                            } else if (screenerFilters.MA20 === 'abv10') {
+                                query.$expr = { $gt: ["$MA20", "$MA10"] };
+                            } else if (screenerFilters.MA20 === 'abvPrice') {
+                                query.$expr = {
+                                    $gt: [
+                                        "$MA20",
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        }
+                                    ]
+                                };
+                            } else if (screenerFilters.MA20 === 'blw200') {
+                                query.$expr = { $lt: ["$MA20", "$MA200"] };
+                            } else if (screenerFilters.MA20 === 'blw50') {
+                                query.$expr = { $lt: ["$MA20", "$MA50"] };
+                            } else if (screenerFilters.MA20 === 'blw10') {
+                                query.$expr = { $lt: ["$MA20", "$MA10"] };
+                            } else if (screenerFilters.MA20 === 'blwPrice') {
+                                query.$expr = {
+                                    $lt: [
+                                        "$MA20",
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        }
+                                    ]
+                                };
+                            }
+                            break;
+
+                        case 'MA10':
+                            if (screenerFilters.MA10 === 'abv200') {
+                                query.$expr = { $gt: ["$MA10", "$MA200"] };
+                            } else if (screenerFilters.MA10 === 'abv50') {
+                                query.$expr = { $gt: ["$MA10", "$MA50"] };
+                            } else if (screenerFilters.MA10 === 'abv20') {
+                                query.$expr = { $gt: ["$MA10", "$MA20"] };
+                            } else if (screenerFilters.MA10 === 'abvPrice') {
+                                query.$expr = {
+                                    $gt: [
+                                        "$MA10",
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        }
+                                    ]
+                                };
+                            } else if (screenerFilters.MA10 === 'blw200') {
+                                query.$expr = { $lt: ["$MA10", "$MA200"] };
+                            } else if (screenerFilters.MA10 === 'blw50') {
+                                query.$expr = { $lt: ["$MA10", "$MA50"] };
+                            } else if (screenerFilters.MA10 === 'blw20') {
+                                query.$expr = { $lt: ["$MA10", "$MA20"] };
+                            } else if (screenerFilters.MA10 === 'blwPrice') {
+                                query.$expr = {
+                                    $lt: [
+                                        "$MA10",
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        }
+                                    ]
+                                };
+                            }
+                            break;
+
+                        case 'CurrentPrice':
+                            if (screenerFilters.CurrentPrice === 'abv200') {
+                                query.$expr = {
+                                    $gt: [
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        },
+                                        "$MA200"
+                                    ]
+                                };
+                            } else if (screenerFilters.CurrentPrice === 'abv50') {
+                                query.$expr = {
+                                    $gt: [
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        },
+                                        "$MA50"
+                                    ]
+                                };
+                            } else if (screenerFilters.CurrentPrice === 'abv20') {
+                                query.$expr = {
+                                    $gt: [
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        },
+                                        "$MA20"
+                                    ]
+                                };
+                            } else if (screenerFilters.CurrentPrice === 'abv10') {
+                                query.$expr = {
+                                    $gt: [
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        },
+                                        "$MA10"
+                                    ]
+                                };
+                            } else if (screenerFilters.CurrentPrice === 'blw200') {
+                                query.$expr = {
+                                    $lt: [
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        },
+                                        "$MA200"
+                                    ]
+                                };
+                            } else if (screenerFilters.CurrentPrice === 'blw50') {
+                                query.$expr = {
+                                    $lt: [
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        },
+                                        "$MA50"
+                                    ]
+                                };
+                            } else if (screenerFilters.CurrentPrice === 'blw20') {
+                                query.$expr = {
+                                    $lt: [
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        },
+                                        "$MA20"
+                                    ]
+                                };
+                            } else if (screenerFilters.CurrentPrice === 'blw10') {
+                                query.$expr = {
+                                    $lt: [
+                                        {
+                                            $arrayElemAt: [
+                                                {
+                                                    $map: {
+                                                        input: { $objectToArray: "$TimeSeries" },
+                                                        as: "item",
+                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        },
+                                        "$MA10"
+                                    ]
+                                };
+                            }
+                            break;
+                        case 'ROE':
+                            query['quarterlyFinancials.0.roe'] = {
+                                $gt: screenerFilters.ROE[0],
+                                $lt: screenerFilters.ROE[1]
+                            };
+                            break;
+                        case 'ROA':
+                            query['quarterlyFinancials.0.roa'] = {
+                                $gt: screenerFilters.ROA[0],
+                                $lt: screenerFilters.ROA[1]
+                            };
+                            break;
+                        case 'currentRatio':
+                            query['quarterlyFinancials.0.currentRatio'] = {
+                                $gt: screenerFilters.currentRatio[0],
+                                $lt: screenerFilters.currentRatio[1]
+                            };
+                            break;
+                        case 'assetsCurrent':
+                            query['quarterlyFinancials.0.assetsCurrent'] = {
+                                $gt: screenerFilters.assetsCurrent[0],
+                                $lt: screenerFilters.assetsCurrent[1]
+                            };
+                            break;
+                        case 'liabilitiesCurrent':
+                            query['quarterlyFinancials.0.liabilitiesCurrent'] = {
+                                $gt: screenerFilters.liabilitiesCurrent[0],
+                                $lt: screenerFilters.liabilitiesCurrent[1]
+                            };
+                            break;
+                        case 'debtCurrent':
+                            query['quarterlyFinancials.0.debtCurrent'] = {
+                                $gt: screenerFilters.debtCurrent[0],
+                                $lt: screenerFilters.debtCurrent[1]
+                            };
+                            break;
+                        case 'cashAndEq':
+                            query['quarterlyFinancials.0.cashAndEq'] = {
+                                $gt: screenerFilters.cashAndEq[0],
+                                $lt: screenerFilters.cashAndEq[1]
+                            };
+                            break;
+                        case 'freeCashFlow':
+                            query['quarterlyFinancials.0.freeCashFlow'] = {
+                                $gt: screenerFilters.freeCashFlow[0],
+                                $lt: screenerFilters.freeCashFlow[1]
+                            };
+                            break;
+                        case 'profitMargin':
+                            query['quarterlyFinancials.0.profitMargin'] = {
+                                $gt: screenerFilters.profitMargin[0],
+                                $lt: screenerFilters.profitMargin[1]
+                            };
+                            break;
+                        case 'grossMargin':
+                            query['quarterlyFinancials.0.grossMargin'] = {
+                                $gt: screenerFilters.grossMargin[0],
+                                $lt: screenerFilters.grossMargin[1]
+                            };
+                            break;
+                        case 'debtEquity':
+                            query['quarterlyFinancials.0.debtEquity'] = {
+                                $gt: screenerFilters.debtEquity[0],
+                                $lt: screenerFilters.debtEquity[1]
+                            };
+                            break;
+                        case 'bookVal':
+                            query['quarterlyFinancials.0.bookVal'] = {
+                                $gt: screenerFilters.bookVal[0],
+                                $lt: screenerFilters.bookVal[1]
+                            };
+                            break;
+                        case 'EV':
+                            query.EV = {
+                                $gt: screenerFilters.EV[0],
+                                $lt: screenerFilters.EV[1]
+                            };
+                            break;
+                        case 'RSI':
+                            query.RSI = {
+                                $gt: screenerFilters.RSI[0],
+                                $lt: screenerFilters.RSI[1]
+                            };
+                            break;
+                        case 'Gap':
+                            query.Gap = {
+                                $gt: screenerFilters.Gap[0],
+                                $lt: screenerFilters.Gap[1]
+                            };
+                            break;
+                        case 'IV':
+                            query.IntrinsicValue = {
+                                $gt: screenerFilters.IV[0],
+                                $lt: screenerFilters.IV[1]
+                            };
+                            break;
+                        default:
+                            break;
+                    }
+                });
+
+                // Dynamic projection logic based on userDoc.Table (like /:user/screener/results/all)
+                // fieldMap should be defined at the top of this file or imported if shared
+                const usersCollection2 = db.collection('Users');
+                const userDoc2 = await usersCollection2.findOne({ Username: user });
+                const projection = { Symbol: 1, _id: 0 };
+                const fieldMap = {
+                    symbol: 'Symbol',
+                    name: 'Name',
+                    isin: 'ISIN',
+                    market_cap: 'MarketCapitalization',
+                    price: 'Close',
+                    volume: 'Volume',
+                    ipo: 'IPO',
+                    assettype: 'AssetType',
+                    pe_ratio: 'PERatio',
+                    peg: 'PEGRatio',
+                    pb_ratio: 'PriceToBookRatio',
+                    ps_ratio: 'PriceToSalesRatioTTM',
+                    dividend_yield: 'DividendYield',
+                    eps: 'EPS',
+                    fcf: 'freeCashFlow',
+                    cash: 'cashAndEq',
+                    current_debt: 'debtCurrent',
+                    current_assets: 'assetsCurrent',
+                    current_liabilities: 'liabilitiesCurrent',
+                    current_ratio: 'currentRatio',
+                    roe: 'roe',
+                    roa: 'roa',
+                    currency: 'Currency',
+                    book_value: 'BookValue',
+                    shares: 'SharesOutstanding',
+                    sector: 'Sector',
+                    industry: 'Industry',
+                    exchange: 'Exchange',
+                    country: 'Country',
+                    rs_score1w: 'RSScore1W',
+                    rs_score1m: 'RSScore1M',
+                    rs_score4m: 'RSScore4M',
+                    adv1w: 'ADV1W',
+                    adv1m: 'ADV1M',
+                    adv4m: 'ADV4M',
+                    adv1y: 'ADV1Y',
+                    perc_change: 'todaychange',
+                    all_time_high: 'AlltimeHigh',
+                    all_time_low: 'AlltimeLow',
+                    high_52w: 'fiftytwoWeekHigh',
+                    low_52w: 'fiftytwoWeekLow',
+                    gap: 'Gap',
+                    ev: 'EV',
+                    rsi: 'RSI',
+                    intrinsic_value: 'IntrinsicValue',
+                };
+                if (Array.isArray(userDoc2?.Table)) {
+                    userDoc2.Table.forEach(key => {
+                        if (fieldMap[key]) {
+                            if (key === 'price') {
+                                projection['Close'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] };
+                            } else if (key === 'volume') {
+                                projection['Volume'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "5. volume", input: "$$item.v" } } } }, 0] };
+                            } else if ([
+                                'fcf', 'cash', 'current_debt', 'current_assets', 'current_liabilities', 'current_ratio', 'roe', 'roa'
+                            ].includes(key)) {
+                                const qfMap = {
+                                    fcf: 'freeCashFlow',
+                                    cash: 'cashAndEq',
+                                    current_debt: 'debtCurrent',
+                                    current_assets: 'assetsCurrent',
+                                    current_liabilities: 'liabilitiesCurrent',
+                                    current_ratio: 'currentRatio',
+                                    roe: 'roe',
+                                    roa: 'roa',
+                                };
+                                const field = qfMap[key];
+                                if (field) {
+                                    projection[field] = { $ifNull: [{ $getField: { field, input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
+                                }
+                            } else {
+                                projection[fieldMap[key]] = 1;
+                            }
+                        }
+                    });
+                }
+
+                // Pagination parameters
+                let page = parseInt(req.query.page, 10) || 1;
+                let limit = parseInt(req.query.limit, 10) || 100;
+                if (limit > 500) limit = 500;
+                if (page < 1) page = 1;
+                const skip = (page - 1) * limit;
+
+                // Get total count for pagination
+                const totalCount = await assetInfoCollection.countDocuments(query);
+
+                const aggregation = [
+                    { $match: query },
+                    {
+                        $addFields: {
+                            Close: projection['Close'] || undefined,
+                            Volume: projection['Volume'] || undefined,
+                        }
+                    },
+                    { $project: projection },
+                    { $skip: skip },
+                    { $limit: limit }
+                ];
+
+                const filteredAssets = await assetInfoCollection.aggregate(aggregation).toArray();
+                res.json({
+                    page,
+                    limit,
+                    totalCount,
+                    totalPages: Math.ceil(totalCount / limit),
+                    data: filteredAssets
+                });
+            } catch (error) {
+                logger.error('Error fetching screener results', {
+                    user: obfuscateUsername(user),
+                    screenerName: screenerName,
+                    error: error.message
+                });
+                res.status(500).json({ message: 'Internal Server Error' });
+            }
+        }
+    );
+
+    // endpoint that sends combined screener results and removes duplicate values 
+    app.get('/screener/:usernameID/all',
+        validate([
+            param('usernameID')
+                .trim()
+                .notEmpty().withMessage('Username is required')
+                .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
+                .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores')
+        ]),
+        async (req, res) => {
+            const startTime = Date.now();
+            const requestId = crypto.randomBytes(16).toString('hex');
+            let client;
+
+            try {
+                const apiKey = req.header('x-api-key');
+
+                const sanitizedKey = sanitizeInput(apiKey);
+
+                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                    logger.warn('Invalid API key', {
+                        providedApiKey: !!sanitizedKey
+                    });
+
+                    return res.status(401).json({
+                        message: 'Unauthorized API Access'
+                    });
+                }
+                // Sanitize input
+                const usernameId = sanitizeInput(req.params.usernameID);
+
+                client = new MongoClient(uri);
+                await client.connect();
+                const db = client.db('EreunaDB');
+                const screenersCollection = db.collection('Screeners');
+
+                const screeners = await screenersCollection.find({ UsernameID: usernameId, Include: true }).toArray();
+                const screenerNames = screeners.map(screener => screener.Name);
+
+                const usersCollection = db.collection('Users');
+                const userDoc = await usersCollection.findOne({ Username: usernameId });
+
+                if (!userDoc) {
+                    logger.warn({
+                        msg: 'User Not Found',
+                        requestId: requestId,
+                        usernameID: obfuscateUsername(usernameId)
+                    });
+                    return res.status(404).json({ message: 'User not found' });
+                }
+
+                const tickerScreenerMap = new Map();
+                const filteredAssetsArray = [];
+
+                for (const screenerName of screenerNames) {
+                    try {
+                        const assetInfoCollection = db.collection('AssetInfo');
+                        const query = { Symbol: { $nin: userDoc.Hidden } };
+                        const aggregation = [];
+
+                        const screenerData = await screenersCollection.findOne({ UsernameID: usernameId, Name: screenerName, Include: true });
+                        if (!screenerData) {
+                            logger.warn({
+                                msg: 'Screener Data Not Found',
+                                requestId: requestId,
+                                screenerName: screenerName
+                            });
+                            continue;
+                        }
+
+                        // Extract filters from screenerData
+                        const screenerFilters = {};
+
+                        if (screenerData.Price && screenerData.Price[0] !== 0 && screenerData.Price[1] !== 0) {
+                            screenerFilters.Price = screenerData.Price;
+                        }
+
+                        if (screenerData.MarketCap && screenerData.MarketCap[0] !== 0 && screenerData.MarketCap[1] !== 0) {
+                            screenerFilters.MarketCap = screenerData.MarketCap;
+                        }
+
+                        if (screenerData.IPO && screenerData.IPO[0] !== 0 && screenerData.IPO[1] !== 0) {
+                            screenerFilters.IPO = screenerData.IPO;
+                        }
+
+                        if (screenerData.Sectors && screenerData.Sectors.length > 0) {
+                            screenerFilters.sectors = screenerData.Sectors;
+                        }
+
+                        if (screenerData.AssetTypes && screenerData.AssetTypes.length > 0) {
+                            screenerFilters.assetTypes = screenerData.AssetTypes;
+                        }
+
+                        if (screenerData.Exchanges && screenerData.Exchanges.length > 0) {
+                            screenerFilters.exchanges = screenerData.Exchanges;
+                        }
+
+                        if (screenerData.Countries && screenerData.Countries.length > 0) {
+                            screenerFilters.countries = screenerData.Countries;
+                        }
+
+                        if (screenerData.NewHigh && screenerData.NewHigh.length > 0) {
+                            screenerFilters.NewHigh = screenerData.NewHigh;
+                        }
+
+                        if (screenerData.NewLow && screenerData.NewLow.length > 0) {
+                            screenerFilters.NewLow = screenerData.NewLow;
+                        }
+
+                        if (screenerData.MA200 && screenerData.MA200.length > 0) {
+                            screenerFilters.MA200 = screenerData.MA200;
+                        }
+
+                        if (screenerData.MA50 && screenerData.MA50.length > 0) {
+                            screenerFilters.MA50 = screenerData.MA50;
+                        }
+
+                        if (screenerData.MA20 && screenerData.MA20.length > 0) {
+                            screenerFilters.MA20 = screenerData.MA20;
+                        }
+
+                        if (screenerData.MA10 && screenerData.MA10.length > 0) {
+                            screenerFilters.MA10 = screenerData.MA10;
+                        }
+
+                        if (screenerData.CurrentPrice && screenerData.CurrentPrice.length > 0) {
+                            screenerFilters.CurrentPrice = screenerData.CurrentPrice;
+                        }
+
+                        if (screenerData.PE && screenerData.PE[0] !== 0 && screenerData.PE[1] !== 0) {
+                            screenerFilters.PE = screenerData.PE;
+                        }
+
+                        if (screenerData.ForwardPE && screenerData.ForwardPE[0] !== 0 && screenerData.ForwardPE[1] !== 0) {
+                            screenerFilters.ForwardPE = screenerData.ForwardPE;
+                        }
+
+                        if (screenerData.PEG && screenerData.PEG[0] !== 0 && screenerData.PEG[1] !== 0) {
+                            screenerFilters.PEG = screenerData.PEG;
+                        }
+
+                        if (screenerData.EPS && screenerData.EPS[0] !== 0 && screenerData.EPS[1] !== 0) {
+                            screenerFilters.EPS = screenerData.EPS;
+                        }
+
+                        if (screenerData.PS && screenerData.PS[0] !== 0 && screenerData.PS[1] !== 0) {
+                            screenerFilters.PS = screenerData.PS;
+                        }
+
+                        if (screenerData.PB && screenerData.PB[0] !== 0 && screenerData.PB[1] !== 0) {
+                            screenerFilters.PB = screenerData.PB;
+                        }
+
+                        if (screenerData.Beta && screenerData.Beta[0] !== 0 && screenerData.Beta[1] !== 0) {
+                            screenerFilters.Beta = screenerData.Beta;
+                        }
+
+                        if (screenerData.DivYield && screenerData.DivYield[0] !== 0 && screenerData.DivYield[1] !== 0) {
+                            screenerFilters.DivYield = screenerData.DivYield;
+                        }
+
+                        if (screenerData.EPSQoQ && screenerData.EPSQoQ[0] !== 0 && screenerData.EPSQoQ[1] !== 0) {
+                            screenerFilters.EPSQoQ = screenerData.EPSQoQ;
+                        }
+
+                        if (screenerData.EPSYoY && screenerData.EPSYoY[0] !== 0 && screenerData.EPSYoY[1] !== 0) {
+                            screenerFilters.EPSYoY = screenerData.EPSYoY;
+                        }
+
+                        if (screenerData.EarningsQoQ && screenerData.EarningsQoQ[0] !== 0 && screenerData.EarningsQoQ[1] !== 0) {
+                            screenerFilters.EarningsQoQ = screenerData.EarningsQoQ;
+                        }
+
+                        if (screenerData.EarningsYoY && screenerData.EarningsYoY[0] !== 0 && screenerData.EarningsYoY[1] !== 0) {
+                            screenerFilters.EarningsYoY = screenerData.EarningsYoY;
+                        }
+
+                        if (screenerData.RevQoQ && screenerData.RevQoQ[0] !== 0 && screenerData.RevQoQ[1] !== 0) {
+                            screenerFilters.RevQoQ = screenerData.RevQoQ;
+                        }
+
+                        if (screenerData.RevYoY && screenerData.RevYoY[0] !== 0 && screenerData.RevYoY[1] !== 0) {
+                            screenerFilters.RevYoY = screenerData.RevYoY;
+                        }
+
+                        if (screenerData.AvgVolume1W && screenerData.AvgVolume1W[0] !== 0 && screenerData.AvgVolume1W[1] !== 0) {
+                            screenerFilters.AvgVolume1W = screenerData.AvgVolume1W;
+                        }
+
+                        if (screenerData.AvgVolume1M && screenerData.AvgVolume1M[0] !== 0 && screenerData.AvgVolume1M[1] !== 0) {
+                            screenerFilters.AvgVolume1M = screenerData.AvgVolume1M;
+                        }
+
+                        if (screenerData.AvgVolume6M && screenerData.AvgVolume6M[0] !== 0 && screenerData.AvgVolume6M[1] !== 0) {
+                            screenerFilters.AvgVolume6M = screenerData.AvgVolume6M;
+                        }
+
+                        if (screenerData.AvgVolume1Y && screenerData.AvgVolume1Y[0] !== 0 && screenerData.AvgVolume1Y[1] !== 0) {
+                            screenerFilters.AvgVolume1Y = screenerData.AvgVolume1Y;
+                        }
+
+                        if (screenerData.RelVolume1W && screenerData.RelVolume1W[0] !== 0 && screenerData.RelVolume1W[1] !== 0) {
+                            screenerFilters.RelVolume1W = screenerData.RelVolume1W;
+                        }
+
+                        if (screenerData.RelVolume1M && screenerData.RelVolume1M[0] !== 0 && screenerData.RelVolume1M[1] !== 0) {
+                            screenerFilters.RelVolume1M = screenerData.RelVolume1M;
+                        }
+
+                        if (screenerData.RelVolume6M && screenerData.RelVolume6M[0] !== 0 && screenerData.RelVolume6M[1] !== 0) {
+                            screenerFilters.RelVolume6M = screenerData.RelVolume6M;
+                        }
+
+                        if (screenerData.RSScore1W && screenerData.RSScore1W[0] !== 0 && screenerData.RSScore1W[1] !== 0) {
+                            screenerFilters.RSScore1W = screenerData.RSScore1W;
+                        }
+
+                        if (screenerData.RSScore1M && screenerData.RSScore1M[0] !== 0 && screenerData.RSScore1M[1] !== 0) {
+                            screenerFilters.RSScore1M = screenerData.RSScore1M;
+                        }
+
+                        if (screenerData.RSScore4M && screenerData.RSScore4M[0] !== 0 && screenerData.RSScore4M[1] !== 0) {
+                            screenerFilters.RSScore4M = screenerData.RSScore4M;
+                        }
+
+                        if (screenerData.ADV1W && screenerData.ADV1W[0] !== 0 && screenerData.ADV1W[1] !== 0) {
+                            screenerFilters.ADV1W = screenerData.ADV1W;
+                        }
+
+                        if (screenerData.ADV1M && screenerData.ADV1M[0] !== 0 && screenerData.ADV1M[1] !== 0) {
+                            screenerFilters.ADV1M = screenerData.ADV1M;
+                        }
+
+                        if (screenerData.ADV4M && screenerData.ADV4M[0] !== 0 && screenerData.ADV4M[1] !== 0) {
+                            screenerFilters.ADV4M = screenerData.ADV4M;
+                        }
+
+                        if (screenerData.ADV1Y && screenerData.ADV1Y[0] !== 0 && screenerData.ADV1Y[1] !== 0) {
+                            screenerFilters.ADV1Y = screenerData.ADV1Y;
+                        }
+
+                        if (screenerData.PercOffWeekHigh && screenerData.PercOffWeekHigh[0] !== 0 && screenerData.PercOffWeekHigh[1] !== 0) {
+                            screenerFilters.PercOffWeekHigh = screenerData.PercOffWeekHigh;
+                        }
+
+                        if (screenerData.PercOffWeekLow && screenerData.PercOffWeekLow[0] !== 0 && screenerData.PercOffWeekLow[1] !== 0) {
+                            screenerFilters.PercOffWeekLow = screenerData.PercOffWeekLow;
+                        }
+
+                        if (screenerData.changePerc &&
+                            screenerData.changePerc[0] !== 0 &&
+                            screenerData.changePerc[1] !== 0) {
+                            screenerFilters.changePerc = screenerData.changePerc;
+                            if (screenerData.changePerc[2] && screenerData.changePerc[2].length > 0) {
+                                screenerFilters.changePerc[2] = screenerData.changePerc[2];
+                            }
+                        }
+
+                        if (screenerData.ROE && screenerData.ROE[0] !== 0 && screenerData.ROE[1] !== 0) {
+                            screenerFilters.ROE = screenerData.ROE;
+                        }
+
+                        if (screenerData.ROA && screenerData.ROA[0] !== 0 && screenerData.ROA[1] !== 0) {
+                            screenerFilters.ROA = screenerData.ROA;
+                        }
+
+                        if (screenerData.currentRatio && screenerData.currentRatio[0] !== 0 && screenerData.currentRatio[1] !== 0) {
+                            screenerFilters.currentRatio = screenerData.currentRatio;
+                        }
+
+                        if (screenerData.assetsCurrent && screenerData.assetsCurrent[0] !== 0 && screenerData.assetsCurrent[1] !== 0) {
+                            screenerFilters.assetsCurrent = screenerData.assetsCurrent;
+                        }
+
+                        if (screenerData.liabilitiesCurrent && screenerData.liabilitiesCurrent[0] !== 0 && screenerData.liabilitiesCurrent[1] !== 0) {
+                            screenerFilters.liabilitiesCurrent = screenerData.liabilitiesCurrent;
+                        }
+
+                        if (screenerData.debtCurrent && screenerData.debtCurrent[0] !== 0 && screenerData.debtCurrent[1] !== 0) {
+                            screenerFilters.debtCurrent = screenerData.debtCurrent;
+                        }
+
+                        if (screenerData.cashAndEq && screenerData.cashAndEq[0] !== 0 && screenerData.cashAndEq[1] !== 0) {
+                            screenerFilters.cashAndEq = screenerData.cashAndEq;
+                        }
+
+                        if (screenerData.freeCashFlow && screenerData.freeCashFlow[0] !== 0 && screenerData.freeCashFlow[1] !== 0) {
+                            screenerFilters.freeCashFlow = screenerData.freeCashFlow;
+                        }
+
+                        if (screenerData.profitMargin && screenerData.profitMargin[0] !== 0 && screenerData.profitMargin[1] !== 0) {
+                            screenerFilters.profitMargin = screenerData.profitMargin;
+                        }
+
+                        if (screenerData.grossMargin && screenerData.grossMargin[0] !== 0 && screenerData.grossMargin[1] !== 0) {
+                            screenerFilters.grossMargin = screenerData.grossMargin;
+                        }
+
+                        if (screenerData.debtEquity && screenerData.debtEquity[0] !== 0 && screenerData.debtEquity[1] !== 0) {
+                            screenerFilters.debtEquity = screenerData.debtEquity;
+                        }
+
+                        if (screenerData.bookVal && screenerData.bookVal[0] !== 0 && screenerData.bookVal[1] !== 0) {
+                            screenerFilters.bookVal = screenerData.bookVal;
+                        }
+
+                        if (screenerData.EV && screenerData.EV[0] !== 0 && screenerData.EV[1] !== 0) {
+                            screenerFilters.EV = screenerData.EV;
+                        }
+
+                        if (screenerData.RSI && screenerData.RSI[0] !== 0 && screenerData.RSI[1] !== 0) {
+                            screenerFilters.RSI = screenerData.RSI;
+                        }
+
+                        if (screenerData.Gap && screenerData.Gap[0] !== 0 && screenerData.Gap[1] !== 0) {
+                            screenerFilters.Gap = screenerData.Gap;
+                        }
+
+                        if (screenerData.IV && screenerData.IV[0] !== 0 && screenerData.IV[1] !== 0) {
+                            screenerFilters.IV = screenerData.IV;
+                        }
+
+                        Object.keys(screenerFilters).forEach((key) => {
+                            switch (key) {
+                                case 'Price':
+                                    query.$expr = {
+                                        $and: [
+                                            { $gt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[0]] },
+                                            { $lt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[1]] }
+                                        ]
+                                    };
+                                    break;
+                                case 'MarketCap':
+                                    query.MarketCapitalization = {
+                                        $gt: screenerFilters.MarketCap[0],
+                                        $lt: screenerFilters.MarketCap[1]
+                                    };
+                                    break;
+                                case 'IPO':
+                                    query.IPO = {
+                                        $gt: screenerFilters.IPO[0],
+                                        $lt: screenerFilters.IPO[1]
+                                    };
+                                    break;
+                                case 'sectors':
+                                    query.Sector = { $in: screenerFilters.sectors };
+                                    break;
+                                case 'assetTypes':
+                                    query.AssetType = { $in: screenerFilters.assetTypes };
+                                    break;
+                                case 'exchanges':
+                                    query.Exchange = { $in: screenerFilters.exchanges };
+                                    break;
+                                case 'countries':
+                                    query.Country = { $in: screenerFilters.countries };
+                                    break;
+                                case 'PE':
+                                    query.PERatio = {
+                                        $gt: screenerFilters.PE[0],
+                                        $lt: screenerFilters.PE[1]
+                                    };
+                                    break;
+                                case 'ForwardPE':
+                                    query.ForwardPE = {
+                                        $gt: screenerFilters.ForwardPE[0],
+                                        $lt: screenerFilters.ForwardPE[1]
+                                    };
+                                    break;
+                                case 'PEG':
+                                    query.PEGRatio = {
+                                        $gt: screenerFilters.PEG[0],
+                                        $lt: screenerFilters.PEG[1]
+                                    };
+                                    break;
+                                case 'EPS':
+                                    query.EPS = {
+                                        $gt: screenerFilters.EPS[0],
+                                        $lt: screenerFilters.EPS[1]
+                                    };
+                                    break;
+                                case 'PS':
+                                    query.PriceToSalesRatioTTM = {
+                                        $gt: screenerFilters.PS[0],
+                                        $lt: screenerFilters.PS[1]
+                                    };
+                                    break;
+                                case 'PB':
+                                    query.PriceToBookRatio = {
+                                        $gt: screenerFilters.PB[0],
+                                        $lt: screenerFilters.PB[1]
+                                    };
+                                    break;
+                                case 'Beta':
+                                    query.Beta = {
+                                        $gt: screenerFilters.Beta[0],
+                                        $lt: screenerFilters.Beta[1]
+                                    };
+                                    break;
+                                case 'DivYield':
+                                    query.DividendYield = {
+                                        $gt: screenerFilters.DivYield[0],
+                                        $lt: screenerFilters.DivYield[1]
+                                    };
+                                    break;
+                                case 'EPSQoQ':
+                                    query.EPSQoQ = {
+                                        $gt: screenerFilters.EPSQoQ[0],
+                                        $lt: screenerFilters.EPSQoQ[1]
+                                    };
+                                    break;
+                                case 'EPSYoY':
+                                    query.EPSYoY = {
+                                        $gt: screenerFilters.EPSYoY[0],
+                                        $lt: screenerFilters.EPSYoY[1]
+                                    };
+                                    break;
+                                case 'EarningsQoQ':
+                                    query.EarningsQoQ = {
+                                        $gt: screenerFilters.EarningsQoQ[0],
+                                        $lt: screenerFilters.EarningsQoQ[1]
+                                    };
+                                    break;
+                                case 'EarningsYoY':
+                                    query.EarningsYoY = {
+                                        $gt: screenerFilters.EarningsYoY[0],
+                                        $lt: screenerFilters.EarningsYoY[1]
+                                    };
+                                    break;
+                                case 'RevQoQ':
+                                    query.RevenueQoQ = {
+                                        $gt: screenerFilters.RevQoQ[0],
+                                        $lt: screenerFilters.RevQoQ[1]
+                                    };
+                                    break;
+                                case 'RevYoY':
+                                    query.RevenueYoY = {
+                                        $gt: screenerFilters.RevYoY[0],
+                                        $lt: screenerFilters.RevYoY[1]
+                                    };
+                                    break;
+                                case 'AvgVolume1W':
+                                    query.AvgVolume1W = {
+                                        $gt: screenerFilters.AvgVolume1W[0],
+                                        $lt: screenerFilters.AvgVolume1W[1]
+                                    };
+                                    break;
+                                case 'AvgVolume1M':
+                                    query.AvgVolume1M = {
+                                        $gt: screenerFilters.AvgVolume1M[0],
+                                        $lt: screenerFilters.AvgVolume1M[1]
+                                    };
+                                    break;
+                                case 'AvgVolume6M':
+                                    query.AvgVolume6M = {
+                                        $gt: screenerFilters.AvgVolume6M[0],
+                                        $lt: screenerFilters.AvgVolume6M[1]
+                                    };
+                                    break;
+                                case 'AvgVolume1Y':
+                                    query.AvgVolume1Y = {
+                                        $gt: screenerFilters.AvgVolume1Y[0],
+                                        $lt: screenerFilters.AvgVolume1Y[1]
+                                    };
+                                    break;
+                                case 'RelVolume1W':
+                                    query.RelVolume1W = {
+                                        $gt: screenerFilters.RelVolume1W[0],
+                                        $lt: screenerFilters.RelVolume1W[1]
+                                    };
+                                    break;
+                                case 'RelVolume1M':
+                                    query.RelVolume1M = {
+                                        $gt: screenerFilters.RelVolume1M[0],
+                                        $lt: screenerFilters.RelVolume1M[1]
+                                    };
+                                    break;
+                                case 'RelVolume6M':
+                                    query.RelVolume6M = {
+                                        $gt: screenerFilters.RelVolume6M[0],
+                                        $lt: screenerFilters.RelVolume6M[1]
+                                    };
+                                    break;
+                                case 'RelVolume1Y':
+                                    query.RelVolume1Y = {
+                                        $gt: screenerFilters.RelVolume1Y[0],
+                                        $lt: screenerFilters.RelVolume1Y[1]
+                                    };
+                                    break;
+                                case 'RSScore1W':
+                                    query.RSScore1W = {
+                                        $gte: Math.max(screenerFilters.RSScore1W[0], 1),
+                                        $lte: Math.min(screenerFilters.RSScore1W[1], 100)
+                                    };
+                                    break;
+                                case 'RSScore1M':
+                                    query.RSScore1M = {
+                                        $gte: Math.max(screenerFilters.RSScore1M[0], 1),
+                                        $lte: Math.min(screenerFilters.RSScore1M[1], 100)
+                                    };
+                                    break;
+                                case 'RSScore4M':
+                                    query.RSScore4M = {
+                                        $gte: Math.max(screenerFilters.RSScore4M[0], 1),
+                                        $lte: Math.min(screenerFilters.RSScore4M[1], 100)
+                                    };
+                                    break;
+                                case 'ADV1W':
+                                    query.ADV1W = {
+                                        $gt: screenerFilters.ADV1W[0],
+                                        $lt: screenerFilters.ADV1W[1]
+                                    };
+                                    break;
+                                case 'ADV1M':
+                                    query.ADV1M = {
+                                        $gt: screenerFilters.ADV1M[0],
+                                        $lt: screenerFilters.ADV1M[1]
+                                    };
+                                    break;
+                                case 'ADV4M':
+                                    query.ADV4M = {
+                                        $gt: screenerFilters.ADV4M[0],
+                                        $lt: screenerFilters.ADV4M[1]
+                                    };
+                                    break;
+                                case 'ADV1Y':
+                                    query.ADV1Y = {
+                                        $gt: screenerFilters.ADV1Y[0],
+                                        $lt: screenerFilters.ADV1Y[1]
+                                    };
+                                    break;
+                                case 'changePerc':
+                                    switch (screenerFilters.changePerc[2]) {
+                                        case '1D':
+                                            query.todaychange = {
+                                                $gt: screenerFilters.changePerc[0] / 100,
+                                                $lt: screenerFilters.changePerc[1] / 100
+                                            };
+                                            break;
+                                        case '1W':
+                                            query.weekchange = {
+                                                $gt: screenerFilters.changePerc[0] / 100,
+                                                $lt: screenerFilters.changePerc[1] / 100
+                                            };
+                                            break;
+                                        case '1M':
+                                            query['1mchange'] = {
+                                                $gt: screenerFilters.changePerc[0] / 100,
+                                                $lt: screenerFilters.changePerc[1] / 100
+                                            };
+                                            break;
+                                        case '4M':
+                                            query['4mchange'] = {
+                                                $gt: screenerFilters.changePerc[0] / 100,
+                                                $lt: screenerFilters.changePerc[1] / 100
+                                            };
+                                            break;
+                                        case '6M':
+                                            query['6mchange'] = {
+                                                $gt: screenerFilters.changePerc[0] / 100,
+                                                $lt: screenerFilters.changePerc[1] / 100
+                                            };
+                                            break;
+                                        case '1Y':
+                                            query['1ychange'] = {
+                                                $gt: screenerFilters.changePerc[0] / 100,
+                                                $lt: screenerFilters.changePerc[1] / 100
+                                            };
+                                            break;
+                                        case 'YTD':
+                                            query.ytdchange = {
+                                                $gt: screenerFilters.changePerc[0] / 100,
+                                                $lt: screenerFilters.changePerc[1] / 100
+                                            };
+                                            break;
+                                    }
+                                    break;
+                                case 'PercOffWeekHigh':
+                                    query.percoff52WeekHigh = {
+                                        $gt: -screenerFilters.PercOffWeekHigh[0] / 100,
+                                        $lt: -screenerFilters.PercOffWeekHigh[1] / 100
+                                    };
+                                    break;
+                                case 'PercOffWeekLow':
+                                    query.percoff52WeekLow = {
+                                        $gt: screenerFilters.PercOffWeekLow[0] / 100,
+                                        $lt: screenerFilters.PercOffWeekLow[1] / 100
+                                    };
+                                    break;
+                                case 'NewHigh':
+                                    if (screenerFilters.NewHigh === 'yes') {
+                                        query.$expr = {
+                                            $gt: [
+                                                { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
+                                                "$AlltimeHigh"
+                                            ]
+                                        };
+                                    }
+                                    break;
+                                case 'NewLow':
+                                    if (screenerFilters.NewLow === 'yes') {
+                                        query.$expr = {
+                                            $lt: [
+                                                { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
+                                                "$AlltimeLow"
+                                            ]
+                                        };
+                                    }
+                                    break;
+                                case 'MA200':
+                                    if (screenerFilters.MA200 === 'abv50') {
+                                        query.$expr = { $gt: ["$MA200", "$MA50"] };
+                                    } else if (screenerFilters.MA200 === 'abv20') {
+                                        query.$expr = { $gt: ["$MA200", "$MA20"] };
+                                    } else if (screenerFilters.MA200 === 'abv10') {
+                                        query.$expr = { $gt: ["$MA200", "$MA10"] };
+                                    } else if (screenerFilters.MA200 === 'abvPrice') {
+                                        query.$expr = {
+                                            $gt: [
+                                                "$MA200",
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                }
+                                            ]
+                                        };
+                                    } else if (screenerFilters.MA200 === 'blw50') {
+                                        query.$expr = { $lt: ["$MA200", "$MA50"] };
+                                    } else if (screenerFilters.MA200 === 'blw20') {
+                                        query.$expr = { $lt: ["$MA200", "$MA20"] };
+                                    } else if (screenerFilters.MA200 === 'blw10') {
+                                        query.$expr = { $lt: ["$MA200", "$MA10"] };
+                                    } else if (screenerFilters.MA200 === 'blwPrice') {
+                                        query.$expr = {
+                                            $lt: [
+                                                "$MA200",
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                }
+                                            ]
+                                        };
+                                    }
+                                    break;
+
+                                case 'MA50':
+                                    if (screenerFilters.MA50 === 'abv200') {
+                                        query.$expr = { $gt: ["$MA50", "$MA200"] };
+                                    } else if (screenerFilters.MA50 === 'abv20') {
+                                        query.$expr = { $gt: ["$MA50", "$MA20"] };
+                                    } else if (screenerFilters.MA50 === 'abv10') {
+                                        query.$expr = { $gt: ["$MA50", "$MA10"] };
+                                    } else if (screenerFilters.MA50 === 'abvPrice') {
+                                        query.$expr = {
+                                            $gt: [
+                                                "$MA50",
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                }
+                                            ]
+                                        };
+                                    } else if (screenerFilters.MA50 === 'blw200') {
+                                        query.$expr = { $lt: ["$MA50", "$MA200"] };
+                                    } else if (screenerFilters.MA50 === 'blw20') {
+                                        query.$expr = { $lt: ["$MA50", "$MA20"] };
+                                    } else if (screenerFilters.MA50 === 'blw10') {
+                                        query.$expr = { $lt: ["$MA50", "$MA10"] };
+                                    } else if (screenerFilters.MA50 === 'blwPrice') {
+                                        query.$expr = {
+                                            $lt: [
+                                                "$MA50",
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                }
+                                            ]
+                                        };
+                                    }
+                                    break;
+
+                                case 'MA20':
+                                    if (screenerFilters.MA20 === 'abv200') {
+                                        query.$expr = { $gt: ["$MA20", "$MA200"] };
+                                    } else if (screenerFilters.MA20 === 'abv50') {
+                                        query.$expr = { $gt: ["$MA20", "$MA50"] };
+                                    } else if (screenerFilters.MA20 === 'abv10') {
+                                        query.$expr = { $gt: ["$MA20", "$MA10"] };
+                                    } else if (screenerFilters.MA20 === 'abvPrice') {
+                                        query.$expr = {
+                                            $gt: [
+                                                "$MA20",
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                }
+                                            ]
+                                        };
+                                    } else if (screenerFilters.MA20 === 'blw200') {
+                                        query.$expr = { $lt: ["$MA20", "$MA200"] };
+                                    } else if (screenerFilters.MA20 === 'blw50') {
+                                        query.$expr = { $lt: ["$MA20", "$MA50"] };
+                                    } else if (screenerFilters.MA20 === 'blw10') {
+                                        query.$expr = { $lt: ["$MA20", "$MA10"] };
+                                    } else if (screenerFilters.MA20 === 'blwPrice') {
+                                        query.$expr = {
+                                            $lt: [
+                                                "$MA20",
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                }
+                                            ]
+                                        };
+                                    }
+                                    break;
+
+                                case 'MA10':
+                                    if (screenerFilters.MA10 === 'abv200') {
+                                        query.$expr = { $gt: ["$MA10", "$MA200"] };
+                                    } else if (screenerFilters.MA10 === 'abv50') {
+                                        query.$expr = { $gt: ["$MA10", "$MA50"] };
+                                    } else if (screenerFilters.MA10 === 'abv20') {
+                                        query.$expr = { $gt: ["$MA10", "$MA20"] };
+                                    } else if (screenerFilters.MA10 === 'abvPrice') {
+                                        query.$expr = {
+                                            $gt: [
+                                                "$MA10",
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                }
+                                            ]
+                                        };
+                                    } else if (screenerFilters.MA10 === 'blw200') {
+                                        query.$expr = { $lt: ["$MA10", "$MA200"] };
+                                    } else if (screenerFilters.MA10 === 'blw50') {
+                                        query.$expr = { $lt: ["$MA10", "$MA50"] };
+                                    } else if (screenerFilters.MA10 === 'blw20') {
+                                        query.$expr = { $lt: ["$MA10", "$MA20"] };
+                                    } else if (screenerFilters.MA10 === 'blwPrice') {
+                                        query.$expr = {
+                                            $lt: [
+                                                "$MA10",
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                }
+                                            ]
+                                        };
+                                    }
+                                    break;
+
+                                case 'CurrentPrice':
+                                    if (screenerFilters.CurrentPrice === 'abv200') {
+                                        query.$expr = {
+                                            $gt: [
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                },
+                                                "$MA200"
+                                            ]
+                                        };
+                                    } else if (screenerFilters.CurrentPrice === 'abv50') {
+                                        query.$expr = {
+                                            $gt: [
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                },
+                                                "$MA50"
+                                            ]
+                                        };
+                                    } else if (screenerFilters.CurrentPrice === 'abv20') {
+                                        query.$expr = {
+                                            $gt: [
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                },
+                                                "$MA20"
+                                            ]
+                                        };
+                                    } else if (screenerFilters.CurrentPrice === 'abv10') {
+                                        query.$expr = {
+                                            $gt: [
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                },
+                                                "$MA10"
+                                            ]
+                                        };
+                                    } else if (screenerFilters.CurrentPrice === 'blw200') {
+                                        query.$expr = {
+                                            $lt: [
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                },
+                                                "$MA200"
+                                            ]
+                                        };
+                                    } else if (screenerFilters.CurrentPrice === 'blw50') {
+                                        query.$expr = {
+                                            $lt: [
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                },
+                                                "$MA50"
+                                            ]
+                                        };
+                                    } else if (screenerFilters.CurrentPrice === 'blw20') {
+                                        query.$expr = {
+                                            $lt: [
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                },
+                                                "$MA20"
+                                            ]
+                                        };
+                                    } else if (screenerFilters.CurrentPrice === 'blw10') {
+                                        query.$expr = {
+                                            $lt: [
+                                                {
+                                                    $arrayElemAt: [
+                                                        {
+                                                            $map: {
+                                                                input: { $objectToArray: "$TimeSeries" },
+                                                                as: "item",
+                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                            }
+                                                        },
+                                                        0
+                                                    ]
+                                                },
+                                                "$MA10"
+                                            ]
+                                        };
+                                    }
+                                    break;
+                                case 'ROE':
+                                    query['quarterlyFinancials.0.roe'] = {
+                                        $gt: screenerFilters.ROE[0],
+                                        $lt: screenerFilters.ROE[1]
+                                    };
+                                    break;
+                                case 'ROA':
+                                    query['quarterlyFinancials.0.roa'] = {
+                                        $gt: screenerFilters.ROA[0],
+                                        $lt: screenerFilters.ROA[1]
+                                    };
+                                    break;
+                                case 'currentRatio':
+                                    query['quarterlyFinancials.0.currentRatio'] = {
+                                        $gt: screenerFilters.currentRatio[0],
+                                        $lt: screenerFilters.currentRatio[1]
+                                    };
+                                    break;
+                                case 'assetsCurrent':
+                                    query['quarterlyFinancials.0.assetsCurrent'] = {
+                                        $gt: screenerFilters.assetsCurrent[0],
+                                        $lt: screenerFilters.assetsCurrent[1]
+                                    };
+                                    break;
+                                case 'liabilitiesCurrent':
+                                    query['quarterlyFinancials.0.liabilitiesCurrent'] = {
+                                        $gt: screenerFilters.liabilitiesCurrent[0],
+                                        $lt: screenerFilters.liabilitiesCurrent[1]
+                                    };
+                                    break;
+                                case 'debtCurrent':
+                                    query['quarterlyFinancials.0.debtCurrent'] = {
+                                        $gt: screenerFilters.debtCurrent[0],
+                                        $lt: screenerFilters.debtCurrent[1]
+                                    };
+                                    break;
+                                case 'cashAndEq':
+                                    query['quarterlyFinancials.0.cashAndEq'] = {
+                                        $gt: screenerFilters.cashAndEq[0],
+                                        $lt: screenerFilters.cashAndEq[1]
+                                    };
+                                    break;
+                                case 'freeCashFlow':
+                                    query['quarterlyFinancials.0.freeCashFlow'] = {
+                                        $gt: screenerFilters.freeCashFlow[0],
+                                        $lt: screenerFilters.freeCashFlow[1]
+                                    };
+                                    break;
+                                case 'profitMargin':
+                                    query['quarterlyFinancials.0.profitMargin'] = {
+                                        $gt: screenerFilters.profitMargin[0],
+                                        $lt: screenerFilters.profitMargin[1]
+                                    };
+                                    break;
+                                case 'grossMargin':
+                                    query['quarterlyFinancials.0.grossMargin'] = {
+                                        $gt: screenerFilters.grossMargin[0],
+                                        $lt: screenerFilters.grossMargin[1]
+                                    };
+                                    break;
+                                case 'debtEquity':
+                                    query['quarterlyFinancials.0.debtEquity'] = {
+                                        $gt: screenerFilters.debtEquity[0],
+                                        $lt: screenerFilters.debtEquity[1]
+                                    };
+                                    break;
+                                case 'bookVal':
+                                    query['quarterlyFinancials.0.bookVal'] = {
+                                        $gt: screenerFilters.bookVal[0],
+                                        $lt: screenerFilters.bookVal[1]
+                                    };
+                                    break;
+                                case 'EV':
+                                    query.EV = {
+                                        $gt: screenerFilters.EV[0],
+                                        $lt: screenerFilters.EV[1]
+                                    };
+                                    break;
+                                case 'RSI':
+                                    query.RSI = {
+                                        $gt: screenerFilters.RSI[0],
+                                        $lt: screenerFilters.RSI[1]
+                                    };
+                                    break;
+                                case 'Gap':
+                                    query.Gap = {
+                                        $gt: screenerFilters.Gap[0],
+                                        $lt: screenerFilters.Gap[1]
+                                    };
+                                    break;
+                                case 'IV':
+                                    query.IntrinsicValue = {
+                                        $gt: screenerFilters.IV[0],
+                                        $lt: screenerFilters.IV[1]
+                                    };
+                                    break;
+                                default:
+                                    break;
+                            }
+                        });
+
+                        aggregation.push({ $match: query });
+
+
+                        // Improved dynamic projection and flattening logic
+                        const fieldMap = {
+                            symbol: 'Symbol',
+                            name: 'Name',
+                            isin: 'ISIN',
+                            market_cap: 'MarketCapitalization',
+                            price: 'Close',
+                            volume: 'Volume',
+                            ipo: 'IPO',
+                            assettype: 'AssetType',
+                            pe_ratio: 'PERatio',
+                            peg: 'PEGRatio',
+                            pb_ratio: 'PriceToBookRatio',
+                            ps_ratio: 'PriceToSalesRatioTTM',
+                            dividend_yield: 'DividendYield',
+                            eps: 'EPS',
+                            fcf: 'freeCashFlow',
+                            cash: 'cashAndEq',
+                            current_debt: 'debtCurrent',
+                            current_assets: 'assetsCurrent',
+                            current_liabilities: 'liabilitiesCurrent',
+                            current_ratio: 'currentRatio',
+                            roe: 'roe',
+                            roa: 'roa',
+                            currency: 'Currency',
+                            book_value: 'BookValue',
+                            shares: 'SharesOutstanding',
+                            sector: 'Sector',
+                            industry: 'Industry',
+                            exchange: 'Exchange',
+                            country: 'Country',
+                            rs_score1w: 'RSScore1W',
+                            rs_score1m: 'RSScore1M',
+                            rs_score4m: 'RSScore4M',
+                            adv1w: 'ADV1W',
+                            adv1m: 'ADV1M',
+                            adv4m: 'ADV4M',
+                            adv1y: 'ADV1Y',
+                            perc_change: 'todaychange',
+                            all_time_high: 'AlltimeHigh',
+                            all_time_low: 'AlltimeLow',
+                            high_52w: 'fiftytwoWeekHigh',
+                            low_52w: 'fiftytwoWeekLow',
+                            gap: 'Gap',
+                            ev: 'EV',
+                            rsi: 'RSI',
+                            intrinsic_value: 'IntrinsicValue',
+                        };
+
+                        // Always include Symbol for frontend keying
+                        let projection = { Symbol: 1, _id: 0 };
+                        let addFields = {};
+
+                        if (userDoc && Array.isArray(userDoc.Table)) {
+                            userDoc.Table.forEach(attr => {
+                                const backendField = fieldMap[attr] || attr;
+                                // Special handling for 'price'/'Close'
+                                if (attr === 'price' || attr === 'Close') {
+                                    addFields['Close'] = {
+                                        $arrayElemAt: [
+                                            {
+                                                $map: {
+                                                    input: { $objectToArray: "$TimeSeries" },
+                                                    as: "item",
+                                                    in: { $getField: { field: "4. close", input: "$$item.v" } }
+                                                }
+                                            },
+                                            0
+                                        ]
+                                    };
+                                    projection['Close'] = 1;
+                                    return;
+                                }
+                                // Special handling for 'volume'
+                                if (attr === 'volume' || attr === 'Volume') {
+                                    addFields['Volume'] = {
+                                        $arrayElemAt: [
+                                            {
+                                                $map: {
+                                                    input: { $objectToArray: "$TimeSeries" },
+                                                    as: "item",
+                                                    in: { $getField: { field: "5. volume", input: "$$item.v" } }
+                                                }
+                                            },
+                                            0
+                                        ]
+                                    };
+                                    projection['Volume'] = 1;
+                                    return;
+                                }
+                                // Special handling for quarterly fields
+                                const quarterlyFields = [
+                                    'roe', 'roa', 'currentRatio', 'assetsCurrent', 'liabilitiesCurrent',
+                                    'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin',
+                                    'debtEquity', 'bookVal'
+                                ];
+                                if (quarterlyFields.includes(backendField)) {
+                                    addFields[backendField] = { $ifNull: [{ $getField: { field: backendField, input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
+                                    projection[backendField] = 1;
+                                    return;
+                                }
+                                projection[backendField] = 1;
+                            });
+                        }
+
+                        // Build aggregation pipeline
+                        if (Object.keys(addFields).length > 0) {
+                            aggregation.push({ $addFields: addFields });
+                        }
+                        aggregation.push({ $project: projection });
+
+                        const filteredAssets = await assetInfoCollection.aggregate(aggregation).toArray();
+
+                        filteredAssets.forEach(asset => {
+                            const key = asset.Symbol;
+                            if (!tickerScreenerMap.has(key)) {
+                                tickerScreenerMap.set(key, []);
+                            }
+                            tickerScreenerMap.get(key).push(screenerName);
+                        });
+
+                        filteredAssetsArray.push(...filteredAssets);
+                    } catch (error) {
+                        logger.error({
+                            msg: 'Error Processing Screener',
+                            requestId: requestId,
+                            screenerName: screenerName,
+                            error: error.message
+                        });
+                        // Continue to next screener instead of stopping entire process
+                        continue;
+                    }
+                }
+
+                // Existing deduplication logic remains unchanged
+                const uniqueFilteredAssetsArray = Array.from(new Set(filteredAssetsArray.map(a => JSON.stringify(a)))).map(a => JSON.parse(a));
+
+                // Add screener information to the unique assets
+                const finalResults = uniqueFilteredAssetsArray.map(asset => {
+                    const screenerNames = tickerScreenerMap.get(asset.Symbol) || [];
+                    return {
+                        ...asset,
+                        screenerNames: screenerNames,
+                        isDuplicate: screenerNames.length > 1,
+                        duplicateCount: screenerNames.length // Add this for sorting
+                    };
+                });
+
+                // Sort: duplicates first, then by how many times they appear (descending)
+                finalResults.sort((a, b) => {
+                    // First, sort by duplicate count descending
+                    if (b.duplicateCount !== a.duplicateCount) {
+                        return b.duplicateCount - a.duplicateCount;
+                    }
+                    // Optionally, add a secondary sort (e.g., by Symbol)
+                    return a.Symbol.localeCompare(b.Symbol);
+                });
+
+                // Remove duplicateCount from the response if you don't want to expose it
+                finalResults.forEach(asset => { delete asset.duplicateCount; });
+
+                // Pagination logic for lazy loading
+                let page = parseInt(req.query.page) || 1;
+                let limit = parseInt(req.query.limit) || 100;
+                if (limit > 500) limit = 500;
+                const totalCount = finalResults.length;
+                const totalPages = Math.ceil(totalCount / limit);
+                const paginatedResults = finalResults.slice((page - 1) * limit, page * limit);
+
+                res.json({
+                    page,
+                    limit,
+                    totalCount,
+                    totalPages,
+                    data: paginatedResults
+                });
+
+            } catch (error) {
+                // Comprehensive error logging
+                logger.error({
+                    msg: 'Unexpected Error in Combined Screener Results',
+                    requestId: requestId,
+                    error: error.message,
+                    stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+                });
+
+                res.status(500).json({ message: 'Internal Server Error' });
+            } finally {
+                // Ensure client is closed
+                if (client) {
+                    try {
+                        await client.close();
+                    } catch (closeError) {
+                        logger.warn({
+                            msg: 'Database Client Closure Failed',
+                            error: closeError.message
+                        });
+                    }
+                }
+            }
+        }
+    );
 
     // endpoint that updates screener document with price parameters 
     app.patch('/screener/price', validate([
@@ -1130,170 +3785,6 @@ export default function (app, deps) {
                 });
             } finally {
                 // Ensure client is closed
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        logger.warn('Error closing database connection', {
-                            error: closeError.message
-                        });
-                    }
-                }
-            }
-        }
-    );
-
-    // endpoint that sends hidden list of user in results 
-    app.get('/:user/screener/results/hidden',
-        validate([
-            validationSchemas.userParam('user')
-        ]),
-        async (req, res) => {
-            let client;
-            try {
-                const apiKey = req.header('x-api-key');
-
-                const sanitizedKey = sanitizeInput(apiKey);
-
-                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                    logger.warn('Invalid API key', {
-                        providedApiKey: !!sanitizedKey
-                    });
-
-                    return res.status(401).json({
-                        message: 'Unauthorized API Access'
-                    });
-                }
-                // Sanitize input
-                const user = sanitizeInput(req.params.user);
-
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
-
-                // Find the user document and extract the 'Hidden' array
-                const usersCollection = db.collection('Users');
-                const userDoc = await usersCollection.findOne({ Username: user });
-
-                if (!userDoc) {
-                    logger.warn('Hidden Results - User Not Found', {
-                        username: obfuscateUsername(user)
-                    });
-                    return res.status(404).json({
-                        message: 'User not found',
-                        username: obfuscateUsername(user)
-                    });
-                }
-
-                // Check if hidden symbols exist
-                const hiddenSymbols = userDoc.Hidden || [];
-                if (hiddenSymbols.length === 0) {
-                    return res.json([]);
-                }
-
-
-                // Dynamic projection logic based on userDoc.Table (like /:user/screener/results/all)
-                const projection = { Symbol: 1, _id: 0 };
-                const fieldMap = {
-                    symbol: 'Symbol',
-                    name: 'Name',
-                    isin: 'ISIN',
-                    market_cap: 'MarketCapitalization',
-                    price: 'Close',
-                    volume: 'Volume',
-                    ipo: 'IPO',
-                    assettype: 'AssetType',
-                    pe_ratio: 'PERatio',
-                    peg: 'PEGRatio',
-                    pb_ratio: 'PriceToBookRatio',
-                    ps_ratio: 'PriceToSalesRatioTTM',
-                    dividend_yield: 'DividendYield',
-                    eps: 'EPS',
-                    fcf: 'freeCashFlow',
-                    cash: 'cashAndEq',
-                    current_debt: 'debtCurrent',
-                    current_assets: 'assetsCurrent',
-                    current_liabilities: 'liabilitiesCurrent',
-                    current_ratio: 'currentRatio',
-                    roe: 'roe',
-                    roa: 'roa',
-                    currency: 'Currency',
-                    book_value: 'BookValue',
-                    shares: 'SharesOutstanding',
-                    sector: 'Sector',
-                    industry: 'Industry',
-                    exchange: 'Exchange',
-                    country: 'Country',
-                    rs_score1w: 'RSScore1W',
-                    rs_score1m: 'RSScore1M',
-                    rs_score4m: 'RSScore4M',
-                    adv1w: 'ADV1W',
-                    adv1m: 'ADV1M',
-                    adv4m: 'ADV4M',
-                    adv1y: 'ADV1Y',
-                    perc_change: 'todaychange',
-                    all_time_high: 'AlltimeHigh',
-                    all_time_low: 'AlltimeLow',
-                    high_52w: 'fiftytwoWeekHigh',
-                    low_52w: 'fiftytwoWeekLow',
-                    gap: 'Gap',
-                    ev: 'EV',
-                    rsi: 'RSI',
-                    intrinsic_value: 'IntrinsicValue',
-                };
-                if (Array.isArray(userDoc?.Table)) {
-                    userDoc.Table.forEach(key => {
-                        if (fieldMap[key]) {
-                            if (key === 'price') {
-                                projection['Close'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] };
-                            } else if (key === 'volume') {
-                                projection['Volume'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "5. volume", input: "$$item.v" } } } }, 0] };
-                            } else if ([
-                                'fcf', 'cash', 'current_debt', 'current_assets', 'current_liabilities', 'current_ratio', 'roe', 'roa'
-                            ].includes(key)) {
-                                const qfMap = {
-                                    fcf: 'freeCashFlow',
-                                    cash: 'cashAndEq',
-                                    current_debt: 'debtCurrent',
-                                    current_assets: 'assetsCurrent',
-                                    current_liabilities: 'liabilitiesCurrent',
-                                    current_ratio: 'currentRatio',
-                                    roe: 'roe',
-                                    roa: 'roa',
-                                };
-                                const field = qfMap[key];
-                                if (field) {
-                                    projection[field] = { $ifNull: [{ $getField: { field, input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
-                                }
-                            } else {
-                                projection[fieldMap[key]] = 1;
-                            }
-                        }
-                    });
-                }
-
-                const assetInfoCollection = db.collection('AssetInfo');
-                const filteredAssets = await assetInfoCollection.find({
-                    Symbol: { $in: hiddenSymbols }
-                }, {
-                    projection
-                }).toArray();
-
-                res.json(filteredAssets);
-
-            } catch (error) {
-                // Log the error with sensitive information redacted
-                logger.error('Hidden Results Retrieval Error', {
-                    message: error.message,
-                    stack: error.stack,
-                    username: obfuscateUsername(req.params.user)
-                });
-
-                res.status(500).json({
-                    message: 'Internal Server Error',
-                    error: process.env.NODE_ENV === 'development' ? error.message : 'An unexpected error occurred'
-                });
-            } finally {
                 if (client) {
                     try {
                         await client.close();
@@ -4412,1170 +6903,6 @@ export default function (app, deps) {
         }
     );
 
-    // endpoint that sends filtered results for screener
-    app.get('/screener/:user/results/filtered/:name',
-        validate([
-            param('user')
-                .trim()
-                .notEmpty().withMessage('Username is required')
-                .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
-                .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores'),
-
-            param('name')
-                .trim()
-                .notEmpty().withMessage('Screener name is required')
-                .isLength({ min: 1, max: 20 }).withMessage('Screener name must be between 1 and 20 characters')
-                .matches(/^[a-zA-Z0-9\s_\-+()]+$/).withMessage('Screener name can only contain letters, numbers, spaces, underscores, hyphens, plus, and parentheses')
-        ]),
-        async (req, res) => {
-            const user = sanitizeInput(req.params.user); // Sanitize user input
-            const screenerName = sanitizeInput(req.params.name); // Sanitize screener name input
-
-            try {
-                const apiKey = req.header('x-api-key');
-
-                const sanitizedKey = sanitizeInput(apiKey);
-
-                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                    logger.warn('Invalid API key', {
-                        providedApiKey: !!sanitizedKey
-                    });
-
-                    return res.status(401).json({
-                        message: 'Unauthorized API Access'
-                    });
-                }
-                const client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
-
-                const usersCollection = db.collection('Users');
-                const userDoc = await usersCollection.findOne({ Username: user });
-                if (!userDoc) {
-                    logger.warn('User  not found', { user: obfuscateUsername(user) });
-                    return res.status(404).json({ message: 'User  not found' });
-                }
-
-                const hiddenSymbols = userDoc.Hidden;
-
-                const screenersCollection = db.collection('Screeners');
-                const screenerData = await screenersCollection.findOne({ UsernameID: user, Name: screenerName });
-                if (!screenerData) {
-                    logger.warn('Screener data not found', { user: obfuscateUsername(user), screenerName: screenerName });
-                    return res.status(404).json({ message: 'Screener data not found' });
-                }
-
-                // Extract filters from screenerData
-                const screenerFilters = {};
-
-                if (screenerData.Price && screenerData.Price[0] !== 0 && screenerData.Price[1] !== 0) {
-                    screenerFilters.Price = screenerData.Price;
-                }
-
-                if (screenerData.MarketCap && screenerData.MarketCap[0] !== 0 && screenerData.MarketCap[1] !== 0) {
-                    screenerFilters.MarketCap = screenerData.MarketCap;
-                }
-
-                if (screenerData.Sectors && screenerData.Sectors.length > 0) {
-                    screenerFilters.sectors = screenerData.Sectors;
-                }
-
-                if (screenerData.AssetTypes && screenerData.AssetTypes.length > 0) {
-                    screenerFilters.assetTypes = screenerData.AssetTypes;
-                }
-
-                if (screenerData.Exchanges && screenerData.Exchanges.length > 0) {
-                    screenerFilters.exchanges = screenerData.Exchanges;
-                }
-
-                if (screenerData.Countries && screenerData.Countries.length > 0) {
-                    screenerFilters.countries = screenerData.Countries;
-                }
-
-                if (screenerData.NewHigh && screenerData.NewHigh.length > 0) {
-                    screenerFilters.NewHigh = screenerData.NewHigh;
-                }
-
-                if (screenerData.NewLow && screenerData.NewLow.length > 0) {
-                    screenerFilters.NewLow = screenerData.NewLow;
-                }
-
-                if (screenerData.MA200 && screenerData.MA200.length > 0) {
-                    screenerFilters.MA200 = screenerData.MA200;
-                }
-
-                if (screenerData.MA50 && screenerData.MA50.length > 0) {
-                    screenerFilters.MA50 = screenerData.MA50;
-                }
-
-                if (screenerData.MA20 && screenerData.MA20.length > 0) {
-                    screenerFilters.MA20 = screenerData.MA20;
-                }
-
-                if (screenerData.MA10 && screenerData.MA10.length > 0) {
-                    screenerFilters.MA10 = screenerData.MA10;
-                }
-
-                if (screenerData.CurrentPrice && screenerData.CurrentPrice.length > 0) {
-                    screenerFilters.CurrentPrice = screenerData.CurrentPrice;
-                }
-
-                if (screenerData.PE && screenerData.PE[0] !== 0 && screenerData.PE[1] !== 0) {
-                    screenerFilters.PE = screenerData.PE;
-                }
-
-                if (screenerData.ForwardPE && screenerData.ForwardPE[0] !== 0 && screenerData.ForwardPE[1] !== 0) {
-                    screenerFilters.ForwardPE = screenerData.ForwardPE;
-                }
-
-                if (screenerData.PEG && screenerData.PEG[0] !== 0 && screenerData.PEG[1] !== 0) {
-                    screenerFilters.PEG = screenerData.PEG;
-                }
-
-                if (screenerData.EPS && screenerData.EPS[0] !== 0 && screenerData.EPS[1] !== 0) {
-                    screenerFilters.EPS = screenerData.EPS;
-                }
-
-                if (screenerData.PS && screenerData.PS[0] !== 0 && screenerData.PS[1] !== 0) {
-                    screenerFilters.PS = screenerData.PS;
-                }
-
-                if (screenerData.PB && screenerData.PB[0] !== 0 && screenerData.PB[1] !== 0) {
-                    screenerFilters.PB = screenerData.PB;
-                }
-
-                if (screenerData.Beta && screenerData.Beta[0] !== 0 && screenerData.Beta[1] !== 0) {
-                    screenerFilters.Beta = screenerData.Beta;
-                }
-
-                if (screenerData.DivYield && screenerData.DivYield[0] !== 0 && screenerData.DivYield[1] !== 0) {
-                    screenerFilters.DivYield = screenerData.DivYield;
-                }
-
-                if (screenerData.EPSQoQ && screenerData.EPSQoQ[0] !== 0 && screenerData.EPSQoQ[1] !== 0) {
-                    screenerFilters.EPSQoQ = screenerData.EPSQoQ;
-                }
-
-                if (screenerData.EPSYoY && screenerData.EPSYoY[0] !== 0 && screenerData.EPSYoY[1] !== 0) {
-                    screenerFilters.EPSYoY = screenerData.EPSYoY;
-                }
-
-                if (screenerData.EarningsQoQ && screenerData.EarningsQoQ[0] !== 0 && screenerData.EarningsQoQ[1] !== 0) {
-                    screenerFilters.EarningsQoQ = screenerData.EarningsQoQ;
-                }
-
-                if (screenerData.EarningsYoY && screenerData.EarningsYoY[0] !== 0 && screenerData.EarningsYoY[1] !== 0) {
-                    screenerFilters.EarningsYoY = screenerData.EarningsYoY;
-                }
-
-                if (screenerData.RevQoQ && screenerData.RevQoQ[0] !== 0 && screenerData.RevQoQ[1] !== 0) {
-                    screenerFilters.RevQoQ = screenerData.RevQoQ;
-                }
-
-                if (screenerData.RevYoY && screenerData.RevYoY[0] !== 0 && screenerData.RevYoY[1] !== 0) {
-                    screenerFilters.RevYoY = screenerData.RevYoY;
-                }
-
-                if (screenerData.AvgVolume1W && screenerData.AvgVolume1W[0] !== 0 && screenerData.AvgVolume1W[1] !== 0) {
-                    screenerFilters.AvgVolume1W = screenerData.AvgVolume1W;
-                }
-
-                if (screenerData.AvgVolume1M && screenerData.AvgVolume1M[0] !== 0 && screenerData.AvgVolume1M[1] !== 0) {
-                    screenerFilters.AvgVolume1M = screenerData.AvgVolume1M;
-                }
-
-                if (screenerData.AvgVolume6M && screenerData.AvgVolume6M[0] !== 0 && screenerData.AvgVolume6M[1] !== 0) {
-                    screenerFilters.AvgVolume6M = screenerData.AvgVolume6M;
-                }
-
-                if (screenerData.AvgVolume1Y && screenerData.AvgVolume1Y[0] !== 0 && screenerData.AvgVolume1Y[1] !== 0) {
-                    screenerFilters.AvgVolume1Y = screenerData.AvgVolume1Y;
-                }
-
-                if (screenerData.RelVolume1W && screenerData.RelVolume1W[0] !== 0 && screenerData.RelVolume1W[1] !== 0) {
-                    screenerFilters.RelVolume1W = screenerData.RelVolume1W;
-                }
-
-                if (screenerData.RelVolume1M && screenerData.RelVolume1M[0] !== 0 && screenerData.RelVolume1M[1] !== 0) {
-                    screenerFilters.RelVolume1M = screenerData.RelVolume1M;
-                }
-
-                if (screenerData.RelVolume6M && screenerData.RelVolume6M[0] !== 0 && screenerData.RelVolume6M[1] !== 0) {
-                    screenerFilters.RelVolume6M = screenerData.RelVolume6M;
-                }
-
-                if (screenerData.RelVolume1Y && screenerData.RelVolume1Y[0] !== 0 && screenerData.RelVolume1Y[1] !== 0) {
-                    screenerFilters.RelVolume1Y = screenerData.RelVolume1Y;
-                }
-
-                if (screenerData.RSScore1W && screenerData.RSScore1W[0] !== 0 && screenerData.RSScore1W[1] !== 0) {
-                    screenerFilters.RSScore1W = screenerData.RSScore1W;
-                }
-
-                if (screenerData.RSScore1M && screenerData.RSScore1M[0] !== 0 && screenerData.RSScore1M[1] !== 0) {
-                    screenerFilters.RSScore1M = screenerData.RSScore1M;
-                }
-
-                if (screenerData.RSScore4M && screenerData.RSScore4M[0] !== 0 && screenerData.RSScore4M[1] !== 0) {
-                    screenerFilters.RSScore4M = screenerData.RSScore4M;
-                }
-
-                if (screenerData.ADV1W && screenerData.ADV1W[0] !== 0 && screenerData.ADV1W[1] !== 0) {
-                    screenerFilters.ADV1W = screenerData.ADV1W;
-                }
-
-                if (screenerData.ADV1M && screenerData.ADV1M[0] !== 0 && screenerData.ADV1M[1] !== 0) {
-                    screenerFilters.ADV1M = screenerData.ADV1M;
-                }
-
-                if (screenerData.ADV4M && screenerData.ADV4M[0] !== 0 && screenerData.ADV4M[1] !== 0) {
-                    screenerFilters.ADV4M = screenerData.ADV4M;
-                }
-
-                if (screenerData.ADV1Y && screenerData.ADV1Y[0] !== 0 && screenerData.ADV1Y[1] !== 0) {
-                    screenerFilters.ADV1Y = screenerData.ADV1Y;
-                }
-
-                if (screenerData.PercOffWeekHigh && screenerData.PercOffWeekHigh[0] !== 0 && screenerData.PercOffWeekHigh[1] !== 0) {
-                    screenerFilters.PercOffWeekHigh = screenerData.PercOffWeekHigh;
-                }
-
-                if (screenerData.PercOffWeekLow && screenerData.PercOffWeekLow[0] !== 0 && screenerData.PercOffWeekLow[1] !== 0) {
-                    screenerFilters.PercOffWeekLow = screenerData.PercOffWeekLow;
-                }
-
-                if (screenerData.IPO && screenerData.IPO[0] !== 0 && screenerData.IPO[1] !== 0) {
-                    screenerFilters.IPO = screenerData.IPO;
-                }
-
-                if (screenerData.changePerc &&
-                    screenerData.changePerc[0] !== 0 &&
-                    screenerData.changePerc[1] !== 0) {
-                    screenerFilters.changePerc = screenerData.changePerc;
-                    if (screenerData.changePerc[2] && screenerData.changePerc[2].length > 0) {
-                        screenerFilters.changePerc[2] = screenerData.changePerc[2];
-                    }
-                }
-
-                if (screenerData.ROE && screenerData.ROE[0] !== 0 && screenerData.ROE[1] !== 0) {
-                    screenerFilters.ROE = screenerData.ROE;
-                }
-
-                if (screenerData.ROA && screenerData.ROA[0] !== 0 && screenerData.ROA[1] !== 0) {
-                    screenerFilters.ROA = screenerData.ROA;
-                }
-
-                if (screenerData.currentRatio && screenerData.currentRatio[0] !== 0 && screenerData.currentRatio[1] !== 0) {
-                    screenerFilters.currentRatio = screenerData.currentRatio;
-                }
-
-                if (screenerData.assetsCurrent && screenerData.assetsCurrent[0] !== 0 && screenerData.assetsCurrent[1] !== 0) {
-                    screenerFilters.assetsCurrent = screenerData.assetsCurrent;
-                }
-
-                if (screenerData.liabilitiesCurrent && screenerData.liabilitiesCurrent[0] !== 0 && screenerData.liabilitiesCurrent[1] !== 0) {
-                    screenerFilters.liabilitiesCurrent = screenerData.liabilitiesCurrent;
-                }
-
-                if (screenerData.debtCurrent && screenerData.debtCurrent[0] !== 0 && screenerData.debtCurrent[1] !== 0) {
-                    screenerFilters.debtCurrent = screenerData.debtCurrent;
-                }
-
-                if (screenerData.cashAndEq && screenerData.cashAndEq[0] !== 0 && screenerData.cashAndEq[1] !== 0) {
-                    screenerFilters.cashAndEq = screenerData.cashAndEq;
-                }
-
-                if (screenerData.freeCashFlow && screenerData.freeCashFlow[0] !== 0 && screenerData.freeCashFlow[1] !== 0) {
-                    screenerFilters.freeCashFlow = screenerData.freeCashFlow;
-                }
-
-                if (screenerData.profitMargin && screenerData.profitMargin[0] !== 0 && screenerData.profitMargin[1] !== 0) {
-                    screenerFilters.profitMargin = screenerData.profitMargin;
-                }
-
-                if (screenerData.grossMargin && screenerData.grossMargin[0] !== 0 && screenerData.grossMargin[1] !== 0) {
-                    screenerFilters.grossMargin = screenerData.grossMargin;
-                }
-
-                if (screenerData.debtEquity && screenerData.debtEquity[0] !== 0 && screenerData.debtEquity[1] !== 0) {
-                    screenerFilters.debtEquity = screenerData.debtEquity;
-                }
-
-                if (screenerData.bookVal && screenerData.bookVal[0] !== 0 && screenerData.bookVal[1] !== 0) {
-                    screenerFilters.bookVal = screenerData.bookVal;
-                }
-
-                if (screenerData.EV && screenerData.EV[0] !== 0 && screenerData.EV[1] !== 0) {
-                    screenerFilters.EV = screenerData.EV;
-                }
-
-                if (screenerData.RSI && screenerData.RSI[0] !== 0 && screenerData.RSI[1] !== 0) {
-                    screenerFilters.RSI = screenerData.RSI;
-                }
-
-                if (screenerData.Gap && screenerData.Gap[0] !== 0 && screenerData.Gap[1] !== 0) {
-                    screenerFilters.Gap = screenerData.Gap;
-                }
-
-                if (screenerData.IV && screenerData.IV[0] !== 0 && screenerData.IV[1] !== 0) {
-                    screenerFilters.IV = screenerData.IV;
-                }
-
-                // Filter the AssetInfo collection 
-                const assetInfoCollection = db.collection('AssetInfo');
-                const query = {
-                    Symbol: { $nin: hiddenSymbols }
-                };
-
-                Object.keys(screenerFilters).forEach((key) => {
-                    switch (key) {
-                        case 'Price':
-                            query.$expr = {
-                                $and: [
-                                    { $gt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[0]] },
-                                    { $lt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[1]] }
-                                ]
-                            };
-                            break;
-                        case 'MarketCap':
-                            query.MarketCapitalization = {
-                                $gt: screenerFilters.MarketCap[0],
-                                $lt: screenerFilters.MarketCap[1]
-                            };
-                            break;
-                        case 'IPO':
-                            query.IPO = {
-                                $gt: screenerFilters.IPO[0],
-                                $lt: screenerFilters.IPO[1]
-                            };
-                            break;
-                        case 'sectors':
-                            query.Sector = { $in: screenerFilters.sectors };
-                            break;
-                        case 'assetTypes':
-                            query.AssetType = { $in: screenerFilters.assetTypes };
-                            break;
-                        case 'exchanges':
-                            query.Exchange = { $in: screenerFilters.exchanges };
-                            break;
-                        case 'countries':
-                            query.Country = { $in: screenerFilters.countries };
-                            break;
-                        case 'PE':
-                            query.PERatio = {
-                                $gt: screenerFilters.PE[0],
-                                $lt: screenerFilters.PE[1]
-                            };
-                            break;
-                        case 'ForwardPE':
-                            query.ForwardPE = {
-                                $gt: screenerFilters.ForwardPE[0],
-                                $lt: screenerFilters.ForwardPE[1]
-                            };
-                            break;
-                        case 'PEG':
-                            query.PEGRatio = {
-                                $gt: screenerFilters.PEG[0],
-                                $lt: screenerFilters.PEG[1]
-                            };
-                            break;
-                        case 'EPS':
-                            query.EPS = {
-                                $gt: screenerFilters.EPS[0],
-                                $lt: screenerFilters.EPS[1]
-                            };
-                            break;
-                        case 'PS':
-                            query.PriceToSalesRatioTTM = {
-                                $gt: screenerFilters.PS[0],
-                                $lt: screenerFilters.PS[1]
-                            };
-                            break;
-                        case 'PB':
-                            query.PriceToBookRatio = {
-                                $gt: screenerFilters.PB[0],
-                                $lt: screenerFilters.PB[1]
-                            };
-                            break;
-                        case 'Beta':
-                            query.Beta = {
-                                $gt: screenerFilters.Beta[0],
-                                $lt: screenerFilters.Beta[1]
-                            };
-                            break;
-                        case 'DivYield':
-                            query.DividendYield = {
-                                $gt: screenerFilters.DivYield[0],
-                                $lt: screenerFilters.DivYield[1]
-                            };
-                            break;
-                        case 'EPSQoQ':
-                            query.EPSQoQ = {
-                                $gt: screenerFilters.EPSQoQ[0],
-                                $lt: screenerFilters.EPSQoQ[1]
-                            };
-                            break;
-                        case 'EPSYoY':
-                            query.EPSYoY = {
-                                $gt: screenerFilters.EPSYoY[0],
-                                $lt: screenerFilters.EPSYoY[1]
-                            };
-                            break;
-                        case 'EarningsQoQ':
-                            query.EarningsQoQ = {
-                                $gt: screenerFilters.EarningsQoQ[0],
-                                $lt: screenerFilters.EarningsQoQ[1]
-                            };
-                            break;
-                        case 'EarningsYoY':
-                            query.EarningsYoY = {
-                                $gt: screenerFilters.EarningsYoY[0],
-                                $lt: screenerFilters.EarningsYoY[1]
-                            };
-                            break;
-                        case 'RevQoQ':
-                            query.RevQoQ = {
-                                $gt: screenerFilters.RevQoQ[0],
-                                $lt: screenerFilters.RevQoQ[1]
-                            };
-                            break;
-                        case 'RevYoY':
-                            query.RevYoY = {
-                                $gt: screenerFilters.RevYoY[0],
-                                $lt: screenerFilters.RevYoY[1]
-                            };
-                            break;
-                        case 'AvgVolume1W':
-                            query.AvgVolume1W = {
-                                $gt: screenerFilters.AvgVolume1W[0],
-                                $lt: screenerFilters.AvgVolume1W[1]
-                            };
-                            break;
-                        case 'AvgVolume1M':
-                            query.AvgVolume1M = {
-                                $gt: screenerFilters.AvgVolume1M[0],
-                                $lt: screenerFilters.AvgVolume1M[1]
-                            };
-                            break;
-                        case 'AvgVolume6M':
-                            query.AvgVolume6M = {
-                                $gt: screenerFilters.AvgVolume6M[0],
-                                $lt: screenerFilters.AvgVolume6M[1]
-                            };
-                            break;
-                        case 'AvgVolume1Y':
-                            query.AvgVolume1Y = {
-                                $gt: screenerFilters.AvgVolume1Y[0],
-                                $lt: screenerFilters.AvgVolume1Y[1]
-                            };
-                            break;
-                        case 'RelVolume1W':
-                            query.RelVolume1W = {
-                                $gt: screenerFilters.RelVolume1W[0],
-                                $lt: screenerFilters.RelVolume1W[1]
-                            };
-                            break;
-                        case 'RelVolume1M':
-                            query.RelVolume1M = {
-                                $gt: screenerFilters.RelVolume1M[0],
-                                $lt: screenerFilters.RelVolume1M[1]
-                            };
-                            break;
-                        case 'RelVolume6M':
-                            query.RelVolume6M = {
-                                $gt: screenerFilters.RelVolume6M[0],
-                                $lt: screenerFilters.RelVolume6M[1]
-                            };
-                            break;
-                        case 'RelVolume1Y':
-                            query.RelVolume1Y = {
-                                $gt: screenerFilters.RelVolume1Y[0],
-                                $lt: screenerFilters.RelVolume1Y[1]
-                            };
-                            break;
-                        case 'RSScore1W':
-                            query.RSScore1W = {
-                                $gte: Math.max(screenerFilters.RSScore1W[0], 1),
-                                $lte: Math.min(screenerFilters.RSScore1W[1], 100)
-                            };
-                            break;
-                        case 'RSScore1M':
-                            query.RSScore1M = {
-                                $gte: Math.max(screenerFilters.RSScore1M[0], 1),
-                                $lte: Math.min(screenerFilters.RSScore1M[1], 100)
-                            };
-                            break;
-                        case 'RSScore4M':
-                            query.RSScore4M = {
-                                $gte: Math.max(screenerFilters.RSScore4M[0], 1),
-                                $lte: Math.min(screenerFilters.RSScore4M[1], 100)
-                            };
-                            break;
-                        case 'ADV1W':
-                            query.ADV1W = {
-                                $gt: screenerFilters.ADV1W[0],
-                                $lt: screenerFilters.ADV1W[1]
-                            };
-                            break;
-                        case 'ADV1M':
-                            query.ADV1M = {
-                                $gt: screenerFilters.ADV1M[0],
-                                $lt: screenerFilters.ADV1M[1]
-                            };
-                            break;
-                        case 'ADV4M':
-                            query.ADV4M = {
-                                $gt: screenerFilters.ADV4M[0],
-                                $lt: screenerFilters.ADV4M[1]
-                            };
-                            break;
-                        case 'ADV1Y':
-                            query.ADV1Y = {
-                                $gt: screenerFilters.ADV1Y[0],
-                                $lt: screenerFilters.ADV1Y[1]
-                            };
-                            break;
-                        case 'changePerc':
-                            switch (screenerFilters.changePerc[2]) {
-                                case '1D':
-                                    query.todaychange = {
-                                        $gt: screenerFilters.changePerc[0],
-                                        $lt: screenerFilters.changePerc[1]
-                                    };
-                                    break;
-                                case '1W':
-                                    query.weekchange = {
-                                        $gt: screenerFilters.changePerc[0],
-                                        $lt: screenerFilters.changePerc[1]
-                                    };
-                                    break;
-                                case '1M':
-                                    query['1mchange'] = {
-                                        $gt: screenerFilters.changePerc[0],
-                                        $lt: screenerFilters.changePerc[1]
-                                    };
-                                    break;
-                                case '4M':
-                                    query['4mchange'] = {
-                                        $gt: screenerFilters.changePerc[0],
-                                        $lt: screenerFilters.changePerc[1]
-                                    };
-                                    break;
-                                case '6M':
-                                    query['6mchange'] = {
-                                        $gt: screenerFilters.changePerc[0],
-                                        $lt: screenerFilters.changePerc[1]
-                                    };
-                                    break;
-                                case '1Y':
-                                    query['1ychange'] = {
-                                        $gt: screenerFilters.changePerc[0],
-                                        $lt: screenerFilters.changePerc[1]
-                                    };
-                                    break;
-                                case 'YTD':
-                                    query.ytdchange = {
-                                        $gt: screenerFilters.changePerc[0],
-                                        $lt: screenerFilters.changePerc[1]
-                                    };
-                                    break;
-                            }
-                            break;
-                        case 'PercOffWeekHigh':
-                            query.percoff52WeekHigh = {
-                                $gt: -screenerFilters.PercOffWeekHigh[0] / 100,
-                                $lt: 0.0001
-                            };
-                            break;
-                        case 'PercOffWeekLow':
-                            query.percoff52WeekLow = {
-                                $gt: screenerFilters.PercOffWeekLow[0] / 100,
-                                $lt: screenerFilters.PercOffWeekLow[1] / 100
-                            };
-                            break;
-                        case 'NewHigh':
-                            if (screenerFilters.NewHigh === 'yes') {
-                                query.$expr = {
-                                    $gt: [
-                                        { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
-                                        "$AlltimeHigh"
-                                    ]
-                                };
-                            }
-                            break;
-                        case 'NewLow':
-                            if (screenerFilters.NewLow === 'yes') {
-                                query.$expr = {
-                                    $lt: [
-                                        { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
-                                        "$AlltimeLow"
-                                    ]
-                                };
-                            }
-                            break;
-                        case 'MA200':
-                            if (screenerFilters.MA200 === 'abv50') {
-                                query.$expr = { $gt: ["$MA200", "$MA50"] };
-                            } else if (screenerFilters.MA200 === 'abv20') {
-                                query.$expr = { $gt: ["$MA200", "$MA20"] };
-                            } else if (screenerFilters.MA200 === 'abv10') {
-                                query.$expr = { $gt: ["$MA200", "$MA10"] };
-                            } else if (screenerFilters.MA200 === 'abvPrice') {
-                                query.$expr = {
-                                    $gt: [
-                                        "$MA200",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
-                                    ]
-                                };
-                            } else if (screenerFilters.MA200 === 'blw50') {
-                                query.$expr = { $lt: ["$MA200", "$MA50"] };
-                            } else if (screenerFilters.MA200 === 'blw20') {
-                                query.$expr = { $lt: ["$MA200", "$MA20"] };
-                            } else if (screenerFilters.MA200 === 'blw10') {
-                                query.$expr = { $lt: ["$MA200", "$MA10"] };
-                            } else if (screenerFilters.MA200 === 'blwPrice') {
-                                query.$expr = {
-                                    $lt: [
-                                        "$MA200",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
-                                    ]
-                                };
-                            }
-                            break;
-
-                        case 'MA50':
-                            if (screenerFilters.MA50 === 'abv200') {
-                                query.$expr = { $gt: ["$MA50", "$MA200"] };
-                            } else if (screenerFilters.MA50 === 'abv20') {
-                                query.$expr = { $gt: ["$MA50", "$MA20"] };
-                            } else if (screenerFilters.MA50 === 'abv10') {
-                                query.$expr = { $gt: ["$MA50", "$MA10"] };
-                            } else if (screenerFilters.MA50 === 'abvPrice') {
-                                query.$expr = {
-                                    $gt: [
-                                        "$MA50",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
-                                    ]
-                                };
-                            } else if (screenerFilters.MA50 === 'blw200') {
-                                query.$expr = { $lt: ["$MA50", "$MA200"] };
-                            } else if (screenerFilters.MA50 === 'blw20') {
-                                query.$expr = { $lt: ["$MA50", "$MA20"] };
-                            } else if (screenerFilters.MA50 === 'blw10') {
-                                query.$expr = { $lt: ["$MA50", "$MA10"] };
-                            } else if (screenerFilters.MA50 === 'blwPrice') {
-                                query.$expr = {
-                                    $lt: [
-                                        "$MA50",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
-                                    ]
-                                };
-                            }
-                            break;
-
-                        case 'MA20':
-                            if (screenerFilters.MA20 === 'abv200') {
-                                query.$expr = { $gt: ["$MA20", "$MA200"] };
-                            } else if (screenerFilters.MA20 === 'abv50') {
-                                query.$expr = { $gt: ["$MA20", "$MA50"] };
-                            } else if (screenerFilters.MA20 === 'abv10') {
-                                query.$expr = { $gt: ["$MA20", "$MA10"] };
-                            } else if (screenerFilters.MA20 === 'abvPrice') {
-                                query.$expr = {
-                                    $gt: [
-                                        "$MA20",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
-                                    ]
-                                };
-                            } else if (screenerFilters.MA20 === 'blw200') {
-                                query.$expr = { $lt: ["$MA20", "$MA200"] };
-                            } else if (screenerFilters.MA20 === 'blw50') {
-                                query.$expr = { $lt: ["$MA20", "$MA50"] };
-                            } else if (screenerFilters.MA20 === 'blw10') {
-                                query.$expr = { $lt: ["$MA20", "$MA10"] };
-                            } else if (screenerFilters.MA20 === 'blwPrice') {
-                                query.$expr = {
-                                    $lt: [
-                                        "$MA20",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
-                                    ]
-                                };
-                            }
-                            break;
-
-                        case 'MA10':
-                            if (screenerFilters.MA10 === 'abv200') {
-                                query.$expr = { $gt: ["$MA10", "$MA200"] };
-                            } else if (screenerFilters.MA10 === 'abv50') {
-                                query.$expr = { $gt: ["$MA10", "$MA50"] };
-                            } else if (screenerFilters.MA10 === 'abv20') {
-                                query.$expr = { $gt: ["$MA10", "$MA20"] };
-                            } else if (screenerFilters.MA10 === 'abvPrice') {
-                                query.$expr = {
-                                    $gt: [
-                                        "$MA10",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
-                                    ]
-                                };
-                            } else if (screenerFilters.MA10 === 'blw200') {
-                                query.$expr = { $lt: ["$MA10", "$MA200"] };
-                            } else if (screenerFilters.MA10 === 'blw50') {
-                                query.$expr = { $lt: ["$MA10", "$MA50"] };
-                            } else if (screenerFilters.MA10 === 'blw20') {
-                                query.$expr = { $lt: ["$MA10", "$MA20"] };
-                            } else if (screenerFilters.MA10 === 'blwPrice') {
-                                query.$expr = {
-                                    $lt: [
-                                        "$MA10",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
-                                    ]
-                                };
-                            }
-                            break;
-
-                        case 'CurrentPrice':
-                            if (screenerFilters.CurrentPrice === 'abv200') {
-                                query.$expr = {
-                                    $gt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
-                                        "$MA200"
-                                    ]
-                                };
-                            } else if (screenerFilters.CurrentPrice === 'abv50') {
-                                query.$expr = {
-                                    $gt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
-                                        "$MA50"
-                                    ]
-                                };
-                            } else if (screenerFilters.CurrentPrice === 'abv20') {
-                                query.$expr = {
-                                    $gt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
-                                        "$MA20"
-                                    ]
-                                };
-                            } else if (screenerFilters.CurrentPrice === 'abv10') {
-                                query.$expr = {
-                                    $gt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
-                                        "$MA10"
-                                    ]
-                                };
-                            } else if (screenerFilters.CurrentPrice === 'blw200') {
-                                query.$expr = {
-                                    $lt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
-                                        "$MA200"
-                                    ]
-                                };
-                            } else if (screenerFilters.CurrentPrice === 'blw50') {
-                                query.$expr = {
-                                    $lt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
-                                        "$MA50"
-                                    ]
-                                };
-                            } else if (screenerFilters.CurrentPrice === 'blw20') {
-                                query.$expr = {
-                                    $lt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
-                                        "$MA20"
-                                    ]
-                                };
-                            } else if (screenerFilters.CurrentPrice === 'blw10') {
-                                query.$expr = {
-                                    $lt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
-                                        "$MA10"
-                                    ]
-                                };
-                            }
-                            break;
-                        case 'ROE':
-                            query['quarterlyFinancials.0.roe'] = {
-                                $gt: screenerFilters.ROE[0],
-                                $lt: screenerFilters.ROE[1]
-                            };
-                            break;
-                        case 'ROA':
-                            query['quarterlyFinancials.0.roa'] = {
-                                $gt: screenerFilters.ROA[0],
-                                $lt: screenerFilters.ROA[1]
-                            };
-                            break;
-                        case 'currentRatio':
-                            query['quarterlyFinancials.0.currentRatio'] = {
-                                $gt: screenerFilters.currentRatio[0],
-                                $lt: screenerFilters.currentRatio[1]
-                            };
-                            break;
-                        case 'assetsCurrent':
-                            query['quarterlyFinancials.0.assetsCurrent'] = {
-                                $gt: screenerFilters.assetsCurrent[0],
-                                $lt: screenerFilters.assetsCurrent[1]
-                            };
-                            break;
-                        case 'liabilitiesCurrent':
-                            query['quarterlyFinancials.0.liabilitiesCurrent'] = {
-                                $gt: screenerFilters.liabilitiesCurrent[0],
-                                $lt: screenerFilters.liabilitiesCurrent[1]
-                            };
-                            break;
-                        case 'debtCurrent':
-                            query['quarterlyFinancials.0.debtCurrent'] = {
-                                $gt: screenerFilters.debtCurrent[0],
-                                $lt: screenerFilters.debtCurrent[1]
-                            };
-                            break;
-                        case 'cashAndEq':
-                            query['quarterlyFinancials.0.cashAndEq'] = {
-                                $gt: screenerFilters.cashAndEq[0],
-                                $lt: screenerFilters.cashAndEq[1]
-                            };
-                            break;
-                        case 'freeCashFlow':
-                            query['quarterlyFinancials.0.freeCashFlow'] = {
-                                $gt: screenerFilters.freeCashFlow[0],
-                                $lt: screenerFilters.freeCashFlow[1]
-                            };
-                            break;
-                        case 'profitMargin':
-                            query['quarterlyFinancials.0.profitMargin'] = {
-                                $gt: screenerFilters.profitMargin[0],
-                                $lt: screenerFilters.profitMargin[1]
-                            };
-                            break;
-                        case 'grossMargin':
-                            query['quarterlyFinancials.0.grossMargin'] = {
-                                $gt: screenerFilters.grossMargin[0],
-                                $lt: screenerFilters.grossMargin[1]
-                            };
-                            break;
-                        case 'debtEquity':
-                            query['quarterlyFinancials.0.debtEquity'] = {
-                                $gt: screenerFilters.debtEquity[0],
-                                $lt: screenerFilters.debtEquity[1]
-                            };
-                            break;
-                        case 'bookVal':
-                            query['quarterlyFinancials.0.bookVal'] = {
-                                $gt: screenerFilters.bookVal[0],
-                                $lt: screenerFilters.bookVal[1]
-                            };
-                            break;
-                        case 'EV':
-                            query.EV = {
-                                $gt: screenerFilters.EV[0],
-                                $lt: screenerFilters.EV[1]
-                            };
-                            break;
-                        case 'RSI':
-                            query.RSI = {
-                                $gt: screenerFilters.RSI[0],
-                                $lt: screenerFilters.RSI[1]
-                            };
-                            break;
-                        case 'Gap':
-                            query.Gap = {
-                                $gt: screenerFilters.Gap[0],
-                                $lt: screenerFilters.Gap[1]
-                            };
-                            break;
-                        case 'IV':
-                            query.IntrinsicValue = {
-                                $gt: screenerFilters.IV[0],
-                                $lt: screenerFilters.IV[1]
-                            };
-                            break;
-                        default:
-                            break;
-                    }
-                });
-
-                // Dynamic projection logic based on userDoc.Table (like /:user/screener/results/all)
-                // fieldMap should be defined at the top of this file or imported if shared
-                const usersCollection2 = db.collection('Users');
-                const userDoc2 = await usersCollection2.findOne({ Username: user });
-                const projection = { Symbol: 1, _id: 0 };
-                const fieldMap = {
-                    symbol: 'Symbol',
-                    name: 'Name',
-                    isin: 'ISIN',
-                    market_cap: 'MarketCapitalization',
-                    price: 'Close',
-                    volume: 'Volume',
-                    ipo: 'IPO',
-                    assettype: 'AssetType',
-                    pe_ratio: 'PERatio',
-                    peg: 'PEGRatio',
-                    pb_ratio: 'PriceToBookRatio',
-                    ps_ratio: 'PriceToSalesRatioTTM',
-                    dividend_yield: 'DividendYield',
-                    eps: 'EPS',
-                    fcf: 'freeCashFlow',
-                    cash: 'cashAndEq',
-                    current_debt: 'debtCurrent',
-                    current_assets: 'assetsCurrent',
-                    current_liabilities: 'liabilitiesCurrent',
-                    current_ratio: 'currentRatio',
-                    roe: 'roe',
-                    roa: 'roa',
-                    currency: 'Currency',
-                    book_value: 'BookValue',
-                    shares: 'SharesOutstanding',
-                    sector: 'Sector',
-                    industry: 'Industry',
-                    exchange: 'Exchange',
-                    country: 'Country',
-                    rs_score1w: 'RSScore1W',
-                    rs_score1m: 'RSScore1M',
-                    rs_score4m: 'RSScore4M',
-                    adv1w: 'ADV1W',
-                    adv1m: 'ADV1M',
-                    adv4m: 'ADV4M',
-                    adv1y: 'ADV1Y',
-                    perc_change: 'todaychange',
-                    all_time_high: 'AlltimeHigh',
-                    all_time_low: 'AlltimeLow',
-                    high_52w: 'fiftytwoWeekHigh',
-                    low_52w: 'fiftytwoWeekLow',
-                    gap: 'Gap',
-                    ev: 'EV',
-                    rsi: 'RSI',
-                    intrinsic_value: 'IntrinsicValue',
-                };
-                if (Array.isArray(userDoc2?.Table)) {
-                    userDoc2.Table.forEach(key => {
-                        if (fieldMap[key]) {
-                            if (key === 'price') {
-                                projection['Close'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] };
-                            } else if (key === 'volume') {
-                                projection['Volume'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "5. volume", input: "$$item.v" } } } }, 0] };
-                            } else if ([
-                                'fcf', 'cash', 'current_debt', 'current_assets', 'current_liabilities', 'current_ratio', 'roe', 'roa'
-                            ].includes(key)) {
-                                const qfMap = {
-                                    fcf: 'freeCashFlow',
-                                    cash: 'cashAndEq',
-                                    current_debt: 'debtCurrent',
-                                    current_assets: 'assetsCurrent',
-                                    current_liabilities: 'liabilitiesCurrent',
-                                    current_ratio: 'currentRatio',
-                                    roe: 'roe',
-                                    roa: 'roa',
-                                };
-                                const field = qfMap[key];
-                                if (field) {
-                                    projection[field] = { $ifNull: [{ $getField: { field, input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
-                                }
-                            } else {
-                                projection[fieldMap[key]] = 1;
-                            }
-                        }
-                    });
-                }
-
-                const aggregation = [
-                    { $match: query },
-                    {
-                        $addFields: {
-                            Close: projection['Close'] || undefined,
-                            Volume: projection['Volume'] || undefined,
-                        }
-                    },
-                    { $project: projection }
-                ];
-
-                const filteredAssets = await assetInfoCollection.aggregate(aggregation).toArray();
-                res.send(filteredAssets);
-            } catch (error) {
-                logger.error('Error fetching screener results', {
-                    user: obfuscateUsername(user),
-                    screenerName: screenerName,
-                    error: error.message
-                });
-                res.status(500).json({ message: 'Internal Server Error' });
-            }
-        }
-    );
-
     // endpoint that sends summary for selected screener 
     app.get('/screener/summary/:usernameID/:name',
         validate([
@@ -5690,1262 +7017,6 @@ export default function (app, deps) {
                 });
 
                 res.status(500).json({ message: 'Unexpected Error' });
-            }
-        }
-    );
-
-    // endpoint that sends combined screener results and removes duplicate values 
-    app.get('/screener/:usernameID/all',
-        validate([
-            param('usernameID')
-                .trim()
-                .notEmpty().withMessage('Username is required')
-                .isLength({ min: 3, max: 25 }).withMessage('Username must be between 3 and 25 characters')
-                .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores')
-        ]),
-        async (req, res) => {
-            const startTime = Date.now();
-            const requestId = crypto.randomBytes(16).toString('hex');
-            let client;
-
-            try {
-                const apiKey = req.header('x-api-key');
-
-                const sanitizedKey = sanitizeInput(apiKey);
-
-                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                    logger.warn('Invalid API key', {
-                        providedApiKey: !!sanitizedKey
-                    });
-
-                    return res.status(401).json({
-                        message: 'Unauthorized API Access'
-                    });
-                }
-                // Sanitize input
-                const usernameId = sanitizeInput(req.params.usernameID);
-
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
-                const screenersCollection = db.collection('Screeners');
-
-                const screeners = await screenersCollection.find({ UsernameID: usernameId, Include: true }).toArray();
-                const screenerNames = screeners.map(screener => screener.Name);
-
-                const usersCollection = db.collection('Users');
-                const userDoc = await usersCollection.findOne({ Username: usernameId });
-
-                if (!userDoc) {
-                    logger.warn({
-                        msg: 'User Not Found',
-                        requestId: requestId,
-                        usernameID: obfuscateUsername(usernameId)
-                    });
-                    return res.status(404).json({ message: 'User not found' });
-                }
-
-                const tickerScreenerMap = new Map();
-                const filteredAssetsArray = [];
-
-                for (const screenerName of screenerNames) {
-                    try {
-                        const assetInfoCollection = db.collection('AssetInfo');
-                        const query = { Symbol: { $nin: userDoc.Hidden } };
-                        const aggregation = [];
-
-                        const screenerData = await screenersCollection.findOne({ UsernameID: usernameId, Name: screenerName, Include: true });
-                        if (!screenerData) {
-                            logger.warn({
-                                msg: 'Screener Data Not Found',
-                                requestId: requestId,
-                                screenerName: screenerName
-                            });
-                            continue;
-                        }
-
-                        // Extract filters from screenerData
-                        const screenerFilters = {};
-
-                        if (screenerData.Price && screenerData.Price[0] !== 0 && screenerData.Price[1] !== 0) {
-                            screenerFilters.Price = screenerData.Price;
-                        }
-
-                        if (screenerData.MarketCap && screenerData.MarketCap[0] !== 0 && screenerData.MarketCap[1] !== 0) {
-                            screenerFilters.MarketCap = screenerData.MarketCap;
-                        }
-
-                        if (screenerData.IPO && screenerData.IPO[0] !== 0 && screenerData.IPO[1] !== 0) {
-                            screenerFilters.IPO = screenerData.IPO;
-                        }
-
-                        if (screenerData.Sectors && screenerData.Sectors.length > 0) {
-                            screenerFilters.sectors = screenerData.Sectors;
-                        }
-
-                        if (screenerData.AssetTypes && screenerData.AssetTypes.length > 0) {
-                            screenerFilters.assetTypes = screenerData.AssetTypes;
-                        }
-
-                        if (screenerData.Exchanges && screenerData.Exchanges.length > 0) {
-                            screenerFilters.exchanges = screenerData.Exchanges;
-                        }
-
-                        if (screenerData.Countries && screenerData.Countries.length > 0) {
-                            screenerFilters.countries = screenerData.Countries;
-                        }
-
-                        if (screenerData.NewHigh && screenerData.NewHigh.length > 0) {
-                            screenerFilters.NewHigh = screenerData.NewHigh;
-                        }
-
-                        if (screenerData.NewLow && screenerData.NewLow.length > 0) {
-                            screenerFilters.NewLow = screenerData.NewLow;
-                        }
-
-                        if (screenerData.MA200 && screenerData.MA200.length > 0) {
-                            screenerFilters.MA200 = screenerData.MA200;
-                        }
-
-                        if (screenerData.MA50 && screenerData.MA50.length > 0) {
-                            screenerFilters.MA50 = screenerData.MA50;
-                        }
-
-                        if (screenerData.MA20 && screenerData.MA20.length > 0) {
-                            screenerFilters.MA20 = screenerData.MA20;
-                        }
-
-                        if (screenerData.MA10 && screenerData.MA10.length > 0) {
-                            screenerFilters.MA10 = screenerData.MA10;
-                        }
-
-                        if (screenerData.CurrentPrice && screenerData.CurrentPrice.length > 0) {
-                            screenerFilters.CurrentPrice = screenerData.CurrentPrice;
-                        }
-
-                        if (screenerData.PE && screenerData.PE[0] !== 0 && screenerData.PE[1] !== 0) {
-                            screenerFilters.PE = screenerData.PE;
-                        }
-
-                        if (screenerData.ForwardPE && screenerData.ForwardPE[0] !== 0 && screenerData.ForwardPE[1] !== 0) {
-                            screenerFilters.ForwardPE = screenerData.ForwardPE;
-                        }
-
-                        if (screenerData.PEG && screenerData.PEG[0] !== 0 && screenerData.PEG[1] !== 0) {
-                            screenerFilters.PEG = screenerData.PEG;
-                        }
-
-                        if (screenerData.EPS && screenerData.EPS[0] !== 0 && screenerData.EPS[1] !== 0) {
-                            screenerFilters.EPS = screenerData.EPS;
-                        }
-
-                        if (screenerData.PS && screenerData.PS[0] !== 0 && screenerData.PS[1] !== 0) {
-                            screenerFilters.PS = screenerData.PS;
-                        }
-
-                        if (screenerData.PB && screenerData.PB[0] !== 0 && screenerData.PB[1] !== 0) {
-                            screenerFilters.PB = screenerData.PB;
-                        }
-
-                        if (screenerData.Beta && screenerData.Beta[0] !== 0 && screenerData.Beta[1] !== 0) {
-                            screenerFilters.Beta = screenerData.Beta;
-                        }
-
-                        if (screenerData.DivYield && screenerData.DivYield[0] !== 0 && screenerData.DivYield[1] !== 0) {
-                            screenerFilters.DivYield = screenerData.DivYield;
-                        }
-
-                        if (screenerData.EPSQoQ && screenerData.EPSQoQ[0] !== 0 && screenerData.EPSQoQ[1] !== 0) {
-                            screenerFilters.EPSQoQ = screenerData.EPSQoQ;
-                        }
-
-                        if (screenerData.EPSYoY && screenerData.EPSYoY[0] !== 0 && screenerData.EPSYoY[1] !== 0) {
-                            screenerFilters.EPSYoY = screenerData.EPSYoY;
-                        }
-
-                        if (screenerData.EarningsQoQ && screenerData.EarningsQoQ[0] !== 0 && screenerData.EarningsQoQ[1] !== 0) {
-                            screenerFilters.EarningsQoQ = screenerData.EarningsQoQ;
-                        }
-
-                        if (screenerData.EarningsYoY && screenerData.EarningsYoY[0] !== 0 && screenerData.EarningsYoY[1] !== 0) {
-                            screenerFilters.EarningsYoY = screenerData.EarningsYoY;
-                        }
-
-                        if (screenerData.RevQoQ && screenerData.RevQoQ[0] !== 0 && screenerData.RevQoQ[1] !== 0) {
-                            screenerFilters.RevQoQ = screenerData.RevQoQ;
-                        }
-
-                        if (screenerData.RevYoY && screenerData.RevYoY[0] !== 0 && screenerData.RevYoY[1] !== 0) {
-                            screenerFilters.RevYoY = screenerData.RevYoY;
-                        }
-
-                        if (screenerData.AvgVolume1W && screenerData.AvgVolume1W[0] !== 0 && screenerData.AvgVolume1W[1] !== 0) {
-                            screenerFilters.AvgVolume1W = screenerData.AvgVolume1W;
-                        }
-
-                        if (screenerData.AvgVolume1M && screenerData.AvgVolume1M[0] !== 0 && screenerData.AvgVolume1M[1] !== 0) {
-                            screenerFilters.AvgVolume1M = screenerData.AvgVolume1M;
-                        }
-
-                        if (screenerData.AvgVolume6M && screenerData.AvgVolume6M[0] !== 0 && screenerData.AvgVolume6M[1] !== 0) {
-                            screenerFilters.AvgVolume6M = screenerData.AvgVolume6M;
-                        }
-
-                        if (screenerData.AvgVolume1Y && screenerData.AvgVolume1Y[0] !== 0 && screenerData.AvgVolume1Y[1] !== 0) {
-                            screenerFilters.AvgVolume1Y = screenerData.AvgVolume1Y;
-                        }
-
-                        if (screenerData.RelVolume1W && screenerData.RelVolume1W[0] !== 0 && screenerData.RelVolume1W[1] !== 0) {
-                            screenerFilters.RelVolume1W = screenerData.RelVolume1W;
-                        }
-
-                        if (screenerData.RelVolume1M && screenerData.RelVolume1M[0] !== 0 && screenerData.RelVolume1M[1] !== 0) {
-                            screenerFilters.RelVolume1M = screenerData.RelVolume1M;
-                        }
-
-                        if (screenerData.RelVolume6M && screenerData.RelVolume6M[0] !== 0 && screenerData.RelVolume6M[1] !== 0) {
-                            screenerFilters.RelVolume6M = screenerData.RelVolume6M;
-                        }
-
-                        if (screenerData.RSScore1W && screenerData.RSScore1W[0] !== 0 && screenerData.RSScore1W[1] !== 0) {
-                            screenerFilters.RSScore1W = screenerData.RSScore1W;
-                        }
-
-                        if (screenerData.RSScore1M && screenerData.RSScore1M[0] !== 0 && screenerData.RSScore1M[1] !== 0) {
-                            screenerFilters.RSScore1M = screenerData.RSScore1M;
-                        }
-
-                        if (screenerData.RSScore4M && screenerData.RSScore4M[0] !== 0 && screenerData.RSScore4M[1] !== 0) {
-                            screenerFilters.RSScore4M = screenerData.RSScore4M;
-                        }
-
-                        if (screenerData.ADV1W && screenerData.ADV1W[0] !== 0 && screenerData.ADV1W[1] !== 0) {
-                            screenerFilters.ADV1W = screenerData.ADV1W;
-                        }
-
-                        if (screenerData.ADV1M && screenerData.ADV1M[0] !== 0 && screenerData.ADV1M[1] !== 0) {
-                            screenerFilters.ADV1M = screenerData.ADV1M;
-                        }
-
-                        if (screenerData.ADV4M && screenerData.ADV4M[0] !== 0 && screenerData.ADV4M[1] !== 0) {
-                            screenerFilters.ADV4M = screenerData.ADV4M;
-                        }
-
-                        if (screenerData.ADV1Y && screenerData.ADV1Y[0] !== 0 && screenerData.ADV1Y[1] !== 0) {
-                            screenerFilters.ADV1Y = screenerData.ADV1Y;
-                        }
-
-                        if (screenerData.PercOffWeekHigh && screenerData.PercOffWeekHigh[0] !== 0 && screenerData.PercOffWeekHigh[1] !== 0) {
-                            screenerFilters.PercOffWeekHigh = screenerData.PercOffWeekHigh;
-                        }
-
-                        if (screenerData.PercOffWeekLow && screenerData.PercOffWeekLow[0] !== 0 && screenerData.PercOffWeekLow[1] !== 0) {
-                            screenerFilters.PercOffWeekLow = screenerData.PercOffWeekLow;
-                        }
-
-                        if (screenerData.changePerc &&
-                            screenerData.changePerc[0] !== 0 &&
-                            screenerData.changePerc[1] !== 0) {
-                            screenerFilters.changePerc = screenerData.changePerc;
-                            if (screenerData.changePerc[2] && screenerData.changePerc[2].length > 0) {
-                                screenerFilters.changePerc[2] = screenerData.changePerc[2];
-                            }
-                        }
-
-                        if (screenerData.ROE && screenerData.ROE[0] !== 0 && screenerData.ROE[1] !== 0) {
-                            screenerFilters.ROE = screenerData.ROE;
-                        }
-
-                        if (screenerData.ROA && screenerData.ROA[0] !== 0 && screenerData.ROA[1] !== 0) {
-                            screenerFilters.ROA = screenerData.ROA;
-                        }
-
-                        if (screenerData.currentRatio && screenerData.currentRatio[0] !== 0 && screenerData.currentRatio[1] !== 0) {
-                            screenerFilters.currentRatio = screenerData.currentRatio;
-                        }
-
-                        if (screenerData.assetsCurrent && screenerData.assetsCurrent[0] !== 0 && screenerData.assetsCurrent[1] !== 0) {
-                            screenerFilters.assetsCurrent = screenerData.assetsCurrent;
-                        }
-
-                        if (screenerData.liabilitiesCurrent && screenerData.liabilitiesCurrent[0] !== 0 && screenerData.liabilitiesCurrent[1] !== 0) {
-                            screenerFilters.liabilitiesCurrent = screenerData.liabilitiesCurrent;
-                        }
-
-                        if (screenerData.debtCurrent && screenerData.debtCurrent[0] !== 0 && screenerData.debtCurrent[1] !== 0) {
-                            screenerFilters.debtCurrent = screenerData.debtCurrent;
-                        }
-
-                        if (screenerData.cashAndEq && screenerData.cashAndEq[0] !== 0 && screenerData.cashAndEq[1] !== 0) {
-                            screenerFilters.cashAndEq = screenerData.cashAndEq;
-                        }
-
-                        if (screenerData.freeCashFlow && screenerData.freeCashFlow[0] !== 0 && screenerData.freeCashFlow[1] !== 0) {
-                            screenerFilters.freeCashFlow = screenerData.freeCashFlow;
-                        }
-
-                        if (screenerData.profitMargin && screenerData.profitMargin[0] !== 0 && screenerData.profitMargin[1] !== 0) {
-                            screenerFilters.profitMargin = screenerData.profitMargin;
-                        }
-
-                        if (screenerData.grossMargin && screenerData.grossMargin[0] !== 0 && screenerData.grossMargin[1] !== 0) {
-                            screenerFilters.grossMargin = screenerData.grossMargin;
-                        }
-
-                        if (screenerData.debtEquity && screenerData.debtEquity[0] !== 0 && screenerData.debtEquity[1] !== 0) {
-                            screenerFilters.debtEquity = screenerData.debtEquity;
-                        }
-
-                        if (screenerData.bookVal && screenerData.bookVal[0] !== 0 && screenerData.bookVal[1] !== 0) {
-                            screenerFilters.bookVal = screenerData.bookVal;
-                        }
-
-                        if (screenerData.EV && screenerData.EV[0] !== 0 && screenerData.EV[1] !== 0) {
-                            screenerFilters.EV = screenerData.EV;
-                        }
-
-                        if (screenerData.RSI && screenerData.RSI[0] !== 0 && screenerData.RSI[1] !== 0) {
-                            screenerFilters.RSI = screenerData.RSI;
-                        }
-
-                        if (screenerData.Gap && screenerData.Gap[0] !== 0 && screenerData.Gap[1] !== 0) {
-                            screenerFilters.Gap = screenerData.Gap;
-                        }
-
-                        if (screenerData.IV && screenerData.IV[0] !== 0 && screenerData.IV[1] !== 0) {
-                            screenerFilters.IV = screenerData.IV;
-                        }
-
-                        Object.keys(screenerFilters).forEach((key) => {
-                            switch (key) {
-                                case 'Price':
-                                    query.$expr = {
-                                        $and: [
-                                            { $gt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[0]] },
-                                            { $lt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[1]] }
-                                        ]
-                                    };
-                                    break;
-                                case 'MarketCap':
-                                    query.MarketCapitalization = {
-                                        $gt: screenerFilters.MarketCap[0],
-                                        $lt: screenerFilters.MarketCap[1]
-                                    };
-                                    break;
-                                case 'IPO':
-                                    query.IPO = {
-                                        $gt: screenerFilters.IPO[0],
-                                        $lt: screenerFilters.IPO[1]
-                                    };
-                                    break;
-                                case 'sectors':
-                                    query.Sector = { $in: screenerFilters.sectors };
-                                    break;
-                                case 'assetTypes':
-                                    query.AssetType = { $in: screenerFilters.assetTypes };
-                                    break;
-                                case 'exchanges':
-                                    query.Exchange = { $in: screenerFilters.exchanges };
-                                    break;
-                                case 'countries':
-                                    query.Country = { $in: screenerFilters.countries };
-                                    break;
-                                case 'PE':
-                                    query.PERatio = {
-                                        $gt: screenerFilters.PE[0],
-                                        $lt: screenerFilters.PE[1]
-                                    };
-                                    break;
-                                case 'ForwardPE':
-                                    query.ForwardPE = {
-                                        $gt: screenerFilters.ForwardPE[0],
-                                        $lt: screenerFilters.ForwardPE[1]
-                                    };
-                                    break;
-                                case 'PEG':
-                                    query.PEGRatio = {
-                                        $gt: screenerFilters.PEG[0],
-                                        $lt: screenerFilters.PEG[1]
-                                    };
-                                    break;
-                                case 'EPS':
-                                    query.EPS = {
-                                        $gt: screenerFilters.EPS[0],
-                                        $lt: screenerFilters.EPS[1]
-                                    };
-                                    break;
-                                case 'PS':
-                                    query.PriceToSalesRatioTTM = {
-                                        $gt: screenerFilters.PS[0],
-                                        $lt: screenerFilters.PS[1]
-                                    };
-                                    break;
-                                case 'PB':
-                                    query.PriceToBookRatio = {
-                                        $gt: screenerFilters.PB[0],
-                                        $lt: screenerFilters.PB[1]
-                                    };
-                                    break;
-                                case 'Beta':
-                                    query.Beta = {
-                                        $gt: screenerFilters.Beta[0],
-                                        $lt: screenerFilters.Beta[1]
-                                    };
-                                    break;
-                                case 'DivYield':
-                                    query.DividendYield = {
-                                        $gt: screenerFilters.DivYield[0],
-                                        $lt: screenerFilters.DivYield[1]
-                                    };
-                                    break;
-                                case 'EPSQoQ':
-                                    query.EPSQoQ = {
-                                        $gt: screenerFilters.EPSQoQ[0],
-                                        $lt: screenerFilters.EPSQoQ[1]
-                                    };
-                                    break;
-                                case 'EPSYoY':
-                                    query.EPSYoY = {
-                                        $gt: screenerFilters.EPSYoY[0],
-                                        $lt: screenerFilters.EPSYoY[1]
-                                    };
-                                    break;
-                                case 'EarningsQoQ':
-                                    query.EarningsQoQ = {
-                                        $gt: screenerFilters.EarningsQoQ[0],
-                                        $lt: screenerFilters.EarningsQoQ[1]
-                                    };
-                                    break;
-                                case 'EarningsYoY':
-                                    query.EarningsYoY = {
-                                        $gt: screenerFilters.EarningsYoY[0],
-                                        $lt: screenerFilters.EarningsYoY[1]
-                                    };
-                                    break;
-                                case 'RevQoQ':
-                                    query.RevenueQoQ = {
-                                        $gt: screenerFilters.RevQoQ[0],
-                                        $lt: screenerFilters.RevQoQ[1]
-                                    };
-                                    break;
-                                case 'RevYoY':
-                                    query.RevenueYoY = {
-                                        $gt: screenerFilters.RevYoY[0],
-                                        $lt: screenerFilters.RevYoY[1]
-                                    };
-                                    break;
-                                case 'AvgVolume1W':
-                                    query.AvgVolume1W = {
-                                        $gt: screenerFilters.AvgVolume1W[0],
-                                        $lt: screenerFilters.AvgVolume1W[1]
-                                    };
-                                    break;
-                                case 'AvgVolume1M':
-                                    query.AvgVolume1M = {
-                                        $gt: screenerFilters.AvgVolume1M[0],
-                                        $lt: screenerFilters.AvgVolume1M[1]
-                                    };
-                                    break;
-                                case 'AvgVolume6M':
-                                    query.AvgVolume6M = {
-                                        $gt: screenerFilters.AvgVolume6M[0],
-                                        $lt: screenerFilters.AvgVolume6M[1]
-                                    };
-                                    break;
-                                case 'AvgVolume1Y':
-                                    query.AvgVolume1Y = {
-                                        $gt: screenerFilters.AvgVolume1Y[0],
-                                        $lt: screenerFilters.AvgVolume1Y[1]
-                                    };
-                                    break;
-                                case 'RelVolume1W':
-                                    query.RelVolume1W = {
-                                        $gt: screenerFilters.RelVolume1W[0],
-                                        $lt: screenerFilters.RelVolume1W[1]
-                                    };
-                                    break;
-                                case 'RelVolume1M':
-                                    query.RelVolume1M = {
-                                        $gt: screenerFilters.RelVolume1M[0],
-                                        $lt: screenerFilters.RelVolume1M[1]
-                                    };
-                                    break;
-                                case 'RelVolume6M':
-                                    query.RelVolume6M = {
-                                        $gt: screenerFilters.RelVolume6M[0],
-                                        $lt: screenerFilters.RelVolume6M[1]
-                                    };
-                                    break;
-                                case 'RelVolume1Y':
-                                    query.RelVolume1Y = {
-                                        $gt: screenerFilters.RelVolume1Y[0],
-                                        $lt: screenerFilters.RelVolume1Y[1]
-                                    };
-                                    break;
-                                case 'RSScore1W':
-                                    query.RSScore1W = {
-                                        $gte: Math.max(screenerFilters.RSScore1W[0], 1),
-                                        $lte: Math.min(screenerFilters.RSScore1W[1], 100)
-                                    };
-                                    break;
-                                case 'RSScore1M':
-                                    query.RSScore1M = {
-                                        $gte: Math.max(screenerFilters.RSScore1M[0], 1),
-                                        $lte: Math.min(screenerFilters.RSScore1M[1], 100)
-                                    };
-                                    break;
-                                case 'RSScore4M':
-                                    query.RSScore4M = {
-                                        $gte: Math.max(screenerFilters.RSScore4M[0], 1),
-                                        $lte: Math.min(screenerFilters.RSScore4M[1], 100)
-                                    };
-                                    break;
-                                case 'ADV1W':
-                                    query.ADV1W = {
-                                        $gt: screenerFilters.ADV1W[0],
-                                        $lt: screenerFilters.ADV1W[1]
-                                    };
-                                    break;
-                                case 'ADV1M':
-                                    query.ADV1M = {
-                                        $gt: screenerFilters.ADV1M[0],
-                                        $lt: screenerFilters.ADV1M[1]
-                                    };
-                                    break;
-                                case 'ADV4M':
-                                    query.ADV4M = {
-                                        $gt: screenerFilters.ADV4M[0],
-                                        $lt: screenerFilters.ADV4M[1]
-                                    };
-                                    break;
-                                case 'ADV1Y':
-                                    query.ADV1Y = {
-                                        $gt: screenerFilters.ADV1Y[0],
-                                        $lt: screenerFilters.ADV1Y[1]
-                                    };
-                                    break;
-                                case 'changePerc':
-                                    switch (screenerFilters.changePerc[2]) {
-                                        case '1D':
-                                            query.todaychange = {
-                                                $gt: screenerFilters.changePerc[0] / 100,
-                                                $lt: screenerFilters.changePerc[1] / 100
-                                            };
-                                            break;
-                                        case '1W':
-                                            query.weekchange = {
-                                                $gt: screenerFilters.changePerc[0] / 100,
-                                                $lt: screenerFilters.changePerc[1] / 100
-                                            };
-                                            break;
-                                        case '1M':
-                                            query['1mchange'] = {
-                                                $gt: screenerFilters.changePerc[0] / 100,
-                                                $lt: screenerFilters.changePerc[1] / 100
-                                            };
-                                            break;
-                                        case '4M':
-                                            query['4mchange'] = {
-                                                $gt: screenerFilters.changePerc[0] / 100,
-                                                $lt: screenerFilters.changePerc[1] / 100
-                                            };
-                                            break;
-                                        case '6M':
-                                            query['6mchange'] = {
-                                                $gt: screenerFilters.changePerc[0] / 100,
-                                                $lt: screenerFilters.changePerc[1] / 100
-                                            };
-                                            break;
-                                        case '1Y':
-                                            query['1ychange'] = {
-                                                $gt: screenerFilters.changePerc[0] / 100,
-                                                $lt: screenerFilters.changePerc[1] / 100
-                                            };
-                                            break;
-                                        case 'YTD':
-                                            query.ytdchange = {
-                                                $gt: screenerFilters.changePerc[0] / 100,
-                                                $lt: screenerFilters.changePerc[1] / 100
-                                            };
-                                            break;
-                                    }
-                                    break;
-                                case 'PercOffWeekHigh':
-                                    query.percoff52WeekHigh = {
-                                        $gt: -screenerFilters.PercOffWeekHigh[0] / 100,
-                                        $lt: -screenerFilters.PercOffWeekHigh[1] / 100
-                                    };
-                                    break;
-                                case 'PercOffWeekLow':
-                                    query.percoff52WeekLow = {
-                                        $gt: screenerFilters.PercOffWeekLow[0] / 100,
-                                        $lt: screenerFilters.PercOffWeekLow[1] / 100
-                                    };
-                                    break;
-                                case 'NewHigh':
-                                    if (screenerFilters.NewHigh === 'yes') {
-                                        query.$expr = {
-                                            $gt: [
-                                                { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
-                                                "$AlltimeHigh"
-                                            ]
-                                        };
-                                    }
-                                    break;
-                                case 'NewLow':
-                                    if (screenerFilters.NewLow === 'yes') {
-                                        query.$expr = {
-                                            $lt: [
-                                                { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
-                                                "$AlltimeLow"
-                                            ]
-                                        };
-                                    }
-                                    break;
-                                case 'MA200':
-                                    if (screenerFilters.MA200 === 'abv50') {
-                                        query.$expr = { $gt: ["$MA200", "$MA50"] };
-                                    } else if (screenerFilters.MA200 === 'abv20') {
-                                        query.$expr = { $gt: ["$MA200", "$MA20"] };
-                                    } else if (screenerFilters.MA200 === 'abv10') {
-                                        query.$expr = { $gt: ["$MA200", "$MA10"] };
-                                    } else if (screenerFilters.MA200 === 'abvPrice') {
-                                        query.$expr = {
-                                            $gt: [
-                                                "$MA200",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
-                                            ]
-                                        };
-                                    } else if (screenerFilters.MA200 === 'blw50') {
-                                        query.$expr = { $lt: ["$MA200", "$MA50"] };
-                                    } else if (screenerFilters.MA200 === 'blw20') {
-                                        query.$expr = { $lt: ["$MA200", "$MA20"] };
-                                    } else if (screenerFilters.MA200 === 'blw10') {
-                                        query.$expr = { $lt: ["$MA200", "$MA10"] };
-                                    } else if (screenerFilters.MA200 === 'blwPrice') {
-                                        query.$expr = {
-                                            $lt: [
-                                                "$MA200",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
-                                            ]
-                                        };
-                                    }
-                                    break;
-
-                                case 'MA50':
-                                    if (screenerFilters.MA50 === 'abv200') {
-                                        query.$expr = { $gt: ["$MA50", "$MA200"] };
-                                    } else if (screenerFilters.MA50 === 'abv20') {
-                                        query.$expr = { $gt: ["$MA50", "$MA20"] };
-                                    } else if (screenerFilters.MA50 === 'abv10') {
-                                        query.$expr = { $gt: ["$MA50", "$MA10"] };
-                                    } else if (screenerFilters.MA50 === 'abvPrice') {
-                                        query.$expr = {
-                                            $gt: [
-                                                "$MA50",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
-                                            ]
-                                        };
-                                    } else if (screenerFilters.MA50 === 'blw200') {
-                                        query.$expr = { $lt: ["$MA50", "$MA200"] };
-                                    } else if (screenerFilters.MA50 === 'blw20') {
-                                        query.$expr = { $lt: ["$MA50", "$MA20"] };
-                                    } else if (screenerFilters.MA50 === 'blw10') {
-                                        query.$expr = { $lt: ["$MA50", "$MA10"] };
-                                    } else if (screenerFilters.MA50 === 'blwPrice') {
-                                        query.$expr = {
-                                            $lt: [
-                                                "$MA50",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
-                                            ]
-                                        };
-                                    }
-                                    break;
-
-                                case 'MA20':
-                                    if (screenerFilters.MA20 === 'abv200') {
-                                        query.$expr = { $gt: ["$MA20", "$MA200"] };
-                                    } else if (screenerFilters.MA20 === 'abv50') {
-                                        query.$expr = { $gt: ["$MA20", "$MA50"] };
-                                    } else if (screenerFilters.MA20 === 'abv10') {
-                                        query.$expr = { $gt: ["$MA20", "$MA10"] };
-                                    } else if (screenerFilters.MA20 === 'abvPrice') {
-                                        query.$expr = {
-                                            $gt: [
-                                                "$MA20",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
-                                            ]
-                                        };
-                                    } else if (screenerFilters.MA20 === 'blw200') {
-                                        query.$expr = { $lt: ["$MA20", "$MA200"] };
-                                    } else if (screenerFilters.MA20 === 'blw50') {
-                                        query.$expr = { $lt: ["$MA20", "$MA50"] };
-                                    } else if (screenerFilters.MA20 === 'blw10') {
-                                        query.$expr = { $lt: ["$MA20", "$MA10"] };
-                                    } else if (screenerFilters.MA20 === 'blwPrice') {
-                                        query.$expr = {
-                                            $lt: [
-                                                "$MA20",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
-                                            ]
-                                        };
-                                    }
-                                    break;
-
-                                case 'MA10':
-                                    if (screenerFilters.MA10 === 'abv200') {
-                                        query.$expr = { $gt: ["$MA10", "$MA200"] };
-                                    } else if (screenerFilters.MA10 === 'abv50') {
-                                        query.$expr = { $gt: ["$MA10", "$MA50"] };
-                                    } else if (screenerFilters.MA10 === 'abv20') {
-                                        query.$expr = { $gt: ["$MA10", "$MA20"] };
-                                    } else if (screenerFilters.MA10 === 'abvPrice') {
-                                        query.$expr = {
-                                            $gt: [
-                                                "$MA10",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
-                                            ]
-                                        };
-                                    } else if (screenerFilters.MA10 === 'blw200') {
-                                        query.$expr = { $lt: ["$MA10", "$MA200"] };
-                                    } else if (screenerFilters.MA10 === 'blw50') {
-                                        query.$expr = { $lt: ["$MA10", "$MA50"] };
-                                    } else if (screenerFilters.MA10 === 'blw20') {
-                                        query.$expr = { $lt: ["$MA10", "$MA20"] };
-                                    } else if (screenerFilters.MA10 === 'blwPrice') {
-                                        query.$expr = {
-                                            $lt: [
-                                                "$MA10",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
-                                            ]
-                                        };
-                                    }
-                                    break;
-
-                                case 'CurrentPrice':
-                                    if (screenerFilters.CurrentPrice === 'abv200') {
-                                        query.$expr = {
-                                            $gt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
-                                                "$MA200"
-                                            ]
-                                        };
-                                    } else if (screenerFilters.CurrentPrice === 'abv50') {
-                                        query.$expr = {
-                                            $gt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
-                                                "$MA50"
-                                            ]
-                                        };
-                                    } else if (screenerFilters.CurrentPrice === 'abv20') {
-                                        query.$expr = {
-                                            $gt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
-                                                "$MA20"
-                                            ]
-                                        };
-                                    } else if (screenerFilters.CurrentPrice === 'abv10') {
-                                        query.$expr = {
-                                            $gt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
-                                                "$MA10"
-                                            ]
-                                        };
-                                    } else if (screenerFilters.CurrentPrice === 'blw200') {
-                                        query.$expr = {
-                                            $lt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
-                                                "$MA200"
-                                            ]
-                                        };
-                                    } else if (screenerFilters.CurrentPrice === 'blw50') {
-                                        query.$expr = {
-                                            $lt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
-                                                "$MA50"
-                                            ]
-                                        };
-                                    } else if (screenerFilters.CurrentPrice === 'blw20') {
-                                        query.$expr = {
-                                            $lt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
-                                                "$MA20"
-                                            ]
-                                        };
-                                    } else if (screenerFilters.CurrentPrice === 'blw10') {
-                                        query.$expr = {
-                                            $lt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
-                                                "$MA10"
-                                            ]
-                                        };
-                                    }
-                                    break;
-                                case 'ROE':
-                                    query['quarterlyFinancials.0.roe'] = {
-                                        $gt: screenerFilters.ROE[0],
-                                        $lt: screenerFilters.ROE[1]
-                                    };
-                                    break;
-                                case 'ROA':
-                                    query['quarterlyFinancials.0.roa'] = {
-                                        $gt: screenerFilters.ROA[0],
-                                        $lt: screenerFilters.ROA[1]
-                                    };
-                                    break;
-                                case 'currentRatio':
-                                    query['quarterlyFinancials.0.currentRatio'] = {
-                                        $gt: screenerFilters.currentRatio[0],
-                                        $lt: screenerFilters.currentRatio[1]
-                                    };
-                                    break;
-                                case 'assetsCurrent':
-                                    query['quarterlyFinancials.0.assetsCurrent'] = {
-                                        $gt: screenerFilters.assetsCurrent[0],
-                                        $lt: screenerFilters.assetsCurrent[1]
-                                    };
-                                    break;
-                                case 'liabilitiesCurrent':
-                                    query['quarterlyFinancials.0.liabilitiesCurrent'] = {
-                                        $gt: screenerFilters.liabilitiesCurrent[0],
-                                        $lt: screenerFilters.liabilitiesCurrent[1]
-                                    };
-                                    break;
-                                case 'debtCurrent':
-                                    query['quarterlyFinancials.0.debtCurrent'] = {
-                                        $gt: screenerFilters.debtCurrent[0],
-                                        $lt: screenerFilters.debtCurrent[1]
-                                    };
-                                    break;
-                                case 'cashAndEq':
-                                    query['quarterlyFinancials.0.cashAndEq'] = {
-                                        $gt: screenerFilters.cashAndEq[0],
-                                        $lt: screenerFilters.cashAndEq[1]
-                                    };
-                                    break;
-                                case 'freeCashFlow':
-                                    query['quarterlyFinancials.0.freeCashFlow'] = {
-                                        $gt: screenerFilters.freeCashFlow[0],
-                                        $lt: screenerFilters.freeCashFlow[1]
-                                    };
-                                    break;
-                                case 'profitMargin':
-                                    query['quarterlyFinancials.0.profitMargin'] = {
-                                        $gt: screenerFilters.profitMargin[0],
-                                        $lt: screenerFilters.profitMargin[1]
-                                    };
-                                    break;
-                                case 'grossMargin':
-                                    query['quarterlyFinancials.0.grossMargin'] = {
-                                        $gt: screenerFilters.grossMargin[0],
-                                        $lt: screenerFilters.grossMargin[1]
-                                    };
-                                    break;
-                                case 'debtEquity':
-                                    query['quarterlyFinancials.0.debtEquity'] = {
-                                        $gt: screenerFilters.debtEquity[0],
-                                        $lt: screenerFilters.debtEquity[1]
-                                    };
-                                    break;
-                                case 'bookVal':
-                                    query['quarterlyFinancials.0.bookVal'] = {
-                                        $gt: screenerFilters.bookVal[0],
-                                        $lt: screenerFilters.bookVal[1]
-                                    };
-                                    break;
-                                case 'EV':
-                                    query.EV = {
-                                        $gt: screenerFilters.EV[0],
-                                        $lt: screenerFilters.EV[1]
-                                    };
-                                    break;
-                                case 'RSI':
-                                    query.RSI = {
-                                        $gt: screenerFilters.RSI[0],
-                                        $lt: screenerFilters.RSI[1]
-                                    };
-                                    break;
-                                case 'Gap':
-                                    query.Gap = {
-                                        $gt: screenerFilters.Gap[0],
-                                        $lt: screenerFilters.Gap[1]
-                                    };
-                                    break;
-                                case 'IV':
-                                    query.IntrinsicValue = {
-                                        $gt: screenerFilters.IV[0],
-                                        $lt: screenerFilters.IV[1]
-                                    };
-                                    break;
-                                default:
-                                    break;
-                            }
-                        });
-
-                        aggregation.push({ $match: query });
-
-
-                        // Improved dynamic projection and flattening logic
-                        const fieldMap = {
-                            symbol: 'Symbol',
-                            name: 'Name',
-                            isin: 'ISIN',
-                            market_cap: 'MarketCapitalization',
-                            price: 'Close',
-                            volume: 'Volume',
-                            ipo: 'IPO',
-                            assettype: 'AssetType',
-                            pe_ratio: 'PERatio',
-                            peg: 'PEGRatio',
-                            pb_ratio: 'PriceToBookRatio',
-                            ps_ratio: 'PriceToSalesRatioTTM',
-                            dividend_yield: 'DividendYield',
-                            eps: 'EPS',
-                            fcf: 'freeCashFlow',
-                            cash: 'cashAndEq',
-                            current_debt: 'debtCurrent',
-                            current_assets: 'assetsCurrent',
-                            current_liabilities: 'liabilitiesCurrent',
-                            current_ratio: 'currentRatio',
-                            roe: 'roe',
-                            roa: 'roa',
-                            currency: 'Currency',
-                            book_value: 'BookValue',
-                            shares: 'SharesOutstanding',
-                            sector: 'Sector',
-                            industry: 'Industry',
-                            exchange: 'Exchange',
-                            country: 'Country',
-                            rs_score1w: 'RSScore1W',
-                            rs_score1m: 'RSScore1M',
-                            rs_score4m: 'RSScore4M',
-                            adv1w: 'ADV1W',
-                            adv1m: 'ADV1M',
-                            adv4m: 'ADV4M',
-                            adv1y: 'ADV1Y',
-                            perc_change: 'todaychange',
-                            all_time_high: 'AlltimeHigh',
-                            all_time_low: 'AlltimeLow',
-                            high_52w: 'fiftytwoWeekHigh',
-                            low_52w: 'fiftytwoWeekLow',
-                            gap: 'Gap',
-                            ev: 'EV',
-                            rsi: 'RSI',
-                            intrinsic_value: 'IntrinsicValue',
-                        };
-
-                        // Always include Symbol for frontend keying
-                        let projection = { Symbol: 1, _id: 0 };
-                        let addFields = {};
-
-                        if (userDoc && Array.isArray(userDoc.Table)) {
-                            userDoc.Table.forEach(attr => {
-                                const backendField = fieldMap[attr] || attr;
-                                // Special handling for 'price'/'Close'
-                                if (attr === 'price' || attr === 'Close') {
-                                    addFields['Close'] = {
-                                        $arrayElemAt: [
-                                            {
-                                                $map: {
-                                                    input: { $objectToArray: "$TimeSeries" },
-                                                    as: "item",
-                                                    in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                }
-                                            },
-                                            0
-                                        ]
-                                    };
-                                    projection['Close'] = 1;
-                                    return;
-                                }
-                                // Special handling for 'volume'
-                                if (attr === 'volume' || attr === 'Volume') {
-                                    addFields['Volume'] = {
-                                        $arrayElemAt: [
-                                            {
-                                                $map: {
-                                                    input: { $objectToArray: "$TimeSeries" },
-                                                    as: "item",
-                                                    in: { $getField: { field: "5. volume", input: "$$item.v" } }
-                                                }
-                                            },
-                                            0
-                                        ]
-                                    };
-                                    projection['Volume'] = 1;
-                                    return;
-                                }
-                                // Special handling for quarterly fields
-                                const quarterlyFields = [
-                                    'roe', 'roa', 'currentRatio', 'assetsCurrent', 'liabilitiesCurrent',
-                                    'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin',
-                                    'debtEquity', 'bookVal'
-                                ];
-                                if (quarterlyFields.includes(backendField)) {
-                                    addFields[backendField] = { $ifNull: [{ $getField: { field: backendField, input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
-                                    projection[backendField] = 1;
-                                    return;
-                                }
-                                projection[backendField] = 1;
-                            });
-                        }
-
-                        // Build aggregation pipeline
-                        if (Object.keys(addFields).length > 0) {
-                            aggregation.push({ $addFields: addFields });
-                        }
-                        aggregation.push({ $project: projection });
-
-                        const filteredAssets = await assetInfoCollection.aggregate(aggregation).toArray();
-
-                        filteredAssets.forEach(asset => {
-                            const key = asset.Symbol;
-                            if (!tickerScreenerMap.has(key)) {
-                                tickerScreenerMap.set(key, []);
-                            }
-                            tickerScreenerMap.get(key).push(screenerName);
-                        });
-
-                        filteredAssetsArray.push(...filteredAssets);
-                    } catch (error) {
-                        logger.error({
-                            msg: 'Error Processing Screener',
-                            requestId: requestId,
-                            screenerName: screenerName,
-                            error: error.message
-                        });
-                        // Continue to next screener instead of stopping entire process
-                        continue;
-                    }
-                }
-
-                // Existing deduplication logic remains unchanged
-                const uniqueFilteredAssetsArray = Array.from(new Set(filteredAssetsArray.map(a => JSON.stringify(a)))).map(a => JSON.parse(a));
-
-                // Add screener information to the unique assets
-                const finalResults = uniqueFilteredAssetsArray.map(asset => {
-                    const screenerNames = tickerScreenerMap.get(asset.Symbol) || [];
-                    return {
-                        ...asset,
-                        screenerNames: screenerNames,
-                        isDuplicate: screenerNames.length > 1,
-                        duplicateCount: screenerNames.length // Add this for sorting
-                    };
-                });
-
-                // Sort: duplicates first, then by how many times they appear (descending)
-                finalResults.sort((a, b) => {
-                    // First, sort by duplicate count descending
-                    if (b.duplicateCount !== a.duplicateCount) {
-                        return b.duplicateCount - a.duplicateCount;
-                    }
-                    // Optionally, add a secondary sort (e.g., by Symbol)
-                    return a.Symbol.localeCompare(b.Symbol);
-                });
-
-                // Remove duplicateCount from the response if you don't want to expose it
-                finalResults.forEach(asset => { delete asset.duplicateCount; });
-
-                res.send(finalResults);
-
-            } catch (error) {
-                // Comprehensive error logging
-                logger.error({
-                    msg: 'Unexpected Error in Combined Screener Results',
-                    requestId: requestId,
-                    error: error.message,
-                    stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-                });
-
-                res.status(500).json({ message: 'Internal Server Error' });
-            } finally {
-                // Ensure client is closed
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        logger.warn({
-                            msg: 'Database Client Closure Failed',
-                            error: closeError.message
-                        });
-                    }
-                }
             }
         }
     );

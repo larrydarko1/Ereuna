@@ -773,67 +773,212 @@ const toggleWatchlist = async (ticker, symbol) => {
   await getFullWatchlists(user);
 };
 
+
+let lastLoadedScreener = ref('');
+
 // consts for infinite scrolling
 const limit = ref(100)
-const offset = ref(0)
+const page = ref(1)
+const totalPages = ref(1)
+const screenerTotalCount = ref(0);
+const loading = ref(false)
 
 //pair to handling infinite scrolling in main list 
-const paginatedResults1 = computed(() => {
-  return screenerResults.value.slice(0, offset.value + limit.value);
-});
+const paginatedResults1 = computed(() => screenerResults.value);
+
+async function GetScreenerResultsAll(reset = false) {
+  if (reset) {
+    page.value = 1;
+    totalPages.value = 1;
+    screenerTotalCount.value = 0;
+    screenerResults.value = [];
+  }
+  if (loading.value || page.value > totalPages.value) return;
+  loading.value = true;
+  try {
+    const response = await fetch(`/api/${user}/screener/results/all?page=${page.value}&limit=${limit.value}`, {
+      headers: { 'X-API-KEY': apiKey },
+    });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+    if (reset) {
+      screenerResults.value = [...data.data];
+    } else {
+      screenerResults.value.push(...data.data);
+    }
+    screenerTotalCount.value = data.totalCount;
+    totalPages.value = data.totalPages;
+    page.value += 1;
+  } catch (error) {
+    error.value = error.message;
+  } finally {
+    loading.value = false;
+  }
+}
+GetScreenerResultsAll();
 
 const handleScroll1 = (event) => {
   const { scrollTop, clientHeight, scrollHeight } = event.target;
   if (scrollTop + clientHeight >= scrollHeight - 100) {
-    // Check if we can load more results
-    if (offset.value + limit.value < screenerResults.value.length) {
-      offset.value += limit.value; // Increment the offset
-    }
+    GetScreenerResultsAll();
   }
 };
 
-//pair to handling infinite scrolling in filter list 
-const paginatedResults2 = computed(() => {
-  return filterResults.value.slice(0, offset.value + limit.value);
-});
+// --- Infinite scroll and lazy loading for filtered screener results ---
+const filterLimit = ref(100);
+const filterPage = ref(1);
+const filterTotalPages = ref(1);
+const filterTotalCount = ref(0);
+const filterLoading = ref(false);
+
+async function fetchScreenerResults(screenerName) {
+  // Reset only if screener changed
+  if (lastLoadedScreener.value !== screenerName) {
+    filterPage.value = 1;
+    filterTotalPages.value = 1;
+    filterTotalCount.value = 0;
+    filterResults.value = [];
+    lastLoadedScreener.value = screenerName;
+  }
+  if (filterLoading.value || filterPage.value > filterTotalPages.value) return;
+  filterLoading.value = true;
+  try {
+    const response = await fetch(`/api/screener/${user}/results/filtered/${screenerName}?page=${filterPage.value}&limit=${filterLimit.value}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Error fetching screener results: ${response.status}`);
+    }
+    const data = await response.json();
+    // Append new data for infinite scroll
+    filterResults.value.push(...data.data);
+    filterTotalPages.value = data.totalPages;
+    filterTotalCount.value = data.totalCount;
+    filterPage.value += 1;
+    currentList.value = [...filterResults.value];
+    await SummaryScreener();
+  } catch (error) {
+    error.value = error.message;
+  } finally {
+    filterLoading.value = false;
+  }
+}
+
+const paginatedResults2 = computed(() => filterResults.value);
 
 const handleScroll2 = (event) => {
   const { scrollTop, clientHeight, scrollHeight } = event.target;
   if (scrollTop + clientHeight >= scrollHeight - 100) {
-    // Check if we can load more results
-    if (offset.value + limit.value < filterResults.value.length) {
-      offset.value += limit.value; // Increment the offset
-    }
+    fetchScreenerResults(selectedScreener.value);
   }
 };
 
 //pair to handling infinite scrolling in hidden list 
-const paginatedResults3 = computed(() => {
-  return HiddenResults.value.slice(0, offset.value + limit.value);
-});
+const hiddenLimit = ref(100);
+const hiddenPage = ref(1);
+const hiddenTotalPages = ref(1);
+const hiddenTotalCount = ref(0);
+const hiddenLoading = ref(false);
+
+const paginatedResults3 = computed(() => HiddenResults.value);
+
+async function GetHiddenResults(reset = false) {
+  if (reset) {
+    hiddenPage.value = 1;
+    hiddenTotalPages.value = 1;
+    hiddenTotalCount.value = 0;
+    HiddenResults.value = [];
+  }
+  if (hiddenLoading.value || hiddenPage.value > hiddenTotalPages.value) return;
+  hiddenLoading.value = true;
+  try {
+    const response = await fetch(`/api/${user}/screener/results/hidden?page=${hiddenPage.value}&limit=${hiddenLimit.value}`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    if (reset) {
+      HiddenResults.value = [...data.data]; // replace for reactivity
+    } else {
+      HiddenResults.value.push(...data.data); // append for lazy loading
+    }
+    hiddenTotalPages.value = data.totalPages;
+    hiddenTotalCount.value = data.totalCount;
+    hiddenPage.value += 1;
+  } catch (error) {
+    error.value = error.message;
+  } finally {
+    hiddenLoading.value = false;
+  }
+}
+GetHiddenResults();
 
 const handleScroll3 = (event) => {
   const { scrollTop, clientHeight, scrollHeight } = event.target;
   if (scrollTop + clientHeight >= scrollHeight - 100) {
-    // Check if we can load more results
-    if (offset.value + limit.value < HiddenResults.value.length) {
-      offset.value += limit.value; // Increment the offset
-    }
+    GetHiddenResults();
   }
 };
 
-//pair to handling infinite scrolling in combined list 
-const paginatedResults4 = computed(() => {
-  return compoundedResults.value.slice(0, offset.value + limit.value);
-});
+// --- Infinite scroll and lazy loading for cumulative screener results ---
+const compoundedLimit = ref(100);
+const compoundedPage = ref(1);
+const compoundedTotalPages = ref(1);
+const compoundedTotalCount = ref(0);
+const compoundedLoading = ref(false);
 
+// fetches data for cumulative screener results with pagination
+async function GetCompoundedResults(reset = false) {
+  if (reset) {
+    compoundedPage.value = 1;
+    compoundedTotalPages.value = 1;
+    compoundedTotalCount.value = 0;
+    compoundedResults.value = [];
+  }
+  if (compoundedLoading.value || compoundedPage.value > compoundedTotalPages.value) return;
+  compoundedLoading.value = true;
+  try {
+    const response = await fetch(`/api/screener/${user}/all?page=${compoundedPage.value}&limit=${compoundedLimit.value}`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Error fetching compounded results: ${response.status}`);
+    }
+    const data = await response.json();
+    if (reset) {
+      compoundedResults.value = [...data.data]; // replace for reactivity
+    } else {
+      compoundedResults.value.push(...data.data); // append for lazy loading
+    }
+    compoundedTotalPages.value = data.totalPages;
+    compoundedTotalCount.value = data.totalCount;
+    compoundedPage.value += 1;
+  } catch (error) {
+    error.value = error.message;
+  } finally {
+    compoundedLoading.value = false;
+  }
+}
+GetCompoundedResults();
+
+// paginated results for display
+const paginatedResults4 = computed(() => compoundedResults.value);
+
+// infinite scroll handler
 const handleScroll4 = (event) => {
   const { scrollTop, clientHeight, scrollHeight } = event.target;
   if (scrollTop + clientHeight >= scrollHeight - 100) {
-    // Check if we can load more results
-    if (offset.value + limit.value < compoundedResults.value.length) {
-      offset.value += limit.value; // Increment the offset
-    }
+    GetCompoundedResults();
   }
 };
 
@@ -936,7 +1081,6 @@ let autoplayTimeoutId = null;
 const screenerResults = ref([]); // stores all database results
 const filterResults = ref([]); // stores database filtered results
 const HiddenResults = ref([]); // stores hidden results list
-const PerformanceResults = ref([]); // stores performance resutls for a stock
 const compoundedResults = ref([]) // it will store all compounded screener results, minus duplicates and hidden
 const hideList = ref([]); // stores hidden list of users
 const ScreenersName = ref([]); // stores all user's screeners
@@ -951,13 +1095,13 @@ watch(screenerResults, (newValue) => {
 const resultListLength = computed(() => {
   switch (listMode.value) {
     case 'main':
-      return screenerResults.value.length;
+      return screenerTotalCount.value;
     case 'filter':
-      return filterResults.value.length;
+      return filterTotalCount.value;
     case 'hidden':
-      return HiddenResults.value.length;
+      return hiddenTotalCount.value;
     case 'combined':
-      return compoundedResults.value.length;
+      return compoundedTotalCount.value;
     default:
       return 0;
   }
@@ -1019,44 +1163,6 @@ async function showMainResults() {
   currentList.value = screenerResults.value;
 }
 
-// gets full screener results list (unfiltered)
-async function GetScreenerResultsAll() {
-  try {
-    const response = await fetch(`/api/${user}/screener/results/all`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    screenerResults.value = data;
-  } catch (error) {
-    error.value = error.message;
-  }
-}
-GetScreenerResultsAll();
-
-// shows hidden results, it switch values between screeners, i think, there's a similar function below
-async function GetHiddenResults() {
-  try {
-    const response = await fetch(`/api/${user}/screener/results/hidden`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    HiddenResults.value = data;
-  } catch (error) {
-    error.value = error.message;
-  }
-}
-GetHiddenResults();
-
 // gets all screener values for user 
 async function GetScreeners() {
   try {
@@ -1100,16 +1206,11 @@ async function hideStock(asset) {
 
     const data = await response.json();
 
-    if (data.message === 'Hidden List updated successfully') {
-      console.log('Stock hidden successfully');
-    } else {
-      throw new Error('Error hiding stock');
-    }
   } catch (error) {
     error.value = error.message;
   } finally {
-    await GetHiddenResults();
-    await GetCompoundedResults();
+    await GetHiddenResults(true);
+    await GetCompoundedResults(true);
     await fetchScreenerResults(selectedScreener);
 
     if (listMode.value === 'filter') {
@@ -1119,7 +1220,7 @@ async function hideStock(asset) {
       await show1CombinedResults();
       showCombinedResults()
     } else {
-      await GetScreenerResultsAll();
+      await GetScreenerResultsAll(true);
       await showMainResults();
     }
   }
@@ -1142,8 +1243,8 @@ async function getHideList() {
   } catch (error) {
     error.value = error.message;
   }
-  await GetScreenerResultsAll();
-  await GetHiddenResults();
+  await GetScreenerResultsAll(true);
+  await GetHiddenResults(true);
 }
 getHideList();
 
@@ -1207,10 +1308,10 @@ async function ShowStock(asset) {
   } catch (error) {
     error.value = error.message;
   } finally {
-    await GetScreenerResultsAll();
-    await fetchScreenerResults();
-    await GetCompoundedResults();
-    await GetHiddenResults();
+    await GetScreenerResultsAll(true);
+    await fetchScreenerResults(true);
+    await GetCompoundedResults(true);
+    await GetHiddenResults(true);
     await show1HiddenResults(); // important that it stays last!!! updates the counter dynamically
   }
 }
@@ -1235,29 +1336,7 @@ async function DeleteScreener(screenerName) {
   }
 
   await GetScreeners();
-  await GetCompoundedResults();
-}
-
-// get filtered screener results by screener name
-async function fetchScreenerResults(screenerName) {
-  try {
-    const response = await fetch(`/api/screener/${user}/results/filtered/${screenerName}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      }
-    });
-    if (!response.ok) {
-      throw new Error(`Error fetching screener results: ${response.status}`);
-    }
-    const data = await response.json();
-    filterResults.value = data;
-    currentList.value = [...data]; // Update currentList with the new data
-    await SummaryScreener();
-  } catch (error) {
-    error.value = error.message;
-  }
+  await GetCompoundedResults(true);
 }
 
 // function that updates screener parameters graphically 
@@ -1703,22 +1782,6 @@ async function SummaryScreener() {
   }
 }
 
-// fetches data for cumulative screener results 
-async function GetCompoundedResults() {
-  try {
-    const response = await fetch(`/api/screener/${user}/all`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      }
-    });
-    const data = await response.json();
-    compoundedResults.value = data;
-  } catch (error) {
-    error.value = error.message;
-  }
-}
-GetCompoundedResults();
-
 const emit = defineEmits(['update:modelValue']);
 
 function selectScreener(screener) {
@@ -1848,7 +1911,7 @@ async function ExcludeScreener(screener) {
   }
 
   await GetScreeners(); // Refresh the list of screeners
-  await GetCompoundedResults(); // Refresh the compounded results
+  await GetCompoundedResults(true); // Refresh the compounded results
   currentList.value = compoundedResults.value;
 }
 
@@ -2163,14 +2226,14 @@ function DownloadResults() {
 
 async function handleCreateScreenerClose() {
   await GetScreeners();
-  await GetCompoundedResults();
+  await GetCompoundedResults(true);
   showCreateScreener.value = false;
 }
 
 async function handleRenameScreenerClose() {
   selectedScreener.value = screenerName.value;
       await GetScreeners();
-      await GetCompoundedResults();
+      await GetCompoundedResults(true);
       showRenameScreener.value = false;
 }
 
@@ -2215,9 +2278,9 @@ async function loadColumns() {
 function handleUpdateColumns(newColumns) {
   selectedAttributes.value = [...newColumns];
   loadColumns();
-  GetScreenerResultsAll();
-  GetCompoundedResults();
-  GetHiddenResults();
+  GetScreenerResultsAll(true);
+  GetCompoundedResults(true);
+  GetHiddenResults(true);
 }
 
 onMounted(() => {
