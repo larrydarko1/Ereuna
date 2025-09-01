@@ -37,7 +37,6 @@
   :api-key="apiKey"
   :default-symbol="selectedItem"
   :notification="notification"
-  :searchNotes="searchNotes"
   @close="showCreateNoteModal = false"
   @refresh-notes="handleRefreshNotes"
 />
@@ -98,23 +97,25 @@
                 @panel-updated="handlePanelUpdated" />
             </transition>
           </div>
-          <component v-for="(item, idx) in panelData" :key="idx" :is="sidebarComponentMap[item.tag]"
-            v-show="!item.hidden" v-bind="getSidebarProps(item.tag)"
-            :refresh-key="item.tag === 'Summary' ? summaryRefreshKey : undefined" @show-popup="showPopup = true"
-            @toggle-description="showAllDescription = !showAllDescription" @toggle-eps="showAllEPS = !showAllEPS"
-            @toggle-earnings="showAllEarnings = !showAllEarnings" @toggle-sales="showAllSales = !showAllSales"
-            @toggle-dividends="showAllDividends = !showAllDividends" @toggle-splits="showAllSplits = !showAllSplits"
-            @remove-note="removeNote" />
-        <FinancialsPopup
+          <component
+  v-for="(item, idx) in panelData"
+  :key="item.tag === 'Notes' ? 'notes-' + (getSidebarProps(item.tag).refreshKey ?? idx) : idx"
+  :is="sidebarComponentMap[item.tag]"
+  v-show="!item.hidden"
+  v-bind="getSidebarProps(item.tag)"
+  :refresh-key="item.tag === 'Summary' ? summaryRefreshKey : undefined"
+  @show-popup="showPopup = true"
+  @toggle-description="showAllDescription = !showAllDescription"
+  @toggle-eps="showAllEPS = !showAllEPS"
+  @toggle-earnings="showAllEarnings = !showAllEarnings"
+  @toggle-sales="showAllSales = !showAllSales"
+  @toggle-dividends="showAllDividends = !showAllDividends"
+  @toggle-splits="showAllSplits = !showAllSplits"
+/>
+<FinancialsPopup
   :showPopup="showPopup"
-  :isAnnualFinancials="isAnnualFinancials"
-  :currentFinancials="currentFinancials"
-  :attributeMap="attributeMap"
-  :getQuarterAndYear="getQuarterAndYear"
-  :getPercentageDifference="getPercentageDifference"
-  :toggleFinancials="toggleFinancials"
-  :handleMouseOver="handleMouseOver"
-  :handleMouseOut="handleMouseOut"
+  :ticker="selectedItem"
+  :apiKey="apiKey"
   @close="showPopup = false"
 />
           <div class="results"></div>
@@ -417,8 +418,6 @@ async function initializeComponent() {
     await nextTick();
     await Promise.all([
       await searchTicker(),
-      await searchNotes(),
-      await fetchNews(),
       await fetchPanel(),
       await fetchWatchPanel(),
     ]);
@@ -616,11 +615,8 @@ async function searchTicker(providedSymbol) {
     error.value = err.message;
   } finally {
     if (response && response.status !== 404) {
-      await searchNotes();
-      await fetchNews();
       await fetchSplitsDate();
       await fetchDividendsDate();
-      await fetchFinancials();
     }
   }
 }
@@ -860,70 +856,7 @@ function calculateRev(totalRevenue) {
   return percentageChange.toFixed(2);
 }
 
-// related to notes 
-const BeautifulNotes = ref([]);
-const BeautifulNews = ref([]);
-const loading = ref(false);
-const error = ref(null);
 
-async function searchNotes() {
-  try {
-    const Username = user;
-    const searchbar = document.getElementById('searchbar');
-    const symbol = searchbar.value || defaultSymbol;
-    const response = await fetch(`/api/${Username}/${symbol}/notes`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-    const data = await response.json();
-    BeautifulNotes.value = data;
-  } catch (err) {
-
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function fetchNews() {
-  try {
-    const searchbar = document.getElementById('searchbar');
-    const symbol = searchbar.value || defaultSymbol;
-    const response = await fetch(`/api/${symbol}/news`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-    const data = await response.json();
-    BeautifulNews.value = data;
-  } catch (err) {
-    error.value = err.message;
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function removeNote(_id, note) {
-  const Username = user;
-  const symbol = document.getElementById('searchbar').value || defaultSymbol;
-  const noteId = _id;
-
-  try {
-    const response = await fetch(`/api/${symbol}/notes/${noteId}?user=${Username}`, {
-      method: 'DELETE',
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-    if (response.ok) {
-      BeautifulNotes.value = BeautifulNotes.value.filter((n) => n._id !== noteId);
-    } else {
-    }
-  } catch (err) {
-    error.value = err.message;
-  }
-  await searchNotes();
-}
 
 async function showTicker() {
   try {
@@ -973,10 +906,7 @@ async function showTicker() {
     }
   } catch (err) {
     error.value = err.message;
-  } finally {
-    await searchNotes();
-    await fetchNews();
-  }
+  } 
 }
 
 async function fetchSplitsDate() {
@@ -1051,7 +981,6 @@ async function fetchWatchPanel() {
     if (error.name === 'AbortError') {
       return;
     }
-    // Optionally handle other errors
   }
 }
 
@@ -1641,169 +1570,11 @@ const isAssetInWatchlist = (ticker, symbol) => {
   return false;
 };
 
-const attributeMap = {
-  rps: 'Revenue Per Share',
-  roa: 'Return on Assets ROA',
-  assetTurnover: 'Asset Turnover',
-  bookVal: 'Book Value',
-  bvps: 'Book Value Per Share',
-  totalRevenue: 'Revenue',
-  epsDil: 'Earnings Per Share Diluted',
-  netIncome: 'Net Income',
-  profitMargin: 'Profit Margin',
-  revenueQoQ: 'Revenue QoQ Growth',
-  debtEquity: 'Debt to Equity Ratio',
-  grossMargin: 'Gross Margin',
-  roe: 'Return on Equity ROE',
-  currentRatio: 'Current Ratio',
-  fxRate: 'FX Rate',
-  sharesBasic: 'Shares Outstanding',
-  piotroskiFScore: 'Piotroski F-Score',
-  longTermDebtEquity: 'Long-term Debt to Equity',
-  opMargin: 'Operating Margin',
-  epsQoQ: 'Earnings Per Share QoQ Growth',
-  peRatio: 'Price to Earnings Ratio',
-  shareswaDil: 'Weighted Average Shares Diluted',
-  eps: 'Earnings Per Share',
-  ppeq: 'Property, Plant & Equipment',
-  ebitda: 'EBITDA',
-  freeCashFlow: 'Free Cash Flow',
-  issrepayDebt: 'Issuance or Repayment of Debt Securities',
-  capex: 'Capital Expenditure',
-  rnd: 'Research & Development',
-  sga: 'Selling, General & Administrative',
-  investmentsCurrent: 'Current Investments',
-  payDiv: 'Payment of Dividends & Other Cash Distributions',
-  investmentsAcqDisposals: 'Investment Acquisitions & Disposals',
-  taxLiabilities: 'Tax Liabilities',
-  ncff: 'Net Cash Flow from Financing',
-  opinc: 'Operating Income',
-  nonControllingInterests: 'Net Income to Non-Controlling Interests',
-  assetsNonCurrent: 'Other Assets',
-  taxAssets: 'Tax Assets',
-  issrepayEquity: 'Issuance or Repayment of Equity',
-  ncfx: 'Effect of Exchange Rate Changes on Cash',
-  ncfo: 'Net Cash Flow from Operations',
-  grossProfit: 'Gross Profit',
-  debtCurrent: 'Current Debt',
-  retainedEarnings: 'Accumulated Retained Earnings or Deficit',
-  liabilitiesNonCurrent: 'Other Liabilities',
-  sbcomp: 'Shared-based Compensation',
-  businessAcqDisposals: 'Business Acquisitions & Disposals',
-  liabilitiesCurrent: 'Current Liabilities',
-  acctRec: 'Accounts Receivable',
-  cashAndEq: 'Cash and Equivalents',
-  accoci: 'Accumulated Other Comprehensive Income',
-  depamor: 'Depreciation, Amortization & Accretion',
-  assetsCurrent: 'Current Assets',
-  shareswa: 'Weighted Average Shares',
-  investments: 'Investments',
-  prefDVDs: 'Preferred Dividends Income Statement Impact',
-  intangibles: 'Intangible Assets',
-  opex: 'Operating Expenses',
-  inventory: 'Inventory',
-  deposits: 'Deposits',
-  ebt: 'Earnings before tax',
-  netMargin: 'Net Margin',
-  investmentsNonCurrent: 'Non-Current Investments',
-  totalAssets: 'Total Assets',
-  deferredRev: 'Deferred Revenue',
-  taxExp: 'Tax Expense',
-  debt: 'Total Debt',
-  costRev: 'Cost of Revenue',
-  acctPay: 'Accounts Payable',
-  ncf: 'Net Cash Flow to Change in Cash & Cash Equivalents',
-  netIncDiscOps: 'Net Income from Discontinued Operations',
-  totalLiabilities: 'Total Liabilities',
-  ncfi: 'Net Cash Flow from Investing',
-  debtNonCurrent: 'Non-Current Debt',
-  ebit: 'Earning Before Interest & Taxes EBIT',
-  netIncComStock: 'Net Income Common Stock',
-  intexp: 'Interest Expense',
-  consolidatedIncome: 'Consolidated Income',
-  equity: 'Shareholders Equity',
-  marketCap: 'Market Capitalization',
-  enterpriseVal: 'Enterprise Value',
-  shareFactor: 'Share Factor',
-  trailingPEG1Y: 'PEG Ratio',
-  pbRatio: 'Price to Book Ratio',
-};
-
-const AnnualFinancials = ref([]);
-const QuarterlyFinancials = ref([]);
-
-async function fetchFinancials() {
-  try {
-    let ticker = (defaultSymbol || selectedItem).toUpperCase();
-    const headers = {
-      'x-api-key': apiKey
-    };
-    const response = await fetch(`/api/${ticker}/financials`, {
-      headers: headers
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newFinancials = await response.json();
-    AnnualFinancials.value = newFinancials.annualFinancials;
-    QuarterlyFinancials.value = newFinancials.quarterlyFinancials;
-
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-  }
-}
-
-const isAnnualFinancials = ref(true);
-const currentFinancials = computed(() => {
-  return isAnnualFinancials.value ? AnnualFinancials.value : QuarterlyFinancials.value;
-});
-
-function toggleFinancials() {
-  isAnnualFinancials.value = !isAnnualFinancials.value;
-}
-
-function getQuarterAndYear(dateString) {
-  const date = new Date(dateString);
-  if (isAnnualFinancials.value) {
-    return date.getFullYear();
-  } else {
-    const quarter = Math.floor((date.getMonth() + 3) / 3);
-    return `Q${quarter} ${date.getFullYear()}`;
-  }
-}
-
-const activeIndex = ref(-1);
-
-const getPercentageDifference = (financial, attribute) => {
-  const currentIndex = currentFinancials.value.indexOf(financial);
-  if (currentIndex < currentFinancials.value.length - 1) {
-    const nextFinancial = currentFinancials.value[currentIndex + 1];
-    const change = financial[attribute] - nextFinancial[attribute];
-    let percentageDifference;
-    if (nextFinancial[attribute] < 0) {
-      percentageDifference = (change / Math.abs(nextFinancial[attribute])) * 100;
-    } else {
-      percentageDifference = (change / nextFinancial[attribute]) * 100;
-    }
-    if (isNaN(percentageDifference) || !isFinite(percentageDifference)) {
-      return '-';
-    } else {
-      return percentageDifference.toFixed(2) + '%';
-    }
-  } else {
-    return '-';
-  }
-}
-
 const selected = ref('info')
 function select(option) {
   selected.value = option
 }
-
+const activeIndex = ref(-1);
 const showPanel = ref(false);
 
 
@@ -1869,6 +1640,12 @@ defineExpose({
   loadTheme,
 });
 
+
+const refreshKey = ref(0);
+function handleRefreshNotes() {
+  refreshKey.value++;
+  console.log('refreshKey incremented:', refreshKey.value);
+}
 
 let panelData = ref([]); // Left Panel section 
 
@@ -1972,15 +1749,20 @@ function getSidebarProps(tag) {
     case 'Financials':
       return {};
     case 'Notes':
-      return {
-        BeautifulNotes: BeautifulNotes.value,
-        formatDate,
-      };
+  return {
+    formatDate,
+    symbol: selectedItem,
+    apiKey,
+    refreshKey: refreshKey.value,
+    user,
+    defaultSymbol
+  };
     case 'News':
-      return {
-        BeautifulNews: BeautifulNews.value,
-        formatDate,
-      };
+  return {
+    formatDate,
+    symbol: selectedItem,
+    apiKey,
+  };
     default:
       return {};
   }
@@ -2251,29 +2033,6 @@ function handleImportWatchlistRefresh() {
   margin: 0;
 }
 
-.note {
-  background-color: var(--accent4);
-  color: var(--base4);
-  padding: 10px;
-  border: none;
-  box-sizing: border-box;
-  width: 100%;
-  margin-bottom: 1px;
-  position: relative;
-}
-
-.notebtn {
-  background-color: transparent;
-  border: none;
-  color: var(--text2);
-  cursor: pointer;
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  padding: 5px;
-  z-index: 1;
-}
-
 .img {
   width: 15px;
   height: 15px;
@@ -2293,31 +2052,6 @@ function handleImportWatchlistRefresh() {
   float: left;
   margin-right: 1rem;
   border: none;
-}
-
-.inline-note {
-  opacity: 0.50;
-  border: none;
-}
-
-.note-msg {
-  color: var(--text1);
-  border: none;
-  margin-top: 0;
-  padding-top: 0;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
-  width: 100%;
-  display: block;
-}
-
-.note-msg-date {
-  color: var(--text1);
-  border: none;
-  bottom: 11.5px;
-  left: 14px;
-  position: relative;
 }
 
 .tbl {

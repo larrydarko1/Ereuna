@@ -25,7 +25,51 @@
   </template>
 
 <script setup>
-defineProps(['BeautifulNews', 'formatDate']);
+import { ref, onMounted, watch } from 'vue';
+
+const props = defineProps({
+  symbol: {
+    type: String,
+    required: true
+  },
+  apiKey: {
+    type: String,
+    required: true
+  },
+  defaultSymbol: {
+    type: String,
+    default: ''
+  },
+  formatDate: {
+    type: Function,
+    required: true
+  }
+});
+
+const BeautifulNews = ref([]);
+const error = ref(null);
+const loading = ref(false);
+
+async function fetchNews() {
+  loading.value = true;
+  try {
+    const symbolToUse = props.symbol || props.defaultSymbol;
+    const response = await fetch(`/api/${symbolToUse}/news`, {
+      headers: {
+        'X-API-KEY': props.apiKey,
+      },
+    });
+    const data = await response.json();
+    BeautifulNews.value = data;
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(fetchNews);
+watch(() => props.symbol, fetchNews);
 </script>
 
 <style lang="scss" scoped>

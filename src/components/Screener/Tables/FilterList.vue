@@ -107,7 +107,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed } from 'vue';
+import { computed } from 'vue';
 
 // Returns a class for todaychange column based on value
 function getColumnClass(asset, col) {

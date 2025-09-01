@@ -57,7 +57,6 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue'
 const props = defineProps({ visible: Boolean })
 const emit = defineEmits(['close'])
 const close = () => emit('close')

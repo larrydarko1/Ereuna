@@ -9,43 +9,48 @@
       </div>
       <br>
       <div class="financials-scroll-container">
-        <div class="financials-header">
-          <div class="attribute-name">Attribute</div>
-          <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="fiscal-year">
-            {{ getQuarterAndYear(financial.fiscalDateEnding) }}
-          </div>
-        </div>
-        <div
-          v-for="(attribute, index) in Object.keys(currentFinancials[0]).filter(attr => attr !== 'fiscalDateEnding')"
-          :key="index" class='financials-row'>
-          <div class="attribute-name" style="display: grid; grid-template-columns: 1fr auto;">
-            {{ attributeMap[attribute] || attribute }}
-            <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-              @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut">
-              <path
-                d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round">
-              </path>
-              <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-              <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088"
-                stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
-          </div>
-          <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="financial-value">
-            {{ isNaN(parseInt(financial[attribute])) ? '-' : parseInt(financial[attribute]).toLocaleString() }}
-            <div class="percentage-box"
-              :class="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0 ? 'positive' : 'negative'">
-              {{ isNaN(parseFloat(getPercentageDifference(financial, attribute))) ? '-' :
-                getPercentageDifference(financial, attribute) }}
-              <span
-                v-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0"
-                class="arrow-up"></span>
-              <span v-else-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute)))"
-                class="arrow-down"></span>
+        <template v-if="currentFinancials && currentFinancials.length">
+          <div class="financials-header">
+            <div class="attribute-name">Attribute</div>
+            <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="fiscal-year">
+              {{ getQuarterAndYear(financial.fiscalDateEnding) }}
             </div>
           </div>
-        </div>
+          <div
+            v-for="(attribute, index) in Object.keys(currentFinancials[0]).filter(attr => attr !== 'fiscalDateEnding')"
+            :key="index" class='financials-row'>
+            <div class="attribute-name" style="display: grid; grid-template-columns: 1fr auto;">
+              {{ attributeMap[attribute] || attribute }}
+              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut">
+                <path
+                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                  stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round">
+                </path>
+                <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
+                  stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088"
+                  stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </div>
+            <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="financial-value">
+              {{ isNaN(parseInt(financial[attribute])) ? '-' : parseInt(financial[attribute]).toLocaleString() }}
+              <div class="percentage-box"
+                :class="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0 ? 'positive' : 'negative'">
+                {{ isNaN(parseFloat(getPercentageDifference(financial, attribute))) ? '-' :
+                  getPercentageDifference(financial, attribute) }}
+                <span
+                  v-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0"
+                  class="arrow-up"></span>
+                <span v-else-if="!isNaN(parseFloat(getPercentageDifference(financial, attribute)))"
+                  class="arrow-down"></span>
+              </div>
+            </div>
+          </div>
+        </template>
+        <template v-else>
+          <div style="padding: 2em; text-align: center;">No financial data available.</div>
+        </template>
         <div class="tooltip-container">
           <div class="tooltip" v-if="showTooltip" :style="{ top: tooltipTop + 'px', left: tooltipLeft + 'px' }">
             <span class="tooltip-text">{{ tooltipText }}</span>
@@ -57,20 +62,190 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
+
 
 const props = defineProps({
   showPopup: Boolean,
-  isAnnualFinancials: Boolean,
-  currentFinancials: Array,
-  attributeMap: Object,
-  getQuarterAndYear: Function,
-  getPercentageDifference: Function,
-  toggleFinancials: Function,
-  handleMouseOver: Function,
-  handleMouseOut: Function,
+  ticker: {
+    type: String,
+    required: true
+  },
+  apiKey: {
+    type: String,
+    required: true
+  }
 });
 
+const attributeMap = {
+  rps: 'Revenue Per Share',
+  roa: 'Return on Assets ROA',
+  assetTurnover: 'Asset Turnover',
+  bookVal: 'Book Value',
+  bvps: 'Book Value Per Share',
+  totalRevenue: 'Revenue',
+  epsDil: 'Earnings Per Share Diluted',
+  netIncome: 'Net Income',
+  profitMargin: 'Profit Margin',
+  revenueQoQ: 'Revenue QoQ Growth',
+  debtEquity: 'Debt to Equity Ratio',
+  grossMargin: 'Gross Margin',
+  roe: 'Return on Equity ROE',
+  currentRatio: 'Current Ratio',
+  fxRate: 'FX Rate',
+  sharesBasic: 'Shares Outstanding',
+  piotroskiFScore: 'Piotroski F-Score',
+  longTermDebtEquity: 'Long-term Debt to Equity',
+  opMargin: 'Operating Margin',
+  epsQoQ: 'Earnings Per Share QoQ Growth',
+  peRatio: 'Price to Earnings Ratio',
+  shareswaDil: 'Weighted Average Shares Diluted',
+  eps: 'Earnings Per Share',
+  ppeq: 'Property, Plant & Equipment',
+  ebitda: 'EBITDA',
+  freeCashFlow: 'Free Cash Flow',
+  issrepayDebt: 'Issuance or Repayment of Debt Securities',
+  capex: 'Capital Expenditure',
+  rnd: 'Research & Development',
+  sga: 'Selling, General & Administrative',
+  investmentsCurrent: 'Current Investments',
+  payDiv: 'Payment of Dividends & Other Cash Distributions',
+  investmentsAcqDisposals: 'Investment Acquisitions & Disposals',
+  taxLiabilities: 'Tax Liabilities',
+  ncff: 'Net Cash Flow from Financing',
+  opinc: 'Operating Income',
+  nonControllingInterests: 'Net Income to Non-Controlling Interests',
+  assetsNonCurrent: 'Other Assets',
+  taxAssets: 'Tax Assets',
+  issrepayEquity: 'Issuance or Repayment of Equity',
+  ncfx: 'Effect of Exchange Rate Changes on Cash',
+  ncfo: 'Net Cash Flow from Operations',
+  grossProfit: 'Gross Profit',
+  debtCurrent: 'Current Debt',
+  retainedEarnings: 'Accumulated Retained Earnings or Deficit',
+  liabilitiesNonCurrent: 'Other Liabilities',
+  sbcomp: 'Shared-based Compensation',
+  businessAcqDisposals: 'Business Acquisitions & Disposals',
+  liabilitiesCurrent: 'Current Liabilities',
+  acctRec: 'Accounts Receivable',
+  cashAndEq: 'Cash and Equivalents',
+  accoci: 'Accumulated Other Comprehensive Income',
+  depamor: 'Depreciation, Amortization & Accretion',
+  assetsCurrent: 'Current Assets',
+  shareswa: 'Weighted Average Shares',
+  investments: 'Investments',
+  prefDVDs: 'Preferred Dividends Income Statement Impact',
+  intangibles: 'Intangible Assets',
+  opex: 'Operating Expenses',
+  inventory: 'Inventory',
+  deposits: 'Deposits',
+  ebt: 'Earnings before tax',
+  netMargin: 'Net Margin',
+  investmentsNonCurrent: 'Non-Current Investments',
+  totalAssets: 'Total Assets',
+  deferredRev: 'Deferred Revenue',
+  taxExp: 'Tax Expense',
+  debt: 'Total Debt',
+  costRev: 'Cost of Revenue',
+  acctPay: 'Accounts Payable',
+  ncf: 'Net Cash Flow to Change in Cash & Cash Equivalents',
+  netIncDiscOps: 'Net Income from Discontinued Operations',
+  totalLiabilities: 'Total Liabilities',
+  ncfi: 'Net Cash Flow from Investing',
+  debtNonCurrent: 'Non-Current Debt',
+  ebit: 'Earning Before Interest & Taxes EBIT',
+  netIncComStock: 'Net Income Common Stock',
+  intexp: 'Interest Expense',
+  consolidatedIncome: 'Consolidated Income',
+  equity: 'Shareholders Equity',
+  marketCap: 'Market Capitalization',
+  enterpriseVal: 'Enterprise Value',
+  shareFactor: 'Share Factor',
+  trailingPEG1Y: 'PEG Ratio',
+  pbRatio: 'Price to Book Ratio',
+};
+
+const AnnualFinancials = ref([]);
+const QuarterlyFinancials = ref([]);
+const isAnnualFinancials = ref(true);
+
+const currentFinancials = computed(() => {
+  return isAnnualFinancials.value ? AnnualFinancials.value : QuarterlyFinancials.value;
+});
+
+async function fetchFinancials() {
+  try {
+    console.log('Fetching financials for:', props.ticker);
+    const headers = {
+      'x-api-key': props.apiKey
+    };
+    const response = await fetch(`/api/${props.ticker}/financials`, {
+      headers: headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const newFinancials = await response.json();
+    console.log('API response:', newFinancials);
+    AnnualFinancials.value = newFinancials.annualFinancials;
+    QuarterlyFinancials.value = newFinancials.quarterlyFinancials;
+
+  } catch (error) {
+    console.error('Error fetching financials:', error);
+    if (error.name === 'AbortError') {
+      return;
+    }
+  }
+}
+
+function toggleFinancials() {
+  isAnnualFinancials.value = !isAnnualFinancials.value;
+}
+
+function getQuarterAndYear(dateString) {
+  const date = new Date(dateString);
+  if (isAnnualFinancials.value) {
+    return date.getFullYear();
+  } else {
+    const quarter = Math.floor((date.getMonth() + 3) / 3);
+    return `Q${quarter} ${date.getFullYear()}`;
+  }
+}
+
+const getPercentageDifference = (financial, attribute) => {
+  const currentIndex = currentFinancials.value.indexOf(financial);
+  if (currentIndex < currentFinancials.value.length - 1) {
+    const nextFinancial = currentFinancials.value[currentIndex + 1];
+    const change = financial[attribute] - nextFinancial[attribute];
+    let percentageDifference;
+    if (nextFinancial[attribute] < 0) {
+      percentageDifference = (change / Math.abs(nextFinancial[attribute])) * 100;
+    } else {
+      percentageDifference = (change / nextFinancial[attribute]) * 100;
+    }
+    if (isNaN(percentageDifference) || !isFinite(percentageDifference)) {
+      return '-';
+    } else {
+      return percentageDifference.toFixed(2) + '%';
+    }
+  } else {
+    return '-';
+  }
+}
+
+watch(() => props.showPopup, (val) => {
+  if (val) {
+    fetchFinancials();
+  }
+});
+
+watch(() => props.ticker, (newTicker, oldTicker) => {
+  if (props.showPopup && newTicker !== oldTicker) {
+    fetchFinancials();
+  }
+});
 
 // Tooltip state (these should be provided by parent or managed here if you want local tooltip)
 const showTooltip = ref(false)
@@ -78,10 +253,10 @@ let tooltipText = ref('');
 let tooltipLeft = ref();
 let tooltipTop = ref();
 
+
 function handleMouseOver(event, id) {
   showTooltip.value = true
   const element = event.target
-  const rect = element.getBoundingClientRect()
   const svgRect = element.parentNode.getBoundingClientRect()
   tooltipTop.value = svgRect.top + window.scrollY + svgRect.height - 25;
   tooltipLeft.value = svgRect.left + window.scrollX + svgRect.width + 10;
@@ -176,10 +351,12 @@ const attributeTooltips = {
   pbRatio: 'Price to Book Ratio is a company\'s price-to-book ratio, which is used to evaluate its valuation.',
 };
 
+
 function getTooltipText(id) {
   const attribute = id.attribute;
   return attributeTooltips[attribute] || `This is the ${attributeMap[attribute] || attribute} attribute.`;
 }
+
 
 function handleMouseOut() {
   showTooltip.value = false
