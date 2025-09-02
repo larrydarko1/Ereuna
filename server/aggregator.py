@@ -44,12 +44,14 @@ Module-level caches and helper
 """
 candles = {}  # {(symbol, bucket): candle_dict} for 1m candles
 pending_candles = {}  # {(symbol, timeframe): candle_dict} for higher timeframes
+pending_daily_candles = {} # Daily candle cache: {(symbol): candle_dict}
 
 def get_latest_in_progress_candle(symbol, timeframe):
     """
     Returns the latest in-progress candle for the given symbol and timeframe.
     For '1m', finds the candle in 'candles' with the latest timestamp for symbol.
     For higher timeframes, returns from 'pending_candles'.
+    For '1d', returns from pending_daily_candles.
     """
     if timeframe == '1m':
         relevant = [(k, v) for k, v in candles.items() if k[0] == symbol]
@@ -58,6 +60,11 @@ def get_latest_in_progress_candle(symbol, timeframe):
         latest = max(relevant, key=lambda x: x[0][1])
         cndl = latest[1]
         return {**cndl, 'final': False}
+    elif timeframe == '1d':
+        cndl = pending_daily_candles.get(symbol)
+        if cndl and not cndl.get('final', False):
+            return cndl.copy()
+        return None
     else:
         cndl = pending_candles.get((symbol, timeframe))
         if cndl and not cndl.get('final', False):
@@ -71,9 +78,6 @@ HIGHER_TIMEFRAMES = {
     '30m': 30,
     '1hr': 60
 }
-
-# Daily candle cache: {(symbol): candle_dict}
-pending_daily_candles = {}
 
 async def start_aggregator(message_queue, mongo_client):
     # Ensure mongo_client is a Motor client

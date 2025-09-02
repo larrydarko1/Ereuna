@@ -25,23 +25,91 @@
     </div>
     <button
       v-if="showDividendsButton"
-      @click="$emit('toggle-dividends')"
+      @click="handleToggleDividends"
       class="toggle-btn"
+      :disabled="loading"
     >
       {{ showAllDividends ? 'Show Less' : 'Show All' }}
     </button>
+    <div v-if="loading" class="loading-indicator">Loading...</div>
   </div>
 </template>
 
 <script setup>
-defineProps([
-  'displayedDividendsItems',
-  'formatDate',
-  'showAllDividends',
-  'showDividendsButton',
-]);
+import { ref, computed, onMounted, watch } from 'vue';
+
+const props = defineProps({
+  symbol: {
+    type: String,
+    required: true
+  },
+  apiKey: {
+    type: String,
+    required: true
+  },
+  defaultSymbol: {
+    type: String,
+    default: ''
+  },
+  formatDate: {
+    type: Function,
+    required: true
+  }
+});
+
+const DividendsDate = ref([]); // Dividends Data
+const showAllDividends = ref(false);
+const loading = ref(false);
+
+async function fetchDividendsDate(all = false) {
+  try {
+    loading.value = true;
+    let ticker = props.symbol || props.defaultSymbol;
+    let url = `/api/${ticker}/dividendsdate`;
+    if (all) {
+      url += '?all=true';
+    }
+    const response = await fetch(url, {
+      headers: {
+        'X-API-KEY': props.apiKey,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newDividendsDate = await response.json();
+    DividendsDate.value = newDividendsDate;
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+    error.value = error.message;
+  } finally {
+    loading.value = false;
+  }
+}
+
+const displayedDividendsItems = computed(() => {
+  return DividendsDate.value || [];
+});
+
+const showDividendsButton = computed(() => {
+  return DividendsDate.value && DividendsDate.value.length > 4;
+});
+
+function handleToggleDividends() {
+  showAllDividends.value = !showAllDividends.value;
+  fetchDividendsDate(showAllDividends.value);
+}
+
+onMounted(() => fetchDividendsDate(false));
+watch(() => props.symbol, () => fetchDividendsDate(showAllDividends.value));
 </script>
 
 <style scoped>
 /* Add your styles here */
+.loading-indicator {
+  text-align: center;
+  padding: 10px;
+}
 </style>

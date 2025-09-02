@@ -15,7 +15,7 @@
           class="sales-row"
         >
           <div class="sales-cell" style="flex: 0 0 20%;">
-            {{ formatDate(quarterlyReport.fiscalDateEnding) }}
+            {{ props.formatDate(quarterlyReport.fiscalDateEnding) }}
           </div>
           <div class="sales-cell" style="flex: 0 0 40%;">
             {{ parseInt(quarterlyReport.totalRevenue).toLocaleString() }}
@@ -52,7 +52,7 @@
           </div>
           <div class="sales-cell" style="flex: 0 0 10%;" v-else>
             <span
-              v-if="getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'"
+              v-if="props.getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'"
               class="sphere green-sphere"
             ></span>
             <span v-else class="sphere red-sphere"></span>
@@ -67,7 +67,7 @@
           </div>
           <div class="sales-cell" style="flex: 0 0 10%;" v-else>
             <span
-              v-if="getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'"
+              v-if="props.getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'"
               class="sphere green-sphere"
             ></span>
             <span v-else class="sphere red-sphere"></span>
@@ -80,7 +80,7 @@
     </div>
     <button
       v-if="showSalesButton"
-      @click="$emit('toggle-sales')"
+      @click="toggleSales"
       class="toggle-btn"
     >
       {{ showAllSales ? 'Show Less' : 'Show All' }}
@@ -89,17 +89,96 @@
 </template>
 
 <script setup>
-defineProps([
-  'displayedSalesItems',
-  'formatDate',
-  'showAllSales',
-  'showSalesButton',
-  'calculateRev',
-  'calculateQoQ3',
-  'calculateYoY3',
-  'getQoQClass',
-  'getYoYClass',
-]);
+import { ref, computed, watch } from 'vue';
+
+const props = defineProps({
+  formatDate: Function,
+  assetInfo: Object,
+  getQoQClass: Function,
+  getYoYClass: Function,
+  symbol: String,
+});
+const emit = defineEmits(['request-full-sales']);
+const showAllSales = ref(false);
+
+function toggleSales() {
+  showAllSales.value = !showAllSales.value;
+  if (showAllSales.value) {
+    emit('request-full-sales');
+  }
+}
+
+const displayedSalesItems = computed(() => {
+  const income = props.assetInfo?.quarterlyFinancials || [];
+  if (income.length === 0) return [];
+  if (income.length <= 4) return income;
+  return showAllSales.value ? income : income.slice(0, 4);
+});
+
+const showSalesButton = computed(() => {
+  return (props.assetInfo?.quarterlyFinancials?.length || 0) > 4;
+});
+
+function calculateQoQ3(totalRevenue) {
+  if (!totalRevenue) return null;
+  const quarterlyIncome = props.assetInfo.quarterlyFinancials;
+  if (!quarterlyIncome) return null;
+  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
+  if (index === -1) return null;
+  const previousQuarterlyIncome = quarterlyIncome[index + 1];
+  if (!previousQuarterlyIncome) return null;
+  const previousReportedRevenue = previousQuarterlyIncome.totalRevenue;
+  if (previousReportedRevenue === undefined) return null;
+  let percentageChange;
+  if (previousReportedRevenue < 0) {
+    percentageChange = ((totalRevenue - previousReportedRevenue) / Math.abs(previousReportedRevenue)) * 100;
+  } else {
+    percentageChange = ((totalRevenue - previousReportedRevenue) / previousReportedRevenue) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+function calculateYoY3(totalRevenue) {
+  if (!totalRevenue) return null;
+  const quarterlyIncome = props.assetInfo.quarterlyFinancials;
+  if (!quarterlyIncome) return null;
+  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
+  if (index === -1) return null;
+  const previousQuarterlyIncome = quarterlyIncome[index + 4];
+  if (!previousQuarterlyIncome) return null;
+  const previousReportedRevenue = previousQuarterlyIncome.totalRevenue;
+  if (previousReportedRevenue === undefined) return null;
+  let percentageChange;
+  if (previousReportedRevenue < 0) {
+    percentageChange = ((totalRevenue - previousReportedRevenue) / Math.abs(previousReportedRevenue)) * 100;
+  } else {
+    percentageChange = ((totalRevenue - previousReportedRevenue) / previousReportedRevenue) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+function calculateRev(totalRevenue) {
+  if (!totalRevenue) return null;
+  const quarterlyIncome = props.assetInfo.quarterlyFinancials;
+  if (!quarterlyIncome) return null;
+  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
+  if (index === -1) return null;
+  const previousQuarterlyIncome = quarterlyIncome[index + 1];
+  if (!previousQuarterlyIncome) return null;
+  const previousReportedRevenue = previousQuarterlyIncome.totalRevenue;
+  if (previousReportedRevenue === undefined) return null;
+  let percentageChange;
+  if (previousReportedRevenue < 0) {
+    percentageChange = ((totalRevenue - previousReportedRevenue) / Math.abs(previousReportedRevenue)) * 100;
+  } else {
+    percentageChange = ((totalRevenue - previousReportedRevenue) / previousReportedRevenue) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+watch(() => props.symbol, () => {
+  showAllSales.value = false;
+});
 </script>
 
 <style scoped>

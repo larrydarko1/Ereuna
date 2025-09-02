@@ -24,7 +24,6 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import NotificationPopup from '@/components/NotificationPopup.vue';
 
 const emit = defineEmits(['close', 'update', 'notify'])
 const props = defineProps({

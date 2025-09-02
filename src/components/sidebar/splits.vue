@@ -25,8 +25,9 @@
     </div>
     <button
       v-if="showSplitsButton"
-      @click="$emit('toggle-splits')"
+      @click="handleToggleSplits"
       class="toggle-btn"
+      :disabled="loading"
     >
       {{ showAllSplits ? 'Show Less' : 'Show All' }}
     </button>
@@ -34,12 +35,78 @@
 </template>
 
 <script setup>
-defineProps([
-  'displayedSplitsItems',
-  'formatDate',
-  'showAllSplits',
-  'showSplitsButton',
-]);
+import { ref, computed, onMounted, watch } from 'vue';
+
+const props = defineProps({
+  symbol: {
+    type: String,
+    required: true
+  },
+  apiKey: {
+    type: String,
+    required: true
+  },
+  defaultSymbol: {
+    type: String,
+    default: ''
+  },
+  formatDate: {
+    type: Function,
+    required: true
+  }
+});
+
+const SplitsDate = ref([]);
+const showAllSplits = ref(false);
+const loading = ref(false);
+
+async function fetchSplitsDate(all = false) {
+  try {
+    loading.value = true;
+    let ticker = props.symbol || props.defaultSymbol;
+    let url = `/api/${ticker}/splitsdate`;
+    if (all) {
+      url += '?all=true';
+    }
+    const response = await fetch(url, {
+      headers: {
+        'X-API-KEY': props.apiKey,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const newSplitsDate = await response.json();
+    SplitsDate.value = newSplitsDate;
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+    error.value = error.message;
+  } finally {
+    loading.value = false;
+  }
+}
+
+const displayedSplitsItems = computed(() => {
+  if (!SplitsDate.value) return [];
+  if (!showAllSplits.value) {
+    return SplitsDate.value.slice(0, 4);
+  }
+  return SplitsDate.value;
+});
+
+const showSplitsButton = computed(() => {
+  return SplitsDate.value && SplitsDate.value.length > 4;
+});
+
+function handleToggleSplits() {
+  showAllSplits.value = !showAllSplits.value;
+  fetchSplitsDate(showAllSplits.value);
+}
+
+onMounted(() => fetchSplitsDate(false));
+watch(() => props.symbol, () => fetchSplitsDate(showAllSplits.value));
 </script>
 
 <style scoped>
