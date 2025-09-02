@@ -7,7 +7,6 @@
       v-show="!item.hidden"
       v-bind="getSidebarProps(item.tag)"
       @show-popup="showPopup = true"
-      @toggle-description="showAllDescription = !showAllDescription"
       @toggle-eps="showAllEPS = !showAllEPS"
       @toggle-earnings="showAllEarnings = !showAllEarnings"
       @toggle-sales="showAllSales = !showAllSales"
@@ -15,9 +14,6 @@
       @toggle-splits="showAllSplits = !showAllSplits"
       @remove-note="removeNote"
     />
-    <button @click="$emit('toggle-description')" class="toggle-btn">
-      {{ showAllDescription ? 'Show Less' : 'Show All' }}
-    </button>
   </div>
 </template>
 

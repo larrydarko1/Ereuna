@@ -105,12 +105,9 @@
   v-bind="getSidebarProps(item.tag)"
   :refresh-key="item.tag === 'Summary' ? summaryRefreshKey : undefined"
   @show-popup="showPopup = true"
-  @toggle-description="showAllDescription = !showAllDescription"
-  @toggle-eps="showAllEPS = !showAllEPS"
-  @toggle-earnings="showAllEarnings = !showAllEarnings"
-  @toggle-sales="showAllSales = !showAllSales"
-  @toggle-dividends="showAllDividends = !showAllDividends"
-  @toggle-splits="showAllSplits = !showAllSplits"
+  @request-full-sales="searchTicker(selectedItem, { showAllSales: true });"
+  @request-full-eps="searchTicker(selectedItem, { showAllEPS: true });"
+  @request-full-earnings="searchTicker(selectedItem, { showAllEarnings: true });"
 />
 <FinancialsPopup
   :showPopup="showPopup"
@@ -330,8 +327,8 @@ import DividendsTable from '@/components/sidebar/dividends.vue'
 import SplitsTable from '@/components/sidebar/splits.vue'
 import Financials from '@/components/sidebar/financialbtn.vue'
 import Notice from '@/components/charts/Notice.vue';
-import Notes from '@/components/charts/notes.vue'
-import News from '@/components/charts/news.vue'
+import Notes from '@/components/sidebar/notes.vue'
+import News from '@/components/sidebar/news.vue'
 import WatchPanelEditor from '@/components/charts/WatchPanelEditor.vue';
 import FinancialsPopup from '@/components/charts/FinancialsPopup.vue';
 import CreateNote from '@/components/charts/CreateNote.vue'
@@ -356,8 +353,8 @@ const apiKey = import.meta.env.VITE_EREUNA_KEY;
 const isLoading2 = ref(true);
 const isLoading3 = ref(true);
 
+// reactive code to refresh summary panel
 const summaryRefreshKey = ref(0);
-
 function handlePanelUpdated() {
   summaryRefreshKey.value++; // This will trigger a prop change
   fetchPanel(); // Also refresh the panel sections if needed
@@ -447,14 +444,14 @@ onMounted(async () => {
     await filterWatchlist()
 });
 
-// retirves and updates the default symbol for the user 
-let defaultSymbol = localStorage.getItem('defaultSymbol');
-let selectedItem = defaultSymbol;
-
 const searchQuery = ref('');
 const toUpperCase = () => {
   searchQuery.value = searchQuery.value.toUpperCase();
 };
+
+// retirves and updates the default symbol for the user 
+let defaultSymbol = localStorage.getItem('defaultSymbol');
+const selectedItem = ref(defaultSymbol);
 
 async function fetchUserDefaultSymbol() {
   try {
@@ -477,10 +474,11 @@ async function fetchUserDefaultSymbol() {
 
 onMounted(async () => {
     localStorage.removeItem('defaultSymbol');
-    selectedItem = await fetchUserDefaultSymbol();
-    if (selectedItem) {
-      defaultSymbol = selectedItem;
-      localStorage.setItem('defaultSymbol', selectedItem);
+    const symbol = await fetchUserDefaultSymbol();
+    if (symbol) {
+      defaultSymbol = symbol;
+      selectedItem.value = symbol;
+      localStorage.setItem('defaultSymbol', symbol);
     }
     await showTicker();
   });
@@ -502,80 +500,22 @@ async function updateUserDefaultSymbol(symbol) {
   }
 }
 
-// related to summary tables 
-const showAllEPS = ref(false);
-const showAllEarnings = ref(false);
-const showAllSales = ref(false);
-const showAllDescription = ref(false);
-
-const displayedEPSItems = computed(() => {
-  const earnings = assetInfo?.quarterlyEarnings || [];
-  if (earnings.length === 0) return [];
-  if (earnings.length <= 4) return earnings;
-  return showAllEPS.value ? earnings : earnings.slice(0, 4);
-});
-
-const displayedEarningsItems = computed(() => {
-  const income = assetInfo?.quarterlyFinancials || [];
-  if (income.length === 0) return [];
-  if (income.length <= 4) return income;
-  return showAllEarnings.value ? income : income.slice(0, 4);
-});
-
-const displayedSalesItems = computed(() => {
-  const income = assetInfo?.quarterlyFinancials || [];
-  if (income.length === 0) return [];
-  if (income.length <= 4) return income;
-  return showAllSales.value ? income : income.slice(0, 4);
-});
-
-const showEPSButton = computed(() => {
-  return (assetInfo?.quarterlyEarnings?.length || 0) > 4;
-});
-
-const showEarningsButton = computed(() => {
-  return (assetInfo?.quarterlyFinancials?.length || 0) > 4;
-});
-
-const showSalesButton = computed(() => {
-  return (assetInfo?.quarterlyFinancials?.length || 0) > 4;
-});
-
-const displayedDividendsItems = computed(() => {
-  const dividends = DividendsDate.value || [];
-  if (dividends.length === 0) return [];
-  if (dividends.length <= 4) return dividends;
-  return showAllDividends.value ? dividends : dividends.slice(0, 4);
-});
-
-const showDividendsButton = computed(() => {
-  return (DividendsDate.value?.length || 0) > 4;
-});
-
-const showAllDividends = ref(false);
-
-const displayedSplitsItems = computed(() => {
-  const splits = SplitsDate.value || [];
-  if (splits.length === 0) return [];
-  if (splits.length <= 4) return splits;
-  return showAllSplits.value ? splits : splits.slice(0, 4);
-});
-
-const showSplitsButton = computed(() => {
-  return (SplitsDate.value?.length || 0) > 4;
-});
-
-const showAllSplits = ref(false);
-
 // function that searches for tickers
-async function searchTicker(providedSymbol) {
+async function searchTicker(providedSymbol, options = {}) {
   let response;
   activeIndex.value = -1;
   try {
     const searchbar = document.getElementById('searchbar');
     let symbol = (searchbar.value || defaultSymbol).toUpperCase();
 
-    response = await fetch(`/api/chart/${symbol}`, {
+    // Build query string from options
+    const params = new URLSearchParams();
+    Object.entries(options).forEach(([key, value]) => {
+      if (value !== undefined) params.append(key, value);
+    });
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+
+    response = await fetch(`/api/chart/${symbol}${queryString}`, {
       headers: {
         'X-API-KEY': apiKey,
       },
@@ -591,7 +531,7 @@ async function searchTicker(providedSymbol) {
     searchbar.value = data.Symbol;
     localStorage.setItem('defaultSymbol', data.Symbol);
     defaultSymbol = data.Symbol;
-    selectedItem = data.Symbol;
+    selectedItem.value = data.Symbol;
     await updateUserDefaultSymbol(data.Symbol);
 
     // Set assetInfo fields, using '-' or [] for missing values
@@ -613,11 +553,26 @@ async function searchTicker(providedSymbol) {
 
   } catch (err) {
     error.value = err.message;
-  } finally {
-    if (response && response.status !== 404) {
-      await fetchSplitsDate();
-      await fetchDividendsDate();
+  }
+}
+
+// same effect input 
+async function selectRow(item) {
+  localStorage.setItem('defaultSymbol', item);
+  defaultSymbol = item;
+  selectedItem.value = item;
+  updateSelectedIndex();
+  await updateUserDefaultSymbol(item);
+  try {
+    const searchbar = document.getElementById('searchbar');
+    if (searchbar) {
+      searchbar.value = item;
+      await searchTicker(item);
+    } else {
+      console.error('Searchbar element not found');
     }
+  } catch (err) {
+    console.log(err);
   }
 }
 
@@ -683,57 +638,6 @@ function formatDate(dateString) {
   return date.toLocaleDateString('it-IT', options);
 }
 
-//converts floats to percentage (%) for info box
-function calculatePercentageChange(currentValue, previousValue) {
-  const change = currentValue - previousValue;
-  let percentageChange;
-  if (previousValue < 0) {
-    // If previousValue is negative, flip the sign of the change
-    percentageChange = (change / Math.abs(previousValue)) * 100;
-  } else {
-    percentageChange = (change / previousValue) * 100;
-  }
-  return percentageChange.toFixed(2);
-}
-
-function calculateQoQ1(reportedEPS) {
-  if (!reportedEPS) return null;
-  const quarterlyEarnings = assetInfo.quarterlyEarnings;
-  if (!quarterlyEarnings) return null;
-  const index = quarterlyEarnings.findIndex(earnings => earnings.reportedEPS === reportedEPS);
-  if (index === -1) return null;
-  const previousQuarterlyEarnings = quarterlyEarnings[index + 1];
-  if (!previousQuarterlyEarnings) return null;
-  const previousReportedEPS = previousQuarterlyEarnings.reportedEPS;
-  if (previousReportedEPS === undefined) return null;
-  let percentageChange;
-  if (previousReportedEPS < 0) {
-    percentageChange = ((reportedEPS - previousReportedEPS) / Math.abs(previousReportedEPS)) * 100;
-  } else {
-    percentageChange = ((reportedEPS - previousReportedEPS) / previousReportedEPS) * 100;
-  }
-  return percentageChange.toFixed(2);
-}
-
-function calculateYoY1(reportedEPS) {
-  if (!reportedEPS) return null;
-  const earnings = assetInfo.quarterlyEarnings;
-  if (!earnings) return null;
-  const index = earnings.findIndex(earnings => earnings.reportedEPS === reportedEPS);
-  if (index === -1) return null;
-  const previousEarnings = earnings[index + 4];
-  if (!previousEarnings) return null;
-  const previousReportedEPS = previousEarnings.reportedEPS;
-  if (previousReportedEPS === undefined) return null;
-  let percentageChange;
-  if (previousReportedEPS < 0) {
-    percentageChange = ((reportedEPS - previousReportedEPS) / Math.abs(previousReportedEPS)) * 100;
-  } else {
-    percentageChange = ((reportedEPS - previousReportedEPS) / previousReportedEPS) * 100;
-  }
-  return percentageChange.toFixed(2);
-}
-
 function getQoQClass(percentageChange) {
   return percentageChange > 20 ? 'green' : 'red';
 }
@@ -741,122 +645,6 @@ function getQoQClass(percentageChange) {
 function getYoYClass(percentageChange) {
   return percentageChange > 20 ? 'green' : 'red';
 }
-
-function calculateQoQ2(netIncome) {
-  if (!netIncome) return null;
-  const quarterlyIncome = assetInfo.quarterlyFinancials;
-  if (!quarterlyIncome) return null;
-  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
-  if (index === -1) return null;
-  const previousQuarterlyIncome = quarterlyIncome[index + 1];
-  if (!previousQuarterlyIncome) return null;
-  const previousReportedIncome = previousQuarterlyIncome.netIncome;
-  if (previousReportedIncome === undefined) return null;
-  let percentageChange;
-  if (previousReportedIncome < 0) {
-    percentageChange = ((netIncome - previousReportedIncome) / Math.abs(previousReportedIncome)) * 100;
-  } else {
-    percentageChange = ((netIncome - previousReportedIncome) / previousReportedIncome) * 100;
-  }
-  return percentageChange.toFixed(2);
-}
-
-function calculateYoY2(netIncome) {
-  if (!netIncome) return null;
-  const quarterlyIncome = assetInfo.quarterlyFinancials;
-  if (!quarterlyIncome) return null;
-  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
-  if (index === -1) return null;
-  const previousQuarterlyIncome = quarterlyIncome[index + 4];
-  if (!previousQuarterlyIncome) return null;
-  const previousReportedIncome = previousQuarterlyIncome.netIncome;
-  if (previousReportedIncome === undefined) return null;
-  let percentageChange;
-  if (previousReportedIncome < 0) {
-    percentageChange = ((netIncome - previousReportedIncome) / Math.abs(previousReportedIncome)) * 100;
-  } else {
-    percentageChange = ((netIncome - previousReportedIncome) / previousReportedIncome) * 100;
-  }
-  return percentageChange.toFixed(2);
-}
-
-function calculateQoQ3(totalRevenue) {
-  if (!totalRevenue) return null;
-  const quarterlyIncome = assetInfo.quarterlyFinancials;
-  if (!quarterlyIncome) return null;
-  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
-  if (index === -1) return null;
-  const previousQuarterlyIncome = quarterlyIncome[index + 1];
-  if (!previousQuarterlyIncome) return null;
-  const previousReportedRevenue = previousQuarterlyIncome.totalRevenue;
-  if (previousReportedRevenue === undefined) return null;
-  let percentageChange;
-  if (previousReportedRevenue < 0) {
-    percentageChange = ((totalRevenue - previousReportedRevenue) / Math.abs(previousReportedRevenue)) * 100;
-  } else {
-    percentageChange = ((totalRevenue - previousReportedRevenue) / previousReportedRevenue) * 100;
-  }
-  return percentageChange.toFixed(2);
-}
-
-function calculateYoY3(totalRevenue) {
-  if (!totalRevenue) return null;
-  const quarterlyIncome = assetInfo.quarterlyFinancials;
-  if (!quarterlyIncome) return null;
-  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
-  if (index === -1) return null;
-  const previousQuarterlyIncome = quarterlyIncome[index + 4];
-  if (!previousQuarterlyIncome) return null;
-  const previousReportedRevenue = previousQuarterlyIncome.totalRevenue;
-  if (previousReportedRevenue === undefined) return null;
-  let percentageChange;
-  if (previousReportedRevenue < 0) {
-    percentageChange = ((totalRevenue - previousReportedRevenue) / Math.abs(previousReportedRevenue)) * 100;
-  } else {
-    percentageChange = ((totalRevenue - previousReportedRevenue) / previousReportedRevenue) * 100;
-  }
-  return percentageChange.toFixed(2);
-}
-
-function calculateNet(netIncome) {
-  if (!netIncome) return null;
-  const quarterlyIncome = assetInfo.quarterlyFinancials;
-  if (!quarterlyIncome) return null;
-  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
-  if (index === -1) return null;
-  const previousQuarterlyIncome = quarterlyIncome[index + 1];
-  if (!previousQuarterlyIncome) return null;
-  const previousReportedIncome = previousQuarterlyIncome.netIncome;
-  if (previousReportedIncome === undefined) return null;
-  let percentageChange;
-  if (previousReportedIncome < 0) {
-    percentageChange = ((netIncome - previousReportedIncome) / Math.abs(previousReportedIncome)) * 100;
-  } else {
-    percentageChange = ((netIncome - previousReportedIncome) / previousReportedIncome) * 100;
-  }
-  return percentageChange.toFixed(2);
-}
-
-function calculateRev(totalRevenue) {
-  if (!totalRevenue) return null;
-  const quarterlyIncome = assetInfo.quarterlyFinancials;
-  if (!quarterlyIncome) return null;
-  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
-  if (index === -1) return null;
-  const previousQuarterlyIncome = quarterlyIncome[index + 1];
-  if (!previousQuarterlyIncome) return null;
-  const previousReportedRevenue = previousQuarterlyIncome.totalRevenue;
-  if (previousReportedRevenue === undefined) return null;
-  let percentageChange;
-  if (previousReportedRevenue < 0) {
-    percentageChange = ((totalRevenue - previousReportedRevenue) / Math.abs(previousReportedRevenue)) * 100;
-  } else {
-    percentageChange = ((totalRevenue - previousReportedRevenue) / previousReportedRevenue) * 100;
-  }
-  return percentageChange.toFixed(2);
-}
-
-
 
 async function showTicker() {
   try {
@@ -909,55 +697,6 @@ async function showTicker() {
   } 
 }
 
-async function fetchSplitsDate() {
-  try {
-    let ticker = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${ticker}/splitsdate`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newSplitsDate = await response.json();
-    SplitsDate.value = newSplitsDate;
-
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    error.value = error.message;
-  }
-}
-
-async function fetchDividendsDate() {
-  try {
-    let ticker = (defaultSymbol || selectedItem).toUpperCase();
-    const response = await fetch(`/api/${ticker}/dividendsdate`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newDividendsDate = await response.json();
-    DividendsDate.value = newDividendsDate;
-
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    error.value = error.message;
-  }
-}
-const SplitsDate = ref([]); // Splits Data - just date
-const DividendsDate = ref([]); // Dividends Data 
 const watchPanel = ref([]);
 
 // Function to fetch user's WatchPanel data
@@ -983,7 +722,6 @@ async function fetchWatchPanel() {
     }
   }
 }
-
 
 const watchlist = reactive([]); // dynamic list containing watchlist names for every user 
 const watchlist2 = reactive([]); // dynamic list containing content of watchlists
@@ -1303,7 +1041,7 @@ function handleClick() {
 
 function updateSelectedIndex() {
   if (watchlist2.tickers && watchlist2.tickers.length > 0) {
-    selectedIndex.value = watchlist2.tickers.findIndex((item) => item === selectedItem);
+    selectedIndex.value = watchlist2.tickers.findIndex((item) => item === selectedItem.value);
     if (selectedIndex.value === -1) {
       selectedIndex.value = 0;
     }
@@ -1335,26 +1073,6 @@ function initializeWatchlistNavigation() {
 onMounted(() => {
   initializeWatchlistNavigation();
 });
-
-// same effect input 
-async function selectRow(item) {
-  localStorage.setItem('defaultSymbol', item);
-  defaultSymbol = item;
-  selectedItem = item;
-  updateSelectedIndex();
-  await updateUserDefaultSymbol(item);
-  try {
-    const searchbar = document.getElementById('searchbar');
-    if (searchbar) {
-      searchbar.value = item;
-      await searchTicker(item);
-    } else {
-      console.error('Searchbar element not found');
-    }
-  } catch (err) {
-    console.log(err);
-  }
-}
 
 let sortKey = '';
 let sortOrder = 1;
@@ -1693,65 +1411,49 @@ function getSidebarProps(tag) {
       return {
         assetInfo,
         formatDate,
-        showAllDescription: showAllDescription.value,
       };
     case 'EpsTable':
       return {
-        displayedEPSItems: displayedEPSItems.value,
         formatDate,
-        showAllEPS: showAllEPS.value,
-        showEPSButton: showEPSButton.value,
         assetInfo,
-        calculatePercentageChange,
-        calculateQoQ1,
-        calculateYoY1,
         getQoQClass,
         getYoYClass,
+        symbol: selectedItem.value,
       };
     case 'EarnTable':
       return {
-        displayedEarningsItems: displayedEarningsItems.value,
         formatDate,
-        showAllEarnings: showAllEarnings.value,
-        showEarningsButton: showEarningsButton.value,
-        calculateNet,
-        calculateQoQ2,
-        calculateYoY2,
+        assetInfo,
         getQoQClass,
         getYoYClass,
+        symbol: selectedItem.value,
       };
     case 'SalesTable':
       return {
-        displayedSalesItems: displayedSalesItems.value,
         formatDate,
-        showAllSales: showAllSales.value,
-        showSalesButton: showSalesButton.value,
-        calculateRev,
-        calculateQoQ3,
-        calculateYoY3,
+        assetInfo,
         getQoQClass,
         getYoYClass,
+        symbol: selectedItem.value,
       };
     case 'DividendsTable':
       return {
-        displayedDividendsItems: displayedDividendsItems.value,
         formatDate,
-        showAllDividends: showAllDividends.value,
-        showDividendsButton: showDividendsButton.value,
+        symbol: selectedItem.value,
+        apiKey,
       };
     case 'SplitsTable':
       return {
-        displayedSplitsItems: displayedSplitsItems.value,
         formatDate,
-        showAllSplits: showAllSplits.value,
-        showSplitsButton: showSplitsButton.value,
+        symbol: selectedItem.value,
+        apiKey,
       };
     case 'Financials':
       return {};
     case 'Notes':
   return {
     formatDate,
-    symbol: selectedItem,
+    symbol: selectedItem.value,
     apiKey,
     refreshKey: refreshKey.value,
     user,
@@ -1760,7 +1462,7 @@ function getSidebarProps(tag) {
     case 'News':
   return {
     formatDate,
-    symbol: selectedItem,
+    symbol: selectedItem.value,
     apiKey,
   };
     default:

@@ -50,15 +50,11 @@ const props = defineProps({
   }
 });
 
-console.log('notes.vue props:', props);
-console.log('notes.vue prop keys:', Object.keys(props));
 const loading = ref(false);
 const error = ref(null);
 const BeautifulNotes = ref([]);
-console.log('notes.vue mounted, refreshKey:', props.refreshKey);
 
 async function searchNotes() {
-  console.log('searchNotes called, refreshKey:', props.refreshKey);
   try {
     const Username = props.user;
     const symbol = props.symbol || props.defaultSymbol;

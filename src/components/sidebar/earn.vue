@@ -15,7 +15,7 @@
           class="earn-row"
         >
           <div class="earn-cell" style="flex: 0 0 20%;">
-            {{ formatDate(quarterlyReport.fiscalDateEnding) }}
+            {{ props.formatDate(quarterlyReport.fiscalDateEnding) }}
           </div>
           <div class="earn-cell" style="flex: 0 0 40%;">
             {{ parseInt(quarterlyReport.netIncome).toLocaleString() }}
@@ -52,7 +52,7 @@
           </div>
           <div class="earn-cell" style="flex: 0 0 10%;" v-else>
             <span
-              v-if="getQoQClass(calculateQoQ2(quarterlyReport.netIncome)) === 'green'"
+              v-if="props.getQoQClass(calculateQoQ2(quarterlyReport.netIncome)) === 'green'"
               class="sphere green-sphere"
             ></span>
             <span v-else class="sphere red-sphere"></span>
@@ -67,7 +67,7 @@
           </div>
           <div class="earn-cell" style="flex: 0 0 10%;" v-else>
             <span
-              v-if="getYoYClass(calculateYoY2(quarterlyReport.netIncome)) === 'green'"
+              v-if="props.getYoYClass(calculateYoY2(quarterlyReport.netIncome)) === 'green'"
               class="sphere green-sphere"
             ></span>
             <span v-else class="sphere red-sphere"></span>
@@ -80,7 +80,7 @@
     </div>
     <button
       v-if="showEarningsButton"
-      @click="$emit('toggle-earnings')"
+      @click="toggleEarnings"
       class="toggle-btn"
     >
       {{ showAllEarnings ? 'Show Less' : 'Show All' }}
@@ -89,17 +89,98 @@
 </template>
 
 <script setup>
-defineProps([
-  'displayedEarningsItems',
-  'formatDate',
-  'showAllEarnings',
-  'showEarningsButton',
-  'calculateNet',
-  'calculateQoQ2',
-  'calculateYoY2',
-  'getQoQClass',
-  'getYoYClass',
-]);
+import { ref, computed, watch } from 'vue';
+
+const props = defineProps({
+  formatDate: Function,
+  assetInfo: Object,
+  getQoQClass: Function,
+  getYoYClass: Function,
+  symbol: String
+});
+
+const showAllEarnings = ref(false);
+
+const emit = defineEmits(['request-full-earnings']);
+
+function toggleEarnings() {
+  showAllEarnings.value = !showAllEarnings.value;
+  if (showAllEarnings.value) {
+    emit('request-full-earnings');
+  }
+}
+
+const displayedEarningsItems = computed(() => {
+  const income = props.assetInfo?.quarterlyFinancials || [];
+  if (income.length === 0) return [];
+  if (income.length <= 4) return income;
+  return showAllEarnings.value ? income : income.slice(0, 4);
+});
+
+const showEarningsButton = computed(() => {
+  return (props.assetInfo?.quarterlyFinancials?.length || 0) > 4;
+});
+
+function calculateQoQ2(netIncome) {
+  if (!netIncome) return null;
+  const quarterlyIncome = props.assetInfo.quarterlyFinancials;
+  if (!quarterlyIncome) return null;
+  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
+  if (index === -1) return null;
+  const previousQuarterlyIncome = quarterlyIncome[index + 1];
+  if (!previousQuarterlyIncome) return null;
+  const previousReportedIncome = previousQuarterlyIncome.netIncome;
+  if (previousReportedIncome === undefined) return null;
+  let percentageChange;
+  if (previousReportedIncome < 0) {
+    percentageChange = ((netIncome - previousReportedIncome) / Math.abs(previousReportedIncome)) * 100;
+  } else {
+    percentageChange = ((netIncome - previousReportedIncome) / previousReportedIncome) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+function calculateYoY2(netIncome) {
+  if (!netIncome) return null;
+  const quarterlyIncome = props.assetInfo.quarterlyFinancials;
+  if (!quarterlyIncome) return null;
+  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
+  if (index === -1) return null;
+  const previousQuarterlyIncome = quarterlyIncome[index + 4];
+  if (!previousQuarterlyIncome) return null;
+  const previousReportedIncome = previousQuarterlyIncome.netIncome;
+  if (previousReportedIncome === undefined) return null;
+  let percentageChange;
+  if (previousReportedIncome < 0) {
+    percentageChange = ((netIncome - previousReportedIncome) / Math.abs(previousReportedIncome)) * 100;
+  } else {
+    percentageChange = ((netIncome - previousReportedIncome) / previousReportedIncome) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+function calculateNet(netIncome) {
+  if (!netIncome) return null;
+  const quarterlyIncome = props.assetInfo.quarterlyFinancials;
+  if (!quarterlyIncome) return null;
+  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
+  if (index === -1) return null;
+  const previousQuarterlyIncome = quarterlyIncome[index + 1];
+  if (!previousQuarterlyIncome) return null;
+  const previousReportedIncome = previousQuarterlyIncome.netIncome;
+  if (previousReportedIncome === undefined) return null;
+  let percentageChange;
+  if (previousReportedIncome < 0) {
+    percentageChange = ((netIncome - previousReportedIncome) / Math.abs(previousReportedIncome)) * 100;
+  } else {
+    percentageChange = ((netIncome - previousReportedIncome) / previousReportedIncome) * 100;
+  }
+  return percentageChange.toFixed(2);
+}
+
+watch(() => props.symbol, () => {
+  showAllEarnings.value = false;
+});
 </script>
 
 <style scoped>

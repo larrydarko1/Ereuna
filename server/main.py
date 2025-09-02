@@ -231,7 +231,7 @@ async def market_hours_manager():
                     print("[MarketHours] Manual override active: stopping subscription attempts.")
                     break
                 if not subscribed:
-                    # Use hardcoded tickers for testing
+                    # hardcoded tickers for testing
                     stock_symbols = ['TSLA']
                     tickers_to_subscribe = stock_symbols
                     logger.info(f"[MarketHours] Subscribing to {len(stock_symbols)} stock/ETF tickers: {stock_symbols}")
@@ -548,113 +548,107 @@ async def websocket_chartdata(
     if intrinsicValue is not None:
         payload['intrinsicValue'] = intrinsicValue
     await websocket.send_text(json.dumps({'type': 'init', 'data': payload}))
-    # Subscribe to pubsub for this ticker/timeframe
-    pubsub_tf = {
-        'daily': '1d',
-        'weekly': '1w',
-        'intraday1m': '1m',
-        'intraday5m': '5m',
-        'intraday15m': '15m',
-        'intraday30m': '30m',
-        'intraday1hr': '1hr',
-    }[timeframe]
-    q = asyncio.Queue()
-    pubsub_channels[(ticker, pubsub_tf)].append(q)
-    logger.info(f"Subscribed to pubsub for {ticker} ({pubsub_tf})")
-    try:
-        in_progress_candle = None
-        while True:
-            try:
-                cndl = await q.get()
-                is_final = cndl.get('final', False)
-                if is_final:
-                    arr.append(cndl)
-                    if len(arr) > length:
-                        arr = arr[-length:]
-                    in_progress_candle = None
-                else:
-                    in_progress_candle = cndl
-                ohlc_arr = arr.copy()
-                if in_progress_candle:
-                    if not ohlc_arr or ohlc_arr[-1]['timestamp'] != in_progress_candle['timestamp']:
-                        ohlc_arr.append(in_progress_candle)
-                    else:
-                        ohlc_arr[-1] = in_progress_candle
-                ohlc = [
-                    {
-                        'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
-                        'open': float(str(item['open'])[:8]),
-                        'high': float(str(item['high'])[:8]),
-                        'low': float(str(item['low'])[:8]),
-                        'close': float(str(item['close'])[:8])
-                    }
-                    for item in ohlc_arr
-                ]
-                if timeframe == 'intraday1m':
-                    volume = [
-                        {
-                            'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
-                            'value': item.get('volume', 0)
-                        }
-                        for item in ohlc_arr
-                    ]
-                else:
-                    volume = [
-                        {
-                            'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
-                            'value': item['volume']
-                        }
-                        for item in ohlc_arr
-                    ]
-                ma_data = {}
-                if chartSettings and isinstance(chartSettings.get('indicators'), list):
-                    for idx, indicator in enumerate(chartSettings['indicators']):
-                        if not indicator.get('visible'):
-                            continue
-                        if indicator.get('type') == 'EMA':
-                            maArr = calcEMA_py(ohlc_arr, indicator.get('timeframe', 10), timeType)
-                        else:
-                            maArr = calcMA_py(ohlc_arr, indicator.get('timeframe', 10), timeType)
-                        ma_data[f'MA{idx+1}'] = maArr
-                else:
-                    ma_data['MA1'] = calcMA_py(ohlc_arr, 10, timeType) if ohlc_arr else []
-                    ma_data['MA2'] = calcMA_py(ohlc_arr, 20, timeType) if ohlc_arr else []
-                    ma_data['MA3'] = calcMA_py(ohlc_arr, 50, timeType) if ohlc_arr else []
-                    ma_data['MA4'] = calcMA_py(ohlc_arr, 200, timeType) if ohlc_arr else []
-                intrinsicValue = None
-                if chartSettings and chartSettings.get('intrinsicValue', {}).get('visible'):
-                    assetInfo = await db.AssetInfo.find_one({'Symbol': ticker})
-                    if assetInfo and 'IntrinsicValue' in assetInfo:
-                        intrinsicValue = assetInfo['IntrinsicValue']
-                update_payload = {
-                    'ohlc': ohlc,
-                    'volume': volume,
-                    **ma_data
-                }
-                if intrinsicValue is not None:
-                    update_payload['intrinsicValue'] = intrinsicValue
-                await websocket.send_text(json.dumps({'type': 'update', 'data': update_payload}))
-            except WebSocketDisconnect:
-                logger.info(f"Client disconnected from /ws/chartdata: ticker={ticker}, timeframe={timeframe}, user={user}")
-                break
-            except Exception as e:
-                logger.error(f"Exception in /ws/chartdata loop: {e}")
-                import traceback
-                traceback.print_exc()
+    # Only subscribe to pubsub during market hours
+    if is_market_hours():
+        q = asyncio.Queue()
+        pubsub_channels[(ticker, pubsub_tf)].append(q)
+        logger.info(f"Subscribed to pubsub for {ticker} ({pubsub_tf}) [market hours]")
+        try:
+            in_progress_candle = None
+            while True:
                 try:
-                    await websocket.send_text(json.dumps({'error': str(e)}))
-                except Exception:
-                    pass
-                break
-    finally:
-        try:
-            pubsub_channels[(ticker, pubsub_tf)].remove(q)
-        except (KeyError, ValueError):
-            pass
-        try:
-            await websocket.close()
-        except Exception:
-            pass
+                    cndl = await q.get()
+                    is_final = cndl.get('final', False)
+                    if is_final:
+                        arr.append(cndl)
+                        if len(arr) > length:
+                            arr = arr[-length:]
+                        in_progress_candle = None
+                    else:
+                        in_progress_candle = cndl
+                    ohlc_arr = arr.copy()
+                    if in_progress_candle:
+                        if not ohlc_arr or ohlc_arr[-1]['timestamp'] != in_progress_candle['timestamp']:
+                            ohlc_arr.append(in_progress_candle)
+                        else:
+                            ohlc_arr[-1] = in_progress_candle
+                    ohlc = [
+                        {
+                            'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
+                            'open': float(str(item['open'])[:8]),
+                            'high': float(str(item['high'])[:8]),
+                            'low': float(str(item['low'])[:8]),
+                            'close': float(str(item['close'])[:8])
+                        }
+                        for item in ohlc_arr
+                    ]
+                    if timeframe == 'intraday1m':
+                        volume = [
+                            {
+                                'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
+                                'value': item.get('volume', 0)
+                            }
+                            for item in ohlc_arr
+                        ]
+                    else:
+                        volume = [
+                            {
+                                'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
+                                'value': item['volume']
+                            }
+                            for item in ohlc_arr
+                        ]
+                    ma_data = {}
+                    if chartSettings and isinstance(chartSettings.get('indicators'), list):
+                        for idx, indicator in enumerate(chartSettings['indicators']):
+                            if not indicator.get('visible'):
+                                continue
+                            if indicator.get('type') == 'EMA':
+                                maArr = calcEMA_py(ohlc_arr, indicator.get('timeframe', 10), timeType)
+                            else:
+                                maArr = calcMA_py(ohlc_arr, indicator.get('timeframe', 10), timeType)
+                            ma_data[f'MA{idx+1}'] = maArr
+                    else:
+                        ma_data['MA1'] = calcMA_py(ohlc_arr, 10, timeType) if ohlc_arr else []
+                        ma_data['MA2'] = calcMA_py(ohlc_arr, 20, timeType) if ohlc_arr else []
+                        ma_data['MA3'] = calcMA_py(ohlc_arr, 50, timeType) if ohlc_arr else []
+                        ma_data['MA4'] = calcMA_py(ohlc_arr, 200, timeType) if ohlc_arr else []
+                    intrinsicValue = None
+                    if chartSettings and chartSettings.get('intrinsicValue', {}).get('visible'):
+                        assetInfo = await db.AssetInfo.find_one({'Symbol': ticker})
+                        if assetInfo and 'IntrinsicValue' in assetInfo:
+                            intrinsicValue = assetInfo['IntrinsicValue']
+                    update_payload = {
+                        'ohlc': ohlc,
+                        'volume': volume,
+                        **ma_data
+                    }
+                    if intrinsicValue is not None:
+                        update_payload['intrinsicValue'] = intrinsicValue
+                    await websocket.send_text(json.dumps({'type': 'update', 'data': update_payload}))
+                except WebSocketDisconnect:
+                    logger.info(f"Client disconnected from /ws/chartdata: ticker={ticker}, timeframe={timeframe}, user={user}")
+                    break
+                except Exception as e:
+                    logger.error(f"Exception in /ws/chartdata loop: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    try:
+                        await websocket.send_text(json.dumps({'error': str(e)}))
+                    except Exception:
+                        pass
+                    break
+        finally:
+            try:
+                pubsub_channels[(ticker, pubsub_tf)].remove(q)
+            except (KeyError, ValueError):
+                pass
+            try:
+                await websocket.close()
+            except Exception:
+                pass
+    else:
+        logger.info(f"Market is closed. Not subscribing to pubsub for {ticker} ({pubsub_tf})")
 
 # curl -X POST http://localhost:8000/admin/unsubscribe_all
 # wscat -c "ws://localhost:8000/ws/tiingo_raw"

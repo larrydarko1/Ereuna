@@ -61,6 +61,46 @@ export default function (app, deps) {
                     return res.status(404).json({ message: 'Asset not found' });
                 }
 
+                // Lazy loading logic for large arrays
+                // EPS (quarterlyEarnings) - only send reportedEPS
+                if (Array.isArray(assetInfo.quarterlyEarnings)) {
+                    let arr = assetInfo.quarterlyEarnings;
+                    let earningsArr = (!req.query.showAllEPS || req.query.showAllEPS !== 'true')
+                        ? arr.slice(0, 8)
+                        : arr;
+                    assetInfo.quarterlyEarnings = earningsArr.map(e => ({
+                        reportedEPS: e.reportedEPS,
+                        fiscalDateEnding: e.fiscalDateEnding
+                    }));
+                } else {
+                    assetInfo.quarterlyEarnings = [];
+                }
+
+                // Earnings (annualEarnings) - lazy load only
+                if (Array.isArray(assetInfo.quarterlyFinancials)) {
+                    let arr = assetInfo.quarterlyFinancials;
+                    // If either showAllSales or showAllEarnings is true, return full array
+                    let showAll = (req.query.showAllSales === 'true') || (req.query.showAllEarnings === 'true');
+                    let financialsArr = showAll ? arr : arr.slice(0, 8);
+                    assetInfo.quarterlyFinancials = financialsArr.map(f => ({
+                        netIncome: f.netIncome,
+                        totalRevenue: f.totalRevenue,
+                        fiscalDateEnding: f.fiscalDateEnding
+                    }));
+                } else {
+                    assetInfo.quarterlyFinancials = [];
+                }
+
+                // Annual Financials - lazy load only
+                if (Array.isArray(assetInfo.annualFinancials)) {
+                    let arr = assetInfo.annualFinancials;
+                    assetInfo.annualFinancials = (!req.query.showAllAnnualFinancials || req.query.showAllAnnualFinancials !== 'true')
+                        ? arr.slice(0, 8)
+                        : arr;
+                } else {
+                    assetInfo.annualFinancials = [];
+                }
+
                 res.json(assetInfo);
             } catch (error) {
                 // Error logging
@@ -622,7 +662,13 @@ export default function (app, deps) {
 
                     const splits = data.splits.reverse();
 
-                    res.status(200).json(splits);
+                    // Lazy loading: send only first 5 unless ?all=true
+                    let resultSplits = splits;
+                    const showAll = req.query.all === 'true';
+                    if (!showAll) {
+                        resultSplits = splits.slice(0, 4);
+                    }
+                    res.status(200).json(resultSplits);
 
                 } catch (dbError) {
                     logger.error('Database error retrieving splits dates', {
@@ -705,8 +751,13 @@ export default function (app, deps) {
                         });
                     }
 
-                    const dividends = data.dividends.reverse();
 
+                    // Lazy loading: send only first 5 unless ?all=true
+                    let dividends = data.dividends.slice().reverse();
+                    const showAll = req.query.all === 'true';
+                    if (!showAll) {
+                        dividends = dividends.slice(0, 4);
+                    }
                     res.status(200).json(dividends);
 
                 } catch (dbError) {
