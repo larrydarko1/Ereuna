@@ -437,15 +437,24 @@ async def websocket_chartdata(
         if not ohlc_arr:
             ohlc_arr.append(cached_candle)
         else:
-            # Use 'start' for cached_candle timestamp for higher timeframes
             cached_ts = cached_candle.get('timestamp', cached_candle.get('start'))
-            try:
-                if to_naive_utc(ohlc_arr[-1]['timestamp']) == to_naive_utc(cached_ts):
-                    ohlc_arr[-1] = cached_candle
-                elif to_naive_utc(ohlc_arr[-1]['timestamp']) < to_naive_utc(cached_ts):
-                    ohlc_arr.append(cached_candle)
-            except KeyError as e:
-                logger.error(f"KeyError during timestamp comparison: {e}\ncached_candle={cached_candle}\nohlc_arr_last={ohlc_arr[-1]}")
+            # For weekly, always replace the last DB candle if timestamps match, else append
+            if timeframe == 'weekly':
+                try:
+                    if to_naive_utc(ohlc_arr[-1]['timestamp']) == to_naive_utc(cached_ts):
+                        ohlc_arr[-1] = cached_candle
+                    elif to_naive_utc(ohlc_arr[-1]['timestamp']) < to_naive_utc(cached_ts):
+                        ohlc_arr.append(cached_candle)
+                except KeyError as e:
+                    logger.error(f"KeyError during timestamp comparison: {e}\ncached_candle={cached_candle}\nohlc_arr_last={ohlc_arr[-1]}")
+            else:
+                try:
+                    if to_naive_utc(ohlc_arr[-1]['timestamp']) == to_naive_utc(cached_ts):
+                        ohlc_arr[-1] = cached_candle
+                    elif to_naive_utc(ohlc_arr[-1]['timestamp']) < to_naive_utc(cached_ts):
+                        ohlc_arr.append(cached_candle)
+                except KeyError as e:
+                    logger.error(f"KeyError during timestamp comparison: {e}\ncached_candle={cached_candle}\nohlc_arr_last={ohlc_arr[-1]}")
 
     def get_item_time(item):
         ts = item.get('timestamp', item.get('start'))

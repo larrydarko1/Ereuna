@@ -39,12 +39,14 @@ def get_1min_bucket(ts):
         raise ValueError("Unknown timestamp format")
     return dt.replace(second=0, microsecond=0)
 
+
 """
 Module-level caches and helper
 """
 candles = {}  # {(symbol, bucket): candle_dict} for 1m candles
 pending_candles = {}  # {(symbol, timeframe): candle_dict} for higher timeframes
 pending_daily_candles = {} # Daily candle cache: {(symbol): candle_dict}
+pending_weekly_candles = {} # Weekly candle cache: {(symbol): candle_dict}
 
 def get_latest_in_progress_candle(symbol, timeframe):
     """
@@ -65,12 +67,16 @@ def get_latest_in_progress_candle(symbol, timeframe):
         if cndl and not cndl.get('final', False):
             return cndl.copy()
         return None
+    elif timeframe == '1w':
+        cndl = pending_weekly_candles.get(symbol)
+        if cndl and not cndl.get('final', False):
+            return cndl.copy()
+        return None
     else:
         cndl = pending_candles.get((symbol, timeframe))
         if cndl and not cndl.get('final', False):
             return cndl.copy()
         return None
-
 
 HIGHER_TIMEFRAMES = {
     '5m': 5,
@@ -79,16 +85,42 @@ HIGHER_TIMEFRAMES = {
     '1hr': 60
 }
 
+def get_week_start(dt):
+    # Always return Monday 00:00 UTC for the week of dt
+    dt = dt.astimezone(timezone.utc)
+    monday = dt - timedelta(days=dt.weekday())
+    return monday.replace(hour=0, minute=0, second=0, microsecond=0)
+
 async def start_aggregator(message_queue, mongo_client):
     # Ensure mongo_client is a Motor client
     if not hasattr(mongo_client, 'get_database'):
         logger.error("mongo_client is not a Motor client. Please use motor.motor_asyncio.AsyncIOMotorClient.")
         raise TypeError("mongo_client must be a Motor AsyncIOMotorClient instance.")
 
+
     db = mongo_client.get_database('EreunaDB')
     collection = db.get_collection('OHCLVData1m')
     daily_collection = db.get_collection('OHCLVData')
+    weekly_collection = db.get_collection('OHCLVData2')
     MARKET_CLOSE_UTC_HOUR = 20  # 20:00 UTC is 16:00 US/Eastern
+
+    # --- Weekly candle cache initialization ---
+    now_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
+    week_start_utc = get_week_start(now_utc)
+    # Query all weekly candles for current week
+    weekly_docs = await weekly_collection.find({"timestamp": week_start_utc}).to_list(length=10000)
+    for doc in weekly_docs:
+        symbol = doc["tickerID"]
+        pending_weekly_candles[symbol] = {
+            "open": doc["open"],
+            "high": doc["high"],
+            "low": doc["low"],
+            "close": doc["close"],
+            "volume": doc.get("volume", 0),
+            "start": week_start_utc,
+            "end": week_start_utc + timedelta(days=7),
+            "final": False
+        }
 
     try:
         processed_count = 0
@@ -332,6 +364,85 @@ async def start_aggregator(message_queue, mongo_client):
                         logger.error(f"Error inserting daily candle: {e}")
                     await publish_candle(symbol, '1d', {**doc, 'final': True})
                     del pending_daily_candles[symbol]
+
+                # --- Weekly candle logic ---
+                # Always use Monday 00:00 UTC for timestamp
+                if isinstance(ts, (int, float)):
+                    dt_utc = datetime.utcfromtimestamp(ts / 1000).replace(tzinfo=timezone.utc)
+                elif isinstance(ts, str):
+                    dt_utc = datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone(timezone.utc)
+                else:
+                    raise ValueError("Unknown timestamp format")
+
+                week_start_utc = get_week_start(dt_utc)
+                week_end_utc = week_start_utc + timedelta(days=7)
+                weekly_key = symbol
+                weekly_candle = pending_weekly_candles.get(weekly_key)
+                # Prepare for bulk weekly finalization
+                if not hasattr(start_aggregator, "weekly_finalized_docs"):
+                    start_aggregator.weekly_finalized_docs = []
+                    start_aggregator.weekly_finalized_symbols = set()
+                if not weekly_candle or weekly_candle.get('end') != week_end_utc:
+                    # Finalize previous weekly candle if exists and not finalized
+                    if weekly_candle and not weekly_candle.get('final', False):
+                        weekly_candle['final'] = True
+                        doc = {
+                            'tickerID': symbol,
+                            'timestamp': weekly_candle['start'],
+                            'open': weekly_candle['open'],
+                            'high': weekly_candle['high'],
+                            'low': weekly_candle['low'],
+                            'close': weekly_candle['close'],
+                            'volume': weekly_candle['volume']
+                        }
+                        start_aggregator.weekly_finalized_docs.append(doc)
+                        start_aggregator.weekly_finalized_symbols.add(symbol)
+                        await publish_candle(symbol, '1w', {**doc, 'final': True})
+                    # Start new weekly candle
+                    pending_weekly_candles[weekly_key] = {
+                        'open': price,
+                        'high': price,
+                        'low': price,
+                        'close': price,
+                        'volume': 0,
+                        'start': week_start_utc,
+                        'end': week_end_utc,
+                        'final': False
+                    }
+                else:
+                    weekly_candle['high'] = max(weekly_candle['high'], price)
+                    weekly_candle['low'] = min(weekly_candle['low'], price)
+                    weekly_candle['close'] = price
+                # Optionally, accumulate volume if available in d
+                if isinstance(d, dict) and 'volume' in d:
+                    pending_weekly_candles[weekly_key]['volume'] += float(d['volume'])
+
+                # Publish the current state of the pending weekly candle (with final: False)
+                await publish_candle(symbol, '1w', {
+                    'tickerID': symbol,
+                    'open': pending_weekly_candles[weekly_key]['open'],
+                    'high': pending_weekly_candles[weekly_key]['high'],
+                    'low': pending_weekly_candles[weekly_key]['low'],
+                    'close': pending_weekly_candles[weekly_key]['close'],
+                    'volume': pending_weekly_candles[weekly_key]['volume'],
+                    'timestamp': pending_weekly_candles[weekly_key]['start'],
+                    'final': False
+                })
+
+                # If all weekly candles for finalized symbols are collected, bulk delete/insert
+                # This should be triggered at market close, but here we check if all symbols are finalized
+                # You may want to move this logic to a dedicated market close handler for production
+                if hasattr(start_aggregator, "weekly_finalized_docs") and len(start_aggregator.weekly_finalized_docs) > 0:
+                    # Bulk delete for this week
+                    await weekly_collection.delete_many({
+                        'tickerID': {'$in': list(start_aggregator.weekly_finalized_symbols)},
+                        'timestamp': week_start_utc
+                    })
+                    # Bulk insert all finalized weekly candles
+                    await weekly_collection.insert_many(start_aggregator.weekly_finalized_docs)
+                    # Clear for next week
+                    start_aggregator.weekly_finalized_docs.clear()
+                    start_aggregator.weekly_finalized_symbols.clear()
             except Exception as e:
                 logger.error(f"Aggregator message error: {e}, msg: {msg}")
                 anomaly_count += 1

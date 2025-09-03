@@ -1,9 +1,12 @@
 <template>
   <div v-if="mfaRequired" class="mfa-popup">
-  <h3>Enter 2FA Code</h3>
-  <input placeholder="MFA Code" type="text" :class="error" name="factor" v-model="mfaCode" maxlength="6" style="text-align: center;">
-  <button type="button" class="verify-mfa" @click="verifyMfa">Verify</button>
-</div>
+    <h3 style="font-size: 2rem; font-weight: bold;">Enter 2FA Code</h3>
+    <div class="mfa-input-group">
+      <input v-for="(digit, idx) in mfaDigits" :key="idx" type="text" maxlength="1" class="mfa-digit" v-model="mfaDigits[idx]"
+        @input="focusNext(idx)" @keydown.backspace="focusPrev(idx)" :ref="el => mfaRefs[idx].value = el" autocomplete="one-time-code" />
+    </div>
+    <button type="button" class="verify-mfa" @click="verifyMfa">Verify</button>
+  </div>
 <div class="container">
 <div class="image-background">
   <h3 class="quote">{{ quote.text }}</h3>
@@ -83,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, nextTick, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import hideIcon from '@/assets/icons/hide.png';
 import showIcon from '@/assets/icons/show.png';
@@ -179,9 +182,10 @@ const rememberMe = ref(false);
 const showPassword = ref(false);
 const mfaError = ref(false);
 const mfaRequired = ref(false);
-const mfaCode = ref('');
+const mfaDigits = ref(['', '', '', '', '', '']);
 const storedUsername = ref('');
 const welcomeMessage = ref('');
+const mfaRefs = Array.from({ length: 6 }, () => ref(null));
 
 async function login() {
   isLogged.value = false;
@@ -224,8 +228,10 @@ async function login() {
 
     if (response.ok) {
       if (responseBody.mfaRequired) {
-        // MFA verification required, display MFA popup
         mfaRequired.value = true;
+        mfaDigits.value = ['', '', '', '', '', ''];
+        await nextTick();
+        mfaRefs[0].value && mfaRefs[0].value.focus();
       } else {
         // MFA verification not required, proceed with login
         isLogged.value = true;
@@ -257,8 +263,19 @@ async function login() {
   }
 }
 
+function focusNext(idx) {
+  if (mfaDigits.value[idx] && idx < 5) {
+    mfaRefs[idx + 1].value && mfaRefs[idx + 1].value.focus();
+  }
+}
+function focusPrev(idx) {
+  if (!mfaDigits.value[idx] && idx > 0) {
+    mfaRefs[idx - 1].value && mfaRefs[idx - 1].value.focus();
+  }
+}
+
 async function verifyMfa() {
-  const factor = document.querySelector('input[name="MFA"]');
+  const mfaCode = mfaDigits.value.join('');
   try {
     const mfaResponse = await fetch('/api/verify-mfa', {
       method: 'POST',
@@ -268,22 +285,23 @@ async function verifyMfa() {
       },
       body: JSON.stringify({
         username: storedUsername.value,
-        mfaCode: mfaCode.value,
+        mfaCode: mfaCode,
         rememberMe: rememberMe.value
       })
     });
-
     const mfaResponseBody = await mfaResponse.json();
-
     if (mfaResponse.ok) {
-      // MFA code is valid, proceed with login
       isLogged.value = true;
+      isLoaderVisible.value = true;
       const token = mfaResponseBody.token;
       localStorage.setItem('token', token);
       router.push({ name: 'Charts' });
+      mfaRequired.value = false;
     } else {
       notification.value.show('Invalid MFA Code, try again.');
-      factor.classList.add('error');
+      mfaDigits.value = ['', '', '', '', '', ''];
+      await nextTick();
+      mfaRefs[0].value && mfaRefs[0].value.focus();
     }
   } catch (error) {
     error.value = error.message;
@@ -384,8 +402,8 @@ async function verifyMfa() {
   left: 50%;
   transform: translate(-50%, -50%);
   width: 300px;
-  background-color: #1d1c29;
-  border: 1px solid #dddddd17;
+  background-color: $base2;
+  border: none;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
   border-radius: 20px;
@@ -393,33 +411,16 @@ async function verifyMfa() {
   text-align: center;
 }
 
-.mfa-popup h3 {
-  margin-top: 0;
-  color: #ccc;
-}
-
-.mfa-popup input {
-  width: 90%;
-  padding: 10px;
-  margin-bottom: 20px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  box-shadow: none;
-}
-
-.mfa-popup input:focus {
-  border: 1px solid $accent1;
-  outline: none;
-}
-
 .mfa-popup button {
   width: 90%;
   padding: 10px;
   background-color: $accent1;
-  color: $text1;
+  color: $text4;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 1.5rem;
+  font-weight: bold;
 }
 
 .mfa-popup button:hover {
@@ -565,7 +566,7 @@ p{
   align-items: center;
   align-content: center;
   justify-content: center;
-  color: $text1;
+  color: $text4;
   border-radius: 10px;
   outline: none;
   border: none;
@@ -575,20 +576,11 @@ p{
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: bold;
 }
 
 .userbtn:hover {
   background-color: $accent2;
-  color: $text1;
-  transform: scale(1.05);
-  transition: all 0.3s ease-in-out;
-}
-
-.userbtn:active {
-  transform: scale(0.95);
-  transition: all 0.1s ease-out;
-  background-color: $accent1;
 }
 
 .loader4 {
@@ -606,10 +598,10 @@ p{
 }
 
 .path {
-  stroke: linear-gradient(45deg, #e8e8e8, #cdcdcd);
+  stroke: linear-gradient(45deg, #000000, #121212);
   stroke-linecap: round;
   animation: dash 1.5s ease-in-out infinite;
-  stroke: #e8e8e8;
+  stroke: #000000;
 }
 
 @keyframes rotate {
@@ -658,6 +650,41 @@ a:hover{
 .footnote{
   font-weight: bold;
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.mfa-input-group {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.mfa-digit {
+  width: 36px;
+  height: 36px;
+  font-size: 28px;
+  text-align: center;
+  border: 1px solid $text1;
+  border-radius: 8px;
+  background: $base1;
+  color: $text1;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.mfa-digit:focus {
+  border-color: $accent1;
+}
+
+.mfa-popup input {
+  width: 90%;
+  padding: 10px;
+  border: 1px solid $text1;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.mfa-popup input:focus {
+  border: 1px solid $accent1;
+  outline: none;
 }
 
 /* Mobile version */
