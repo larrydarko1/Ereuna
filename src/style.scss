@@ -26,10 +26,9 @@ $base4: #16161e;
     --accent1: #8c8dfe;
     --accent2: #a9a5ff;
     --accent3: #cfcbff;
-    --accent4: #a9a5ff53; //just for selected overlay screener 
     --text1: #c0caf5;
     --text2: #a9b1d6;
-    --text3: #000000;
+    --text3: #222222;
     --base1: #1a1b26;
     --base2: #24283b;
     --base3: #414868;
@@ -41,8 +40,6 @@ $base4: #16161e;
     --ma3: #ffeb3b; //50MA
     --ma2: #2862ff; //20MA
     --ma1: #00bcd4; //10MA
-    --glassbg: #24283bdd;
-    --gradient1: linear-gradient(90deg, rgba(140, 141, 254, 0.18) 0%, rgba(140, 141, 254, 0.08) 100%);
 }
 
 
@@ -53,7 +50,7 @@ $base4: #16161e;
     --accent4: #a9a5ff;
     --text1: #000000;
     --text2: #4a4a4a;
-    --text3: #cdcdcd;
+    --text3: #222222;
     --base1: #e8e8e8;
     --base2: #cdcdcd;
     --base3: #000000;
@@ -74,7 +71,7 @@ $base4: #16161e;
     --accent4: #56B4E950; // semi-transparent blue for overlays
     --text1: #F7F7F7; // light text for dark backgrounds
     --text2: #BDBDBD; // medium gray
-    --text3: #E69F00; // orange for highlights
+    --text3: #222222;
     --base1: #181926; // very dark gray background
     --base2: #23243a; // dark gray
     --base3: #313244; // medium-dark gray
@@ -95,7 +92,7 @@ $base4: #16161e;
     --accent4: #f5c2e753; // just for selected overlay screener
     --text1: #cdd6f4;
     --text2: #bac2de;
-    --text3: #f38ba8;
+    --text3: #222222;
     --base1: #1e1e2e;
     --base2: #181825;
     --base3: #313244;
@@ -116,7 +113,7 @@ $base4: #16161e;
     --accent4: #a9a5ff53; //just for selected overlay screener 
     --text1: #ffffff;
     --text2: #cad3f5;
-    --text3: #000000;
+    --text3: #222222;
     --base1: #000000;
     --base2: #010B13;
     --base3: #8a8a90;
@@ -137,7 +134,7 @@ $base4: #16161e;
     --accent4: #88c0d053; // semi-transparent overlay
     --text1: #eceff4;
     --text2: #e5e9f0;
-    --text3: #d8dee9;
+    --text3: #222222;
     --base1: #2e3440;
     --base2: #3b4252;
     --base3: #434c5e;
@@ -158,7 +155,7 @@ $base4: #16161e;
     --accent4: #bd93f950; // semi-transparent overlay
     --text1: #f8f8f2;
     --text2: #f1fa8c;
-    --text3: #6272a4;
+    --text3: #222222;
     --base1: #282a36;
     --base2: #44475a;
     --base3: #6272a4;
@@ -179,7 +176,7 @@ $base4: #16161e;
     --accent4: #fe801950; // semi-transparent overlay
     --text1: #ebdbb2;
     --text2: #d5c4a1;
-    --text3: #bdae93;
+    --text3: #222222;
     --base1: #282828;
     --base2: #3c3836;
     --base3: #504945;
@@ -197,10 +194,9 @@ $base4: #16161e;
     --accent1: #7aa2f7;
     --accent2: #bb9af7;
     --accent3: #7dcfff;
-    --accent4: #7aa2f750; // semi-transparent overlay
     --text1: #c0caf5;
     --text2: #a9b1d6;
-    --text3: #9aa5ce;
+    --text3: #222222;
     --base1: #1a1b26;
     --base2: #24283b;
     --base3: #414868;
@@ -212,8 +208,6 @@ $base4: #16161e;
     --ma3: #e0af68; // 50MA
     --ma2: #7aa2f7; // 20MA
     --ma1: #bb9af7; // 10MA
-    --glassbg: #24283bdd;
-    --gradient1: linear-gradient(90deg, rgba(122, 162, 247, 0.18) 0%, rgba(122, 162, 247, 0.08) 100%);
 }
 
 .solarized {
@@ -223,7 +217,7 @@ $base4: #16161e;
     --accent4: #268bd253; // semi-transparent overlay
     --text1: #839496;
     --text2: #93a1a1;
-    --text3: #657b83;
+    --text3: #222222;
     --base1: #002b36;
     --base2: #073642;
     --base3: #586e75;
@@ -265,7 +259,7 @@ $base4: #16161e;
     --accent4: #58a6ff53; // semi-transparent overlay
     --text1: #c9d1d9;
     --text2: #8b949e;
-    --text3: #6e7681;
+    --text3: #222222;
     --base1: #0d1117;
     --base2: #161b22;
     --base3: #30363d;
@@ -286,7 +280,7 @@ $base4: #16161e;
     --accent4: #83c09253; // semi-transparent overlay
     --text1: #d3c6aa;
     --text2: #a7c080;
-    --text3: #859289;
+    --text3: #222222;
     --base1: #2d353b;
     --base2: #343f44;
     --base3: #475258;
@@ -328,7 +322,7 @@ $base4: #16161e;
     --accent4: #ebbcba53; // semi-transparent overlay
     --text1: #e0def4;
     --text2: #9ccfd8;
-    --text3: #908caa;
+    --text3: #222222;
     --base1: #191724;
     --base2: #1f1d2e;
     --base3: #26233a;
@@ -349,7 +343,7 @@ $base4: #16161e;
     --accent4: #82aaff53; // semi-transparent overlay
     --text1: #eeffff;
     --text2: #b2ccd6;
-    --text3: #697098;
+    --text3: #222222;
     --base1: #212121;
     --base2: #2b2b2b;
     --base3: #353535;
@@ -370,7 +364,7 @@ $base4: #16161e;
     --accent4: #61afef53; // semi-transparent overlay
     --text1: #abb2bf;
     --text2: #5c6370;
-    --text3: #828997;
+    --text3: #222222;
     --base1: #282c34;
     --base2: #353b45;
     --base3: #3e4451;
@@ -391,7 +385,7 @@ $base4: #16161e;
     --accent4: #82aaff53; // semi-transparent overlay
     --text1: #d6deeb;
     --text2: #c792ea;
-    --text3: #637777;
+    --text3: #222222;
     --base1: #011627;
     --base2: #0e293f;
     --base3: #1d3b53;
@@ -412,7 +406,7 @@ $base4: #16161e;
     --accent4: #ff75b553; // semi-transparent overlay
     --text1: #e6e6e6;
     --text2: #bfbfbf;
-    --text3: #727272;
+    --text3: #222222;
     --base1: #292a2b;
     --base2: #1f2023;
     --base3: #34353a;
@@ -433,7 +427,7 @@ $base4: #16161e;
     --accent4: #ffd86653; // semi-transparent overlay
     --text1: #fcfcfa;
     --text2: #939293;
-    --text3: #727072;
+    --text3: #222222;
     --base1: #2d2a2e;
     --base2: #403e41;
     --base3: #5b595c;
@@ -454,7 +448,7 @@ $base4: #16161e;
     --accent4: #c6666680; // semi-transparent overlay
     --text1: #c5c8c6;
     --text2: #b4b7b4;
-    --text3: #969896;
+    --text3: #222222;
     --base1: #1d1f21;
     --base2: #282a2e;
     --base3: #373b41;
@@ -475,7 +469,7 @@ $base4: #16161e;
     --accent4: #6699cc80; // semi-transparent overlay
     --text1: #d8dee9;
     --text2: #c0c5ce;
-    --text3: #65737e;
+    --text3: #222222;
     --base1: #1b2b34;
     --base2: #343d46;
     --base3: #4f5b66;
@@ -496,7 +490,7 @@ $base4: #16161e;
     --accent4: #82aaff80; // semi-transparent overlay
     --text1: #a6accd;
     --text2: #8796b0;
-    --text3: #676e95;
+    --text3: #222222;
     --base1: #292d3e;
     --base2: #333747;
     --base3: #444267;
@@ -517,7 +511,7 @@ $base4: #16161e;
     --accent4: #3a9bfd80; // semi-transparent overlay
     --text1: #f8f8f2;
     --text2: #e6e6e6;
-    --text3: #75878a;
+    --text3: #222222;
     --base1: #002240;
     --base2: #0c3764;
     --base3: #184a7b;
@@ -538,7 +532,7 @@ $base4: #16161e;
     --accent4: #7390aa80; // semi-transparent overlay
     --text1: #e4f0fb;
     --text2: #a6accd;
-    --text3: #7390aa;
+    --text3: #222222;
     --base1: #1b1e28;
     --base2: #272a34;
     --base3: #303540;
@@ -559,7 +553,7 @@ $base4: #16161e;
     --accent4: #0550ae80; // semi-transparent overlay
     --text1: #1f2328;
     --text2: #656d76;
-    --text3: #8c959f;
+    --text3: #222222;
     --base1: #ffffff;
     --base2: #f6f8fa;
     --base3: #eaeef2;
@@ -580,7 +574,7 @@ $base4: #16161e;
     --accent4: #00ffff80; // semi-transparent overlay
     --text1: #ffffff;
     --text2: #dddddd;
-    --text3: #999999;
+    --text3: #222222;
     --base1: #000000;
     --base2: #0a0a0a;
     --base3: #1f1f1f;
@@ -601,7 +595,7 @@ $base4: #16161e;
     --accent4: #82aaff80; // semi-transparent overlay
     --text1: #c8d3f5;
     --text2: #a9b8e8;
-    --text3: #7a88cf;
+    --text3: #222222;
     --base1: #1e2030;
     --base2: #222436;
     --base3: #2f334d;
@@ -622,7 +616,7 @@ $base4: #16161e;
     --accent4: #719cd680; // semi-transparent overlay
     --text1: #cdcecf;
     --text2: #aeafb0;
-    --text3: #71839b;
+    --text3: #222222;
     --base1: #192330;
     --base2: #212e3f;
     --base3: #29394f;
@@ -643,7 +637,7 @@ $base4: #16161e;
     --accent4: #4f97d780; // semi-transparent overlay
     --text1: #b2b2b2;
     --text2: #a3a3a3;
-    --text3: #7a7a7a;
+    --text3: #222222;
     --base1: #292b2e;
     --base2: #212026;
     --base3: #5d4d7a;
@@ -664,7 +658,7 @@ $base4: #16161e;
     --accent4: #ffff5480; // semi-transparent overlay
     --text1: #ffffff;
     --text2: #ffff54;
-    --text3: #aaaaaa;
+    --text3: #222222;
     --base1: #0000aa;
     --base2: #000088;
     --base3: #0055aa;
@@ -685,7 +679,7 @@ $base4: #16161e;
     --accent4: #ffb00080; // semi-transparent overlay
     --text1: #ffb000;
     --text2: #ffc000;
-    --text3: #ffd000;
+    --text3: #222222;
     --base1: #2c1700;
     --base2: #402200;
     --base3: #543000;
@@ -706,7 +700,7 @@ $base4: #16161e;
     --accent4: #f3e60080; // semi-transparent overlay
     --text1: #ffffff;
     --text2: #f3e600;
-    --text3: #9e9e9e;
+    --text3: #222222;
     --base1: #1a1a2e;
     --base2: #16213e;
     --base3: #0f3460;
@@ -748,7 +742,7 @@ $base4: #16161e;
     --accent4: #ff9e6480; // semi-transparent overlay
     --text1: #e4e4e4;
     --text2: #c0c0c0;
-    --text3: #9e9e9e;
+    --text3: #222222;
     --base1: #1c1c1c;
     --base2: #2c2c2c;
     --base3: #3c3c3c;
@@ -790,7 +784,7 @@ $base4: #16161e;
     --accent4: #599cab80; // semi-transparent overlay
     --text1: #d3ebe9;
     --text2: #98d1ce;
-    --text3: #599cab;
+    --text3: #222222;
     --base1: #0c1014;
     --base2: #11151c;
     --base3: #091f2e;
@@ -811,7 +805,7 @@ $base4: #16161e;
     --accent4: #ff808080; // semi-transparent overlay
     --text1: #f0e3ca;
     --text2: #d9c8a9;
-    --text3: #90856c;
+    --text3: #222222;
     --base1: #2c2b2a;
     --base2: #3c3b3a;
     --base3: #4c4b4a;
@@ -832,7 +826,7 @@ $base4: #16161e;
     --accent4: #1db95480; // semi-transparent overlay
     --text1: #ffffff;
     --text2: #b3b3b3;
-    --text3: #7f7f7f;
+    --text3: #222222;
     --base1: #121212;
     --base2: #181818;
     --base3: #282828;
@@ -853,7 +847,7 @@ $base4: #16161e;
     --accent4: #d0877080; // semi-transparent overlay
     --text1: #d8dee9;
     --text2: #e5e9f0;
-    --text3: #9a9a9a;
+    --text3: #222222;
     --base1: #2e2a24;
     --base2: #3e3a34;
     --base3: #4e4a44;
@@ -874,7 +868,7 @@ $base4: #16161e;
     --accent4: #7dcfff80; // semi-transparent overlay
     --text1: #d3e8f8;
     --text2: #a1b7d6;
-    --text3: #7a88a3;
+    --text3: #222222;
     --base1: #1c2431;
     --base2: #263041;
     --base3: #323c4d;
@@ -895,7 +889,7 @@ $base4: #16161e;
     --accent4: #84a0c680; // semi-transparent overlay
     --text1: #c6c8d1;
     --text2: #a5b0c5;
-    --text3: #6b7089;
+    --text3: #222222;
     --base1: #161821;
     --base2: #1e2132;
     --base3: #262a3f;
@@ -916,7 +910,7 @@ $base4: #16161e;
     --accent4: #729fcf80; // semi-transparent overlay
     --text1: #d3d7cf;
     --text2: #babdb6;
-    --text3: #888a85;
+    --text3: #222222;
     --base1: #2e3436;
     --base2: #3f4446;
     --base3: #555753;
@@ -937,7 +931,7 @@ $base4: #16161e;
     --accent4: #da103f80; // semi-transparent overlay
     --text1: #fdf0ed;
     --text2: #fadad1;
-    --text3: #b877db;
+    --text3: #222222;
     --base1: #1c1e26;
     --base2: #232530;
     --base3: #2e303e;
@@ -958,7 +952,7 @@ $base4: #16161e;
     --accent4: #6d9cbe80; // semi-transparent overlay
     --text1: #e6e1dc;
     --text2: #d0d0ff;
-    --text3: #5a647e;
+    --text3: #222222;
     --base1: #2b2b2b;
     --base2: #333333;
     --base3: #535353;
@@ -979,7 +973,7 @@ $base4: #16161e;
     --accent4: #0078d480; // semi-transparent overlay
     --text1: #d4d4d4;
     --text2: #9cdcfe;
-    --text3: #6a9955;
+    --text3: #222222;
     --base1: #1e1e1e;
     --base2: #252526;
     --base3: #333333;
@@ -1000,7 +994,7 @@ $base4: #16161e;
     --accent4: #2eb67d80; // semi-transparent overlay
     --text1: #e6e6e6;
     --text2: #d1d2d3;
-    --text3: #9e9e9e;
+    --text3: #222222;
     --base1: #1a1d21;
     --base2: #222529;
     --base3: #363a3f;
@@ -1021,7 +1015,7 @@ $base4: #16161e;
     --accent4: #3e999f80; // semi-transparent overlay
     --text1: #c0c0c0;
     --text2: #a0a0a0;
-    --text3: #808080;
+    --text3: #222222;
     --base1: #000000;
     --base2: #1c1c1c;
     --base3: #383838;
@@ -1042,7 +1036,7 @@ $base4: #16161e;
     --accent4: #4d78cc80; // semi-transparent overlay
     --text1: #abb2bf;
     --text2: #9da5b4;
-    --text3: #5c6370;
+    --text3: #222222;
     --base1: #282c34;
     --base2: #2c313a;
     --base3: #3b4048;
@@ -1063,7 +1057,7 @@ $base4: #16161e;
     --accent4: #8197bf80; // semi-transparent overlay
     --text1: #e8e8d3;
     --text2: #b0b08a;
-    --text3: #888888;
+    --text3: #222222;
     --base1: #151515;
     --base2: #1c1c1c;
     --base3: #3b3b3b;
@@ -1084,7 +1078,7 @@ $base4: #16161e;
     --accent4: #ff875f80; // semi-transparent overlay
     --text1: #d8d8d8;
     --text2: #b2b2b2;
-    --text3: #767676;
+    --text3: #222222;
     --base1: #020221;
     --base2: #0a0a2a;
     --base3: #161636;
@@ -1105,7 +1099,7 @@ $base4: #16161e;
     --accent4: #89b48280; // semi-transparent overlay
     --text1: #d3c6aa;
     --text2: #b2a68d;
-    --text3: #9a8866;
+    --text3: #222222;
     --base1: #272e33;
     --base2: #323c41;
     --base3: #3d4a41;
@@ -1126,7 +1120,7 @@ $base4: #16161e;
     --accent4: #7e57c280; // semi-transparent overlay
     --text1: #403f53;
     --text2: #674494;
-    --text3: #999999;
+    --text3: #222222;
     --base1: #fbfbfb;
     --base2: #f0f0f0;
     --base3: #d9d9d9;
