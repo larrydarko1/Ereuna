@@ -434,27 +434,18 @@ async def websocket_chartdata(
             if dt.tzinfo is not None:
                 return dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
             return dt
+        cached_ts = cached_candle.get('timestamp', cached_candle.get('start'))
         if not ohlc_arr:
             ohlc_arr.append(cached_candle)
         else:
-            cached_ts = cached_candle.get('timestamp', cached_candle.get('start'))
-            # For weekly, always replace the last DB candle if timestamps match, else append
-            if timeframe == 'weekly':
-                try:
-                    if to_naive_utc(ohlc_arr[-1]['timestamp']) == to_naive_utc(cached_ts):
-                        ohlc_arr[-1] = cached_candle
-                    elif to_naive_utc(ohlc_arr[-1]['timestamp']) < to_naive_utc(cached_ts):
-                        ohlc_arr.append(cached_candle)
-                except KeyError as e:
-                    logger.error(f"KeyError during timestamp comparison: {e}\ncached_candle={cached_candle}\nohlc_arr_last={ohlc_arr[-1]}")
-            else:
-                try:
-                    if to_naive_utc(ohlc_arr[-1]['timestamp']) == to_naive_utc(cached_ts):
-                        ohlc_arr[-1] = cached_candle
-                    elif to_naive_utc(ohlc_arr[-1]['timestamp']) < to_naive_utc(cached_ts):
-                        ohlc_arr.append(cached_candle)
-                except KeyError as e:
-                    logger.error(f"KeyError during timestamp comparison: {e}\ncached_candle={cached_candle}\nohlc_arr_last={ohlc_arr[-1]}")
+            try:
+                last_ts = ohlc_arr[-1].get('timestamp', ohlc_arr[-1].get('start'))
+                if to_naive_utc(last_ts) == to_naive_utc(cached_ts):
+                    ohlc_arr[-1] = cached_candle
+                elif to_naive_utc(last_ts) < to_naive_utc(cached_ts):
+                    ohlc_arr.append(cached_candle)
+            except KeyError as e:
+                logger.error(f"KeyError during timestamp comparison: {e}\ncached_candle={cached_candle}\nohlc_arr_last={ohlc_arr[-1]}")
 
     def get_item_time(item):
         ts = item.get('timestamp', item.get('start'))

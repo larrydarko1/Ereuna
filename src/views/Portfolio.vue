@@ -119,66 +119,65 @@
 </div>
     <div class="portfolio-summary">
       <div class="summary-card">
-  <div class="summary-title">Total Value</div>
-  <div class="summary-value">
-    ${{ totalPortfolioValue2.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }) }}
-  </div>
-</div>
+      <div class="summary-title">Total Value</div>
+      <div class="summary-value">
+        ${{ portfolioSummary?.totalPortfolioValue2?.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }) ?? '-' }}
+      </div>
+    </div>
   <div class="summary-card">
   <div class="summary-title">Active Positions</div>
   <div class="summary-value">
-    ${{ totalPortfolioValue.toLocaleString(undefined, {
+    ${{ portfolioSummary?.totalPortfolioValue?.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }) }}
+    }) ?? '-' }}
   </div>
 </div>
       <div class="summary-card">
   <div class="summary-title">Cash</div>
   <div class="summary-value">
-    ${{ cash.toLocaleString(undefined, {
+    ${{ portfolioSummary?.cash?.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }) }}
+    }) ?? '-' }}
   </div>
 </div>
       <div class="summary-card">
         <div class="summary-title">Total P/L</div>
-        <div class="summary-value" :class="totalPL >= 0 ? 'positive' : 'negative'">
-          {{ totalPL >= 0 ? '+' : '' }}${{ totalPL.toLocaleString(undefined, {
-            minimumFractionDigits:
-              2, maximumFractionDigits: 2
-          }) }}
+        <div class="summary-value" :class="portfolioSummary?.totalPL >= 0 ? 'positive' : 'negative'">
+          {{ portfolioSummary?.totalPL >= 0 ? '+' : '' }}${{ portfolioSummary?.totalPL?.toLocaleString(undefined, {
+            minimumFractionDigits: 2, maximumFractionDigits: 2
+          }) ?? '-' }}
         </div>
       </div>
       <div class="summary-card">
-  <div class="summary-title">Total P/L (%)</div>
-  <div class="summary-value" :class="totalPL > 0 ? 'positive' : totalPL < 0 ? 'negative' : ''">
-    <template v-if="totalPLPercent !== '' && Number(totalPLPercent) !== 0">
-      {{ totalPL > 0 ? '+' : '' }}{{ totalPLPercent }}%
-    </template>
-    <template v-else>
-      -
-    </template>
-  </div>
-</div>
+      <div class="summary-title">Total P/L (%)</div>
+      <div class="summary-value" :class="portfolioSummary?.totalPL > 0 ? 'positive' : portfolioSummary?.totalPL < 0 ? 'negative' : ''">
+        <template v-if="portfolioSummary?.totalPLPercent !== '' && Number(portfolioSummary?.totalPLPercent) !== 0">
+          {{ portfolioSummary?.totalPL > 0 ? '+' : '' }}{{ portfolioSummary?.totalPLPercent }}%
+        </template>
+        <template v-else>
+          -
+        </template>
+      </div>
+    </div>
       <div class="summary-card">
         <div class="summary-title">Unrealized P/L</div>
-        <div class="summary-value" :class="unrealizedPL >= 0 ? 'positive' : 'negative'">
-          {{ unrealizedPL >= 0 ? '+' : '' }}${{ unrealizedPL.toLocaleString(undefined, {
+        <div class="summary-value" :class="portfolioSummary?.unrealizedPL >= 0 ? 'positive' : 'negative'">
+          {{ portfolioSummary?.unrealizedPL >= 0 ? '+' : '' }}${{ portfolioSummary?.unrealizedPL?.toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-          }) }}
+          }) ?? '-' }}
         </div>
       </div>
       <div class="summary-card">
         <div class="summary-title">Unrealized P/L (%)</div>
-        <div class="summary-value" :class="unrealizedPL > 0 ? 'positive' : unrealizedPL < 0 ? 'negative' : ''">
-  <template v-if="unrealizedPLPercent !== '' && Number(unrealizedPLPercent) !== 0">
-    {{ unrealizedPL >= 0 ? '+' : '' }}{{ unrealizedPLPercent }}%
+        <div class="summary-value" :class="portfolioSummary?.unrealizedPL > 0 ? 'positive' : portfolioSummary?.unrealizedPL < 0 ? 'negative' : ''">
+  <template v-if="portfolioSummary?.unrealizedPLPercent !== '' && Number(portfolioSummary?.unrealizedPLPercent) !== 0">
+    {{ portfolioSummary?.unrealizedPL >= 0 ? '+' : '' }}{{ portfolioSummary?.unrealizedPLPercent }}%
   </template>
   <template v-else>
     -
@@ -187,111 +186,111 @@
       </div>
       <div class="summary-card">
         <div class="summary-title">Realized P/L</div>
-        <div class="summary-value" :class="realizedPL >= 0 ? 'positive' : 'negative'">
-          {{ realizedPL >= 0 ? '+' : '' }}${{ realizedPL.toLocaleString(undefined, {
+        <div class="summary-value" :class="portfolioSummary?.realizedPL >= 0 ? 'positive' : 'negative'">
+          {{ portfolioSummary?.realizedPL >= 0 ? '+' : '' }}${{ portfolioSummary?.realizedPL?.toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-          }) }}
+          }) ?? '-' }}
         </div>
       </div>
       <div class="summary-card">
         <div class="summary-title">Realized P/L (%)</div>
-        <div class="summary-value" :class="realizedPL >= 0 ? 'positive' : 'negative'">
-          {{ realizedPL >= 0 ? '+' : '' }}{{ realizedPLPercent }}%
+        <div class="summary-value" :class="portfolioSummary?.realizedPL >= 0 ? 'positive' : 'negative'">
+          {{ portfolioSummary?.realizedPL >= 0 ? '+' : '' }}{{ portfolioSummary?.realizedPLPercent }}%
         </div>
       </div>
       <!-- Advanced Portfolio Stats -->
   <div class="summary-card">
   <div class="summary-title">Avg. Position Size</div>
-  <div class="summary-value">{{ avgPositionSize }}%</div>
+  <div class="summary-value">{{ portfolioSummary?.avgPositionSize }}%</div>
 </div>
   <div class="summary-card">
     <div class="summary-title">Avg. Hold Time (Winners)</div>
-    <div class="summary-value">{{ avgHoldTimeWinners }} days</div>
+    <div class="summary-value">{{ portfolioSummary?.avgHoldTimeWinners }} days</div>
   </div>
   <div class="summary-card">
     <div class="summary-title">Avg. Hold Time (Losers)</div>
-    <div class="summary-value">{{ avgHoldTimeLosers }} days</div>
+    <div class="summary-value">{{ portfolioSummary?.avgHoldTimeLosers }} days</div>
   </div>
   <div class="summary-card">
     <div class="summary-title">Avg. Gain %</div>
-    <div class="summary-value positive">+{{ avgGain }}%</div>
+    <div class="summary-value positive">+{{ portfolioSummary?.avgGain }}%</div>
   </div>
   <div class="summary-card">
     <div class="summary-title">Avg. Loss %</div>
-    <div class="summary-value negative">{{ avgLoss }}%</div>
+    <div class="summary-value negative">{{ portfolioSummary?.avgLoss }}%</div>
   </div>
   <div class="summary-card">
   <div class="summary-title">Avg. Gain</div>
   <div class="summary-value positive">
-    +${{ avgGainAbs }}
+    +${{ portfolioSummary?.avgGainAbs }}
   </div>
 </div>
 <div class="summary-card">
   <div class="summary-title">Avg. Loss</div>
   <div class="summary-value negative">
-    -${{ avgLossAbs }}
+    -${{ portfolioSummary?.avgLossAbs }}
   </div>
 </div>
 <div class="summary-card">
   <div class="summary-title">Gain/Loss Ratio</div>
-  <div class="summary-value">{{ gainLossRatio }}</div>
+  <div class="summary-value">{{ portfolioSummary?.gainLossRatio }}</div>
 </div>
 <div class="summary-card">
   <div class="summary-title">Risk/Reward Ratio</div>
-  <div class="summary-value">{{ riskRewardRatio }}</div>
+  <div class="summary-value">{{ portfolioSummary?.riskRewardRatio }}</div>
 </div>
 <div class="summary-card">
   <div class="summary-title">Winning Trades</div>
   <div class="summary-value positive">
-    {{ winnerCount }} ({{ winnerPercent }}%)
+    {{ portfolioSummary?.winnerCount }} ({{ portfolioSummary?.winnerPercent }}%)
   </div>
 </div>
 <div class="summary-card">
   <div class="summary-title">Losing Trades</div>
   <div class="summary-value negative">
-    {{ loserCount }} ({{ loserPercent }}%)
+    {{ portfolioSummary?.loserCount }} ({{ portfolioSummary?.loserPercent }}%)
   </div>
 </div>
 <div class="summary-card">
   <div class="summary-title">Breakeven Trades</div>
   <div class="summary-value">
-    {{ breakevenCount }} ({{ breakevenPercent }}%)
+    {{ portfolioSummary?.breakevenCount }} ({{ portfolioSummary?.breakevenPercent }}%)
   </div>
 </div>
 <div class="summary-card">
   <div class="summary-title">Profit Factor</div>
-  <div class="summary-value">{{ profitFactor }}</div>
+  <div class="summary-value">{{ portfolioSummary?.profitFactor }}</div>
 </div>
 <div class="summary-card">
   <div class="summary-title">Sortino Ratio</div>
-  <div class="summary-value">{{ sortinoRatio }}</div>
+  <div class="summary-value">{{ portfolioSummary?.sortinoRatio }}</div>
 </div>
 <div class="summary-card">
   <div class="summary-title">Biggest Winner</div>
   <div class="summary-value positive">
-    <template v-if="biggestWinner.ticker">
-      {{ biggestWinner.ticker }} (+${{ biggestWinner.amount }})
+    <template v-if="portfolioSummary?.biggestWinner?.ticker">
+      {{ portfolioSummary.biggestWinner.ticker }} (+${{ portfolioSummary.biggestWinner.amount }})
     </template>
     <template v-else>
       -
     </template>
-    <div v-if="biggestWinner.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
-      Trades: {{ biggestWinner.tradeCount }}
+    <div v-if="portfolioSummary?.biggestWinner?.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
+      Trades: {{ portfolioSummary.biggestWinner.tradeCount }}
     </div>
   </div>
 </div>
 <div class="summary-card">
   <div class="summary-title">Biggest Loser</div>
   <div class="summary-value negative">
-    <template v-if="biggestLoser.ticker">
-      {{ biggestLoser.ticker }} (-${{ biggestLoser.amount }})
+    <template v-if="portfolioSummary?.biggestLoser?.ticker">
+      {{ portfolioSummary.biggestLoser.ticker }} (-${{ portfolioSummary.biggestLoser.amount }})
     </template>
     <template v-else>
       -
     </template>
-    <div v-if="biggestLoser.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
-      Trades: {{ biggestLoser.tradeCount }}
+    <div v-if="portfolioSummary?.biggestLoser?.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
+      Trades: {{ portfolioSummary.biggestLoser.tradeCount }}
     </div>
   </div>
 </div>
@@ -303,9 +302,17 @@
     </div>
     <div class="portfolio-main-flex">
       <div class="portfolio-pie-container">
-        <Pie :data="pieChartData" :options="pieOptions" />
+          <template v-if="portfolioSummary?.positionsCount !== undefined ? portfolioSummary.positionsCount <= 100 : portfolio.length <= 100">
+            <Pie :data="pieChartData" :options="pieOptions" />
+          </template>
+          <template v-else>
+            <div class="too-many-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; height: 350px ;color: var(--text2); background: var(--base2); border-radius: 10px;">
+              <strong>Too many positions to display pie chart.</strong><br>
+              Please reduce the number of positions to view allocation breakdown.
+            </div>
+          </template>
       </div>
-      <div class="portfolio-table-container">
+      <div class="portfolio-table-container scrollable-table">
         <table class="portfolio-table">
           <thead>
             <tr>
@@ -320,61 +327,61 @@
               <th>Actions</th>
             </tr>
           </thead>
-<tbody>
-  <tr v-if="portfolio.length === 0 && cash === 0">
-    <td colspan="8" style="text-align:center; color: var(--text2);">
-      No Active Positions
-    </td>
-  </tr>
-  <tr v-for="position in portfolio" :key="position.Symbol">
-    <td>
-      <span v-if="latestQuotes[position.Symbol] !== undefined">
-        {{ getPercOfPortfolio(position) }}%
-      </span>
-    </td>
-    <td>{{ position.Symbol }}</td>
-    <td>{{ position.Shares }}</td>
-    <td>${{ Number(position.AvgPrice).toFixed(2) }}</td>
-    <td>
-     <span v-if="latestQuotes[position.Symbol] !== undefined">
-  ${{ getCurrentPrice(position) }}
-</span>
-    </td>
-    <td>
-      <span v-if="latestQuotes[position.Symbol] !== undefined">
-        ${{ getTotalValue(position) }}
-      </span>
-    </td>
-    <td :class="getPnLClass(position)">
-      <span v-if="latestQuotes[position.Symbol] !== undefined">
-        {{ getPnLPercent(position) > 0 ? '+' : '' }}{{ getPnLPercent(position) }}%
-      </span>
-    </td>
-      <td :class="getPnLClass(position)">
-        <span v-if="latestQuotes[position.Symbol] !== undefined">
-          {{ getPnLDollar(position) > 0 ? '+' : '' }}${{ getPnLDollar(position) }}
-        </span>
-      </td>
-    <td>
-      <button class="action-btn"
-        @click="openSellModal({ symbol: position.Symbol, shares: position.Shares, price: position.AvgPrice })">
-        Sell
-      </button>
-    </td>
-  </tr>
-  <!-- Add cash as a row -->
-  <tr class="cash-row">
-    <td>{{ getPercOfCash() }}%</td>
-    <td>Cash</td>
-    <td>-</td>
-    <td>-</td>
-    <td>-</td>
-    <td>${{ cash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-    <td>-</td>
-    <td>-</td>
-    <td></td>
-  </tr>
-</tbody>
+          <tbody>
+            <!-- Cash row always at the top -->
+            <tr class="cash-row">
+              <td>{{ getPercOfCash() }}%</td>
+              <td>Cash</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>${{ cash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
+              <td>-</td>
+              <td>-</td>
+              <td></td>
+            </tr>
+            <tr v-if="portfolio.length === 0 && cash === 0">
+              <td colspan="8" style="text-align:center; color: var(--text2);">
+                No Active Positions
+              </td>
+            </tr>
+            <tr v-for="position in portfolio" :key="position.Symbol">
+              <td>
+                <span v-if="latestQuotes[position.Symbol] !== undefined">
+                  {{ getPercOfPortfolio(position) }}%
+                </span>
+              </td>
+              <td>{{ position.Symbol }}</td>
+              <td>{{ position.Shares }}</td>
+              <td>${{ Number(position.AvgPrice).toFixed(2) }}</td>
+              <td>
+                <span v-if="latestQuotes[position.Symbol] !== undefined">
+                  ${{ getCurrentPrice(position) }}
+                </span>
+              </td>
+              <td>
+                <span v-if="latestQuotes[position.Symbol] !== undefined">
+                  ${{ getTotalValue(position) }}
+                </span>
+              </td>
+              <td :class="getPnLClass(position)">
+                <span v-if="latestQuotes[position.Symbol] !== undefined">
+                  {{ getPnLPercent(position) > 0 ? '+' : '' }}{{ getPnLPercent(position) }}%
+                </span>
+              </td>
+              <td :class="getPnLClass(position)">
+                <span v-if="latestQuotes[position.Symbol] !== undefined">
+                  {{ getPnLDollar(position) > 0 ? '+' : '' }}${{ getPnLDollar(position) }}
+                </span>
+              </td>
+              <td>
+                <button class="action-btn"
+                  @click="openSellModal({ symbol: position.Symbol, shares: position.Shares, price: position.AvgPrice })">
+                  Sell
+                </button>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -382,9 +389,9 @@
   <h3 style="color: var(--accent1); margin-bottom: 12px;">Trade Returns (%)</h3>
   <Bar :data="tradeReturnsChartData" :options="tradeReturnsChartOptions" :height="70" />
 </div>
-    <div class="portfolio-history-container">
+    <div class="portfolio-history-container scrollable-table">
       <h2>Transaction History</h2>
-      <table class="portfolio-table">
+      <table class="portfolio-table" >
         <thead>
           <tr>
             <th>Date</th>
@@ -397,7 +404,7 @@
           </tr>
         </thead>
         <tbody >
-          <tr v-if="sortedTransactionHistory.length === 0">
+            <tr v-if="sortedTransactionHistory.length === 0">
             <td colspan="6" style="text-align:center; color: var(--text2);">
               No transaction history
             </td>
@@ -408,17 +415,41 @@
             <td>{{ tx.Action }}</td>
             <td>{{ tx.Shares }}</td>
             <td>
-  {{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toFixed(2) }}
-</td>
-<td>
-  {{ isNaN(Number(tx.Commission)) ? '-' : '$' + Number(tx.Commission).toFixed(2) }}
-</td>
-            <td>${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-            }}
+              {{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toFixed(2) }}
+            </td>
+            <td>
+              {{ isNaN(Number(tx.Commission)) ? '-' : '$' + Number(tx.Commission).toFixed(2) }}
+            </td>
+            <td>${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
             </td>
           </tr>
         </tbody>
       </table>
+        <div class="portfolio-tbody-scroll">
+          <table class="portfolio-table">
+            <tbody>
+              <tr v-if="sortedTransactionHistory.length === 0">
+                <td colspan="6" style="text-align:center; color: var(--text2);">
+                  No transaction history
+                </td>
+              </tr>
+              <tr v-for="(tx, i) in sortedTransactionHistory" :key="i">
+                <td>{{ tx.Date ? tx.Date.slice(0, 10) : '' }}</td>
+                <td>{{ tx.Symbol }}</td>
+                <td>{{ tx.Action }}</td>
+                <td>{{ tx.Shares }}</td>
+                <td>
+                  {{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toFixed(2) }}
+                </td>
+                <td>
+                  {{ isNaN(Number(tx.Commission)) ? '-' : '$' + Number(tx.Commission).toFixed(2) }}
+                </td>
+                <td>${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
     </div>
   </section>
   <br>
@@ -427,7 +458,7 @@
 
 <script setup>
 import Header from '@/components/Header.vue';
-import { ref, watch, onMounted, computed } from 'vue';
+import { ref, watch, onMounted, computed, onUnmounted, nextTick } from 'vue';
 import TradePopup from '@/components/Portfolio/trade.vue'
 import SellTradePopup from '@/components/Portfolio/SellTradePopup.vue'
 import AddCashPopup from '@/components/Portfolio/addCash.vue'
@@ -565,16 +596,19 @@ function getPnLDollar(position) {
 }
 
 
-const pieOptions = {
-  plugins: {
-    legend: {
-      labels: {
-        color: text2,
-        font: { size: 14 }
+const pieOptions = computed(() => {
+  return {
+    plugins: {
+      legend: {
+        display: portfolio.value.length <= 32,
+        labels: {
+          color: text2,
+          font: { size: 14 }
+        }
       }
     }
-  }
-}
+  };
+});
 
 // --- Total Value Over Time (Line Chart) ---
 const portfolioValueHistory = computed(() => {
@@ -659,36 +693,51 @@ const lineOptions = {
   }
 }
 
-const transactionHistory = ref([]); // List of Objects - This will hold the transaction history data for user
+const transactionHistory = ref([]); // Holds loaded trades
+const tradesTotal = ref(0); // Total trades available
+const tradesLimit = ref(100); // Trades per page
+const tradesSkip = ref(0); // Current skip
+const tradesLoading = ref(false); // Loading state
+
+// Windowed/virtualized transaction history
+const visibleBatchIndex = ref(0); // Which batch is currently visible
+const batchSize = ref(tradesLimit.value); // How many items per batch
+
+// Only display the current batch
+const windowedTransactionHistory = computed(() => {
+  return transactionHistory.value;
+});
 
 async function fetchTransactionHistory() {
   try {
+    tradesLoading.value = true;
     const headers = {
       'x-api-key': apiKey
     };
-
     const response = await fetch(
-      `/api/trades?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
+      `/api/trades?username=${user}&portfolio=${selectedPortfolioIndex.value}&limit=${tradesLimit.value}&skip=${tradesSkip.value}`,
       { headers }
     );
-
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-
     const data = await response.json();
-    transactionHistory.value = data.trades || []; // Assign the trades array from the new backend
-
+    tradesTotal.value = data.total || 0;
+    // Always replace with the new batch
+    transactionHistory.value = data.trades || [];
   } catch (error) {
     if (error.name === 'AbortError') {
       return;
     }
     console.error('Error fetching transaction history:', error);
+  } finally {
+    tradesLoading.value = false;
   }
 }
 
 const sortedTransactionHistory = computed(() => {
-  return [...transactionHistory.value].sort((a, b) => {
+  // Only sort the windowed batch
+  return [...windowedTransactionHistory.value].sort((a, b) => {
     // If Date is missing, treat as oldest
     if (!a.Date) return 1;
     if (!b.Date) return -1;
@@ -696,31 +745,39 @@ const sortedTransactionHistory = computed(() => {
   });
 });
 
-const portfolio = ref([]); // List of Objects - This will hold the portfolio data for user
+const portfolio = ref([]); // Holds loaded positions
+const portfolioTotal = ref(0); // Total positions available
+const portfolioLimit = ref(100); // Positions per page
+const portfolioSkip = ref(0); // Current skip
+const portfolioLoading = ref(false); // Loading state
 
-async function fetchPortfolio() {
+async function fetchPortfolio({ append = false } = {}) {
   try {
+    portfolioLoading.value = true;
     const headers = {
       'x-api-key': apiKey
     };
-
     const response = await fetch(
-      `/api/portfolio?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
+      `/api/portfolio?username=${user}&portfolio=${selectedPortfolioIndex.value}&limit=${portfolioLimit.value}&skip=${portfolioSkip.value}`,
       { headers }
     );
-
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-
     const data = await response.json();
-    portfolio.value = data.portfolio || []; // Assign the portfolio array
-
+    portfolioTotal.value = data.total || 0;
+    if (append) {
+      portfolio.value = [...portfolio.value, ...(data.portfolio || [])];
+    } else {
+      portfolio.value = data.portfolio || [];
+    }
   } catch (error) {
     if (error.name === 'AbortError') {
       return;
     }
     console.error('Error fetching portfolio:', error);
+  } finally {
+    portfolioLoading.value = false;
   }
 }
 
@@ -776,85 +833,6 @@ function getTotalValue(position) {
   return (close * position.Shares).toFixed(2);
 }
 
-const totalPortfolioValue = computed(() => {
-  return portfolio.value.reduce((sum, pos) => {
-    const close = latestQuotes.value[pos.Symbol];
-    if (close === undefined || close === null) return sum;
-    return sum + close * pos.Shares;
-  }, 0);
-});
-
-const totalPortfolioCost = computed(() => {
-  return portfolio.value.reduce((sum, pos) => {
-    if (!pos.AvgPrice) return sum;
-    return sum + pos.AvgPrice * pos.Shares;
-  }, 0);
-});
-
-// --- Realized, Unrealized, and Total P/L ---
-// Realized P/L: sum of profits/losses from closed trades (FIFO)
-const realizedPL = computed(() => {
-  let realized = 0;
-  let lots = {};
-  for (const tx of sortedTransactionHistory.value.slice()) {
-    if (!tx.Symbol || !tx.Action) continue;
-    if (tx.Action === 'Buy') {
-      lots[tx.Symbol] = lots[tx.Symbol] || [];
-      lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price });
-    } else if (tx.Action === 'Sell') {
-      let sharesToSell = tx.Shares;
-      lots[tx.Symbol] = lots[tx.Symbol] || [];
-      while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
-        let lot = lots[tx.Symbol][0];
-        let sellShares = Math.min(lot.shares, sharesToSell);
-        realized += (tx.Price - lot.price) * sellShares;
-        lot.shares -= sellShares;
-        sharesToSell -= sellShares;
-        if (lot.shares === 0) lots[tx.Symbol].shift();
-      }
-    }
-  }
-  // If no active positions, realizedPL should be totalPL
-  if (portfolio.value.length === 0 && baseValue.value) {
-    return totalPortfolioValue2.value - baseValue.value;
-  }
-  return realized;
-});
-
-// Unrealized P/L: value of open positions minus their cost basis
-const unrealizedPL = computed(() => {
-  let pl = 0;
-  for (const pos of portfolio.value) {
-    const close = latestQuotes.value[pos.Symbol];
-    if (close === undefined || close === null) continue;
-    pl += (close - pos.AvgPrice) * pos.Shares;
-  }
-  return pl;
-});
-
-// Total P/L: (cash + value of open positions) - baseValue
-const totalPL = computed(() => {
-  if (!baseValue.value || baseValue.value === 0) return 0;
-  return totalPortfolioValue2.value - baseValue.value;
-});
-
-// Total P/L (%) based on baseValue
-const totalPLPercent = computed(() => {
-  if (!baseValue.value || baseValue.value === 0) return '';
-  return ((totalPL.value / baseValue.value) * 100).toFixed(2);
-});
-
-const unrealizedPLPercent = computed(() => {
-  if (!baseValue.value || baseValue.value === 0) return '';
-  return ((unrealizedPL.value / baseValue.value) * 100).toFixed(2);
-});
-
-// Realized P/L (%) based on baseValue
-const realizedPLPercent = computed(() => {
-  if (!baseValue.value || baseValue.value === 0) return '';
-  return ((realizedPL.value / baseValue.value) * 100).toFixed(2);
-});
-
 function getPercOfPortfolio(position) {
   const total = totalPortfolioValue2.value; // includes cash
   const close = latestQuotes.value[position.Symbol];
@@ -863,65 +841,11 @@ function getPercOfPortfolio(position) {
   return perc.toFixed(2);
 }
 
-const showResetDialog = ref(false)
-const resetError = ref('')
-
-async function confirmResetPortfolio() {
-  resetError.value = '';
-  try {
-    const headers = { 'x-api-key': apiKey, 'Content-Type': 'application/json' };
-    const response = await fetch(
-      `/api/portfolio?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
-      {
-        method: 'DELETE',
-        headers
-      }
-    );
-    if (!response.ok) throw new Error('Failed to reset portfolio');
-    fetchTransactionHistory();
-    fetchPortfolio();
-    fetchCash();
-    showResetDialog.value = false;
-  } catch (error) {
-    resetError.value = 'Error resetting portfolio: ' + error.message;
-  }
+function getPercOfCash() {
+  const total = totalPortfolioValue2.value; // includes cash
+  if (!total) return '0.00';
+  return ((cash.value / total) * 100).toFixed(2);
 }
-
-const cash = ref(0); // Holds the user's cash balance
-const baseValue = ref(0); // Holds the BaseValue from backend
-
-async function fetchCash() {
-  try {
-    const headers = {
-      'x-api-key': apiKey
-    };
-
-    const response = await fetch(
-      `/api/portfolio/cash?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
-      { headers }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    cash.value = data.cash || 0; // Assign the cash value
-    baseValue.value = data.BaseValue || 0; // Assign the BaseValue
-
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-    console.error('Error fetching cash balance:', error);
-  }
-}
-
-// Realized P/L vs BaseValue
-const realizedPLvsBaseValue = computed(() => {
-  if (!baseValue.value || baseValue.value === 0) return 0;
-  return totalPortfolioValue2.value - baseValue.value;
-});
 
 const totalPortfolioValue2 = computed(() => {
   const positionsValue = portfolio.value.reduce((sum, pos) => {
@@ -930,52 +854,6 @@ const totalPortfolioValue2 = computed(() => {
     return sum + close * pos.Shares;
   }, 0);
   return positionsValue + cash.value; // Add cash to the total
-});
-
-// Average position size as a percentage of total portfolio value (including cash)
-const avgPositionSize = computed(() => {
-  const buys = sortedTransactionHistory.value.filter(tx => tx.Action === 'Buy' && tx.Total && tx.Date);
-  if (!buys.length) return '0.00';
-
-  // For each buy, estimate portfolio value at that time (cash + all positions up to that date)
-  let avgPercents = [];
-  for (const buy of buys) {
-    // Get all transactions up to and including this buy
-    const txsUpToBuy = sortedTransactionHistory.value.filter(tx => tx.Date && new Date(tx.Date) <= new Date(buy.Date));
-    // Calculate cash and positions up to this buy
-    let cash = 0;
-    let holdings = {};
-    for (const tx of txsUpToBuy) {
-      if (tx.Action === 'Buy') {
-        holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) + tx.Shares;
-        cash -= tx.Total;
-      } else if (tx.Action === 'Sell') {
-        holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) - tx.Shares;
-        cash += tx.Total;
-      } else if (tx.Action === 'Cash Deposit') {
-        cash += tx.Total;
-      }
-    }
-    // Estimate positions value at buy price
-    let positionsValue = 0;
-    for (const [symbol, shares] of Object.entries(holdings)) {
-      // Use the last buy price up to this date for each symbol
-      let price = 0;
-      for (let i = txsUpToBuy.length - 1; i >= 0; i--) {
-        if (txsUpToBuy[i].Symbol === symbol && txsUpToBuy[i].Action === 'Buy') {
-          price = txsUpToBuy[i].Price;
-          break;
-        }
-      }
-      positionsValue += shares * price;
-    }
-    const portfolioValueAtBuy = positionsValue + cash;
-    if (portfolioValueAtBuy > 0) {
-      avgPercents.push((buy.Total / portfolioValueAtBuy) * 100);
-    }
-  }
-  if (!avgPercents.length) return '0.00';
-  return (avgPercents.reduce((a, b) => a + b, 0) / avgPercents.length).toFixed(2);
 });
 
 // Helper: Find all round-trips (buy then sell) for stats
@@ -1017,190 +895,61 @@ function getClosedPositions() {
   return positions;
 }
 
-// Biggest winner and loser by ticker (realized P/L)
-const biggestWinner = computed(() => {
-  const plByTicker = {};
-  let lots = {};
-  const tradeCounts = {};
-  for (const tx of sortedTransactionHistory.value.slice().reverse()) {
-    if (!tx.Symbol || !tx.Action) continue;
-    if (tx.Action === 'Buy') {
-      lots[tx.Symbol] = lots[tx.Symbol] || [];
-      lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price });
-    tradeCounts[tx.Symbol] = (tradeCounts[tx.Symbol] || 0) + 1;
-    } else if (tx.Action === 'Sell') {
-      let sharesToSell = tx.Shares;
-      lots[tx.Symbol] = lots[tx.Symbol] || [];
-      while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
-        let lot = lots[tx.Symbol][0];
-        let sellShares = Math.min(lot.shares, sharesToSell);
-        const pl = (tx.Price - lot.price) * sellShares;
-        plByTicker[tx.Symbol] = (plByTicker[tx.Symbol] || 0) + pl;
-        lot.shares -= sellShares;
-        sharesToSell -= sellShares;
-        if (lot.shares === 0) lots[tx.Symbol].shift();
+const showResetDialog = ref(false)
+const resetError = ref('')
+
+async function confirmResetPortfolio() {
+  resetError.value = '';
+  try {
+    const headers = { 'x-api-key': apiKey, 'Content-Type': 'application/json' };
+    const response = await fetch(
+      `/api/portfolio?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
+      {
+        method: 'DELETE',
+        headers
       }
-    tradeCounts[tx.Symbol] = (tradeCounts[tx.Symbol] || 0) + 1;
-    }
+    );
+    if (!response.ok) throw new Error('Failed to reset portfolio');
+    fetchTransactionHistory();
+    fetchPortfolio();
+    fetchCash();
+    fetchPortfolioSummary();
+    showResetDialog.value = false;
+  } catch (error) {
+    resetError.value = 'Error resetting portfolio: ' + error.message;
   }
-  let maxTicker = null;
-  let maxPL = 0;
-  for (const [ticker, pl] of Object.entries(plByTicker)) {
-    if (pl > maxPL || maxTicker === null) {
-      maxPL = pl;
-      maxTicker = ticker;
-    }
-  }
-  return maxTicker ? { ticker: maxTicker, amount: maxPL.toFixed(2), tradeCount: tradeCounts[maxTicker] || 0 } : { ticker: null, amount: null, tradeCount: 0 };
-});
-
-const biggestLoser = computed(() => {
-  const plByTicker = {};
-  let lots = {};
-  const tradeCounts = {};
-  for (const tx of sortedTransactionHistory.value.slice().reverse()) {
-    if (!tx.Symbol || !tx.Action) continue;
-    if (tx.Action === 'Buy') {
-      lots[tx.Symbol] = lots[tx.Symbol] || [];
-      lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price });
-    tradeCounts[tx.Symbol] = (tradeCounts[tx.Symbol] || 0) + 1;
-    } else if (tx.Action === 'Sell') {
-      let sharesToSell = tx.Shares;
-      lots[tx.Symbol] = lots[tx.Symbol] || [];
-      while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
-        let lot = lots[tx.Symbol][0];
-        let sellShares = Math.min(lot.shares, sharesToSell);
-        const pl = (tx.Price - lot.price) * sellShares;
-        plByTicker[tx.Symbol] = (plByTicker[tx.Symbol] || 0) + pl;
-        lot.shares -= sellShares;
-        sharesToSell -= sellShares;
-        if (lot.shares === 0) lots[tx.Symbol].shift();
-      }
-    tradeCounts[tx.Symbol] = (tradeCounts[tx.Symbol] || 0) + 1;
-    }
-  }
-  let minTicker = null;
-  let minPL = 0;
-  for (const [ticker, pl] of Object.entries(plByTicker)) {
-    if (pl < minPL || minTicker === null) {
-      minPL = pl;
-      minTicker = ticker;
-    }
-  }
-  return minTicker ? { ticker: minTicker, amount: Math.abs(minPL).toFixed(2), tradeCount: tradeCounts[minTicker] || 0 } : { ticker: null, amount: null, tradeCount: 0 };
-});
-
-// Average hold time for winners (days)
-const avgHoldTimeWinners = computed(() => {
-  const closed = getClosedPositions().filter(p => p.pnl > 0);
-  if (!closed.length) return 0;
-  const avg = closed.reduce((sum, p) => sum + p.holdDays, 0) / closed.length;
-  return avg.toFixed(1);
-});
-
-// Average hold time for losers (days)
-const avgHoldTimeLosers = computed(() => {
-  const closed = getClosedPositions().filter(p => p.pnl < 0);
-  if (!closed.length) return 0;
-  const avg = closed.reduce((sum, p) => sum + p.holdDays, 0) / closed.length;
-  return avg.toFixed(1);
-});
-
-// Average gain (%)
-const avgGain = computed(() => {
-  const closed = getClosedPositions().filter(p => p.pnl > 0);
-  if (!closed.length) return '0.00';
-  const avg = closed.reduce((sum, p) => sum + p.pnl, 0) / closed.length;
-  return avg.toFixed(2);
-});
-
-// Average loss (%)
-const avgLoss = computed(() => {
-  const closed = getClosedPositions().filter(p => p.pnl < 0);
-  if (!closed.length) return '0.00';
-  const avg = closed.reduce((sum, p) => sum + p.pnl, 0) / closed.length;
-  return avg.toFixed(2);
-});
-
-// Gain/Loss Ratio (absolute value of avg gain divided by avg loss)
-const gainLossRatio = computed(() => {
-  const gain = Number(avgGainAbs.value);
-  const loss = Math.abs(Number(avgLossAbs.value));
-  if (!gain || !loss) return '-';
-  return (gain / loss).toFixed(2);
-});
-
-// Risk/Reward Ratio (avg loss divided by avg gain, absolute value)
-const riskRewardRatio = computed(() => {
-  const gain = Number(avgGain.value);
-  const loss = Math.abs(Number(avgLoss.value));
-  if (!gain || !loss) return '-';
-  return (gain / loss).toFixed(2);
-});
-
-const avgGainAbs = computed(() => {
-  const closed = getClosedPositions().filter(p => p.pnl > 0);
-  if (!closed.length) return '0.00';
-  const avg = closed.reduce((sum, p) => sum + ((p.sellPrice - p.buyPrice) * p.shares), 0) / closed.length;
-  return avg.toFixed(2);
-});
-
-const avgLossAbs = computed(() => {
-  const closed = getClosedPositions().filter(p => p.pnl < 0);
-  if (!closed.length) return '0.00';
-  const avg = closed.reduce((sum, p) => sum + Math.abs((p.sellPrice - p.buyPrice) * p.shares), 0) / closed.length;
-  return avg.toFixed(2);
-});
-
-const closedPositions = computed(() => getClosedPositions());
-
-const winnerCount = computed(() => closedPositions.value.filter(p => p.pnl > 0).length);
-const loserCount = computed(() => closedPositions.value.filter(p => p.pnl < 0).length);
-const breakevenCount = computed(() => closedPositions.value.filter(p => Number(p.pnl) === 0).length);
-const totalClosed = computed(() => closedPositions.value.length);
-
-const winnerPercent = computed(() => {
-  if (!totalClosed.value) return '0.00';
-  return ((winnerCount.value / totalClosed.value) * 100).toFixed(2);
-});
-const loserPercent = computed(() => {
-  if (!totalClosed.value) return '0.00';
-  return ((loserCount.value / totalClosed.value) * 100).toFixed(2);
-});
-const breakevenPercent = computed(() => {
-  if (!totalClosed.value) return '0.00';
-  return ((breakevenCount.value / totalClosed.value) * 100).toFixed(2);
-});
-
-function getPercOfCash() {
-  const total = totalPortfolioValue2.value; // includes cash
-  if (!total) return '0.00';
-  return ((cash.value / total) * 100).toFixed(2);
 }
 
-const profitFactor = computed(() => {
-  const closed = getClosedPositions();
-  const grossProfit = closed.filter(p => p.pnl > 0).reduce((sum, p) => sum + ((p.sellPrice - p.buyPrice) * p.shares), 0);
-  const grossLoss = closed.filter(p => p.pnl < 0).reduce((sum, p) => sum + Math.abs((p.sellPrice - p.buyPrice) * p.shares), 0);
-  if (grossLoss === 0) return grossProfit > 0 ? '∞' : '-';
-  return (grossProfit / grossLoss).toFixed(2);
-});
+const cash = ref(0); // Holds the user's cash balance
+const baseValue = ref(0); // Holds the BaseValue from backend
 
-const riskFreeRate = ref(0.02); // Set your risk-free rate here (e.g. 0.02 for 2%)
+async function fetchCash() {
+  try {
+    const headers = {
+      'x-api-key': apiKey
+    };
 
-const sortinoRatio = computed(() => {
-  const closed = getClosedPositions();
-  if (!closed.length) return '-';
-  const returns = closed.map(p => p.pnl / 100); // Convert % to decimal
-  const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
-  const downsideReturns = returns.filter(r => r < riskFreeRate.value);
-  if (!downsideReturns.length) return '∞';
-  const downsideDev = Math.sqrt(
-    downsideReturns.reduce((sum, r) => sum + Math.pow(r - riskFreeRate.value, 2), 0) / downsideReturns.length
-  );
-  if (downsideDev === 0) return '∞';
-  return ((avgReturn - riskFreeRate.value) / downsideDev).toFixed(2);
-});
+    const response = await fetch(
+      `/api/portfolio/cash?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
+      { headers }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    cash.value = data.cash || 0; // Assign the cash value
+    baseValue.value = data.BaseValue || 0; // Assign the BaseValue
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+    console.error('Error fetching cash balance:', error);
+  }
+}
+
 
 const tradeReturnsMedianBinIndex = computed(() => {
   const closed = getClosedPositions();
@@ -1306,6 +1055,7 @@ function selectPortfolio(idx) {
   fetchPortfolio();
   fetchTransactionHistory();
   fetchCash();
+  fetchPortfolioSummary();
 }
 
 // On mount, load the first portfolio by default
@@ -1383,6 +1133,116 @@ const portfolioWithComputed = computed(() =>
       : null
   }))
 );
+
+// Infinite scroll for portfolio positions
+let portfolioTableContainer = null;
+let transactionHistoryContainer = null;
+
+function handlePortfolioScroll() {
+  if (!portfolioTableContainer || portfolioLoading.value) return;
+  const threshold = 120; // px from bottom
+  const { scrollTop, scrollHeight, clientHeight } = portfolioTableContainer;
+  if (
+    scrollHeight - scrollTop - clientHeight < threshold &&
+    portfolio.value.length < portfolioTotal.value
+  ) {
+    portfolioSkip.value += portfolioLimit.value;
+    fetchPortfolio({ append: true });
+  }
+}
+
+function handleTransactionHistoryScroll() {
+  if (!transactionHistoryContainer || tradesLoading.value) return;
+  const threshold = 120; // px from bottom
+  const { scrollTop, scrollHeight, clientHeight } = transactionHistoryContainer;
+  // Scroll down: load next batch
+  if (
+    scrollHeight - scrollTop - clientHeight < threshold &&
+    (visibleBatchIndex.value + 1) * batchSize.value < tradesTotal.value
+  ) {
+    visibleBatchIndex.value += 1;
+    tradesSkip.value = visibleBatchIndex.value * batchSize.value;
+    fetchTransactionHistory();
+  }
+  // Scroll up: load previous batch
+  if (
+    scrollTop < threshold &&
+    visibleBatchIndex.value > 0
+  ) {
+    visibleBatchIndex.value -= 1;
+    tradesSkip.value = visibleBatchIndex.value * batchSize.value;
+    fetchTransactionHistory();
+  }
+}
+
+function setupPortfolioScroll() {
+  nextTick(() => {
+    portfolioTableContainer = document.querySelector('.portfolio-table-container');
+    if (portfolioTableContainer) {
+      portfolioTableContainer.addEventListener('scroll', handlePortfolioScroll);
+    }
+  });
+}
+
+function setupTransactionHistoryScroll() {
+  nextTick(() => {
+    transactionHistoryContainer = document.querySelector('.portfolio-history-container');
+    if (transactionHistoryContainer) {
+      transactionHistoryContainer.addEventListener('scroll', handleTransactionHistoryScroll);
+    }
+  });
+}
+
+function cleanupPortfolioScroll() {
+  if (portfolioTableContainer) {
+    portfolioTableContainer.removeEventListener('scroll', handlePortfolioScroll);
+    portfolioTableContainer = null;
+  }
+}
+
+function cleanupTransactionHistoryScroll() {
+  if (transactionHistoryContainer) {
+    transactionHistoryContainer.removeEventListener('scroll', handleTransactionHistoryScroll);
+    transactionHistoryContainer = null;
+  }
+}
+
+watch(selectedPortfolioIndex, () => {
+  portfolioSkip.value = 0;
+  tradesSkip.value = 0;
+  visibleBatchIndex.value = 0;
+  nextTick(() => {
+    setupPortfolioScroll();
+    setupTransactionHistoryScroll();
+  });
+});
+
+onMounted(() => {
+  setupPortfolioScroll();
+  setupTransactionHistoryScroll();
+});
+
+onUnmounted(() => {
+  cleanupPortfolioScroll();
+  cleanupTransactionHistoryScroll();
+});
+
+const portfolioSummary = ref(null);
+
+async function fetchPortfolioSummary() {
+  try {
+    const headers = { 'x-api-key': apiKey };
+    const response = await fetch(
+      `/api/portfolio/summary?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
+      { headers }
+    );
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    portfolioSummary.value = await response.json();
+  } catch (error) {
+    console.error('Error fetching portfolio summary:', error);
+    portfolioSummary.value = null;
+  }
+}
 
 </script>
 
@@ -1737,4 +1597,10 @@ const portfolioWithComputed = computed(() =>
   height: calc(100vh - 72px);
   overflow-y: auto;
 }
+/* Limit height and add scroll for portfolio and history tables */
+.scrollable-table {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
 </style>

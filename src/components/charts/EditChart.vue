@@ -84,7 +84,7 @@
 
 <script setup>
 
-import { ref, defineEmits, watch } from 'vue'
+import { ref, watch } from 'vue'
 const emit = defineEmits(['close', 'save'])
 
 const props = defineProps({

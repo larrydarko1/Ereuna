@@ -109,6 +109,7 @@ async def start_aggregator(message_queue, mongo_client):
     week_start_utc = get_week_start(now_utc)
     # Query all weekly candles for current week
     weekly_docs = await weekly_collection.find({"timestamp": week_start_utc}).to_list(length=10000)
+    symbols_to_delete = []
     for doc in weekly_docs:
         symbol = doc["tickerID"]
         pending_weekly_candles[symbol] = {
@@ -121,6 +122,10 @@ async def start_aggregator(message_queue, mongo_client):
             "end": week_start_utc + timedelta(days=7),
             "final": False
         }
+        symbols_to_delete.append(symbol)
+    # Delete current week's weekly candle documents from DB
+    if symbols_to_delete:
+        await weekly_collection.delete_many({"tickerID": {"$in": symbols_to_delete}, "timestamp": week_start_utc})
 
     try:
         processed_count = 0
@@ -438,21 +443,29 @@ async def start_aggregator(message_queue, mongo_client):
                     await publish_candle(symbol, '1w', {**doc, 'final': True})
                     del pending_weekly_candles[symbol]
 
-                # Bulk delete/insert finalized weekly candles at market close
-                # This ensures all weekly candles are updated once per day, mirroring daily logic
-                if hasattr(start_aggregator, "weekly_finalized_docs") and len(start_aggregator.weekly_finalized_docs) > 0 and now.hour == MARKET_CLOSE_UTC_HOUR and now.minute == 0:
+                # At market close (end of day), bulk insert weekly candles for each symbol
+                if now.hour == MARKET_CLOSE_UTC_HOUR and now.minute == 0:
                     week_start_utc = get_week_start(now)
-                    try:
-                        await weekly_collection.delete_many({
-                            'tickerID': {'$in': list(start_aggregator.weekly_finalized_symbols)},
-                            'timestamp': week_start_utc
-                        })
-                        await weekly_collection.insert_many(start_aggregator.weekly_finalized_docs)
-                        logger.info(f"Bulk updated {len(start_aggregator.weekly_finalized_docs)} weekly candles at market close.")
-                    except Exception as e:
-                        logger.error(f"Error bulk updating weekly candles: {e}")
-                    start_aggregator.weekly_finalized_docs.clear()
-                    start_aggregator.weekly_finalized_symbols.clear()
+                    weekly_docs_to_insert = []
+                    for symbol, weekly_candle in pending_weekly_candles.items():
+                        doc = {
+                            'tickerID': symbol,
+                            'timestamp': week_start_utc,
+                            'open': weekly_candle['open'],
+                            'high': weekly_candle['high'],
+                            'low': weekly_candle['low'],
+                            'close': weekly_candle['close'],
+                            'volume': weekly_candle['volume']
+                        }
+                        weekly_docs_to_insert.append(doc)
+                    if weekly_docs_to_insert:
+                        try:
+                            await weekly_collection.insert_many(weekly_docs_to_insert)
+                            logger.info(f"Inserted {len(weekly_docs_to_insert)} weekly candles at market close.")
+                        except Exception as e:
+                            logger.error(f"Error bulk inserting weekly candles: {e}")
+                    # Clear weekly cache after upload
+                    pending_weekly_candles.clear()
 
             except Exception as e:
                 logger.error(f"Aggregator message error: {e}, msg: {msg}")
