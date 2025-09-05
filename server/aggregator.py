@@ -364,24 +364,11 @@ async def start_aggregator(message_queue, mongo_client):
                         logger.error(f"Error inserting daily candle: {e}")
                     await publish_candle(symbol, '1d', {**doc, 'final': True})
                     del pending_daily_candles[symbol]
-
-                # --- Weekly candle logic ---
-                # Always use Monday 00:00 UTC for timestamp
-                if isinstance(ts, (int, float)):
-                    dt_utc = datetime.utcfromtimestamp(ts / 1000).replace(tzinfo=timezone.utc)
-                elif isinstance(ts, str):
-                    dt_utc = datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone(timezone.utc)
-                else:
-                    raise ValueError("Unknown timestamp format")
-
+                # --- Weekly candle logic (UTC week start) ---
                 week_start_utc = get_week_start(dt_utc)
                 week_end_utc = week_start_utc + timedelta(days=7)
                 weekly_key = symbol
                 weekly_candle = pending_weekly_candles.get(weekly_key)
-                # Prepare for bulk weekly finalization
-                if not hasattr(start_aggregator, "weekly_finalized_docs"):
-                    start_aggregator.weekly_finalized_docs = []
-                    start_aggregator.weekly_finalized_symbols = set()
                 if not weekly_candle or weekly_candle.get('end') != week_end_utc:
                     # Finalize previous weekly candle if exists and not finalized
                     if weekly_candle and not weekly_candle.get('final', False):
@@ -395,8 +382,10 @@ async def start_aggregator(message_queue, mongo_client):
                             'close': weekly_candle['close'],
                             'volume': weekly_candle['volume']
                         }
-                        start_aggregator.weekly_finalized_docs.append(doc)
-                        start_aggregator.weekly_finalized_symbols.add(symbol)
+                        try:
+                            await weekly_collection.insert_one(doc)
+                        except Exception as e:
+                            logger.error(f"Error inserting weekly candle: {e}")
                         await publish_candle(symbol, '1w', {**doc, 'final': True})
                     # Start new weekly candle
                     pending_weekly_candles[weekly_key] = {
@@ -428,21 +417,43 @@ async def start_aggregator(message_queue, mongo_client):
                     'timestamp': pending_weekly_candles[weekly_key]['start'],
                     'final': False
                 })
+                # Finalize and persist weekly candles if their interval is over (market close)
+                weekly_candle = pending_weekly_candles.get(symbol)
+                if weekly_candle and not weekly_candle['final'] and now >= weekly_candle['end']:
+                    weekly_candle['final'] = True
+                    doc = {
+                        'tickerID': symbol,
+                        'timestamp': weekly_candle['start'],
+                        'open': weekly_candle['open'],
+                        'high': weekly_candle['high'],
+                        'low': weekly_candle['low'],
+                        'close': weekly_candle['close'],
+                        'volume': weekly_candle['volume']
+                    }
+                    if not hasattr(start_aggregator, "weekly_finalized_docs"):
+                        start_aggregator.weekly_finalized_docs = []
+                        start_aggregator.weekly_finalized_symbols = set()
+                    start_aggregator.weekly_finalized_docs.append(doc)
+                    start_aggregator.weekly_finalized_symbols.add(symbol)
+                    await publish_candle(symbol, '1w', {**doc, 'final': True})
+                    del pending_weekly_candles[symbol]
 
-                # If all weekly candles for finalized symbols are collected, bulk delete/insert
-                # This should be triggered at market close, but here we check if all symbols are finalized
-                # You may want to move this logic to a dedicated market close handler for production
-                if hasattr(start_aggregator, "weekly_finalized_docs") and len(start_aggregator.weekly_finalized_docs) > 0:
-                    # Bulk delete for this week
-                    await weekly_collection.delete_many({
-                        'tickerID': {'$in': list(start_aggregator.weekly_finalized_symbols)},
-                        'timestamp': week_start_utc
-                    })
-                    # Bulk insert all finalized weekly candles
-                    await weekly_collection.insert_many(start_aggregator.weekly_finalized_docs)
-                    # Clear for next week
+                # Bulk delete/insert finalized weekly candles at market close
+                # This ensures all weekly candles are updated once per day, mirroring daily logic
+                if hasattr(start_aggregator, "weekly_finalized_docs") and len(start_aggregator.weekly_finalized_docs) > 0 and now.hour == MARKET_CLOSE_UTC_HOUR and now.minute == 0:
+                    week_start_utc = get_week_start(now)
+                    try:
+                        await weekly_collection.delete_many({
+                            'tickerID': {'$in': list(start_aggregator.weekly_finalized_symbols)},
+                            'timestamp': week_start_utc
+                        })
+                        await weekly_collection.insert_many(start_aggregator.weekly_finalized_docs)
+                        logger.info(f"Bulk updated {len(start_aggregator.weekly_finalized_docs)} weekly candles at market close.")
+                    except Exception as e:
+                        logger.error(f"Error bulk updating weekly candles: {e}")
                     start_aggregator.weekly_finalized_docs.clear()
                     start_aggregator.weekly_finalized_symbols.clear()
+
             except Exception as e:
                 logger.error(f"Aggregator message error: {e}, msg: {msg}")
                 anomaly_count += 1
