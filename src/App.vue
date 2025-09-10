@@ -4,7 +4,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import Message from '@/components/message.vue';
 import { useRoute } from 'vue-router';
 
@@ -74,7 +74,7 @@ defineExpose({
 
 const route = useRoute();
 const isMobile = ref(false);
-const allowedRoutes = ['/charts', '/screener', '/dashboard'];
+const allowedRoutes = ['/charts', '/screener', '/dashboard', '/account', '/portfolio', '/account'];
 
 const isAllowedRoute = computed(() => {
   return allowedRoutes.includes(route.path);

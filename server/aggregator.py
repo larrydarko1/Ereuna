@@ -2,10 +2,7 @@ import asyncio
 import json
 from datetime import datetime, timedelta, timezone, time as dt_time
 import logging
-import motor.motor_asyncio
-from organizer import updateTimeSeries
 from collections import defaultdict
-import pytz
 
 def get_bucket(ts, minutes):
     if isinstance(ts, (int, float)):
@@ -279,22 +276,6 @@ async def start_aggregator(message_queue, mongo_client):
                 daily_candle = pending_daily_candles.get(daily_key)
                 if not daily_candle or daily_candle.get('end') != market_close_utc:
                     # Finalize previous daily candle if exists and not finalized
-                    if daily_candle and not daily_candle.get('final', False):
-                        daily_candle['final'] = True
-                        doc = {
-                            'tickerID': symbol,
-                            'timestamp': daily_candle['start'],
-                            'open': daily_candle['open'],
-                            'high': daily_candle['high'],
-                            'low': daily_candle['low'],
-                            'close': daily_candle['close'],
-                            'volume': daily_candle['volume']
-                        }
-                        try:
-                            await daily_collection.insert_one(doc)
-                        except Exception as e:
-                            logger.error(f"Error inserting daily candle: {e}")
-                        await publish_candle(symbol, '1d', {**doc, 'final': True})
                     # Start new daily candle
                     pending_daily_candles[daily_key] = {
                         'open': price,
@@ -350,25 +331,6 @@ async def start_aggregator(message_queue, mongo_client):
                         await publish_candle(symbol, tf, {**doc, 'final': True})
                         del pending_candles[tf_key]
 
-                # Finalize and persist daily candles if their interval is over (market close)
-                daily_candle = pending_daily_candles.get(symbol)
-                if daily_candle and not daily_candle['final'] and now >= daily_candle['end']:
-                    daily_candle['final'] = True
-                    doc = {
-                        'tickerID': symbol,
-                        'timestamp': daily_candle['start'],
-                        'open': daily_candle['open'],
-                        'high': daily_candle['high'],
-                        'low': daily_candle['low'],
-                        'close': daily_candle['close'],
-                        'volume': daily_candle['volume']
-                    }
-                    try:
-                        await daily_collection.insert_one(doc)
-                    except Exception as e:
-                        logger.error(f"Error inserting daily candle: {e}")
-                    await publish_candle(symbol, '1d', {**doc, 'final': True})
-                    del pending_daily_candles[symbol]
                 # --- Weekly candle logic (UTC week start) ---
                 week_start_utc = get_week_start(dt_utc)
                 week_end_utc = week_start_utc + timedelta(days=7)
@@ -376,22 +338,6 @@ async def start_aggregator(message_queue, mongo_client):
                 weekly_candle = pending_weekly_candles.get(weekly_key)
                 if not weekly_candle or weekly_candle.get('end') != week_end_utc:
                     # Finalize previous weekly candle if exists and not finalized
-                    if weekly_candle and not weekly_candle.get('final', False):
-                        weekly_candle['final'] = True
-                        doc = {
-                            'tickerID': symbol,
-                            'timestamp': weekly_candle['start'],
-                            'open': weekly_candle['open'],
-                            'high': weekly_candle['high'],
-                            'low': weekly_candle['low'],
-                            'close': weekly_candle['close'],
-                            'volume': weekly_candle['volume']
-                        }
-                        try:
-                            await weekly_collection.insert_one(doc)
-                        except Exception as e:
-                            logger.error(f"Error inserting weekly candle: {e}")
-                        await publish_candle(symbol, '1w', {**doc, 'final': True})
                     # Start new weekly candle
                     pending_weekly_candles[weekly_key] = {
                         'open': price,
@@ -422,50 +368,7 @@ async def start_aggregator(message_queue, mongo_client):
                     'timestamp': pending_weekly_candles[weekly_key]['start'],
                     'final': False
                 })
-                # Finalize and persist weekly candles if their interval is over (market close)
-                weekly_candle = pending_weekly_candles.get(symbol)
-                if weekly_candle and not weekly_candle['final'] and now >= weekly_candle['end']:
-                    weekly_candle['final'] = True
-                    doc = {
-                        'tickerID': symbol,
-                        'timestamp': weekly_candle['start'],
-                        'open': weekly_candle['open'],
-                        'high': weekly_candle['high'],
-                        'low': weekly_candle['low'],
-                        'close': weekly_candle['close'],
-                        'volume': weekly_candle['volume']
-                    }
-                    if not hasattr(start_aggregator, "weekly_finalized_docs"):
-                        start_aggregator.weekly_finalized_docs = []
-                        start_aggregator.weekly_finalized_symbols = set()
-                    start_aggregator.weekly_finalized_docs.append(doc)
-                    start_aggregator.weekly_finalized_symbols.add(symbol)
-                    await publish_candle(symbol, '1w', {**doc, 'final': True})
-                    del pending_weekly_candles[symbol]
 
-                # At market close (end of day), bulk insert weekly candles for each symbol
-                if now.hour == MARKET_CLOSE_UTC_HOUR and now.minute == 0:
-                    week_start_utc = get_week_start(now)
-                    weekly_docs_to_insert = []
-                    for symbol, weekly_candle in pending_weekly_candles.items():
-                        doc = {
-                            'tickerID': symbol,
-                            'timestamp': week_start_utc,
-                            'open': weekly_candle['open'],
-                            'high': weekly_candle['high'],
-                            'low': weekly_candle['low'],
-                            'close': weekly_candle['close'],
-                            'volume': weekly_candle['volume']
-                        }
-                        weekly_docs_to_insert.append(doc)
-                    if weekly_docs_to_insert:
-                        try:
-                            await weekly_collection.insert_many(weekly_docs_to_insert)
-                            logger.info(f"Inserted {len(weekly_docs_to_insert)} weekly candles at market close.")
-                        except Exception as e:
-                            logger.error(f"Error bulk inserting weekly candles: {e}")
-                    # Clear weekly cache after upload
-                    pending_weekly_candles.clear()
 
             except Exception as e:
                 logger.error(f"Aggregator message error: {e}, msg: {msg}")
@@ -494,3 +397,63 @@ async def start_aggregator(message_queue, mongo_client):
             except Exception as e:
                 logger.error(f"MongoDB insert error on shutdown: {e}")
 
+async def flush_daily_weekly_candles_at_market_close(daily_collection, weekly_collection, market_close_utc_hour=20):
+    while True:
+        now = datetime.utcnow().replace(tzinfo=timezone.utc)
+        # Wait until the next market close (20:00 UTC)
+        next_close = now.replace(hour=market_close_utc_hour, minute=0, second=0, microsecond=0)
+        if now >= next_close:
+            next_close += timedelta(days=1)
+        wait_seconds = (next_close - now).total_seconds()
+        await asyncio.sleep(wait_seconds)
+
+        # Flush daily candles
+        for symbol, daily_candle in list(pending_daily_candles.items()):
+            if not daily_candle.get('final', False):
+                daily_candle['final'] = True
+                doc = {
+                    'tickerID': symbol,
+                    'timestamp': daily_candle['start'],
+                    'open': daily_candle['open'],
+                    'high': daily_candle['high'],
+                    'low': daily_candle['low'],
+                    'close': daily_candle['close'],
+                    'volume': daily_candle['volume']
+                }
+                try:
+                    await daily_collection.insert_one(doc)
+                except Exception as e:
+                    logger.error(f"Error inserting daily candle (flush): {e}")
+                del pending_daily_candles[symbol]
+
+        # Flush weekly candles
+        for symbol, weekly_candle in list(pending_weekly_candles.items()):
+            if not weekly_candle.get('final', False):
+                weekly_candle['final'] = True
+                doc = {
+                    'tickerID': symbol,
+                    'timestamp': weekly_candle['start'],
+                    'open': weekly_candle['open'],
+                    'high': weekly_candle['high'],
+                    'low': weekly_candle['low'],
+                    'close': weekly_candle['close'],
+                    'volume': weekly_candle['volume']
+                }
+                try:
+                    await weekly_collection.insert_one(doc)
+                except Exception as e:
+                    logger.error(f"Error inserting weekly candle (flush): {e}")
+                del pending_weekly_candles[symbol]
+
+        logger.info("Flushed daily and weekly candles at market close.")
+
+# To run both tasks together:
+async def main_aggregator_and_flush(message_queue, mongo_client):
+    db = mongo_client.get_database('EreunaDB')
+    daily_collection = db.get_collection('OHCLVData')
+    weekly_collection = db.get_collection('OHCLVData2')
+    # Start both tasks
+    aggregator_task = asyncio.create_task(start_aggregator(message_queue, mongo_client))
+    flush_task = asyncio.create_task(flush_daily_weekly_candles_at_market_close(daily_collection, weekly_collection))
+    await asyncio.gather(aggregator_task, flush_task)
+    

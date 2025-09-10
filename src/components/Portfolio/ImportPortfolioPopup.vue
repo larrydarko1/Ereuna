@@ -40,84 +40,89 @@ async function handleImportFile(event) {
     const lines = text.split(/\r?\n/);
 
     // Find section indices
-    const portfolioIdx = lines.findIndex(l => l.trim() === 'Portfolio');
-    const txIdx = lines.findIndex(l => l.trim() === 'Transaction History');
-    const cashIdx = lines.findIndex(l => l.trim().startsWith('Cash Balance'));
+    const statsIdx = lines.findIndex(l => l.trim() === 'Stats');
+    const positionsIdx = lines.findIndex(l => l.trim() === 'Positions');
+    const tradesIdx = lines.findIndex(l => l.trim() === 'Trades');
 
-// --- Portfolio section ---
-let portfolioData = [];
-if (portfolioIdx !== -1 && txIdx !== -1) {
-  // Find the header line (skip blank lines)
-  let headerLine = portfolioIdx + 1;
-  while (lines[headerLine] !== undefined && !lines[headerLine].trim()) headerLine++;
-  const headers = lines[headerLine].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  // Data lines: from first non-empty after header to txIdx
-  let i = headerLine + 1;
-  while (i < txIdx) {
-    if (!lines[i] || !lines[i].trim()) { i++; continue; }
-    const values = lines[i].split(',').map(s => s.replace(/^"|"$/g, '').trim());
-    if (values.length === headers.length) {
-      const obj = {};
-      headers.forEach((h, idx) => {
-        if (h === 'Shares' || h === 'AvgPrice') {
-          obj[h] = values[idx] === '-' ? '-' : Number(values[idx]);
-        } else {
-          obj[h] = values[idx];
+    // --- Stats section ---
+    let stats = {};
+    if (statsIdx !== -1 && positionsIdx !== -1) {
+      let i = statsIdx + 1;
+      while (i < positionsIdx) {
+        if (!lines[i] || !lines[i].trim()) { i++; continue; }
+        const [key, value] = lines[i].split(',');
+        if (key && value !== undefined) {
+          let v = value.replace(/^"|"$/g, '').trim();
+          // Unescape single quote prefix
+          if (v.startsWith("'")) v = v.slice(1);
+          stats[key.trim()] = v;
         }
-      });
-      if (obj.Symbol) portfolioData.push(obj);
+        i++;
+      }
     }
-    i++;
-  }
-}
 
-// --- Transaction History section ---
-let txData = [];
-if (txIdx !== -1 && cashIdx !== -1) {
-  let headerLine = txIdx + 1;
-  while (lines[headerLine] !== undefined && !lines[headerLine].trim()) headerLine++;
-  const headers = lines[headerLine].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  let i = headerLine + 1;
-  while (i < cashIdx) {
-    if (!lines[i] || !lines[i].trim()) { i++; continue; }
-    const values = lines[i].split(',').map(s => s.replace(/^"|"$/g, '').trim());
-    if (values.length === headers.length) {
-      const obj = {};
-      headers.forEach((h, idx) => {
-        if (['Shares', 'Price', 'Commission', 'Total'].includes(h)) {
-          obj[h] = values[idx] === '-' ? '-' : Number(values[idx]);
-        } else if (h === 'Date') {
-          const d = values[idx];
-          obj[h] = /^\d{4}-\d{2}-\d{2}/.test(d) ? new Date(d).toISOString() : d;
-        } else {
-          obj[h] = values[idx];
+    // --- Positions section ---
+    let positions = [];
+    if (positionsIdx !== -1 && tradesIdx !== -1) {
+      let headerLine = positionsIdx + 1;
+      while (lines[headerLine] !== undefined && !lines[headerLine].trim()) headerLine++;
+      const headers = lines[headerLine].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+      let i = headerLine + 1;
+      while (i < tradesIdx) {
+        if (!lines[i] || !lines[i].trim()) { i++; continue; }
+        const values = lines[i].split(',').map(s => s.replace(/^"|"$/g, '').trim());
+        if (values.length === headers.length) {
+          const obj = {};
+          headers.forEach((h, idx) => {
+            let v = values[idx];
+            // Unescape single quote prefix
+            if (typeof v === 'string' && v.startsWith("'")) v = v.slice(1);
+            obj[h] = v;
+          });
+          positions.push(obj);
         }
-      });
-      if (obj.Action) txData.push(obj);
+        i++;
+      }
     }
-    i++;
-  }
-}
-    // --- Cash section ---
-    let cashValue = 0;
-    if (cashIdx !== -1) {
-      // Find the first non-empty line after the header for cash value
-      let cashLine = cashIdx + 1;
-      while (lines[cashLine] && !lines[cashLine].trim()) cashLine++;
-      if (lines[cashLine]) {
-        cashValue = Number(lines[cashLine].replace(/"/g, '').trim()) || 0;
+
+    // --- Trades section ---
+    let trades = [];
+    if (tradesIdx !== -1) {
+      let headerLine = tradesIdx + 1;
+      while (lines[headerLine] !== undefined && !lines[headerLine].trim()) headerLine++;
+      const headers = lines[headerLine].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+      let i = headerLine + 1;
+      while (i < lines.length) {
+        if (!lines[i] || !lines[i].trim()) { i++; continue; }
+        const values = lines[i].split(',').map(s => s.replace(/^"|"$/g, '').trim());
+        if (values.length === headers.length) {
+          const obj = {};
+          headers.forEach((h, idx) => {
+            let v = values[idx];
+            if (typeof v === 'string' && v.startsWith("'")) v = v.slice(1);
+            obj[h] = v;
+          });
+          trades.push(obj);
+        }
+        i++;
       }
     }
 
     // Security: validate imported data for dangerous values (CSV injection)
     function isDangerousCSVValue(v) {
+      if (typeof v === 'string' && v.startsWith("'")) v = v.slice(1);
       return typeof v === 'string' && /^[=+\-@]/.test(v) && v.length > 1;
     }
-    for (const row of [...portfolioData, ...txData]) {
-      for (const v of Object.values(row)) {
+    for (const row of [...positions, ...trades]) {
+      for (let v of Object.values(row)) {
         if (isDangerousCSVValue(v)) {
           throw new Error('Potentially dangerous value detected in CSV.');
         }
+      }
+    }
+    for (let v of Object.values(stats)) {
+      if (isDangerousCSVValue(v)) {
+        throw new Error('Potentially dangerous value detected in CSV.');
       }
     }
 
@@ -125,9 +130,9 @@ if (txIdx !== -1 && cashIdx !== -1) {
     const payload = {
       username: props.user,
       portfolio: props.portfolio,
-      portfolioData,
-      txData,
-      cash: cashValue
+      stats,
+      positions,
+      trades
     };
 
     const response = await fetch('/api/portfolio/import', {

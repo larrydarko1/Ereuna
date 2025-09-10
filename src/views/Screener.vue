@@ -2499,7 +2499,7 @@ p {
   box-shadow: none;
   appearance: none;
   -webkit-appearance: none;
-  min-width: 70px;
+  min-width: 80px;
 }
 
 .snavbtn span {
