@@ -1,10 +1,10 @@
 <template>
   <div class="watch-panel-container" style="display: flex; align-items: center; justify-content: space-between;">
     <div class="watch-panel" style="display: flex; gap: 8px;">
-      <template v-if="props.watchPanel.length > 0">
-        <div class="watch-panel-track" :class="{ 'scrolling': props.watchPanel.length > 12 }">
-          <template v-for="repeat in props.watchPanel.length > 12 ? 2 : 1">
-            <button v-for="(ticker, i) in props.watchPanel" :key="repeat + '-' + i"
+      <template v-if="watchPanel.length > 0">
+        <div class="watch-panel-track" :class="{ 'scrolling': watchPanel.length > 12 }">
+          <template v-for="repeat in watchPanel.length > 12 ? 2 : 1">
+            <button v-for="(ticker, i) in watchPanel" :key="repeat + '-' + i"
               :class="{ active: props.defaultSymbol === ticker.Symbol, 'index-btn': true }"
               @click="selectSymbol(ticker.Symbol)">
               {{ ticker.Symbol }}
@@ -21,42 +21,148 @@
         <span class="no-symbols">No Symbols in Watch Panel</span>
       </template>
     </div>
-    <button class="edit-watch-panel-btn" @click="$emit('open-editor')">
+    <button class="edit-watch-panel-btn" @click="editWatchPanel = true;">
       Edit Watch Panel
     </button>
     <slot></slot>
   </div>
+  <WatchPanelEditor
+    v-if="editWatchPanel"
+    :apiKey="apiKey"
+    :user="user"
+    :watchPanel="watchPanel"
+    :fetchWatchPanel="fetchWatchPanel"
+    :notify="(msg) => notification.value.show(msg)"
+    @close="closeEditor"
+    @update="fetchWatchPanel"
+  />
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
+import WatchPanelEditor from '@/components/charts/WatchPanelEditor.vue';
 
 const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
   defaultSymbol: { type: String, required: true },
-  watchPanel: {
-    type: Array,
-    default: () => []
-  },
-  fetchWatchPanel: Function,
 });
 const emit = defineEmits(['select-symbol', 'open-editor']);
 
 function selectSymbol(symbol) {
   emit('select-symbol', symbol);
 }
-// Fetch watch panel data on mount
+
+const watchPanel = ref([]);
+
+// --- WebSocket WatchPanel data fetcher ---
+let ws = null;
+let wsReconnectTimeout = null;
+let wsReceived = false;
+function closeWatchPanelWS() {
+  if (ws) {
+    ws.close();
+    ws = null;
+  }
+  if (wsReconnectTimeout) {
+    clearTimeout(wsReconnectTimeout);
+    wsReconnectTimeout = null;
+  }
+}
+
+// Fallback REST API fetch
+async function fetchWatchPanel() {
+  try {
+    const headers = {
+      'x-api-key': props.apiKey
+    };
+    const response = await fetch(`/api/watchpanel/${props.user}`, {
+      headers: headers
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const newWatchPanel = await response.json();
+    watchPanel.value = newWatchPanel;
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      return;
+    }
+  }
+}
+
+// WebSocket fetch for WatchPanel (API key sent as protocol, not in query)
+async function fetchWatchPanelWS() {
+  closeWatchPanelWS();
+  wsReceived = false;
+  let user = encodeURIComponent(props.user);
+  let wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  let wsUrl = `${wsProto}://localhost:8000/ws/watchpanel?user=${user}`;
+  let triedRest = false;
+  ws = new WebSocket(wsUrl, props.apiKey); // API key as protocol
+  ws.onopen = () => {
+    // No-op, server sends initial data
+  };
+  ws.onmessage = (event) => {
+    let msg;
+    try {
+      msg = JSON.parse(event.data);
+    } catch (e) {
+      console.error('WebSocket parse error', e, event.data);
+      return;
+    }
+    if (msg.type === 'init' || msg.type === 'update') {
+      watchPanel.value = msg.data;
+      wsReceived = true;
+    } else if (msg.error) {
+      console.error('WebSocket error:', msg.error);
+    }
+  };
+  ws.onerror = async (e) => {
+    console.error('WebSocket error', e);
+    if (!triedRest) {
+      triedRest = true;
+      await fetchWatchPanel();
+    }
+  };
+  ws.onclose = (e) => {
+    // Try to reconnect after a delay
+    if (!e.wasClean && !triedRest) {
+      wsReconnectTimeout = setTimeout(() => {
+        fetchWatchPanelWS();
+      }, 2000);
+    }
+  };
+}
+
 onMounted(() => {
   if (props.user) {
-    props.fetchWatchPanel();
+    fetchWatchPanelWS();
+    // Optionally, fallback to REST if websocket doesn't set data in 2s
+    setTimeout(() => {
+      if (!wsReceived) {
+        fetchWatchPanel();
+      }
+    }, 2000);
   }
 });
+
+const editWatchPanel = ref(false);
+
+function closeEditor() {
+  editWatchPanel.value = false;
+}
+
+function openEditor() {
+  editWatchPanel.value = true;
+}
 </script>
 
 <style scoped>
 .no-symbols {
   color: var(--text2);
 }
-
 </style>

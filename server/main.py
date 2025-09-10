@@ -4,7 +4,7 @@ from organizer import Daily
 import datetime as dt
 import os
 import json
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Request,status
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import websockets
@@ -51,6 +51,7 @@ latest_quotes = {}  # {symbol: tiingo_data_dict}
 
 
 # Only stocks/ETFs: get tickers from DB at startup in production
+API_KEY = os.getenv("VITE_EREUNA_KEY")
 stock_symbols = []
 ssl_ctx = ssl._create_unverified_context()
 
@@ -302,6 +303,12 @@ async def market_hours_manager():
 async def start_market_hours_manager():
     logger.info("Starting market_hours_manager task on startup.")
     asyncio.create_task(market_hours_manager())
+    # Start daily/weekly candle flush coroutine
+    from aggregator import flush_daily_weekly_candles_at_market_close
+    daily_collection = db.get_collection('OHCLVData')
+    weekly_collection = db.get_collection('OHCLVData2')
+    logger.info("Starting flush_daily_weekly_candles_at_market_close task on startup.")
+    asyncio.create_task(flush_daily_weekly_candles_at_market_close(daily_collection, weekly_collection))
 
 # --- Admin endpoint to manually unsubscribe all tickers ---
 @app.post("/admin/unsubscribe_all")
@@ -650,5 +657,164 @@ async def websocket_chartdata(
     else:
         logger.info(f"Market is closed. Not subscribing to pubsub for {ticker} ({pubsub_tf})")
 
+# --- GET latest quotes for active portfolio ---
+def sanitize_input(val):
+    # Basic sanitization: strip and uppercase
+    if not isinstance(val, str):
+        return None
+    return val.strip().upper()
+
+@app.websocket("/ws/quotes")
+async def websocket_quotes(
+    websocket: WebSocket,
+    symbols: str = Query(...),
+    x_api_key: str = Query(None, alias="x-api-key")
+):
+    # Validate API key
+    if x_api_key != API_KEY:
+        await websocket.accept()
+        await websocket.send_text(json.dumps({"error": "Invalid API key"}))
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    await websocket.accept()
+    symbol_list = [sanitize_input(s) for s in symbols.split(',') if s.strip()]
+    try:
+        while True:
+            result = {}
+            for sym in symbol_list:
+                doc = await db['OHCLVData1m'].find({'tickerID': sym}).sort('timestamp', -1).limit(1).to_list(length=1)
+                if doc and len(doc) > 0 and 'close' in doc[0]:
+                    result[sym] = float(doc[0]['close'])
+                else:
+                    result[sym] = None
+            await websocket.send_text(json.dumps(result))
+            await asyncio.sleep(2)
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        await websocket.send_text(json.dumps({"error": str(e)}))
+        await websocket.close()
+
+# --- WebSocket endpoint for user's WatchPanel ---
+@app.websocket("/ws/watchpanel")
+async def websocket_watchpanel(
+    websocket: WebSocket,
+    user: str = Query(...)
+):
+    # Get API key from Sec-WebSocket-Protocol header
+    api_key = websocket.headers.get('sec-websocket-protocol')
+    if api_key != API_KEY:
+        logger.warning(f"[WatchPanel WS] Invalid API key: {api_key}")
+        await websocket.accept()
+        await websocket.send_text(json.dumps({"error": "Invalid API key"}))
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    # Accept with correct subprotocol for handshake
+    await websocket.accept(subprotocol=api_key)
+    # Fetch user's WatchPanel symbols (max 20)
+    user_doc = await db.Users.find_one({'Username': user})
+    if not user_doc or not isinstance(user_doc.get('WatchPanel'), list):
+        logger.warning(f"[WatchPanel WS] WatchPanel not found for user: {user}")
+        await websocket.send_text(json.dumps({"error": "WatchPanel not found"}))
+        await websocket.close()
+        return
+
+    tickers = user_doc['WatchPanel'][:20]
+    # Initial send: use cached candle for today if available, else fallback to latest two DB candles
+    watch_panel_data = []
+    for ticker in tickers:
+        docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(1).to_list(length=1)
+        previous_docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).skip(1).limit(1).to_list(length=1)
+        cached_candle = get_latest_in_progress_candle(ticker, '1d')
+        if cached_candle and previous_docs:
+            latest_close = float(str(cached_candle['close'])[:8])
+            previous_close = float(str(previous_docs[0]['close'])[:8])
+            percentage_change = ((latest_close - previous_close) / previous_close) * 100
+            watch_panel_data.append({
+                "Symbol": ticker,
+                "percentageReturn": f"{percentage_change:.2f}%"
+            })
+        elif docs and previous_docs:
+            latest_close = float(str(docs[0]['close'])[:8])
+            previous_close = float(str(previous_docs[0]['close'])[:8])
+            percentage_change = ((latest_close - previous_close) / previous_close) * 100
+            watch_panel_data.append({
+                "Symbol": ticker,
+                "percentageReturn": f"{percentage_change:.2f}%"
+            })
+    try:
+        await websocket.send_text(json.dumps({"type": "init", "data": watch_panel_data}))
+    except Exception as e:
+        logger.error(f"[WatchPanel WS] Error sending initial data: {e}")
+        await websocket.close()
+        return
+
+    # Subscribe to pubsub for each ticker (daily channel)
+    queues = []
+    for ticker in tickers:
+        q = asyncio.Queue()
+        pubsub_channels[(ticker, '1d')].append(q)
+        queues.append((ticker, q))
+
+    try:
+        while True:
+            update_tasks = [asyncio.create_task(q.get()) for _, q in queues]
+            done, _ = await asyncio.wait(update_tasks, return_when=asyncio.FIRST_COMPLETED)
+            updates = []
+            for idx, (ticker, q) in enumerate(queues):
+                if update_tasks[idx] in done:
+                    try:
+                        cndl = update_tasks[idx].result()
+                        previous_docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).skip(1).limit(1).to_list(length=1)
+                        cached_candle = get_latest_in_progress_candle(ticker, '1d')
+                        if cached_candle and previous_docs:
+                            latest_close = float(str(cached_candle['close'])[:8])
+                            previous_close = float(str(previous_docs[0]['close'])[:8])
+                            percentage_change = ((latest_close - previous_close) / previous_close) * 100
+                            updates.append({
+                                "Symbol": ticker,
+                                "percentageReturn": f"{percentage_change:.2f}%"
+                            })
+                        else:
+                            docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
+                            if len(docs) == 2:
+                                latest_close = float(str(docs[0]['close'])[:8])
+                                previous_close = float(str(docs[1]['close'])[:8])
+                                percentage_change = ((latest_close - previous_close) / previous_close) * 100
+                                updates.append({
+                                    "Symbol": ticker,
+                                    "percentageReturn": f"{percentage_change:.2f}%"
+                                })
+                    except Exception as e:
+                        logger.error(f"[WatchPanel WS] Error processing update for {ticker}: {e}")
+            if updates:
+                try:
+                    await websocket.send_text(json.dumps({"type": "update", "data": updates}))
+                except Exception as e:
+                    logger.error(f"[WatchPanel WS] Error sending update: {e}")
+                    break
+    except WebSocketDisconnect:
+        logger.info(f"[WatchPanel WS] Client disconnected: user={user}")
+    except Exception as e:
+        logger.error(f"[WatchPanel WS] Exception: {e}")
+        try:
+            await websocket.send_text(json.dumps({"error": str(e)}))
+        except Exception:
+            pass
+    finally:
+        for ticker, q in queues:
+            try:
+                pubsub_channels[(ticker, '1d')].remove(q)
+            except (KeyError, ValueError):
+                pass
+        try:
+            await websocket.close()
+        except Exception:
+            pass
+        
+
 # curl -X POST http://localhost:8000/admin/unsubscribe_all
 # wscat -c "ws://localhost:8000/ws/tiingo_raw"
+# wscat -c "ws://localhost:8000/ws/quotes?symbols=TSLA&x-api-key=A3hdbeuyewhedhweuHHS3263ed9d8h32dh238dh32hd82hd928hdjddh23hd8923Y"

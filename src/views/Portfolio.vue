@@ -19,18 +19,16 @@
       <div>
         <button class="trade-btn" @click="showTradeModal = true">New Trade</button>
         <button class="trade-btn" style="margin-left: 12px;" @click="showAddCashModal = true">Add Cash</button>
+        <button class="trade-btn" style="margin-left: 12px;" @click="showBaseValueModal = true">Set Base Value</button>
         <button class="trade-btn2" style="margin-left: 12px;" @click="showResetDialog = true">Reset</button>
        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
       <button class="trade-btn" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)" @click="showImportPopup = true">Import</button>
-  <button class="trade-btn" @click="showDownloadPopup = true">Export</button>
+<button class="trade-btn" :disabled="isPortfolioBlank" @click="showDownloadPopup = true">Export</button>
 <DownloadPortfolioPopup
   v-if="showDownloadPopup"
-  :portfolio="portfolioWithComputed"
-  :transactionHistory="transactionHistory"
-  :cash="cash"
-  :stats="portfolioStats"
-  :biggestWinner="biggestWinner"
-  :biggestLoser="biggestLoser"
+  :user="user"
+  :api-key="apiKey"
+  :portfolio="selectedPortfolioIndex"
   @close="showDownloadPopup = false"
 />
     </div>
@@ -52,7 +50,7 @@
   :api-key="apiKey"
   :portfolio="selectedPortfolioIndex"
   @close="showTradeModal = false"
-  @refresh-history="{ fetchCash(); fetchPortfolio(); fetchTransactionHistory(); showTradeModal = false }"
+  @refresh-history="{ fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showTradeModal = false }"
   :cash="cash"
 />
       <SellTradePopup
@@ -73,7 +71,15 @@
   :api-key="apiKey"
   :portfolio="selectedPortfolioIndex"
   @close="showAddCashModal = false"
-  @cash-added="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); showAddCashModal = false }"
+  @cash-added="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showAddCashModal = false }"
+/>
+<BaseValuePopup
+  v-if="showBaseValueModal"
+  :user="user"
+  :api-key="apiKey"
+  :portfolio="selectedPortfolioIndex"
+  @close="showBaseValueModal = false"
+  @base-value-updated="fetchPortfolioSummary(); fetchPortfolio(); showBaseValueModal = false"
 />
 <Archetypes v-if="showLossesInfo" @close="showLossesInfo = false" />
 <ImportPortfolioPopup
@@ -82,7 +88,7 @@
           :api-key="apiKey"
           :portfolio="selectedPortfolioIndex"
           @close="showImportPopup = false"
-          @imported="() => { fetchPortfolio(); fetchTransactionHistory(); fetchCash(); }"
+          @imported="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showImportPopup = false }"
         />
     </div>
    <div class="portfolio-archetype">
@@ -118,6 +124,15 @@
   </div>
 </div>
     <div class="portfolio-summary">
+      <div class="summary-card">
+      <div class="summary-title">Base Value</div>
+      <div class="summary-value">
+        ${{ portfolioSummary?.BaseValue?.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }) ?? '-' }}
+      </div>
+    </div>
       <div class="summary-card">
       <div class="summary-title">Total Value</div>
       <div class="summary-value">
@@ -391,7 +406,7 @@
 </div>
     <div class="portfolio-history-container scrollable-table">
       <h2>Transaction History</h2>
-      <table class="portfolio-table" >
+      <table class="portfolio-table">
         <thead>
           <tr>
             <th>Date</th>
@@ -403,9 +418,9 @@
             <th>Total</th>
           </tr>
         </thead>
-        <tbody >
-            <tr v-if="sortedTransactionHistory.length === 0">
-            <td colspan="6" style="text-align:center; color: var(--text2);">
+        <tbody>
+          <tr v-if="sortedTransactionHistory.length === 0">
+            <td colspan="7" style="text-align:center; color: var(--text2);">
               No transaction history
             </td>
           </tr>
@@ -414,42 +429,12 @@
             <td>{{ tx.Symbol }}</td>
             <td>{{ tx.Action }}</td>
             <td>{{ tx.Shares }}</td>
-            <td>
-              {{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toFixed(2) }}
-            </td>
-            <td>
-              {{ isNaN(Number(tx.Commission)) ? '-' : '$' + Number(tx.Commission).toFixed(2) }}
-            </td>
-            <td>${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
-            </td>
+            <td>{{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toFixed(2) }}</td>
+            <td>{{ isNaN(Number(tx.Commission)) ? '-' : '$' + Number(tx.Commission).toFixed(2) }}</td>
+            <td>${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
           </tr>
         </tbody>
       </table>
-        <div class="portfolio-tbody-scroll">
-          <table class="portfolio-table">
-            <tbody>
-              <tr v-if="sortedTransactionHistory.length === 0">
-                <td colspan="6" style="text-align:center; color: var(--text2);">
-                  No transaction history
-                </td>
-              </tr>
-              <tr v-for="(tx, i) in sortedTransactionHistory" :key="i">
-                <td>{{ tx.Date ? tx.Date.slice(0, 10) : '' }}</td>
-                <td>{{ tx.Symbol }}</td>
-                <td>{{ tx.Action }}</td>
-                <td>{{ tx.Shares }}</td>
-                <td>
-                  {{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toFixed(2) }}
-                </td>
-                <td>
-                  {{ isNaN(Number(tx.Commission)) ? '-' : '$' + Number(tx.Commission).toFixed(2) }}
-                </td>
-                <td>${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
     </div>
   </section>
   <br>
@@ -480,6 +465,7 @@ import annotationPlugin from 'chartjs-plugin-annotation';
 import Assistant from '@/components/assistant.vue';
 import ImportPortfolioPopup from '@/components/Portfolio/ImportPortfolioPopup.vue';
 import DownloadPortfolioPopup from '@/components/Portfolio/DownloadPortfolioPopup.vue'
+import BaseValuePopup from '@/components/Portfolio/BaseValue.vue'
 
 // access user from store 
 const store = useStore();
@@ -493,6 +479,7 @@ const showAddCashModal = ref(false)
 const showLossesInfo = ref(false)
 const showImportPopup = ref(false)
 const showDownloadPopup = ref(false)
+const showBaseValueModal = ref(false)
 
 function openSellModal(position) {
   sellPosition.value = { ...position }
@@ -506,6 +493,7 @@ function handleSell(sellOrder) {
     fetchTransactionHistory();
     fetchPortfolio();
     fetchCash();
+    fetchPortfolioSummary();
   }, 300); // 300ms delay, adjust if needed
 }
 
@@ -611,49 +599,6 @@ const pieOptions = computed(() => {
 });
 
 // --- Total Value Over Time (Line Chart) ---
-const portfolioValueHistory = computed(() => {
-  const txs = [...transactionHistory.value].sort((a, b) => new Date(a.Date) - new Date(b.Date));
-  let holdings = {};
-  let cash = 0;
-  let history = [];
-  let lastDate = null;
-
-  for (const tx of txs) {
-    if (!tx.Date) continue;
-    // Update holdings and cash
-    if (tx.Action === 'Buy') {
-      holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) + tx.Shares;
-      cash -= tx.Total;
-    } else if (tx.Action === 'Sell') {
-      holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) - tx.Shares;
-      cash += tx.Total;
-    } else if (tx.Action === 'Cash Deposit') {
-      cash += tx.Total;
-    }
-    // Calculate total value for this date (positions + cash)
-    let positionsValue = 0;
-    for (const [symbol, shares] of Object.entries(holdings)) {
-      if (shares === 0) continue;
-      // Use the last tx price for this symbol up to this date
-      let price = 0;
-      for (let i = txs.length - 1; i >= 0; i--) {
-        if (txs[i].Symbol === symbol && new Date(txs[i].Date) <= new Date(tx.Date)) {
-          price = txs[i].Price;
-          break;
-        }
-      }
-      positionsValue += shares * price;
-    }
-    const totalValue = positionsValue + cash;
-    if (lastDate !== tx.Date) {
-      history.push({ date: tx.Date.slice(0, 10), value: Math.max(0, totalValue) });
-      lastDate = tx.Date;
-    } else {
-      history[history.length - 1] = { date: tx.Date.slice(0, 10), value: Math.max(0, totalValue) };
-    }
-  }
-  return history;
-});
 
 const lineData = computed(() => {
   const history = portfolioValueHistory.value;
@@ -783,23 +728,119 @@ async function fetchPortfolio({ append = false } = {}) {
 
 const latestQuotes = ref({}); // { [symbol]: price }
 
+let ws = null;
+let wsReconnectTimer = null;
+let wsTimeout = null;
+let wsConnected = false;
+
 async function fetchQuotes() {
-  if (!portfolio.value.length) return;
+  console.log('[fetchQuotes] called, portfolio:', portfolio.value);
+  if (!portfolio.value.length) {
+    console.log('[fetchQuotes] portfolio is empty, aborting');
+    return;
+  }
   const symbols = portfolio.value.map(p => p.Symbol).join(',');
   const headers = { 'x-api-key': apiKey };
 
+  // Helper to update quotes from message
+  function handleWSMessage(event) {
+    console.log('[WebSocket] Message received:', event.data);
+    try {
+      const data = JSON.parse(event.data);
+      if (data && typeof data === 'object') {
+        latestQuotes.value = data;
+      }
+    } catch (e) {
+      console.warn('[WebSocket] Failed to parse message:', e);
+    }
+  }
+
+  // Clean up any previous websocket
+  if (ws) {
+    ws.onclose = null;
+    ws.onerror = null;
+    ws.onmessage = null;
+    ws.close();
+    ws = null;
+  }
+  if (wsTimeout) clearTimeout(wsTimeout);
+  if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
+
+  // Try websocket first
+  function connectWS() {
+    wsConnected = false;
+  const wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  // Use port 8000 for local development
+  const wsPort = 8000;
+  const wsUrl = `${wsProto}://${window.location.hostname}:${wsPort}/ws/quotes?symbols=${symbols}&x-api-key=${apiKey}`;
+    console.log('[WebSocket] Attempting to connect:', wsUrl, { symbols, apiKey });
+    ws = new WebSocket(wsUrl);
+    ws.onopen = () => {
+      wsConnected = true;
+      console.log('[WebSocket] Connection opened:', ws.url);
+      // Optionally, send a ping or subscribe message if needed
+    };
+    ws.onmessage = handleWSMessage;
+    ws.onerror = (err) => {
+      wsConnected = false;
+      console.error('[WebSocket] Error:', err);
+      ws.close();
+    };
+    ws.onclose = (event) => {
+      wsConnected = false;
+      console.warn('[WebSocket] Connection closed:', event);
+      // Try to reconnect after 2s if portfolio still exists
+      if (portfolio.value.length) {
+        wsReconnectTimer = setTimeout(connectWS, 2000);
+      }
+    };
+
+    // Fallback to REST if no message after 2s
+    wsTimeout = setTimeout(async () => {
+      if (!wsConnected || Object.keys(latestQuotes.value).length === 0) {
+        try {
+          const response = await fetch(`/api/quotes?symbols=${symbols}`, { headers });
+          if (!response.ok) throw new Error('Failed to fetch quotes');
+          const data = await response.json();
+          latestQuotes.value = data;
+        } catch (error) {
+          console.error('Error fetching quotes (REST fallback):', error);
+        }
+      }
+    }, 2000);
+  }
+
   try {
-    const response = await fetch(`/api/quotes?symbols=${symbols}`, { headers });
-    if (!response.ok) throw new Error('Failed to fetch quotes');
-    const data = await response.json();
-    latestQuotes.value = data; // { AAPL: 185, TSLA: 690, ... }
+    connectWS();
   } catch (error) {
-    console.error('Error fetching quotes:', error);
+    // If websocket fails, fallback to REST
+    try {
+      const response = await fetch(`/api/quotes?symbols=${symbols}`, { headers });
+      if (!response.ok) throw new Error('Failed to fetch quotes');
+      const data = await response.json();
+      latestQuotes.value = data;
+    } catch (err) {
+      console.error('Error fetching quotes (REST fallback):', err);
+    }
   }
 }
 
+// Clean up websocket on unmount
+onUnmounted(() => {
+  if (ws) {
+    ws.onclose = null;
+    ws.onerror = null;
+    ws.onmessage = null;
+    ws.close();
+    ws = null;
+  }
+  if (wsTimeout) clearTimeout(wsTimeout);
+  if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
+});
+
 // Fetch quotes whenever portfolio changes
 watch(portfolio, (newVal) => {
+  console.log('[portfolio watcher] triggered, newVal:', newVal);
   if (newVal.length) fetchQuotes();
 });
 
@@ -856,44 +897,10 @@ const totalPortfolioValue2 = computed(() => {
   return positionsValue + cash.value; // Add cash to the total
 });
 
-// Helper: Find all round-trips (buy then sell) for stats
-function getClosedPositions() {
-  // Always sort by date ascending (oldest to newest)
-  const txs = [...transactionHistory.value]
-    .filter(tx => tx.Date)
-    .sort((a, b) => new Date(a.Date) - new Date(b.Date));
-  const positions = [];
-  const lots = {};
-
-  for (const tx of txs) {
-    if (!tx.Symbol || !tx.Action) continue;
-    if (tx.Action === 'Buy') {
-      lots[tx.Symbol] = lots[tx.Symbol] || [];
-      lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price, date: tx.Date });
-    } else if (tx.Action === 'Sell') {
-      let sharesToSell = tx.Shares;
-      lots[tx.Symbol] = lots[tx.Symbol] || [];
-      while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
-        let lot = lots[tx.Symbol][0];
-        let sellShares = Math.min(lot.shares, sharesToSell);
-        positions.push({
-          symbol: tx.Symbol,
-          buyDate: lot.date,
-          sellDate: tx.Date,
-          buyPrice: lot.price,
-          sellPrice: tx.Price,
-          shares: sellShares,
-          pnl: ((tx.Price - lot.price) / lot.price) * 100,
-          holdDays: Math.max(0, Math.round((new Date(tx.Date) - new Date(lot.date)) / (1000 * 60 * 60 * 24)))
-        });
-        lot.shares -= sellShares;
-        sharesToSell -= sellShares;
-        if (lot.shares === 0) lots[tx.Symbol].shift();
-      }
-    }
-  }
-  return positions;
-}
+// Computed: portfolioValueHistory from backend summary
+const portfolioValueHistory = computed(() => {
+  return portfolioSummary.value?.portfolioValueHistory || [];
+});
 
 const showResetDialog = ref(false)
 const resetError = ref('')
@@ -950,58 +957,19 @@ async function fetchCash() {
   }
 }
 
-
-const tradeReturnsMedianBinIndex = computed(() => {
-  const closed = getClosedPositions();
-  if (!closed.length) return -1;
-
-  // Bin setup (must match your chart binning)
-  const minReturn = Math.floor(Math.min(...closed.map(p => p.pnl)) / 2) * 2;
-  const maxReturn = Math.ceil(Math.max(...closed.map(p => p.pnl)) / 2) * 2;
-  const bins = [];
-  for (let i = minReturn; i < maxReturn; i += 2) {
-    bins.push({ min: i, max: i + 2 });
-  }
-
-  // Sort returns and find the median value
-  const sorted = closed.map(p => p.pnl).sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  const medianValue = sorted.length % 2 !== 0
-    ? sorted[mid]
-    : (sorted[mid - 1] + sorted[mid]) / 2;
-
-  // Find which bin contains the median value
-  return bins.findIndex(b => medianValue >= b.min && medianValue < b.max);
-});
-
+// Helper: Find all round-trips (buy then sell) for stats
+// Use backend-provided tradeReturnsChart data
 const tradeReturnsChartData = computed(() => {
-  const closed = getClosedPositions();
-  if (!closed.length) return { labels: [], datasets: [] };
-
-  // Find min and max return to determine bins
-  const minReturn = Math.floor(Math.min(...closed.map(p => p.pnl)) / 2) * 2;
-  const maxReturn = Math.ceil(Math.max(...closed.map(p => p.pnl)) / 2) * 2;
-
-  // Create bins
-  const bins = [];
-  for (let i = minReturn; i < maxReturn; i += 2) {
-    bins.push({ range: `${i} to ${i + 2}%`, count: 0, positive: i + 2 > 0 });
-  }
-
-  // Count trades in each bin
-  closed.forEach(p => {
-    const binIdx = Math.floor((p.pnl - minReturn) / 2);
-    if (bins[binIdx]) bins[binIdx].count += 1;
-  });
-
+  const chart = portfolioSummary.value?.tradeReturnsChart;
+  if (!chart || !chart.labels || !chart.bins) return { labels: [], datasets: [] };
   return {
-    labels: bins.map(b => b.range),
+    labels: chart.labels,
     datasets: [
       {
         label: 'Number of Trades',
-        data: bins.map(b => b.count),
-        backgroundColor: bins.map(b => b.positive ? 'rgba(76, 175, 80, 0.7)' : 'rgba(244, 67, 54, 0.7)'),
-        borderColor: bins.map(b => b.positive ? '#4caf50' : '#f44336'),
+        data: chart.bins.map(b => b.count),
+        backgroundColor: chart.bins.map(b => b.positive ? 'rgba(76, 175, 80, 0.7)' : 'rgba(244, 67, 54, 0.7)'),
+        borderColor: chart.bins.map(b => b.positive ? '#4caf50' : '#f44336'),
         borderWidth: 1,
       }
     ]
@@ -1009,8 +977,8 @@ const tradeReturnsChartData = computed(() => {
 });
 
 const tradeReturnsChartOptions = computed(() => {
-  // Get the label of the median bin
-  const medianBinLabel = tradeReturnsChartData.value.labels[tradeReturnsMedianBinIndex.value];
+  const chart = portfolioSummary.value?.tradeReturnsChart;
+  const medianBinLabel = chart?.labels?.[chart?.medianBinIndex];
   return {
     responsive: true,
     plugins: {
@@ -1024,7 +992,6 @@ const tradeReturnsChartOptions = computed(() => {
             xMax: medianBinLabel,
             borderColor: accent1,
             borderWidth: 2,
-            // No borderDash for solid line
             label: {
               enabled: true,
               content: 'Median',
@@ -1086,53 +1053,6 @@ const currentArchetype = computed(() => {
   // Placeholder: assign archetype by selectedPortfolioIndex
   return archetypes[selectedPortfolioIndex.value % archetypes.length];
 });
-
-// Gather all portfolio stats into a single object for export
-const portfolioStats = computed(() => ({
-  totalValue: totalPortfolioValue2.value,
-  baseValue: baseValue.value,
-  activePositions: totalPortfolioValue.value,
-  cash: cash.value,
-  totalPL: totalPL.value,
-  totalPLPercent: totalPLPercent.value,
-  unrealizedPL: unrealizedPL.value,
-  unrealizedPLPercent: unrealizedPLPercent.value,
-  realizedPL: realizedPL.value,
-  realizedPLPercent: realizedPLPercent.value,
-  avgPositionSize: avgPositionSize.value,
-  avgHoldTimeWinners: avgHoldTimeWinners.value,
-  avgHoldTimeLosers: avgHoldTimeLosers.value,
-  avgGain: avgGain.value,
-  avgLoss: avgLoss.value,
-  avgGainAbs: avgGainAbs.value,
-  avgLossAbs: avgLossAbs.value,
-  gainLossRatio: gainLossRatio.value,
-  riskRewardRatio: riskRewardRatio.value,
-  winnerCount: winnerCount.value,
-  winnerPercent: winnerPercent.value,
-  loserCount: loserCount.value,
-  loserPercent: loserPercent.value,
-  breakevenCount: breakevenCount.value,
-  breakevenPercent: breakevenPercent.value,
-  profitFactor: profitFactor.value,
-  sortinoRatio: sortinoRatio.value,
-}))
-
-const portfolioWithComputed = computed(() =>
-  portfolio.value.map(pos => ({
-    ...pos,
-    CurrentPrice: latestQuotes.value[pos.Symbol] ?? null,
-    TotalValue: latestQuotes.value[pos.Symbol] !== undefined
-      ? (latestQuotes.value[pos.Symbol] * pos.Shares)
-      : null,
-    PnLDollar: latestQuotes.value[pos.Symbol] !== undefined
-      ? ((latestQuotes.value[pos.Symbol] - pos.AvgPrice) * pos.Shares)
-      : null,
-    PnLPercent: latestQuotes.value[pos.Symbol] !== undefined
-      ? (((latestQuotes.value[pos.Symbol] - pos.AvgPrice) / pos.AvgPrice) * 100)
-      : null
-  }))
-);
 
 // Infinite scroll for portfolio positions
 let portfolioTableContainer = null;
@@ -1244,6 +1164,10 @@ async function fetchPortfolioSummary() {
   }
 }
 
+const isPortfolioBlank = computed(() => {
+  return portfolio.value.length === 0 && transactionHistory.value.length === 0 && cash.value === 0;
+});
+
 </script>
 
 <style lang="scss" scoped>
@@ -1278,8 +1202,8 @@ async function fetchPortfolioSummary() {
     color: var(--text1);
     border: none;
     border-radius: 6px;
-    padding: 10px 16px;
-    min-width: 50px;
+    padding: 10px 10px;
+    min-width: 30px;
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;

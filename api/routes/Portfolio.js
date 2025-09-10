@@ -1,3 +1,4 @@
+import { updatePortfolioStats } from '../utils/portfolioStats.js';
 export default function (app, deps) {
     const {
         validate,
@@ -170,6 +171,8 @@ export default function (app, deps) {
                 });
             }
 
+            // Update static stats
+            await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
             return res.status(200).json({ message: 'Trade added and portfolio updated' });
         } catch (error) {
             if (error.errors) {
@@ -278,6 +281,8 @@ export default function (app, deps) {
                 { $set: { cash: 0, BaseValue: 0 } }
             );
 
+            // Update static stats
+            await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
             return res.status(200).json({ message: 'Portfolio and trade history reset successfully' });
         } catch (error) {
             logger.error({
@@ -354,6 +359,8 @@ export default function (app, deps) {
                 PortfolioNumber: portfolioNumber
             };
             await tradesCollection.insertOne(cashTrade);
+            // Update static stats
+            await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
             return res.status(200).json({ message: 'Cash added successfully' });
         } catch (error) {
             return res.status(500).json({ message: 'An error occurred while adding cash' });
@@ -401,6 +408,7 @@ export default function (app, deps) {
         }
     });
 
+    // --- GET latest quotes for active portfolio  ---
     app.get('/quotes', async (req, res) => {
         let client;
         try {
@@ -549,6 +557,8 @@ export default function (app, deps) {
             } else {
                 await positionsCollection.deleteOne({ Username: sanitizedUser, PortfolioNumber: portfolioNumber, Symbol: processedTrade.Symbol });
             }
+            // Update static stats
+            await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
             return res.status(200).json({ message: 'Sell trade added and portfolio updated' });
         } catch (error) {
             if (error.errors) {
@@ -576,9 +586,9 @@ export default function (app, deps) {
     app.post('/portfolio/import', validate([
         validationSchemas.username(),
         body('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)'),
-        body('portfolioData').isArray().withMessage('portfolioData must be an array'),
-        body('txData').isArray().withMessage('txData must be an array'),
-        body('cash').isFloat({ min: 0 }).withMessage('Cash must be a non-negative number')
+        body('stats').isObject().withMessage('Stats must be an object'),
+        body('positions').isArray().withMessage('Positions must be an array'),
+        body('trades').isArray().withMessage('Trades must be an array')
     ]), async (req, res) => {
         let client;
         try {
@@ -588,32 +598,124 @@ export default function (app, deps) {
                 logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
-            const { username, portfolio, portfolioData, txData, cash } = req.body;
+            const { username, portfolio, stats, positions, trades } = req.body;
             const sanitizedUser = sanitizeInput(username);
             const portfolioNumber = parseInt(portfolio, 10);
 
             // --- Backend CSV Injection & Sanitization ---
             function isDangerousCSVValue(v) {
+                if (typeof v === 'string' && v.startsWith("'")) v = v.slice(1);
                 return typeof v === 'string' && /^[=+\-@]/.test(v) && v.length > 1;
             }
             function sanitizeRow(row) {
                 const sanitized = {};
                 for (const [k, v] of Object.entries(row)) {
-                    sanitized[k] = typeof v === 'string' ? sanitizeInput(v) : v;
+                    let value = v;
+                    // Convert numeric fields to numbers
+                    if (["Shares", "Price", "Total", "Commission"].includes(k)) {
+                        const num = Number(value);
+                        value = isNaN(num) ? 0 : num;
+                    }
+                    // Parse Date to ISO format if present
+                    else if (k === "Date" && typeof value === "string") {
+                        let dateStr = value;
+                        // If date string is in the format YYYYMMDDTHH:mm:ss.sssZ, reinsert '-' at positions 4 and 7
+                        if (/^\d{8}T/.test(dateStr)) {
+                            dateStr = dateStr.slice(0, 4) + '-' + dateStr.slice(4, 6) + '-' + dateStr.slice(6);
+                        }
+                        const parsedDate = new Date(dateStr);
+                        value = isNaN(parsedDate.getTime()) ? value : parsedDate.toISOString();
+                    }
+                    else if (typeof value === 'string') {
+                        value = sanitizeInput(value);
+                    }
+                    sanitized[k] = value;
                 }
                 return sanitized;
             }
             // Check for dangerous values in imported data
-            for (const row of [...portfolioData, ...txData]) {
-                for (const v of Object.values(row)) {
+            for (const row of [...positions, ...trades]) {
+                for (let v of Object.values(row)) {
                     if (isDangerousCSVValue(v)) {
                         return res.status(400).json({ message: 'Potentially dangerous value detected in import.' });
                     }
                 }
             }
+            for (let v of Object.values(stats)) {
+                if (isDangerousCSVValue(v)) {
+                    return res.status(400).json({ message: 'Potentially dangerous value detected in import.' });
+                }
+            }
             // Sanitize all string fields
-            const safePortfolioData = portfolioData.map(sanitizeRow);
-            const safeTxData = txData.map(sanitizeRow);
+            const safeStats = {};
+            for (const [k, v] of Object.entries(stats)) {
+                safeStats[k] = typeof v === 'string' ? sanitizeInput(v) : v;
+            }
+            // Group biggestLoser.* and biggestWinner.* keys into nested objects
+            function groupNestedStats(statsObj, baseKey) {
+                const nested = {};
+                Object.keys(statsObj).forEach(key => {
+                    if (key.startsWith(baseKey + '.')) {
+                        const subKey = key.split('.')[1];
+                        nested[subKey] = statsObj[key];
+                    }
+                });
+                // Remove flat keys
+                Object.keys(nested).forEach(subKey => {
+                    delete statsObj[baseKey + '.' + subKey];
+                });
+                // Remove flat baseKey if present
+                if (statsObj.hasOwnProperty(baseKey)) {
+                    delete statsObj[baseKey];
+                }
+                // Only set if there are subkeys
+                if (Object.keys(nested).length > 0) {
+                    statsObj[baseKey] = nested;
+                }
+            }
+            groupNestedStats(safeStats, 'biggestLoser');
+            groupNestedStats(safeStats, 'biggestWinner');
+            // Remove unwanted lowercase fields
+            delete safeStats.baseValue;
+            delete safeStats.totalValue;
+            delete safeStats.unrealizedPL;
+            // Convert cash and BaseValue to numbers
+            if (safeStats.hasOwnProperty('cash')) {
+                const cashNum = Number(safeStats.cash);
+                safeStats.cash = isNaN(cashNum) ? 0 : cashNum;
+            }
+            if (safeStats.hasOwnProperty('BaseValue')) {
+                const baseValueNum = Number(safeStats.BaseValue);
+                safeStats.BaseValue = isNaN(baseValueNum) ? 0 : baseValueNum;
+            }
+            // Convert avgHoldTimeLosers and avgHoldTimeWinners to numbers
+            if (safeStats.hasOwnProperty('avgHoldTimeLosers')) {
+                const losersNum = Number(safeStats.avgHoldTimeLosers);
+                safeStats.avgHoldTimeLosers = isNaN(losersNum) ? 0 : losersNum;
+            }
+            if (safeStats.hasOwnProperty('avgHoldTimeWinners')) {
+                const winnersNum = Number(safeStats.avgHoldTimeWinners);
+                safeStats.avgHoldTimeWinners = isNaN(winnersNum) ? 0 : winnersNum;
+            }
+            const safePositions = positions.map(sanitizeRow);
+            // Only keep allowed fields for positions
+            const allowedPositionFields = ['Symbol', 'Shares', 'AvgPrice'];
+            const safePositionsFiltered = safePositions.map(pos => {
+                const filtered = {};
+                for (const key of allowedPositionFields) {
+                    if (pos.hasOwnProperty(key)) {
+                        // Ensure Shares and AvgPrice are numbers
+                        if (key === 'Shares' || key === 'AvgPrice') {
+                            const num = Number(pos[key]);
+                            filtered[key] = isNaN(num) ? 0 : num;
+                        } else {
+                            filtered[key] = pos[key];
+                        }
+                    }
+                }
+                return filtered;
+            });
+            const safeTrades = trades.map(sanitizeRow);
 
             client = new MongoClient(uri);
             await client.connect();
@@ -622,10 +724,12 @@ export default function (app, deps) {
             const positionsCollection = db.collection('Positions');
             const tradesCollection = db.collection('Trades');
 
-            // Upsert the portfolio document with new cash value
+            // Upsert the portfolio document with all stats fields
+            // Always set Username and Number
+            const portfolioUpdate = { ...safeStats, Username: sanitizedUser, Number: portfolioNumber };
             await portfoliosCollection.updateOne(
                 { Username: sanitizedUser, Number: portfolioNumber },
-                { $set: { cash: cash } },
+                { $set: portfolioUpdate },
                 { upsert: true }
             );
 
@@ -634,25 +738,23 @@ export default function (app, deps) {
             await tradesCollection.deleteMany({ Username: sanitizedUser, PortfolioNumber: portfolioNumber });
 
             // Insert new positions (enforce max 500)
-            if (safePortfolioData.length) {
-                if (safePortfolioData.length > 500) {
+            if (safePositionsFiltered.length) {
+                if (safePositionsFiltered.length > 500) {
                     return res.status(400).json({ message: 'Cannot import more than 500 active positions per portfolio.' });
                 }
-                const posDocs = safePortfolioData.map(pos => ({
+                const posDocs = safePositionsFiltered.map(pos => ({
+                    ...pos,
                     Username: sanitizedUser,
-                    PortfolioNumber: portfolioNumber,
-                    Symbol: pos.Symbol,
-                    Shares: pos.Shares,
-                    AvgPrice: pos.AvgPrice
+                    PortfolioNumber: portfolioNumber
                 }));
                 await positionsCollection.insertMany(posDocs);
             }
             // Insert new trades
-            if (safeTxData.length) {
-                if (safeTxData.length > 1000) {
+            if (safeTrades.length) {
+                if (safeTrades.length > 1000) {
                     return res.status(400).json({ message: 'Cannot import more than 1000 trades per portfolio.' });
                 }
-                const tradeDocs = safeTxData.map(trade => ({
+                const tradeDocs = safeTrades.map(trade => ({
                     ...trade,
                     Username: sanitizedUser,
                     PortfolioNumber: portfolioNumber
@@ -660,6 +762,8 @@ export default function (app, deps) {
                 await tradesCollection.insertMany(tradeDocs);
             }
 
+            // Update static stats
+            await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
             return res.status(200).json({ message: 'Portfolio imported successfully' });
         } catch (error) {
             logger.error({
@@ -682,90 +786,50 @@ export default function (app, deps) {
         query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
     ]), async (req, res) => {
         let client;
-        const startTime = Date.now();
-        logger.info('[DEBUG] /portfolio/summary called', { query: req.query });
         try {
-            const t0 = Date.now();
-            logger.info('[DEBUG] Step: API key validation');
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
             if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
                 logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
-            logger.info('[DEBUG] Step: Query parsing');
             const { username, portfolio } = req.query;
             const sanitizedUser = sanitizeInput(username);
             const portfolioNumber = parseInt(portfolio, 10);
-
-            logger.info('[DEBUG] Step: DB connect');
             client = new MongoClient(uri);
             await client.connect();
-            logger.info('[DEBUG] Step: DB connected', { duration: Date.now() - t0 });
             const db = client.db('EreunaDB');
             const portfoliosCollection = db.collection('Portfolios');
-            const assetInfoCollection = db.collection('AssetInfo');
+            const positionsCollection = db.collection('Positions');
 
-            logger.info('[DEBUG] Step: Portfolio doc query');
-            const t1 = Date.now();
-            // Get cash and baseValue from Portfolios
+            // Get static stats from Portfolios
             const portfolioDoc = await portfoliosCollection.findOne(
-                { Username: sanitizedUser, Number: portfolioNumber },
-                { projection: { cash: 1, BaseValue: 1 } }
+                { Username: sanitizedUser, Number: portfolioNumber }
             );
-            logger.info('[DEBUG] Step: Portfolio doc loaded', { duration: Date.now() - t1 });
             if (!portfolioDoc) {
                 logger.warn('[DEBUG] Portfolio not found');
                 return res.status(404).json({ message: 'Portfolio not found' });
             }
-            const cash = typeof portfolioDoc.cash === 'number' ? portfolioDoc.cash : 0;
-            const baseValue = typeof portfolioDoc.BaseValue === 'number' ? portfolioDoc.BaseValue : 0;
-            // Get positions from Positions collection (projection)
-            const positionsCollection = db.collection('Positions');
-            const tPosStart = Date.now();
+
+            // Get positions for pie chart and value calculations
             const portfolioArr = await positionsCollection.find(
                 { Username: sanitizedUser, PortfolioNumber: portfolioNumber },
                 { projection: { Symbol: 1, Shares: 1, AvgPrice: 1 } }
             ).toArray();
-            logger.info('[DEBUG] Positions query done', { duration: Date.now() - tPosStart, portfolioArrLen: portfolioArr.length });
-
-            // Get trades from Trades collection (projection)
-            const tradesCollection = db.collection('Trades');
-            const tTradesStart = Date.now();
-            const tradesArr = await tradesCollection.find(
-                { Username: sanitizedUser, PortfolioNumber: portfolioNumber },
-                { projection: { Symbol: 1, Action: 1, Shares: 1, Price: 1, Total: 1, Date: 1 } }
-            ).toArray();
-            logger.info('[DEBUG] Trades query done', { duration: Date.now() - tTradesStart, tradesArrLen: tradesArr.length });
-            logger.info('[DEBUG] Portfolio array lengths', {
-                portfolioArrLen: portfolioArr.length,
-                tradesArrLen: tradesArr.length,
-                cash,
-                baseValue
-            });
 
             // Get latest quotes for all symbols in portfolio from OHCLVData
             const symbols = portfolioArr.map(pos => pos.Symbol);
-            logger.info('[DEBUG] Symbols array length', { symbolsLen: symbols.length });
             let quotes = {};
             const MAX_SYMBOLS = 5000;
             if (symbols.length > 0) {
-                logger.info('[DEBUG] Step: OHCLVData query', {
-                    symbolsLen: symbols.length,
-                    symbolsSample: symbols.slice(0, 10),
-                    maxSymbols: MAX_SYMBOLS
-                });
                 if (symbols.length > MAX_SYMBOLS) {
                     logger.error('[DEBUG] Too many symbols requested', { symbolsLen: symbols.length });
                     return res.status(400).json({ message: `Too many symbols requested (max ${MAX_SYMBOLS})` });
                 }
-                const t2 = Date.now();
                 const OHCLVDataCollection = db.collection('OHCLVData');
-                // Batch query for all symbols
                 const batchSize = 500;
                 for (let i = 0; i < symbols.length; i += batchSize) {
                     const batch = symbols.slice(i, i + batchSize);
-                    // For each symbol in batch, get latest close price
                     const docs = await OHCLVDataCollection.aggregate([
                         { $match: { tickerID: { $in: batch } } },
                         { $sort: { timestamp: -1 } },
@@ -776,26 +840,15 @@ export default function (app, deps) {
                         quotes[doc.tickerID] = doc.close;
                     });
                 }
-                const totalQueryTime = Date.now() - t2;
-                logger.info('[DEBUG] Step: OHCLVData loaded', { duration: totalQueryTime, quotesLen: Object.keys(quotes).length });
-                if (totalQueryTime > 10000) {
-                    logger.warn('[DEBUG] OHCLVData query slow', { totalQueryTime });
-                }
             }
-            logger.info('[DEBUG] Quotes object keys', { quotesLen: Object.keys(quotes).length });
 
-            // --- Optimized summary stats calculation ---
-            let totalPortfolioValue = cash;
+            // Calculate pie chart and values
+            let totalPortfolioValue = portfolioDoc.cash || 0;
             let activePositionsValue = 0;
-            let totalPL = 0;
-            let unrealizedPL = 0;
             let pieChartLabels = [];
             let pieChartData = [];
-
-            logger.info('[DEBUG] Step: Portfolio positions loop', { portfolioArrLen: portfolioArr.length });
-            const t3 = Date.now();
-            portfolioArr.forEach((pos, idx) => {
-                if (idx % 100 === 0) logger.info(`[DEBUG] Position loop idx: ${idx}`);
+            let unrealizedPL = 0;
+            portfolioArr.forEach(pos => {
                 const quote = quotes[pos.Symbol];
                 if (quote !== undefined && typeof pos.Shares === 'number') {
                     const positionValue = quote * pos.Shares;
@@ -803,248 +856,47 @@ export default function (app, deps) {
                     totalPortfolioValue += positionValue;
                     pieChartLabels.push(pos.Symbol);
                     pieChartData.push(positionValue);
-                    if (typeof pos.AvgPrice === 'number') {
+                    // Calculate unrealized PL
+                    if (typeof pos.AvgPrice === 'number' && typeof pos.Shares === 'number') {
                         const pl = (quote - pos.AvgPrice) * pos.Shares;
-                        totalPL += pl;
                         unrealizedPL += pl;
                     }
                 }
             });
-            logger.info('[DEBUG] Step: Portfolio positions loop done', { duration: Date.now() - t3 });
-            if (cash > 0) {
+            if (portfolioDoc.cash > 0) {
                 pieChartLabels.push('CASH');
-                pieChartData.push(cash);
+                pieChartData.push(portfolioDoc.cash);
             }
+            const totalPortfolioValue2 = activePositionsValue + (portfolioDoc.cash || 0);
 
-            // --- Additional stats ---
-            logger.info('[DEBUG] Step: computeRealizedPL');
-            function computeRealizedPL(trades) {
-                let realized = 0;
-                let lots = {};
-                for (const tx of trades) {
-                    if (!tx.Symbol || !tx.Action) continue;
-                    if (tx.Action === 'Buy') {
-                        lots[tx.Symbol] = lots[tx.Symbol] || [];
-                        lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price });
-                    } else if (tx.Action === 'Sell') {
-                        let sharesToSell = tx.Shares;
-                        lots[tx.Symbol] = lots[tx.Symbol] || [];
-                        while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
-                            let lot = lots[tx.Symbol][0];
-                            let sellShares = Math.min(lot.shares, sharesToSell);
-                            realized += (tx.Price - lot.price) * sellShares;
-                            lot.shares -= sellShares;
-                            sharesToSell -= sellShares;
-                            if (lot.shares === 0) lots[tx.Symbol].shift();
-                        }
-                    }
-                }
-                return realized;
-            }
+            // Get all stats including value history
+            const stats = await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
 
-            logger.info('[DEBUG] Step: getClosedPositions');
-            function getClosedPositions(trades) {
-                const txs = trades.filter(tx => tx.Date).sort((a, b) => new Date(a.Date) - new Date(b.Date));
-                const positions = [];
-                const lots = {};
-                for (const tx of txs) {
-                    if (!tx.Symbol || !tx.Action) continue;
-                    if (tx.Action === 'Buy') {
-                        lots[tx.Symbol] = lots[tx.Symbol] || [];
-                        lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price, date: tx.Date });
-                    } else if (tx.Action === 'Sell') {
-                        let sharesToSell = tx.Shares;
-                        lots[tx.Symbol] = lots[tx.Symbol] || [];
-                        while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
-                            let lot = lots[tx.Symbol][0];
-                            let sellShares = Math.min(lot.shares, sharesToSell);
-                            positions.push({
-                                symbol: tx.Symbol,
-                                buyDate: lot.date,
-                                sellDate: tx.Date,
-                                buyPrice: lot.price,
-                                sellPrice: tx.Price,
-                                shares: sellShares,
-                                pnl: ((tx.Price - lot.price) / lot.price) * 100,
-                                holdDays: Math.max(0, Math.round((new Date(tx.Date) - new Date(lot.date)) / (1000 * 60 * 60 * 24)))
-                            });
-                            lot.shares -= sellShares;
-                            sharesToSell -= sellShares;
-                            if (lot.shares === 0) lots[tx.Symbol].shift();
-                        }
-                    }
-                }
-                logger.info('[DEBUG] getClosedPositions done', { positionsLen: positions.length });
-                return positions;
-            }
+            // Compose summary object from static stats, calculated values, and value history
+            const investedAmount = typeof portfolioDoc.BaseValue === 'number' && portfolioDoc.BaseValue > 0 ? portfolioDoc.BaseValue : null;
+            const totalPLRaw = (activePositionsValue + (portfolioDoc.cash || 0)) - (portfolioDoc.BaseValue || 0);
+            const totalPLFormatted = Number(totalPLRaw).toFixed(2);
+            const totalPLPercent = investedAmount ? Number((totalPLRaw / investedAmount) * 100).toFixed(2) : null;
+            const unrealizedPLFormatted = unrealizedPL !== null ? Number(unrealizedPL).toFixed(2) : null;
+            const unrealizedPLPercentFormatted = investedAmount ? Number((unrealizedPL / investedAmount) * 100).toFixed(2) : null;
 
-            logger.info('[DEBUG] Step: computeAvgPositionSize');
-            function computeAvgPositionSize(trades, baseValue) {
-                const buys = trades.filter(tx => tx.Action === 'Buy' && tx.Total && tx.Date);
-                logger.info('[DEBUG] computeAvgPositionSize buys', { buysLen: buys.length });
-                if (!buys.length) return '0.00';
-                let avgPercents = [];
-                for (const buy of buys) {
-                    const txsUpToBuy = trades.filter(tx => tx.Date && new Date(tx.Date) <= new Date(buy.Date));
-                    let cash = 0;
-                    let holdings = {};
-                    for (const tx of txsUpToBuy) {
-                        if (tx.Action === 'Buy') {
-                            holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) + tx.Shares;
-                            cash -= tx.Total;
-                        } else if (tx.Action === 'Sell') {
-                            holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) - tx.Shares;
-                            cash += tx.Total;
-                        } else if (tx.Action === 'Cash Deposit') {
-                            cash += tx.Total;
-                        }
-                    }
-                    let positionsValue = 0;
-                    for (const [symbol, shares] of Object.entries(holdings)) {
-                        let price = 0;
-                        for (let i = txsUpToBuy.length - 1; i >= 0; i--) {
-                            if (txsUpToBuy[i].Symbol === symbol && txsUpToBuy[i].Action === 'Buy') {
-                                price = txsUpToBuy[i].Price;
-                                break;
-                            }
-                        }
-                        positionsValue += shares * price;
-                    }
-                    const portfolioValueAtBuy = positionsValue + cash;
-                    if (portfolioValueAtBuy > 0) {
-                        avgPercents.push((buy.Total / portfolioValueAtBuy) * 100);
-                    }
-                }
-                logger.info('[DEBUG] computeAvgPositionSize done', { avgPercentsLen: avgPercents.length });
-                if (!avgPercents.length) return '0.00';
-                return (avgPercents.reduce((a, b) => a + b, 0) / avgPercents.length).toFixed(2);
-            }
-
-            // Winner/loser/breakeven stats
-            const t4 = Date.now();
-            const closedPositions = getClosedPositions(tradesArr);
-            logger.info('[DEBUG] closedPositions array', { closedPositionsLen: closedPositions.length, duration: Date.now() - t4 });
-            const winnerCount = closedPositions.filter(p => p.pnl > 0).length;
-            const loserCount = closedPositions.filter(p => p.pnl < 0).length;
-            const breakevenCount = closedPositions.filter(p => Number(p.pnl) === 0).length;
-            const totalClosed = closedPositions.length;
-            const winnerPercent = totalClosed ? ((winnerCount / totalClosed) * 100).toFixed(2) : '0.00';
-            const loserPercent = totalClosed ? ((loserCount / totalClosed) * 100).toFixed(2) : '0.00';
-            const breakevenPercent = totalClosed ? ((breakevenCount / totalClosed) * 100).toFixed(2) : '0.00';
-
-            // Average hold time for winners/losers
-            const avgHoldTimeWinners = winnerCount ? (closedPositions.filter(p => p.pnl > 0).reduce((sum, p) => sum + p.holdDays, 0) / winnerCount).toFixed(1) : '0.0';
-            const avgHoldTimeLosers = loserCount ? (closedPositions.filter(p => p.pnl < 0).reduce((sum, p) => sum + p.holdDays, 0) / loserCount).toFixed(1) : '0.0';
-
-            // Average gain/loss
-            const avgGain = winnerCount ? (closedPositions.filter(p => p.pnl > 0).reduce((sum, p) => sum + p.pnl, 0) / winnerCount).toFixed(2) : '0.00';
-            const avgLoss = loserCount ? (closedPositions.filter(p => p.pnl < 0).reduce((sum, p) => sum + p.pnl, 0) / loserCount).toFixed(2) : '0.00';
-
-            // Gain/Loss Ratio
-            const gainLossRatio = avgLoss !== '0.00' ? (Math.abs(Number(avgGain)) / Math.abs(Number(avgLoss))).toFixed(2) : '-';
-            // Risk/Reward Ratio
-            const riskRewardRatio = avgGain !== '0.00' ? (Math.abs(Number(avgLoss)) / Math.abs(Number(avgGain))).toFixed(2) : '-';
-
-            // Average gain/loss absolute
-            const avgGainAbs = winnerCount ? (closedPositions.filter(p => p.pnl > 0).reduce((sum, p) => sum + ((p.sellPrice - p.buyPrice) * p.shares), 0) / winnerCount).toFixed(2) : '0.00';
-            const avgLossAbs = loserCount ? (closedPositions.filter(p => p.pnl < 0).reduce((sum, p) => sum + Math.abs((p.sellPrice - p.buyPrice) * p.shares), 0) / loserCount).toFixed(2) : '0.00';
-
-            // Profit factor
-            const grossProfit = closedPositions.filter(p => p.pnl > 0).reduce((sum, p) => sum + ((p.sellPrice - p.buyPrice) * p.shares), 0);
-            const grossLoss = closedPositions.filter(p => p.pnl < 0).reduce((sum, p) => sum + Math.abs((p.sellPrice - p.buyPrice) * p.shares), 0);
-            const profitFactor = grossLoss === 0 ? (grossProfit > 0 ? '∞' : '-') : (grossProfit / grossLoss).toFixed(2);
-
-            // Sortino ratio (using riskFreeRate = 0.02)
-            const riskFreeRate = 0.02;
-            const returns = closedPositions.map(p => p.pnl / 100);
-            const avgReturn = returns.length ? (returns.reduce((a, b) => a + b, 0) / returns.length) : 0;
-            const downsideReturns = returns.filter(r => r < riskFreeRate);
-            const downsideDev = downsideReturns.length ? Math.sqrt(downsideReturns.reduce((sum, r) => sum + Math.pow(r - riskFreeRate, 2), 0) / downsideReturns.length) : 0;
-            const sortinoRatio = downsideDev === 0 ? (avgReturn > riskFreeRate ? '∞' : '-') : ((avgReturn - riskFreeRate) / downsideDev).toFixed(2);
-
-            // Percentages
-            const totalPLValue = baseValue ? totalPortfolioValue - baseValue : 0;
-            const totalPLPercent = baseValue ? ((totalPLValue / baseValue) * 100).toFixed(2) : '';
-            const unrealizedPLPercent = baseValue ? ((unrealizedPL / baseValue) * 100).toFixed(2) : '';
-            const realizedPL = computeRealizedPL(tradesArr);
-            const realizedPLPercent = baseValue ? ((realizedPL / baseValue) * 100).toFixed(2) : '';
-            const avgPositionSize = computeAvgPositionSize(tradesArr, baseValue);
-
-            // Biggest winner/loser
-            let biggestWinner = { ticker: null, amount: null, tradeCount: 0 };
-            let biggestLoser = { ticker: null, amount: null, tradeCount: 0 };
-            if (closedPositions.length) {
-                const plByTicker = {};
-                const tradeCounts = {};
-                for (const p of closedPositions) {
-                    plByTicker[p.symbol] = (plByTicker[p.symbol] || 0) + ((p.sellPrice - p.buyPrice) * p.shares);
-                    tradeCounts[p.symbol] = (tradeCounts[p.symbol] || 0) + 1;
-                }
-                let maxTicker = null, maxPL = -Infinity;
-                let minTicker = null, minPL = Infinity;
-                for (const [ticker, pl] of Object.entries(plByTicker)) {
-                    if (pl > maxPL) { maxPL = pl; maxTicker = ticker; }
-                    if (pl < minPL) { minPL = pl; minTicker = ticker; }
-                }
-                if (maxTicker !== null) {
-                    biggestWinner = {
-                        ticker: maxTicker,
-                        amount: maxPL.toFixed(2),
-                        tradeCount: tradeCounts[maxTicker] || 0
-                    };
-                }
-                if (minTicker !== null) {
-                    biggestLoser = {
-                        ticker: minTicker,
-                        amount: Math.abs(minPL).toFixed(2),
-                        tradeCount: tradeCounts[minTicker] || 0
-                    };
-                }
-            }
-
-            // totalPortfolioValue2 = positions + cash
-            const totalPortfolioValue2 = activePositionsValue + cash;
-
-            // Compose summary object
             const summary = {
+                ...portfolioDoc,
                 totalPortfolioValue,
                 totalPortfolioValue2,
-                baseValue,
                 activePositions: activePositionsValue,
-                cash,
-                totalPL: totalPLValue,
-                totalPLPercent,
-                unrealizedPL,
-                unrealizedPLPercent,
-                realizedPL,
-                realizedPLPercent,
-                avgPositionSize,
-                avgHoldTimeWinners,
-                avgHoldTimeLosers,
-                avgGain,
-                avgLoss,
-                avgGainAbs,
-                avgLossAbs,
-                gainLossRatio,
-                riskRewardRatio,
-                winnerCount,
-                winnerPercent,
-                loserCount,
-                loserPercent,
-                breakevenCount,
-                breakevenPercent,
-                profitFactor,
-                sortinoRatio,
                 pieChart: {
                     labels: pieChartLabels,
                     data: pieChartData
                 },
                 positionsCount: portfolioArr.length,
-                biggestWinner,
-                biggestLoser
+                totalPL: totalPLFormatted,
+                totalPLPercent,
+                unrealizedPL: unrealizedPLFormatted,
+                unrealizedPLPercent: unrealizedPLPercentFormatted,
+                portfolioValueHistory: stats.portfolioValueHistory,
+                tradeReturnsChart: stats.tradeReturnsChart
             };
-            logger.info('[DEBUG] Step: summary composed', { duration: Date.now() - startTime });
-
             return res.status(200).json(summary);
         } catch (error) {
             logger.error({
@@ -1057,9 +909,159 @@ export default function (app, deps) {
             });
             return res.status(500).json({ message: 'An error occurred while retrieving portfolio summary' });
         } finally {
-            logger.info('[DEBUG] Step: finally block, closing DB');
             if (client) await client.close();
-            logger.info('[DEBUG] Step: DB closed, total duration', { duration: Date.now() - startTime });
+        }
+    });
+
+    // --- POST set BaseValue for a specific portfolio ---
+    app.post('/portfolio/basevalue', [
+        body('username').isString().trim().notEmpty().withMessage('Username is required')
+            .matches(/^[a-zA-Z0-9_]+$/).withMessage('Invalid username format'),
+        body('portfolio').isInt({ min: 1, max: 10 }).withMessage('Portfolio number required (1-10)'),
+        body('baseValue').isFloat({ min: 0.01 }).withMessage('BaseValue must be a positive number')
+    ], async (req, res) => {
+        const apiKey = req.header('x-api-key');
+        const sanitizedKey = sanitizeInput(apiKey);
+        if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+            return res.status(401).json({ message: 'Unauthorized API Access' });
+        }
+        const { username, portfolio, baseValue } = req.body;
+        const sanitizedUser = sanitizeInput(username);
+        const portfolioNumber = parseInt(portfolio, 10);
+        const sanitizedBaseValue = parseFloat(baseValue);
+
+        if (!sanitizedUser || !sanitizedBaseValue || sanitizedBaseValue <= 0) {
+            return res.status(400).json({ message: 'Invalid input' });
+        }
+
+        let client;
+        try {
+            client = new MongoClient(uri);
+            await client.connect();
+            const db = client.db('EreunaDB');
+            const portfoliosCollection = db.collection('Portfolios');
+            // Update BaseValue for the portfolio
+            const result = await portfoliosCollection.updateOne(
+                { Username: sanitizedUser, Number: portfolioNumber },
+                { $set: { BaseValue: sanitizedBaseValue } }
+            );
+            if (result.matchedCount === 0) {
+                return res.status(404).json({ message: 'Portfolio not found' });
+            }
+            // Optionally update static stats
+            await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
+            return res.status(200).json({ message: 'BaseValue updated successfully' });
+        } catch (error) {
+            return res.status(500).json({ message: 'An error occurred while updating BaseValue' });
+        } finally {
+            if (client) await client.close();
+        }
+    });
+
+    // --- GET full export for a specific portfolio number ---
+    app.get('/portfolio/export', validate([
+        validationSchemas.usernameQuery(),
+        query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
+    ]), async (req, res) => {
+        let client;
+        try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+            const { username, portfolio } = req.query;
+            const sanitizedUser = sanitizeInput(username);
+            const portfolioNumber = parseInt(portfolio, 10);
+
+            client = new MongoClient(uri);
+            await client.connect();
+            const db = client.db('EreunaDB');
+            const portfoliosCollection = db.collection('Portfolios');
+            const tradesCollection = db.collection('Trades');
+            const positionsCollection = db.collection('Positions');
+            const OHCLVData1mCollection = db.collection('OHCLVData1m');
+
+            // 1. Get Portfolio document
+            const portfolioDoc = await portfoliosCollection.findOne(
+                { Username: sanitizedUser, Number: portfolioNumber }
+            );
+            if (!portfolioDoc) {
+                logger.warn('[DEBUG] Portfolio not found');
+                return res.status(404).json({ message: 'Portfolio not found' });
+            }
+
+            // Remove unwanted fields
+            const {
+                Username,
+                Number,
+                portfolioValueHistory,
+                tradeReturnsChart,
+                ...portfolioStats
+            } = portfolioDoc;
+
+            // 2. Get Trades (transaction history)
+            const tradesArr = await tradesCollection.find(
+                { Username: sanitizedUser, PortfolioNumber: portfolioNumber }
+            ).sort({ Date: -1 }).toArray();
+
+            // 3. Get Positions (open positions)
+            const positionsArrRaw = await positionsCollection.find(
+                { Username: sanitizedUser, PortfolioNumber: portfolioNumber }
+            ).toArray();
+
+            // Get latest close price for each position from OHCLVData1m
+            let totalValue = portfolioDoc.cash || 0;
+            let unrealizedPL = 0;
+            const positionsArr = [];
+            for (const pos of positionsArrRaw) {
+                // Find latest close price for tickerID
+                const latestQuoteDoc = await OHCLVData1mCollection.find({ tickerID: pos.Symbol })
+                    .sort({ timestamp: -1 })
+                    .limit(1)
+                    .toArray();
+                const latestClose = latestQuoteDoc.length > 0 ? latestQuoteDoc[0].close : null;
+                let currentValue = null;
+                let positionUnrealizedPL = null;
+                if (latestClose !== null && typeof pos.Shares === 'number') {
+                    currentValue = latestClose * pos.Shares;
+                    totalValue += currentValue;
+                    if (typeof pos.AvgPrice === 'number') {
+                        positionUnrealizedPL = (latestClose - pos.AvgPrice) * pos.Shares;
+                        unrealizedPL += positionUnrealizedPL;
+                    }
+                }
+                positionsArr.push({
+                    ...pos,
+                    currentValue,
+                    latestClose,
+                    unrealizedPL: positionUnrealizedPL
+                });
+            }
+
+            // Add calculated values to stats
+            portfolioStats.totalValue = parseFloat(totalValue).toFixed(2);
+            portfolioStats.unrealizedPL = parseFloat(unrealizedPL).toFixed(2);
+
+            // Build response payload
+            return res.status(200).json({
+                stats: portfolioStats,
+                transactionHistory: tradesArr,
+                portfolio: positionsArr
+            });
+        } catch (error) {
+            logger.error({
+                msg: 'An error occurred while exporting portfolio',
+                error: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+                route: req.originalUrl,
+                method: req.method,
+                user: req.query?.username
+            });
+            return res.status(500).json({ message: 'An error occurred while exporting portfolio' });
+        } finally {
+            if (client) await client.close();
         }
     });
 

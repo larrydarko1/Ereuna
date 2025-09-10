@@ -1,0 +1,247 @@
+
+function safeDiv(a, b) {
+    return b ? a / b : 0;
+}
+
+export async function updatePortfolioStats(db, username, portfolioNumber) {
+    const trades = await db.collection('Trades').find({ Username: username, PortfolioNumber: portfolioNumber }).toArray();
+    const positions = await db.collection('Positions').find({ Username: username, PortfolioNumber: portfolioNumber }).toArray();
+    const portfolioDoc = await db.collection('Portfolios').findOne({ Username: username, Number: portfolioNumber });
+    const cash = portfolioDoc && typeof portfolioDoc.cash === 'number' ? portfolioDoc.cash : 0.0;
+    const baseValue = portfolioDoc && typeof portfolioDoc.BaseValue === 'number' ? portfolioDoc.BaseValue : 0.0;
+
+    // --- Portfolio Value History Calculation ---
+    const txs = trades.filter(tx => tx.Date).sort((a, b) => new Date(a.Date) - new Date(b.Date));
+    let holdings = {};
+    let runningCash = 0;
+    let valueHistory = [];
+    let lastDate = null;
+    for (const tx of txs) {
+        if (!tx.Date) continue;
+        if (tx.Action === 'Buy') {
+            holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) + tx.Shares;
+            runningCash -= tx.Total;
+        } else if (tx.Action === 'Sell') {
+            holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) - tx.Shares;
+            runningCash += tx.Total;
+        } else if (tx.Action === 'Cash Deposit') {
+            runningCash += tx.Total;
+        }
+        let positionsValue = 0;
+        for (const [symbol, shares] of Object.entries(holdings)) {
+            if (shares === 0) continue;
+            let price = 0;
+            for (let i = txs.length - 1; i >= 0; i--) {
+                if (txs[i].Symbol === symbol && new Date(txs[i].Date) <= new Date(tx.Date)) {
+                    price = txs[i].Price;
+                    break;
+                }
+            }
+            positionsValue += shares * price;
+        }
+        const totalValue = positionsValue + runningCash;
+        if (lastDate !== tx.Date) {
+            valueHistory.push({ date: tx.Date.slice(0, 10), value: Math.max(0, totalValue) });
+            lastDate = tx.Date;
+        } else {
+            valueHistory[valueHistory.length - 1] = { date: tx.Date.slice(0, 10), value: Math.max(0, totalValue) };
+        }
+    }
+
+    function computeRealizedPL(trades) {
+        const txs = trades.filter(tx => tx.Date && tx.Symbol && tx.Action).sort((a, b) => new Date(a.Date) - new Date(b.Date));
+        let realized = 0;
+        let lots = {};
+        for (const tx of txs) {
+            if (tx.Action === 'Buy') {
+                lots[tx.Symbol] = lots[tx.Symbol] || [];
+                lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price });
+            } else if (tx.Action === 'Sell') {
+                let sharesToSell = tx.Shares;
+                lots[tx.Symbol] = lots[tx.Symbol] || [];
+                while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
+                    let lot = lots[tx.Symbol][0];
+                    let sellShares = Math.min(lot.shares, sharesToSell);
+                    realized += (tx.Price - lot.price) * sellShares;
+                    lot.shares -= sellShares;
+                    sharesToSell -= sellShares;
+                    if (lot.shares === 0) lots[tx.Symbol].shift();
+                }
+            }
+        }
+        return realized;
+    }
+
+    function getClosedPositions(trades) {
+        const txs = trades.filter(tx => tx.Date).sort((a, b) => new Date(a.Date) - new Date(b.Date));
+        const positions = [];
+        const lots = {};
+        for (const tx of txs) {
+            if (!tx.Symbol || !tx.Action) continue;
+            if (tx.Action === 'Buy') {
+                lots[tx.Symbol] = lots[tx.Symbol] || [];
+                lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price, date: tx.Date });
+            } else if (tx.Action === 'Sell') {
+                let sharesToSell = tx.Shares;
+                lots[tx.Symbol] = lots[tx.Symbol] || [];
+                while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
+                    let lot = lots[tx.Symbol][0];
+                    let sellShares = Math.min(lot.shares, sharesToSell);
+                    let pnl = lot.price ? ((tx.Price - lot.price) / lot.price) * 100 : 0;
+                    let holdDays = Math.max(0, Math.round((new Date(tx.Date) - new Date(lot.date)) / (1000 * 60 * 60 * 24)));
+                    positions.push({
+                        symbol: tx.Symbol,
+                        buyDate: lot.date,
+                        sellDate: tx.Date,
+                        buyPrice: lot.price,
+                        sellPrice: tx.Price,
+                        shares: sellShares,
+                        pnl,
+                        holdDays
+                    });
+                    lot.shares -= sellShares;
+                    sharesToSell -= sellShares;
+                    if (lot.shares === 0) lots[tx.Symbol].shift();
+                }
+            }
+        }
+        return positions;
+    }
+
+    // Sort trades by symbol, then by date ascending
+    const tradesSorted = trades.sort((a, b) => {
+        if (a.Symbol === b.Symbol) return new Date(a.Date) - new Date(b.Date);
+        return a.Symbol.localeCompare(b.Symbol);
+    });
+    const closedPositions = getClosedPositions(tradesSorted);
+    const winnerPositions = closedPositions.filter(p => p.pnl > 0);
+    const loserPositions = closedPositions.filter(p => p.pnl < 0);
+    const breakevenPositions = closedPositions.filter(p => p.pnl === 0);
+    const totalClosed = closedPositions.length;
+
+    const winnerCount = winnerPositions.length;
+    const loserCount = loserPositions.length;
+    const breakevenCount = breakevenPositions.length;
+
+    const winnerPercent = safeDiv(winnerCount * 100, totalClosed);
+    const loserPercent = safeDiv(loserCount * 100, totalClosed);
+    const breakevenPercent = safeDiv(breakevenCount * 100, totalClosed);
+
+    const avgHoldTimeWinners = safeDiv(winnerPositions.reduce((sum, p) => sum + p.holdDays, 0), winnerCount);
+    const avgHoldTimeLosers = safeDiv(loserPositions.reduce((sum, p) => sum + p.holdDays, 0), loserCount);
+
+    const avgGain = safeDiv(winnerPositions.reduce((sum, p) => sum + p.pnl, 0), winnerCount);
+    const avgLoss = safeDiv(loserPositions.reduce((sum, p) => sum + p.pnl, 0), loserCount);
+    const avgGainAbs = safeDiv(winnerPositions.reduce((sum, p) => sum + ((p.sellPrice - p.buyPrice) * p.shares), 0), winnerCount);
+    const avgLossAbs = safeDiv(loserPositions.reduce((sum, p) => sum + Math.abs((p.sellPrice - p.buyPrice) * p.shares), 0), loserCount);
+
+    const gainLossRatio = avgLoss !== 0 ? safeDiv(Math.abs(avgGain), Math.abs(avgLoss)) : null;
+    const riskRewardRatio = avgGain !== 0 ? safeDiv(Math.abs(avgLoss), Math.abs(avgGain)) : null;
+
+    const grossProfit = winnerPositions.reduce((sum, p) => sum + ((p.sellPrice - p.buyPrice) * p.shares), 0);
+    const grossLoss = loserPositions.reduce((sum, p) => sum + Math.abs((p.sellPrice - p.buyPrice) * p.shares), 0);
+    const profitFactor = grossLoss !== 0 ? safeDiv(grossProfit, grossLoss) : null;
+
+    // Sortino ratio (riskFreeRate = 0.02)
+    const riskFreeRate = 0.02;
+    const returns = closedPositions.map(p => p.pnl / 100);
+    const avgReturn = returns.length ? safeDiv(returns.reduce((a, b) => a + b, 0), returns.length) : 0;
+    const downsideReturns = returns.filter(r => r < riskFreeRate);
+    const downsideDev = downsideReturns.length ? Math.sqrt(safeDiv(downsideReturns.reduce((sum, r) => sum + Math.pow(r - riskFreeRate, 2), 0), downsideReturns.length)) : 0;
+    const sortinoRatio = downsideDev !== 0 ? safeDiv(avgReturn - riskFreeRate, downsideDev) : null;
+
+    // Biggest winner/loser
+    const plByTicker = {};
+    const tradeCounts = {};
+    for (const p of closedPositions) {
+        plByTicker[p.symbol] = (plByTicker[p.symbol] || 0) + ((p.sellPrice - p.buyPrice) * p.shares);
+        tradeCounts[p.symbol] = (tradeCounts[p.symbol] || 0) + 1;
+    }
+    let biggestWinner = null;
+    let biggestLoser = null;
+    if (Object.keys(plByTicker).length) {
+        const maxTicker = Object.keys(plByTicker).reduce((a, b) => plByTicker[a] > plByTicker[b] ? a : b);
+        const minTicker = Object.keys(plByTicker).reduce((a, b) => plByTicker[a] < plByTicker[b] ? a : b);
+        biggestWinner = {
+            ticker: maxTicker,
+            amount: Number(plByTicker[maxTicker].toFixed(2)),
+            tradeCount: tradeCounts[maxTicker]
+        };
+        biggestLoser = {
+            ticker: minTicker,
+            amount: Math.abs(Number(plByTicker[minTicker].toFixed(2))),
+            tradeCount: tradeCounts[minTicker]
+        };
+    }
+
+    // Trade Returns Chart Data (binning)
+    function computeTradeReturnsBins(closedPositions) {
+        if (!closedPositions.length) return { labels: [], bins: [], medianBinIndex: -1 };
+        const returns = closedPositions.map(p => p.pnl);
+        const minReturn = Math.floor(Math.min(...returns) / 2) * 2;
+        const maxReturn = Math.ceil(Math.max(...returns) / 2) * 2;
+        const bins = [];
+        for (let i = minReturn; i < maxReturn; i += 2) {
+            bins.push({ min: i, max: i + 2, range: `${i} to ${i + 2}%`, count: 0, positive: i + 2 > 0 });
+        }
+        returns.forEach(ret => {
+            const binIdx = Math.floor((ret - minReturn) / 2);
+            if (bins[binIdx]) bins[binIdx].count += 1;
+        });
+        // Median calculation
+        const sorted = returns.slice().sort((a, b) => a - b);
+        const mid = Math.floor(sorted.length / 2);
+        const medianValue = sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+        const medianBinIndex = bins.findIndex(b => medianValue >= b.min && medianValue < b.max);
+        return {
+            labels: bins.map(b => b.range),
+            bins,
+            medianBinIndex
+        };
+    }
+    const tradeReturnsChart = computeTradeReturnsBins(closedPositions);
+
+    // Avg position size (as percent of portfolio value at buy)
+    function computeAvgPositionSize(trades, baseValue) {
+        const buys = trades.filter(tx => tx.Action === 'Buy' && tx.Total);
+        if (!buys.length || baseValue <= 0) return 0.0;
+        const avgPercents = buys.map(tx => safeDiv(tx.Total, baseValue) * 100);
+        return safeDiv(avgPercents.reduce((a, b) => a + b, 0), avgPercents.length);
+    }
+    const avgPositionSize = computeAvgPositionSize(trades, baseValue);
+
+    const realizedPL = computeRealizedPL(trades);
+    const realizedPLPercent = baseValue ? safeDiv(realizedPL * 100, baseValue) : 0;
+
+    // Update stats in Portfolios collection
+    const stats = {
+        portfolioValueHistory: valueHistory,
+        realizedPL: Number(realizedPL.toFixed(2)),
+        realizedPLPercent: Number(realizedPLPercent.toFixed(2)),
+        avgPositionSize: Number(avgPositionSize.toFixed(2)),
+        avgHoldTimeWinners: Number(avgHoldTimeWinners.toFixed(1)),
+        avgHoldTimeLosers: Number(avgHoldTimeLosers.toFixed(1)),
+        avgGain: Number(avgGain.toFixed(2)),
+        avgLoss: Number(avgLoss.toFixed(2)),
+        avgGainAbs: Number(avgGainAbs.toFixed(2)),
+        avgLossAbs: Number(avgLossAbs.toFixed(2)),
+        gainLossRatio: gainLossRatio !== null ? Number(gainLossRatio.toFixed(2)) : null,
+        riskRewardRatio: riskRewardRatio !== null ? Number(riskRewardRatio.toFixed(2)) : null,
+        winnerCount,
+        winnerPercent: Number(winnerPercent.toFixed(2)),
+        loserCount,
+        loserPercent: Number(loserPercent.toFixed(2)),
+        breakevenCount,
+        breakevenPercent: Number(breakevenPercent.toFixed(2)),
+        profitFactor: profitFactor !== null ? Number(profitFactor.toFixed(2)) : null,
+        sortinoRatio: sortinoRatio !== null ? Number(sortinoRatio.toFixed(2)) : null,
+        biggestWinner,
+        biggestLoser,
+        tradeReturnsChart // <-- add chart data here
+    };
+    await db.collection('Portfolios').updateOne(
+        { Username: username, Number: portfolioNumber },
+        { $set: stats }
+    );
+    return stats;
+}

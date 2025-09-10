@@ -93,6 +93,7 @@ async function removeSymbol(idx) {
 function close() {
   emit('close')
 }
+
 </script>
 
 <style scoped>

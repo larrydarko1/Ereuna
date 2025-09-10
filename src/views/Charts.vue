@@ -5,23 +5,10 @@
    <WatchPanel
   :user="user"
   :apiKey="apiKey"
-  :watchPanel="watchPanel"
-  :fetchWatchPanel="fetchWatchPanel"
   :defaultSymbol="defaultSymbol"
   @select-symbol="(symbol) => { defaultSymbol = symbol; selectRow(symbol); }"
   @open-editor="openEditor"
->
-  <WatchPanelEditor
-    v-if="editWatchPanel"
-    :apiKey="apiKey"
-    :user="user"
-    :watchPanel="watchPanel"
-    :fetchWatchPanel="fetchWatchPanel"
-    :notify="(msg) => notification.value.show(msg)"
-    @close="closeEditor"
-    @update="fetchWatchPanel"
-  />
-</WatchPanel>
+/>
     <div class="mobilenav">
       <button class="mnavbtn" :class="{ selected: selected === 'info' }" @click="select('info')">
         Info
@@ -329,7 +316,6 @@ import Financials from '@/components/sidebar/financialbtn.vue'
 import Notice from '@/components/charts/Notice.vue';
 import Notes from '@/components/sidebar/notes.vue'
 import News from '@/components/sidebar/news.vue'
-import WatchPanelEditor from '@/components/charts/WatchPanelEditor.vue';
 import FinancialsPopup from '@/components/charts/FinancialsPopup.vue';
 import CreateNote from '@/components/charts/CreateNote.vue'
 import CreateWatchlist from '@/components/charts/CreateWatchlist.vue'
@@ -416,7 +402,6 @@ async function initializeComponent() {
     await Promise.all([
       await searchTicker(),
       await fetchPanel(),
-      await fetchWatchPanel(),
     ]);
 
     isLoading2.value = false;
@@ -695,32 +680,6 @@ async function showTicker() {
   } catch (err) {
     error.value = err.message;
   } 
-}
-
-const watchPanel = ref([]);
-
-// Function to fetch user's WatchPanel data
-async function fetchWatchPanel() {
-  try {
-    const headers = {
-      'x-api-key': apiKey
-    };
-    const response = await fetch(`/api/watchpanel/${user}`, {
-      headers: headers
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const newWatchPanel = await response.json();
-    watchPanel.value = newWatchPanel;
-
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      return;
-    }
-  }
 }
 
 const watchlist = reactive([]); // dynamic list containing watchlist names for every user 
@@ -1470,15 +1429,6 @@ function getSidebarProps(tag) {
   }
 }
 
-const editWatchPanel = ref(false);
-
-function openEditor() {
-  editWatchPanel.value = true;
-}
-function closeEditor() {
-  editWatchPanel.value = false;
-}
-
 // Export Watchlist logic
 function handleExportWatchlist() {
   if (!watchlist2.tickers || watchlist2.tickers.length === 0) return;
@@ -1511,7 +1461,6 @@ function handleImportWatchlistRefresh() {
   filterWatchlist(selectedWatchlist.value);
   showImportWatchlistModal.value = false;
 }
-
 
 </script>
 
