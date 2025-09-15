@@ -62,40 +62,54 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
-const props = defineProps({
-  user: { type: String, required: true },
-  apiKey: { type: String, required: true },
-  notification: { type: Object, required: true },
-  selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
-})
+const props = defineProps<{
+  user: string;
+  apiKey: string;
+  notification: { message?: string; type?: string };
+  selectedScreener: string;
+  isScreenerError: boolean;
+}>();
 
 let showRSI = ref(false);
 
 async function SetRSI() {
   try {
     if (!props.selectedScreener) {
-      props.isScreenerError = true
-      throw new Error('Please select a screener')
+      // Cannot assign to readonly prop, use notification pattern
+      if (props.notification) {
+        props.notification.message = 'Please select a screener';
+        props.notification.type = 'error';
+      }
+      throw new Error('Please select a screener');
     }
 
-    const leftRSI = parseFloat(document.getElementById('left-rsi').value)
-    const rightRSI = parseFloat(document.getElementById('right-rsi').value)
+    const leftInput = document.getElementById('left-rsi') as HTMLInputElement | null;
+    const rightInput = document.getElementById('right-rsi') as HTMLInputElement | null;
+    if (!leftInput || !rightInput) {
+      throw new Error('Input elements not found');
+    }
+    const leftRSI = parseFloat(leftInput.value);
+    const rightRSI = parseFloat(rightInput.value);
+
+    if (isNaN(leftRSI) || isNaN(rightRSI)) {
+      throw new Error('Please enter valid numbers');
+    }
 
     if (leftRSI >= rightRSI) {
-      throw new Error('Min cannot be higher than or equal to max')
+      throw new Error('Min cannot be higher than or equal to max');
     }
 
     const response = await fetch('/api/screener/rsi', {
@@ -110,25 +124,33 @@ async function SetRSI() {
         screenerName: props.selectedScreener,
         user: props.user
       })
-    })
+    });
 
     if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (data.message === 'updated successfully') {
+      // Success
     } else {
-      throw new Error('Error updating RSI range')
+      throw new Error('Error updating RSI range');
     }
-   emit('fetchScreeners', props.selectedScreener);
-  } catch (error) {
-    error.value = error.message;
-   emit('fetchScreeners', props.selectedScreener);
+    emit('fetchScreeners', props.selectedScreener);
+  } catch (error: unknown) {
+    // Defensive error handling for unknown type
+    let message = 'Unknown error';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    if (props.notification) {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
+    emit('fetchScreeners', props.selectedScreener);
   }
 }
-
 
 </script>
 

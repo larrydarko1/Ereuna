@@ -72,15 +72,15 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
@@ -98,18 +98,21 @@ let showADV = ref(false);
 async function SetADV() {
   try {
     if (!props.selectedScreener) {
-      props.isScreenerError = true
-      throw new Error('Please select a screener')
+      emit('reset');
+      throw new Error('Please select a screener');
     }
-
-    const value1 = parseFloat(document.getElementById('ADV1Winput1').value).toFixed(2);
-    const value2 = parseFloat(document.getElementById('ADV1Winput2').value).toFixed(2);
-    const value3 = parseFloat(document.getElementById('ADV1Minput1').value).toFixed(2);
-    const value4 = parseFloat(document.getElementById('ADV1Minput2').value).toFixed(2);
-    const value5 = parseFloat(document.getElementById('ADV4Minput1').value).toFixed(2);
-    const value6 = parseFloat(document.getElementById('ADV4Minput2').value).toFixed(2);
-    const value7 = parseFloat(document.getElementById('ADV1Yinput1').value).toFixed(2);
-    const value8 = parseFloat(document.getElementById('ADV1Yinput2').value).toFixed(2);
+    function getInputValue(id: string): string {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      return el ? parseFloat(el.value).toFixed(2) : '0.00';
+    }
+    const value1 = getInputValue('ADV1Winput1');
+    const value2 = getInputValue('ADV1Winput2');
+    const value3 = getInputValue('ADV1Minput1');
+    const value4 = getInputValue('ADV1Minput2');
+    const value5 = getInputValue('ADV4Minput1');
+    const value6 = getInputValue('ADV4Minput2');
+    const value7 = getInputValue('ADV1Yinput1');
+    const value8 = getInputValue('ADV1Yinput2');
 
     const response = await fetch('/api/screener/adv', {
       method: 'PATCH',
@@ -142,8 +145,12 @@ async function SetADV() {
       throw new Error('Error updating range')
     }
   } catch (error) {
-    error.value = error.message;
+    const msg = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : 'Unknown error';
     emit('fetchScreeners', props.selectedScreener);
+    // Optionally show error to user via notification
+    if (props.notification && typeof props.notification.show === 'function') {
+      props.notification.show(msg);
+    }
   }
 }
 

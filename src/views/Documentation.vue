@@ -35,7 +35,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
@@ -80,31 +80,31 @@ import HideStock from '@/components/Docs/HideStock.vue'
 import MiniCharts from '@/components/Docs/MiniCharts.vue'
 
 const side1Items = ['Introduction', 'Account', 'Charts', 'Screener']
-const side2Items = {
+const side2Items: Record<string, string[]> = {
   Introduction: ['Welcome', 'Create Account', 'Recover Password'],
   Account: ['Change Username', 'Change Password', 'Generate Recovery Key','Delete Account', 'Subscription', 'Themes', 'Security / 2FA'],
   Charts: ['Edit Panel', 'Summary Table', 'EPS / Sales / Earning Tables', 'Dividends / Splits Tables', 'Financial Statements',
     'Notes', 'Benchmarks section', 'Legends / Buttons', 'Chart Indicators', 'Create a Watchlist', 'Rename a Watchlist', 'Add a Symbol',
     'Remove a Symbol', 'Reorder Symbols', 'Sort Watchlist Elements', 'Create a Note', 'Autoplay Watchlist'
   ],
- Screener: [
-  'Create a Screener',
-  'Select a Screener',
-  'Rename a Screener',
-  'Delete a Screener',
-  'Save / Update a Screener',
-  'Reset a Screener',
-  'One-Click Multi-Screener',
-  'Autoplay Results',
-  'Hide Stock Feature',
-  'Mini-Charts / Screener Summary',
-]
-}
-const selectedSide1 = ref(side1Items[0])
-const selectedSide2 = ref(side2Items[selectedSide1.value][0])
+  Screener: [
+    'Create a Screener',
+    'Select a Screener',
+    'Rename a Screener',
+    'Delete a Screener',
+    'Save / Update a Screener',
+    'Reset a Screener',
+    'One-Click Multi-Screener',
+    'Autoplay Results',
+    'Hide Stock Feature',
+    'Mini-Charts / Screener Summary',
+  ]
+};
+const selectedSide1 = ref<string>(side1Items[0]);
+const selectedSide2 = ref<string>(side2Items[selectedSide1.value][0]);
 
 // Example: map side2 values to component names
-const componentMap = {
+const componentMap: Record<string, any> = {
   'Welcome': WelcomeDoc,
   'Create Account': CreateAccountDoc,
   'Recover Password': RecoverPasswordDoc,
@@ -145,8 +145,8 @@ const componentMap = {
   // ...add all other mappings here
 }
 
-function getComponentName(item) {
-  return componentMap[item]
+function getComponentName(item: string) {
+  return componentMap[item];
 }
 </script>
 

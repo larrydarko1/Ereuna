@@ -26,7 +26,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 const emit = defineEmits(['close', 'base-value-updated'])
 const props = defineProps({
@@ -52,8 +52,8 @@ async function submitBaseValue() {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				'x-api-key': props.apiKey
-			},
+				'x-api-key': props.apiKey ?? ''
+			} as Record<string, string>,
 			body: JSON.stringify({
 				username: props.user,
 				portfolio: props.portfolio,
@@ -64,7 +64,7 @@ async function submitBaseValue() {
 		emit('base-value-updated')
 		close()
 	} catch (err) {
-		error.value = err.message
+		error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error'
 	}
 }
 

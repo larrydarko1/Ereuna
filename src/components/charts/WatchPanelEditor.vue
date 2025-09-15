@@ -11,7 +11,7 @@
         <button @click="addSymbol" :disabled="!newSymbol.trim()">Add</button>
       </div>
       <div class="symbols-list">
-        <div v-for="(symbol, idx) in symbols" :key="symbol" class="symbol-item">
+        <div v-for="(symbol, idx) in symbols" :key="symbol.Symbol" class="symbol-item">
           <span>{{ symbol.Symbol }}</span>
           <button @click="removeSymbol(idx)">Remove</button>
         </div>
@@ -22,7 +22,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 
 const emit = defineEmits(['close', 'update', 'notify'])
@@ -30,18 +30,22 @@ const props = defineProps({
   apiKey: String,
   user: String,
   watchPanel: {
-    type: Array,
+    type: Array as () => WatchPanelTicker[],
     default: () => []
   },
   fetchWatchPanel: Function,
   notify: Function
 })
 
-const symbols = ref([...props.watchPanel])
+interface WatchPanelTicker {
+  Symbol: string;
+}
+
+const symbols = ref<WatchPanelTicker[]>([...props.watchPanel])
 const newSymbol = ref('')
 
 // Keep symbols in sync if parent changes watchPanel
-watch(() => props.watchPanel, (val) => {
+watch(() => props.watchPanel, (val: WatchPanelTicker[]) => {
   symbols.value = [...val]
 })
 
@@ -57,9 +61,9 @@ async function patchSymbols() {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': props.apiKey
-      },
-      body: JSON.stringify({ symbols: symbols.value.map(obj => obj.Symbol) })
+        'x-api-key': props.apiKey ?? ''
+      } as Record<string, string>,
+      body: JSON.stringify({ symbols: symbols.value.map((obj: WatchPanelTicker) => obj.Symbol) })
     })
 
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
@@ -77,7 +81,7 @@ async function addSymbol() {
   const symbol = newSymbol.value.trim().toUpperCase()
   if (
     !symbol ||
-    symbols.value.some(obj => obj.Symbol === symbol) ||
+    symbols.value.some((obj: WatchPanelTicker) => obj.Symbol === symbol) ||
     symbols.value.length >= MAX_SYMBOLS
   ) return
   symbols.value.push({ Symbol: symbol })
@@ -85,7 +89,7 @@ async function addSymbol() {
   await patchSymbols()
 }
 
-async function removeSymbol(idx) {
+async function removeSymbol(idx: number) {
   symbols.value.splice(idx, 1)
   await patchSymbols()
 }

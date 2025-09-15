@@ -5,7 +5,7 @@
       <div class="meter-labels">
         <span><strong>Username:</strong> {{ user }}</span>
         <span><strong>Subscription Days left:</strong> {{ expirationDays !== null ? expirationDays : 'Loading...' }}</span>
-        <span><strong>Money left:</strong> {{ ((14.99 / 30) * expirationDays).toFixed(2) }}€</span>
+  <span><strong>Money left:</strong> {{ expirationDays !== null ? ((14.99 / 30) * expirationDays).toFixed(2) : '0.00' }}€</span>
       </div>
       <div class="subscription-actions" style="margin-top: 18px;">
         <button class="userbtn">Renew</button>
@@ -27,7 +27,7 @@
         <p>No receipts found</p>
       </div>
       <div v-else>
-        <div v-for="receipt in receipts" :key="receipt._id" class="receipt-item">
+  <div v-for="receipt in receipts" :key="(receipt as Receipt)._id" class="receipt-item">
           <p style="flex:1; text-align: center;">{{ formatDate(receipt.Date) }}</p>
           <p style="flex:1; text-align: center;">{{ (receipt.Amount) / 100 }}€</p>
           <p style="flex:1; text-align: center;">{{ receipt.Method }}</p>
@@ -55,8 +55,21 @@
   <div style="height: 100px"></div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
+interface Receipt {
+  _id: string;
+  Date: string;
+  Amount: number;
+  Method: string;
+  Subscription: number;
+}
+
 import { ref, onMounted } from 'vue';
+const expirationDays = ref<number | null>(null);
+const receipts = ref<Receipt[]>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
 
 const props = defineProps({
   user: {
@@ -74,7 +87,7 @@ const props = defineProps({
 });
 
 // Create a ref to store the expiration days
-const expirationDays = ref(null);
+// Already declared above as: const expirationDays = ref<number | null>(null);
 
 // Create a function to get the expiration date
 async function getExpirationDate() {
@@ -89,7 +102,7 @@ async function getExpirationDate() {
 
     if (!response.ok) {
       const errorData = await response.json();
-      expirationDays.value = 'Error retrieving expiration date';
+  expirationDays.value = null;
       return;
     }
 
@@ -98,22 +111,28 @@ async function getExpirationDate() {
     if (data.expirationDays !== undefined) {
       expirationDays.value = data.expirationDays; // Set the number of days remaining
     } else {
-      expirationDays.value = 'Unexpected response format';
+  expirationDays.value = null;
     }
-  } catch (error) {
-    error.value = error.message;
-    expirationDays.value = 'Error retrieving expiration date';
+  } catch (err) {
+    let errorMsg = 'Unknown error';
+    if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
+      errorMsg = (err as any).message;
+    } else if (typeof err === 'string') {
+      errorMsg = err;
+    }
+    error.value = errorMsg;
+    expirationDays.value = null;
   }
 }
 
 let selectedOption = ref(1);
 let selectedpay = ref();
 
-function selectOption(option) {
+function selectOption(option: number) {
   selectedOption.value = option;
 }
 
-function selectPay(option) {
+function selectPay(option: number) {
   selectedpay.value = option;
 }
 
@@ -121,11 +140,6 @@ onMounted(() => {
   selectOption(1); // Set default subscription option
   selectPay(4);
 });
-
-// Add this with the other refs at the top of the script
-const receipts = ref([]);
-const loading = ref(false);
-const error = ref(null);
 
 // Add this function in the script section
 async function GetReceipts() {
@@ -146,8 +160,14 @@ async function GetReceipts() {
 
     const data = await response.json();
     receipts.value = data.receipts;
-  } catch (error) {
-    error.value = error.message;
+  } catch (err) {
+    let errorMsg = 'Unknown error';
+    if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
+      errorMsg = (err as any).message;
+    } else if (typeof err === 'string') {
+      errorMsg = err;
+    }
+    error.value = errorMsg;
   } finally {
     loading.value = false;
   }
@@ -162,14 +182,12 @@ async function Renew() {
   await GetReceipts(); // keep this line to dynamically update receipts 
 }
 
-function formatSubscription(subscriptionValue) {
-  const subscriptionMap = {
-    1: '1 Month',
-    2: '4 Months',
-    3: '6 Months',
-    4: '1 Year'
-  };
-  return subscriptionMap[subscriptionValue] || 'Unknown';
+function formatSubscription(subscriptionValue: number) {
+  return (subscriptionValue === 1 ? '1 Month'
+    : subscriptionValue === 2 ? '4 Months'
+    : subscriptionValue === 3 ? '6 Months'
+    : subscriptionValue === 4 ? '1 Year'
+    : 'Unknown');
 }
 
 </script>

@@ -62,15 +62,15 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
@@ -87,15 +87,18 @@ let showBookValue = ref(false);
 async function SetBookValue() {
   try {
     if (!props.selectedScreener) {
-      props.isScreenerError = true
-      throw new Error('Please select a screener')
+      emit('reset');
+      throw new Error('Please select a screener');
     }
-
-    const leftBookValue = parseFloat(document.getElementById('left-bv').value)
-    const rightBookValue = parseFloat(document.getElementById('right-bv').value)
+    function getInputValue(id: string): number {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      return el ? parseFloat(el.value) : 0;
+    }
+    const leftBookValue = getInputValue('left-bv');
+    const rightBookValue = getInputValue('right-bv');
 
     if (leftBookValue >= rightBookValue) {
-      throw new Error('Min cannot be higher than or equal to max')
+      throw new Error('Min cannot be higher than or equal to max');
     }
 
     const response = await fetch('/api/screener/book-value', {
@@ -124,8 +127,11 @@ async function SetBookValue() {
     }
     emit('fetchScreeners', props.selectedScreener);
   } catch (error) {
-    error.value = error.message;
+    const msg = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : 'Unknown error';
     emit('fetchScreeners', props.selectedScreener);
+    if (props.notification && typeof props.notification.show === 'function') {
+      props.notification.show(msg);
+    }
   }
 }
 

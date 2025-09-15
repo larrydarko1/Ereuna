@@ -1,5 +1,8 @@
 import { updatePortfolioStats } from '../utils/portfolioStats.js';
-export default function (app, deps) {
+import { Request, Response } from 'express';
+import { handleError } from '../utils/logger.js';
+
+export default function (app: any, deps: any) {
     const {
         validate,
         validationSchemas,
@@ -16,16 +19,34 @@ export default function (app, deps) {
         query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)'),
         query('limit').optional().isInt({ min: 1, max: 500 }).withMessage('Limit must be 1-500'),
         query('skip').optional().isInt({ min: 0 }).withMessage('Skip must be >= 0')
-    ]), async (req, res) => {
-        let client;
+    ]), async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
             if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'GET /trades',
+                    statusCode: 401
+                });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
-            const { username, portfolio, limit, skip } = req.query;
+            const { username, portfolio, limit, skip } = req.query as {
+                username: string;
+                portfolio: string;
+                limit?: string;
+                skip?: string;
+            };
+            if (!username || !portfolio) {
+                logger.warn({
+                    msg: 'Missing username or portfolio',
+                    context: 'GET /trades',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Missing username or portfolio' });
+            }
             const sanitizedUser = sanitizeInput(username);
             const portfolioNumber = parseInt(portfolio, 10);
             const tradesLimit = limit ? Math.min(parseInt(limit, 10), 500) : 100;
@@ -47,17 +68,21 @@ export default function (app, deps) {
                 skip: tradesSkip
             });
         } catch (error) {
-            logger.error({
-                msg: 'An error occurred while retrieving the trade list',
-                error: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-                route: req.originalUrl,
-                method: req.method,
-                user: req.query?.username
-            });
-            return res.status(500).json({ message: 'An error occurred while retrieving the trade list' });
+            const errObj = handleError(error, 'GET /trades', { user: req.query?.username }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
         } finally {
-            if (client) await client.close();
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'GET /trades'
+                    });
+                }
+            }
         }
     });
 
@@ -73,7 +98,7 @@ export default function (app, deps) {
         body('trade.Date').isISO8601().withMessage('Date must be a valid ISO date'),
         body('trade.Total').isFloat({ min: 0 }).withMessage('Total must be a number'),
         body('trade.Commission').optional().isFloat({ min: 0 }).withMessage('Commission must be a non-negative number'),
-    ]), async (req, res) => {
+    ]), async (req: Request, res: Response) => {
         let client;
         try {
             const apiKey = req.header('x-api-key');
@@ -84,7 +109,16 @@ export default function (app, deps) {
             }
             const { username, portfolio, trade } = req.body;
             const sanitizedUser = sanitizeInput(username);
-            const portfolioNumber = parseInt(portfolio, 10);
+            // Safely extract portfolio as string
+            let portfolioStr: string = '';
+            if (typeof portfolio === 'string') {
+                portfolioStr = portfolio;
+            } else if (typeof portfolio === 'number') {
+                portfolioStr = portfolio.toString();
+            } else {
+                portfolioStr = String(portfolio);
+            }
+            const portfolioNumber = parseInt(portfolioStr, 10);
 
             const processedTrade = {
                 Date: new Date(trade.Date).toISOString(),
@@ -175,8 +209,8 @@ export default function (app, deps) {
             await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
             return res.status(200).json({ message: 'Trade added and portfolio updated' });
         } catch (error) {
-            if (error.errors) {
-                const validationErrors = error.errors.map(err => ({
+            if (typeof error === 'object' && error && 'errors' in error) {
+                const validationErrors = (error as any).errors.map((err: any) => ({
                     field: err.param,
                     message: err.msg
                 }));
@@ -184,8 +218,8 @@ export default function (app, deps) {
             }
             logger.error({
                 msg: 'An error occurred while adding trade',
-                error: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+                error: (error as Error).message,
+                stack: process.env.NODE_ENV === 'development' ? (error as Error).stack : undefined,
                 route: req.originalUrl,
                 method: req.method,
                 user: req.body?.username
@@ -203,16 +237,34 @@ export default function (app, deps) {
         query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)'),
         query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be 1-100'),
         query('skip').optional().isInt({ min: 0 }).withMessage('Skip must be >= 0')
-    ]), async (req, res) => {
-        let client;
+    ]), async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
             if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'GET /portfolio',
+                    statusCode: 401
+                });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
-            const { username, portfolio, limit, skip } = req.query;
+            const { username, portfolio, limit, skip } = req.query as {
+                username?: string;
+                portfolio?: string;
+                limit?: string;
+                skip?: string;
+            };
+            if (!username || !portfolio) {
+                logger.warn({
+                    msg: 'Missing username or portfolio',
+                    context: 'GET /portfolio',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Missing username or portfolio' });
+            }
             const sanitizedUser = sanitizeInput(username);
             const portfolioNumber = parseInt(portfolio, 10);
             const positionsLimit = limit ? Math.min(parseInt(limit, 10), 100) : 50;
@@ -234,17 +286,21 @@ export default function (app, deps) {
                 skip: positionsSkip
             });
         } catch (error) {
-            logger.error({
-                msg: 'An error occurred while retrieving the portfolio',
-                error: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-                route: req.originalUrl,
-                method: req.method,
-                user: req.query?.username
-            });
-            return res.status(500).json({ message: 'An error occurred while retrieving the portfolio' });
+            const errObj = handleError(error, 'GET /portfolio', { user: req.query?.username }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
         } finally {
-            if (client) await client.close();
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'GET /portfolio'
+                    });
+                }
+            }
         }
     });
 
@@ -252,18 +308,43 @@ export default function (app, deps) {
     app.delete('/portfolio', validate([
         validationSchemas.usernameQuery(),
         query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
-    ]), async (req, res) => {
-        let client;
+    ]), async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
             if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'DELETE /portfolio',
+                    statusCode: 401
+                });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
-            const { username, portfolio } = req.query;
+            // Type-safe extraction of query params
+            const { username, portfolio } = req.query as {
+                username?: string;
+                portfolio?: string | number;
+            };
+            if (!username || portfolio === undefined || portfolio === null) {
+                logger.warn({
+                    msg: 'Missing username or portfolio',
+                    context: 'DELETE /portfolio',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Missing username or portfolio' });
+            }
             const sanitizedUser = sanitizeInput(username);
-            const portfolioNumber = parseInt(portfolio, 10);
+            let portfolioStr: string = '';
+            if (typeof portfolio === 'string') {
+                portfolioStr = portfolio;
+            } else if (typeof portfolio === 'number') {
+                portfolioStr = portfolio.toString();
+            } else {
+                portfolioStr = String(portfolio);
+            }
+            const portfolioNumber = parseInt(portfolioStr, 10);
 
             client = new MongoClient(uri);
             await client.connect();
@@ -285,17 +366,21 @@ export default function (app, deps) {
             await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
             return res.status(200).json({ message: 'Portfolio and trade history reset successfully' });
         } catch (error) {
-            logger.error({
-                msg: 'An error occurred while resetting the portfolio',
-                error: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-                route: req.originalUrl,
-                method: req.method,
-                user: req.query?.username
-            });
-            return res.status(500).json({ message: 'An error occurred while resetting the portfolio' });
+            const errObj = handleError(error, 'DELETE /portfolio', { user: req.query?.username }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
         } finally {
-            if (client) await client.close();
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'DELETE /portfolio'
+                    });
+                }
+            }
         }
     });
 
@@ -306,28 +391,71 @@ export default function (app, deps) {
         body('portfolio').isInt({ min: 1, max: 10 }).withMessage('Portfolio number required (1-10)'),
         body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be a positive number'),
         body('date').optional().isISO8601().withMessage('Date must be a valid ISO date')
-    ], async (req, res) => {
-        const apiKey = req.header('x-api-key');
-        const sanitizedKey = sanitizeInput(apiKey);
-        if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-            return res.status(401).json({ message: 'Unauthorized API Access' });
-        }
-        const { username, portfolio, amount, date } = req.body;
-        const sanitizedUser = sanitizeInput(username);
-        const portfolioNumber = parseInt(portfolio, 10);
-        const sanitizedAmount = parseFloat(amount);
-        let depositDate = new Date().toISOString();
-        if (date) {
-            const parsedDate = new Date(date);
-            if (!isNaN(parsedDate.getTime())) {
-                depositDate = parsedDate.toISOString();
-            }
-        }
-        if (!sanitizedUser || !sanitizedAmount || sanitizedAmount <= 0) {
-            return res.status(400).json({ message: 'Invalid input' });
-        }
-        let client;
+    ], async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
         try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'POST /portfolio/cash',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+            // Type-safe extraction of body params
+            const { username, portfolio, amount, date } = req.body as {
+                username?: string;
+                portfolio?: string | number;
+                amount?: string | number;
+                date?: string;
+            };
+            if (!username || portfolio === undefined || portfolio === null || amount === undefined || amount === null) {
+                logger.warn({
+                    msg: 'Missing required fields',
+                    context: 'POST /portfolio/cash',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Invalid input' });
+            }
+            const sanitizedUser = sanitizeInput(username);
+            let portfolioStr: string = '';
+            if (typeof portfolio === 'string') {
+                portfolioStr = portfolio;
+            } else if (typeof portfolio === 'number') {
+                portfolioStr = portfolio.toString();
+            } else {
+                portfolioStr = String(portfolio);
+            }
+            const portfolioNumber = parseInt(portfolioStr, 10);
+
+            let amountStr: string = '';
+            if (typeof amount === 'string') {
+                amountStr = amount;
+            } else if (typeof amount === 'number') {
+                amountStr = amount.toString();
+            } else {
+                amountStr = String(amount);
+            }
+            const sanitizedAmount = parseFloat(amountStr);
+
+            let depositDate = new Date().toISOString();
+            if (date) {
+                const parsedDate = new Date(date);
+                if (!isNaN(parsedDate.getTime())) {
+                    depositDate = parsedDate.toISOString();
+                }
+            }
+            if (!sanitizedUser || !sanitizedAmount || sanitizedAmount <= 0) {
+                logger.warn({
+                    msg: 'Invalid sanitized input',
+                    context: 'POST /portfolio/cash',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Invalid input' });
+            }
             client = new MongoClient(uri);
             await client.connect();
             const db = client.db('EreunaDB');
@@ -346,7 +474,7 @@ export default function (app, deps) {
                 { $inc: { cash: sanitizedAmount } },
                 { upsert: true }
             );
-            // Add a "cash deposit" trade to Trades collection
+            // Add a \"cash deposit\" trade to Trades collection
             const tradesCollection = db.collection('Trades');
             const cashTrade = {
                 Date: depositDate,
@@ -363,9 +491,21 @@ export default function (app, deps) {
             await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
             return res.status(200).json({ message: 'Cash added successfully' });
         } catch (error) {
-            return res.status(500).json({ message: 'An error occurred while adding cash' });
+            const errObj = handleError(error, 'POST /portfolio/cash', { user: req.body?.username }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
         } finally {
-            if (client) await client.close();
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'POST /portfolio/cash'
+                    });
+                }
+            }
         }
     });
 
@@ -373,28 +513,58 @@ export default function (app, deps) {
     app.get('/portfolio/cash', [
         query('username').isString().trim().notEmpty().withMessage('Username is required'),
         query('portfolio').isInt({ min: 1, max: 10 }).withMessage('Portfolio number required (1-10)')
-    ], async (req, res) => {
-        const apiKey = req.header('x-api-key');
-        const sanitizedKey = sanitizeInput(apiKey);
-        if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-            return res.status(401).json({ message: 'Unauthorized API Access' });
-        }
-        const username = sanitizeInput(req.query.username);
-        const portfolioNumber = parseInt(req.query.portfolio, 10);
-        if (!username) {
-            return res.status(400).json({ message: 'Username is required' });
-        }
-        let client;
+    ], async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
         try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'GET /portfolio/cash',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+            // Type-safe extraction of query params
+            const { username, portfolio } = req.query as {
+                username?: string;
+                portfolio?: string | number;
+            };
+            if (!username || portfolio === undefined || portfolio === null) {
+                logger.warn({
+                    msg: 'Missing username or portfolio',
+                    context: 'GET /portfolio/cash',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Username and portfolio are required' });
+            }
+            const sanitizedUser = sanitizeInput(username);
+            let portfolioStr: string = '';
+            if (typeof portfolio === 'string') {
+                portfolioStr = portfolio;
+            } else if (typeof portfolio === 'number') {
+                portfolioStr = portfolio.toString();
+            } else {
+                portfolioStr = String(portfolio);
+            }
+            const portfolioNumber = parseInt(portfolioStr, 10);
+
             client = new MongoClient(uri);
             await client.connect();
             const db = client.db('EreunaDB');
             const portfoliosCollection = db.collection('Portfolios');
             const portfolioDoc = await portfoliosCollection.findOne(
-                { Username: username, Number: portfolioNumber },
+                { Username: sanitizedUser, Number: portfolioNumber },
                 { projection: { cash: 1, BaseValue: 1 } }
             );
             if (!portfolioDoc) {
+                logger.warn({
+                    msg: 'Portfolio not found',
+                    context: 'GET /portfolio/cash',
+                    statusCode: 404
+                });
                 return res.status(404).json({ message: 'Portfolio not found' });
             }
             return res.status(200).json({
@@ -402,25 +572,48 @@ export default function (app, deps) {
                 BaseValue: typeof portfolioDoc.BaseValue === 'number' ? portfolioDoc.BaseValue : 0
             });
         } catch (error) {
-            return res.status(500).json({ message: 'An error occurred while retrieving cash balance' });
+            const errObj = handleError(error, 'GET /portfolio/cash', { user: req.query?.username }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
         } finally {
-            if (client) await client.close();
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'GET /portfolio/cash'
+                    });
+                }
+            }
         }
     });
 
     // --- GET latest quotes for active portfolio  ---
-    app.get('/quotes', async (req, res) => {
-        let client;
+    app.get('/quotes', async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
             if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'GET /quotes',
+                    statusCode: 401
+                });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
 
+            // Type-safe extraction of symbols param
             const symbolsParam = req.query.symbols;
-            if (!symbolsParam) {
+            if (!symbolsParam || typeof symbolsParam !== 'string') {
+                logger.warn({
+                    msg: 'Missing or invalid symbols parameter',
+                    context: 'GET /quotes',
+                    statusCode: 400
+                });
                 return res.status(400).json({ message: 'Symbols parameter is required' });
             }
             const symbols = symbolsParam.split(',').map(s => sanitizeInput(s.trim().toUpperCase()));
@@ -434,13 +627,18 @@ export default function (app, deps) {
             const assets = await assetInfoCollection.find({ Symbol: { $in: symbols } }).toArray();
 
             // Build the result: { SYMBOL: close }
-            const result = {};
+            const result: Record<string, number | null> = {};
             for (const asset of assets) {
                 if (asset.TimeSeries && typeof asset.TimeSeries === 'object') {
                     // Get the first object in TimeSeries (assume it's sorted by date descending)
                     const timeSeriesArray = Object.values(asset.TimeSeries);
-                    if (timeSeriesArray.length > 0 && timeSeriesArray[0]['4. close']) {
-                        result[asset.Symbol] = parseFloat(timeSeriesArray[0]['4. close']);
+                    if (
+                        timeSeriesArray.length > 0 &&
+                        typeof timeSeriesArray[0] === 'object' &&
+                        timeSeriesArray[0] !== null &&
+                        '4. close' in timeSeriesArray[0]
+                    ) {
+                        result[asset.Symbol] = parseFloat((timeSeriesArray[0] as { ['4. close']: string })['4. close']);
                     }
                 }
             }
@@ -453,16 +651,21 @@ export default function (app, deps) {
             return res.status(200).json(result);
 
         } catch (error) {
-            logger.error({
-                msg: 'An error occurred while retrieving quotes',
-                error: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-                route: req.originalUrl,
-                method: req.method
-            });
-            return res.status(500).json({ message: 'An error occurred while retrieving quotes' });
+            const errObj = handleError(error, 'GET /quotes', {}, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
         } finally {
-            if (client) await client.close();
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'GET /quotes'
+                    });
+                }
+            }
         }
     });
 
@@ -471,24 +674,50 @@ export default function (app, deps) {
         body('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)'),
         body('trade').isObject().withMessage('Trade must be an object'),
         body('trade.Symbol').isString().trim().notEmpty().withMessage('Symbol is required'),
-        body('trade.Action').matches('Sell').withMessage('Action must be "Sell"'),
+        body('trade.Action').matches('Sell').withMessage('Action must be \"Sell\"'),
         body('trade.Shares').isFloat({ min: 0.01 }).withMessage('Shares must be a positive number'),
         body('trade.Price').isFloat({ min: 0.01 }).withMessage('Price must be a positive number'),
         body('trade.Date').isISO8601().withMessage('Date must be a valid ISO date'),
         body('trade.Total').isFloat({ min: 0 }).withMessage('Total must be a number'),
         body('trade.Commission').optional().isFloat({ min: 0 }).withMessage('Commission must be a non-negative number'),
-    ]), async (req, res) => {
-        let client;
+    ]), async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
             if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'POST /trades/sell',
+                    statusCode: 401
+                });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
-            const { username, portfolio, trade } = req.body;
+            // Type-safe extraction of body params
+            const { username, portfolio, trade } = req.body as {
+                username?: string;
+                portfolio?: string | number;
+                trade?: any;
+            };
+            if (!username || portfolio === undefined || portfolio === null || !trade) {
+                logger.warn({
+                    msg: 'Missing required fields',
+                    context: 'POST /trades/sell',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Invalid input' });
+            }
             const sanitizedUser = sanitizeInput(username);
-            const portfolioNumber = parseInt(portfolio, 10);
+            let portfolioStr: string = '';
+            if (typeof portfolio === 'string') {
+                portfolioStr = portfolio;
+            } else if (typeof portfolio === 'number') {
+                portfolioStr = portfolio.toString();
+            } else {
+                portfolioStr = String(portfolio);
+            }
+            const portfolioNumber = parseInt(portfolioStr, 10);
 
             const processedTrade = {
                 Date: new Date(trade.Date).toISOString(),
@@ -502,6 +731,11 @@ export default function (app, deps) {
 
             // Prevent future-dated trades
             if (new Date(processedTrade.Date) > new Date()) {
+                logger.warn({
+                    msg: 'Trade date cannot be in the future',
+                    context: 'POST /trades/sell',
+                    statusCode: 400
+                });
                 return res.status(400).json({ message: 'Trade date cannot be in the future' });
             }
 
@@ -514,12 +748,22 @@ export default function (app, deps) {
             // Check if symbol exists
             const symbolExists = await assetInfoCollection.findOne({ Symbol: processedTrade.Symbol });
             if (!symbolExists) {
+                logger.warn({
+                    msg: 'Symbol not found in AssetInfo',
+                    context: 'POST /trades/sell',
+                    statusCode: 404
+                });
                 return res.status(404).json({ message: 'Symbol not found in AssetInfo' });
             }
 
             // Find portfolio doc
             let portfolioDoc = await portfoliosCollection.findOne({ Username: sanitizedUser, Number: portfolioNumber });
             if (!portfolioDoc) {
+                logger.warn({
+                    msg: 'Portfolio not found',
+                    context: 'POST /trades/sell',
+                    statusCode: 404
+                });
                 return res.status(404).json({ message: 'Portfolio not found' });
             }
 
@@ -529,12 +773,22 @@ export default function (app, deps) {
             // Find position
             const position = await positionsCollection.findOne({ Username: sanitizedUser, PortfolioNumber: portfolioNumber, Symbol: processedTrade.Symbol });
             if (!position || position.Shares < processedTrade.Shares) {
+                logger.warn({
+                    msg: 'Not enough shares to sell',
+                    context: 'POST /trades/sell',
+                    statusCode: 400
+                });
                 return res.status(400).json({ message: 'Not enough shares to sell' });
             }
             // Add trade to Trades collection
             // Enforce max 1000 trades per portfolio
             const tradeCount = await tradesCollection.countDocuments({ Username: sanitizedUser, PortfolioNumber: portfolioNumber });
             if (tradeCount >= 1000) {
+                logger.warn({
+                    msg: 'Maximum number of trades (1000) reached for this portfolio.',
+                    context: 'POST /trades/sell',
+                    statusCode: 400
+                });
                 return res.status(400).json({ message: 'Maximum number of trades (1000) reached for this portfolio.' });
             }
             await tradesCollection.insertOne({
@@ -561,24 +815,28 @@ export default function (app, deps) {
             await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
             return res.status(200).json({ message: 'Sell trade added and portfolio updated' });
         } catch (error) {
-            if (error.errors) {
-                const validationErrors = error.errors.map(err => ({
+            if (typeof error === 'object' && error && 'errors' in error) {
+                const validationErrors = (error as any).errors.map((err: any) => ({
                     field: err.param,
                     message: err.msg
                 }));
                 return res.status(400).json({ errors: validationErrors });
             }
-            logger.error({
-                msg: 'An error occurred while adding sell trade',
-                error: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-                route: req.originalUrl,
-                method: req.method,
-                user: req.body?.username
-            });
-            return res.status(500).json({ message: 'An error occurred while adding sell trade' });
+            const errObj = handleError(error, 'POST /trades/sell', { user: req.body?.username }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
         } finally {
-            if (client) await client.close();
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'POST /trades/sell'
+                    });
+                }
+            }
         }
     });
 
@@ -589,44 +847,67 @@ export default function (app, deps) {
         body('stats').isObject().withMessage('Stats must be an object'),
         body('positions').isArray().withMessage('Positions must be an array'),
         body('trades').isArray().withMessage('Trades must be an array')
-    ]), async (req, res) => {
-        let client;
+    ]), async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
             if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'POST /portfolio/import',
+                    statusCode: 401
+                });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
-            const { username, portfolio, stats, positions, trades } = req.body;
+            // Type-safe extraction of body params
+            const { username, portfolio, stats, positions, trades } = req.body as {
+                username?: string;
+                portfolio?: string | number;
+                stats?: any;
+                positions?: any[];
+                trades?: any[];
+            };
+            if (!username || portfolio === undefined || portfolio === null || !stats || !positions || !trades) {
+                logger.warn({
+                    msg: 'Missing required fields',
+                    context: 'POST /portfolio/import',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Invalid input' });
+            }
             const sanitizedUser = sanitizeInput(username);
-            const portfolioNumber = parseInt(portfolio, 10);
+            let portfolioStr: string = '';
+            if (typeof portfolio === 'string') {
+                portfolioStr = portfolio;
+            } else if (typeof portfolio === 'number') {
+                portfolioStr = portfolio.toString();
+            } else {
+                portfolioStr = String(portfolio);
+            }
+            const portfolioNumber = parseInt(portfolioStr, 10);
 
             // --- Backend CSV Injection & Sanitization ---
-            function isDangerousCSVValue(v) {
+            function isDangerousCSVValue(v: any): boolean {
                 if (typeof v === 'string' && v.startsWith("'")) v = v.slice(1);
                 return typeof v === 'string' && /^[=+\-@]/.test(v) && v.length > 1;
             }
-            function sanitizeRow(row) {
-                const sanitized = {};
+            function sanitizeRow(row: Record<string, any>): Record<string, any> {
+                const sanitized: Record<string, any> = {};
                 for (const [k, v] of Object.entries(row)) {
                     let value = v;
-                    // Convert numeric fields to numbers
                     if (["Shares", "Price", "Total", "Commission"].includes(k)) {
                         const num = Number(value);
                         value = isNaN(num) ? 0 : num;
-                    }
-                    // Parse Date to ISO format if present
-                    else if (k === "Date" && typeof value === "string") {
+                    } else if (k === "Date" && typeof value === "string") {
                         let dateStr = value;
-                        // If date string is in the format YYYYMMDDTHH:mm:ss.sssZ, reinsert '-' at positions 4 and 7
                         if (/^\d{8}T/.test(dateStr)) {
                             dateStr = dateStr.slice(0, 4) + '-' + dateStr.slice(4, 6) + '-' + dateStr.slice(6);
                         }
                         const parsedDate = new Date(dateStr);
                         value = isNaN(parsedDate.getTime()) ? value : parsedDate.toISOString();
-                    }
-                    else if (typeof value === 'string') {
+                    } else if (typeof value === 'string') {
                         value = sanitizeInput(value);
                     }
                     sanitized[k] = value;
@@ -637,38 +918,45 @@ export default function (app, deps) {
             for (const row of [...positions, ...trades]) {
                 for (let v of Object.values(row)) {
                     if (isDangerousCSVValue(v)) {
+                        logger.warn({
+                            msg: 'Potentially dangerous value detected in import',
+                            context: 'POST /portfolio/import',
+                            statusCode: 400
+                        });
                         return res.status(400).json({ message: 'Potentially dangerous value detected in import.' });
                     }
                 }
             }
             for (let v of Object.values(stats)) {
                 if (isDangerousCSVValue(v)) {
+                    logger.warn({
+                        msg: 'Potentially dangerous value detected in stats import',
+                        context: 'POST /portfolio/import',
+                        statusCode: 400
+                    });
                     return res.status(400).json({ message: 'Potentially dangerous value detected in import.' });
                 }
             }
             // Sanitize all string fields
-            const safeStats = {};
+            const safeStats: Record<string, any> = {};
             for (const [k, v] of Object.entries(stats)) {
                 safeStats[k] = typeof v === 'string' ? sanitizeInput(v) : v;
             }
             // Group biggestLoser.* and biggestWinner.* keys into nested objects
-            function groupNestedStats(statsObj, baseKey) {
-                const nested = {};
+            function groupNestedStats(statsObj: Record<string, any>, baseKey: string) {
+                const nested: Record<string, any> = {};
                 Object.keys(statsObj).forEach(key => {
                     if (key.startsWith(baseKey + '.')) {
                         const subKey = key.split('.')[1];
                         nested[subKey] = statsObj[key];
                     }
                 });
-                // Remove flat keys
                 Object.keys(nested).forEach(subKey => {
                     delete statsObj[baseKey + '.' + subKey];
                 });
-                // Remove flat baseKey if present
                 if (statsObj.hasOwnProperty(baseKey)) {
                     delete statsObj[baseKey];
                 }
-                // Only set if there are subkeys
                 if (Object.keys(nested).length > 0) {
                     statsObj[baseKey] = nested;
                 }
@@ -701,10 +989,9 @@ export default function (app, deps) {
             // Only keep allowed fields for positions
             const allowedPositionFields = ['Symbol', 'Shares', 'AvgPrice'];
             const safePositionsFiltered = safePositions.map(pos => {
-                const filtered = {};
+                const filtered: Record<string, any> = {};
                 for (const key of allowedPositionFields) {
                     if (pos.hasOwnProperty(key)) {
-                        // Ensure Shares and AvgPrice are numbers
                         if (key === 'Shares' || key === 'AvgPrice') {
                             const num = Number(pos[key]);
                             filtered[key] = isNaN(num) ? 0 : num;
@@ -725,7 +1012,6 @@ export default function (app, deps) {
             const tradesCollection = db.collection('Trades');
 
             // Upsert the portfolio document with all stats fields
-            // Always set Username and Number
             const portfolioUpdate = { ...safeStats, Username: sanitizedUser, Number: portfolioNumber };
             await portfoliosCollection.updateOne(
                 { Username: sanitizedUser, Number: portfolioNumber },
@@ -740,6 +1026,11 @@ export default function (app, deps) {
             // Insert new positions (enforce max 500)
             if (safePositionsFiltered.length) {
                 if (safePositionsFiltered.length > 500) {
+                    logger.warn({
+                        msg: 'Cannot import more than 500 active positions per portfolio',
+                        context: 'POST /portfolio/import',
+                        statusCode: 400
+                    });
                     return res.status(400).json({ message: 'Cannot import more than 500 active positions per portfolio.' });
                 }
                 const posDocs = safePositionsFiltered.map(pos => ({
@@ -752,6 +1043,11 @@ export default function (app, deps) {
             // Insert new trades
             if (safeTrades.length) {
                 if (safeTrades.length > 1000) {
+                    logger.warn({
+                        msg: 'Cannot import more than 1000 trades per portfolio',
+                        context: 'POST /portfolio/import',
+                        statusCode: 400
+                    });
                     return res.status(400).json({ message: 'Cannot import more than 1000 trades per portfolio.' });
                 }
                 const tradeDocs = safeTrades.map(trade => ({
@@ -766,17 +1062,21 @@ export default function (app, deps) {
             await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
             return res.status(200).json({ message: 'Portfolio imported successfully' });
         } catch (error) {
-            logger.error({
-                msg: 'An error occurred while importing portfolio',
-                error: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-                route: req.originalUrl,
-                method: req.method,
-                user: req.body?.username
-            });
-            return res.status(500).json({ message: 'An error occurred while importing portfolio' });
+            const errObj = handleError(error, 'POST /portfolio/import', { user: req.body?.username }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
         } finally {
-            if (client) await client.close();
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'POST /portfolio/import'
+                    });
+                }
+            }
         }
     });
 
@@ -784,18 +1084,44 @@ export default function (app, deps) {
     app.get('/portfolio/summary', validate([
         validationSchemas.usernameQuery(),
         query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
-    ]), async (req, res) => {
-        let client;
+    ]), async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
             if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'GET /portfolio/summary',
+                    statusCode: 401
+                });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
-            const { username, portfolio } = req.query;
+            // Type-safe extraction of query params
+            const { username, portfolio } = req.query as {
+                username?: string;
+                portfolio?: string | number;
+            };
+            if (!username || portfolio === undefined || portfolio === null) {
+                logger.warn({
+                    msg: 'Missing username or portfolio',
+                    context: 'GET /portfolio/summary',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Username and portfolio are required' });
+            }
             const sanitizedUser = sanitizeInput(username);
-            const portfolioNumber = parseInt(portfolio, 10);
+            let portfolioStr: string = '';
+            if (typeof portfolio === 'string') {
+                portfolioStr = portfolio;
+            } else if (typeof portfolio === 'number') {
+                portfolioStr = portfolio.toString();
+            } else {
+                portfolioStr = String(portfolio);
+            }
+            const portfolioNumber = parseInt(portfolioStr, 10);
+
             client = new MongoClient(uri);
             await client.connect();
             const db = client.db('EreunaDB');
@@ -807,7 +1133,11 @@ export default function (app, deps) {
                 { Username: sanitizedUser, Number: portfolioNumber }
             );
             if (!portfolioDoc) {
-                logger.warn('[DEBUG] Portfolio not found');
+                logger.warn({
+                    msg: 'Portfolio not found',
+                    context: 'GET /portfolio/summary',
+                    statusCode: 404
+                });
                 return res.status(404).json({ message: 'Portfolio not found' });
             }
 
@@ -818,12 +1148,17 @@ export default function (app, deps) {
             ).toArray();
 
             // Get latest quotes for all symbols in portfolio from OHCLVData
-            const symbols = portfolioArr.map(pos => pos.Symbol);
-            let quotes = {};
+            const symbols = portfolioArr.map((pos: { Symbol: string }) => pos.Symbol);
+            let quotes: Record<string, number> = {};
             const MAX_SYMBOLS = 5000;
             if (symbols.length > 0) {
                 if (symbols.length > MAX_SYMBOLS) {
-                    logger.error('[DEBUG] Too many symbols requested', { symbolsLen: symbols.length });
+                    logger.error({
+                        msg: 'Too many symbols requested',
+                        symbolsLen: symbols.length,
+                        context: 'GET /portfolio/summary',
+                        statusCode: 400
+                    });
                     return res.status(400).json({ message: `Too many symbols requested (max ${MAX_SYMBOLS})` });
                 }
                 const OHCLVDataCollection = db.collection('OHCLVData');
@@ -834,9 +1169,9 @@ export default function (app, deps) {
                         { $match: { tickerID: { $in: batch } } },
                         { $sort: { timestamp: -1 } },
                         { $group: { _id: "$tickerID", doc: { $first: "$$ROOT" } } },
-                        { $project: { tickerID: "$_id", close: "$doc.close" } }
+                        { $project: { tickerID: "_id", close: "doc.close" } }
                     ]).toArray();
-                    docs.forEach(doc => {
+                    docs.forEach((doc: any) => {
                         quotes[doc.tickerID] = doc.close;
                     });
                 }
@@ -845,10 +1180,10 @@ export default function (app, deps) {
             // Calculate pie chart and values
             let totalPortfolioValue = portfolioDoc.cash || 0;
             let activePositionsValue = 0;
-            let pieChartLabels = [];
-            let pieChartData = [];
+            let pieChartLabels: string[] = [];
+            let pieChartData: number[] = [];
             let unrealizedPL = 0;
-            portfolioArr.forEach(pos => {
+            portfolioArr.forEach((pos: { Symbol: string; Shares: number; AvgPrice: number }) => {
                 const quote = quotes[pos.Symbol];
                 if (quote !== undefined && typeof pos.Shares === 'number') {
                     const positionValue = quote * pos.Shares;
@@ -899,17 +1234,21 @@ export default function (app, deps) {
             };
             return res.status(200).json(summary);
         } catch (error) {
-            logger.error({
-                msg: 'An error occurred while retrieving portfolio summary',
-                error: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-                route: req.originalUrl,
-                method: req.method,
-                user: req.query?.username
-            });
-            return res.status(500).json({ message: 'An error occurred while retrieving portfolio summary' });
+            const errObj = handleError(error, 'GET /portfolio/summary', { user: req.query?.username }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
         } finally {
-            if (client) await client.close();
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'GET /portfolio/summary'
+                    });
+                }
+            }
         }
     });
 
@@ -919,23 +1258,64 @@ export default function (app, deps) {
             .matches(/^[a-zA-Z0-9_]+$/).withMessage('Invalid username format'),
         body('portfolio').isInt({ min: 1, max: 10 }).withMessage('Portfolio number required (1-10)'),
         body('baseValue').isFloat({ min: 0.01 }).withMessage('BaseValue must be a positive number')
-    ], async (req, res) => {
-        const apiKey = req.header('x-api-key');
-        const sanitizedKey = sanitizeInput(apiKey);
-        if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-            return res.status(401).json({ message: 'Unauthorized API Access' });
-        }
-        const { username, portfolio, baseValue } = req.body;
-        const sanitizedUser = sanitizeInput(username);
-        const portfolioNumber = parseInt(portfolio, 10);
-        const sanitizedBaseValue = parseFloat(baseValue);
-
-        if (!sanitizedUser || !sanitizedBaseValue || sanitizedBaseValue <= 0) {
-            return res.status(400).json({ message: 'Invalid input' });
-        }
-
-        let client;
+    ], async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
         try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'POST /portfolio/basevalue',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+            // Type-safe extraction of body params
+            const { username, portfolio, baseValue } = req.body as {
+                username?: string;
+                portfolio?: string | number;
+                baseValue?: string | number;
+            };
+            if (!username || portfolio === undefined || portfolio === null || baseValue === undefined || baseValue === null) {
+                logger.warn({
+                    msg: 'Missing required fields',
+                    context: 'POST /portfolio/basevalue',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Invalid input' });
+            }
+            const sanitizedUser = sanitizeInput(username);
+            let portfolioStr: string = '';
+            if (typeof portfolio === 'string') {
+                portfolioStr = portfolio;
+            } else if (typeof portfolio === 'number') {
+                portfolioStr = portfolio.toString();
+            } else {
+                portfolioStr = String(portfolio);
+            }
+            const portfolioNumber = parseInt(portfolioStr, 10);
+
+            let baseValueStr: string = '';
+            if (typeof baseValue === 'string') {
+                baseValueStr = baseValue;
+            } else if (typeof baseValue === 'number') {
+                baseValueStr = baseValue.toString();
+            } else {
+                baseValueStr = String(baseValue);
+            }
+            const sanitizedBaseValue = parseFloat(baseValueStr);
+
+            if (!sanitizedUser || !sanitizedBaseValue || sanitizedBaseValue <= 0) {
+                logger.warn({
+                    msg: 'Invalid sanitized input',
+                    context: 'POST /portfolio/basevalue',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Invalid input' });
+            }
+
             client = new MongoClient(uri);
             await client.connect();
             const db = client.db('EreunaDB');
@@ -946,15 +1326,32 @@ export default function (app, deps) {
                 { $set: { BaseValue: sanitizedBaseValue } }
             );
             if (result.matchedCount === 0) {
+                logger.warn({
+                    msg: 'Portfolio not found',
+                    context: 'POST /portfolio/basevalue',
+                    statusCode: 404
+                });
                 return res.status(404).json({ message: 'Portfolio not found' });
             }
             // Optionally update static stats
             await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
             return res.status(200).json({ message: 'BaseValue updated successfully' });
         } catch (error) {
-            return res.status(500).json({ message: 'An error occurred while updating BaseValue' });
+            const errObj = handleError(error, 'POST /portfolio/basevalue', { user: req.body?.username }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
         } finally {
-            if (client) await client.close();
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'POST /portfolio/basevalue'
+                    });
+                }
+            }
         }
     });
 
@@ -962,18 +1359,43 @@ export default function (app, deps) {
     app.get('/portfolio/export', validate([
         validationSchemas.usernameQuery(),
         query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
-    ]), async (req, res) => {
-        let client;
+    ]), async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
             if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                logger.warn('Invalid API key', { providedApiKey: !!sanitizedKey });
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'GET /portfolio/export',
+                    statusCode: 401
+                });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
-            const { username, portfolio } = req.query;
+            // Type-safe extraction of query params
+            const { username, portfolio } = req.query as {
+                username?: string;
+                portfolio?: string | number;
+            };
+            if (!username || portfolio === undefined || portfolio === null) {
+                logger.warn({
+                    msg: 'Missing username or portfolio',
+                    context: 'GET /portfolio/export',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Username and portfolio are required' });
+            }
             const sanitizedUser = sanitizeInput(username);
-            const portfolioNumber = parseInt(portfolio, 10);
+            let portfolioStr: string = '';
+            if (typeof portfolio === 'string') {
+                portfolioStr = portfolio;
+            } else if (typeof portfolio === 'number') {
+                portfolioStr = portfolio.toString();
+            } else {
+                portfolioStr = String(portfolio);
+            }
+            const portfolioNumber = parseInt(portfolioStr, 10);
 
             client = new MongoClient(uri);
             await client.connect();
@@ -988,7 +1410,11 @@ export default function (app, deps) {
                 { Username: sanitizedUser, Number: portfolioNumber }
             );
             if (!portfolioDoc) {
-                logger.warn('[DEBUG] Portfolio not found');
+                logger.warn({
+                    msg: 'Portfolio not found',
+                    context: 'GET /portfolio/export',
+                    statusCode: 404
+                });
                 return res.status(404).json({ message: 'Portfolio not found' });
             }
 
@@ -1014,7 +1440,7 @@ export default function (app, deps) {
             // Get latest close price for each position from OHCLVData1m
             let totalValue = portfolioDoc.cash || 0;
             let unrealizedPL = 0;
-            const positionsArr = [];
+            const positionsArr: any[] = [];
             for (const pos of positionsArrRaw) {
                 // Find latest close price for tickerID
                 const latestQuoteDoc = await OHCLVData1mCollection.find({ tickerID: pos.Symbol })
@@ -1022,8 +1448,8 @@ export default function (app, deps) {
                     .limit(1)
                     .toArray();
                 const latestClose = latestQuoteDoc.length > 0 ? latestQuoteDoc[0].close : null;
-                let currentValue = null;
-                let positionUnrealizedPL = null;
+                let currentValue: number | null = null;
+                let positionUnrealizedPL: number | null = null;
                 if (latestClose !== null && typeof pos.Shares === 'number') {
                     currentValue = latestClose * pos.Shares;
                     totalValue += currentValue;
@@ -1041,8 +1467,8 @@ export default function (app, deps) {
             }
 
             // Add calculated values to stats
-            portfolioStats.totalValue = parseFloat(totalValue).toFixed(2);
-            portfolioStats.unrealizedPL = parseFloat(unrealizedPL).toFixed(2);
+            portfolioStats.totalValue = Number(totalValue).toFixed(2);
+            portfolioStats.unrealizedPL = Number(unrealizedPL).toFixed(2);
 
             // Build response payload
             return res.status(200).json({
@@ -1051,17 +1477,21 @@ export default function (app, deps) {
                 portfolio: positionsArr
             });
         } catch (error) {
-            logger.error({
-                msg: 'An error occurred while exporting portfolio',
-                error: error.message,
-                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-                route: req.originalUrl,
-                method: req.method,
-                user: req.query?.username
-            });
-            return res.status(500).json({ message: 'An error occurred while exporting portfolio' });
+            const errObj = handleError(error, 'GET /portfolio/export', { user: req.query?.username }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
         } finally {
-            if (client) await client.close();
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'GET /portfolio/export'
+                    });
+                }
+            }
         }
     });
 

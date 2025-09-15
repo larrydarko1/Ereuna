@@ -64,7 +64,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 const props = defineProps({
   symbol: String,
@@ -89,7 +89,7 @@ const sellTotal = computed(() => Number((sellShares.value * sellPrice.value + (s
 
 // Clamp sellShares to maxShares
 watch(sellShares, (val) => {
-  if (val > props.maxShares) sellShares.value = props.maxShares
+  if (props.maxShares !== undefined && val > props.maxShares) sellShares.value = props.maxShares
   if (val < 1) sellShares.value = 1
 })
 
@@ -101,7 +101,7 @@ function close() {
 }
 
 async function submitSell() {
-  if (sellShares.value > props.maxShares) return
+  if (props.maxShares !== undefined && sellShares.value > props.maxShares) return
   const trade = {
     Symbol: props.symbol,
     Shares: sellShares.value,
@@ -116,8 +116,8 @@ async function submitSell() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': props.apiKey
-      },
+        'x-api-key': props.apiKey ?? ''
+      } as Record<string, string>,
       body: JSON.stringify({
         username: props.user,
         portfolio: props.portfolio, 

@@ -44,7 +44,7 @@ const routes = [
   {
     path: '/signup',
     name: 'SignUp',
-    component: () => import('../views/conversion.vue')
+    component: () => import('../views/SignUp.vue')
   },
   {
     path: '/upload',

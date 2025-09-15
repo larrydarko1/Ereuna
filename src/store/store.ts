@@ -1,6 +1,7 @@
 import { createStore } from 'vuex';
 
 const store = createStore({
+    state: {}, // Add an empty state object
     getters: {
         getUser(state) {
             const token = localStorage.getItem('token');

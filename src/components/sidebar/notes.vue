@@ -1,7 +1,7 @@
 <template>
   <div class="notes-container">
     <div v-if="BeautifulNotes.length > 0">
-      <div class="note" v-for="note in BeautifulNotes" :key="note.Date">
+      <div class="note" v-for="note in BeautifulNotes" :key="note._id">
         <div class="inline-note">
           <img class="img" src="@/assets/icons/note.png" alt="">
         </div>
@@ -20,7 +20,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
 
 const props = defineProps({
@@ -49,10 +49,15 @@ const props = defineProps({
     required: true
   }
 });
+interface Note {
+  _id: string;
+  Date: string;
+  Message: string;
+}
 
 const loading = ref(false);
-const error = ref(null);
-const BeautifulNotes = ref([]);
+const error = ref<string | null>(null);
+const BeautifulNotes = ref<Note[]>([]);
 
 async function searchNotes() {
   try {
@@ -66,13 +71,19 @@ async function searchNotes() {
     const data = await response.json();
     BeautifulNotes.value = data;
   } catch (err) {
-    error.value = err.message;
+    let errorMsg = 'Unknown error';
+    if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
+      errorMsg = (err as any).message;
+    } else if (typeof err === 'string') {
+      errorMsg = err;
+    }
+    error.value = errorMsg;
   } finally {
     loading.value = false;
   }
 }
 
-async function removeNote(_id, note) {
+async function removeNote(_id: string) {
   const Username = props.user;
   const symbol = props.symbol || props.defaultSymbol;
   const noteId = _id;
@@ -85,11 +96,17 @@ async function removeNote(_id, note) {
       },
     });
     if (response.ok) {
-      BeautifulNotes.value = BeautifulNotes.value.filter((n) => n._id !== noteId);
+      BeautifulNotes.value = BeautifulNotes.value.filter((n: Note) => n._id !== noteId);
     } else {
     }
   } catch (err) {
-    error.value = err.message;
+    let errorMsg = 'Unknown error';
+    if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
+      errorMsg = (err as any).message;
+    } else if (typeof err === 'string') {
+      errorMsg = err;
+    }
+    error.value = errorMsg;
   }
   await searchNotes();
 }

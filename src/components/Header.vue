@@ -173,7 +173,7 @@ l-240 1 -90 -57z"/>
   </header>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRoute } from 'vue-router';
 
 const route = useRoute();

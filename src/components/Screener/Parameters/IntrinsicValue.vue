@@ -62,15 +62,15 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
@@ -89,15 +89,27 @@ let showIntrinsicValue = ref(false);
 async function SetIntrinsicValue() {
   try {
     if (!props.selectedScreener) {
-      props.isScreenerError = true
-      throw new Error('Please select a screener')
+      // Cannot assign to readonly prop, use notification pattern
+      if (props.notification && typeof props.notification === 'object') {
+        props.notification.message = 'Please select a screener';
+        props.notification.type = 'error';
+      }
+      throw new Error('Please select a screener');
     }
 
-    const leftIntrinsicValue = parseFloat(document.getElementById('left-iv').value)
-    const rightIntrinsicValue = parseFloat(document.getElementById('right-iv').value)
+    const leftInput = document.getElementById('left-iv') as HTMLInputElement | null;
+    const rightInput = document.getElementById('right-iv') as HTMLInputElement | null;
+    if (!leftInput || !rightInput) {
+      throw new Error('Input elements not found');
+    }
+    const leftIntrinsicValue = parseFloat(leftInput.value);
+    const rightIntrinsicValue = parseFloat(rightInput.value);
 
+    if (isNaN(leftIntrinsicValue) || isNaN(rightIntrinsicValue)) {
+      throw new Error('Please enter valid numbers');
+    }
     if (leftIntrinsicValue >= rightIntrinsicValue) {
-      throw new Error('Min cannot be higher than or equal to max')
+      throw new Error('Min cannot be higher than or equal to max');
     }
 
     const response = await fetch('/api/screener/intrinsic-value', {
@@ -112,21 +124,33 @@ async function SetIntrinsicValue() {
         screenerName: props.selectedScreener,
         user: props.user
       })
-    })
+    });
 
     if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (data.message === 'updated successfully') {
+      // Optionally notify success
+      if (props.notification && typeof props.notification === 'object') {
+        props.notification.message = 'Intrinsic Value updated successfully';
+        props.notification.type = 'success';
+      }
     } else {
-      throw new Error('Error updating Intrinsic Value range')
+      throw new Error('Error updating Intrinsic Value range');
     }
     emit('fetchScreeners', props.selectedScreener);
-  } catch (error) {
-    error.value = error.message;
+  } catch (error: unknown) {
+    let message = 'Unknown error';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    if (props.notification && typeof props.notification === 'object') {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
     emit('fetchScreeners', props.selectedScreener);
   }
 }

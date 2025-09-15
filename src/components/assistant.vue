@@ -81,22 +81,27 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, nextTick } from 'vue';
+
 
 const expanded = ref(false);
 const inputValue = ref('');
-const input = ref(null);
+const input = ref<HTMLInputElement | null>(null);
 const iconHidden = ref(false);
-let iconTimeout = null;
+let iconTimeout: ReturnType<typeof setTimeout> | null = null;
 
-// Chat state
-const messages = ref([]);
+interface Message {
+  role: 'user' | 'bot';
+  text: string;
+  type: 'text' | 'chart';
+}
+const messages = ref<Message[]>([]);
 
 function expand() {
   expanded.value = true;
   iconHidden.value = true;
-  clearTimeout(iconTimeout);
+  if (iconTimeout) clearTimeout(iconTimeout);
   iconTimeout = setTimeout(() => {
     iconHidden.value = false;
     nextTick(() => {
@@ -108,7 +113,7 @@ function expand() {
 function collapse() {
   expanded.value = false;
   iconHidden.value = true;
-  clearTimeout(iconTimeout);
+  if (iconTimeout) clearTimeout(iconTimeout);
   iconTimeout = setTimeout(() => {
     iconHidden.value = false;
   }, 600);
@@ -122,7 +127,7 @@ function submit() {
 
   // Predefined Q&A logic
   const lower = text.toLowerCase();
-  let botMsg;
+  let botMsg: Message;
   if (/^(hello|hi|hey)[!\s,.]*$/i.test(lower)) {
     botMsg = { role: 'bot', text: "Hello!! I'm Archie, AI Trader, nice to meet you!", type: 'text' };
   } else if (/what can you do\??/i.test(lower)) {

@@ -633,32 +633,32 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMaintenanceStore } from '../store/maintenance';
 
 const router = useRouter();
 const maintenanceStore = useMaintenanceStore();
-let pollInterval;
+let pollInterval: number | undefined;
 
 onMounted(() => {
   // Check maintenance status every 30 seconds
-  pollInterval = setInterval(async () => {
-  try {
-    await maintenanceStore.checkMaintenanceStatus();
-    if (!maintenanceStore.isUnderMaintenance) {
-      router.push({ name: 'Login' });
+  pollInterval = window.setInterval(async () => {
+    try {
+      await maintenanceStore.checkMaintenanceStatus();
+      if (!maintenanceStore.isUnderMaintenance) {
+        router.push({ name: 'Login' });
+      }
+    } catch (error) {
+      console.error('Error checking maintenance status:', error);
     }
-  } catch (error) {
-    console.error('Error checking maintenance status:', error);
-  }
-}, 30000);
+  }, 30000);
 });
 
 onUnmounted(() => {
-  if (pollInterval) {
-    clearInterval(pollInterval);
+  if (pollInterval !== undefined) {
+    window.clearInterval(pollInterval);
   }
 });
 </script>

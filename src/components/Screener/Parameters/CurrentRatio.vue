@@ -62,15 +62,15 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
@@ -87,15 +87,27 @@ let showCurrentRatio = ref(false);
 async function SetCurrentRatio() {
   try {
     if (!props.selectedScreener) {
-      props.isScreenerError = true
-      throw new Error('Please select a screener')
+      // Cannot assign to readonly prop, use notification pattern
+      if (props.notification && typeof props.notification === 'object') {
+        props.notification.message = 'Please select a screener';
+        props.notification.type = 'error';
+      }
+      throw new Error('Please select a screener');
     }
 
-    const leftCurrentRatio = parseFloat(document.getElementById('left-current-ratio').value)
-    const rightCurrentRatio = parseFloat(document.getElementById('right-current-ratio').value)
+    const leftInput = document.getElementById('left-current-ratio') as HTMLInputElement | null;
+    const rightInput = document.getElementById('right-current-ratio') as HTMLInputElement | null;
+    if (!leftInput || !rightInput) {
+      throw new Error('Input elements not found');
+    }
+    const leftCurrentRatio = parseFloat(leftInput.value);
+    const rightCurrentRatio = parseFloat(rightInput.value);
 
+    if (isNaN(leftCurrentRatio) || isNaN(rightCurrentRatio)) {
+      throw new Error('Please enter valid numbers');
+    }
     if (leftCurrentRatio >= rightCurrentRatio) {
-      throw new Error('Min cannot be higher than or equal to max')
+      throw new Error('Min cannot be higher than or equal to max');
     }
 
     const response = await fetch('/api/screener/current-ratio', {
@@ -110,22 +122,34 @@ async function SetCurrentRatio() {
         screenerName: props.selectedScreener,
         user: props.user
       })
-    })
+    });
 
     if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (data.message === 'updated successfully') {
+      // Optionally notify success
+      if (props.notification && typeof props.notification === 'object') {
+        props.notification.message = 'Current Ratio updated successfully';
+        props.notification.type = 'success';
+      }
     } else {
-      throw new Error('Error updating Current Ratio range')
+      throw new Error('Error updating Current Ratio range');
     }
     emit('fetchScreeners', props.selectedScreener);
-  } catch (error) {
-    error.value = error.message;
-   emit('fetchScreeners', props.selectedScreener);
+  } catch (error: unknown) {
+    let message = 'Unknown error';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    if (props.notification && typeof props.notification === 'object') {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
+    emit('fetchScreeners', props.selectedScreener);
   }
 }
 

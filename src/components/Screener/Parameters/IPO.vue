@@ -62,15 +62,15 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
@@ -88,12 +88,21 @@ let showIPOInputs = ref(false);
 async function SetIpoDate() {
   try {
     if (!props.selectedScreener) {
-      props.isScreenerError = true
-      throw new Error('Please select a screener')
+      // Cannot assign to readonly prop, use notification pattern
+      if (props.notification && typeof props.notification === 'object') {
+        props.notification.message = 'Please select a screener';
+        props.notification.type = 'error';
+      }
+      throw new Error('Please select a screener');
     }
 
-    const leftPrice = document.getElementById('left-ipo').value;
-    const rightPrice = document.getElementById('right-ipo').value;
+    const leftInput = document.getElementById('left-ipo') as HTMLInputElement | null;
+    const rightInput = document.getElementById('right-ipo') as HTMLInputElement | null;
+    if (!leftInput || !rightInput) {
+      throw new Error('Input elements not found');
+    }
+    const leftPrice = leftInput.value;
+    const rightPrice = rightInput.value;
 
     const response = await fetch('/api/screener/ipo-date', {
       method: 'PATCH',
@@ -116,17 +125,25 @@ async function SetIpoDate() {
     const data = await response.json();
 
     if (data.message === 'ipo updated successfully') {
-      try {
-        emit('fetchScreeners', props.selectedScreener);
-      } catch (error) {
-        error.value = error.message;
+      // Optionally notify success
+      if (props.notification && typeof props.notification === 'object') {
+        props.notification.message = 'IPO date updated successfully';
+        props.notification.type = 'success';
       }
+      emit('fetchScreeners', props.selectedScreener);
     } else {
       throw new Error('Error updating range');
     }
-  } catch (error) {
-    error.value = error.message;
-     emit('fetchScreeners', props.selectedScreener);
+  } catch (error: unknown) {
+    let message = 'Unknown error';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    if (props.notification && typeof props.notification === 'object') {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
+    emit('fetchScreeners', props.selectedScreener);
   }
 }
 

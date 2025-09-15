@@ -92,15 +92,15 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
@@ -114,7 +114,7 @@ const props = defineProps({
 
 let showVolume = ref(false);
 
-const relVolOptions = ref([
+const relVolOptions = ref<string[]>([
   '-',
   '1W',
   '1M',
@@ -122,7 +122,7 @@ const relVolOptions = ref([
   '1Y'
 ]);
 
-const avgVolOptions = ref([
+const avgVolOptions = ref<string[]>([
   '-',
   '1W',
   '1M',
@@ -130,31 +130,42 @@ const avgVolOptions = ref([
   '1Y'
 ]);
 
-const relVolSelect = ref('-');
-const avgVolSelect = ref('-');
+const relVolSelect = ref<string>('-');
+const avgVolSelect = ref<string>('-');
 
-function selectRelVolOption(option) {
+function selectRelVolOption(option: string) {
   relVolSelect.value = option;
 }
 
-function selectAvgVolOption(option) {
+function selectAvgVolOption(option: string) {
   avgVolSelect.value = option;
+}
+
+// Defensive getter for input values
+function getInputValue(id: string): number {
+  const el = document.getElementById(id) as HTMLInputElement | null;
+  if (!el) return NaN;
+  return parseFloat(el.value);
 }
 
 // updates screener value with volume parameters 
 async function SetVolume() {
   try {
     if (!props.selectedScreener) {
-      props.isScreenerError = true
-      throw new Error('Please select a screener')
+      // props.isScreenerError is readonly, use notification pattern
+      if (props.notification && typeof props.notification === 'object') {
+        props.notification.message = 'Please select a screener';
+        props.notification.type = 'error';
+      }
+      throw new Error('Please select a screener');
     }
 
-    const value1 = parseFloat(document.getElementById('left-relvol').value)
-    const value2 = parseFloat(document.getElementById('right-relvol').value)
-    const value3 = parseFloat(document.getElementById('left-avgvol').value * 1000)
-    const value4 = parseFloat(document.getElementById('right-avgvol').value * 1000)
-    const relVolOption = relVolSelect.value
-    const avgVolOption = avgVolSelect.value
+    const value1 = getInputValue('left-relvol');
+    const value2 = getInputValue('right-relvol');
+    const value3 = getInputValue('left-avgvol') * 1000;
+    const value4 = getInputValue('right-avgvol') * 1000;
+    const relVolOption = relVolSelect.value;
+    const avgVolOption = avgVolSelect.value;
 
     const response = await fetch('/api/screener/volume', {
       method: 'PATCH',
@@ -172,21 +183,30 @@ async function SetVolume() {
         screenerName: props.selectedScreener,
         user: props.user
       })
-    })
+    });
     if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (data.message === 'updated successfully') {
-       emit('fetchScreeners', props.selectedScreener);
+      emit('fetchScreeners', props.selectedScreener);
     } else {
-      throw new Error('Error updating price range')
+      throw new Error('Error updating price range');
     }
-  } catch (error) {
-    error.value = error.message;
-     emit('fetchScreeners', props.selectedScreener);
+  } catch (error: unknown) {
+    let message = 'Unknown error';
+    if (typeof error === 'object' && error !== null && 'message' in error) {
+      message = (error as { message: string }).message;
+    } else if (typeof error === 'string') {
+      message = error;
+    }
+    if (props.notification && typeof props.notification === 'object') {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
+    emit('fetchScreeners', props.selectedScreener);
   }
 }
 

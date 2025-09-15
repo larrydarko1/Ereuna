@@ -636,21 +636,22 @@
   <audio ref="audioRef" src="/maintenance-music.mp3" loop></audio>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMaintenanceStore } from '../store/maintenance';
 
+import type { Ref } from 'vue';
 const router = useRouter();
 const maintenanceStore = useMaintenanceStore();
-let pollInterval;
-const audioRef = ref(null);
+let pollInterval: ReturnType<typeof setInterval> | undefined;
+const audioRef: Ref<HTMLAudioElement | null> = ref(null);
 
 onMounted(() => {
   // Play music when maintenance page is mounted
   if (audioRef.value) {
     audioRef.value.volume = 0.3; // Set volume as desired
-    audioRef.value.play().catch(() => {}); // Prevent error if autoplay is blocked
+    audioRef.value.play?.().catch(() => {}); // Prevent error if autoplay is blocked
   }
   // Check maintenance status every 30 seconds
   pollInterval = setInterval(async () => {
@@ -668,7 +669,7 @@ onMounted(() => {
 onUnmounted(() => {
   // Pause music when leaving maintenance page
   if (audioRef.value) {
-    audioRef.value.pause();
+    audioRef.value.pause?.();
     audioRef.value.currentTime = 0;
   }
   if (pollInterval) {

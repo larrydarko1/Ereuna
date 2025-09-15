@@ -24,8 +24,16 @@
   </div>
   </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
+
+interface NewsItem {
+  publishedDate: string;
+  title: string;
+  source: string;
+  description: string;
+  url: string;
+}
 
 const props = defineProps({
   symbol: {
@@ -46,8 +54,8 @@ const props = defineProps({
   }
 });
 
-const BeautifulNews = ref([]);
-const error = ref(null);
+const BeautifulNews = ref<NewsItem[]>([]);
+const error = ref<string | null>(null);
 const loading = ref(false);
 
 async function fetchNews() {
@@ -59,10 +67,16 @@ async function fetchNews() {
         'X-API-KEY': props.apiKey,
       },
     });
-    const data = await response.json();
+    const data: NewsItem[] = await response.json();
     BeautifulNews.value = data;
   } catch (err) {
-    error.value = err.message;
+    let errorMsg = 'Unknown error';
+    if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
+      errorMsg = (err as any).message;
+    } else if (typeof err === 'string') {
+      errorMsg = err;
+    }
+    error.value = errorMsg;
   } finally {
     loading.value = false;
   }

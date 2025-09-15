@@ -15,10 +15,10 @@
           class="sales-row"
         >
           <div class="sales-cell" style="flex: 0 0 20%;">
-            {{ props.formatDate(quarterlyReport.fiscalDateEnding) }}
+            {{ props.formatDate ? props.formatDate(quarterlyReport.fiscalDateEnding) : quarterlyReport.fiscalDateEnding }}
           </div>
           <div class="sales-cell" style="flex: 0 0 40%;">
-            {{ parseInt(quarterlyReport.totalRevenue).toLocaleString() }}
+            {{ parseInt(typeof quarterlyReport.totalRevenue === 'string' ? quarterlyReport.totalRevenue : quarterlyReport.totalRevenue.toString()).toLocaleString() }}
           </div>
 
           <div
@@ -32,14 +32,14 @@
             class="sales-cell"
             style="flex: 0 0 20%;"
             v-else
-            :class="calculateRev(quarterlyReport.totalRevenue) > 0 ? 'positive' : 'negative'"
+            :class="(() => { const rev = calculateRev(quarterlyReport.totalRevenue); return rev !== null && rev > 0 ? 'positive' : 'negative'; })()"
           >
             {{
-              isNaN(calculateRev(quarterlyReport.totalRevenue)) ||
-              !isFinite(calculateRev(quarterlyReport.totalRevenue)) ||
-              calculateRev(quarterlyReport.totalRevenue) === null
+              calculateRev(quarterlyReport.totalRevenue) === null ||
+              isNaN(calculateRev(quarterlyReport.totalRevenue) as number) ||
+              !isFinite(calculateRev(quarterlyReport.totalRevenue) as number)
                 ? '-'
-                : calculateRev(quarterlyReport.totalRevenue) + '%'
+                : (calculateRev(quarterlyReport.totalRevenue) as number).toFixed(2) + '%'
             }}
           </div>
 
@@ -52,7 +52,7 @@
           </div>
           <div class="sales-cell" style="flex: 0 0 10%;" v-else>
             <span
-              v-if="props.getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'"
+              v-if="props.getQoQClass && props.getQoQClass(calculateQoQ3(quarterlyReport.totalRevenue)) === 'green'"
               class="sphere green-sphere"
             ></span>
             <span v-else class="sphere red-sphere"></span>
@@ -67,7 +67,7 @@
           </div>
           <div class="sales-cell" style="flex: 0 0 10%;" v-else>
             <span
-              v-if="props.getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'"
+              v-if="props.getYoYClass && props.getYoYClass(calculateYoY3(quarterlyReport.totalRevenue)) === 'green'"
               class="sphere green-sphere"
             ></span>
             <span v-else class="sphere red-sphere"></span>
@@ -88,16 +88,25 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 
-const props = defineProps({
-  formatDate: Function,
-  assetInfo: Object,
-  getQoQClass: Function,
-  getYoYClass: Function,
-  symbol: String,
-});
+interface QuarterlyReport {
+  fiscalDateEnding: string;
+  totalRevenue: number | string;
+}
+
+interface AssetInfo {
+  quarterlyFinancials: QuarterlyReport[];
+}
+
+const props = defineProps<{
+  formatDate?: (date: string) => string;
+  assetInfo?: AssetInfo;
+  getQoQClass?: (val: string | number | null) => string;
+  getYoYClass?: (val: string | number | null) => string;
+  symbol?: string;
+}>();
 const emit = defineEmits(['request-full-sales']);
 const showAllSales = ref(false);
 
@@ -119,61 +128,67 @@ const showSalesButton = computed(() => {
   return (props.assetInfo?.quarterlyFinancials?.length || 0) > 4;
 });
 
-function calculateQoQ3(totalRevenue) {
+function calculateQoQ3(totalRevenue: number | string): string | null {
+  if (!props.assetInfo) return null;
   if (!totalRevenue) return null;
   const quarterlyIncome = props.assetInfo.quarterlyFinancials;
   if (!quarterlyIncome) return null;
-  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
+  const index = quarterlyIncome.findIndex((quarterlyReport: QuarterlyReport) => quarterlyReport.totalRevenue === totalRevenue);
   if (index === -1) return null;
   const previousQuarterlyIncome = quarterlyIncome[index + 1];
   if (!previousQuarterlyIncome) return null;
-  const previousReportedRevenue = previousQuarterlyIncome.totalRevenue;
-  if (previousReportedRevenue === undefined) return null;
+  const prevRev = typeof previousQuarterlyIncome.totalRevenue === 'string' ? parseFloat(previousQuarterlyIncome.totalRevenue) : previousQuarterlyIncome.totalRevenue;
+  const currRev = typeof totalRevenue === 'string' ? parseFloat(totalRevenue) : totalRevenue;
+  if (isNaN(currRev) || isNaN(prevRev)) return null;
   let percentageChange;
-  if (previousReportedRevenue < 0) {
-    percentageChange = ((totalRevenue - previousReportedRevenue) / Math.abs(previousReportedRevenue)) * 100;
+  if (prevRev < 0) {
+    percentageChange = ((currRev - prevRev) / Math.abs(prevRev)) * 100;
   } else {
-    percentageChange = ((totalRevenue - previousReportedRevenue) / previousReportedRevenue) * 100;
+    percentageChange = ((currRev - prevRev) / prevRev) * 100;
   }
   return percentageChange.toFixed(2);
 }
 
-function calculateYoY3(totalRevenue) {
+function calculateYoY3(totalRevenue: number | string): string | null {
+  if (!props.assetInfo) return null;
   if (!totalRevenue) return null;
   const quarterlyIncome = props.assetInfo.quarterlyFinancials;
   if (!quarterlyIncome) return null;
-  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
+  const index = quarterlyIncome.findIndex((quarterlyReport: QuarterlyReport) => quarterlyReport.totalRevenue === totalRevenue);
   if (index === -1) return null;
   const previousQuarterlyIncome = quarterlyIncome[index + 4];
   if (!previousQuarterlyIncome) return null;
-  const previousReportedRevenue = previousQuarterlyIncome.totalRevenue;
-  if (previousReportedRevenue === undefined) return null;
+  const prevRev = typeof previousQuarterlyIncome.totalRevenue === 'string' ? parseFloat(previousQuarterlyIncome.totalRevenue) : previousQuarterlyIncome.totalRevenue;
+  const currRev = typeof totalRevenue === 'string' ? parseFloat(totalRevenue) : totalRevenue;
+  if (isNaN(currRev) || isNaN(prevRev)) return null;
   let percentageChange;
-  if (previousReportedRevenue < 0) {
-    percentageChange = ((totalRevenue - previousReportedRevenue) / Math.abs(previousReportedRevenue)) * 100;
+  if (prevRev < 0) {
+    percentageChange = ((currRev - prevRev) / Math.abs(prevRev)) * 100;
   } else {
-    percentageChange = ((totalRevenue - previousReportedRevenue) / previousReportedRevenue) * 100;
+    percentageChange = ((currRev - prevRev) / prevRev) * 100;
   }
   return percentageChange.toFixed(2);
 }
 
-function calculateRev(totalRevenue) {
+function calculateRev(totalRevenue: number | string): number | null {
+  if (!props.assetInfo) return null;
   if (!totalRevenue) return null;
   const quarterlyIncome = props.assetInfo.quarterlyFinancials;
   if (!quarterlyIncome) return null;
-  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.totalRevenue === totalRevenue);
+  const index = quarterlyIncome.findIndex((quarterlyReport: QuarterlyReport) => quarterlyReport.totalRevenue === totalRevenue);
   if (index === -1) return null;
   const previousQuarterlyIncome = quarterlyIncome[index + 1];
   if (!previousQuarterlyIncome) return null;
-  const previousReportedRevenue = previousQuarterlyIncome.totalRevenue;
-  if (previousReportedRevenue === undefined) return null;
+  const prevRev = typeof previousQuarterlyIncome.totalRevenue === 'string' ? parseFloat(previousQuarterlyIncome.totalRevenue) : previousQuarterlyIncome.totalRevenue;
+  const currRev = typeof totalRevenue === 'string' ? parseFloat(totalRevenue) : totalRevenue;
+  if (isNaN(currRev) || isNaN(prevRev)) return null;
   let percentageChange;
-  if (previousReportedRevenue < 0) {
-    percentageChange = ((totalRevenue - previousReportedRevenue) / Math.abs(previousReportedRevenue)) * 100;
+  if (prevRev < 0) {
+    percentageChange = ((currRev - prevRev) / Math.abs(prevRev)) * 100;
   } else {
-    percentageChange = ((totalRevenue - previousReportedRevenue) / previousReportedRevenue) * 100;
+    percentageChange = ((currRev - prevRev) / prevRev) * 100;
   }
-  return percentageChange.toFixed(2);
+  return percentageChange;
 }
 
 watch(() => props.symbol, () => {

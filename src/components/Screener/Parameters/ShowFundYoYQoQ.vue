@@ -78,15 +78,15 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
@@ -104,22 +104,32 @@ let showFundYoYQoQ = ref(false);
 async function SetFundamentalGrowth() {
   try {
     if (!props.selectedScreener) {
-      props.isScreenerError = true
-      throw new Error('Please select a screener')
+      // props.isScreenerError is readonly, use notification pattern
+      if (props.notification && typeof props.notification === 'object') {
+        props.notification.message = 'Please select a screener';
+        props.notification.type = 'error';
+      }
+      throw new Error('Please select a screener');
     }
 
-    const leftRevYoY = parseFloat(document.getElementById('left-RevYoY').value);
-    const rightRevYoY = parseFloat(document.getElementById('right-RevYoY').value);
-    const leftRevQoQ = parseFloat(document.getElementById('left-RevQoQ').value);
-    const rightRevQoQ = parseFloat(document.getElementById('right-RevQoQ').value);
-    const leftEarningsYoY = parseFloat(document.getElementById('left-EarningsYoY').value);
-    const rightEarningsYoY = parseFloat(document.getElementById('right-EarningsYoY').value);
-    const leftEarningsQoQ = parseFloat(document.getElementById('left-EarningsQoQ').value);
-    const rightEarningsQoQ = parseFloat(document.getElementById('right-EarningsQoQ').value);
-    const leftEPSYoY = parseFloat(document.getElementById('left-EPSYoY').value);
-    const rightEPSYoY = parseFloat(document.getElementById('right-EPSYoY').value);
-    const leftEPSQoQ = parseFloat(document.getElementById('left-EPSQoQ').value);
-    const rightEPSQoQ = parseFloat(document.getElementById('right-EPSQoQ').value);
+    function getInputValue(id: string): number {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (!el) return NaN;
+      return parseFloat(el.value);
+    }
+
+    const leftRevYoY = getInputValue('left-RevYoY');
+    const rightRevYoY = getInputValue('right-RevYoY');
+    const leftRevQoQ = getInputValue('left-RevQoQ');
+    const rightRevQoQ = getInputValue('right-RevQoQ');
+    const leftEarningsYoY = getInputValue('left-EarningsYoY');
+    const rightEarningsYoY = getInputValue('right-EarningsYoY');
+    const leftEarningsQoQ = getInputValue('left-EarningsQoQ');
+    const rightEarningsQoQ = getInputValue('right-EarningsQoQ');
+    const leftEPSYoY = getInputValue('left-EPSYoY');
+    const rightEPSYoY = getInputValue('right-EPSYoY');
+    const leftEPSQoQ = getInputValue('left-EPSQoQ');
+    const rightEPSQoQ = getInputValue('right-EPSQoQ');
 
     const response = await fetch('/api/screener/fundamental-growth', {
       method: 'PATCH',
@@ -145,7 +155,7 @@ async function SetFundamentalGrowth() {
       })
     });
     if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -153,16 +163,28 @@ async function SetFundamentalGrowth() {
     if (data.message === 'updated successfully') {
       emit('fetchScreeners', props.selectedScreener);
     } else {
-      throw new Error('Error updating')
+      throw new Error('Error updating');
     }
-  } catch (error) {
-    if (error.response && error.response.status === 400) {
-      error.value = error.response.data.message;
-      // Display an error message to the user
-    } else {
-      error.value = error.message;
-      emit('fetchScreeners', props.selectedScreener);
+  } catch (error: unknown) {
+    let message = 'Unknown error';
+    // Defensive error handling for possible axios-like error shape
+    if (typeof error === 'object' && error !== null) {
+      if ('response' in error && typeof (error as any).response === 'object' && (error as any).response !== null) {
+        const response = (error as any).response;
+        if ('status' in response && response.status === 400 && 'data' in response && typeof response.data === 'object' && response.data !== null && 'message' in response.data) {
+          message = response.data.message;
+        }
+      } else if ('message' in error) {
+        message = (error as { message: string }).message;
+      }
+    } else if (typeof error === 'string') {
+      message = error;
     }
+    if (props.notification && typeof props.notification === 'object') {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
+    emit('fetchScreeners', props.selectedScreener);
   }
 }
 

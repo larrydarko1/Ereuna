@@ -12,10 +12,10 @@
           class="splits-row"
         >
           <div class="splits-cell" style="flex: 0 0 50%;">
-            {{ formatDate(split.effective_date) }}
+            {{ formatDate((split as Split).effective_date) }}
           </div>
           <div class="splits-cell" style="flex: 0 0 50%;">
-            {{ parseInt(split.split_factor) }}
+            {{ parseInt((split as Split).split_factor) }}
           </div>
         </div>
       </div>
@@ -34,7 +34,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 
 const props = defineProps({
@@ -56,7 +56,12 @@ const props = defineProps({
   }
 });
 
-const SplitsDate = ref([]);
+interface Split {
+  effective_date: string;
+  split_factor: string;
+}
+
+const SplitsDate = ref<Split[]>([]);
 const showAllSplits = ref(false);
 const loading = ref(false);
 
@@ -78,11 +83,19 @@ async function fetchSplitsDate(all = false) {
     }
     const newSplitsDate = await response.json();
     SplitsDate.value = newSplitsDate;
-  } catch (error) {
-    if (error.name === 'AbortError') {
+  } catch (err) {
+    let errorMsg = 'Unknown error';
+    if (typeof err === 'object' && err !== null && 'name' in err && (err as any).name === 'AbortError') {
       return;
     }
-    error.value = error.message;
+    if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
+      errorMsg = (err as any).message;
+    } else if (typeof err === 'string') {
+      errorMsg = err;
+    }
+    // Optionally, you could expose an error ref for the UI
+    // error.value = errorMsg;
+    console.error(errorMsg);
   } finally {
     loading.value = false;
   }

@@ -42,14 +42,15 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { loadStripe } from '@stripe/stripe-js';
 
 // Stripe refs
-const stripe = ref(null);
-const elements = ref(null);
-const card = ref(null);
+import type { Stripe, StripeElements, StripeCardElement } from '@stripe/stripe-js';
+const stripe = ref<Stripe | null>(null);
+const elements = ref<StripeElements | null>(null);
+const card = ref<StripeCardElement | null>(null);
 
 // Plan, duration, country
 const selectedPlan = ref('core');
@@ -76,17 +77,17 @@ const selectedCountryObj = computed(() =>
 function toggleDropdown() {
   dropdownOpen.value = !dropdownOpen.value;
 }
-function selectCountry(country) {
+function selectCountry(country: { code: string }) {
   selectedCountry.value = country.code;
   dropdownOpen.value = false;
 }
 
 function calculateTotalPrice() {
-  const prices = {
+  const prices: Record<string, number> = {
     core: 5.99,
     premium: 14.99
   };
-  let basePrice = prices[selectedPlan.value];
+  let basePrice = prices[selectedPlan.value] ?? 0;
   let totalMonths = selectedDuration.value;
   let totalPrice = basePrice * totalMonths;
   const country = countries.find(c => c.code === selectedCountry.value);
@@ -99,42 +100,50 @@ function calculateTotalPrice() {
 // Stripe card element logic
 onMounted(async () => {
   if (!stripe.value) {
-    stripe.value = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+    stripe.value = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY) as Stripe | null;
   }
   initializeStripe();
 });
 
 function initializeStripe() {
-  elements.value = stripe.value.elements();
-  card.value = elements.value.create('card', {
-    style: {
-      base: {
-        color: '#ffffff',
-        fontFamily: 'Helvetica Neue, Helvetica, sans-serif',
-        fontSmoothing: 'antialiased',
-        fontSize: '16px',
-        '::placeholder': { color: '#aab7c4' }
-      },
-      invalid: {
-        color: '#fa755a',
-        iconColor: '#fa755a'
+  if (stripe.value) {
+    elements.value = stripe.value.elements();
+    if (elements.value) {
+      card.value = elements.value.create('card', {
+        style: {
+          base: {
+            color: '#ffffff',
+            fontFamily: 'Helvetica Neue, Helvetica, sans-serif',
+            fontSmoothing: 'antialiased',
+            fontSize: '16px',
+            '::placeholder': { color: '#aab7c4' }
+          },
+          invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a'
+          }
+        }
+      });
+      setTimeout(() => {
+        const cardElement = document.getElementById('card-element');
+        if (cardElement && card.value) {
+          card.value.mount('#card-element');
+        }
+      }, 100);
+      if (card.value) {
+        card.value.on('change', function(event: any) {
+          const displayError = document.getElementById('card-errors');
+          if (displayError) {
+            if (event.error) {
+              displayError.textContent = event.error.message;
+            } else {
+              displayError.textContent = '';
+            }
+          }
+        });
       }
     }
-  });
-  setTimeout(() => {
-    const cardElement = document.getElementById('card-element');
-    if (cardElement) {
-      card.value.mount('#card-element');
-    }
-  }, 100);
-  card.value.on('change', function(event) {
-    const displayError = document.getElementById('card-errors');
-    if (event.error) {
-      displayError.textContent = event.error.message;
-    } else {
-      displayError.textContent = '';
-    }
-  });
+  }
 }
 </script>
 

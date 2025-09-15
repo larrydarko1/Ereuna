@@ -34,7 +34,7 @@
               </svg>
             </div>
             <div v-for="financial in currentFinancials" :key="financial.fiscalDateEnding" class="financial-value">
-              {{ isNaN(parseInt(financial[attribute])) ? '-' : parseInt(financial[attribute]).toLocaleString() }}
+              {{ isNaN(parseInt(String(financial[attribute]))) ? '-' : parseInt(String(financial[attribute])).toLocaleString() }}
               <div class="percentage-box"
                 :class="!isNaN(parseFloat(getPercentageDifference(financial, attribute))) && parseFloat(getPercentageDifference(financial, attribute)) > 0 ? 'positive' : 'negative'">
                 {{ isNaN(parseFloat(getPercentageDifference(financial, attribute))) ? '-' :
@@ -61,9 +61,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 
+interface Financial {
+  fiscalDateEnding: string;
+  [key: string]: string | number;
+}
 
 const props = defineProps({
   showPopup: Boolean,
@@ -77,7 +81,7 @@ const props = defineProps({
   }
 });
 
-const attributeMap = {
+const attributeMap: Record<string, string> = {
   rps: 'Revenue Per Share',
   roa: 'Return on Assets ROA',
   assetTurnover: 'Asset Turnover',
@@ -165,11 +169,11 @@ const attributeMap = {
   pbRatio: 'Price to Book Ratio',
 };
 
-const AnnualFinancials = ref([]);
-const QuarterlyFinancials = ref([]);
-const isAnnualFinancials = ref(true);
+const AnnualFinancials = ref<Financial[]>([]);
+const QuarterlyFinancials = ref<Financial[]>([]);
+const isAnnualFinancials = ref<boolean>(true);
 
-const currentFinancials = computed(() => {
+const currentFinancials = computed<Financial[]>(() => {
   return isAnnualFinancials.value ? AnnualFinancials.value : QuarterlyFinancials.value;
 });
 
@@ -189,22 +193,22 @@ async function fetchFinancials() {
 
     const newFinancials = await response.json();
     console.log('API response:', newFinancials);
-    AnnualFinancials.value = newFinancials.annualFinancials;
-    QuarterlyFinancials.value = newFinancials.quarterlyFinancials;
+  AnnualFinancials.value = newFinancials.annualFinancials as Financial[];
+  QuarterlyFinancials.value = newFinancials.quarterlyFinancials as Financial[];
 
   } catch (error) {
     console.error('Error fetching financials:', error);
-    if (error.name === 'AbortError') {
+    if (error && typeof error === 'object' && 'name' in error && (error as { name?: string }).name === 'AbortError') {
       return;
     }
   }
 }
 
-function toggleFinancials() {
+function toggleFinancials(): void {
   isAnnualFinancials.value = !isAnnualFinancials.value;
 }
 
-function getQuarterAndYear(dateString) {
+function getQuarterAndYear(dateString: string): string | number {
   const date = new Date(dateString);
   if (isAnnualFinancials.value) {
     return date.getFullYear();
@@ -214,16 +218,18 @@ function getQuarterAndYear(dateString) {
   }
 }
 
-const getPercentageDifference = (financial, attribute) => {
-  const currentIndex = currentFinancials.value.indexOf(financial);
+function getPercentageDifference(financial: Financial, attribute: string): string {
+  const currentIndex = currentFinancials.value.findIndex(f => f.fiscalDateEnding === financial.fiscalDateEnding);
   if (currentIndex < currentFinancials.value.length - 1) {
     const nextFinancial = currentFinancials.value[currentIndex + 1];
-    const change = financial[attribute] - nextFinancial[attribute];
-    let percentageDifference;
-    if (nextFinancial[attribute] < 0) {
-      percentageDifference = (change / Math.abs(nextFinancial[attribute])) * 100;
+    const currVal = Number(financial[attribute]);
+    const nextVal = Number(nextFinancial[attribute]);
+    const change = currVal - nextVal;
+    let percentageDifference: number;
+    if (nextVal < 0) {
+      percentageDifference = (change / Math.abs(nextVal)) * 100;
     } else {
-      percentageDifference = (change / nextFinancial[attribute]) * 100;
+      percentageDifference = (change / nextVal) * 100;
     }
     if (isNaN(percentageDifference) || !isFinite(percentageDifference)) {
       return '-';
@@ -235,35 +241,36 @@ const getPercentageDifference = (financial, attribute) => {
   }
 }
 
-watch(() => props.showPopup, (val) => {
+watch(() => props.showPopup, (val: boolean) => {
   if (val) {
     fetchFinancials();
   }
 });
 
-watch(() => props.ticker, (newTicker, oldTicker) => {
+watch(() => props.ticker, (newTicker: string, oldTicker: string) => {
   if (props.showPopup && newTicker !== oldTicker) {
     fetchFinancials();
   }
 });
 
 // Tooltip state (these should be provided by parent or managed here if you want local tooltip)
-const showTooltip = ref(false)
-let tooltipText = ref('');
-let tooltipLeft = ref();
-let tooltipTop = ref();
+
+const showTooltip = ref<boolean>(false);
+const tooltipText = ref<string>('');
+const tooltipLeft = ref<number>(0);
+const tooltipTop = ref<number>(0);
 
 
-function handleMouseOver(event, id) {
-  showTooltip.value = true
-  const element = event.target
-  const svgRect = element.parentNode.getBoundingClientRect()
+function handleMouseOver(event: MouseEvent, id: { attribute: string }): void {
+  showTooltip.value = true;
+  const element = event.target as HTMLElement;
+  const svgRect = (element.parentNode as HTMLElement).getBoundingClientRect();
   tooltipTop.value = svgRect.top + window.scrollY + svgRect.height - 25;
   tooltipLeft.value = svgRect.left + window.scrollX + svgRect.width + 10;
-  tooltipText.value = getTooltipText(id)
+  tooltipText.value = getTooltipText(id);
 }
 
-const attributeTooltips = {
+const attributeTooltips: Record<string, string> = {
   rps: 'Revenue Per Share is a measure of a company\'s revenue divided by the number of outstanding shares.',
   roa: 'Return on Assets (ROA) is a measure of a company\'s profitability, calculated by dividing its net income by its total assets.',
   assetTurnover: 'Asset Turnover is a measure of a company\'s efficiency in using its assets to generate revenue.',
@@ -352,14 +359,14 @@ const attributeTooltips = {
 };
 
 
-function getTooltipText(id) {
+function getTooltipText(id: { attribute: string }): string {
   const attribute = id.attribute;
   return attributeTooltips[attribute] || `This is the ${attributeMap[attribute] || attribute} attribute.`;
 }
 
 
-function handleMouseOut() {
-  showTooltip.value = false
+function handleMouseOut(): void {
+  showTooltip.value = false;
 }
 </script>
 

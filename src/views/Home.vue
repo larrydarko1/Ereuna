@@ -213,7 +213,7 @@
 </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { ref, onMounted } from 'vue';
 import Policy from '@/components/policy.vue';
@@ -241,23 +241,26 @@ const faqs = ref([
   { question: 'Is there a commitment or contract?', answer: 'No, there is no commitment or contract. It\'s recharge based, no automatic / recurring charges. you can add more days to your subscription in the Dashboard session', show: true },
 ]);
 
-const scrollToSection = (sectionId) => {
+const scrollToSection = (sectionId: string) => {
   const element = document.getElementById(sectionId);
   if (element) {
     element.scrollIntoView({ behavior: 'smooth' });
   }
 
   // Update the position of the .sphere-gradient element
-  const sphereGradient = document.querySelector('.sphere-gradient');
+  const sphereGradient = document.querySelector('.sphere-gradient') as HTMLElement | null;
   const scrollY = window.scrollY;
-  const heroHeight = document.querySelector('.hero').offsetHeight;
+  const heroElement = document.querySelector('.hero') as HTMLElement | null;
+  const heroHeight = heroElement ? heroElement.offsetHeight : 0;
 
-  if (scrollY > heroHeight) {
-    sphereGradient.style.position = 'absolute';
-    sphereGradient.style.top = `${scrollY + 110}px`;
-  } else {
-    sphereGradient.style.position = 'fixed';
-    sphereGradient.style.top = '110%';
+  if (sphereGradient) {
+    if (scrollY > heroHeight) {
+      sphereGradient.style.position = 'absolute';
+      sphereGradient.style.top = `${scrollY + 110}px`;
+    } else {
+      sphereGradient.style.position = 'fixed';
+      sphereGradient.style.top = '110%';
+    }
   }
 };
 

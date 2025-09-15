@@ -9,10 +9,27 @@
                                 </div>
 </template>
 
-<script setup>
-import Loader from '@/components/loader.vue'
-import { onMounted, ref, watch } from 'vue';
+<script setup lang="ts">
+
+import Loader from '@/components/loader.vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { createChart, ColorType } from 'lightweight-charts';
+
+interface OHLC {
+  time: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+interface Volume {
+  time: string;
+  value: number;
+}
+interface MA {
+  time: string;
+  value: number;
+}
 
 const props = defineProps({
   apiKey: {
@@ -43,19 +60,36 @@ let isLoading1 = ref(false);
 let isLoadingMore = false;
 let allDataLoaded = false;
 
-const emit = defineEmits(['symbol-selected']);
-function onSymbolSelect(symbol) {
+const emit = defineEmits<{ (e: 'symbol-selected', symbol: string): void }>();
+function onSymbolSelect(symbol: string) {
   emit('symbol-selected', symbol);
 }
 
-const data = ref([]); // Weekly OHCL Data
-const data2 = ref([]); // Weekly Volume Data
-const data3 = ref([]); // weekly 10MA
-const data4 = ref([]); // weekly 20MA
-const data5 = ref([]); // weekly 50MA
-const data6 = ref([]); // weekly 200MA
+const data = ref<OHLC[]>([]); // Weekly OHCL Data
+const data2 = ref<Volume[]>([]); // Weekly Volume Data
+const data3 = ref<MA[]>([]); // weekly 10MA
+const data4 = ref<MA[]>([]); // weekly 20MA
+const data5 = ref<MA[]>([]); // weekly 50MA
+const data6 = ref<MA[]>([]); // weekly 200MA
 
-async function fetchChartData(symbolParam, before = null, append = false) {
+// --- WebSocket connection for chart data ---
+let chartWS: WebSocket | null = null;
+let chartWSReconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+let chartWSReceived: boolean = false;
+
+function closeChartWS(): void {
+  if (chartWS) {
+    chartWS.close();
+    chartWS = null;
+  }
+  if (chartWSReconnectTimeout) {
+    clearTimeout(chartWSReconnectTimeout);
+    chartWSReconnectTimeout = null;
+  }
+}
+
+// REST API fallback
+async function fetchChartDataREST(symbolParam: string | null, before: string | number | null = null, append: boolean = false): Promise<void> {
   if (!append) isChartLoading1.value = true;
   let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol || props.selectedItem).toUpperCase();
   let url = `/api/${symbol}/chartdata-wk?limit=500`;
@@ -73,19 +107,18 @@ async function fetchChartData(symbolParam, before = null, append = false) {
     const ma200 = result.weekly.MA200 || [];
     if (append) {
       // Prepend older data, avoid duplicates
-      const existingTimes = new Set(data.value.map(d => d.time));
-      const newOhlc = ohlc.filter(d => !existingTimes.has(d.time));
+      const existingTimes = new Set(data.value.map((d: OHLC) => d.time));
+      const newOhlc = ohlc.filter((d: OHLC) => !existingTimes.has(d.time));
       data.value = [...newOhlc, ...data.value];
-      const existingVolTimes = new Set(data2.value.map(d => d.time));
-      const newVolume = volume.filter(d => !existingVolTimes.has(d.time));
+      const existingVolTimes = new Set(data2.value.map((d: Volume) => d.time));
+      const newVolume = volume.filter((d: Volume) => !existingVolTimes.has(d.time));
       data2.value = [...newVolume, ...data2.value];
-
       // Prepend indicators, avoid duplicates
-      const prependMA = (oldArr, newArr) => {
+      const prependMA = (oldArr: MA[], newArr: MA[]): MA[] => {
         if (!Array.isArray(oldArr)) oldArr = [];
         if (!Array.isArray(newArr)) newArr = [];
-        const existingMATimes = new Set(oldArr.map(d => d.time));
-        const filteredNewArr = newArr.filter(d => !existingMATimes.has(d.time));
+        const existingMATimes = new Set(oldArr.map((d: MA) => d.time));
+        const filteredNewArr = newArr.filter((d: MA) => !existingMATimes.has(d.time));
         return [...filteredNewArr, ...oldArr];
       };
       data3.value = prependMA(data3.value, ma10);
@@ -112,6 +145,72 @@ async function fetchChartData(symbolParam, before = null, append = false) {
   }
 }
 
+// WebSocket fetch for chart data
+async function fetchChartDataWS(symbolParam: string | null): Promise<void> {
+  closeChartWS();
+  chartWSReceived = false;
+  let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol || props.selectedItem).toUpperCase();
+  let wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  let wsUrl = `${wsProto}://localhost:8000/ws/chartdata-wk?ticker=${encodeURIComponent(symbol)}&timeframe=weekly`;
+  chartWS = new WebSocket(wsUrl, props.apiKey);
+  let triedRest = false;
+  chartWS.onopen = () => {};
+  chartWS.onmessage = (event) => {
+  let msg;
+  try {
+    msg = JSON.parse(event.data);
+  } catch (e) {
+    console.error('WebSocket parse error', e, event.data);
+    return;
+  }
+  if (msg.type === 'init' || msg.type === 'update') {
+    const ohlc = msg.data.ohlc || [];
+    const volume = msg.data.volume || [];
+    const ma10 = msg.data.MA10 || [];
+    const ma20 = msg.data.MA20 || [];
+    const ma50 = msg.data.MA50 || [];
+    const ma200 = msg.data.MA200 || [];
+    data.value = ohlc;
+    data2.value = volume;
+    data3.value = ma10;
+    data4.value = ma20;
+    data5.value = ma50;
+    data6.value = ma200;
+    chartWSReceived = true;
+  } else if (msg.error) {
+    console.error('WebSocket error:', msg.error);
+  }
+};
+  chartWS.onerror = async (e) => {
+    console.error('WebSocket error', e);
+    if (!triedRest) {
+      triedRest = true;
+      await fetchChartDataREST(symbolParam);
+    }
+  };
+  chartWS.onclose = (e) => {
+    if (!e.wasClean && !triedRest) {
+      chartWSReconnectTimeout = setTimeout(() => {
+        fetchChartDataWS(symbolParam);
+      }, 2000);
+    }
+  };
+}
+
+// Unified fetchChartData function
+async function fetchChartData(symbolParam: string | null, before: string | number | null = null, append: boolean = false): Promise<void> {
+  chartWSReceived = false;
+  fetchChartDataWS(symbolParam);
+  setTimeout(() => {
+    if (!chartWSReceived) {
+      fetchChartDataREST(symbolParam, before, append);
+    }
+  }, 2000);
+}
+onUnmounted(() => {
+  closeChartWS();
+});
+
 const defaultStyles = getComputedStyle(document.documentElement);
 const theme = {
   accent1: defaultStyles.getPropertyValue('--accent1'),
@@ -134,11 +233,12 @@ const theme = {
   ma4: defaultStyles.getPropertyValue('--ma4'),
 };
 
-const wkchart = ref(null);
+const wkchart = ref<HTMLElement | null>(null);
 
 // mounts Weekly chart (including volume)
 onMounted(async () => {
   const chartDiv = wkchart.value;
+  if (!chartDiv) return;
   const rect = chartDiv.getBoundingClientRect();
   const width = window.innerWidth <= 1150 ? 400 : rect.width;
   const height = rect.height <= 1150 ? 250 : rect.width;
@@ -184,14 +284,12 @@ onMounted(async () => {
     wickDownColor: theme.negative,
     wickUpColor: theme.positive,
     lastValueVisible: false,
-    crosshairMarkerVisible: false,
     priceLineVisible: false,
   });
 
   const Histogram = chart.addHistogramSeries({
     color: theme.text1,
     lastValueVisible: false,
-    crosshairMarkerVisible: false,
     priceLineVisible: false,
     priceFormat: {
       type: 'volume',
@@ -203,7 +301,6 @@ onMounted(async () => {
     color: theme.ma1,
     lineWidth: 1,
     lastValueVisible: false,
-    crosshairMarkerVisible: false,
     priceLineVisible: false,
   });
 
@@ -211,7 +308,6 @@ onMounted(async () => {
     color: theme.ma2,
     lineWidth: 1,
     lastValueVisible: false,
-    crosshairMarkerVisible: false,
     priceLineVisible: false,
   });
 
@@ -219,7 +315,6 @@ onMounted(async () => {
     color: theme.ma3,
     lineWidth: 1,
     lastValueVisible: false,
-    crosshairMarkerVisible: false,
     priceLineVisible: false,
   });
 
@@ -227,7 +322,6 @@ onMounted(async () => {
     color: theme.ma4,
     lineWidth: 1,
     lastValueVisible: false,
-    crosshairMarkerVisible: false,
     priceLineVisible: false,
   });
 
@@ -238,75 +332,93 @@ onMounted(async () => {
     }
   });
 
-  watch(data, (newData) => {
-    barSeries.setData(newData);
+  // --- Add transform function for sorting and deduplication ---
+  function transformOHLC(arr: OHLC[]): OHLC[] {
+    if (!Array.isArray(arr)) return [];
+    const sorted = arr.slice().sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
+    return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time).map(o => ({ ...o, time: String(o.time) }));
+  }
+  function transformVolume(arr: Volume[]): Volume[] {
+    if (!Array.isArray(arr)) return [];
+    const sorted = arr.slice().sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
+    return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time).map(o => ({ ...o, time: String(o.time) }));
+  }
+  function transformMA(arr: MA[]): MA[] {
+    if (!Array.isArray(arr)) return [];
+    const sorted = arr.slice().sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
+    return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time).map(o => ({ ...o, time: String(o.time) }));
+  }
+
+  watch(data, (newData: OHLC[]) => {
+    barSeries.setData(transformOHLC(newData));
   });
 
-  watch(data2, (newData2) => {
-    Histogram.setData(newData2);
+  watch(data2, (newData2: Volume[]) => {
+    Histogram.setData(transformVolume(newData2));
   });
 
-  watch(data3, (newData3) => {
+  watch(data3, (newData3: MA[] | null) => {
     if (newData3 === null) {
       MaSeries1.setData([]); // Clear the series data when null
     } else {
-      MaSeries1.setData(newData3);
+      MaSeries1.setData(transformMA(newData3));
     }
   });
 
-  watch(data4, (newData4) => {
+  watch(data4, (newData4: MA[] | null) => {
     if (newData4 === null) {
       MaSeries2.setData([]); // Clear the series data when null
     } else {
-      MaSeries2.setData(newData4);
+      MaSeries2.setData(transformMA(newData4));
     }
   });
 
-  watch(data5, (newData5) => {
+  watch(data5, (newData5: MA[] | null) => {
     if (newData5 === null) {
       MaSeries3.setData([]); // Clear the series data when null
     } else {
-      MaSeries3.setData(newData5);
+      MaSeries3.setData(transformMA(newData5));
     }
   });
 
-  watch(data6, (newData6) => {
+  watch(data6, (newData6: MA[] | null) => {
     if (newData6 === null) {
       MaSeries4.setData([]); // Clear the series data when null
     } else {
-      MaSeries4.setData(newData6);
+      MaSeries4.setData(transformMA(newData6));
     }
   });
 
-  watch(data2, (newData2) => {
-    const relativeVolumeData = newData2.map((dataPoint, index) => {
-      const averageVolume = calculateAverageVolume(newData2, index);
+  watch(data2, (newData2: Volume[]) => {
+    const cleanData2 = transformVolume(newData2);
+    const relativeVolumeData = cleanData2.map((dataPoint: Volume, index: number) => {
+      const averageVolume = calculateAverageVolume(cleanData2, index);
       const relativeVolume = dataPoint.value / averageVolume;
-      const color = relativeVolume > 2 ? theme.accent1 : theme.volume; // green for above-average volume, gray for below-average volume
+      const color = relativeVolume > 2 ? theme.accent1 : theme.volume;
       return {
-        time: dataPoint.time, // add the time property
+        time: dataPoint.time,
         value: dataPoint.value,
         color,
       };
     });
-    Histogram.setData(relativeVolumeData);
+    Histogram.setData(relativeVolumeData as any);
   });
 
-  function calculateAverageVolume(data, index) {
+  function calculateAverageVolume(data: Volume[], index: number): number {
     const windowSize = 365; // adjust this value to change the window size for calculating average volume
     const start = Math.max(0, index - windowSize + 1);
     const end = index + 1;
-    const sum = data.slice(start, end).reduce((acc, current) => acc + current.value, 0);
+    const sum = data.slice(start, end).reduce((acc: number, current: Volume) => acc + current.value, 0);
     return sum / (end - start);
   }
 
   // Initial fetch
-  await fetchChartData();
+  await fetchChartData(props.selectedSymbol);
   isLoading1.value = false;
 
   chart.timeScale().subscribeVisibleLogicalRangeChange(async (range) => {
     if (isLoadingMore || allDataLoaded) return;
-    if (range && range.from < 20) {
+    if (range && (range as any).from < 20) {
       isLoadingMore = true;
       const oldest = data.value.length > 0 ? data.value[0].time : null;
       if (!oldest) {

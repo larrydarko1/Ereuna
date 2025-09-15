@@ -3,23 +3,32 @@
     <Message v-if="isMobile && isAllowedRoute"/>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import Message from '@/components/message.vue';
 import { useRoute } from 'vue-router';
 
-const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
-const number = ref(0); // Replace this with your actual number variable
+const apiKey: string = import.meta.env.VITE_EREUNA_KEY;
+
+const number = ref<number>(0); // Replace this with your actual number variable
 
 const numberClass = computed(() => {
   return number.value > 0 ? 'positive' : 'negative';
 });
 
-const themes = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
-const currentTheme = ref('default');
+const themes: string[] = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
+const currentTheme = ref<string>('default');
 
-async function setTheme(newTheme) {
+const user = ref<string>(localStorage.getItem('username') || '');
+const error = ref<string>('');
+
+interface ThemeResponse {
+  message?: string;
+  theme?: string;
+}
+
+async function setTheme(newTheme: string) {
   const root = document.documentElement;
   root.classList.remove(...themes);
   root.classList.add(newTheme);
@@ -31,39 +40,39 @@ async function setTheme(newTheme) {
         'Content-Type': 'application/json',
         'X-API-KEY': apiKey,
       },
-      body: JSON.stringify({ theme: newTheme, username: user }),
+      body: JSON.stringify({ theme: newTheme, username: user.value }),
     });
-    const data = await response.json();
+    const data: ThemeResponse = await response.json();
     if (data.message === 'Theme updated') {
       currentTheme.value = newTheme;
     } else {
-      error.value = data.message;
+      error.value = data.message || '';
     }
-  } catch (error) {
-    error.value = error.message;
+  } catch (err: any) {
+    error.value = err.message;
   }
 }
 
 async function loadTheme() {
-    try {
-      const response = await fetch('/api/load-theme', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-KEY': apiKey,
-        },
-        body: JSON.stringify({ username: user }),
-      });
-      const data = await response.json();
-      if (data.theme) {
-        setTheme(data.theme);
-      } else {
-        setTheme('default');
-      }
-    } catch (error) {
+  try {
+    const response = await fetch('/api/load-theme', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({ username: user.value }),
+    });
+    const data: ThemeResponse = await response.json();
+    if (data.theme) {
+      setTheme(data.theme);
+    } else {
       setTheme('default');
     }
+  } catch (err) {
+    setTheme('default');
   }
+}
 
 loadTheme();
 
@@ -74,7 +83,7 @@ defineExpose({
 
 const route = useRoute();
 const isMobile = ref(false);
-const allowedRoutes = ['/charts', '/screener', '/dashboard', '/account', '/portfolio', '/account'];
+const allowedRoutes: string[] = ['/charts', '/screener', '/dashboard', '/account', '/portfolio', '/account'];
 
 const isAllowedRoute = computed(() => {
   return allowedRoutes.includes(route.path);

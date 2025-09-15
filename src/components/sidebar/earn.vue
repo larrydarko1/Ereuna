@@ -15,10 +15,10 @@
           class="earn-row"
         >
           <div class="earn-cell" style="flex: 0 0 20%;">
-            {{ props.formatDate(quarterlyReport.fiscalDateEnding) }}
+            {{ props.formatDate ? props.formatDate(quarterlyReport.fiscalDateEnding) : quarterlyReport.fiscalDateEnding }}
           </div>
           <div class="earn-cell" style="flex: 0 0 40%;">
-            {{ parseInt(quarterlyReport.netIncome).toLocaleString() }}
+            {{ parseInt(String(quarterlyReport.netIncome)).toLocaleString() }}
           </div>
 
           <div
@@ -32,11 +32,11 @@
             class="earn-cell"
             style="flex: 0 0 20%;"
             v-else
-            :class="calculateNet(quarterlyReport.netIncome) > 0 ? 'positive' : 'negative'"
+            :class="Number(calculateNet(quarterlyReport.netIncome)) > 0 ? 'positive' : 'negative'"
           >
             {{
-              isNaN(calculateNet(quarterlyReport.netIncome)) ||
-              !isFinite(calculateNet(quarterlyReport.netIncome)) ||
+              isNaN(Number(calculateNet(quarterlyReport.netIncome))) ||
+              !isFinite(Number(calculateNet(quarterlyReport.netIncome))) ||
               calculateNet(quarterlyReport.netIncome) === null
                 ? '-'
                 : calculateNet(quarterlyReport.netIncome) + '%'
@@ -52,7 +52,7 @@
           </div>
           <div class="earn-cell" style="flex: 0 0 10%;" v-else>
             <span
-              v-if="props.getQoQClass(calculateQoQ2(quarterlyReport.netIncome)) === 'green'"
+              v-if="props.getQoQClass && props.getQoQClass(calculateQoQ2(quarterlyReport.netIncome)) === 'green'"
               class="sphere green-sphere"
             ></span>
             <span v-else class="sphere red-sphere"></span>
@@ -67,7 +67,7 @@
           </div>
           <div class="earn-cell" style="flex: 0 0 10%;" v-else>
             <span
-              v-if="props.getYoYClass(calculateYoY2(quarterlyReport.netIncome)) === 'green'"
+              v-if="props.getYoYClass && props.getYoYClass(calculateYoY2(quarterlyReport.netIncome)) === 'green'"
               class="sphere green-sphere"
             ></span>
             <span v-else class="sphere red-sphere"></span>
@@ -88,16 +88,25 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, watch } from 'vue';
+<script setup lang="ts">
 
-const props = defineProps({
-  formatDate: Function,
-  assetInfo: Object,
-  getQoQClass: Function,
-  getYoYClass: Function,
-  symbol: String
-});
+interface QuarterlyReport {
+  fiscalDateEnding: string;
+  netIncome: number;
+}
+
+interface AssetInfo {
+  quarterlyFinancials?: QuarterlyReport[];
+}
+
+import { ref, computed, watch } from 'vue';
+const props = defineProps<{ 
+  formatDate?: (date: string) => string;
+  assetInfo?: AssetInfo;
+  getQoQClass?: (val: string | null) => string;
+  getYoYClass?: (val: string | null) => string;
+  symbol?: string;
+}>();
 
 const showAllEarnings = ref(false);
 
@@ -121,11 +130,11 @@ const showEarningsButton = computed(() => {
   return (props.assetInfo?.quarterlyFinancials?.length || 0) > 4;
 });
 
-function calculateQoQ2(netIncome) {
+function calculateQoQ2(netIncome: number): string | null {
   if (!netIncome) return null;
-  const quarterlyIncome = props.assetInfo.quarterlyFinancials;
+  const quarterlyIncome = props.assetInfo?.quarterlyFinancials;
   if (!quarterlyIncome) return null;
-  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
+  const index = quarterlyIncome.findIndex((quarterlyReport: QuarterlyReport) => quarterlyReport.netIncome === netIncome);
   if (index === -1) return null;
   const previousQuarterlyIncome = quarterlyIncome[index + 1];
   if (!previousQuarterlyIncome) return null;
@@ -140,11 +149,11 @@ function calculateQoQ2(netIncome) {
   return percentageChange.toFixed(2);
 }
 
-function calculateYoY2(netIncome) {
+function calculateYoY2(netIncome: number): string | null {
   if (!netIncome) return null;
-  const quarterlyIncome = props.assetInfo.quarterlyFinancials;
+  const quarterlyIncome = props.assetInfo?.quarterlyFinancials;
   if (!quarterlyIncome) return null;
-  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
+  const index = quarterlyIncome.findIndex((quarterlyReport: QuarterlyReport) => quarterlyReport.netIncome === netIncome);
   if (index === -1) return null;
   const previousQuarterlyIncome = quarterlyIncome[index + 4];
   if (!previousQuarterlyIncome) return null;
@@ -159,11 +168,11 @@ function calculateYoY2(netIncome) {
   return percentageChange.toFixed(2);
 }
 
-function calculateNet(netIncome) {
+function calculateNet(netIncome: number): string | null {
   if (!netIncome) return null;
-  const quarterlyIncome = props.assetInfo.quarterlyFinancials;
+  const quarterlyIncome = props.assetInfo?.quarterlyFinancials;
   if (!quarterlyIncome) return null;
-  const index = quarterlyIncome.findIndex(quarterlyReport => quarterlyReport.netIncome === netIncome);
+  const index = quarterlyIncome.findIndex((quarterlyReport: QuarterlyReport) => quarterlyReport.netIncome === netIncome);
   if (index === -1) return null;
   const previousQuarterlyIncome = quarterlyIncome[index + 1];
   if (!previousQuarterlyIncome) return null;

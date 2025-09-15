@@ -23,7 +23,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 const emit = defineEmits(['close', 'refresh'])
 
@@ -34,35 +34,41 @@ const props = defineProps({
   selectedWatchlist: String 
 })
 
-const selectedFile = ref(null)
-const fileName = ref('')
-const fileContent = ref('')
+const selectedFile = ref<File | null>(null)
+const fileName = ref<string>('')
+const fileContent = ref<string>('')
 
 function close() {
   emit('close')
 }
 
-function handleFileChange(event) {
-  const file = event.target.files[0]
+function handleFileChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files ? input.files[0] : null
   if (file && file.type === 'text/plain') {
     selectedFile.value = file
     fileName.value = file.name
     const reader = new FileReader()
-    reader.onload = function(e) {
-      fileContent.value = e.target.result
+    reader.onload = function(e: ProgressEvent<FileReader>) {
+      const result = e.target && e.target.result
+      fileContent.value = typeof result === 'string' ? result : ''
     }
     reader.readAsText(file)
   } else {
     selectedFile.value = null
     fileName.value = ''
     fileContent.value = ''
-    props.notification.value.show('Please select a valid .txt file')
+    if (props.notification && props.notification.value) {
+      props.notification.value.show('Please select a valid .txt file')
+    }
   }
 }
 
 async function importWatchlist() {
   if (!selectedFile.value || !fileContent.value) {
-    props.notification.value.show('No file selected or file is empty')
+    if (props.notification && props.notification.value) {
+      props.notification.value.show('No file selected or file is empty')
+    }
     return
   }
   // Extract symbols from fileContent
@@ -83,11 +89,15 @@ async function importWatchlist() {
     .filter((s, i, arr) => s && arr.indexOf(s) === i) // Remove nulls and duplicates
   // Limit to 100 symbols per import
   if (symbols.length > 100) {
-    props.notification.value.show('Too many symbols (max 100 allowed)')
+    if (props.notification && props.notification.value) {
+      props.notification.value.show('Too many symbols (max 100 allowed)')
+    }
     return
   }
   if (symbols.length === 0) {
-    props.notification.value.show('No valid symbols found in file')
+    if (props.notification && props.notification.value) {
+      props.notification.value.show('No valid symbols found in file')
+    }
     return
   }
   const payload = {
@@ -95,22 +105,32 @@ async function importWatchlist() {
     symbols: symbols
   }
   try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    }
+    if (props.apiKey) {
+      headers['X-API-KEY'] = props.apiKey
+    }
     const response = await fetch(`/api/${props.user}/import/watchlist`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': props.apiKey
-      },
+      headers,
       body: JSON.stringify(payload)
     })
     if (response.ok) {
-      props.notification.value.show('Watchlist imported successfully')
+      if (props.notification && props.notification.value) {
+        props.notification.value.show('Watchlist imported successfully')
+      }
       emit('refresh') 
     } else {
-      props.notification.value.show('Failed to import watchlist')
+      if (props.notification && props.notification.value) {
+        props.notification.value.show('Failed to import watchlist')
+      }
     }
   } catch (error) {
-    props.notification.value.show(error.message)
+    if (props.notification && props.notification.value) {
+      const message = error instanceof Error ? error.message : String(error)
+      props.notification.value.show(message)
+    }
   }
   emit('close')
 }

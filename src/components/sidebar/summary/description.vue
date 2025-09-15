@@ -2,7 +2,7 @@
  <div class="summary-row2">
               <div :class="['description', { 'expanded': showAllDescription }]"
                 :style="{ height: showAllDescription ? 'auto' : minHeight }">
-                {{ assetInfo.Description }}
+                {{ props.assetInfo?.Description ?? '' }}
               </div>
             </div>
             <button @click="showAllDescription = !showAllDescription" class="toggle-btn">
@@ -10,12 +10,18 @@
     </button>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
 import { ref } from 'vue';
 
-defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
+interface AssetInfo {
+  Description?: string;
+}
+
+const props = defineProps<{ assetInfo?: AssetInfo; formatDate?: (date: string) => string }>();
 
 const showAllDescription = ref(false);
+const minHeight = '48px';
 </script>
 
 <style lang="scss">

@@ -4,7 +4,8 @@ const apiKey = import.meta.env.VITE_EREUNA_KEY; // Add apiKey
 
 export const useMaintenanceStore = defineStore('maintenance', {
     state: () => ({
-        isUnderMaintenance: false
+        isUnderMaintenance: false,
+        errorMessage: ''
     }),
     actions: {
         async checkMaintenanceStatus() {
@@ -21,8 +22,13 @@ export const useMaintenanceStore = defineStore('maintenance', {
 
                 const data = await response.json(); // Parse the response as JSON
                 this.isUnderMaintenance = data.maintenance;
+                this.errorMessage = '';
             } catch (error) {
-                error.value = error.message;
+                if (error instanceof Error) {
+                    this.errorMessage = error.message;
+                } else {
+                    this.errorMessage = String(error);
+                }
                 this.isUnderMaintenance = false; // Set to false in case of an error
             }
         }

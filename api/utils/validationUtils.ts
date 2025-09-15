@@ -347,24 +347,256 @@ const validationSchemas = {
     symbolsArray: () =>
         body('symbols')
             .isArray({ min: 0, max: 20 }).withMessage('Symbols must be an array with up to 20 elements')
-            .custom((arr) => arr.every(s => typeof s === 'string')).withMessage('Each symbol must be a string')
-            .custom((arr) => arr.every(s => /^[A-Z0-9]+$/.test(s))).withMessage('Symbols must be uppercase alphanumeric'),
+            .custom((arr: string[]) => arr.every((s: string) => typeof s === 'string')).withMessage('Each symbol must be a string')
+            .custom((arr: string[]) => arr.every((s: string) => /^[A-Z0-9]+$/.test(s))).withMessage('Symbols must be uppercase alphanumeric'),
+
+    rsScore: () => [
+        body('value1')
+            .optional({ nullable: true }) // Allow null values
+            .custom((value: any) => {
+                // If value is null or empty, return true (valid)
+                if (value === null || value === '') return true;
+
+                // Validate float between 1 and 100
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 100;
+            })
+            .withMessage('Value1 must be a float between 1 and 100 or null'),
+        body('value2')
+            .optional({ nullable: true })
+            .custom((value: any) => {
+                if (value === null || value === '') return true;
+
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 100;
+            })
+            .withMessage('Value2 must be a float between 1 and 100 or null'),
+        body('value3')
+            .optional({ nullable: true })
+            .custom((value: any) => {
+                if (value === null || value === '') return true;
+
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 100;
+            })
+            .withMessage('Value3 must be a float between 1 and 100 or null'),
+        body('value4')
+            .optional({ nullable: true })
+            .custom((value: any) => {
+                if (value === null || value === '') return true;
+
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 100;
+            })
+            .withMessage('Value4 must be a float between 1 and 100 or null'),
+        body('value5')
+            .optional({ nullable: true })
+            .custom((value: any) => {
+                if (value === null || value === '') return true;
+
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 100;
+            })
+            .withMessage('Value5 must be a float between 1 and 100 or null'),
+        body('value6')
+            .optional({ nullable: true })
+            .custom((value: any) => {
+                if (value === null || value === '') return true;
+
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 100;
+            })
+            .withMessage('Value6 must be a float between 1 and 100 or null')
+    ],
+
+    ADV: () => [
+        body('value1')
+            .optional({ nullable: true }) // Allow null values
+            .custom((value) => {
+                // If value is null or empty, return true (valid)
+                if (value === null || value === '') return true;
+
+                // Validate float
+                const parsedValue = parseFloat(value);
+                return isNaN(parsedValue) || !isNaN(parsedValue);
+            })
+            .withMessage('Value1 must be a float, NaN, or null'),
+
+        body('value2')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+
+                const parsedValue = parseFloat(value);
+                return isNaN(parsedValue) || !isNaN(parsedValue);
+            })
+            .withMessage('Value2 must be a float, NaN, or null'),
+
+        body('value3')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+
+                const parsedValue = parseFloat(value);
+                return isNaN(parsedValue) || !isNaN(parsedValue);
+            })
+            .withMessage('Value3 must be a float, NaN, or null'),
+
+        body('value4')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+
+                const parsedValue = parseFloat(value);
+                return isNaN(parsedValue) || !isNaN(parsedValue);
+            })
+            .withMessage('Value4 must be a float, NaN, or null'),
+
+        body('value5')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+
+                const parsedValue = parseFloat(value);
+                return isNaN(parsedValue) || !isNaN(parsedValue);
+            })
+            .withMessage('Value5 must be a float, NaN, or null'),
+
+        body('value6')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+
+                const parsedValue = parseFloat(value);
+                return isNaN(parsedValue) || !isNaN(parsedValue);
+            })
+            .withMessage('Value6 must be a float, NaN, or null'),
+
+        body('value7')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+
+                const parsedValue = parseFloat(value);
+                return isNaN(parsedValue) || !isNaN(parsedValue);
+            })
+            .withMessage('Value7 must be a float, NaN, or null'),
+
+        body('value8')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+
+                const parsedValue = parseFloat(value);
+                return isNaN(parsedValue) || !isNaN(parsedValue);
+            })
+            .withMessage('Value8 must be a float, NaN, or null')
+    ],
+
+    pricePerformanceValues: () => [
+        // Validation for changePerc values
+        body('value1')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue);
+            })
+            .withMessage('Value1 must be a valid number or null'),
+
+        body('value2')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue);
+            })
+            .withMessage('Value2 must be a valid number or null'),
+
+        body('value3')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '' || value === '-') return true;
+                const validOptions = ['1D', '1W', '1M', '4M', '6M', '1Y', 'YTD'];
+                return validOptions.includes(value.trim());
+            })
+            .withMessage('Value3 must be a valid time period or null'),
+
+        // Validation for percentage off week high/low
+        body('value4')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue);
+            })
+            .withMessage('Value4 must be a valid number or null'),
+
+        body('value5')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue);
+            })
+            .withMessage('Value5 must be a valid number or null'),
+
+        body('value6')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue);
+            })
+            .withMessage('Value6 must be a valid number or null'),
+
+        body('value7')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+                const parsedValue = parseFloat(value);
+                return !isNaN(parsedValue);
+            })
+            .withMessage('Value7 must be a valid number or null'),
+
+        // Validation for NewHigh and NewLow
+        body('value8')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+                // Allow specific values or return true
+                const allowedValues = ['yes', 'no', 'Yes', 'No'];
+                return allowedValues.includes(value.trim());
+            })
+            .withMessage('Value8 must be "yes" or "no"'),
+
+        body('value9')
+            .optional({ nullable: true })
+            .custom((value) => {
+                if (value === null || value === '') return true;
+                // Allow specific values or return true
+                const allowedValues = ['yes', 'no', 'Yes', 'No'];
+                return allowedValues.includes(value.trim());
+            })
+            .withMessage('Value9 must be "yes" or "no"'),
+    ]
 
 };
 
 
 // Validation Middleware
-const validate = (validations) => {
-    return async (req, res, next) => {
-        await Promise.all(validations.map(validation => validation.run(req)));
+import { Request, Response, NextFunction } from 'express';
+const validate = (validations: any[]) => {
+    return async (req: Request, res: Response, next: NextFunction) => {
+        await Promise.all(validations.map((validation: any) => validation.run(req)));
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             // Log the errors for debugging
             console.error('Validation Errors:', errors.array());
             return res.status(400).json({
-                errors: errors.array().map(error => ({
-                    field: error.param,
+                errors: errors.array().map((error: any) => ({
+                    field: error.param || '',
                     message: error.msg
                 }))
             });
@@ -374,7 +606,7 @@ const validate = (validations) => {
 };
 
 // Input Sanitization
-const sanitizeInput = (input) => {
+const sanitizeInput = (input: string): string => {
     if (typeof input !== 'string') return '';
     return validator.trim(validator.escape(input));
 };

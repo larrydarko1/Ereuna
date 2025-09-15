@@ -1,17 +1,17 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import fs from 'fs';
 import cors from 'cors';
 import { MongoClient } from 'mongodb';
 import argon2 from 'argon2';
 import config from './utils/config.js';
 import jwt from 'jsonwebtoken';
-import Stripe from 'stripe';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
 import helmet from 'helmet';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
-import { logger, obfuscateUsername, httpLogger, securityLogger, metricsHandler as importedMetricsHandler } from './utils/logger.js';
+import logger, { handleError } from './utils/logger.js';
+import https from 'https';
 import { validate, validationSchemas, validationSets, body, sanitizeInput, query } from './utils/validationUtils.js';
 
 dotenv.config();
@@ -20,6 +20,8 @@ dotenv.config();
 const allowedOrigins = [
   'http://localhost',
   'http://frontend:80',
+  'https://localhost',
+  'https://frontend:443',
   'https://ereuna.co',
   'https://www.ereuna.co'
 ];
@@ -34,9 +36,6 @@ const limiter = rateLimit({
     status: 429 // Too Many Requests
   }
 });
-
-// Initialize Stripe
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 const port = process.env.PORT || 5500;
@@ -64,11 +63,12 @@ app.use(helmet({
 
 const corsOptions = {
   methods: ['GET', 'POST', 'DELETE', 'PATCH'],
-  origin: function (origin, callback) {
-    if (allowedOrigins.indexOf(origin) !== -1) {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    if (origin && allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      logger.warn('Unauthorized CORS request', {
+      // Use logger.error for unauthorized CORS requests
+      logger.error('Unauthorized CORS request', {
         origin: origin,
         timestamp: new Date().toISOString()
       });
@@ -81,17 +81,22 @@ const corsOptions = {
 // Brute Force Protection Middleware
 const bruteForceProtection = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 100 requests per windowMs
+  max: 10, // Limit each IP to 10 requests per windowMs
   message: 'Too many login attempts, please try again later',
-  handler: (req, res) => {
-    securityLogger.warn('Potential brute force attack', {
+  handler: (req: Request, res: Response) => {
+    // Use handleError for brute force attacks and log security event
+    logger.warn({
+      msg: 'Potential brute force attack',
       ip: req.ip,
       path: req.path
     });
-
+    const errResponse = handleError('Too many requests, possible brute force', 'BruteForceProtection', {
+      ip: req.ip,
+      path: req.path
+    }, 429);
     res.status(429).json({
       status: 'error',
-      message: 'Too many requests, please try again later'
+      message: errResponse.message
     });
   }
 });
@@ -99,30 +104,12 @@ const bruteForceProtection = rateLimit({
 // Apply CORS and Brute Force Protection (max 10 requests per minute)
 app.use(/^\/(login|signup|verify|recover|generate-key|download-key|retrieve-key|password-change|change-password2|change-username|account-delete|verify-mfa|twofa)(\/.*)?$/, cors(corsOptions), bruteForceProtection);
 
-// Error Handling Middleware
-app.use((err, req, res, next) => {
-  // CORS Error Handler
-  if (err.name === 'CorsError') {
-    logger.error('CORS Error', {
-      origin: req.get('origin'),
-      method: req.method,
-      path: req.path,
-      ip: req.ip
-    });
-
-    return res.status(403).json({
-      error: 'Access denied',
-      message: 'Origin not allowed'
-    });
-  }
-});
-
 // SSL/TLS Certificate options
 let options;
 try {
   options = {
-    key: fs.readFileSync(path.join(process.cwd(), 'localhost-key.pem')),
-    cert: fs.readFileSync(path.join(process.cwd(), 'localhost.pem'))
+    key: fs.readFileSync(path.join(process.cwd(), 'certs', 'localhost-key.pem')),
+    cert: fs.readFileSync(path.join(process.cwd(), 'certs', 'localhost-cert.pem'))
   };
 
   // Use HTTPS server
@@ -130,11 +117,11 @@ try {
     console.log(`HTTPS Server running on https://localhost:${port}`);
   });
 } catch (error) {
-  console.error('Error loading SSL certificates:', error);
-
+  const errResponse = handleError(error, 'SSL Certificate Load', { file: 'server.ts' });
   // Fallback to HTTP if certificates can't be loaded
   app.listen(port, () => {
     console.log(`HTTP Server running on http://localhost:${port}`);
+    console.error(errResponse.message);
   });
 }
 
@@ -149,10 +136,33 @@ import Screener from './routes/Screener.js';
 import Maintenance from './routes/Maintenance.js';
 import Portfolio from './routes/Portfolio.js';
 
-Users(app, { validate, validationSchemas, sanitizeInput, logger, securityLogger, crypto, MongoClient, uri, argon2, jwt, config });
-Notes(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, obfuscateUsername, MongoClient, uri });
+Users(app, { validate, validationSchemas, sanitizeInput, logger, crypto, MongoClient, uri, argon2, jwt, config });
+Notes(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri });
 Charts(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri });
-Watchlists(app, { validate, validationSchemas, validationSets, body, sanitizeInput, logger, obfuscateUsername, MongoClient, uri });
-Screener(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, obfuscateUsername, MongoClient, uri, crypto, query });
+Watchlists(app, { validate, validationSchemas, validationSets, body, sanitizeInput, logger, MongoClient, uri });
+Screener(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri, crypto, query });
 Maintenance(app, { validate, body, sanitizeInput, logger, MongoClient, uri, crypto });
 Portfolio(app, { validate, validationSchemas, body, query, sanitizeInput, logger, MongoClient, uri });
+
+// Error-handling middleware (must be last before export)
+import type { ErrorRequestHandler } from 'express';
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  const errResponse = handleError(err, 'Express Middleware', {
+    path: req.path,
+    method: req.method,
+    ip: req.ip
+  }, err.status || 500);
+  if (err.name === 'CorsError') {
+    res.status(403).json({
+      error: 'Access denied',
+      message: 'Origin not allowed'
+    });
+    return;
+  }
+  res.status(errResponse.statusCode).json({
+    error: 'Internal Server Error',
+    message: errResponse.message
+  });
+};
+app.use(errorHandler);
+

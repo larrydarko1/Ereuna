@@ -14,7 +14,7 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
 const props = defineProps({
@@ -28,7 +28,13 @@ const props = defineProps({
   }
 });
 
-const communications = ref([]); // list of communications as a ref
+interface Communication {
+  header: string;
+  publishedDate: string;
+  message: string;
+}
+
+const communications = ref<Communication[]>([]); // list of communications as a ref
 
 async function fetchCommunications() {
   try {
@@ -47,11 +53,11 @@ async function fetchCommunications() {
     const communicationsList = await response.json();
     communications.value = communicationsList; // store in ref
 
-  } catch (error) {
-    if (error.name === 'AbortError') {
+  } catch (err) {
+    if (typeof err === 'object' && err !== null && 'name' in err && (err as any).name === 'AbortError') {
       return;
     }
-    console.error('Error fetching communications:', error);
+    console.error('Error fetching communications:', err);
     communications.value = [];
   }
 }

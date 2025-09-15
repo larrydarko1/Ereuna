@@ -67,15 +67,15 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
@@ -88,8 +88,8 @@ const props = defineProps({
 })
 
 let ShowCountry = ref(false);
-const Country = ref([]); // hosts all available countries 
-const selectedCountries = ref([]);
+const Country = ref<string[]>([]); // hosts all available countries 
+const selectedCountries = ref<boolean[]>([]);
 
 // generates options for checkboxes for country 
 async function GetCountry() {
@@ -99,16 +99,23 @@ async function GetCountry() {
         'X-API-KEY': props.apiKey,
       },
     });
-    const data = await response.json();
+    const data: string[] = await response.json();
     Country.value = data;
-    selectedCountries.value = new Array(data.length).fill(false); // Initialize selection state
-  } catch (error) {
-    error.value = error.message;
+    selectedCountries.value = new Array(data.length).fill(false);
+  } catch (error: unknown) {
+    let message = 'Unknown error';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    if (props.notification && typeof props.notification === 'object') {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
   }
 }
 GetCountry();
 
-const toggleCountry = (index) => {
+const toggleCountry = (index: number) => {
   selectedCountries.value[index] = !selectedCountries.value[index]; // Toggle the selected state
 };
 
@@ -118,8 +125,12 @@ async function SetCountry() {
 
   try {
     if (!props.selectedScreener) {
-      props.isScreenerError = true
-      throw new Error('Please select a screener')
+      // Cannot assign to readonly prop, use notification pattern
+      if (props.notification && typeof props.notification === 'object') {
+        props.notification.message = 'Please select a screener';
+        props.notification.type = 'error';
+      }
+      throw new Error('Please select a screener');
     }
 
     const response = await fetch('/api/screener/country', {
@@ -137,8 +148,15 @@ async function SetCountry() {
 
     const data = await response.json();
     emit('fetchScreeners', props.selectedScreener); // Update the list after setting the country
-  } catch (error) {
-    error.value = error.message;
+  } catch (error: unknown) {
+    let message = 'Unknown error';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    if (props.notification && typeof props.notification === 'object') {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
     emit('fetchScreeners', props.selectedScreener);
   }
 }

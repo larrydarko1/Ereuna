@@ -28,7 +28,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 const emit = defineEmits(['close'])
 
@@ -48,14 +48,14 @@ function close() {
 }
 
 async function CreateWatchlist() {
-  const existingWatchlists = props.watchlist.tickers.map(watch => watch.Name)
+  const existingWatchlists = props.watchlist?.tickers?.map((watch: { Name: string }) => watch.Name) ?? []
 
   if (existingWatchlists.includes(watchlistName.value)) {
-    props.notification.value.show('Watchlist already exists')
+    props.notification?.value?.show?.('Watchlist already exists')
     return
   }
   if (watchlistName.value.length > 20) {
-    props.notification.value.show('Watchlist name cannot exceed 20 characters.')
+    props.notification?.value?.show?.('Watchlist name cannot exceed 20 characters.')
     return
   }
   try {
@@ -63,27 +63,27 @@ async function CreateWatchlist() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-KEY': props.apiKey,
-      }
+        'X-API-KEY': props.apiKey ?? '',
+      } as Record<string, string>,
     })
     if (response.ok) {
       // success
     } else if (response.status === 400) {
       const errorData = await response.json()
       if (errorData.message === 'Maximum number of watchlists (20) has been reached') {
-        props.notification.value.show('Maximum number of watchlists (20) has been reached')
+        props.notification?.value?.show?.('Maximum number of watchlists (20) has been reached')
       } else {
-        props.notification.value.show('Failed to create watchlist')
+        props.notification?.value?.show?.('Failed to create watchlist')
       }
     } else {
-      props.notification.value.show('Failed to create watchlist')
+      props.notification?.value?.show?.('Failed to create watchlist')
     }
-  } catch (error) {
-    props.notification.value.show(error.message)
+  } catch (err) {
+    props.notification?.value?.show?.((err as Error).message)
   }
   emit('close')
   if (props.getWatchlists) await props.getWatchlists()
-  const newWatchlist = props.watchlist.tickers.find(watch => watch.Name === watchlistName.value)
+  const newWatchlist = props.watchlist?.tickers?.find((watch: { Name: string }) => watch.Name === watchlistName.value)
   if (newWatchlist && props.filterWatchlist) {
     await props.filterWatchlist(newWatchlist)
   }

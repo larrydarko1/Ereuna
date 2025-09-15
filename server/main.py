@@ -17,6 +17,7 @@ from aggregator import start_aggregator, pubsub_channels, get_latest_in_progress
 from bson import ObjectId
 from dateutil.parser import isoparse
 import datetime
+from starlette.websockets import WebSocketDisconnect
 
 load_dotenv()
 
@@ -394,7 +395,6 @@ async def websocket_chartdata(
     logger.info(f"Client connected to /ws/chartdata: ticker={ticker}, timeframe={timeframe}, user={user}")
     await websocket.accept()
     ticker = ticker.upper()
-    # Map timeframe to collection and time format / last number is cap on how many documents we send for performance issues
     tf_map = {
         'daily':   (db['OHCLVData'], 'date', 2000),
         'weekly':  (db['OHCLVData2'], 'date', 500),
@@ -406,21 +406,20 @@ async def websocket_chartdata(
     }
     if timeframe not in tf_map:
         logger.warning(f"Invalid timeframe requested: {timeframe}")
-        await websocket.send_text(json.dumps({'error': 'Invalid timeframe'}))
+        try:
+            await websocket.send_text(json.dumps({'error': 'Invalid timeframe'}))
+        except WebSocketDisconnect:
+            logger.info("Client disconnected before error could be sent.")
         await websocket.close()
         return
     coll, timeType, length = tf_map[timeframe]
-    # Get user chart settings if user param is present
     chartSettings = None
     if user:
         user_doc = await db.Users.find_one({'Username': user})
         if user_doc and user_doc.get('ChartSettings'):
             chartSettings = user_doc['ChartSettings']
-    # Fetch historical data (most recent N, in correct order)
     arr = await coll.find({'tickerID': ticker}).sort('timestamp', -1).to_list(length=length)
     arr = list(reversed(arr))
-
-    # Check for cached in-progress candle using aggregator's cache
     pubsub_tf = {
         'daily': '1d',
         'weekly': '1w',
@@ -430,10 +429,7 @@ async def websocket_chartdata(
         'intraday30m': '30m',
         'intraday1hr': '1hr',
     }[timeframe]
-    # Use helper to get latest in-progress candle
     cached_candle = get_latest_in_progress_candle(ticker, pubsub_tf)
-
-    # Merge cached candle into historical array before building ohlc/volume arrays
     ohlc_arr = arr.copy()
     if cached_candle:
         def to_naive_utc(dt):
@@ -453,7 +449,6 @@ async def websocket_chartdata(
                     ohlc_arr.append(cached_candle)
             except KeyError as e:
                 logger.error(f"KeyError during timestamp comparison: {e}\ncached_candle={cached_candle}\nohlc_arr_last={ohlc_arr[-1]}")
-
     def get_item_time(item):
         ts = item.get('timestamp', item.get('start'))
         if ts is None:
@@ -462,7 +457,6 @@ async def websocket_chartdata(
             return ts.isoformat()[:19]
         else:
             return ts.isoformat()[:10]
-
     ohlc = [
         {
             'time': get_item_time(item),
@@ -473,7 +467,6 @@ async def websocket_chartdata(
         }
         for item in ohlc_arr if get_item_time(item) is not None
     ] if ohlc_arr else []
-    # Use 0 for missing volume in 1m timeframe
     if timeframe == 'intraday1m':
         volume = [
             {
@@ -490,7 +483,6 @@ async def websocket_chartdata(
             }
             for item in ohlc_arr if get_item_time(item) is not None
         ] if ohlc_arr else []
-    # Calculate MAs/EMAs
     def calcMA_py(Data, period, timeType = 'date'):
         if len(Data) < period:
             return []
@@ -535,18 +527,15 @@ async def websocket_chartdata(
                 maArr = calcMA_py(arr, indicator.get('timeframe', 10), timeType)
             ma_data[f'MA{idx+1}'] = maArr
     else:
-        # Default: provide 10, 20, 50, 200 SMA
         ma_data['MA1'] = calcMA_py(arr, 10, timeType) if arr else []
         ma_data['MA2'] = calcMA_py(arr, 20, timeType) if arr else []
         ma_data['MA3'] = calcMA_py(arr, 50, timeType) if arr else []
         ma_data['MA4'] = calcMA_py(arr, 200, timeType) if arr else []
-    # IntrinsicValue
     intrinsicValue = None
     if chartSettings and chartSettings.get('intrinsicValue', {}).get('visible'):
         assetInfo = await db.AssetInfo.find_one({'Symbol': ticker})
         if assetInfo and 'IntrinsicValue' in assetInfo:
             intrinsicValue = assetInfo['IntrinsicValue']
-    # Build initial payload
     payload = {
         'ohlc': ohlc,
         'volume': volume,
@@ -554,8 +543,11 @@ async def websocket_chartdata(
     }
     if intrinsicValue is not None:
         payload['intrinsicValue'] = intrinsicValue
-    await websocket.send_text(json.dumps({'type': 'init', 'data': payload}))
-    # Only subscribe to pubsub during market hours
+    try:
+        await websocket.send_text(json.dumps({'type': 'init', 'data': payload}))
+    except WebSocketDisconnect:
+        logger.info("Client disconnected before initial chartdata could be sent.")
+        return
     if is_market_hours():
         q = asyncio.Queue()
         pubsub_channels[(ticker, pubsub_tf)].append(q)
@@ -632,16 +624,20 @@ async def websocket_chartdata(
                     }
                     if intrinsicValue is not None:
                         update_payload['intrinsicValue'] = intrinsicValue
-                    await websocket.send_text(json.dumps({'type': 'update', 'data': update_payload}))
-                except WebSocketDisconnect:
-                    logger.info(f"Client disconnected from /ws/chartdata: ticker={ticker}, timeframe={timeframe}, user={user}")
-                    break
+                    try:
+                        await websocket.send_text(json.dumps({'type': 'update', 'data': update_payload}))
+                    except WebSocketDisconnect:
+                        logger.info(f"Client disconnected from /ws/chartdata: ticker={ticker}, timeframe={timeframe}, user={user}")
+                        break
                 except Exception as e:
                     logger.error(f"Exception in /ws/chartdata loop: {e}")
                     import traceback
                     traceback.print_exc()
                     try:
                         await websocket.send_text(json.dumps({'error': str(e)}))
+                    except WebSocketDisconnect:
+                        logger.info("Client disconnected during error send.")
+                        break
                     except Exception:
                         pass
                     break
@@ -673,7 +669,10 @@ async def websocket_quotes(
     # Validate API key
     if x_api_key != API_KEY:
         await websocket.accept()
-        await websocket.send_text(json.dumps({"error": "Invalid API key"}))
+        try:
+            await websocket.send_text(json.dumps({"error": "Invalid API key"}))
+        except WebSocketDisconnect:
+            logger.info("Client disconnected before error could be sent.")
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
@@ -688,12 +687,22 @@ async def websocket_quotes(
                     result[sym] = float(doc[0]['close'])
                 else:
                     result[sym] = None
-            await websocket.send_text(json.dumps(result))
+            try:
+                await websocket.send_text(json.dumps(result))
+            except WebSocketDisconnect:
+                logger.info("Client disconnected during send_text in /ws/quotes.")
+                break
             await asyncio.sleep(2)
     except WebSocketDisconnect:
-        pass
+        logger.info("Client disconnected from /ws/quotes.")
     except Exception as e:
-        await websocket.send_text(json.dumps({"error": str(e)}))
+        logger.error(f"Exception in /ws/quotes: {e}")
+        try:
+            await websocket.send_text(json.dumps({"error": str(e)}))
+        except WebSocketDisconnect:
+            logger.info("Client disconnected during error send in /ws/quotes.")
+        except Exception:
+            pass
         await websocket.close()
 
 # --- WebSocket endpoint for user's WatchPanel ---
@@ -725,20 +734,25 @@ async def websocket_watchpanel(
     # Initial send: use cached candle for today if available, else fallback to latest two DB candles
     watch_panel_data = []
     for ticker in tickers:
-        docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(1).to_list(length=1)
-        previous_docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).skip(1).limit(1).to_list(length=1)
+        docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
         cached_candle = get_latest_in_progress_candle(ticker, '1d')
-        if cached_candle and previous_docs:
+        def get_ts(doc):
+            return doc.get('timestamp', doc.get('start'))
+        if cached_candle and docs:
+            cached_ts = get_ts(cached_candle)
+            doc0_ts = get_ts(docs[0]) if docs else None
+            previous = docs[0] if docs and doc0_ts != cached_ts else (docs[1] if len(docs) > 1 else None)
             latest_close = float(str(cached_candle['close'])[:8])
-            previous_close = float(str(previous_docs[0]['close'])[:8])
-            percentage_change = ((latest_close - previous_close) / previous_close) * 100
-            watch_panel_data.append({
-                "Symbol": ticker,
-                "percentageReturn": f"{percentage_change:.2f}%"
-            })
-        elif docs and previous_docs:
+            previous_close = float(str(previous['close'])[:8]) if previous else None
+            if previous_close is not None:
+                percentage_change = ((latest_close - previous_close) / previous_close) * 100
+                watch_panel_data.append({
+                    "Symbol": ticker,
+                    "percentageReturn": f"{percentage_change:.2f}%"
+                })
+        elif docs and len(docs) > 1:
             latest_close = float(str(docs[0]['close'])[:8])
-            previous_close = float(str(previous_docs[0]['close'])[:8])
+            previous_close = float(str(docs[1]['close'])[:8])
             percentage_change = ((latest_close - previous_close) / previous_close) * 100
             watch_panel_data.append({
                 "Symbol": ticker,
@@ -813,8 +827,451 @@ async def websocket_watchpanel(
             await websocket.close()
         except Exception:
             pass
-        
 
+@app.websocket("/ws/data-values")
+async def websocket_data_values(
+    websocket: WebSocket,
+    tickers: str = Query(...),
+):
+    # Authenticate using sec-websocket-protocol header
+    api_key = websocket.headers.get('sec-websocket-protocol')
+    if api_key != API_KEY:
+        await websocket.accept()
+        try:
+            await websocket.send_text(json.dumps({"error": "Invalid API key"}))
+        except WebSocketDisconnect:
+            logger.info("Client disconnected before error could be sent.")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    await websocket.accept(subprotocol=api_key)
+    ticker_list = [sanitize_input(t) for t in tickers.split(',') if t.strip()]
+    if not ticker_list:
+        try:
+            await websocket.send_text(json.dumps({"error": "No tickers provided"}))
+        except WebSocketDisconnect:
+            logger.info("Client disconnected before error could be sent.")
+        await websocket.close()
+        return
+
+    results = {}
+
+    # Initial payload: latest two docs for each ticker, prefer cached candle
+    for ticker in ticker_list:
+        # Try cached candle first
+        cached_candle = get_latest_in_progress_candle(ticker, '1d')
+        docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
+        def get_ts(doc):
+            return doc.get('timestamp', doc.get('start'))
+        if cached_candle and docs:
+            latest = cached_candle
+            cached_ts = get_ts(cached_candle)
+            doc0_ts = get_ts(docs[0]) if docs else None
+            previous = docs[0] if docs and doc0_ts != cached_ts else (docs[1] if len(docs) > 1 else None)
+        elif docs:
+            latest = docs[0]
+            previous = docs[1] if len(docs) > 1 else None
+        else:
+            continue
+
+        responseData = {
+            "close": float(latest['close']),
+            "timestamp": str(latest.get('timestamp', latest.get('start'))),
+        }
+        if previous:
+            closeDiff = float(latest['close']) - float(previous['close'])
+            percentChange = ((closeDiff / float(previous['close'])) * 100) if float(previous['close']) != 0 else 0
+            responseData["closeDiff"] = round(closeDiff, 2)
+            responseData["percentChange"] = round(percentChange, 2)
+            responseData["latestClose"] = float(latest['close'])
+            responseData["previousClose"] = float(previous['close'])
+            responseData["timestampPrevious"] = str(previous.get('timestamp', previous.get('start')))
+        else:
+            responseData["closeDiff"] = 0
+            responseData["percentChange"] = 0
+            responseData["message"] = "Insufficient historical data for comparison"
+        results[ticker] = responseData
+
+    # Send initial data
+    try:
+        await websocket.send_text(json.dumps({"type": "init", "data": results}))
+    except WebSocketDisconnect:
+        logger.info("Client disconnected before initial data could be sent.")
+        return
+
+    # Subscribe to pubsub for real-time updates
+    queues = []
+    for ticker in ticker_list:
+        q = asyncio.Queue()
+        pubsub_channels[(ticker, '1d')].append(q)
+        queues.append((ticker, q))
+
+    try:
+        while True:
+            update_tasks = [asyncio.create_task(q.get()) for _, q in queues]
+            done, _ = await asyncio.wait(update_tasks, return_when=asyncio.FIRST_COMPLETED)
+            updates = {}
+            for idx, (ticker, q) in enumerate(queues):
+                if update_tasks[idx] in done:
+                    try:
+                        cndl = update_tasks[idx].result()
+                        docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
+                        previous = docs[0] if docs and docs[0]['timestamp'] != cndl['timestamp'] else (docs[1] if len(docs) > 1 else None)
+                        responseData = {
+                            "close": float(cndl['close']),
+                            "timestamp": str(cndl['timestamp']),
+                        }
+                        if previous:
+                            closeDiff = float(cndl['close']) - float(previous['close'])
+                            percentChange = ((closeDiff / float(previous['close'])) * 100) if float(previous['close']) != 0 else 0
+                            responseData["closeDiff"] = round(closeDiff, 2)
+                            responseData["percentChange"] = round(percentChange, 2)
+                            responseData["latestClose"] = float(cndl['close'])
+                            responseData["previousClose"] = float(previous['close'])
+                            responseData["timestampPrevious"] = str(previous['timestamp'])
+                        else:
+                            responseData["closeDiff"] = 0
+                            responseData["percentChange"] = 0
+                            responseData["message"] = "Insufficient historical data for comparison"
+                        updates[ticker] = responseData
+                    except Exception as e:
+                        logger.error(f"[ws/data-values] Error processing update for {ticker}: {e}")
+            if updates:
+                try:
+                    await websocket.send_text(json.dumps({"type": "update", "data": updates}))
+                except WebSocketDisconnect:
+                    logger.info("Client disconnected during update send.")
+                    break
+    except WebSocketDisconnect:
+        logger.info(f"[ws/data-values] Client disconnected: tickers={ticker_list}")
+    except Exception as e:
+        logger.error(f"[ws/data-values] Exception: {e}")
+        try:
+            await websocket.send_text(json.dumps({"error": str(e)}))
+        except WebSocketDisconnect:
+            logger.info("Client disconnected during error send.")
+        except Exception:
+            pass
+    finally:
+        for ticker, q in queues:
+            try:
+                pubsub_channels[(ticker, '1d')].remove(q)
+            except (KeyError, ValueError):
+                pass
+        try:
+            await websocket.close()
+        except Exception:
+            pass
+
+# --- WebSocket endpoint for weekly chart data with real-time updates / screener ---
+@app.websocket("/ws/chartdata-wk")
+async def websocket_chartdata(
+    websocket: WebSocket,
+    ticker: str = Query(...),
+    before: str = Query(None),
+):
+    # Authenticate using sec-websocket-protocol header
+    api_key = websocket.headers.get('sec-websocket-protocol')
+    if api_key != API_KEY:
+        await websocket.accept()
+        try:
+            await websocket.send_text(json.dumps({"error": "Invalid API key"}))
+        except WebSocketDisconnect:
+            logger.info("Client disconnected before error could be sent.")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    await websocket.accept(subprotocol=api_key)
+    ticker = sanitize_input(ticker.upper())
+    coll = db['OHCLVData2']
+    query = {'tickerID': ticker}
+    if before:
+        try:
+            before_date = datetime.datetime.fromisoformat(before)
+            query['timestamp'] = {'$lt': before_date}
+        except Exception:
+            pass
+
+    weeklyData = await coll.find(query).sort('timestamp', -1).limit(500).to_list(length=500)
+    weeklyData = list(reversed(weeklyData))
+
+    # Use cached candle for latest if available
+    cached_candle = get_latest_in_progress_candle(ticker, '1w')
+    if cached_candle:
+        def get_ts(doc):
+            return doc.get('timestamp', doc.get('start'))
+        cached_ts = get_ts(cached_candle)
+        last_ts = get_ts(weeklyData[-1]) if weeklyData else None
+        if not weeklyData or last_ts != cached_ts:
+            weeklyData.append(cached_candle)
+        else:
+            weeklyData[-1] = cached_candle
+
+    # Helper for MA
+    def calcMA(Data, period):
+        if len(Data) < period:
+            return []
+        arr = []
+        for i in range(period - 1, len(Data)):
+            window = Data[i - period + 1:i + 1]
+            sum_close = sum(item['close'] for item in window)
+            average = sum_close / period
+            ts = window[-1].get('timestamp', window[-1].get('start'))
+            arr.append({
+                'time': ts.isoformat()[:10] if ts else None,
+                'value': round(average, 2),
+            })
+        return arr
+
+    def get_item_time(item):
+        ts = item.get('timestamp', item.get('start'))
+        return ts.isoformat()[:10] if ts else None
+
+    weekly = {
+        'ohlc': [
+            {
+                'time': get_item_time(item),
+                'open': float(str(item['open'])[:8]),
+                'high': float(str(item['high'])[:8]),
+                'low': float(str(item['low'])[:8]),
+                'close': float(str(item['close'])[:8]),
+            }
+            for item in weeklyData if get_item_time(item) is not None
+        ] if weeklyData else [],
+        'volume': [
+            {
+                'time': get_item_time(item),
+                'value': item['volume'],
+            }
+            for item in weeklyData if get_item_time(item) is not None
+        ] if weeklyData else [],
+        'MA10': calcMA(weeklyData, 10) if weeklyData else [],
+        'MA20': calcMA(weeklyData, 20) if weeklyData else [],
+        'MA50': calcMA(weeklyData, 50) if weeklyData else [],
+        'MA200': calcMA(weeklyData, 200) if weeklyData else [],
+    }
+
+    # Initial send
+    try:
+        await websocket.send_text(json.dumps({'type': 'init', 'data': weekly}))
+    except WebSocketDisconnect:
+        logger.info("Client disconnected before initial data could be sent.")
+        return
+
+    # Subscribe to pubsub for real-time weekly updates
+    q = asyncio.Queue()
+    pubsub_channels[(ticker, '1w')].append(q)
+    try:
+        while True:
+            cndl = await q.get()
+            # Add new candle to weeklyData, keep max 500
+            weeklyData.append(cndl)
+            if len(weeklyData) > 500:
+                weeklyData = weeklyData[-500:]
+            # Recalculate arrays
+            weekly = {
+                'ohlc': [
+                    {
+                        'time': get_item_time(item),
+                        'open': float(str(item['open'])[:8]),
+                        'high': float(str(item['high'])[:8]),
+                        'low': float(str(item['low'])[:8]),
+                        'close': float(str(item['close'])[:8]),
+                    }
+                    for item in weeklyData if get_item_time(item) is not None
+                ] if weeklyData else [],
+                'volume': [
+                    {
+                        'time': get_item_time(item),
+                        'value': item['volume'],
+                    }
+                    for item in weeklyData if get_item_time(item) is not None
+                ] if weeklyData else [],
+                'MA10': calcMA(weeklyData, 10) if weeklyData else [],
+                'MA20': calcMA(weeklyData, 20) if weeklyData else [],
+                'MA50': calcMA(weeklyData, 50) if weeklyData else [],
+                'MA200': calcMA(weeklyData, 200) if weeklyData else [],
+            }
+            try:
+                await websocket.send_text(json.dumps({'type': 'update', 'data': weekly}))
+            except WebSocketDisconnect:
+                logger.info(f"Client disconnected during update send in /ws/chartdata-wk: ticker={ticker}")
+                break
+    except WebSocketDisconnect:
+        logger.info(f"[ws/chartdata-wk] Client disconnected: ticker={ticker}")
+    except Exception as e:
+        logger.error(f"[ws/chartdata-wk] Exception: {e}")
+        try:
+            await websocket.send_text(json.dumps({"error": str(e)}))
+        except WebSocketDisconnect:
+            logger.info("Client disconnected during error send in /ws/chartdata-wk.")
+        except Exception:
+            pass
+    finally:
+        try:
+            pubsub_channels[(ticker, '1w')].remove(q)
+        except (KeyError, ValueError):
+            pass
+        try:
+            await websocket.close()
+        except Exception:
+            pass
+
+# --- WebSocket endpoint for daily chart data (Chart2.vue) ---
+@app.websocket("/ws/chartdata-dl")
+async def websocket_chartdata_dl(
+    websocket: WebSocket,
+    ticker: str = Query(...),
+    before: str = Query(None),
+):
+    # Authenticate using sec-websocket-protocol header
+    api_key = websocket.headers.get('sec-websocket-protocol')
+    if api_key != API_KEY:
+        await websocket.accept()
+        try:
+            await websocket.send_text(json.dumps({"error": "Invalid API key"}))
+        except WebSocketDisconnect:
+            logger.info("Client disconnected before error could be sent.")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    await websocket.accept(subprotocol=api_key)
+    ticker = sanitize_input(ticker.upper())
+    coll = db['OHCLVData']
+    query = {'tickerID': ticker}
+    if before:
+        try:
+            before_date = datetime.datetime.fromisoformat(before)
+            query['timestamp'] = {'$lt': before_date}
+        except Exception:
+            pass
+
+    dailyData = await coll.find(query).sort('timestamp', -1).limit(2000).to_list(length=2000)
+    dailyData = list(reversed(dailyData))
+
+    # Use cached candle for latest if available
+    cached_candle = get_latest_in_progress_candle(ticker, '1d')
+    if cached_candle:
+        def get_ts(doc):
+            return doc.get('timestamp', doc.get('start'))
+        cached_ts = get_ts(cached_candle)
+        last_ts = get_ts(dailyData[-1]) if dailyData else None
+        if not dailyData or last_ts != cached_ts:
+            dailyData.append(cached_candle)
+        else:
+            dailyData[-1] = cached_candle
+
+    # Helper for MA
+    def calcMA(Data, period):
+        if len(Data) < period:
+            return []
+        arr = []
+        for i in range(period - 1, len(Data)):
+            window = Data[i - period + 1:i + 1]
+            sum_close = sum(item['close'] for item in window)
+            average = sum_close / period
+            ts = window[-1].get('timestamp', window[-1].get('start'))
+            arr.append({
+                'time': ts.isoformat()[:10] if ts else None,
+                'value': round(average, 2),
+            })
+        return arr
+
+    def get_item_time(item):
+        ts = item.get('timestamp', item.get('start'))
+        return ts.isoformat()[:10] if ts else None
+
+    daily = {
+        'ohlc': [
+            {
+                'time': get_item_time(item),
+                'open': float(str(item['open'])[:8]),
+                'high': float(str(item['high'])[:8]),
+                'low': float(str(item['low'])[:8]),
+                'close': float(str(item['close'])[:8]),
+            }
+            for item in dailyData if get_item_time(item) is not None
+        ] if dailyData else [],
+        'volume': [
+            {
+                'time': get_item_time(item),
+                'value': item['volume'],
+            }
+            for item in dailyData if get_item_time(item) is not None
+        ] if dailyData else [],
+        'MA10': calcMA(dailyData, 10) if dailyData else [],
+        'MA20': calcMA(dailyData, 20) if dailyData else [],
+        'MA50': calcMA(dailyData, 50) if dailyData else [],
+        'MA200': calcMA(dailyData, 200) if dailyData else [],
+    }
+
+    # Initial send
+    try:
+        await websocket.send_text(json.dumps({'type': 'init', 'data': daily}))
+    except WebSocketDisconnect:
+        logger.info("Client disconnected before initial data could be sent.")
+        return
+
+    # Subscribe to pubsub for real-time daily updates
+    q = asyncio.Queue()
+    pubsub_channels[(ticker, '1d')].append(q)
+    try:
+        while True:
+            cndl = await q.get()
+            # Add new candle to dailyData, keep max 2000
+            dailyData.append(cndl)
+            if len(dailyData) > 2000:
+                dailyData = dailyData[-2000:]
+            # Recalculate arrays
+            daily = {
+                'ohlc': [
+                    {
+                        'time': get_item_time(item),
+                        'open': float(str(item['open'])[:8]),
+                        'high': float(str(item['high'])[:8]),
+                        'low': float(str(item['low'])[:8]),
+                        'close': float(str(item['close'])[:8]),
+                    }
+                    for item in dailyData if get_item_time(item) is not None
+                ] if dailyData else [],
+                'volume': [
+                    {
+                        'time': get_item_time(item),
+                        'value': item['volume'],
+                    }
+                    for item in dailyData if get_item_time(item) is not None
+                ] if dailyData else [],
+                'MA10': calcMA(dailyData, 10) if dailyData else [],
+                'MA20': calcMA(dailyData, 20) if dailyData else [],
+                'MA50': calcMA(dailyData, 50) if dailyData else [],
+                'MA200': calcMA(dailyData, 200) if dailyData else [],
+            }
+            try:
+                await websocket.send_text(json.dumps({'type': 'update', 'data': daily}))
+            except WebSocketDisconnect:
+                logger.info(f"Client disconnected during update send in /ws/chartdata-dl: ticker={ticker}")
+                break
+    except WebSocketDisconnect:
+        logger.info(f"[ws/chartdata-dl] Client disconnected: ticker={ticker}")
+    except Exception as e:
+        logger.error(f"[ws/chartdata-dl] Exception: {e}")
+        try:
+            await websocket.send_text(json.dumps({"error": str(e)}))
+        except WebSocketDisconnect:
+            logger.info("Client disconnected during error send in /ws/chartdata-dl.")
+        except Exception:
+            pass
+    finally:
+        try:
+            pubsub_channels[(ticker, '1d')].remove(q)
+        except (KeyError, ValueError):
+            pass
+        try:
+            await websocket.close()
+        except Exception:
+            pass
+        
+        
 # curl -X POST http://localhost:8000/admin/unsubscribe_all
 # wscat -c "ws://localhost:8000/ws/tiingo_raw"
 # wscat -c "ws://localhost:8000/ws/quotes?symbols=TSLA&x-api-key=A3hdbeuyewhedhweuHHS3263ed9d8h32dh238dh32hd82hd928hdjddh23hd8923Y"

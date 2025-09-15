@@ -4,7 +4,7 @@
   v-if="showCreateNoteModal"
   :user="user"
   :api-key="apiKey"
-  :default-symbol="selectedItem"
+  :default-symbol="selectedItem  ?? ''"
   :notification="notification"
   @close="showCreateNoteModal = false"
   @refresh-notes="emit('refresh-notes', $event)"
@@ -24,7 +24,7 @@
   :user="user"
   :api-key="apiKey"
   :watchlist="watchlist"
-  :selected-watchlist="selectedWatchlist"
+  :selected-watchlist="selectedWatchlist || {}"
   :notification="notification"
   :getWatchlists="getWatchlists"
   :filterWatchlist="filterWatchlist"
@@ -323,59 +323,86 @@
           </div>
 </template>
 
-<script setup>
-import { ref, watch, computed, nextTick, onMounted, reactive } from 'vue';
+<script setup lang="ts">
+
+import { ref, reactive, computed, nextTick, onMounted, onUnmounted, watch, type Ref, type ComputedRef } from 'vue';
 import Sortable from 'sortablejs';
-import CreateNote from '@/components/charts/CreateNote.vue'
-import CreateWatchlist from '@/components/charts/CreateWatchlist.vue'
-import RenameWatchlist from '@/components/charts/RenameWatchlist.vue'
-import ImportWatchlist from '@/components/charts/ImportWatchlist.vue'
+import CreateNote from '@/components/charts/CreateNote.vue';
+import CreateWatchlist from '@/components/charts/CreateWatchlist.vue';
+import RenameWatchlist from '@/components/charts/RenameWatchlist.vue';
+import ImportWatchlist from '@/components/charts/ImportWatchlist.vue';
 
-const props = defineProps({
-  apiKey: {
-    type: String,
-    required: true
-  },
-  user: {
-    type: String,
-    required: true
-  },
-  defaultSymbol: {
-    type: String,
-    required: true
-  },
-  selectedSymbol: {
-    type: String,
-    default: null
-  },
-  selectedItem: {
-    type: String,
-    default: null
-  },
-  getImagePath: {
-    type: Function,
-    required: true
-  },
-  ImagePaths: {
-    type: Array,
-    required: true
-  }
-});
+interface WatchlistTicker {
+  Name: string;
+  List: string[];
+}
 
-const emit = defineEmits(['select-symbol', 'refresh-notes']);
+interface Watchlist {
+  tickers: WatchlistTicker[];
+}
+
+interface QuotesMap {
+  [symbol: string]: string;
+}
+
+interface ChangesMap {
+  [symbol: string]: number;
+}
+
+interface PercMap {
+  [symbol: string]: number;
+}
+
+interface CheckedWatchlistsMap {
+  [watchlistName: string]: string[];
+}
+
+interface FullWatchlist {
+  Name: string;
+  List: string[];
+}
+
+interface ImagePath {
+  symbol: string;
+  exchange?: string;
+}
+
+interface Notification {
+  show: (msg: string) => void;
+}
+
+const error = ref<string>('');
+const notification = ref<Notification>({ show: (msg: string) => { alert(msg); } });
+
+
+const props = defineProps<{
+  apiKey: string;
+  user: string;
+  defaultSymbol: string;
+  selectedSymbol?: string | null;
+  selectedItem?: string | null;
+  getImagePath: (symbol: string) => string;
+  ImagePaths: ImagePath[];
+}>();
+
+const emit = defineEmits<{
+  (e: 'select-symbol', symbol: string): void;
+  (e: 'refresh-notes', payload: any): void;
+}>();
 
 // status for loading bars 
-const isLoading2 = ref(true);
-const isLoading3 = ref(true);
 
-const showDropdown = ref(false)
-const showCreateNoteModal = ref(false)
-const showCreateWatchlistModal = ref(false)
-const showRenameWatchlistModal = ref(false)
-const showImportWatchlistModal = ref(false)
+const isLoading2 = ref<boolean>(true);
+const isLoading3 = ref<boolean>(true);
+
+const showDropdown = ref<boolean>(false);
+const showCreateNoteModal = ref<boolean>(false);
+const showCreateWatchlistModal = ref<boolean>(false);
+const showRenameWatchlistModal = ref<boolean>(false);
+const showImportWatchlistModal = ref<boolean>(false);
 
 // activates sorting of watchlist elements / drag and drop 
-const sortable = ref(null);
+const sortable = ref<HTMLElement | null>(null);
 
 function initializeSortable() {
   if (sortable.value) {
@@ -389,7 +416,7 @@ function initializeSortable() {
 }
 
 // fetches initial item data (elements of watchlists)
-async function fetchItemData(item) {
+async function fetchItemData(item: string): Promise<void> {
   await Promise.all([
     getData(item),
     props.getImagePath(item)
@@ -439,15 +466,16 @@ onMounted(async () => {
     await filterWatchlist()
 });
 
-const watchlist = reactive([]); // dynamic list containing watchlist names for every user 
-const watchlist2 = reactive([]); // dynamic list containing content of watchlists
-const quotes = reactive({}); // dynamic list containing quotes for elements of watchlist
-const changes = reactive({}); // dynamic list containing price changes for elements of watchlist
-const perc = reactive({}); // dynamic list containing % changes for elements of watchlist
-const selectedWatchlist = ref(JSON.parse(localStorage.getItem('selectedWatchlist')) || null);
-const CurrentWatchlistName = computed(() => selectedWatchlist.value?.Name || '');
 
-function updateSelectedWatchlist(watch) {
+const watchlist = reactive<Watchlist>({ tickers: [] });
+const watchlist2 = reactive<{ tickers: string[] }>({ tickers: [] });
+const quotes = reactive<QuotesMap>({});
+const changes = reactive<ChangesMap>({});
+const perc = reactive<PercMap>({});
+const selectedWatchlist = ref<WatchlistTicker | null>(JSON.parse(localStorage.getItem('selectedWatchlist') || 'null'));
+const CurrentWatchlistName: ComputedRef<string> = computed(() => selectedWatchlist.value?.Name || '');
+
+function updateSelectedWatchlist(watch: WatchlistTicker): void {
   selectedWatchlist.value = watch;
   localStorage.setItem('selectedWatchlist', JSON.stringify(watch));
 }
@@ -471,7 +499,7 @@ async function getWatchlists() {
         updateSelectedWatchlist(data[0]);
       } else if (selectedWatchlist.value) {
         // Find the current selectedWatchlist in the new data
-        const updatedSelectedWatchlist = data.find(w => w.Name === selectedWatchlist.value.Name);
+  const updatedSelectedWatchlist = selectedWatchlist.value ? data.find((w: WatchlistTicker) => w.Name === selectedWatchlist.value!.Name) : undefined;
         if (updatedSelectedWatchlist) {
           updateSelectedWatchlist(updatedSelectedWatchlist);
         } else if (data.length > 0) {
@@ -479,20 +507,21 @@ async function getWatchlists() {
           updateSelectedWatchlist(data[0]);
         }
       }
-    } catch (error) {
+    } catch (err) {
       watchlist.tickers = [];
-      error.value = error.message;
+      error.value = (err instanceof Error ? err.message : String(err));
     }
 }
 
 // generates the current watchlist tickers 
-async function filterWatchlist(watch) {
+async function filterWatchlist(watch?: WatchlistTicker): Promise<void> {
   if (watch) {
     updateSelectedWatchlist(watch);
   }
 
   try {
-    const response = await fetch(`/api/${props.user}/watchlists/${selectedWatchlist.value.Name}`, {
+  if (!selectedWatchlist.value) return;
+  const response = await fetch(`/api/${props.user}/watchlists/${selectedWatchlist.value.Name}`, {
       headers: {
         'X-API-KEY': props.apiKey,
       },
@@ -507,40 +536,13 @@ async function filterWatchlist(watch) {
       initializeWatchlistNavigation();
       initializeSortable(); // Reinitialize Sortable after data updates
     });
-  } catch (error) {
+  } catch (err) {
     isLoading2.value = false;
-    error.value = error.message;
+    error.value = (err instanceof Error ? err.message : String(err));
   }
 }
 
-async function getData(items) {
-  if (!Array.isArray(items)) items = [items];
-  try {
-    // Join tickers as comma-separated for the query param
-    const tickersParam = items.map(encodeURIComponent).join(',');
-    const response = await fetch(`/api/data-values?tickers=${tickersParam}`, {
-      headers: {
-        'X-API-KEY': props.apiKey,
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    // Assume data is an object: { TICKER: {close, closeDiff, percentChange}, ... }
-    for (const item of items) {
-      if (data[item]) {
-        quotes[item] = parseFloat(data[item].close).toFixed(2);
-        changes[item] = parseFloat(data[item].closeDiff);
-        perc[item] = parseFloat(data[item].percentChange);
-      }
-    }
-  } catch (error) {
-    error.value = error.message;
-  }
-}
-
-async function DeleteWatchlist(watch) {
+async function DeleteWatchlist(watch: WatchlistTicker) {
   const currentWatchlistName = watch.Name;
 
   // Set up the API request
@@ -559,25 +561,25 @@ async function DeleteWatchlist(watch) {
     const response = await fetch(apiUrl, requestOptions);
     const data = await response.json();
 
-  } catch (error) {
-    error.value = error.message;
+  } catch (err) {
+    error.value = (err instanceof Error ? err.message : String(err));
   }
   await getWatchlists();
-  await filterWatchlist();
+  await filterWatchlist(selectedWatchlist.value ?? undefined);
 }
 
-async function deleteTicker(item) {
+async function deleteTicker(item: string) {
   const realwatchlist = document.getElementById('realwatchlist');
   let selectedWatchlistName;
 
   // Get the selected watchlist name from the DOM
-  const selectedWatchlistElement = document.getElementById('realwatchlist').querySelector('div.selected');
-  if (selectedWatchlistElement) {
-    const watchlistNameElement = selectedWatchlistElement.querySelector('span.badge').previousSibling;
-    selectedWatchlistName = watchlistNameElement.textContent.trim();
-  } else {
-    return;
-  }
+  const realwatchlistElem = document.getElementById('realwatchlist');
+  if (!realwatchlistElem) return;
+  const selectedWatchlistElement = realwatchlistElem.querySelector('div.selected');
+  if (!selectedWatchlistElement) return;
+  const watchlistNameElement = selectedWatchlistElement.querySelector('span.badge')?.previousSibling as HTMLElement | null;
+  if (!watchlistNameElement || !watchlistNameElement.textContent) return;
+  selectedWatchlistName = watchlistNameElement.textContent.trim();
 
   const ticker = item; // The ticker to delete
 
@@ -602,14 +604,14 @@ async function deleteTicker(item) {
     }
 
     const data = await response.json();
-  } catch (error) {
-    error.value = error.message;
+  } catch (err) {
+    error.value = (err instanceof Error ? err.message : String(err));
   }
 
   // Refresh the watchlists after deletion
   await getWatchlists();
-  await filterWatchlist();
-  await getFullWatchlists(user);
+  await filterWatchlist(selectedWatchlist.value ?? undefined);
+  await getFullWatchlists(props.user);
 }
 
 async function addWatchlist() {
@@ -620,20 +622,25 @@ async function addWatchlist() {
     let selectedWatchlistName;
 
     {
-      symbol = searchbar.value.toUpperCase() || defaultSymbol; // Use defaultSymbol if searchbar value is empty
+      if (searchbar && 'value' in searchbar && typeof (searchbar as HTMLInputElement).value === 'string') {
+        symbol = (searchbar as HTMLInputElement).value.toUpperCase() || props.defaultSymbol;
+      } else {
+        symbol = props.defaultSymbol;
+      }
 
       // Get the selected watchlist name without the length
+      if (!realwatchlist) return;
       const selectedWatchlistElement = realwatchlist.querySelector('div.selected');
-      if (selectedWatchlistElement) {
-        const watchlistNameElement = selectedWatchlistElement.querySelector('span.badge').previousSibling;
-        selectedWatchlistName = watchlistNameElement.textContent.trim();
-      } else {
+      if (!selectedWatchlistElement) {
         notification.value.show('No watchlist selected');
         return;
       }
+      const watchlistNameElement = selectedWatchlistElement.querySelector('span.badge')?.previousSibling as HTMLElement | null;
+      if (!watchlistNameElement || !watchlistNameElement.textContent) return;
+      selectedWatchlistName = watchlistNameElement.textContent.trim();
 
       // Check if the symbol already exists in the watchlist
-      if (watchlist2.includes(symbol)) {
+  if (watchlist2.tickers.includes(symbol)) {
         return;
       }
 
@@ -683,16 +690,17 @@ async function addWatchlist() {
       await filterWatchlist();
     }
   } catch (err) {
-    error.value = err.message;
+    error.value = (err instanceof Error ? err.message : String(err));
   }
 
   await getWatchlists();
   await getFullWatchlists(props.user);
 }
 
-let rowCount = ref(0);
-let selectedIndex = ref(0);
-const watchlistContainer = ref(null);
+
+let rowCount = ref<number>(0);
+let selectedIndex = ref<number>(0);
+const watchlistContainer = ref<HTMLElement | null>(null);
 
 watch(() => watchlist2.tickers, async () => {
   await nextTick();
@@ -716,7 +724,7 @@ function updateSelectedIndex() {
   }
 }
 
-function handleKeydown(event) {
+function handleKeydown(event: KeyboardEvent): void {
   if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
     event.preventDefault();
     const direction = event.key === 'ArrowUp' ? -1 : 1;
@@ -724,7 +732,7 @@ function handleKeydown(event) {
 
     if (newRowIndex >= 0 && newRowIndex < rowCount.value) {
       const newSelectedItem = watchlist2.tickers[newRowIndex];
-      selectSymbol(newSelectedItem);
+  selectSymbol(newSelectedItem, newRowIndex);
       selectedIndex.value = newRowIndex;
     }
   }
@@ -745,7 +753,7 @@ onMounted(() => {
 let sortKey = '';
 let sortOrder = 1;
 
-function sortTable(key) {
+function sortTable(key: string): void {
   if (sortKey === key) {
     sortOrder = sortOrder === 1 ? -1 : 1;
   } else {
@@ -775,6 +783,9 @@ function sortTable(key) {
         break;
     }
 
+    if (valueA === undefined && valueB === undefined) return 0;
+    if (valueA === undefined) return -sortOrder;
+    if (valueB === undefined) return sortOrder;
     if (valueA < valueB) {
       return -sortOrder;
     } else if (valueA > valueB) {
@@ -787,11 +798,13 @@ function sortTable(key) {
 
 let autoplayRunning = false;
 let autoplayIndex = 0;
-let autoplayTimeoutId = null;
+let autoplayTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
 function AutoPlay() {
   if (autoplayRunning) {
-    clearTimeout(autoplayTimeoutId);
+    if (autoplayTimeoutId !== null) {
+      clearTimeout(autoplayTimeoutId);
+    }
     autoplayRunning = false;
   } else {
     autoplayRunning = true;
@@ -807,7 +820,7 @@ function logElement() {
     autoplayIndex = 0;
   }
 
-  rows[autoplayIndex].click();
+  (rows[autoplayIndex] as HTMLElement).click();
 
   const symbolElement = rows[autoplayIndex].querySelector('.btsymbol');
 
@@ -827,7 +840,8 @@ async function UpdateWatchlistOrder() {
       return;
     }
 
-    const selectedOption = selectedWatchlist.value.Name; // Use the reactive reference
+  if (!selectedWatchlist.value) return;
+  const selectedOption = selectedWatchlist.value.Name; // Use the reactive reference
     const newListOrder = [...sortable.value.children]
       .map(item => item.querySelector('.btsymbol')?.textContent)
       .filter(Boolean); // Filter out any undefined values
@@ -852,12 +866,12 @@ async function UpdateWatchlistOrder() {
     }
     await filterWatchlist(); // Refresh the watchlists after updating order
 
-  } catch (error) {
-    error.value = error.message;
+  } catch (err) {
+    error.value = (err instanceof Error ? err.message : String(err));
   }
 }
 
-const toggleWatchlist = async (ticker, symbol) => {
+const toggleWatchlist = async (ticker: WatchlistTicker, symbol: string): Promise<void> => {
   const isCurrentlyInWatchlist = isAssetInWatchlist(ticker.Name, symbol);
   const simulatedEvent = {
     target: {
@@ -871,7 +885,7 @@ const toggleWatchlist = async (ticker, symbol) => {
   await getWatchlists();
 };
 
-async function addtoWatchlist(ticker, symbol, $event) {
+async function addtoWatchlist(ticker: WatchlistTicker, symbol: string, $event: { target: { checked: boolean } }): Promise<void> {
   const isChecked = $event.target.checked;
   const isAdding = isChecked;
   try {
@@ -900,12 +914,13 @@ async function addtoWatchlist(ticker, symbol, $event) {
     }
 
     const result = await response.json()
-  } catch (error) {
-    error.value = error.message;
+  } catch (err) {
+    error.value = (err instanceof Error ? err.message : String(err));
   }
 }
 
-const checkedWatchlists = ref({});
+
+const checkedWatchlists = ref<CheckedWatchlistsMap>({});
 
 watch(() => watchlist.tickers, (newTickers) => {
   newTickers.forEach((ticker) => {
@@ -913,7 +928,7 @@ watch(() => watchlist.tickers, (newTickers) => {
   });
 });
 
-const updateCheckbox = (ticker, symbol, $event) => {
+const updateCheckbox = (ticker: WatchlistTicker, symbol: string, $event: { target: { checked: boolean } }): void => {
   const isChecked = $event.target.checked;
   if (isChecked) {
     checkedWatchlists.value[ticker.Name].push(symbol);
@@ -922,12 +937,13 @@ const updateCheckbox = (ticker, symbol, $event) => {
   }
   addtoWatchlist(ticker, symbol, $event);
   getFullWatchlists(props.user);
-  isAssetInWatchlist(ticker, symbol);
+  isAssetInWatchlist(ticker.Name, symbol);
 };
 
-const FullWatchlists = ref([]);
 
-async function getFullWatchlists(user) {
+const FullWatchlists = ref<FullWatchlist[]>([]);
+
+async function getFullWatchlists(user: string): Promise<void> {
   try {
     const response = await fetch(`/api/${props.user}/full-watchlists`, {
       headers: {
@@ -941,13 +957,13 @@ async function getFullWatchlists(user) {
 
     FullWatchlists.value = await response.json();
   } catch (err) {
-    error.value = err.message;
+    error.value = (err instanceof Error ? err.message : String(err));
   }
 };
 getFullWatchlists(props.user);
 
 
-const isAssetInWatchlist = (ticker, symbol) => {
+const isAssetInWatchlist = (ticker: string, symbol: string): boolean => {
   const watchlist = FullWatchlists.value.find(w => w.Name === ticker);
   if (watchlist) {
     return watchlist.List.includes(symbol);
@@ -981,15 +997,132 @@ function exportWatchlist() {
 }
 
 function handleImportWatchlistRefresh() {
-  filterWatchlist(selectedWatchlist.value);
+  filterWatchlist(selectedWatchlist.value ?? undefined);
   showImportWatchlistModal.value = false;
 }
 
-function selectSymbol(symbol, index) {
+function selectSymbol(symbol: string, index: number): void {
   emit('select-symbol', symbol);
   if (typeof index === 'number') {
     selectedIndex.value = index;
   }
 }
+
+// --- WebSocket data fetcher for getData ---
+let ws: WebSocket | null = null;
+let wsReconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+let wsReceived = false;
+
+function closeDataWS() {
+  if (ws) {
+    ws.close();
+    ws = null;
+  }
+  if (wsReconnectTimeout) {
+    clearTimeout(wsReconnectTimeout);
+    wsReconnectTimeout = null;
+  }
+}
+
+// Fallback REST API fetch
+async function fetchDataREST(items: string[] | string): Promise<void> {
+  if (!Array.isArray(items)) items = [items];
+  try {
+    const tickersParam = items.map(encodeURIComponent).join(',');
+    const response = await fetch(`/api/data-values?tickers=${tickersParam}`, {
+      headers: {
+        'X-API-KEY': props.apiKey,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    for (const item of items) {
+      if (data[item]) {
+        quotes[item] = parseFloat(data[item].close).toFixed(2);
+        changes[item] = parseFloat(data[item].closeDiff);
+        perc[item] = parseFloat(data[item].percentChange);
+      }
+    }
+    wsReceived = true;
+  } catch (err) {
+    error.value = (err instanceof Error ? err.message : String(err));
+  }
+}
+
+// WebSocket fetch for getData (API key sent as protocol)
+async function fetchDataWS(items: string[]): Promise<void> {
+  closeDataWS();
+  wsReceived = false;
+  const tickersParam = items.map(encodeURIComponent).join(',');
+  const wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const wsUrl = `${wsProto}://localhost:8000/ws/data-values?tickers=${tickersParam}`;
+  let triedRest = false;
+  ws = new WebSocket(wsUrl, props.apiKey); // API key as protocol
+  ws.onopen = () => {};
+  ws.onmessage = (event) => {
+    let msg;
+    try {
+      msg = JSON.parse(event.data);
+    } catch (e) {
+      console.error('WebSocket parse error', e, event.data);
+      return;
+    }
+    if (msg.type === 'init' || msg.type === 'update') {
+      for (const item of items) {
+        if (msg.data[item]) {
+          quotes[item] = parseFloat(msg.data[item].close).toFixed(2);
+          changes[item] = parseFloat(msg.data[item].closeDiff);
+          perc[item] = parseFloat(msg.data[item].percentChange);
+        }
+      }
+      wsReceived = true;
+    } else if (msg.error) {
+      console.error('WebSocket error:', msg.error);
+    }
+  };
+  ws.onerror = async (e) => {
+    console.error('WebSocket error', e);
+    if (!triedRest) {
+      triedRest = true;
+      await fetchDataREST(items);
+    }
+  };
+  ws.onclose = (e) => {
+    if (!e.wasClean && !triedRest) {
+      wsReconnectTimeout = setTimeout(() => {
+        fetchDataWS(items);
+      }, 2000);
+    }
+  };
+}
+
+async function getData(items: string[] | string): Promise<void> {
+  if (!Array.isArray(items)) items = [items];
+  await fetchDataWS(items);
+  setTimeout(() => {
+    if (!wsReceived) {
+      fetchDataREST(items);
+    }
+  }, 2000);
+}
+
+// Usage example (mirrors your onMounted logic)
+onMounted(() => {
+  if (props.user) {
+  fetchDataWS(watchlist.tickers.map(t => t.Name));
+  setTimeout(() => {
+    if (!wsReceived) {
+      fetchDataREST(watchlist.tickers.map(t => t.Name));
+    }
+  }, 2000);
+}
+});
+
+// Cleanup
+onUnmounted(() => {
+  closeDataWS();
+});
 
 </script>

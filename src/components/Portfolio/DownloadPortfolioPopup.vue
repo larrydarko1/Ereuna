@@ -14,7 +14,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import ereunaLogo from '@/assets/icons/ereuna.png';
@@ -23,14 +23,27 @@ const props = defineProps({
   user: String,
   apiKey: String,
   portfolio: {
-  type: Number,
-  required: true
-}
+    type: Number,
+    required: true
+  }
 })
 const error = ref('');
 
 // Local state for fetched export data
-const exportData = ref({
+interface ExportStats {
+  [key: string]: any;
+  biggestWinner?: { ticker?: string; amount?: string; tradeCount?: number };
+  biggestLoser?: { ticker?: string; amount?: string; tradeCount?: number };
+}
+interface ExportData {
+  portfolio: any[];
+  transactionHistory: any[];
+  stats: ExportStats;
+  cash: number;
+  biggestWinner: any;
+  biggestLoser: any;
+}
+const exportData = ref<ExportData>({
   portfolio: [],
   transactionHistory: [],
   stats: {},
@@ -42,13 +55,13 @@ const exportData = ref({
 onMounted(async () => {
   error.value = '';
   try {
-   const res = await fetch(`/api/portfolio/export?username=${encodeURIComponent(props.user)}&portfolio=${encodeURIComponent(props.portfolio)}`, {
-  method: 'GET',
-  headers: {
-    'x-api-key': props.apiKey,
-    'Content-Type': 'application/json',
-  },
-});
+    const res = await fetch(`/api/portfolio/export?username=${encodeURIComponent(props.user ?? '')}&portfolio=${encodeURIComponent(String(props.portfolio ?? ''))}`, {
+      method: 'GET',
+      headers: {
+        'x-api-key': props.apiKey ?? '',
+        'Content-Type': 'application/json',
+      } as Record<string, string>,
+    });
     if (!res.ok) throw new Error('Failed to fetch export data');
     const data = await res.json();
     // Map BaseValue to baseValue if needed
@@ -59,6 +72,9 @@ onMounted(async () => {
       portfolio: data.portfolio || [],
       transactionHistory: data.transactionHistory || [],
       stats: data.stats || {},
+      cash: data.cash ?? 0,
+      biggestWinner: data.biggestWinner ?? null,
+      biggestLoser: data.biggestLoser ?? null,
     };
   } catch (e) {
     error.value = 'Failed to load export data.';
@@ -92,7 +108,7 @@ async function downloadPDF() {
     // Add title and date
     const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const now = new Date();
-    const pad = n => n.toString().padStart(2, '0');
+    const pad = (n: number) => n.toString().padStart(2, '0');
     const dateStr = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
     page.drawText('Portfolio Report', { x: 600 - 40 - font.widthOfTextAtSize('Portfolio Report', 15), y: 770, size: 15, font, color: accent1 });
     page.drawText(dateStr, { x: 600 - 40 - font.widthOfTextAtSize(dateStr, 11), y: 750, size: 11, font, color: text2 });
@@ -128,38 +144,38 @@ async function downloadPDF() {
       profitFactor: 'Profit Factor',
       sortinoRatio: 'Sortino Ratio',
     };
-    const statFormat = {
-      totalValue: v => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
-      baseValue: v => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
-      activePositions: v => v,
-      cash: v => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
-      totalPL: v => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
-      totalPLPercent: v => `${parseFloat(v).toFixed(2)}%`,
-      unrealizedPL: v => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
-      unrealizedPLPercent: v => `${parseFloat(v).toFixed(2)}%`,
-      realizedPL: v => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
-      realizedPLPercent: v => `${parseFloat(v).toFixed(2)}%`,
-      avgPositionSize: v => `${parseFloat(v).toFixed(2)}%`,
-      avgHoldTimeWinners: v => `${parseFloat(v).toFixed(2)} days`,
-      avgHoldTimeLosers: v => `${parseFloat(v).toFixed(2)} days`,
-      avgGain: v => `${parseFloat(v).toFixed(2)}%`,
-      avgLoss: v => `${parseFloat(v).toFixed(2)}%`,
-      avgGainAbs: v => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
-      avgLossAbs: v => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
-      gainLossRatio: v => `${parseFloat(v).toFixed(2)}`,
-      riskRewardRatio: v => `${parseFloat(v).toFixed(2)}`,
-      winnerCount: v => v,
-      winnerPercent: v => `${parseFloat(v).toFixed(2)}%`,
-      loserCount: v => v,
-      loserPercent: v => `${parseFloat(v).toFixed(2)}%`,
-      breakevenCount: v => v,
-      breakevenPercent: v => `${parseFloat(v).toFixed(2)}%`,
-      profitFactor: v => `${parseFloat(v).toFixed(2)}`,
-      sortinoRatio: v => `${parseFloat(v).toFixed(2)}`,
+    const statFormat: Record<string, (v: any) => string | number> = {
+      totalValue: (v: any) => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
+      baseValue: (v: any) => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
+      activePositions: (v: any) => v,
+      cash: (v: any) => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
+      totalPL: (v: any) => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
+      totalPLPercent: (v: any) => `${parseFloat(v).toFixed(2)}%`,
+      unrealizedPL: (v: any) => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
+      unrealizedPLPercent: (v: any) => `${parseFloat(v).toFixed(2)}%`,
+      realizedPL: (v: any) => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
+      realizedPLPercent: (v: any) => `${parseFloat(v).toFixed(2)}%`,
+      avgPositionSize: (v: any) => `${parseFloat(v).toFixed(2)}%`,
+      avgHoldTimeWinners: (v: any) => `${parseFloat(v).toFixed(2)} days`,
+      avgHoldTimeLosers: (v: any) => `${parseFloat(v).toFixed(2)} days`,
+      avgGain: (v: any) => `${parseFloat(v).toFixed(2)}%`,
+      avgLoss: (v: any) => `${parseFloat(v).toFixed(2)}%`,
+      avgGainAbs: (v: any) => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
+      avgLossAbs: (v: any) => `$${parseFloat(v).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`,
+      gainLossRatio: (v: any) => `${parseFloat(v).toFixed(2)}`,
+      riskRewardRatio: (v: any) => `${parseFloat(v).toFixed(2)}`,
+      winnerCount: (v: any) => v,
+      winnerPercent: (v: any) => `${parseFloat(v).toFixed(2)}%`,
+      loserCount: (v: any) => v,
+      loserPercent: (v: any) => `${parseFloat(v).toFixed(2)}%`,
+      breakevenCount: (v: any) => v,
+      breakevenPercent: (v: any) => `${parseFloat(v).toFixed(2)}%`,
+      profitFactor: (v: any) => `${parseFloat(v).toFixed(2)}`,
+      sortinoRatio: (v: any) => `${parseFloat(v).toFixed(2)}`,
     };
     const stats = exportData.value.stats || {};
     const statsExcluded = ['Username', 'Number', 'portfolioValueHistory', 'tradeReturnsChart'];
-    const statEntries = Object.entries(stats).filter(([key, value]) => statMap[key] && !statsExcluded.includes(key) && typeof value !== 'object');
+    const statEntries = Object.entries(stats).filter(([key, value]) => (statMap as Record<string, string>)[key] && !statsExcluded.includes(key) && typeof value !== 'object');
     const badgeWidth = 174;
     const badgeHeight = 40;
     const badgeMarginX = 0;
@@ -187,7 +203,7 @@ async function downloadPDF() {
         borderWidth: 1.5,
         color: undefined
       });
-      page.drawText(`${statMap[key]}:`, {
+      page.drawText(`${(statMap as Record<string, string>)[key]}:`, {
         x: badgeX + badgePaddingX,
         y: badgeY - badgePaddingY,
         size: 11,
@@ -199,12 +215,12 @@ async function downloadPDF() {
         'totalPL','totalPLPercent', 'unrealizedPLPercent', 'realizedPLPercent', 'avgGain', 'avgLoss', 'realizedPL', 'unrealizedPL'
       ];
       if (percentKeys.includes(key)) {
-        const num = parseFloat(value);
+        const num = parseFloat(String(value));
         if (!isNaN(num)) {
           valueColor = num > 0 ? positive : (num < 0 ? negative : text2);
         }
       }
-      page.drawText(`${statFormat[key] ? statFormat[key](value) : value}`, {
+      page.drawText(`${(statFormat as Record<string, (v: any) => string | number>)[key] ? (statFormat as Record<string, (v: any) => string | number>)[key](value) : value}`, {
         x: badgeX + badgePaddingX,
         y: badgeY - badgePaddingY - 13,
         size: 11,
@@ -222,7 +238,7 @@ async function downloadPDF() {
   y -= 20; // Additional space before biggest winner/loser section
 
     // --- Biggest Winner/Loser Section ---
-    const { biggestWinner, biggestLoser } = exportData.value.stats || {};
+    const { biggestWinner, biggestLoser } = (exportData.value.stats as ExportStats);
   const winnerColor = positive;
   const loserColor = negative;
     const cardWidth = 240;
@@ -261,7 +277,7 @@ async function downloadPDF() {
         font,
         color: text1
       });
-      page.drawText(`Amount: $${parseFloat(biggestWinner.amount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`, {
+      page.drawText(`Amount: $${parseFloat(String(biggestWinner.amount ?? '0')).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`, {
         x: cardX + cardPaddingX + 110,
         y: cardY - cardPaddingY - 13,
         size: 11,
@@ -311,7 +327,7 @@ async function downloadPDF() {
         font,
         color: text1
       });
-      page.drawText(`Amount: -$${parseFloat(biggestLoser.amount).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`, {
+      page.drawText(`Amount: -$${parseFloat(String(biggestLoser.amount ?? '0')).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`, {
         x: cardX + cardPaddingX + 110,
         y: cardY - cardPaddingY - 13,
         size: 11,
@@ -438,7 +454,7 @@ async function downloadPDF() {
               value = `${day}/${month}/${year}`;
             } else {
               // Fallback: trim to first 10 chars and reformat
-              const trimmed = d.slice(0, 10); // YYYY-MM-DD
+              const trimmed = typeof d === 'string' ? d.slice(0, 10) : '';
               const parts = trimmed.split('-');
               if (parts.length === 3) {
                 value = `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -484,7 +500,7 @@ async function downloadPDF() {
 
     // Download PDF
     const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `portfolio_export_${new Date().toISOString().slice(0,10)}.pdf`;
@@ -499,7 +515,7 @@ async function downloadPDF() {
 // --- Export Portfolio Data ---
 function exportPortfolioData() {
   // Helper to escape CSV values
-  function escapeCSV(v) {
+  function escapeCSV(v: unknown): string {
     let str = String(v ?? '');
     // Remove all '-' characters from the value
     str = str.replace(/-/g, '');
@@ -510,7 +526,7 @@ function exportPortfolioData() {
   const stats = exportData.value.stats || {};
   // Exclude Username, Number, portfolioValueHistory, tradeReturnsChart
   const statsExcluded = ['Username', 'Number', 'portfolioValueHistory', 'tradeReturnsChart'];
-  const statsRows = [];
+  const statsRows: [string, string][] = [];
   Object.entries(stats).forEach(([key, value]) => {
     if (statsExcluded.includes(key)) return;
     // For objects (biggestWinner/Loser), flatten
@@ -529,7 +545,7 @@ function exportPortfolioData() {
   const trades = exportData.value.transactionHistory || [];
   // Exclude _id, Username, PortfolioNumber
   const tradeExcluded = ['_id', 'Username', 'PortfolioNumber'];
-  let tradeHeaders = [];
+  let tradeHeaders: string[] = [];
   if (trades.length > 0) {
     tradeHeaders = Object.keys(trades[0]).filter(h => !tradeExcluded.includes(h));
   }
@@ -539,7 +555,7 @@ function exportPortfolioData() {
   const positions = exportData.value.portfolio || [];
   // Exclude _id, Username, PortfolioNumber
   const posExcluded = ['_id', 'Username', 'PortfolioNumber'];
-  let posHeaders = [];
+  let posHeaders: string[] = [];
   if (positions.length > 0) {
     posHeaders = Object.keys(positions[0]).filter(h => !posExcluded.includes(h));
   }

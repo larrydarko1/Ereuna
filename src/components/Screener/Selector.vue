@@ -20,11 +20,11 @@
       class="screener-selected-value"
       @click.stop="toggleDropdown"
     >
-      {{ selectedScreener ? selectedScreener : (ScreenersName.length > 0 ? 'Choose a Screener...' : 'No screeners available.') }}
+  {{ selectedScreener ? selectedScreener : (ScreenersName && ScreenersName.length > 0 ? 'Choose a Screener...' : 'No screeners available.') }}
     </p>
     <div
       class="screener-dropdown-container"
-      v-if="ScreenersName.length > 0 && showDropdown"
+  v-if="ScreenersName && ScreenersName.length > 0 && showDropdown"
       @mousedown.stop
       @click.stop
     >
@@ -49,14 +49,21 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
 import { ref } from 'vue';
-const props = defineProps({
-  ScreenersName: Array,
-  selectedScreener: String,
-  isScreenerError: Boolean,
-  showDropdown: Boolean,
-});
+
+interface Screener {
+  Name: string;
+  Include: boolean;
+}
+
+const props = defineProps<{
+  ScreenersName?: Screener[];
+  selectedScreener?: string;
+  isScreenerError?: boolean;
+  showDropdown?: boolean;
+}>();
 
 const emit = defineEmits([
   'selectScreener',
@@ -66,7 +73,7 @@ const emit = defineEmits([
 ]);
 
 
-function getScreenerImage(screener) {
+function getScreenerImage(screener: Screener): string {
   const includeSvg = `
     <svg height=30 width=30 fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -88,6 +95,7 @@ function getScreenerImage(screener) {
   `;
   return screener.Include ? includeSvg : excludeSvg;
 }
+
 
 const showDropdown = ref(false);
 
