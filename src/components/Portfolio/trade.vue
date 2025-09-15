@@ -63,7 +63,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
 const emit = defineEmits(['close', 'trade', 'refresh-history'])
 
@@ -104,8 +104,8 @@ async function submitTrade() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': props.apiKey
-      },
+        'x-api-key': props.apiKey ?? ''
+      } as Record<string, string>,
       body: JSON.stringify({
         username: props.user,
         portfolio: props.portfolio, 

@@ -29,7 +29,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 const emit = defineEmits(['close', 'refresh-notes'])
 
@@ -39,6 +39,7 @@ const props = defineProps({
   defaultSymbol: String,
   showCreateNote: Boolean,
   notification: Object,
+  searchNotes: Function,
 })
 
 const noteContent = ref('')
@@ -54,7 +55,7 @@ function close() {
 
 async function sendNote() {
   const note = noteContent.value
-  const symbol = document.getElementById('searchbar')?.value || props.defaultSymbol
+  const symbol = (document.getElementById('searchbar') as HTMLInputElement | null)?.value || props.defaultSymbol
 
   if (characterCount.value > 350) {
     props.notification?.value?.show?.('Note exceeds 350 character limit')
@@ -67,8 +68,8 @@ async function sendNote() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-KEY': props.apiKey,
-        },
+          'X-API-KEY': props.apiKey ?? '',
+        } as Record<string, string>,
         body: JSON.stringify({ note, Username: props.user }),
       })
       if (response.ok) {
@@ -82,7 +83,7 @@ async function sendNote() {
         props.notification?.value?.show?.('Failed to create note')
       }
     } catch (err) {
-      props.notification?.value?.show?.(err.message)
+      props.notification?.value?.show?.((err as Error).message)
     }
   }
 }

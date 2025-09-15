@@ -15,7 +15,7 @@
             {{ formatDate(dividend.payment_date) }}
           </div>
           <div class="dividends-cell" style="flex: 0 0 50%;">
-            {{ parseFloat(dividend.amount).toLocaleString() }}
+            {{ parseFloat(String(dividend.amount)).toLocaleString() }}
           </div>
         </div>
       </div>
@@ -35,8 +35,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+
+interface Dividend {
+  payment_date: string;
+  amount: string | number;
+}
 
 const props = defineProps({
   symbol: {
@@ -57,7 +62,7 @@ const props = defineProps({
   }
 });
 
-const DividendsDate = ref([]); // Dividends Data
+const DividendsDate = ref<Dividend[]>([]); // Dividends Data
 const showAllDividends = ref(false);
 const loading = ref(false);
 
@@ -77,13 +82,14 @@ async function fetchDividendsDate(all = false) {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const newDividendsDate = await response.json();
+    const newDividendsDate: Dividend[] = await response.json();
     DividendsDate.value = newDividendsDate;
-  } catch (error) {
-    if (error.name === 'AbortError') {
+  } catch (err) {
+    if (typeof err === 'object' && err !== null && 'name' in err && (err as any).name === 'AbortError') {
       return;
     }
-    error.value = error.message;
+    const errorMsg = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : String(err);
+    // Optionally, you can emit or handle errorMsg here
   } finally {
     loading.value = false;
   }

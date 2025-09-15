@@ -54,9 +54,15 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
-const emit = defineEmits(['updated', 'panel-updated']);
+interface PanelSection {
+  order: number;
+  tag: string;
+  name: string;
+  hidden: boolean;
+}
+const emit = defineEmits(['updated', 'panel-updated', 'close']);
 import { useStore } from 'vuex';
 import Panel2 from '@/components/charts/panel2.vue'; 
 
@@ -69,8 +75,8 @@ const store = useStore();
 let user = store.getters.getUser;
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
-const sections = ref([]); // Start empty, fill from backend
-const showEditSummary = ref(false);
+const sections = ref<PanelSection[]>([]); // Start empty, fill from backend
+const showEditSummary = ref<boolean>(false);
 
 async function fetchPanel() {
   try {
@@ -80,7 +86,7 @@ async function fetchPanel() {
     const newPanel = await response.json();
     // Defensive: fallback to default if empty
     sections.value = (newPanel.panel && newPanel.panel.length)
-      ? newPanel.panel
+      ? newPanel.panel as PanelSection[]
       : [
           { order: 1, tag: 'Summary', name: 'Summary', hidden: false },
           { order: 2, tag: 'EpsTable', name: 'EPS Growth Table', hidden: false },
@@ -101,7 +107,7 @@ onMounted(() => {
   fetchPanel();
 });
 
-const originalOrder = ref([
+const originalOrder = ref<PanelSection[]>([
   { order: 1, tag: 'Summary', name: 'Summary', hidden: false },
   { order: 2, tag: 'EpsTable', name: 'EPS Growth Table', hidden: false },
   { order: 3, tag: 'EarnTable', name: 'Earnings Growth Table', hidden: false },
@@ -113,29 +119,29 @@ const originalOrder = ref([
   { order: 9, tag: 'News', name: 'News', hidden: false },
 ]);
 
-function dragStart(event, index) {
-  event.dataTransfer.setData('index', index);
-  event.dataTransfer.effectAllowed = 'move';
+function dragStart(event: DragEvent, index: number) {
+  event.dataTransfer?.setData('index', String(index));
+  event.dataTransfer!.effectAllowed = 'move';
 }
-function dragOver(event) {
+function dragOver(event: DragEvent) {
   event.preventDefault();
-  event.dataTransfer.dropEffect = 'move';
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
 }
 
-function drop(event, index) {
-  const draggedIndex = event.dataTransfer.getData('index');
+function drop(event: DragEvent, index: number) {
+  const draggedIndex = Number(event.dataTransfer?.getData('index'));
   const draggedSection = sections.value[draggedIndex];
   sections.value.splice(draggedIndex, 1);
   sections.value.splice(index, 0, draggedSection);
   updateOrder();
 }
 
-function toggleHidden(index) {
+function toggleHidden(index: number) {
   sections.value[index].hidden = !sections.value[index].hidden;
 }
 
 function updateOrder() {
-  sections.value.forEach((section, index) => {
+  sections.value.forEach((section: PanelSection, index: number) => {
     section.order = index + 1;
   });
 }
@@ -147,9 +153,9 @@ function resetOrder() {
 
 async function updatePanel() {
   try {
-    sections.value.sort((a, b) => a.order - b.order);
+    sections.value.sort((a: PanelSection, b: PanelSection) => a.order - b.order);
 
-    const newListOrder = sections.value.map((section, index) => ({
+    const newListOrder = sections.value.map((section: PanelSection, index: number) => ({
       order: index + 1,
       tag: section.tag,
       name: section.name,
@@ -178,7 +184,7 @@ async function updatePanel() {
   }
 }
 
-function moveSectionUp(index) {
+function moveSectionUp(index: number) {
   if (index > 0) {
     const temp = sections.value[index - 1];
     sections.value[index - 1] = sections.value[index];
@@ -187,7 +193,7 @@ function moveSectionUp(index) {
   }
 }
 
-function moveSectionDown(index) {
+function moveSectionDown(index: number) {
   if (index < sections.value.length - 1) {
     const temp = sections.value[index + 1];
     sections.value[index + 1] = sections.value[index];

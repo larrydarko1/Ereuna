@@ -67,15 +67,15 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
@@ -88,8 +88,8 @@ const props = defineProps({
 })
 
 let ShowExchange = ref(false);
-const Exchanges = ref([]); // hosts all available exchanges 
-const selectedExchanges = ref([]);
+const Exchanges = ref<string[]>([]); // hosts all available exchanges 
+const selectedExchanges = ref<boolean[]>([]);
 
 // generates options for checkboxes for exchanges 
 async function GetExchanges() {
@@ -99,27 +99,38 @@ async function GetExchanges() {
         'X-API-KEY': props.apiKey,
       },
     });
-    const data = await response.json();
+    const data: string[] = await response.json();
     Exchanges.value = data;
-    selectedExchanges.value = new Array(data.length).fill(false); // Initialize selection state
-  } catch (error) {
-    error.value = error.message;
+    selectedExchanges.value = new Array(data.length).fill(false);
+  } catch (error: unknown) {
+    let message = 'Unknown error';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    if (props.notification && typeof props.notification === 'object') {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
   }
 }
 GetExchanges();
 
-const toggleExchange = (index) => {
-  selectedExchanges.value[index] = !selectedExchanges.value[index]; // Toggle the selected state
+const toggleExchange = (index: number) => {
+  selectedExchanges.value[index] = !selectedExchanges.value[index];
 };
 
 // sends exchanges data to update screener
 async function SetExchange() {
-  const selected = Exchanges.value.filter((_, index) => selectedExchanges.value[index]); // Get selected exchanges
+  const selected = Exchanges.value.filter((_, index) => selectedExchanges.value[index]);
 
   try {
     if (!props.selectedScreener) {
-      props.isScreenerError = true
-      throw new Error('Please select a screener')
+      // Cannot assign to readonly prop, use notification pattern
+      if (props.notification && typeof props.notification === 'object') {
+        props.notification.message = 'Please select a screener';
+        props.notification.type = 'error';
+      }
+      throw new Error('Please select a screener');
     }
 
     const response = await fetch('/api/screener/exchange', {
@@ -136,9 +147,16 @@ async function SetExchange() {
     }
 
     const data = await response.json();
-    emit('fetchScreeners', props.selectedScreener); // Update the list after setting the exchange
-  } catch (error) {
-    error.value = error.message;
+    emit('fetchScreeners', props.selectedScreener);
+  } catch (error: unknown) {
+    let message = 'Unknown error';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    if (props.notification && typeof props.notification === 'object') {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
     emit('fetchScreeners', props.selectedScreener);
   }
 }

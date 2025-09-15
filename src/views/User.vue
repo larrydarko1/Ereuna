@@ -85,6 +85,7 @@
         <AccountSettings
           :user="user"
           :apiKey="apiKey"
+          :formatDate="formatDate"
         />
       </div>
 <div v-if="selectedIndex === 1">
@@ -117,11 +118,11 @@
   <NotificationPopup ref="notification" />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Header from '@/components/Header.vue'
 import Assistant from '@/components/assistant.vue';
 import { useStore } from 'vuex';
-import { ref } from 'vue';
+import { ref, Ref } from 'vue';
 import NotificationPopup from '@/components/NotificationPopup.vue';
 
 // Component Sections
@@ -136,14 +137,16 @@ const user = store.getters.getUser;
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 // for popup notifications
-const notification = ref(null);
+const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
 const showNotification = () => {
-  notification.value.show('This is a custom notification message!');
+  if (notification.value) {
+    notification.value.show('This is a custom notification message!');
+  }
 };
 
 let selectedIndex = ref(0);
 
-function selectMenu(event, index) {
+function selectMenu(event: MouseEvent, index: number) {
   const menus = document.querySelectorAll('.menu');
   menus.forEach((menu, i) => {
     if (i === index) {
@@ -155,7 +158,7 @@ function selectMenu(event, index) {
   selectedIndex.value = index;
 }
 
-function formatDate(bsonDate) {
+function formatDate(bsonDate: string | number | Date) {
   const date = new Date(bsonDate);
   return date.toLocaleString('en-GB', {
     year: 'numeric',
@@ -166,6 +169,10 @@ function formatDate(bsonDate) {
     hour12: false
   });
 }
+
+const themes = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
+const currentTheme = ref('default');
+const error: Ref<string> = ref('');
 
 async function loadTheme() {
   try {
@@ -189,6 +196,35 @@ async function loadTheme() {
 }
 
 loadTheme()
+
+async function setTheme(newTheme: string) {
+  const root = document.documentElement;
+  root.classList.remove(...themes);
+  root.classList.add(newTheme);
+  localStorage.setItem('user-theme', newTheme);
+  try {
+    const response = await fetch('/api/theme', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({ theme: newTheme, username: user }),
+    });
+    const data = await response.json();
+    if (data.message === 'Theme updated') {
+      currentTheme.value = newTheme;
+    } else {
+      error.value = data.message;
+    }
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      error.value = err.message;
+    } else {
+      error.value = String(err);
+    }
+  }
+}
 
 </script>
 

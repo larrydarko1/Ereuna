@@ -5,8 +5,8 @@
       </div>
       <div style="min-width: 0px;"></div>
       <div class="ml-btsymbol">Ticker</div>
-      <div v-for="col in selectedAttributes" :key="col" :style="getColumnStyle(col)">
-        {{ getColumnLabel(col) }}
+      <div v-for="col in selectedAttributes" :key="String(col)" :style="getColumnStyle(String(col))">
+        {{ getColumnLabel(String(col)) }}
       </div>
     </div>
     <div class="ml-wlist-container" @scroll.passive="handleScroll3">
@@ -15,14 +15,14 @@
         :style="{ display: 'flex', flexDirection: 'row', height: '35px', alignItems: 'center'}"
         tabindex="0"
         @keydown="handleKeydown"
-        @click="selectRow(asset.Symbol)"
+        @click="selectRow((asset as Asset).Symbol)"
         v-for="(asset, index) in currentResults"
-        :key="asset.Symbol"
+        :key="(asset as Asset).Symbol"
         :class="[
           index % 2 === 0 ? 'ml-even' : 'ml-odd',
-          { 'ml-selected': selectedItem === asset.Symbol }
+          { 'ml-selected': selectedItem === (asset as Asset).Symbol }
         ]"
-        :data-symbol="asset.Symbol"
+        :data-symbol="(asset as Asset).Symbol"
       >
         <div style="min-width: 50px; position: relative;">
           <button class="ml-dropdown-btn">
@@ -37,7 +37,7 @@
             </svg>
           </button>
           <div class="ml-dropdown-menu">
-            <div @click="ShowStock(asset)" @click.stop style="display: flex; flex-direction: row; align-items: center; height: 14px;">
+            <div @click="ShowStock(asset as Asset)" @click.stop style="display: flex; flex-direction: row; align-items: center; height: 14px;">
               <svg style="width: 15px; height: 15px; margin-right: 5px;" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -66,10 +66,10 @@
               </svg>
               <p>Add to Watchlist</p>
               <div class="ml-nested-dropdown-menu">
-                <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="ml-watchlist-item">
+                <div v-for="(ticker, index) in watchlist?.tickers ?? []" :key="index" class="ml-watchlist-item">
                   <label :for="'watchlist-' + index" class="ml-checkbox-label">
-                    <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
-                      <div v-html="getWatchlistIcon(ticker, asset.Symbol)"></div>
+                    <div @click.stop="toggleWatchlist(ticker, (asset as Asset).Symbol)" style="cursor: pointer;">
+                      <div v-html="getWatchlistIcon?.(ticker, (asset as Asset).Symbol)"></div>
                     </div>
                     <span></span>
                     {{ ticker.Name }}
@@ -79,9 +79,9 @@
             </div>
           </div>
         </div>
-        <div class="ml-btsymbol">{{ asset.Symbol }}</div>
-        <div v-for="col in selectedAttributes" :key="col" :style="getColumnStyle(col)" :class="getColumnClass(asset, col)">
-          {{ getColumnValue(asset, col) }}
+        <div class="ml-btsymbol">{{ (asset as Asset).Symbol }}</div>
+        <div v-for="col in selectedAttributes" :key="String(col)" :style="getColumnStyle(String(col))" :class="getColumnClass(asset as Asset, String(col))">
+          {{ getColumnValue(asset as Asset, String(col)) }}
         </div>
       </div>
       <div class="ml-results2"></div>
@@ -89,8 +89,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+
 import { computed } from 'vue';
+
+type Asset = Record<string, any>;
+type Watchlist = {
+  tickers: Array<{ Name: string }>
+};
 
 const props = defineProps({
   currentResults: Array,
@@ -98,27 +104,33 @@ const props = defineProps({
   watchlist: Object,
   getWatchlistIcon: Function,
   selectedAttributes: { type: Array, required: true },
-});
+}) as {
+  currentResults: Asset[],
+  selectedItem: string,
+  watchlist: Watchlist,
+  getWatchlistIcon: (ticker: any, symbol: string) => string,
+  selectedAttributes: string[],
+};
 
 const emit = defineEmits(['toggle-watchlist', 'show-stock', 'select-row', 'keydown', 'scroll']);
 
-function toggleWatchlist(ticker, symbol) {
+function toggleWatchlist(ticker: any, symbol: string) {
   emit('toggle-watchlist', { ticker, symbol });
 }
 
-function ShowStock(asset) {
+function ShowStock(asset: Asset) {
   emit('show-stock', asset);
 }
 
-function selectRow(symbol) {
+function selectRow(symbol: string) {
   emit('select-row', symbol);
 }
 
-function handleKeydown(event) {
+function handleKeydown(event: KeyboardEvent) {
   emit('keydown', event);
 }
 
-function handleScroll3(event) {
+function handleScroll3(event: Event) {
   emit('scroll', event);
 }
 
@@ -171,61 +183,61 @@ const attributes = [
   { label: 'Intrinsic Value', value: 'intrinsic_value', backend: 'IntrinsicValue' },
 ];
 
-function getColumnLabel(col) {
+function getColumnLabel(col: string): string {
   const found = attributes.find(a => a.value === col);
   return found ? found.label : col;
 }
 
-function getColumnValue(asset, col) {
+function getColumnValue(asset: Asset, col: string): string {
   const attr = attributes.find(a => a.value === col);
   if (!attr) return '-';
   const value = asset[attr.backend];
   // Map backend keys to formatting rules (type-safe)
-  const formatRules = {
-    DividendYield: v => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
-    EPS: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
-    todaychange: v => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
-    ADV1W: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
-    ADV1M: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
-    ADV4M: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
-    ADV1Y: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
-    MarketCapitalization: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    SharesOutstanding: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    PERatio: v => (typeof v === 'number' && v > 0 ? Math.round(v) : '-'),
-    PriceToSalesRatioTTM: v => (typeof v === 'number' && v > 0 ? Math.round(v) : '-'),
-    PEGRatio: v => (typeof v === 'number' && v > 0 ? Math.round(v) : '-'),
-    Volume: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    EV: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    Gap: v => (typeof v === 'number' ? v.toFixed(2) + '%' : '-'),
-    RSI: v => (typeof v === 'number' && v >= 0 ? v.toFixed(2) : '-'),
-    fiftytwoWeekHigh: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    fiftytwoWeekLow: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    AlltimeHigh: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    AlltimeLow: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    BookValue: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    PriceToBookRatio: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    freeCashFlow: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    cashAndEq: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    debtCurrent: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    assetsCurrent: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    liabilitiesCurrent: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    currentRatio: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    roe: v => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
-    roa: v => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
-    IPO: v => {
+  const formatRules: { [key: string]: (v: any) => string } = {
+    DividendYield: (v: any) => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
+    EPS: (v: any) => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    todaychange: (v: any) => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
+    ADV1W: (v: any) => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    ADV1M: (v: any) => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    ADV4M: (v: any) => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    ADV1Y: (v: any) => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    MarketCapitalization: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    SharesOutstanding: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    PERatio: (v: any) => (typeof v === 'number' && v > 0 ? Math.round(v).toString() : '-'),
+    PriceToSalesRatioTTM: (v: any) => (typeof v === 'number' && v > 0 ? Math.round(v).toString() : '-'),
+    PEGRatio: (v: any) => (typeof v === 'number' && v > 0 ? Math.round(v).toString() : '-'),
+    Volume: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    EV: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    Gap: (v: any) => (typeof v === 'number' ? v.toFixed(2) + '%' : '-'),
+    RSI: (v: any) => (typeof v === 'number' && v >= 0 ? v.toFixed(2) : '-'),
+    fiftytwoWeekHigh: (v: any) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    fiftytwoWeekLow: (v: any) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    AlltimeHigh: (v: any) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    AlltimeLow: (v: any) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    BookValue: (v: any) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    PriceToBookRatio: (v: any) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    freeCashFlow: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    cashAndEq: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    debtCurrent: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    assetsCurrent: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    liabilitiesCurrent: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    currentRatio: (v: any) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    roe: (v: any) => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
+    roa: (v: any) => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
+    IPO: (v: any) => {
       if (!v) return '-';
       const date = new Date(v);
       if (isNaN(date.getTime())) return '-';
       return date.toISOString().slice(0, 10);
     },
-    Currency: v => (typeof v === 'string' ? v.toUpperCase() : (v ?? '-')),
+    Currency: (v: any) => (typeof v === 'string' ? v.toUpperCase() : (v ?? '-')),
   };
   const formatter = formatRules[attr.backend];
   if (formatter) return formatter(value);
   return value ?? '-';
 }
 
-function getColumnClass(asset, col) {
+function getColumnClass(asset: Asset, col: string): string {
   const attr = attributes.find(a => a.value === col);
   if (!attr) return '';
   if (attr.backend === 'todaychange') {
@@ -238,7 +250,7 @@ function getColumnClass(asset, col) {
   return '';
 }
 
-const styleMap = {
+const styleMap: { [key: string]: number } = {
   price: 100,
   market_cap: 150,
   volume: 100,
@@ -285,7 +297,7 @@ const styleMap = {
   intrinsic_value: 150,
 };
 
-function getColumnStyle(col) {
+function getColumnStyle(col: string): string {
   const width = styleMap[col] || 100;
   return `min-width: ${width}px;`;
 }
@@ -294,7 +306,7 @@ const columnsMinWidth = computed(() => {
   // Always include Ticker column (min-width: 70px) and image column (min-width: 50px)
   let sum = 70 + 50 + 51; // 51px for the dropdown button
   for (const col of props.selectedAttributes) {
-    sum += styleMap[col] || 100;
+    sum += styleMap[col as keyof typeof styleMap] || 100;
   }
   return sum;
 });

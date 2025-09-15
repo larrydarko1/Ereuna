@@ -35,24 +35,24 @@
   <NotificationPopup ref="notification" />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import NotificationPopup from '@/components/NotificationPopup.vue';
 
-const notification = ref(null);
-const recoveryKey = ref('');
-const newPassword = ref('');
-const isKeyValidated = ref(false);
-const recoveryKeyError = ref(false);
-const newPasswordError = ref(false);
+const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
+const recoveryKey = ref<string>('');
+const newPassword = ref<string>('');
+const isKeyValidated = ref<boolean>(false);
+const recoveryKeyError = ref<boolean>(false);
+const newPasswordError = ref<boolean>(false);
 const router = useRouter();
-const apiKey = import.meta.env.VITE_EREUNA_KEY;
+const apiKey: string = import.meta.env.VITE_EREUNA_KEY;
 
-const validateRecoveryKey = async () => {
+const validateRecoveryKey = async (): Promise<void> => {
   recoveryKeyError.value = false;
   if (!recoveryKey.value.trim()) {
-    notification.value.show('Please enter your recovery key.');
+    notification.value?.show('Please enter your recovery key.');
     recoveryKeyError.value = true;
     return;
   }
@@ -71,19 +71,19 @@ const validateRecoveryKey = async () => {
       isKeyValidated.value = true;
     } else {
       const errorData = await response.json();
-      notification.value.show(errorData.message || 'Invalid recovery key.');
+      notification.value?.show(errorData.message || 'Invalid recovery key.');
       recoveryKeyError.value = true;
     }
   } catch {
-    notification.value.show('Error validating recovery key.');
+    notification.value?.show('Error validating recovery key.');
     recoveryKeyError.value = true;
   }
 };
 
-const changePassword = async () => {
+const changePassword = async (): Promise<void> => {
   newPasswordError.value = false;
   if (!newPassword.value.trim()) {
-    notification.value.show('Please enter a new password.');
+    notification.value?.show('Please enter a new password.');
     newPasswordError.value = true;
     return;
   }
@@ -102,17 +102,17 @@ const changePassword = async () => {
     });
 
     if (response.ok) {
-      notification.value.show('Password changed successfully!');
+      notification.value?.show('Password changed successfully!');
       setTimeout(() => {
         router.push('/login');
       }, 3000);
     } else {
       const errorData = await response.json();
-      notification.value.show(errorData.message || 'Failed to change password.');
+      notification.value?.show(errorData.message || 'Failed to change password.');
       newPasswordError.value = true;
     }
   } catch {
-    notification.value.show('Error changing password.');
+    notification.value?.show('Error changing password.');
     newPasswordError.value = true;
   }
 };

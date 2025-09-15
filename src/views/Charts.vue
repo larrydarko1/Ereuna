@@ -5,9 +5,8 @@
    <WatchPanel
   :user="user"
   :apiKey="apiKey"
-  :defaultSymbol="defaultSymbol"
+  :defaultSymbol="defaultSymbol ?? ''"
   @select-symbol="(symbol) => { defaultSymbol = symbol; selectRow(symbol); }"
-  @open-editor="openEditor"
 />
     <div id="main">
       <div id="sidebar-left" :class="{ 'hidden-mobile': selected !== 'info' }">
@@ -45,13 +44,13 @@
   v-bind="getSidebarProps(item.tag)"
   :refresh-key="item.tag === 'Summary' ? summaryRefreshKey : undefined"
   @show-popup="showPopup = true"
-  @request-full-sales="searchTicker(selectedItem, { showAllSales: true });"
-  @request-full-eps="searchTicker(selectedItem, { showAllEPS: true });"
-  @request-full-earnings="searchTicker(selectedItem, { showAllEarnings: true });"
+  @request-full-sales="searchTicker(selectedItem ?? '', { showAllSales: true });"
+  @request-full-eps="searchTicker(selectedItem ?? '', { showAllEPS: true });"
+  @request-full-earnings="searchTicker(selectedItem ?? '', { showAllEarnings: true });"
 />
 <FinancialsPopup
   :showPopup="showPopup"
-  :ticker="selectedItem"
+  :ticker="selectedItem ?? ''"
   :apiKey="apiKey"
   @close="showPopup = false"
 />
@@ -62,7 +61,7 @@
        <MainChart
       :apiKey="apiKey"
       :user="user"
-      :defaultSymbol="defaultSymbol"
+      :defaultSymbol="defaultSymbol ?? ''"
       :selectedSymbol="selectedSymbol"
       :assetInfo="assetInfo"
       :getImagePath="getImagePath"
@@ -86,10 +85,10 @@
          <Watchlist
            :apiKey="apiKey"
            :user="user"
-           :defaultSymbol="defaultSymbol"
+           :defaultSymbol="defaultSymbol ?? ''"
            :selectedSymbol="selectedSymbol"
            :getImagePath="getImagePath"
-           :selectedItem="selectedItem"
+           :selectedItem="selectedItem ?? ''"
            :ImagePaths="ImagePaths"
            @select-symbol="(symbol) => { defaultSymbol = symbol; selectRow(symbol); }"
            @refresh-notes="handleRefreshNotes"
@@ -102,7 +101,7 @@
   </body>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // main imports
 import { reactive, onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
@@ -138,9 +137,17 @@ import NotificationPopup from '@/components/NotificationPopup.vue';
 import Assistant from '@/components/assistant.vue';
 
 // access user from store 
+const selectedSymbol = ref<string>('');
+const isLoading3 = ref<boolean>(false);
+const isMobile = ref<boolean>(false);
+const isChartLoading = ref<boolean>(false);
+const isLoading = ref<boolean>(false);
 const store = useStore();
 let user = store.getters.getUser;
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
+
+// Error handling
+const errorMessage = ref('');
 
 // reactive code to refresh summary panel
 const summaryRefreshKey = ref(0);
@@ -151,14 +158,14 @@ function handlePanelUpdated() {
 
 onMounted(async () => {
   await fetchSymbolsAndExchanges();
-  await searchTicker();
+  await searchTicker(defaultSymbol || '');
   await fetchPanel();
 });
 
 // for popup notifications
-const notification = ref(null);
+const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
 const showNotification = () => {
-  notification.value.show('This is a custom notification message!');
+  if (notification.value) notification.value.show('This is a custom notification message!');
 };
 ;
 const showPopup = ref(false) // div for financial statements
@@ -186,7 +193,11 @@ async function fetchUserDefaultSymbol() {
     const data = await response.json();
     return data.defaultSymbol;
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
     return null;
   }
 }
@@ -202,7 +213,7 @@ onMounted(async () => {
     await showTicker();
   });
 
-async function updateUserDefaultSymbol(symbol) {
+async function updateUserDefaultSymbol(symbol: string) {
   try {
     if (!user) return;
 
@@ -215,22 +226,27 @@ async function updateUserDefaultSymbol(symbol) {
       body: JSON.stringify({ defaultSymbol: symbol })
     });
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   }
 }
 
 // function that searches for tickers
-async function searchTicker(providedSymbol, options = {}) {
+async function searchTicker(providedSymbol: string, options: Record<string, any> = {}) {
   let response;
   activeIndex.value = -1;
   try {
-    const searchbar = document.getElementById('searchbar');
-    let symbol = (searchbar.value || defaultSymbol).toUpperCase();
+  const searchbar = document.getElementById('searchbar') as HTMLInputElement | null;
+  let baseSymbol = (searchbar && searchbar.value) ? searchbar.value : (defaultSymbol || '');
+  let symbol = baseSymbol.toUpperCase();
 
     // Build query string from options
     const params = new URLSearchParams();
     Object.entries(options).forEach(([key, value]) => {
-      if (value !== undefined) params.append(key, value);
+      if (value !== undefined && value !== null) params.append(key, String(value));
     });
     const queryString = params.toString() ? `?${params.toString()}` : '';
 
@@ -241,13 +257,13 @@ async function searchTicker(providedSymbol, options = {}) {
     });
 
     if (response.status === 404) {
-      notification.value.show('Ticker not Found');
+  if (notification.value) notification.value.show('Ticker not Found');
       return;
     }
 
     const data = await response.json();
 
-    searchbar.value = data.Symbol;
+  if (searchbar) searchbar.value = data.Symbol;
     localStorage.setItem('defaultSymbol', data.Symbol);
     defaultSymbol = data.Symbol;
     selectedItem.value = data.Symbol;
@@ -255,8 +271,9 @@ async function searchTicker(providedSymbol, options = {}) {
 
     // Set assetInfo fields, using '-' or [] for missing values
     Object.keys(assetInfo).forEach(key => {
-      if (Array.isArray(assetInfo[key])) {
-        assetInfo[key] = Array.isArray(data[key]) ? data[key] : [];
+      const assetInfoAny = assetInfo as Record<string, any>;
+      if (Array.isArray(assetInfoAny[key])) {
+        assetInfoAny[key] = Array.isArray(data[key]) ? data[key] : [];
       } else if (
         data[key] === undefined ||
         data[key] === null ||
@@ -264,25 +281,29 @@ async function searchTicker(providedSymbol, options = {}) {
         (typeof data[key] === 'number' && Number.isNaN(data[key])) ||
         (typeof data[key] === 'string' && data[key].toLowerCase() === 'NaN')
       ) {
-        assetInfo[key] = '-';
+        assetInfoAny[key] = '-';
       } else {
-        assetInfo[key] = data[key];
+        assetInfoAny[key] = data[key];
       }
     });
 
   } catch (err) {
-    error.value = err.message;
+    if (err instanceof Error) {
+      errorMessage.value = err.message;
+    } else {
+      errorMessage.value = String(err);
+    }
   }
 }
 
 // same effect input 
-async function selectRow(item) {
+async function selectRow(item: string) {
   localStorage.setItem('defaultSymbol', item);
   defaultSymbol = item;
   selectedItem.value = item;
   await updateUserDefaultSymbol(item);
   try {
-    const searchbar = document.getElementById('searchbar');
+    const searchbar = document.getElementById('searchbar') as HTMLInputElement | null;
     if (searchbar) {
       searchbar.value = item;
       await searchTicker(item);
@@ -302,6 +323,7 @@ const assetInfo = reactive({
   Exchange: '-',
   Industry: '-',
   MarketCap: '-',
+  MarketCapitalization: '-',
   SharesOutstanding: '-',
   PEGRatio: '-',
   PERatio: '-',
@@ -347,20 +369,21 @@ const assetInfo = reactive({
   AvgVolume1Y: '-',
   AvgVolume1M: '-',
   AvgVolume1W: '-',
+  Currency: '-',
 });
 
 //takes date strings inside database and converts them into actual date, in italian format
-function formatDate(dateString) {
+function formatDate(dateString: string) {
   const date = new Date(dateString);
-  const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'numeric', day: 'numeric' };
   return date.toLocaleDateString('it-IT', options);
 }
 
-function getQoQClass(percentageChange) {
+function getQoQClass(percentageChange: number) {
   return percentageChange > 20 ? 'green' : 'red';
 }
 
-function getYoYClass(percentageChange) {
+function getYoYClass(percentageChange: number) {
   return percentageChange > 20 ? 'green' : 'red';
 }
 
@@ -411,11 +434,16 @@ async function showTicker() {
       assetInfo.IPO = data.IPO;
     }
   } catch (err) {
-    error.value = err.message;
+    if (err instanceof Error) {
+      errorMessage.value = err.message;
+    } else {
+      errorMessage.value = String(err);
+    }
   } 
 }
 
-const ImagePaths = ref([]);
+type ImagePathType = { symbol: string; exchange: string };
+const ImagePaths = ref<ImagePathType[]>([]);
 
 // Async function to fetch symbols and exchanges and fills ImagePaths 
 async function fetchSymbolsAndExchanges() {
@@ -433,31 +461,33 @@ async function fetchSymbolsAndExchanges() {
     const data = await response.json();
 
     // Map the data to the required format for ImagePaths
-    ImagePaths.value = data.map(item => ({
+    ImagePaths.value = data.map((item: { Symbol: string; Exchange: string }) => ({
       symbol: item.Symbol,
       exchange: item.Exchange,
     }));
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   }
 }
 
 // Helper function to get image path based on symbol
-function getImagePath(item) {
-  // Find the matching object in ImagePaths
-  const matchedImageObject = ImagePaths.value.find(image =>
+function getImagePath(item: string): string {
+  const matchedImageObject = ImagePaths.value.find((image: ImagePathType) =>
     image.symbol === item
   );
-
-  // If a matching object is found and the symbol exists
   if (matchedImageObject) {
-    let finalUrl = new URL(`/src/assets/images/${matchedImageObject.exchange}/${matchedImageObject.symbol}.svg`, import.meta.url).href;
-    return finalUrl;
+    return new URL(`/src/assets/images/${matchedImageObject.exchange}/${matchedImageObject.symbol}.svg`, import.meta.url).href;
   }
+  // Fallback to a default image path if not found
+  return new URL(`/src/assets/images/default.svg`, import.meta.url).href;
 }
 
 const selected = ref('info')
-function select(option) {
+function select(option: string) {
   selected.value = option
 }
 const activeIndex = ref(-1);
@@ -474,7 +504,7 @@ const themeDisplayNames = {
   catpuccin: 'Catpuccin',
 };
 
-async function setTheme(newTheme) {
+async function setTheme(newTheme: string) {
   const root = document.documentElement;
   root.classList.remove(...themes);
   root.classList.add(newTheme);
@@ -492,10 +522,14 @@ async function setTheme(newTheme) {
     if (data.message === 'Theme updated') {
       currentTheme.value = newTheme;
     } else {
-      error.value = data.message;
+      errorMessage.value = data.message;
     }
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   }
 }
 
@@ -532,7 +566,8 @@ function handleRefreshNotes() {
   console.log('refreshKey incremented:', refreshKey.value);
 }
 
-let panelData = ref([]); // Left Panel section 
+type PanelItem = { tag: string; hidden?: boolean; [key: string]: any };
+let panelData = ref<PanelItem[]>([]); // Left Panel section 
 
 // function to retrieve the panel data for each user
 async function fetchPanel() {
@@ -553,14 +588,19 @@ async function fetchPanel() {
     panelData.value = newPanel.panel || []; // Assign the panel array
 
   } catch (error) {
-    if (error.name === 'AbortError') {
+    if (error instanceof Error && error.name === 'AbortError') {
       return;
+    }
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
     }
     console.error('Error fetching panel data:', error);
   }
 }
 
-const sidebarComponentMap = {
+const sidebarComponentMap: Record<string, any> = {
   Summary,
   EpsTable,
   EarnTable,
@@ -572,7 +612,7 @@ const sidebarComponentMap = {
   News,
 };
 
-function getSidebarProps(tag) {
+function getSidebarProps(tag: string) {
   switch (tag) {
     case 'Summary':
       return {

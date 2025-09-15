@@ -167,25 +167,26 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
-const props = defineProps({
-  user: { type: String, required: true },
-  apiKey: { type: String, required: true },
-  notification: { type: Object, required: true },
-  selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
-})
+const props = defineProps<{
+  user: string;
+  apiKey: string;
+  notification: { message?: string; type?: string };
+  selectedScreener: string;
+  isScreenerError: boolean;
+}>();
 
 let showPricePerf = ref(false);
 const changepercOptions = ref([
@@ -266,27 +267,27 @@ const ma20Select = ref('-');
 const ma10Select = ref('-');
 const priceSelect = ref('-');
 
-function selectChangepercOption(option) {
+function selectChangepercOption(option: string) {
   changepercSelect.value = option;
 }
 
-function selectMa200Option(option) {
+function selectMa200Option(option: string) {
   ma200Select.value = option;
 }
 
-function selectMa50Option(option) {
+function selectMa50Option(option: string) {
   ma50Select.value = option;
 }
 
-function selectMa20Option(option) {
+function selectMa20Option(option: string) {
   ma20Select.value = option;
 }
 
-function selectMa10Option(option) {
+function selectMa10Option(option: string) {
   ma10Select.value = option;
 }
 
-function selectPriception(option) {
+function selectPriception(option: string) {
   priceSelect.value = option;
 }
 
@@ -305,16 +306,30 @@ function toggleAllTimeLow() {
 async function SetPricePerformance() {
   try {
     if (!props.selectedScreener) {
-      props.isScreenerError = true
-      throw new Error('Please select a screener')
+      // Cannot assign to readonly prop, use notification pattern
+      if (props.notification) {
+        props.notification.message = 'Please select a screener';
+        props.notification.type = 'error';
+      }
+      throw new Error('Please select a screener');
     }
-    const changeperc1 = parseFloat(document.getElementById('changeperc1').value) / 100;
-    const changeperc2 = parseFloat(document.getElementById('changeperc2').value) / 100;
+    // Defensive DOM element access and typing
+    const changeperc1Input = document.getElementById('changeperc1') as HTMLInputElement | null;
+    const changeperc2Input = document.getElementById('changeperc2') as HTMLInputElement | null;
+    const weekhigh1Input = document.getElementById('weekhigh1') as HTMLInputElement | null;
+    const weekhigh2Input = document.getElementById('weekhigh2') as HTMLInputElement | null;
+    const weeklow1Input = document.getElementById('weeklow1') as HTMLInputElement | null;
+    const weeklow2Input = document.getElementById('weeklow2') as HTMLInputElement | null;
+    if (!changeperc1Input || !changeperc2Input || !weekhigh1Input || !weekhigh2Input || !weeklow1Input || !weeklow2Input) {
+      throw new Error('Input elements not found');
+    }
+    const changeperc1 = parseFloat(changeperc1Input.value) / 100;
+    const changeperc2 = parseFloat(changeperc2Input.value) / 100;
     const changepercselect = changepercSelect.value;
-    const weekhigh1 = parseFloat(document.getElementById('weekhigh1').value);
-    const weekhigh2 = parseFloat(document.getElementById('weekhigh2').value);
-    const weeklow1 = parseFloat(document.getElementById('weeklow1').value);
-    const weeklow2 = parseFloat(document.getElementById('weeklow2').value);
+    const weekhigh1 = parseFloat(weekhigh1Input.value);
+    const weekhigh2 = parseFloat(weekhigh2Input.value);
+    const weeklow1 = parseFloat(weeklow1Input.value);
+    const weeklow2 = parseFloat(weeklow2Input.value);
     const alltimehigh = allTimeHigh.value ? 'yes' : 'no';
     const alltimelow = allTimeLow.value ? 'yes' : 'no';
     const ma200 = ma200Select.value;
@@ -349,7 +364,7 @@ async function SetPricePerformance() {
       })
     });
     if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -357,16 +372,26 @@ async function SetPricePerformance() {
     if (data.message === 'updated successfully') {
       emit('fetchScreeners', props.selectedScreener);
     } else {
-      throw new Error('Error updating')
+      throw new Error('Error updating');
     }
-  } catch (error) {
-    if (error.response && error.response.status === 400) {
-      error.value = error.response.data.message;
-      emit('fetchScreeners', props.selectedScreener);
-    } else {
-      error.value = error.message;
-      emit('fetchScreeners', props.selectedScreener);
+  } catch (error: unknown) {
+    // Defensive error handling for unknown type
+    let message = 'Unknown error';
+    if (typeof error === 'object' && error !== null) {
+      // Check for axios-style error
+      if ('response' in error && typeof error.response === 'object' && error.response !== null && 'status' in error.response && error.response.status === 400) {
+        // Defensive type guard for error.response.data
+        const data = 'data' in error.response && typeof error.response.data === 'object' ? error.response.data : undefined;
+        message = (data && 'message' in data && typeof data.message === 'string' ? data.message : undefined) || 'Bad request';
+      } else if ('message' in error && typeof error.message === 'string') {
+        message = error.message;
+      }
     }
+    if (props.notification) {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
+    emit('fetchScreeners', props.selectedScreener);
   }
 }
 

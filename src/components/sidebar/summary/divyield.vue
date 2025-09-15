@@ -8,7 +8,7 @@
             </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
 </script>
 

@@ -10,13 +10,13 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const visible = ref(false);
 const message = ref('');
 
-const show = (msg) => {
+const show = (msg: string) => {
   message.value = msg;
   visible.value = true;
   setTimeout(close, 5000);

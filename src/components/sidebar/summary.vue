@@ -17,7 +17,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { useStore } from 'vuex';
 import Symbol from '@/components/sidebar/summary/ticker.vue';
@@ -116,9 +116,15 @@ const sidebarComponentMap = {
   AverageVolume1Y: AV4,
   Description,
 };
+interface Field {
+  order: number;
+  tag: string;
+  name: string;
+  hidden: boolean;
+}
 
 // Reactive variable to hold the fetched panel data
-const summaryFields = ref([]);
+const summaryFields = ref<Field[]>([]);
 
 // Initial fields array
 const initialFields = [
@@ -203,7 +209,7 @@ const sortedFields = computed(() => {
 });
 
 // Function to get props for the sidebar components
-const getSidebarProps = (tag) => {
+const getSidebarProps = (tag: string) => {
   return {
     assetInfo: props.assetInfo,
     formatDate: props.formatDate,

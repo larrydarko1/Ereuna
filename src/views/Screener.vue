@@ -85,7 +85,7 @@
 </svg>
             <label class=btnlabel>Multi-Screener</label>
           </button>
-          <button @click="DownloadResults" class="snavbtn" :class="{ 'snavbtnslct': showSearch }" v-b-tooltip.hover
+          <button @click="DownloadResults" class="snavbtn" v-b-tooltip.hover
             title="Download Results">
            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path
@@ -482,15 +482,14 @@
         <div class="results"></div>
       </div>
       <div id="resultsDiv" :class="{ 'hidden-mobile': selected !== 'list' }">
-        <CreateScreener
+<CreateScreener
   v-if="showCreateScreener"
   :user="user"
   :apiKey="apiKey"
   :notification="notification"
   :GetScreeners="GetScreeners"
   :GetCompoundedResults="GetCompoundedResults"
-  :showCreateScreener="showCreateScreener"
-  :error="error"
+  :showCreateScreener="{ value: showCreateScreener }"
   @close="handleCreateScreenerClose"
 />
       <RenameScreener
@@ -500,7 +499,6 @@
   :notification="notification"
   :currentName="selectedScreener"
   :GetScreeners="GetScreeners"
-  :error="error"
   @close="handleRenameScreenerClose"
 />
 <EditColumn
@@ -508,10 +506,10 @@
   :user="user"
   :apiKey="apiKey"
   :notification="notification"
-  :showEditColumn="showEditColumn"
   :selectedAttributes="selectedAttributes"
   @update-columns="handleUpdateColumns"
   @reload-columns="loadColumns"
+  :showEditColumn="{ value: showEditColumn }"
   @close="showEditColumn = false"
 />
         <div class="navmenu-mobile">
@@ -588,7 +586,7 @@
         <div v-if="listMode === 'main'">
 <MainList
   :currentResults="currentResults"
-  :selectedItem="selectedItem"
+  :selectedItem="selectedItem ?? ''"
   :watchlist="watchlist"
   :getWatchlistIcon="getWatchlistIcon"
   :selectedAttributes="selectedAttributes"
@@ -602,7 +600,7 @@
               <div v-else-if="listMode === 'filter'">
                   <FilterList
     :currentResults="currentResults"
-    :selectedItem="selectedItem"
+    :selectedItem="selectedItem ?? ''"
     :watchlist="watchlist"
     :getWatchlistIcon="getWatchlistIcon"
     :selectedAttributes="selectedAttributes"
@@ -616,7 +614,7 @@
                     <div v-else-if="listMode === 'hidden'">
                       <HiddenList
                         :currentResults="currentResults"
-                        :selectedItem="selectedItem"
+                        :selectedItem="selectedItem ?? ''"
                         :watchlist="watchlist"
                         :getWatchlistIcon="getWatchlistIcon"
                         :selectedAttributes="selectedAttributes"
@@ -630,7 +628,7 @@
                           <div v-else-if="listMode === 'combined'">
                             <CombinedList
                               :currentResults="currentResults"
-                              :selectedItem="selectedItem"
+                              :selectedItem="selectedItem ?? ''"
                               :watchlist="watchlist"
                               :getWatchlistIcon="getWatchlistIcon"
                               :selectedAttributes="selectedAttributes"
@@ -645,16 +643,16 @@
                               <div id="sidebar-r" :class="{ 'hidden-mobile': selected !== 'charts' }">
                             <Chart1
                               :apiKey="apiKey"
-                              :defaultSymbol="defaultSymbol"
-                              :selectedItem="selectedItem"
+                              :defaultSymbol="defaultSymbol ?? ''"
+                              :selectedItem="selectedItem ?? ''"
                               :selectedSymbol="selectedSymbol"
                               :updateUserDefaultSymbol="updateUserDefaultSymbol"
                               @symbol-selected="setCharts"
                             />
                              <Chart2
                               :apiKey="apiKey"
-                              :defaultSymbol="defaultSymbol"
-                              :selectedItem="selectedItem"
+                              :defaultSymbol="defaultSymbol ?? ''"
+                              :selectedItem="selectedItem ?? ''"
                               :selectedSymbol="selectedSymbol"
                               :updateUserDefaultSymbol="updateUserDefaultSymbol"
                               @symbol-selected="setCharts"
@@ -681,12 +679,12 @@
   </body>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
 import Selector from '@/components/Screener/Selector.vue';
 import Assistant from '@/components/assistant.vue';
-import { computed, onMounted, ref, watch, nextTick, reactive, toRef } from 'vue';
+import { computed, onMounted, ref, watch, nextTick, reactive, toRef, Ref } from 'vue';
 import { useStore } from 'vuex';
 import NotificationPopup from '@/components/NotificationPopup.vue';
 
@@ -746,28 +744,69 @@ const apiKey = import.meta.env.VITE_EREUNA_KEY;
 const store = useStore();
 let user = store.getters.getUser;
 
+const errorMessage = ref('');
+const showPriceInputs = ref(false);
+const showMarketCapInputs = ref(false);
+const showIPOInputs = ref(false);
+const ShowSector = ref(false);
+const ShowAssetType = ref(false);
+const ShowExchange = ref(false);
+const ShowCountry = ref(false);
+const showPEInputs = ref(false);
+const showPEForwInputs = ref(false);
+const showPEGInputs = ref(false);
+const showEPSInputs = ref(false);
+const showPSInputs = ref(false);
+const showPBInputs = ref(false);
+const showBetaInputs = ref(false);
+const showDivYieldInputs = ref(false);
+const showFundYoYQoQ = ref(false);
+const showVolume = ref(false);
+const showRSscore = ref(false);
+const showADV = ref(false);
+const showPricePerf = ref(false);
+const showROE = ref(false);
+const showROA = ref(false);
+const showCurrentRatio = ref(false);
+const showCurrentAssets = ref(false);
+const showCurrentLiabilities = ref(false);
+const showCurrentDebt = ref(false);
+const showCashEquivalents = ref(false);
+const showFreeCashFlow = ref(false);
+const showProfitMargin = ref(false);
+const showGrossMargin = ref(false);
+const showDebtToEquityRatio = ref(false);
+const showBookValue = ref(false);
+const showEV = ref(false);
+const showRSI = ref(false);
+const showGap = ref(false);
+const selectedItem = ref<string | null>(null);
+
 // for popup notifications
-const notification = ref(null);
-const showNotification = (message) => {
+const notification = ref<Record<string, any>>({});
+const showNotification = (message: string) => {
   notification.value.show(message);
 };
 const isScreenerError = ref(false);
 const showDropdown = ref(false);
 
-function getWatchlistIcon(ticker, item) {
-  return isAssetInWatchlist(ticker.Name, item)
+// Dummy implementation for getScreenerImage
+function getScreenerImage(screenerName: string) {
+  // Return a default image URL or logic based on screenerName
+  return `/images/screeners/${encodeURIComponent(screenerName)}.png`;
+}
+
+function getWatchlistIcon(ticker: string, item: any) {
+  return isAssetInWatchlist(ticker, item)
     ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><g id="Interface / Checkbox_Check"><path id="Vector" d="M8 12L11 15L16 9M4 16.8002V7.2002C4 6.08009 4 5.51962 4.21799 5.0918C4.40973 4.71547 4.71547 4.40973 5.0918 4.21799C5.51962 4 6.08009 4 7.2002 4H16.8002C17.9203 4 18.4796 4 18.9074 4.21799C19.2837 4.40973 19.5905 4.71547 19.7822 5.0918C20 5.5192 20 6.07899 20 7.19691V16.8036C20 17.9215 20 18.4805 19.7822 18.9079C19.5905 19.2842 19.2837 19.5905 18.9074 19.7822C18.48 20 17.921 20 16.8031 20H7.19691C6.07899 20 5.5192 20 5.0918 19.7822C4.71547 19.5905 4.40973 19.2842 4.21799 18.9079C4 18.4801 4 17.9203 4 16.8002Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></g></g></svg>'
     : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><g id="Interface / Checkbox_Unchecked"><path id="Vector" d="M4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2842 19.7822 18.9079C20 18.4805 20 17.9215 20 16.8036V7.19691C20 6.07899 20 5.5192 19.7822 5.0918C19.5905 4.71547 19.2837 4.40973 18.9074 4.21799C18.4796 4 17.9203 4 16.8002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></g></g></svg>';
 }
 
 // for handling dropdown menu
-const toggleWatchlist = async (ticker, symbol) => {
-  const isCurrentlyInWatchlist = isAssetInWatchlist(ticker.Name, symbol);
-  const simulatedEvent = {
-    target: {
-      checked: !isCurrentlyInWatchlist
-    }
-  };
+const toggleWatchlist = async (ticker: string, symbol: string) => {
+  const isCurrentlyInWatchlist = isAssetInWatchlist(ticker, symbol);
+  // Simulate a checkbox event with a custom type
+  const simulatedEvent: CheckboxEvent = { target: { checked: !isCurrentlyInWatchlist } };
   await addtoWatchlist(ticker, symbol, simulatedEvent);
   updateCheckbox(ticker, symbol, simulatedEvent);
   await getFullWatchlists(user);
@@ -786,7 +825,7 @@ const loading = ref(false)
 //pair to handling infinite scrolling in main list 
 const paginatedResults1 = computed(() => screenerResults.value);
 
-async function GetScreenerResultsAll(reset = false) {
+async function GetScreenerResultsAll(reset: boolean = false): Promise<void> {
   if (reset) {
     page.value = 1;
     totalPages.value = 1;
@@ -810,15 +849,20 @@ async function GetScreenerResultsAll(reset = false) {
     totalPages.value = data.totalPages;
     page.value += 1;
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   } finally {
     loading.value = false;
   }
 }
 GetScreenerResultsAll();
 
-const handleScroll1 = (event) => {
-  const { scrollTop, clientHeight, scrollHeight } = event.target;
+const handleScroll1 = (event: Event): void => {
+  const target = event.target as HTMLElement;
+  const { scrollTop, clientHeight, scrollHeight } = target;
   if (scrollTop + clientHeight >= scrollHeight - 100) {
     GetScreenerResultsAll();
   }
@@ -831,7 +875,7 @@ const filterTotalPages = ref(1);
 const filterTotalCount = ref(0);
 const filterLoading = ref(false);
 
-async function fetchScreenerResults(screenerName) {
+async function fetchScreenerResults(screenerName: string): Promise<void> {
   // Reset only if screener changed
   if (lastLoadedScreener.value !== screenerName) {
     filterPage.value = 1;
@@ -861,8 +905,13 @@ async function fetchScreenerResults(screenerName) {
     filterPage.value += 1;
     currentList.value = [...filterResults.value];
     await SummaryScreener();
-  } catch (error) {
-    error.value = error.message;
+  } catch (error: unknown) {
+    // TypeScript: handle error type and fix typo
+    if (error instanceof Error) {
+      errorMessage.value = error.message ?? '';
+    } else {
+      errorMessage.value = String(error);
+    }
   } finally {
     filterLoading.value = false;
   }
@@ -870,8 +919,9 @@ async function fetchScreenerResults(screenerName) {
 
 const paginatedResults2 = computed(() => filterResults.value);
 
-const handleScroll2 = (event) => {
-  const { scrollTop, clientHeight, scrollHeight } = event.target;
+const handleScroll2 = (event: Event): void => {
+  const target = event.target as HTMLElement;
+  const { scrollTop, clientHeight, scrollHeight } = target;
   if (scrollTop + clientHeight >= scrollHeight - 100) {
     fetchScreenerResults(selectedScreener.value);
   }
@@ -886,7 +936,7 @@ const hiddenLoading = ref(false);
 
 const paginatedResults3 = computed(() => HiddenResults.value);
 
-async function GetHiddenResults(reset = false) {
+async function GetHiddenResults(reset: boolean = false): Promise<void> {
   if (reset) {
     hiddenPage.value = 1;
     hiddenTotalPages.value = 1;
@@ -914,15 +964,20 @@ async function GetHiddenResults(reset = false) {
     hiddenTotalCount.value = data.totalCount;
     hiddenPage.value += 1;
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message ?? '';
+    } else {
+      errorMessage.value = String(error);
+    }
   } finally {
     hiddenLoading.value = false;
   }
 }
 GetHiddenResults();
 
-const handleScroll3 = (event) => {
-  const { scrollTop, clientHeight, scrollHeight } = event.target;
+const handleScroll3 = (event: Event): void => {
+  const target = event.target as HTMLElement;
+  const { scrollTop, clientHeight, scrollHeight } = target;
   if (scrollTop + clientHeight >= scrollHeight - 100) {
     GetHiddenResults();
   }
@@ -936,7 +991,7 @@ const compoundedTotalCount = ref(0);
 const compoundedLoading = ref(false);
 
 // fetches data for cumulative screener results with pagination
-async function GetCompoundedResults(reset = false) {
+async function GetCompoundedResults(reset: boolean = false): Promise<void> {
   if (reset) {
     compoundedPage.value = 1;
     compoundedTotalPages.value = 1;
@@ -964,7 +1019,11 @@ async function GetCompoundedResults(reset = false) {
     compoundedTotalCount.value = data.totalCount;
     compoundedPage.value += 1;
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   } finally {
     compoundedLoading.value = false;
   }
@@ -975,8 +1034,9 @@ GetCompoundedResults();
 const paginatedResults4 = computed(() => compoundedResults.value);
 
 // infinite scroll handler
-const handleScroll4 = (event) => {
-  const { scrollTop, clientHeight, scrollHeight } = event.target;
+const handleScroll4 = (event: Event): void => {
+  const target = event.target as HTMLElement;
+  const { scrollTop, clientHeight, scrollHeight } = target;
   if (scrollTop + clientHeight >= scrollHeight - 100) {
     GetCompoundedResults();
   }
@@ -985,7 +1045,7 @@ const handleScroll4 = (event) => {
 // related to retrieving user default symbol and updating it 
 let defaultSymbol = localStorage.getItem('defaultSymbol');
 
-async function updateUserDefaultSymbol(symbol) {
+async function updateUserDefaultSymbol(symbol: string): Promise<void> {
   try {
     if (!user) return;
 
@@ -1000,13 +1060,17 @@ async function updateUserDefaultSymbol(symbol) {
 
     if (!response.ok) throw new Error('Failed to update default symbol');
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   }
 }
 
 onMounted(async () => {
-  selectedSymbol.value = defaultSymbol;
-  selectedItem.value = defaultSymbol;
+  selectedSymbol.value = defaultSymbol ?? '';
+  selectedItem.value = defaultSymbol ?? null;
   getWatchlists();
 });
 
@@ -1018,15 +1082,15 @@ const selectedSymbol = ref(''); // similar to selectedItem
 const listMode = ref('main');
 
 //selected item a displays charts 
-async function setCharts(symbol) {
+async function setCharts(symbol: string): Promise<void> {
   defaultSymbol = symbol;
-  selectedSymbol.value = symbol;
-  selectedItem.value = symbol;
+  selectedSymbol.value = symbol ?? '';
+  selectedItem.value = symbol ?? null;
   await updateUserDefaultSymbol(symbol);
 }
 
 //functionality for keydown 
-const selectedItem = ref(null);
+// Already declared at top: const selectedItem = ref<string | null>(null);
 const selectedIndex = ref(0);
 
 // Compute the current results based on listMode
@@ -1045,21 +1109,21 @@ const currentResults = computed(() => {
   }
 });
 
-function selectRow(symbol) {
+function selectRow(symbol: string): void {
   if (!symbol) return;
-  selectedItem.value = symbol;
+  selectedItem.value = symbol ?? null;
   setCharts(symbol);
   updateSelectedIndex();
 }
 
-function updateSelectedIndex() {
+function updateSelectedIndex(): void {
   if (currentResults.value && currentResults.value.length > 0) {
     const index = currentResults.value.findIndex((asset) => asset.Symbol === selectedItem.value);
     selectedIndex.value = index !== -1 ? index : 0;
   }
 }
 
-function handleKeydown(event) {
+function handleKeydown(event: KeyboardEvent): void {
   if (!currentResults.value || currentResults.value.length === 0) return;
 
   if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
@@ -1077,18 +1141,18 @@ function handleKeydown(event) {
 
 let autoplayRunning = false;
 let autoplayIndex = 0;
-let autoplayTimeoutId = null;
-const screenerResults = ref([]); // stores all database results
-const filterResults = ref([]); // stores database filtered results
-const HiddenResults = ref([]); // stores hidden results list
-const compoundedResults = ref([]) // it will store all compounded screener results, minus duplicates and hidden
-const hideList = ref([]); // stores hidden list of users
-const ScreenersName = ref([]); // stores all user's screeners
-const currentList = ref([]); // Initialize currentList as an empty array
-const screenerSummary = ref([]); // stores all params for a screener, summary bottom right below charts 
+let autoplayTimeoutId: ReturnType<typeof setTimeout> | null = null;
+const screenerResults = ref<any[]>([]); // stores all database results
+const filterResults = ref<any[]>([]); // stores database filtered results
+const HiddenResults = ref<any[]>([]); // stores hidden results list
+const compoundedResults = ref<any[]>([]); // it will store all compounded screener results, minus duplicates and hidden
+const hideList = ref<any[]>([]); // stores hidden list of users
+const ScreenersName = ref<any[]>([]); // stores all user's screeners
+const currentList = ref<any[]>([]); // Initialize currentList as an empty array
+const screenerSummary = ref<any[]>([]); // stores all params for a screener, summary bottom right below charts 
 
 //related to lists / toggle
-watch(screenerResults, (newValue) => {
+watch(screenerResults, (newValue: any[]) => {
   currentList.value = newValue;
 });
 
@@ -1107,7 +1171,7 @@ const resultListLength = computed(() => {
   }
 });
 
-const lastFilterMode = ref(null);
+const lastFilterMode = ref<string | null>(null);
 
 // displays hidden results 
 function showHiddenResults() {
@@ -1177,13 +1241,17 @@ async function GetScreeners() {
     // Assuming data is now an array of objects with Name and Include properties
     ScreenersName.value = data;
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   }
 }
 GetScreeners();
 
 // hides a stock in screener and puts in in hidden list 
-async function hideStock(asset) {
+async function hideStock(asset: any) {
   try {
     const symbol = asset.Symbol;
     const url = `/api/screener/${user}/hidden/${symbol}`;
@@ -1207,11 +1275,15 @@ async function hideStock(asset) {
     const data = await response.json();
 
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   } finally {
     await GetHiddenResults(true);
     await GetCompoundedResults(true);
-    await fetchScreenerResults(selectedScreener);
+    await fetchScreenerResults(selectedScreener.value);
 
     if (listMode.value === 'filter') {
       await fetchScreenerResults(selectedScreener.value);
@@ -1241,7 +1313,11 @@ async function getHideList() {
       console.error('Error:', response.status);
     }
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   }
   await GetScreenerResultsAll(true);
   await GetHiddenResults(true);
@@ -1249,28 +1325,32 @@ async function getHideList() {
 getHideList();
 
 // autoplays results 
-function AutoPlay() {
+function AutoPlay(): void {
   const button = document.getElementById('watchlistAutoplay');
-  if (button.classList.contains('snavbtnslct')) {
-    button.classList.remove('snavbtnslct');
+  if (button && button.classList.contains('snavbtnslct')) {
+  if (button) button.classList.remove('snavbtnslct');
     autoplayRunning = false;
-    clearTimeout(autoplayTimeoutId);
+    if (autoplayTimeoutId !== null) {
+      clearTimeout(autoplayTimeoutId as ReturnType<typeof setTimeout>);
+    }
   } else {
-    button.classList.add('snavbtnslct');
+    if (button) {
+      button.classList.add('snavbtnslct');
+    }
     autoplayRunning = true;
     autoplayIndex = 0;
     logElement();
   }
 }
 
-function logElement() {
+function logElement(): void {
   if (!autoplayRunning) return;
   const rows = currentResults.value; // Use your reactive array
   if (autoplayIndex >= rows.length) {
     autoplayIndex = 0;
   }
   // Select the row by updating selectedItem or calling selectRow
-  selectedItem.value = rows[autoplayIndex].Symbol;
+  selectedItem.value = rows[autoplayIndex].Symbol ?? null;
   selectRow(rows[autoplayIndex].Symbol); // If you have a method for row selection
   console.log(rows[autoplayIndex].Symbol);
   autoplayIndex++;
@@ -1278,7 +1358,7 @@ function logElement() {
 }
 
 // unhides stocks from hidden list
-async function ShowStock(asset) {
+async function ShowStock(asset: Record<string, any>): Promise<void> {
   try {
     const symbol = asset.Symbol;
     const url = `/api/screener/${user}/show/${symbol}`;
@@ -1306,10 +1386,14 @@ async function ShowStock(asset) {
       throw new Error('Error showing stock');
     }
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   } finally {
     await GetScreenerResultsAll(true);
-    await fetchScreenerResults(true);
+  await fetchScreenerResults("true");
     await GetCompoundedResults(true);
     await GetHiddenResults(true);
     await show1HiddenResults(); // important that it stays last!!! updates the counter dynamically
@@ -1317,7 +1401,7 @@ async function ShowStock(asset) {
 }
 
 // deletes screeners 
-async function DeleteScreener(screenerName) {
+async function DeleteScreener(screenerName: string): Promise<void> {
   const apiUrl = `/api/${user}/delete/screener/${screenerName}`;
   const requestOptions = {
     method: 'DELETE',
@@ -1332,7 +1416,11 @@ async function DeleteScreener(screenerName) {
     const response = await fetch(apiUrl, requestOptions);
     const data = await response.json();
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   }
 
   await GetScreeners();
@@ -1340,7 +1428,7 @@ async function DeleteScreener(screenerName) {
 }
 
 // function that updates screener parameters graphically 
-async function CurrentScreener() {
+async function CurrentScreener(): Promise<void> {
   const Name = selectedScreener.value;
 
   try {
@@ -1406,7 +1494,7 @@ async function CurrentScreener() {
     let cashAndEq = screenerSettings.cashAndEq
     let freeCashFlow = screenerSettings.freeCashFlow
     let profitMargin = screenerSettings.profitMargin
-    let grossMargin = screenerResults.grossMargin
+  let grossMargin = Array.isArray(screenerResults.value) && screenerResults.value.length > 0 ? screenerResults.value[0].grossMargin : undefined;
     let debtEquity = screenerSettings.debtEquity
     let bookVal = screenerSettings.bookVal
     let EV = screenerSettings.EV
@@ -1414,19 +1502,20 @@ async function CurrentScreener() {
     let Gap = screenerSettings.Gap
 
 
-    showPriceInputs.value = screenerSettings?.Price?.length > 0;
-    showMarketCapInputs.value = screenerSettings?.MarketCap?.length > 0;
-    showIPOInputs.value = screenerSettings?.IPO?.length > 0;
-    ShowSector.value = screenerSettings?.Sectors?.length > 0;
-    ShowAssetType.value = screenerSettings?.AssetTypes?.length > 0;
-    ShowExchange.value = screenerSettings?.Exchanges?.length > 0;
-    ShowCountry.value = screenerSettings?.Countries?.length > 0;
-    showPEInputs.value = screenerSettings?.PE?.length > 0;
-    showPEForwInputs.value = screenerSettings?.ForwardPE?.length > 0;
-    showPEGInputs.value = screenerSettings?.PEG?.length > 0;
-    showEPSInputs.value = screenerSettings?.EPS?.length > 0;
-    showPSInputs.value = screenerSettings?.PS?.length > 0;
-    showPBInputs.value = screenerSettings?.PB?.length > 0;
+  showPriceInputs.value = screenerSettings?.Price?.length > 0;
+  showMarketCapInputs.value = screenerSettings?.MarketCap?.length > 0;
+  showIPOInputs.value = screenerSettings?.IPO?.length > 0;
+  ShowSector.value = screenerSettings?.Sectors?.length > 0;
+  ShowAssetType.value = screenerSettings?.AssetTypes?.length > 0;
+  ShowExchange.value = screenerSettings?.Exchanges?.length > 0;
+  ShowCountry.value = screenerSettings?.Countries?.length > 0;
+  showPEInputs.value = screenerSettings?.PE?.length > 0;
+  showPEForwInputs.value = screenerSettings?.ForwardPE?.length > 0;
+  showPEGInputs.value = screenerSettings?.PEG?.length > 0;
+  showEPSInputs.value = screenerSettings?.EPS?.length > 0;
+  showPSInputs.value = screenerSettings?.PS?.length > 0;
+  showPBInputs.value = screenerSettings?.PB?.length > 0;
+  // Removed duplicate ref declarations. Use top-level refs only.
     showBetaInputs.value = screenerSettings?.Beta?.length > 0;
     showDivYieldInputs.value = screenerSettings?.DivYield?.length > 0;
     showFundYoYQoQ.value =
@@ -1481,106 +1570,118 @@ async function CurrentScreener() {
     showRSI.value = screenerSettings?.RSI?.length > 0;
     showGap.value = screenerSettings?.Gap?.length > 0;
 
-    document.getElementById('left-p').value = priceList[0];
-    document.getElementById('right-p').value = priceList[1];
-    document.getElementById('left-mc').value = marketCapList[0];
-    document.getElementById('right-mc').value = marketCapList[1];
-    document.getElementById('left-ipo').value = IPO[0];
-    document.getElementById('right-ipo').value = IPO[1];
-    document.getElementById('left-pe').value = PEList[0];
-    document.getElementById('right-pe').value = PEList[1];
-    document.getElementById('left-pef').value = FPEList[0];
-    document.getElementById('right-pef').value = FPEList[1];
-    document.getElementById('left-peg').value = PEGList[0];
-    document.getElementById('right-peg').value = PEGList[1];
-    document.getElementById('left-eps').value = EPSList[0];
-    document.getElementById('right-eps').value = EPSList[1];
-    document.getElementById('left-ps').value = PSList[0];
-    document.getElementById('right-ps').value = PSList[1];
-    document.getElementById('left-pb').value = PBList[0];
-    document.getElementById('right-pb').value = PBList[1];
-    document.getElementById('left-beta').value = BetaList[0];
-    document.getElementById('right-beta').value = BetaList[1];
-    document.getElementById('left-divyield').value = DivYieldList[0];
-    document.getElementById('right-divyield').value = DivYieldList[1];
-    document.getElementById('left-RevYoY').value = RevYoY[0];
-    document.getElementById('right-RevYoY').value = RevYoY[1];
-    document.getElementById('left-RevQoQ').value = RevQoQ[0];
-    document.getElementById('right-RevQoQ').value = RevQoQ[1];
-    document.getElementById('left-EarningsYoY').value = EarningsYoY[0];
-    document.getElementById('right-EarningsYoY').value = EarningsYoY[1];
-    document.getElementById('left-EarningsQoQ').value = EarningsQoQ[0];
-    document.getElementById('right-EarningsQoQ').value = EarningsQoQ[1];
-    document.getElementById('left-EPSYoY').value = EPSYoYList[0];
-    document.getElementById('right-EPSYoY').value = EPSYoYList[1];
-    document.getElementById('left-EPSQoQ').value = EPSQoQList[0];
-    document.getElementById('right-EPSQoQ').value = EPSQoQList[1];
-    document.getElementById('RSscore1Winput1').value = RSscore1W[0];
-    document.getElementById('RSscore1Winput2').value = RSscore1W[1];
-    document.getElementById('RSscore1Minput1').value = RSScore1M[0];
-    document.getElementById('RSscore1Minput2').value = RSScore1M[1];
-    document.getElementById('RSscore4Minput1').value = RSScore4M[0];
-    document.getElementById('RSscore4Minput2').value = RSScore4M[1];
-    document.getElementById('ADV1Winput1').value = ADV1W[0];
-    document.getElementById('ADV1Winput2').value = ADV1W[1];
-    document.getElementById('ADV1Minput1').value = ADV1M[0];
-    document.getElementById('ADV1Minput2').value = ADV1M[1];
-    document.getElementById('ADV4Minput1').value = ADV4M[0];
-    document.getElementById('ADV4Minput2').value = ADV4M[1];
-    document.getElementById('ADV1Yinput1').value = ADV1Y[0];
-    document.getElementById('ADV1Yinput2').value = ADV1Y[1];
-    document.getElementById('left-roe').value = ROE[0];
-    document.getElementById('right-roe').value = ROE[1];
-    document.getElementById('left-roa').value = ROA[0];
-    document.getElementById('right-roa').value = ROA[1];
-    document.getElementById('left-current-ratio').value = currentRatio[0];
-    document.getElementById('right-current-ratio').value = currentRatio[1];
-    document.getElementById('left-ca').value = assetsCurrent[0];
-    document.getElementById('right-ca').value = assetsCurrent[1];
-    document.getElementById('left-cl').value = liabilitiesCurrent[0];
-    document.getElementById('right-cl').value = liabilitiesCurrent[1];
-    document.getElementById('left-cd').value = debtCurrent[0];
-    document.getElementById('right-cd').value = debtCurrent[1];
-    document.getElementById('left-ce').value = cashAndEq[0];
-    document.getElementById('right-ce').value = cashAndEq[1];
-    document.getElementById('left-fcf').value = freeCashFlow[0];
-    document.getElementById('right-fcf').value = freeCashFlow[1];
-    document.getElementById('left-pm').value = profitMargin[0];
-    document.getElementById('right-pm').value = profitMargin[1];
-    document.getElementById('left-gm').value = grossMargin[0];
-    document.getElementById('right-gm').value = grossMargin[1];
-    document.getElementById('left-der').value = debtEquity[0];
-    document.getElementById('right-der').value = debtEquity[1];
-    document.getElementById('left-bv').value = bookVal[0];
-    document.getElementById('right-bv').value = bookVal[1];
-    document.getElementById('left-ev').value = EV[0];
-    document.getElementById('right-ev').value = EV[1];
-    document.getElementById('left-rsi').value = RSI[0];
-    document.getElementById('right-rsi').value = RSI[1];
-    document.getElementById('left-gap').value = Gap[0];
-    document.getElementById('right-gap').value = Gap[1];
+    const setInputValue = (id: string, value: any) => {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (el) el.value = value;
+    };
+    setInputValue('left-p', priceList[0]);
+    setInputValue('right-p', priceList[1]);
+    setInputValue('left-mc', marketCapList[0]);
+    setInputValue('right-mc', marketCapList[1]);
+    setInputValue('left-ipo', IPO[0]);
+    setInputValue('right-ipo', IPO[1]);
+    setInputValue('left-pe', PEList[0]);
+    setInputValue('right-pe', PEList[1]);
+  setInputValue('left-p', priceList?.[0] ?? '');
+  setInputValue('right-p', priceList?.[1] ?? '');
+  setInputValue('left-mc', marketCapList?.[0] ?? '');
+  setInputValue('right-mc', marketCapList?.[1] ?? '');
+  setInputValue('left-ipo', IPO?.[0] ?? '');
+  setInputValue('right-ipo', IPO?.[1] ?? '');
+  setInputValue('left-pe', PEList?.[0] ?? '');
+  setInputValue('right-pe', PEList?.[1] ?? '');
+  setInputValue('left-pef', FPEList?.[0] ?? '');
+  setInputValue('right-pef', FPEList?.[1] ?? '');
+  setInputValue('left-peg', PEGList?.[0] ?? '');
+  setInputValue('right-peg', PEGList?.[1] ?? '');
+  setInputValue('left-eps', EPSList?.[0] ?? '');
+  setInputValue('right-eps', EPSList?.[1] ?? '');
+  setInputValue('left-ps', PSList?.[0] ?? '');
+  setInputValue('right-ps', PSList?.[1] ?? '');
+  setInputValue('left-pb', PBList?.[0] ?? '');
+  setInputValue('right-pb', PBList?.[1] ?? '');
+  setInputValue('left-beta', BetaList?.[0] ?? '');
+  setInputValue('right-beta', BetaList?.[1] ?? '');
+  setInputValue('left-divyield', DivYieldList?.[0] ?? '');
+  setInputValue('right-divyield', DivYieldList?.[1] ?? '');
+  setInputValue('left-RevYoY', RevYoY?.[0] ?? '');
+  setInputValue('right-RevYoY', RevYoY?.[1] ?? '');
+  setInputValue('left-RevQoQ', RevQoQ?.[0] ?? '');
+  setInputValue('right-RevQoQ', RevQoQ?.[1] ?? '');
+  setInputValue('left-EarningsYoY', EarningsYoY?.[0] ?? '');
+  setInputValue('right-EarningsYoY', EarningsYoY?.[1] ?? '');
+  setInputValue('left-EarningsQoQ', EarningsQoQ?.[0] ?? '');
+  setInputValue('right-EarningsQoQ', EarningsQoQ?.[1] ?? '');
+  setInputValue('left-EPSYoY', EPSYoYList?.[0] ?? '');
+  setInputValue('right-EPSYoY', EPSYoYList?.[1] ?? '');
+  setInputValue('left-EPSQoQ', EPSQoQList?.[0] ?? '');
+  setInputValue('right-EPSQoQ', EPSQoQList?.[1] ?? '');
+  setInputValue('RSscore1Winput1', RSscore1W?.[0] ?? '');
+  setInputValue('RSscore1Winput2', RSscore1W?.[1] ?? '');
+  setInputValue('RSscore1Minput1', RSScore1M?.[0] ?? '');
+  setInputValue('RSscore1Minput2', RSScore1M?.[1] ?? '');
+  setInputValue('RSscore4Minput1', RSScore4M?.[0] ?? '');
+  setInputValue('RSscore4Minput2', RSScore4M?.[1] ?? '');
+  setInputValue('ADV1Winput1', ADV1W?.[0] ?? '');
+  setInputValue('ADV1Winput2', ADV1W?.[1] ?? '');
+  setInputValue('ADV1Minput1', ADV1M?.[0] ?? '');
+  setInputValue('ADV1Minput2', ADV1M?.[1] ?? '');
+  setInputValue('ADV4Minput1', ADV4M?.[0] ?? '');
+  setInputValue('ADV4Minput2', ADV4M?.[1] ?? '');
+  setInputValue('ADV1Yinput1', ADV1Y?.[0] ?? '');
+  setInputValue('ADV1Yinput2', ADV1Y?.[1] ?? '');
+  setInputValue('left-roe', ROE?.[0] ?? '');
+  setInputValue('right-roe', ROE?.[1] ?? '');
+  setInputValue('left-roa', ROA?.[0] ?? '');
+  setInputValue('right-roa', ROA?.[1] ?? '');
+  setInputValue('left-current-ratio', currentRatio?.[0] ?? '');
+  setInputValue('right-current-ratio', currentRatio?.[1] ?? '');
+  setInputValue('left-ca', assetsCurrent?.[0] ?? '');
+  setInputValue('right-ca', assetsCurrent?.[1] ?? '');
+  setInputValue('left-cl', liabilitiesCurrent?.[0] ?? '');
+  setInputValue('right-cl', liabilitiesCurrent?.[1] ?? '');
+  setInputValue('left-cd', debtCurrent?.[0] ?? '');
+  setInputValue('right-cd', debtCurrent?.[1] ?? '');
+  setInputValue('left-ce', cashAndEq?.[0] ?? '');
+  setInputValue('right-ce', cashAndEq?.[1] ?? '');
+  setInputValue('left-fcf', freeCashFlow?.[0] ?? '');
+  setInputValue('right-fcf', freeCashFlow?.[1] ?? '');
+  setInputValue('left-pm', profitMargin?.[0] ?? '');
+  setInputValue('right-pm', profitMargin?.[1] ?? '');
+  setInputValue('left-gm', grossMargin?.[0] ?? '');
+  setInputValue('right-gm', grossMargin?.[1] ?? '');
+  setInputValue('left-der', debtEquity?.[0] ?? '');
+  setInputValue('right-der', debtEquity?.[1] ?? '');
+  setInputValue('left-bv', bookVal?.[0] ?? '');
+  setInputValue('right-bv', bookVal?.[1] ?? '');
+  setInputValue('left-ev', EV?.[0] ?? '');
+  setInputValue('right-ev', EV?.[1] ?? '');
+  setInputValue('left-rsi', RSI?.[0] ?? '');
+  setInputValue('right-rsi', RSI?.[1] ?? '');
+  setInputValue('left-gap', Gap?.[0] ?? '');
+  setInputValue('right-gap', Gap?.[1] ?? '');
+  const sectorCheckboxes: NodeListOf<HTMLInputElement> = document.querySelectorAll('.check input[type="checkbox"]');
+  sectorCheckboxes.forEach((checkbox: HTMLInputElement) => {
+    checkbox.checked = false;
+  });
 
-    const sectorCheckboxes = document.querySelectorAll('.check input[type="checkbox"]');
-
-    // Uncheck all checkboxes before re-checking them
-    sectorCheckboxes.forEach((checkbox) => {
-      checkbox.checked = false;
-    });
-
-    sectorCheckboxes.forEach((checkbox) => {
-      const value = checkbox.value;
-      if (sectorsList.includes(value) || exchangesList.includes(value) || AssetTypesList.includes(value) || countriesList.includes(value)) {
-        checkbox.checked = true;
-      }
-
-    });
+  sectorCheckboxes.forEach((checkbox: HTMLInputElement) => {
+    const value: string = checkbox.value;
+    if (sectorsList.includes(value) || exchangesList.includes(value) || AssetTypesList.includes(value) || countriesList.includes(value)) {
+      checkbox.checked = true;
+    }
+  });
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   }
 }
 
 // function that resets screener values (all of them)
-async function ResetScreener() {
+async function ResetScreener(): Promise<void> {
   const Name = selectedScreener.value;
 
   try {
@@ -1602,12 +1703,16 @@ async function ResetScreener() {
     const jsonData = await response.json();
     await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
     await fetchScreenerResults(selectedScreener.value);
   }
 }
 
-const valueMap = {
+const valueMap: { [key: string]: string } = {
   'Marketcap': 'marketCap',
   'Sector': 'Sector',
   'Exchange': 'Exchange',
@@ -1647,7 +1752,7 @@ const valueMap = {
 };
 
 // function that resets indivudal values for screeners 
-async function Reset(value) {
+async function Reset(value: string): Promise<void> {
   const stringValue = valueMap[value];
   try {
     const Name = selectedScreener.value;
@@ -1675,13 +1780,17 @@ async function Reset(value) {
     }
     await fetchScreenerResults(selectedScreener.value);
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
     await fetchScreenerResults(selectedScreener.value);
   }
 }
 
 // function that updates screener summary graphically 
-async function SummaryScreener() {
+async function SummaryScreener(): Promise<void> {
   const Name = selectedScreener.value;
 
   try {
@@ -1701,7 +1810,7 @@ async function SummaryScreener() {
       'RSI', 'Gap', 'AssetTypes', 'IV'
     ];
 
-    const attributeMapping = {
+  const attributeMapping: { [key: string]: string } = {
       'MarketCap': 'Market Cap',
       'PE': 'PE Ratio',
       'PB': 'PB Ratio',
@@ -1753,7 +1862,7 @@ async function SummaryScreener() {
       'IV': 'Intrinsic Value'
     };
 
-    const valueMapping = {
+  const valueMapping: { [key: string]: string } = {
       'abv200': 'Above 200MA',
       'abv50': 'Above 50MA',
       'abv20': 'Above 20MA',
@@ -1764,7 +1873,7 @@ async function SummaryScreener() {
       'blw10': 'Below 20MA',
     };
 
-    const newScreenerSummary = [];
+    const newScreenerSummary: { attribute: string; value: any }[] = [];
     attributes.forEach((attribute) => {
       if (screenerSettings[attribute]) {
         const attributeName = attributeMapping[attribute] || attribute;
@@ -1778,13 +1887,17 @@ async function SummaryScreener() {
     });
     screenerSummary.value = newScreenerSummary; // Replace the entire array
   } catch (error) {
-    error.value = error.message;
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   }
 }
 
 const emit = defineEmits(['update:modelValue']);
 
-function selectScreener(screener) {
+function selectScreener(screener: string): void {
   selectedScreener.value = screener;
   CurrentScreener();
   fetchScreenerResults(screener);
@@ -1798,7 +1911,7 @@ const watchlist = reactive({ tickers: [] });
 const selectedWatchlist = ref([]);
 
 // generates all watchlist names 
-async function getWatchlists() {
+async function getWatchlists(): Promise<void> {
   try {
     const response = await fetch(`/api/${user}/watchlists`, {
       headers: {
@@ -1810,13 +1923,14 @@ async function getWatchlists() {
     }
     const data = await response.json();
     watchlist.tickers = data;
-  } catch (error) {
-    error.value = error.message;
+  } catch (err) {
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as { message?: string }).message ?? String(err) : String(err);
   }
 }
 
-async function addtoWatchlist(ticker, symbol, $event) {
-  const isChecked = $event.target.checked;
+type CheckboxEvent = { target: { checked: boolean } };
+async function addtoWatchlist(ticker: string, symbol: string, $event: Event | CheckboxEvent): Promise<void> {
+  const isChecked = ($event as CheckboxEvent).target.checked;
   const isAdding = isChecked;
 
   try {
@@ -1827,7 +1941,7 @@ async function addtoWatchlist(ticker, symbol, $event) {
         'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
-        watchlistName: ticker.Name,
+        watchlistName: ticker,
         symbol: symbol,
         user: user
       }),
@@ -1845,25 +1959,29 @@ async function addtoWatchlist(ticker, symbol, $event) {
 
     const result = await response.json()
 
-  } catch (error) {
-    error.value = error.message;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   }
 }
 
-const checkedWatchlists = ref({});
+const checkedWatchlists = ref<Record<string, string[]>>({});
 
-watch(() => watchlist.tickers, (newTickers) => {
+watch(() => watchlist.tickers, (newTickers: Array<{ Name: string }>) => {
   newTickers.forEach((ticker) => {
     checkedWatchlists.value[ticker.Name] = [];
   });
 });
 
-const updateCheckbox = (ticker, symbol, $event) => {
-  const isChecked = $event.target.checked;
+const updateCheckbox = (ticker: any, symbol: string, $event: Event | CheckboxEvent): void => {
+  const isChecked = ($event as CheckboxEvent).target.checked;
   if (isChecked) {
     checkedWatchlists.value[ticker.Name].push(symbol);
   } else {
-    checkedWatchlists.value[ticker.Name] = checkedWatchlists.value[ticker.Name].filter((s) => s !== symbol);
+    checkedWatchlists.value[ticker.Name] = checkedWatchlists.value[ticker.Name].filter((s: string) => s !== symbol);
   }
   addtoWatchlist(ticker, symbol, $event);
   getFullWatchlists(user);
@@ -1872,7 +1990,7 @@ const updateCheckbox = (ticker, symbol, $event) => {
 
 const FullWatchlists = ref([]);
 
-async function getFullWatchlists(user) {
+async function getFullWatchlists(user: string): Promise<void> {
   const response = await fetch(`/api/${user}/full-watchlists`, {
     headers: {
       'X-API-KEY': apiKey,
@@ -1883,16 +2001,22 @@ async function getFullWatchlists(user) {
 getFullWatchlists(user);
 
 
-const isAssetInWatchlist = (ticker, symbol) => {
-  const watchlist = FullWatchlists.value.find(w => w.Name === ticker);
-  if (watchlist) {
-    return watchlist.List.includes(symbol);
+const isAssetInWatchlist = (ticker: string, symbol: string): boolean => {
+  const watchlist = FullWatchlists.value.find((w: any) => w && w.Name === ticker);
+  if (
+    watchlist &&
+    typeof watchlist === 'object' &&
+    watchlist !== null &&
+    'List' in watchlist &&
+    Array.isArray((watchlist as { List?: string[] }).List)
+  ) {
+    return (watchlist as { List: string[] }).List.includes(symbol);
   }
 
   return false;
 };
 
-async function ExcludeScreener(screener) {
+async function ExcludeScreener(screener: string): Promise<void> {
   const apiUrl = `/api/${user}/toggle/screener/${screener}`;
   const requestOptions = {
     method: 'PATCH',
@@ -1906,8 +2030,12 @@ async function ExcludeScreener(screener) {
   try {
     const response = await fetch(apiUrl, requestOptions);
     const data = await response.json();
-  } catch (error) {
-    error.value = error.message;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   }
 
   await GetScreeners(); // Refresh the list of screeners
@@ -1922,16 +2050,17 @@ let tooltipText = ref('');
 let tooltipLeft = ref();
 let tooltipTop = ref();
 
-function handleMouseOver(event, id) {
+function handleMouseOver(event: MouseEvent, id: string): void {
   showTooltip.value = true
-  const element = event.target
-  const svgRect = element.parentNode.getBoundingClientRect()
+  const element = event.target as HTMLElement;
+  const parent = element.parentNode as HTMLElement;
+  const svgRect = parent.getBoundingClientRect();
   tooltipTop.value = svgRect.top + window.scrollY + svgRect.height - 100;
   tooltipLeft.value = svgRect.left + window.scrollX + svgRect.width + 10;
   tooltipText.value = getTooltipText(id)
 }
 
-function getTooltipText(id) {
+function getTooltipText(id: string): string {
   switch (id) {
     case 'price':
       return 'Price refers to the current market price of a stock, which is the amount of money an investor would need to pay to buy one share of the stock.';
@@ -2026,7 +2155,7 @@ const props = defineProps({
 });
 const item = toRef(props, 'item');
 
-function formatDate(date) {
+function formatDate(date: string | number | Date) {
   let d = date instanceof Date ? date : new Date(date);
   if (isNaN(d.getTime())) return '';
   const day = String(d.getDate()).padStart(2, '0');
@@ -2055,7 +2184,7 @@ const growthAttributes = [
   'Revenue Growth YoY (%)'
 ];
 
-function formatValue(item) {
+function formatValue(item: { attribute: string; value: any }) {
   if (!item.value && item.value !== 0) return '';
 
   const attribute = item.attribute;
@@ -2120,14 +2249,15 @@ function formatValue(item) {
 }
 
 const selected = ref('filters')
-function select(option) {
+function select(option: string) {
   selected.value = option
 }
 
 const themes = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
 const currentTheme = ref('default');
+const error: Ref<string> = ref('');
 
-async function setTheme(newTheme) {
+async function setTheme(newTheme: string) {
   const root = document.documentElement;
   root.classList.remove(...themes);
   root.classList.add(newTheme);
@@ -2145,10 +2275,14 @@ async function setTheme(newTheme) {
     if (data.message === 'Theme updated') {
       currentTheme.value = newTheme;
     } else {
-      error.value = data.message;
+      errorMessage.value = data.message;
     }
-  } catch (error) {
-    error.value = error.message;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      errorMessage.value = error.message;
+    } else {
+      errorMessage.value = String(error);
+    }
   }
 }
 
@@ -2175,12 +2309,12 @@ async function loadTheme() {
 
 loadTheme()
 
-function arrayToCSV(data) {
+function arrayToCSV(data: Record<string, any>[]) {
   if (!data.length) return '';
   const keys = Object.keys(data[0]);
   const csvRows = [
     keys.join(','), // header row
-    ...data.map(row => keys.map(k => `"${(row[k] ?? '').toString().replace(/"/g, '""')}"`).join(','))
+    ...data.map((row: Record<string, any>) => keys.map(k => `"${(row[k] ?? '').toString().replace(/"/g, '""')}"`).join(','))
   ];
   return csvRows.join('\n');
 }
@@ -2247,11 +2381,10 @@ async function confirmResetScreener() {
     await CurrentScreener();
     showResetDialog.value = false;
   } catch (error) {
-    resetError.value = 'Error resetting screener: ' + (error.message || error);
+    resetError.value = 'Error resetting screener: ' + (typeof error === 'object' && error !== null && 'message' in error ? (error as { message?: string }).message : String(error));}
   }
-}
 
-const selectedAttributes = ref([]);
+const selectedAttributes = ref<any[]>([]);
 
 async function loadColumns() {
   try {
@@ -2268,14 +2401,14 @@ async function loadColumns() {
     const validValues = [
       'price','market_cap','volume','ipo','assettype','sector','exchange','country','pe_ratio','ps_ratio','fcf','cash','current_debt','current_assets','current_liabilities','current_ratio','roe','roa','peg','eps','pb_ratio','dividend_yield','name','currency','industry','book_value','shares','rs_score1w','rs_score1m','rs_score4m','all_time_high','all_time_low','high_52w','low_52w','perc_change','isin','gap','ev','adv1w','adv1m','adv4m','adv1y','rsi','intrinsic_value'
     ];
-    selectedAttributes.value = (Array.isArray(data.columns) ? data.columns : []).filter(v => validValues.includes(v));
+    selectedAttributes.value = (Array.isArray(data.columns) ? data.columns : []).filter((v: string) => validValues.includes(v));
   } catch (err) {
     selectedAttributes.value = [];
     notification.value.show('Failed to load columns');
   }
 }
 
-function handleUpdateColumns(newColumns) {
+function handleUpdateColumns(newColumns: string[]) {
   selectedAttributes.value = [...newColumns];
   loadColumns();
   GetScreenerResultsAll(true);
@@ -2287,7 +2420,7 @@ onMounted(() => {
   loadColumns();
 });
 
-async function handleFetchScreeners(val) {
+async function handleFetchScreeners(val: string) {
   await fetchScreenerResults(val);
 }
 </script>

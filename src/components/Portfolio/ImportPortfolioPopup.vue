@@ -12,7 +12,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const props = defineProps({
@@ -25,9 +25,9 @@ const emit = defineEmits(['imported', 'close']);
 const importError = ref('');
 const loading = ref(false);
 
-async function handleImportFile(event) {
+async function handleImportFile(event: Event) {
   importError.value = '';
-  const file = event.target.files[0];
+  const file = (event.target as HTMLInputElement).files?.[0];
   if (!file) return;
   // Security: limit file size to 1MB
   if (file.size > 1_000_000) {
@@ -40,12 +40,12 @@ async function handleImportFile(event) {
     const lines = text.split(/\r?\n/);
 
     // Find section indices
-    const statsIdx = lines.findIndex(l => l.trim() === 'Stats');
-    const positionsIdx = lines.findIndex(l => l.trim() === 'Positions');
-    const tradesIdx = lines.findIndex(l => l.trim() === 'Trades');
+    const statsIdx = lines.findIndex((l: string) => l.trim() === 'Stats');
+    const positionsIdx = lines.findIndex((l: string) => l.trim() === 'Positions');
+    const tradesIdx = lines.findIndex((l: string) => l.trim() === 'Trades');
 
     // --- Stats section ---
-    let stats = {};
+    let stats: Record<string, string> = {};
     if (statsIdx !== -1 && positionsIdx !== -1) {
       let i = statsIdx + 1;
       while (i < positionsIdx) {
@@ -62,18 +62,18 @@ async function handleImportFile(event) {
     }
 
     // --- Positions section ---
-    let positions = [];
+    let positions: Record<string, string>[] = [];
     if (positionsIdx !== -1 && tradesIdx !== -1) {
       let headerLine = positionsIdx + 1;
       while (lines[headerLine] !== undefined && !lines[headerLine].trim()) headerLine++;
-      const headers = lines[headerLine].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+      const headers = lines[headerLine].split(',').map((h: string) => h.trim().replace(/^"|"$/g, ''));
       let i = headerLine + 1;
       while (i < tradesIdx) {
         if (!lines[i] || !lines[i].trim()) { i++; continue; }
-        const values = lines[i].split(',').map(s => s.replace(/^"|"$/g, '').trim());
+        const values = lines[i].split(',').map((s: string) => s.replace(/^"|"$/g, '').trim());
         if (values.length === headers.length) {
-          const obj = {};
-          headers.forEach((h, idx) => {
+          const obj: Record<string, string> = {};
+          headers.forEach((h: string, idx: number) => {
             let v = values[idx];
             // Unescape single quote prefix
             if (typeof v === 'string' && v.startsWith("'")) v = v.slice(1);
@@ -86,18 +86,18 @@ async function handleImportFile(event) {
     }
 
     // --- Trades section ---
-    let trades = [];
+    let trades: Record<string, string>[] = [];
     if (tradesIdx !== -1) {
       let headerLine = tradesIdx + 1;
       while (lines[headerLine] !== undefined && !lines[headerLine].trim()) headerLine++;
-      const headers = lines[headerLine].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+      const headers = lines[headerLine].split(',').map((h: string) => h.trim().replace(/^"|"$/g, ''));
       let i = headerLine + 1;
       while (i < lines.length) {
         if (!lines[i] || !lines[i].trim()) { i++; continue; }
-        const values = lines[i].split(',').map(s => s.replace(/^"|"$/g, '').trim());
+        const values = lines[i].split(',').map((s: string) => s.replace(/^"|"$/g, '').trim());
         if (values.length === headers.length) {
-          const obj = {};
-          headers.forEach((h, idx) => {
+          const obj: Record<string, string> = {};
+          headers.forEach((h: string, idx: number) => {
             let v = values[idx];
             if (typeof v === 'string' && v.startsWith("'")) v = v.slice(1);
             obj[h] = v;
@@ -109,7 +109,7 @@ async function handleImportFile(event) {
     }
 
     // Security: validate imported data for dangerous values (CSV injection)
-    function isDangerousCSVValue(v) {
+    function isDangerousCSVValue(v: unknown): boolean {
       if (typeof v === 'string' && v.startsWith("'")) v = v.slice(1);
       return typeof v === 'string' && /^[=+\-@]/.test(v) && v.length > 1;
     }
@@ -139,15 +139,15 @@ async function handleImportFile(event) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': props.apiKey
-      },
+        'x-api-key': props.apiKey ?? ''
+      } as Record<string, string>,
       body: JSON.stringify(payload)
     });
     if (!response.ok) throw new Error('Failed to import portfolio');
     emit('imported');
     emit('close');
   } catch (error) {
-    importError.value = error.message || 'Import failed.';
+    importError.value = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : 'Import failed.';
   } finally {
     loading.value = false;
   }

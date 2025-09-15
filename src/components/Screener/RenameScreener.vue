@@ -28,7 +28,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 
 const props = defineProps({
@@ -81,9 +81,15 @@ async function UpdateScreener() {
     } else {
       props.notification.value.show(responseData.message || 'Failed to rename screener')
     }
-  } catch (error) {
-    if (props.error) props.error.value = error.message
-    props.notification.value.show(error.message)
+  } catch (err) {
+    let errorMsg = 'Unknown error';
+    if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
+      errorMsg = (err as any).message;
+    } else if (typeof err === 'string') {
+      errorMsg = err;
+    }
+    if (props.error) props.error.value = errorMsg;
+    props.notification.value.show(errorMsg);
   }
 }
 </script>

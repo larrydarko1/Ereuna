@@ -13,10 +13,8 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "Loader",
-};
+<script setup lang="ts">
+
 </script>
 
 <style lang="scss" scoped>

@@ -50,9 +50,9 @@
     High: <span>{{ ohlcDisplay.high }}</span>
     Close: <span>{{ ohlcDisplay.close }}</span>
     Low: <span>{{ ohlcDisplay.low }}</span>
-    <span :class="['change', ohlcDisplay.changeRaw >= 0 ? 'pos' : 'neg']">
-      {{ ohlcDisplay.changeRaw >= 0 ? '+' : '' }}{{ ohlcDisplay.changeRaw }}
-      {{ ohlcDisplay.changeRaw >= 0 ? '+' : '' }}{{ ohlcDisplay.changePct }}%
+    <span :class="['change', Number(ohlcDisplay.changeRaw) >= 0 ? 'pos' : 'neg']">
+      {{ Number(ohlcDisplay.changeRaw) >= 0 ? '+' : '' }}{{ ohlcDisplay.changeRaw }}
+      {{ Number(ohlcDisplay.changeRaw) >= 0 ? '+' : '' }}{{ ohlcDisplay.changePct }}%
     </span>
   </span>
 </div>
@@ -70,63 +70,93 @@
                                 </div>
 </template>
 
-<script setup>
-import Loader from '@/components/loader.vue'
-import { onMounted, ref, watch, computed  } from 'vue';
-import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
+<script setup lang="ts">
+
+import Loader from '@/components/loader.vue';
+import { onMounted, ref, watch, computed, Ref } from 'vue';
+import {
+  createChart,
+  ColorType,
+  CrosshairMode,
+  IChartApi,
+  Time,
+  IPriceLine
+} from 'lightweight-charts';
 import EditChart from '@/components/charts/EditChart.vue';
 
-const showEditChart = ref(false); // display popup for editing indicators of chart
-  // --- Lazy loading logic ---
-  let isLoadingMore = false;
-  let allDataLoaded = false;
+// --- Chart Data Interfaces ---
+interface OHLCData {
+  time: Time;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
 
-const props = defineProps({
-  apiKey: {
-    type: String,
-    required: true
-  },
-  user: {
-    type: String,
-    required: true
-  },
-  defaultSymbol: {
-    type: String,
-    required: true
-  },
-  selectedSymbol: {
-    type: String,
-    default: null
-  },
-  assetInfo: {
-    type: Object,
-  },
-  getImagePath: {
-    type: Function,
-    required: true
-  }
-});
+interface VolumeData {
+  time: Time;
+  value: number;
+  color?: string;
+}
+
+interface MAData {
+  time: Time;
+  value: number;
+}
+
+interface Indicator {
+  type: string;
+  timeframe: number;
+  visible: boolean;
+}
+
+interface ChartDataResult {
+  ohlc: OHLCData[];
+  volume: VolumeData[];
+  MA1: MAData[];
+  MA2: MAData[];
+  MA3: MAData[];
+  MA4: MAData[];
+  intrinsicValue?: number;
+}
 
 
-let isChartLoading1 = ref(false); // Local loader for this chart
-let isLoading1 = ref(false); // If you want a second loader, keep this, else remove
-const data = ref([]); // OHCL Data
-const data2 = ref([]); // Volume Data
-const data3 = ref([]); // 10MA
-const data4 = ref([]); // 20MA
-const data5 = ref([]); // 50MA
-const data6 = ref([]); // 200MA
-const IntrinsicValue = ref(null); // stores Intrinsic Value for price line 
+const showEditChart = ref(false);
+let isLoadingMore: boolean = false;
+let allDataLoaded: boolean = false;
 
-function isIntraday(timeframe) {
+
+const props = defineProps<{
+  apiKey: string;
+  user: string;
+  defaultSymbol: string;
+  selectedSymbol?: string | null;
+  assetInfo?: Record<string, any>;
+  getImagePath: (symbol: string) => string;
+}>();
+
+
+
+const isChartLoading1 = ref<boolean>(false);
+const isLoading1 = ref<boolean>(false);
+const data = ref<OHLCData[]>([]);
+const data2 = ref<VolumeData[]>([]);
+const data3 = ref<MAData[]>([]);
+const data4 = ref<MAData[]>([]);
+const data5 = ref<MAData[]>([]);
+const data6 = ref<MAData[]>([]);
+const IntrinsicValue = ref<number | null>(null);
+
+
+function isIntraday(timeframe: string): boolean {
   return ['intraday1m', 'intraday5m', 'intraday15m', 'intraday30m', 'intraday1hr'].includes(timeframe);
 }
 
 
-// --- WebSocket chart data fetcher ---
-let ws = null;
-let wsReconnectTimeout = null;
-function closeChartWS() {
+
+let ws: WebSocket | null = null;
+let wsReconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+function closeChartWS(): void {
   if (ws) {
     ws.close();
     ws = null;
@@ -137,37 +167,36 @@ function closeChartWS() {
   }
 }
 
-async function fetchChartData(symbolParam, timeframeParam) {
+async function fetchChartData(symbolParam?: string, timeframeParam?: string): Promise<void> {
   isChartLoading1.value = true;
   closeChartWS();
-  // Reset lazy loading flags for new symbol/timeframe
   isLoadingMore = false;
   allDataLoaded = false;
-  let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol);
-  let timeframe = timeframeParam || selectedDataType.value || 'daily';
-  let user = encodeURIComponent(props.user);
-  let wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  let wsUrl = `${wsProto}://localhost:8000/ws/chartdata?ticker=${symbol}&timeframe=${timeframe}&user=${user}`;
-  let restUrl = `/api/${symbol}/chartdata?timeframe=${timeframe}&user=${user}`;
+  const symbol = symbolParam || props.selectedSymbol || props.defaultSymbol;
+  const timeframe = timeframeParam || selectedDataType.value || 'daily';
+  const user = encodeURIComponent(props.user);
+  const wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const wsUrl = `${wsProto}://localhost:8000/ws/chartdata?ticker=${symbol}&timeframe=${timeframe}&user=${user}`;
+  const restUrl = `/api/${symbol}/chartdata?timeframe=${timeframe}&user=${user}`;
   let triedRest = false;
-  function handleChartData(result) {
+  function handleChartData(result: ChartDataResult): void {
     const transform = isIntraday(timeframe)
-      ? (arr) => {
+      ? (arr: any[]): any[] => {
           const sorted = (arr || [])
-            .map(item => ({ ...item, time: Math.floor(new Date(item.time).getTime() / 1000) }))
-            .sort((a, b) => a.time - b.time);
-          return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
+            .map((item: any) => ({ ...item, time: Math.floor(new Date(item.time).getTime() / 1000) }))
+            .sort((a: any, b: any) => a.time - b.time);
+          return sorted.filter((item: any, idx: number, arr: any[]) => idx === 0 || item.time !== arr[idx - 1].time);
         }
-      : (arr) => {
-          const sorted = (arr || []).sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
-          return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time);
+      : (arr: any[]): any[] => {
+          const sorted = (arr || []).sort((a: any, b: any) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
+          return sorted.filter((item: any, idx: number, arr: any[]) => idx === 0 || item.time !== arr[idx - 1].time);
         };
-    data.value = transform(result.ohlc);
-    data2.value = transform(result.volume);
-    data3.value = transform(result.MA1);
-    data4.value = transform(result.MA2);
-    data5.value = transform(result.MA3);
-    data6.value = transform(result.MA4);
+    data.value = transform(result.ohlc) as OHLCData[];
+    data2.value = transform(result.volume) as VolumeData[];
+    data3.value = transform(result.MA1) as MAData[];
+    data4.value = transform(result.MA2) as MAData[];
+    data5.value = transform(result.MA3) as MAData[];
+    data6.value = transform(result.MA4) as MAData[];
     IntrinsicValue.value = result.intrinsicValue ?? null;
     isChartLoading1.value = false;
   }
@@ -263,7 +292,8 @@ const isBarChart = ref(false);
 
 // mounts chart (candlestick or bar) and volume
 onMounted(async () => {
-  const chartDiv = wkchart.value;
+  const chartDiv = wkchart.value as HTMLElement | null;
+  if (!chartDiv) return;
   const rect = chartDiv.getBoundingClientRect();
   const width = window.innerWidth <= 1150 ? 400 : rect.width;
   const height = rect.height <= 1150 ? 550 : rect.width;
@@ -302,22 +332,13 @@ onMounted(async () => {
       rightOffset: 50,
       timeVisible: true,
       secondsVisible: false,
-      timeFormatter: (timestamp) => {
-        const d = new Date(timestamp * 1000);
-        // If time is midnight, show only date
-        if (d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0) {
-          return d.toISOString().slice(0, 10);
-        } else {
-          // Show HH:MM for intraday
-          return d.toISOString().slice(11, 16);
-        }
-      },
+      // Removed invalid timeFormatter option
     },
   });
 
   // Chart type toggle logic
-  let mainSeries;
-  function updateMainSeries() {
+  let mainSeries: ReturnType<IChartApi['addBarSeries']> | ReturnType<IChartApi['addCandlestickSeries']> | null = null;
+  function updateMainSeries(): void {
     if (mainSeries) {
       chart.removeSeries(mainSeries);
     }
@@ -325,12 +346,8 @@ onMounted(async () => {
       mainSeries = chart.addBarSeries({
         downColor: theme.negative,
         upColor: theme.positive,
-        borderDownColor: theme.negative,
-        borderUpColor: theme.positive,
-        wickDownColor: theme.negative,
-        wickUpColor: theme.positive,
+        // BarSeries does not support borderDownColor, borderUpColor, wickDownColor, wickUpColor
         lastValueVisible: true,
-        crosshairMarkerVisible: false,
         priceLineVisible: true,
       });
     } else {
@@ -342,20 +359,17 @@ onMounted(async () => {
         wickDownColor: theme.negative,
         wickUpColor: theme.positive,
         lastValueVisible: true,
-        crosshairMarkerVisible: false,
         priceLineVisible: true,
       });
     }
     mainSeries.setData(data.value);
 
-    // Crosshair event
-    chart.subscribeCrosshairMove(param => {
+    chart.subscribeCrosshairMove((param) => {
       if (!param || !param.time || !mainSeries) {
         crosshairOhlc.value = null;
         return;
       }
-      // Find index in data array for the hovered time
-      const idx = data.value.findIndex(d => d.time === param.time);
+      const idx = data.value.findIndex((d: OHLCData) => d.time === param.time);
       if (idx !== -1) {
         crosshairOhlc.value = { ...data.value[idx], index: idx };
       } else {
@@ -368,14 +382,13 @@ onMounted(async () => {
     updateMainSeries();
   });
 
-  watch(data, (newData) => {
-    if (mainSeries) mainSeries.setData(newData);
+  watch(data, (newData: OHLCData[]) => {
+  if (mainSeries) mainSeries.setData(newData);
   });
 
   const Histogram = chart.addHistogramSeries({
     color: theme.text1,
     lastValueVisible: false,
-    crosshairMarkerVisible: false,
     priceLineVisible: false,
     priceFormat: {
       type: 'volume',
@@ -387,7 +400,6 @@ onMounted(async () => {
     color: theme.ma1,
     lineWidth: 1,
     lastValueVisible: false,
-    crosshairMarkerVisible: false,
     priceLineVisible: false,
   });
 
@@ -395,7 +407,6 @@ onMounted(async () => {
     color: theme.ma2,
     lineWidth: 1,
     lastValueVisible: false,
-    crosshairMarkerVisible: false,
     priceLineVisible: false,
   });
 
@@ -403,7 +414,6 @@ onMounted(async () => {
     color: theme.ma3,
     lineWidth: 1,
     lastValueVisible: false,
-    crosshairMarkerVisible: false,
     priceLineVisible: false,
   });
 
@@ -411,7 +421,6 @@ onMounted(async () => {
     color: theme.ma4,
     lineWidth: 1,
     lastValueVisible: false,
-    crosshairMarkerVisible: false,
     priceLineVisible: false,
   });
 
@@ -421,42 +430,26 @@ onMounted(async () => {
       bottom: 0,
     }
   });
-  
-  watch(data2, (newData2) => {
-    Histogram.setData(newData2);
+
+  watch(data2, (newData2: VolumeData[]) => {
+  Histogram.setData(newData2);
   });
 
-  watch(data3, (newData3) => {
-    if (newData3 === null) {
-      MaSeries1.setData([]);
-    } else {
-      MaSeries1.setData(newData3);
-    }
+  watch(data3, (newData3: MAData[] | null) => {
+  MaSeries1.setData(newData3 ?? []);
   });
-  watch(data4, (newData4) => {
-    if (newData4 === null) {
-      MaSeries2.setData([]);
-    } else {
-      MaSeries2.setData(newData4);
-    }
+  watch(data4, (newData4: MAData[] | null) => {
+  MaSeries2.setData(newData4 ?? []);
   });
-  watch(data5, (newData5) => {
-    if (newData5 === null) {
-      MaSeries3.setData([]);
-    } else {
-      MaSeries3.setData(newData5);
-    }
+  watch(data5, (newData5: MAData[] | null) => {
+  MaSeries3.setData(newData5 ?? []);
   });
-  watch(data6, (newData6) => {
-    if (newData6 === null) {
-      MaSeries4.setData([]);
-    } else {
-      MaSeries4.setData(newData6);
-    }
+  watch(data6, (newData6: MAData[] | null) => {
+  MaSeries4.setData(newData6 ?? []);
   });
 
-  watch(data2, (newData2) => {
-    const relativeVolumeData = newData2.map((dataPoint, index) => {
+  watch(data2, (newData2: VolumeData[]) => {
+    const relativeVolumeData: VolumeData[] = newData2.map((dataPoint: VolumeData, index: number) => {
       const averageVolume = calculateAverageVolume(newData2, index);
       const relativeVolume = dataPoint.value / averageVolume;
       const color = relativeVolume > 2 ? theme.accent1 : theme.volume;
@@ -469,11 +462,11 @@ onMounted(async () => {
     Histogram.setData(relativeVolumeData);
   });
 
-  function calculateAverageVolume(data, index) {
+  function calculateAverageVolume(data: VolumeData[], index: number): number {
     const windowSize = 365;
     const start = Math.max(0, index - windowSize + 1);
     const end = index + 1;
-    const sum = data.slice(start, end).reduce((acc, current) => acc + current.value, 0);
+    const sum = data.slice(start, end).reduce((acc: number, current: VolumeData) => acc + current.value, 0);
     return sum / (end - start);
   }
 
@@ -481,9 +474,8 @@ onMounted(async () => {
   await fetchChartData();
   updateMainSeries();
 
-  // Add price line for IntrinsicValue
-  let intrinsicPriceLine = null;
-  function updateIntrinsicPriceLine() {
+  let intrinsicPriceLine: IPriceLine | null = null;
+  function updateIntrinsicPriceLine(): void {
     if (!mainSeries) return;
     if (intrinsicPriceLine) {
       mainSeries.removePriceLine(intrinsicPriceLine);
@@ -497,74 +489,62 @@ onMounted(async () => {
         lineStyle: 2, // Dashed
         axisLabelVisible: true,
         title: 'Intrinsic Value',
-        labelVisible: true,
+        // Removed invalid labelVisible option
       });
     }
   }
 
-  // Watch IntrinsicValue and update price line
   watch(IntrinsicValue, updateIntrinsicPriceLine);
-  // Also update on chart type change (mainSeries changes)
   watch(isBarChart, updateIntrinsicPriceLine);
-  // Initial draw
   updateIntrinsicPriceLine();
   isLoading1.value = false;
 
   chart.timeScale().subscribeVisibleLogicalRangeChange(async (range) => {
+    // range: LogicalRange | null
     if (isLoadingMore || allDataLoaded) return;
-    // Only for daily/weekly
     if (selectedDataType.value !== 'daily' && selectedDataType.value !== 'weekly') return;
-    // If user scrolls near the left edge (first 20 bars)
-    if (range && range.from < 20) {
+    if (range && typeof range.from === 'number' && range.from < 20) {
       isLoadingMore = true;
-      // Get oldest loaded date
       const oldest = data.value.length > 0 ? data.value[0].time : null;
       if (!oldest) {
         isLoadingMore = false;
         return;
       }
-      // Fetch next batch (older data)
       try {
         const symbol = props.selectedSymbol || props.defaultSymbol;
         const timeframe = selectedDataType.value;
-        // Use oldest date as 'before' param
         const url = `/api/${symbol}/chartdata?timeframe=${timeframe}&user=${props.user}&before=${oldest}`;
         const response = await fetch(url, {
           headers: { 'X-API-KEY': props.apiKey },
         });
         if (!response.ok) throw new Error('Failed to fetch more data');
-        const result = await response.json();
-        // If no more data, stop loading
+        const result: ChartDataResult = await response.json();
         if (!result.ohlc || result.ohlc.length === 0) {
           allDataLoaded = true;
           isLoadingMore = false;
           return;
         }
-        // Ensure new batch is in ascending order
         let newOhlc = [...result.ohlc];
         if (newOhlc.length > 1 && newOhlc[0].time > newOhlc[newOhlc.length - 1].time) {
           newOhlc = newOhlc.reverse();
         }
-        // Filter out duplicates (by time)
-        const existingTimes = new Set(data.value.map(d => d.time));
-        newOhlc = newOhlc.filter(d => !existingTimes.has(d.time));
-        // Prepend new data to existing
+        const existingTimes = new Set(data.value.map((d: OHLCData) => d.time));
+        newOhlc = newOhlc.filter((d: OHLCData) => !existingTimes.has(d.time));
         data.value = [...newOhlc, ...data.value];
-        // Repeat for volume and MAs
         let newVolume = result.volume || [];
         if (newVolume.length > 1 && newVolume[0].time > newVolume[newVolume.length - 1].time) {
           newVolume = newVolume.reverse();
         }
-        const existingVolTimes = new Set(data2.value.map(d => d.time));
-        newVolume = newVolume.filter(d => !existingVolTimes.has(d.time));
+        const existingVolTimes = new Set(data2.value.map((d: VolumeData) => d.time));
+        newVolume = newVolume.filter((d: VolumeData) => !existingVolTimes.has(d.time));
         data2.value = [...newVolume, ...data2.value];
         if (result.MA1) {
           let newMA1 = result.MA1;
           if (newMA1.length > 1 && newMA1[0].time > newMA1[newMA1.length - 1].time) {
             newMA1 = newMA1.reverse();
           }
-          const existingMA1Times = new Set(data3.value.map(d => d.time));
-          newMA1 = newMA1.filter(d => !existingMA1Times.has(d.time));
+          const existingMA1Times = new Set(data3.value.map((d: MAData) => d.time));
+          newMA1 = newMA1.filter((d: MAData) => !existingMA1Times.has(d.time));
           data3.value = [...newMA1, ...data3.value];
         }
         if (result.MA2) {
@@ -572,8 +552,8 @@ onMounted(async () => {
           if (newMA2.length > 1 && newMA2[0].time > newMA2[newMA2.length - 1].time) {
             newMA2 = newMA2.reverse();
           }
-          const existingMA2Times = new Set(data4.value.map(d => d.time));
-          newMA2 = newMA2.filter(d => !existingMA2Times.has(d.time));
+          const existingMA2Times = new Set(data4.value.map((d: MAData) => d.time));
+          newMA2 = newMA2.filter((d: MAData) => !existingMA2Times.has(d.time));
           data4.value = [...newMA2, ...data4.value];
         }
         if (result.MA3) {
@@ -581,8 +561,8 @@ onMounted(async () => {
           if (newMA3.length > 1 && newMA3[0].time > newMA3[newMA3.length - 1].time) {
             newMA3 = newMA3.reverse();
           }
-          const existingMA3Times = new Set(data5.value.map(d => d.time));
-          newMA3 = newMA3.filter(d => !existingMA3Times.has(d.time));
+          const existingMA3Times = new Set(data5.value.map((d: MAData) => d.time));
+          newMA3 = newMA3.filter((d: MAData) => !existingMA3Times.has(d.time));
           data5.value = [...newMA3, ...data5.value];
         }
         if (result.MA4) {
@@ -590,8 +570,8 @@ onMounted(async () => {
           if (newMA4.length > 1 && newMA4[0].time > newMA4[newMA4.length - 1].time) {
             newMA4 = newMA4.reverse();
           }
-          const existingMA4Times = new Set(data6.value.map(d => d.time));
-          newMA4 = newMA4.filter(d => !existingMA4Times.has(d.time));
+          const existingMA4Times = new Set(data6.value.map((d: MAData) => d.time));
+          newMA4 = newMA4.filter((d: MAData) => !existingMA4Times.has(d.time));
           data6.value = [...newMA4, ...data6.value];
         }
         updateMainSeries();
@@ -631,7 +611,7 @@ const chartTypes = [
   { label: 'Weekly Chart', value: 'weekly', shortLabel: '1W' },
 ];
 
-function setChartView(label) {
+function setChartView(label: string): void {
   const type = chartTypes.find(t => t.label === label);
   if (type) {
     selectedDataType.value = type.value;
@@ -640,13 +620,24 @@ function setChartView(label) {
 }
 
 // Crosshair OHLC tracking
-const crosshairOhlc = ref(null);
+interface CrosshairOHLC extends OHLCData {
+  index: number;
+}
+const crosshairOhlc = ref<CrosshairOHLC | null>(null);
 
 // Compute OHLC and change for crosshair or latest
-const ohlcDisplay = computed(() => {
+interface OHLCDisplay {
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  changeRaw: string;
+  changePct: string;
+}
+const ohlcDisplay = computed<OHLCDisplay | null>(() => {
   let idx = -1;
   if (!data.value || data.value.length < 2) return null;
-  if (crosshairOhlc.value && crosshairOhlc.value.index !== undefined) {
+  if (crosshairOhlc.value && typeof crosshairOhlc.value.index === 'number') {
     idx = crosshairOhlc.value.index;
   } else {
     idx = data.value.length - 1;
@@ -664,8 +655,8 @@ const ohlcDisplay = computed(() => {
   return { open, high, low, close, changeRaw, changePct };
 });
 
-const hiddenList = ref([]); // stores hidden tickers for user (for hidden badge in chart)
-const indicatorList = ref([]); // stores in indicators settings for each user
+const hiddenList = ref<string[]>([]); // stores hidden tickers for user (for hidden badge in chart)
+const indicatorList = ref<Indicator[]>([]); // stores in indicators settings for each user
 
 async function fetchHiddenList() {
   try {
@@ -674,7 +665,7 @@ async function fetchHiddenList() {
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
-    hiddenList.value = data.Hidden;
+  hiddenList.value = data.Hidden as string[];
   } catch (err) {
     console.error('Error fetching hidden list:', err); // Log errors
   }
@@ -689,7 +680,11 @@ async function fetchIndicatorList() {
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
-    indicatorList.value = data;
+  // Ensure timeframe is a number for each indicator
+  indicatorList.value = (data as any[]).map(ind => ({
+    ...ind,
+    timeframe: typeof ind.timeframe === 'string' ? Number(ind.timeframe) : ind.timeframe
+  })) as Indicator[];
   } catch (err) {
     console.error('Error fetching indicator list:', err);
   }
@@ -700,7 +695,7 @@ onMounted(() => {
   fetchIndicatorList();
 });
 
-const isInHiddenList = (item) => {
+const isInHiddenList = (item: string): boolean => {
   return hiddenList.value.includes(item);
 };
 
@@ -712,13 +707,16 @@ function onSettingsSaved() {
 }
 
 // Computed property for active indicators in the chart
-const activeIndicators = computed(() => {
-  // Map of data refs for each indicator slot (assumes max 4 indicators)
+interface ActiveIndicator {
+  label: string;
+  color: string;
+}
+const activeIndicators = computed<ActiveIndicator[]>(() => {
   const dataRefs = [data3, data4, data5, data6];
   const colorRefs = [theme.ma1, theme.ma2, theme.ma3, theme.ma4];
-  const indicators = [];
+  const indicators: ActiveIndicator[] = [];
   if (!Array.isArray(indicatorList.value)) return indicators;
-  indicatorList.value.forEach((indicator, idx) => {
+  indicatorList.value.forEach((indicator: Indicator, idx: number) => {
     if (indicator.visible && dataRefs[idx] && dataRefs[idx].value && dataRefs[idx].value.length > 0) {
       indicators.push({
         label: `${indicator.type} (${indicator.timeframe})`,
@@ -727,6 +725,14 @@ const activeIndicators = computed(() => {
     }
   });
   return indicators;
+});
+
+defineExpose({
+  ohlcDisplay,
+  activeIndicators,
+  isInHiddenList,
+  onSettingsSaved,
+  indicatorList
 });
 </script>
 

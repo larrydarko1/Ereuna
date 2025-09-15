@@ -9,8 +9,8 @@
   </div>
 <div class="container">
 <div class="image-background">
-  <h3 class="quote">{{ quote.text }}</h3>
-<p class="author">— {{ quote.author }}</p>
+<h3 class="quote" v-if="quote">{{ quote.text }}</h3>
+<p class="author" v-if="quote">— {{ quote.author }}</p>
   <img class="bg" src="@/assets/images/bg.png" alt="" draggable="false">
 </div>
 <div class="login container">
@@ -85,20 +85,31 @@
   <NotificationPopup ref="notification" />
 </template>
 
-<script setup>
-import { ref, nextTick, onMounted } from 'vue';
+<script setup lang="ts">
+import { ref, nextTick, onMounted, ComponentPublicInstance, Ref} from 'vue';
 import { useRouter } from 'vue-router';
 import hideIcon from '@/assets/icons/hide.png';
 import showIcon from '@/assets/icons/show.png';
 import NotificationPopup from '@/components/NotificationPopup.vue';
 
+// Error and state refs for template
+const error = ref('');
+const usernameError = ref(false);
+const passwordError = ref(false);
+const fieldsError = ref(false);
+const isLoggingIn = ref(false);
+
+type Quote = { text: string; author: string };
+
 const isLogged = ref(false);
 const isLoaderVisible = ref(false);
 
 // for popup notifications
-const notification = ref(null);
+const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
 const showNotification = () => {
-  notification.value.show('This is a custom notification message!');
+  if (notification.value) {
+    notification.value.show('This is a custom notification message!');
+  }
 };
 
 const quotes = [
@@ -168,7 +179,7 @@ const quotes = [
   }
 ];
 
-const quote = ref('');
+const quote = ref<Quote | null>(null);
 
 onMounted(() => {
   const randomIndex = Math.floor(Math.random() * quotes.length);
@@ -185,16 +196,18 @@ const mfaRequired = ref(false);
 const mfaDigits = ref(['', '', '', '', '', '']);
 const storedUsername = ref('');
 const welcomeMessage = ref('');
-const mfaRefs = Array.from({ length: 6 }, () => ref(null));
+
+type MFARef = Ref<Element | ComponentPublicInstance | null>;
+const mfaRefs: MFARef[] = Array.from({ length: 6 }, () => ref<Element | ComponentPublicInstance | null>(null));
 
 async function login() {
   isLogged.value = false;
   isLoaderVisible.value = false;
-  const usernameInput = document.querySelector('input[name="Username"]');
-  const passwordInput = document.querySelector('input[name="Password"]');
+  const usernameInput = document.querySelector('input[name="Username"]') as HTMLInputElement | null;
+  const passwordInput = document.querySelector('input[name="Password"]') as HTMLInputElement | null;
 
-  const username = usernameInput.value.trim();
-  const password = passwordInput.value.trim();
+  const username = usernameInput?.value.trim() ?? '';
+  const password = passwordInput?.value.trim() ?? '';
 
   // Update the stored username
   storedUsername.value = username;
@@ -204,9 +217,9 @@ async function login() {
 
   // Check for empty fields first
   if (!username || !password) {
-    notification.value.show('Please fill both username and password fields');
-    if (!username) usernameInput.classList.add('error');
-    if (!password) passwordInput.classList.add('error');
+  if (notification.value) notification.value.show('Please fill both username and password fields');
+  if (!username && usernameInput) usernameInput.classList.add('error');
+  if (!password && passwordInput) passwordInput.classList.add('error');
     return;
   }
 
@@ -231,7 +244,9 @@ async function login() {
         mfaRequired.value = true;
         mfaDigits.value = ['', '', '', '', '', ''];
         await nextTick();
-        mfaRefs[0].value && mfaRefs[0].value.focus();
+        if (mfaRefs[0].value && 'focus' in mfaRefs[0].value) {
+          (mfaRefs[0].value as HTMLInputElement).focus();
+        }
       } else {
         // MFA verification not required, proceed with login
         isLogged.value = true;
@@ -243,34 +258,38 @@ async function login() {
     } else {
       // Use exact string matching
       if (responseBody.message === 'Username doesn\'t exist') {
-        notification.value.show('Username doesn\'t exist');
-        usernameInput.classList.add('error');
+        if (notification.value) notification.value.show('Username doesn\'t exist');
+        if (usernameInput) usernameInput.classList.add('error');
       } else if (responseBody.message === 'Password is incorrect') {
-        notification.value.show('Password is incorrect');
-        passwordInput.classList.add('error');
+        if (notification.value) notification.value.show('Password is incorrect');
+        if (passwordInput) passwordInput.classList.add('error');
       } else if (responseBody.message === 'Subscription is expired') {
         router.push({ path: '/renew-subscription' });
       } else if (responseBody.message === 'Please fill both username and password fields') {
-        notification.value.show('Please fill both username and password fields');
-        if (!username) usernameInput.classList.add('error');
-        if (!password) passwordInput.classList.add('error');
+        if (notification.value) notification.value.show('Please fill both username and password fields');
+        if (!username && usernameInput) usernameInput.classList.add('error');
+        if (!password && passwordInput) passwordInput.classList.add('error');
       } else {
         // Log error
       }
     }
-  } catch (error) {
-    error.value = error.message;
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : String(err);
   }
 }
 
-function focusNext(idx) {
+function focusNext(idx: number) {
   if (mfaDigits.value[idx] && idx < 5) {
-    mfaRefs[idx + 1].value && mfaRefs[idx + 1].value.focus();
+    if (mfaRefs[idx + 1].value && typeof (mfaRefs[idx + 1].value as any).focus === 'function') {
+      (mfaRefs[idx + 1].value as HTMLInputElement).focus();
+    }
   }
 }
-function focusPrev(idx) {
+function focusPrev(idx: number) {
   if (!mfaDigits.value[idx] && idx > 0) {
-    mfaRefs[idx - 1].value && mfaRefs[idx - 1].value.focus();
+    if (mfaRefs[idx - 1].value && typeof (mfaRefs[idx - 1].value as any).focus === 'function') {
+      (mfaRefs[idx - 1].value as HTMLInputElement).focus();
+    }
   }
 }
 
@@ -298,13 +317,15 @@ async function verifyMfa() {
       router.push({ name: 'Charts' });
       mfaRequired.value = false;
     } else {
-      notification.value.show('Invalid MFA Code, try again.');
+      if (notification.value) notification.value.show('Invalid MFA Code, try again.');
       mfaDigits.value = ['', '', '', '', '', ''];
       await nextTick();
-      mfaRefs[0].value && mfaRefs[0].value.focus();
+      if (mfaRefs[0].value instanceof HTMLInputElement) {
+        mfaRefs[0].value.focus();
+      }
     }
-  } catch (error) {
-    error.value = error.message;
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : String(err);
   }
 }
 

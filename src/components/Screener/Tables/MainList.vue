@@ -82,10 +82,10 @@
                       </svg>
                       <p>Add to Watchlist</p>
                       <div class="ml-nested-dropdown-menu">
-                        <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="ml-watchlist-item">
+                        <div v-for="(ticker, index) in (watchlist?.tickers ?? [])" :key="index" class="ml-watchlist-item">
                           <label :for="'watchlist-' + index" class="ml-checkbox-label">
                             <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
-                              <div v-html="getWatchlistIcon(ticker, asset.Symbol)"></div>
+                              <div v-html="getWatchlistIcon ? getWatchlistIcon(ticker, asset.Symbol) : ''"></div>
                             </div>
                             <span></span>
                             {{ ticker.Name }}
@@ -107,11 +107,28 @@
                 </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 
+// Asset type (partial, extend as needed)
+interface Asset {
+  Symbol: string;
+  [key: string]: any;
+}
+
+interface Watchlist {
+  tickers: { Name: string }[];
+  [key: string]: any;
+}
+
+type Attribute = {
+  label: string;
+  value: string;
+  backend: string;
+};
+
 // Returns a class for todaychange column based on value
-function getColumnClass(asset, col) {
+function getColumnClass(asset: Asset, col: string): string {
   const attr = attributes.find(a => a.value === col);
   if (!attr) return '';
   if (attr.backend === 'todaychange') {
@@ -124,38 +141,44 @@ function getColumnClass(asset, col) {
   return '';
 }
 
-const props = defineProps({
-  resultListLength: Number,
-  currentResults: Array,
-  selectedItem: String,
-  watchlist: Object,
-  getWatchlistIcon: Function,
-  selectedAttributes: { type: Array, required: true },
-});
+const props = defineProps<{
+  resultListLength?: number;
+  currentResults?: Asset[];
+  selectedItem?: string;
+  watchlist?: Watchlist;
+  getWatchlistIcon?: (ticker: any, symbol: string) => string;
+  selectedAttributes: string[];
+}>();
 
-const emit = defineEmits(['scroll', 'keydown', 'select-row', 'hide-stock', 'toggle-watchlist']);
+const emit = defineEmits<{
+  (e: 'scroll', event: Event): void;
+  (e: 'keydown', event: KeyboardEvent): void;
+  (e: 'select-row', symbol: string): void;
+  (e: 'hide-stock', asset: Asset): void;
+  (e: 'toggle-watchlist', payload: { ticker: any; symbol: string }): void;
+}>();
 
-function handleScroll1(event) {
+function handleScroll1(event: Event) {
   emit('scroll', event);
 }
 
-function handleKeydown(event) {
+function handleKeydown(event: KeyboardEvent) {
   emit('keydown', event);
 }
 
-function selectRow(symbol) {
+function selectRow(symbol: string) {
   emit('select-row', symbol);
 }
 
-function hideStock(asset) {
+function hideStock(asset: Asset) {
   emit('hide-stock', asset);
 }
 
-function toggleWatchlist(ticker, symbol) {
+function toggleWatchlist(ticker: any, symbol: string) {
   emit('toggle-watchlist', { ticker, symbol });
 }
 
-const attributes = [
+const attributes: Attribute[] = [
   { label: 'Symbol', value: 'symbol', backend: 'Symbol' },
   { label: 'Name', value: 'name', backend: 'Name' },
   { label: 'ISIN', value: 'isin', backend: 'ISIN' },
@@ -203,61 +226,61 @@ const attributes = [
   { label: 'Intrinsic Value', value: 'intrinsic_value', backend: 'IntrinsicValue' },
 ];
 
-function getColumnLabel(col) {
+function getColumnLabel(col: string): string {
   const found = attributes.find(a => a.value === col);
   return found ? found.label : col;
 }
 
-function getColumnValue(asset, col) {
+function getColumnValue(asset: Asset, col: string): string {
   const attr = attributes.find(a => a.value === col);
   if (!attr) return '-';
   const value = asset[attr.backend];
   // Map backend keys to formatting rules (type-safe)
-  const formatRules = {
-    DividendYield: v => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
-    EPS: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
-    todaychange: v => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
-    ADV1W: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
-    ADV1M: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
-    ADV4M: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
-    ADV1Y: v => (typeof v === 'number' ? v.toFixed(2) : '-'),
-    MarketCapitalization: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    SharesOutstanding: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    PERatio: v => (typeof v === 'number' && v > 0 ? Math.round(v) : '-'),
-    PriceToSalesRatioTTM: v => (typeof v === 'number' && v > 0 ? Math.round(v) : '-'),
-    PEGRatio: v => (typeof v === 'number' && v > 0 ? Math.round(v) : '-'),
-    Volume: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    EV: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    Gap: v => (typeof v === 'number' ? v.toFixed(2) + '%' : '-'),
-    RSI: v => (typeof v === 'number' && v >= 0 ? v.toFixed(2) : '-'),
-    fiftytwoWeekHigh: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    fiftytwoWeekLow: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    AlltimeHigh: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    AlltimeLow: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    BookValue: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    PriceToBookRatio: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    freeCashFlow: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    cashAndEq: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    debtCurrent: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    assetsCurrent: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    liabilitiesCurrent: v => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
-    currentRatio: v => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
-    roe: v => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
-    roa: v => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
-    IPO: v => {
+  const formatRules: { [key: string]: (v: any) => string } = {
+    DividendYield: (v: number) => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
+    EPS: (v: number) => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    todaychange: (v: number) => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
+    ADV1W: (v: number) => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    ADV1M: (v: number) => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    ADV4M: (v: number) => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    ADV1Y: (v: number) => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    MarketCapitalization: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    SharesOutstanding: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    PERatio: (v: number) => (typeof v === 'number' && v > 0 ? Math.round(v).toString() : '-'),
+    PriceToSalesRatioTTM: (v: number) => (typeof v === 'number' && v > 0 ? Math.round(v).toString() : '-'),
+    PEGRatio: (v: number) => (typeof v === 'number' && v > 0 ? Math.round(v).toString() : '-'),
+    Volume: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    EV: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    Gap: (v: number) => (typeof v === 'number' ? v.toFixed(2) + '%' : '-'),
+    RSI: (v: number) => (typeof v === 'number' && v >= 0 ? v.toFixed(2) : '-'),
+    fiftytwoWeekHigh: (v: number) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    fiftytwoWeekLow: (v: number) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    AlltimeHigh: (v: number) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    AlltimeLow: (v: number) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    BookValue: (v: number) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    PriceToBookRatio: (v: number) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    freeCashFlow: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    cashAndEq: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    debtCurrent: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    assetsCurrent: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    liabilitiesCurrent: (v: any) => (v != null && !isNaN(v) ? parseInt(v).toLocaleString() : '-'),
+    currentRatio: (v: number) => (typeof v === 'number' && v > 0 ? v.toFixed(2) : '-'),
+    roe: (v: number) => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
+    roa: (v: number) => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
+    IPO: (v: any) => {
       if (!v) return '-';
       const date = new Date(v);
       if (isNaN(date.getTime())) return '-';
       return date.toISOString().slice(0, 10);
     },
-    Currency: v => (typeof v === 'string' ? v.toUpperCase() : (v ?? '-')),
+    Currency: (v: any) => (typeof v === 'string' ? v.toUpperCase() : (v ?? '-')),
   };
   const formatter = formatRules[attr.backend];
   if (formatter) return formatter(value);
   return value ?? '-';
 }
 
-const styleMap = {
+const styleMap: { [key: string]: number } = {
   price: 100,
   market_cap: 150,
   volume: 100,
@@ -304,8 +327,8 @@ const styleMap = {
   intrinsic_value: 150,
 };
 
-function getColumnStyle(col) {
-  const width = styleMap[col] || 100;
+function getColumnStyle(col: string): string {
+  const width = styleMap[col] ?? 100;
   return `min-width: ${width}px;`;
 }
 
@@ -313,7 +336,7 @@ const columnsMinWidth = computed(() => {
   // Always include Ticker column (min-width: 70px) and image column (min-width: 50px)
   let sum = 70 + 50 + 51; // 51px for the dropdown button
   for (const col of props.selectedAttributes) {
-    sum += styleMap[col] || 100;
+    sum += styleMap[col] ?? 100;
   }
   return sum;
 });

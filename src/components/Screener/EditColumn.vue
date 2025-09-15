@@ -44,7 +44,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 
 // Define component props
@@ -111,26 +111,26 @@ const attributes = [
 function close() {
   emit('close')
 }
-const localSelected = ref([...props.selectedAttributes]);
+const localSelected = ref<string[]>([...props.selectedAttributes as string[]]);
 
 watch(() => props.selectedAttributes, (val) => {
-  localSelected.value = [...val];
+  localSelected.value = [...(val as string[])];
 });
 
 // Add an attribute to the selected list
-function addAttribute(attrValue) {
+function addAttribute(attrValue: string) {
   if (!localSelected.value.includes(attrValue)) {
     localSelected.value.push(attrValue)
   }
 }
 
 // Remove an attribute from the selected list
-function removeAttribute(attrValue) {
+function removeAttribute(attrValue: string) {
   localSelected.value = localSelected.value.filter(v => v !== attrValue)
 }
 
 // Move the selected attribute up in the list
-function moveUp(idx) {
+function moveUp(idx: number) {
   if (idx > 0) {
     const arr = localSelected.value
     ;[arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]
@@ -139,7 +139,7 @@ function moveUp(idx) {
 }
 
 // Move the selected attribute down in the list
-function moveDown(idx) {
+function moveDown(idx: number) {
   if (idx < localSelected.value.length - 1) {
     const arr = localSelected.value
     ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
@@ -148,7 +148,7 @@ function moveDown(idx) {
 }
 
 // Get the label for a given attribute value
-function getLabel(attrValue) {
+function getLabel(attrValue: string): string {
   const found = attributes.find(a => a.value === attrValue)
   return found ? found.label : attrValue
 }
@@ -186,8 +186,14 @@ async function submitEditColumn() {
       props.notification.value.show(responseData.message || 'Failed to update columns');
     }
   } catch (err) {
-    if (props.error) props.error.value = err.message;
-    props.notification.value.show(err.message);
+    let errorMsg = 'Unknown error';
+    if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
+      errorMsg = (err as any).message;
+    } else if (typeof err === 'string') {
+      errorMsg = err;
+    }
+    if (props.error) props.error.value = errorMsg;
+    props.notification.value.show(errorMsg);
   }
 }
 

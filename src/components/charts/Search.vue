@@ -29,7 +29,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const props = defineProps({
   modelValue: {
     type: String,
@@ -38,9 +38,10 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:modelValue', 'search', 'input']);
 
-function onInput(e) {
-  emit('update:modelValue', e.target.value.toUpperCase());
-  emit('input', e.target.value.toUpperCase());
+function onInput(e: Event) {
+  const input = e.target as HTMLInputElement;
+  emit('update:modelValue', input.value.toUpperCase());
+  emit('input', input.value.toUpperCase());
 }
 
 function onSearch() {

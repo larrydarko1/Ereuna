@@ -62,42 +62,55 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
-const props = defineProps({
-  user: { type: String, required: true },
-  apiKey: { type: String, required: true },
-  notification: { type: Object, required: true },
-  selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
-})
+const props = defineProps<{
+  user: string;
+  apiKey: string;
+  notification: { message?: string; type?: string };
+  selectedScreener: string;
+  isScreenerError: boolean;
+}>();
 
 const showPriceInputs = ref(false);
 
 // adds and modifies price value for screener 
 async function SetPrice() {
   try {
-
     if (!props.selectedScreener) {
-      props.isScreenerError = true
-      throw new Error('Please select a screener')
+      // Cannot assign to readonly prop, use notification pattern
+      if (props.notification) {
+        props.notification.message = 'Please select a screener';
+        props.notification.type = 'error';
+      }
+      throw new Error('Please select a screener');
     }
 
-    const leftPrice = parseFloat(document.getElementById('left-p').value)
-    const rightPrice = parseFloat(document.getElementById('right-p').value)
+    const leftInput = document.getElementById('left-p') as HTMLInputElement | null;
+    const rightInput = document.getElementById('right-p') as HTMLInputElement | null;
+    if (!leftInput || !rightInput) {
+      throw new Error('Input elements not found');
+    }
+    const leftPrice = parseFloat(leftInput.value);
+    const rightPrice = parseFloat(rightInput.value);
+
+    if (isNaN(leftPrice) || isNaN(rightPrice)) {
+      throw new Error('Please enter valid numbers');
+    }
 
     if (leftPrice >= rightPrice) {
-      throw new Error('Min price cannot be higher than or equal to max price')
+      throw new Error('Min price cannot be higher than or equal to max price');
     }
 
     const response = await fetch('/api/screener/price', {
@@ -112,22 +125,30 @@ async function SetPrice() {
         screenerName: props.selectedScreener,
         user: props.user
       })
-    })
+    });
 
     if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (data.message === 'Price range updated successfully') {
-      emit('fetchScreeners', props.selectedScreener) // Fetch updated screeners
+      emit('fetchScreeners', props.selectedScreener); // Fetch updated screeners
     } else {
-      throw new Error('Error updating price range')
+      throw new Error('Error updating price range');
     }
-  } catch (error) {
-    error.value = error.message;
-    emit('fetchScreeners', props.selectedScreener)
+  } catch (error: unknown) {
+    // Defensive error handling for unknown type
+    let message = 'Unknown error';
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    if (props.notification) {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
+    emit('fetchScreeners', props.selectedScreener);
   }
 }
 

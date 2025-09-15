@@ -69,15 +69,15 @@
 </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
@@ -91,9 +91,9 @@ const props = defineProps({
 
 let ShowAssetType = ref(false);
 const AssetTypes = (['Stock', 'ETF']); // hosts all available asset types
-const selectedAssetTypes = ref([]);
+const selectedAssetTypes = ref<boolean[]>([]);
 
-const toggleAssetType = (index) => {
+const toggleAssetType = (index: number) => {
   selectedAssetTypes.value[index] = !selectedAssetTypes.value[index]; // Toggle the selected state
 };
 
@@ -122,8 +122,11 @@ async function SetAssetType() {
     const data = await response.json();
      emit('fetchScreeners', props.selectedScreener); // Update the list after setting asset types
   } catch (error) {
-    error.value = error.message;
-     emit('fetchScreeners', props.selectedScreener);
+    const msg = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : 'Unknown error';
+    if (props.notification && typeof props.notification.show === 'function') {
+      props.notification.show(msg);
+    }
+    emit('fetchScreeners', props.selectedScreener);
   }
 }
 

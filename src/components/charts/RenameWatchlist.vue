@@ -28,7 +28,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 const emit = defineEmits(['close'])
 
@@ -49,26 +49,35 @@ function close() {
 }
 
 async function UpdateWatchlist() {
-  const existingWatchlists = props.watchlist.tickers.map(watch => watch.Name)
+  if (!props.watchlist || !props.watchlist.tickers) return;
+  const existingWatchlists = props.watchlist.tickers.map((watch: any) => watch.Name)
 
   if (existingWatchlists.includes(watchlistName.value)) {
-    props.notification.value.show('Watchlist already exists')
+    if (props.notification && props.notification.value) {
+      props.notification.value.show('Watchlist already exists')
+    }
     return
   }
   if (!watchlistName.value) {
     return
   }
   if (watchlistName.value.length > 20) {
-    props.notification.value.show('Watchlist name cannot exceed 20 characters.')
+    if (props.notification && props.notification.value) {
+      props.notification.value.show('Watchlist name cannot exceed 20 characters.')
+    }
     return
   }
   try {
+    if (!props.selectedWatchlist || !props.selectedWatchlist.Name) return;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    }
+    if (props.apiKey) {
+      headers['X-API-KEY'] = props.apiKey
+    }
     const response = await fetch(`/api/${props.user}/rename/watchlists/${props.selectedWatchlist.Name}`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': props.apiKey,
-      },
+      headers,
       body: JSON.stringify({ newname: watchlistName.value })
     })
     if (!response.ok) {
@@ -76,11 +85,14 @@ async function UpdateWatchlist() {
       // Optionally handle errorData
     }
   } catch (error) {
-    props.notification.value.show(error.message)
+    if (props.notification && props.notification.value) {
+      const message = error instanceof Error ? error.message : String(error)
+      props.notification.value.show(message)
+    }
   }
   emit('close')
   if (props.getWatchlists) await props.getWatchlists()
-  const newWatchlist = props.watchlist.tickers.find(watch => watch.Name === watchlistName.value)
+  const newWatchlist = props.watchlist.tickers.find((watch: any) => watch.Name === watchlistName.value)
   if (newWatchlist && props.filterWatchlist) {
     await props.filterWatchlist(newWatchlist)
   }

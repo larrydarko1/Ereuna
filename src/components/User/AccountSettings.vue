@@ -280,9 +280,30 @@
         <div style="height: 100px"></div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { ref } from 'vue';
+
+// Notification system (assume a notification component is available)
+const notification = ref({ show: (msg: string) => { alert(msg); } });
+
+// Username change state
+const usernameError = ref(false);
+const usernameErrorMessage = ref('');
+const usernameSuccess = ref(false);
+const usernameSuccessMessage = ref('');
+
+// Password change state
+const oldPasswordError = ref(false);
+const newPasswordError = ref(false);
+const confirmPasswordError = ref(false);
+const passwordSuccess = ref(false);
+
+// Key generation state
+const keyError = ref(false);
+const keyErrorMessage = ref('');
+const keySuccess = ref(false);
+const keySuccessMessage = ref('');
 
 const props = defineProps({
   user: {
@@ -479,7 +500,7 @@ async function GenerateNewKey() {
           const a = document.createElement('a');
           a.style.display = 'none';
           a.href = url;
-          a.download = `${user}_recovery_key.txt`; // Use the username for the filename
+          a.download = `${props.user}_recovery_key.txt`; // Use the username for the filename
           document.body.appendChild(a);
           a.click();
           window.URL.revokeObjectURL(url);

@@ -162,17 +162,17 @@
 </div>
       <div class="summary-card">
         <div class="summary-title">Total P/L</div>
-        <div class="summary-value" :class="portfolioSummary?.totalPL >= 0 ? 'positive' : 'negative'">
-          {{ portfolioSummary?.totalPL >= 0 ? '+' : '' }}${{ portfolioSummary?.totalPL?.toLocaleString(undefined, {
+        <div class="summary-value" :class="(portfolioSummary?.totalPL ?? 0) >= 0 ? 'positive' : 'negative'">
+          {{ (portfolioSummary?.totalPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.totalPL?.toLocaleString(undefined, {
             minimumFractionDigits: 2, maximumFractionDigits: 2
           }) ?? '-' }}
         </div>
       </div>
       <div class="summary-card">
       <div class="summary-title">Total P/L (%)</div>
-      <div class="summary-value" :class="portfolioSummary?.totalPL > 0 ? 'positive' : portfolioSummary?.totalPL < 0 ? 'negative' : ''">
+      <div class="summary-value" :class="(portfolioSummary?.totalPL ?? 0) > 0 ? 'positive' : (portfolioSummary?.totalPL ?? 0) < 0 ? 'negative' : ''">
         <template v-if="portfolioSummary?.totalPLPercent !== '' && Number(portfolioSummary?.totalPLPercent) !== 0">
-          {{ portfolioSummary?.totalPL > 0 ? '+' : '' }}{{ portfolioSummary?.totalPLPercent }}%
+          {{ (portfolioSummary?.totalPL ?? 0) > 0 ? '+' : '' }}{{ portfolioSummary?.totalPLPercent }}%
         </template>
         <template v-else>
           -
@@ -181,8 +181,8 @@
     </div>
       <div class="summary-card">
         <div class="summary-title">Unrealized P/L</div>
-        <div class="summary-value" :class="portfolioSummary?.unrealizedPL >= 0 ? 'positive' : 'negative'">
-          {{ portfolioSummary?.unrealizedPL >= 0 ? '+' : '' }}${{ portfolioSummary?.unrealizedPL?.toLocaleString(undefined, {
+        <div class="summary-value" :class="(portfolioSummary?.unrealizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
+          {{ (portfolioSummary?.unrealizedPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.unrealizedPL?.toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
           }) ?? '-' }}
@@ -190,9 +190,9 @@
       </div>
       <div class="summary-card">
         <div class="summary-title">Unrealized P/L (%)</div>
-        <div class="summary-value" :class="portfolioSummary?.unrealizedPL > 0 ? 'positive' : portfolioSummary?.unrealizedPL < 0 ? 'negative' : ''">
+        <div class="summary-value" :class="(portfolioSummary?.unrealizedPL ?? 0) > 0 ? 'positive' : (portfolioSummary?.unrealizedPL ?? 0) < 0 ? 'negative' : ''">
   <template v-if="portfolioSummary?.unrealizedPLPercent !== '' && Number(portfolioSummary?.unrealizedPLPercent) !== 0">
-    {{ portfolioSummary?.unrealizedPL >= 0 ? '+' : '' }}{{ portfolioSummary?.unrealizedPLPercent }}%
+    {{ (portfolioSummary?.unrealizedPL ?? 0) >= 0 ? '+' : '' }}{{ portfolioSummary?.unrealizedPLPercent }}%
   </template>
   <template v-else>
     -
@@ -201,8 +201,8 @@
       </div>
       <div class="summary-card">
         <div class="summary-title">Realized P/L</div>
-        <div class="summary-value" :class="portfolioSummary?.realizedPL >= 0 ? 'positive' : 'negative'">
-          {{ portfolioSummary?.realizedPL >= 0 ? '+' : '' }}${{ portfolioSummary?.realizedPL?.toLocaleString(undefined, {
+        <div class="summary-value" :class="(portfolioSummary?.realizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
+          {{ (portfolioSummary?.realizedPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.realizedPL?.toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
           }) ?? '-' }}
@@ -210,8 +210,8 @@
       </div>
       <div class="summary-card">
         <div class="summary-title">Realized P/L (%)</div>
-        <div class="summary-value" :class="portfolioSummary?.realizedPL >= 0 ? 'positive' : 'negative'">
-          {{ portfolioSummary?.realizedPL >= 0 ? '+' : '' }}{{ portfolioSummary?.realizedPLPercent }}%
+        <div class="summary-value" :class="(portfolioSummary?.realizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
+          {{ (portfolioSummary?.realizedPL ?? 0) >= 0 ? '+' : '' }}{{ portfolioSummary?.realizedPLPercent }}%
         </div>
       </div>
       <!-- Advanced Portfolio Stats -->
@@ -381,12 +381,12 @@
               </td>
               <td :class="getPnLClass(position)">
                 <span v-if="latestQuotes[position.Symbol] !== undefined">
-                  {{ getPnLPercent(position) > 0 ? '+' : '' }}{{ getPnLPercent(position) }}%
+                  {{ Number(getPnLPercent(position)) > 0 ? '+' : '' }}{{ getPnLPercent(position) }}%
                 </span>
               </td>
               <td :class="getPnLClass(position)">
                 <span v-if="latestQuotes[position.Symbol] !== undefined">
-                  {{ getPnLDollar(position) > 0 ? '+' : '' }}${{ getPnLDollar(position) }}
+                  {{ Number(getPnLDollar(position)) > 0 ? '+' : '' }}${{ getPnLDollar(position) }}
                 </span>
               </td>
               <td>
@@ -402,7 +402,7 @@
     </div>
  <div class="portfolio-bar-chart-container" style="margin-bottom: 32px; background: var(--base2); border-radius: 10px; padding: 24px; box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);">
   <h3 style="color: var(--accent1); margin-bottom: 12px;">Trade Returns (%)</h3>
-  <Bar :data="tradeReturnsChartData" :options="tradeReturnsChartOptions" :height="70" />
+  <Bar :data="tradeReturnsChartData" :options="(tradeReturnsChartOptions as any)" :height="70" />
 </div>
     <div class="portfolio-history-container scrollable-table">
       <h2>Transaction History</h2>
@@ -441,10 +441,11 @@
   <br>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Header from '@/components/Header.vue';
 import { ref, watch, onMounted, computed, onUnmounted, nextTick } from 'vue';
 import TradePopup from '@/components/Portfolio/trade.vue'
+// TypeScript: declare .vue modules
 import SellTradePopup from '@/components/Portfolio/SellTradePopup.vue'
 import AddCashPopup from '@/components/Portfolio/addCash.vue'
 import Archetypes from '@/components/Portfolio/archetypes.vue'
@@ -472,6 +473,22 @@ const store = useStore();
 let user = store.getters.getUser;
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
+// Types
+type Position = {
+  Symbol: string;
+  Shares: number;
+  AvgPrice: number;
+};
+type Trade = {
+  Date?: string;
+  Symbol?: string;
+  Action?: string;
+  Shares?: number;
+  Price?: number;
+  Commission?: number;
+  Total?: number;
+};
+
 const showTradeModal = ref(false)
 const showSellModal = ref(false)
 const sellPosition = ref({ symbol: '', shares: 0, price: 0 })
@@ -481,20 +498,19 @@ const showImportPopup = ref(false)
 const showDownloadPopup = ref(false)
 const showBaseValueModal = ref(false)
 
-function openSellModal(position) {
+function openSellModal(position: { symbol: string; shares: number; price: number }) {
   sellPosition.value = { ...position }
   showSellModal.value = true
 }
 
-function handleSell(sellOrder) {
+function handleSell(sellOrder: any) {
   showSellModal.value = false;
-  // Add a short delay to ensure backend is updated
   setTimeout(() => {
     fetchTransactionHistory();
     fetchPortfolio();
     fetchCash();
     fetchPortfolioSummary();
-  }, 300); // 300ms delay, adjust if needed
+  }, 300);
 }
 
 Chart.register(
@@ -510,7 +526,7 @@ Chart.register(
 )
 
 // Helper to get CSS variable
-function getVar(name) {
+function getVar(name: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
@@ -546,11 +562,10 @@ const themeColors = [
 // Pie chart data
 const pieChartData = computed(() => {
   // Filter out positions with missing quotes
-  const positionsWithQuotes = portfolio.value.filter(
+  const positionsWithQuotes = (portfolio.value as Position[]).filter(
     pos => latestQuotes.value[pos.Symbol] !== undefined
   );
 
-  // Add cash as a "position"
   const labels = [
     ...positionsWithQuotes.map(pos => pos.Symbol),
     'CASH'
@@ -560,7 +575,7 @@ const pieChartData = computed(() => {
     ...positionsWithQuotes.map(
       pos => Number(latestQuotes.value[pos.Symbol]) * Number(pos.Shares)
     ),
-    cash.value // Add cash as a slice
+    cash.value
   ];
 
   return {
@@ -568,7 +583,7 @@ const pieChartData = computed(() => {
     datasets: [
       {
         data,
-        backgroundColor: themeColors, // add more if needed
+        backgroundColor: themeColors,
         borderColor: base1,
         borderWidth: 2
       }
@@ -576,7 +591,7 @@ const pieChartData = computed(() => {
   };
 });
 
-function getPnLDollar(position) {
+function getPnLDollar(position: Position): string {
   const close = latestQuotes.value[position.Symbol];
   if (close === undefined || close === null) return '';
   if (!position.AvgPrice) return '';
@@ -601,13 +616,13 @@ const pieOptions = computed(() => {
 // --- Total Value Over Time (Line Chart) ---
 
 const lineData = computed(() => {
-  const history = portfolioValueHistory.value;
+  const history = portfolioValueHistory.value as { date: string; value: number }[];
   return {
-    labels: history.map(h => h.date),
+    labels: history.map((h) => h.date),
     datasets: [
       {
         label: 'Total Value (Positions + Cash)',
-        data: history.map(h => h.value),
+        data: history.map((h) => h.value),
         borderColor: accent1,
         backgroundColor: 'rgba(140, 141, 254, 0.7)',
         tension: 0.4,
@@ -671,7 +686,7 @@ async function fetchTransactionHistory() {
     // Always replace with the new batch
     transactionHistory.value = data.trades || [];
   } catch (error) {
-    if (error.name === 'AbortError') {
+    if ((error as any).name === 'AbortError') {
       return;
     }
     console.error('Error fetching transaction history:', error);
@@ -682,15 +697,14 @@ async function fetchTransactionHistory() {
 
 const sortedTransactionHistory = computed(() => {
   // Only sort the windowed batch
-  return [...windowedTransactionHistory.value].sort((a, b) => {
-    // If Date is missing, treat as oldest
+  return [...(windowedTransactionHistory.value as Trade[])].sort((a, b) => {
     if (!a.Date) return 1;
     if (!b.Date) return -1;
-    return new Date(b.Date) - new Date(a.Date);
+    return new Date(b.Date).getTime() - new Date(a.Date).getTime();
   });
 });
 
-const portfolio = ref([]); // Holds loaded positions
+const portfolio = ref<Position[]>([]); // Holds loaded positions
 const portfolioTotal = ref(0); // Total positions available
 const portfolioLimit = ref(100); // Positions per page
 const portfolioSkip = ref(0); // Current skip
@@ -717,7 +731,7 @@ async function fetchPortfolio({ append = false } = {}) {
       portfolio.value = data.portfolio || [];
     }
   } catch (error) {
-    if (error.name === 'AbortError') {
+    if ((error as any).name === 'AbortError') {
       return;
     }
     console.error('Error fetching portfolio:', error);
@@ -726,11 +740,11 @@ async function fetchPortfolio({ append = false } = {}) {
   }
 }
 
-const latestQuotes = ref({}); // { [symbol]: price }
+const latestQuotes = ref<Record<string, number>>({}); // { [symbol]: price }
 
-let ws = null;
-let wsReconnectTimer = null;
-let wsTimeout = null;
+let ws: WebSocket | null = null;
+let wsReconnectTimer: ReturnType<typeof setTimeout> | null = null;
+let wsTimeout: ReturnType<typeof setTimeout> | null = null;
 let wsConnected = false;
 
 async function fetchQuotes() {
@@ -739,11 +753,11 @@ async function fetchQuotes() {
     console.log('[fetchQuotes] portfolio is empty, aborting');
     return;
   }
-  const symbols = portfolio.value.map(p => p.Symbol).join(',');
+  const symbols = portfolio.value.map((p) => p.Symbol).join(',');
   const headers = { 'x-api-key': apiKey };
 
   // Helper to update quotes from message
-  function handleWSMessage(event) {
+  function handleWSMessage(event: MessageEvent) {
     console.log('[WebSocket] Message received:', event.data);
     try {
       const data = JSON.parse(event.data);
@@ -777,14 +791,14 @@ async function fetchQuotes() {
     ws = new WebSocket(wsUrl);
     ws.onopen = () => {
       wsConnected = true;
-      console.log('[WebSocket] Connection opened:', ws.url);
+  if (ws) console.log('[WebSocket] Connection opened:', ws.url);
       // Optionally, send a ping or subscribe message if needed
     };
     ws.onmessage = handleWSMessage;
     ws.onerror = (err) => {
       wsConnected = false;
       console.error('[WebSocket] Error:', err);
-      ws.close();
+  if (ws) ws.close();
     };
     ws.onclose = (event) => {
       wsConnected = false;
@@ -848,7 +862,7 @@ onMounted(() => {
   fetchQuotes();
 });
 
-function getPnLPercent(position) {
+function getPnLPercent(position: Position): string {
   const close = latestQuotes.value[position.Symbol];
   if (close === undefined || close === null) return '';
   if (!position.AvgPrice) return '';
@@ -856,26 +870,26 @@ function getPnLPercent(position) {
   return pnlPerc.toFixed(2);
 }
 
-function getPnLClass(position) {
+function getPnLClass(position: Position): string {
   const close = latestQuotes.value[position.Symbol];
   if (close === undefined || close === null) return '';
   return close - position.AvgPrice >= 0 ? 'positive' : 'negative';
 }
 
-function getCurrentPrice(position) {
+function getCurrentPrice(position: Position): string {
   const close = latestQuotes.value[position.Symbol];
   if (close === undefined || close === null) return '';
   return close.toFixed(2);
 }
 
-function getTotalValue(position) {
+function getTotalValue(position: Position): string {
   const close = latestQuotes.value[position.Symbol];
   if (close === undefined || close === null) return '';
   return (close * position.Shares).toFixed(2);
 }
 
-function getPercOfPortfolio(position) {
-  const total = totalPortfolioValue2.value; // includes cash
+function getPercOfPortfolio(position: Position): string {
+  const total = totalPortfolioValue2.value;
   const close = latestQuotes.value[position.Symbol];
   if (!total || close === undefined || close === null) return '';
   const perc = ((close * position.Shares) / total) * 100;
@@ -883,23 +897,70 @@ function getPercOfPortfolio(position) {
 }
 
 function getPercOfCash() {
-  const total = totalPortfolioValue2.value; // includes cash
+  const total = totalPortfolioValue2.value;
   if (!total) return '0.00';
   return ((cash.value / total) * 100).toFixed(2);
 }
 
 const totalPortfolioValue2 = computed(() => {
-  const positionsValue = portfolio.value.reduce((sum, pos) => {
+  const positionsValue = (portfolio.value as Position[]).reduce((sum, pos) => {
     const close = latestQuotes.value[pos.Symbol];
     if (close === undefined || close === null) return sum;
     return sum + close * pos.Shares;
   }, 0);
-  return positionsValue + cash.value; // Add cash to the total
+  return positionsValue + cash.value;
 });
 
 // Computed: portfolioValueHistory from backend summary
+type PortfolioSummary = {
+  portfolioValueHistory?: { date: string; value: number }[];
+  tradeReturnsChart?: {
+    labels?: string[];
+    bins: { count: number; positive: boolean }[];
+    medianBinIndex?: number;
+  };
+  BaseValue?: number;
+  totalPortfolioValue2?: number;
+  totalPortfolioValue?: number;
+  cash?: number;
+  totalPL?: number;
+  totalPLPercent?: string | number;
+  unrealizedPL?: number;
+  unrealizedPLPercent?: string | number;
+  realizedPL?: number;
+  realizedPLPercent?: string | number;
+  avgPositionSize?: number;
+  avgHoldTimeWinners?: number;
+  avgHoldTimeLosers?: number;
+  avgGain?: number;
+  avgLoss?: number;
+  avgGainAbs?: number;
+  avgLossAbs?: number;
+  gainLossRatio?: number;
+  riskRewardRatio?: number;
+  winnerCount?: number;
+  winnerPercent?: number;
+  loserCount?: number;
+  loserPercent?: number;
+  breakevenCount?: number;
+  breakevenPercent?: number;
+  profitFactor?: number;
+  sortinoRatio?: number;
+  biggestWinner?: {
+    ticker?: string;
+    amount?: number;
+    tradeCount?: number;
+  };
+  biggestLoser?: {
+    ticker?: string;
+    amount?: number;
+    tradeCount?: number;
+  };
+  positionsCount?: number;
+};
+const portfolioSummary = ref<PortfolioSummary | null>(null);
 const portfolioValueHistory = computed(() => {
-  return portfolioSummary.value?.portfolioValueHistory || [];
+  return (portfolioSummary.value?.portfolioValueHistory ?? []) as { date: string; value: number }[];
 });
 
 const showResetDialog = ref(false)
@@ -923,7 +984,7 @@ async function confirmResetPortfolio() {
     fetchPortfolioSummary();
     showResetDialog.value = false;
   } catch (error) {
-    resetError.value = 'Error resetting portfolio: ' + error.message;
+    resetError.value = 'Error resetting portfolio: ' + (error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -950,7 +1011,7 @@ async function fetchCash() {
     baseValue.value = data.BaseValue || 0; // Assign the BaseValue
 
   } catch (error) {
-    if (error.name === 'AbortError') {
+    if (error instanceof Error && error.name === 'AbortError') {
       return;
     }
     console.error('Error fetching cash balance:', error);
@@ -961,15 +1022,15 @@ async function fetchCash() {
 // Use backend-provided tradeReturnsChart data
 const tradeReturnsChartData = computed(() => {
   const chart = portfolioSummary.value?.tradeReturnsChart;
-  if (!chart || !chart.labels || !chart.bins) return { labels: [], datasets: [] };
+  if (!chart || !Array.isArray(chart.labels) || !Array.isArray(chart.bins)) return { labels: [], datasets: [] };
   return {
     labels: chart.labels,
     datasets: [
       {
         label: 'Number of Trades',
-        data: chart.bins.map(b => b.count),
-        backgroundColor: chart.bins.map(b => b.positive ? 'rgba(76, 175, 80, 0.7)' : 'rgba(244, 67, 54, 0.7)'),
-        borderColor: chart.bins.map(b => b.positive ? '#4caf50' : '#f44336'),
+        data: chart.bins.map((b: { count: number; positive: boolean }) => b.count),
+        backgroundColor: chart.bins.map((b: { count: number; positive: boolean }) => b.positive ? 'rgba(76, 175, 80, 0.7)' : 'rgba(244, 67, 54, 0.7)'),
+        borderColor: chart.bins.map((b: { count: number; positive: boolean }) => b.positive ? '#4caf50' : '#f44336'),
         borderWidth: 1,
       }
     ]
@@ -978,16 +1039,16 @@ const tradeReturnsChartData = computed(() => {
 
 const tradeReturnsChartOptions = computed(() => {
   const chart = portfolioSummary.value?.tradeReturnsChart;
-  const medianBinLabel = chart?.labels?.[chart?.medianBinIndex];
+  const medianBinLabel = Array.isArray(chart?.labels) && typeof chart?.medianBinIndex === 'number' ? chart.medianBinIndex : undefined;
   return {
     responsive: true,
     plugins: {
       legend: { display: false },
       tooltip: { enabled: true },
       annotation: {
-        annotations: {
-          medianLine: medianBinLabel !== undefined ? {
-            type: 'line',
+        annotations: medianBinLabel !== undefined ? {
+          medianLine: {
+            type: "line" as const,
             xMin: medianBinLabel,
             xMax: medianBinLabel,
             borderColor: accent1,
@@ -995,13 +1056,13 @@ const tradeReturnsChartOptions = computed(() => {
             label: {
               enabled: true,
               content: 'Median',
-              position: 'top',
+              position: "end",
               color: accent1,
               backgroundColor: 'rgba(30,30,47,0.85)',
               font: { weight: 'bold' }
             }
-          } : undefined
-        }
+          }
+        } : undefined
       }
     },
     scales: {
@@ -1017,7 +1078,7 @@ const tradeReturnsChartOptions = computed(() => {
 // --- Portfolio Switching Logic ---
 const selectedPortfolioIndex = ref(0);
 
-function selectPortfolio(idx) {
+function selectPortfolio(idx: number) {
   selectedPortfolioIndex.value = idx;
   fetchPortfolio();
   fetchTransactionHistory();
@@ -1055,8 +1116,8 @@ const currentArchetype = computed(() => {
 });
 
 // Infinite scroll for portfolio positions
-let portfolioTableContainer = null;
-let transactionHistoryContainer = null;
+let portfolioTableContainer: HTMLElement | null = null;
+let transactionHistoryContainer: HTMLElement | null = null;
 
 function handlePortfolioScroll() {
   if (!portfolioTableContainer || portfolioLoading.value) return;
@@ -1147,7 +1208,7 @@ onUnmounted(() => {
   cleanupTransactionHistoryScroll();
 });
 
-const portfolioSummary = ref(null);
+// (Removed duplicate declaration)
 
 async function fetchPortfolioSummary() {
   try {

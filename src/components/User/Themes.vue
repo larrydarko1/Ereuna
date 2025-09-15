@@ -4,12 +4,11 @@
           :class="{ active: currentTheme === theme }">
           {{ themeDisplayNames[theme] }}
         </button>
-        <!-- Add an empty div for extra space at the bottom -->
         <div class="theme-spacer"></div>
       </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 
 const props = defineProps({
@@ -35,7 +34,8 @@ const themes = [
   'noctis', 'iceberg', 'tango', 'horizon', 'railscasts',
   'vscode-dark', 'slack-dark', 'mintty', 'atom-one', 'light-owl'
 ];
-const currentTheme = ref('default');
+const currentTheme = ref<string>('default');
+const error = ref<string | null>(null);
 
 onMounted(() => {
   // Try to get theme from localStorage
@@ -54,7 +54,7 @@ onMounted(() => {
   }
 });
 
-const themeDisplayNames = {
+const themeDisplayNames: Record<string, string> = {
   default: 'Default Theme (Dark)',
   ihatemyeyes: 'I Hate My Eyes (light-mode)',
   colorblind: "I'm Colorblind",
@@ -107,7 +107,7 @@ const themeDisplayNames = {
   'light-owl': 'Light Owl'
 };
 
-async function setTheme(newTheme) {
+async function setTheme(newTheme: string) {
   const root = document.documentElement;
   root.classList.remove(...themes);
   root.classList.add(newTheme);
@@ -125,10 +125,14 @@ async function setTheme(newTheme) {
     if (data.message === 'Theme updated') {
       currentTheme.value = newTheme;
     } else {
-      error.value = data.message;
+      error.value = typeof data.message === 'string' ? data.message : 'Unknown error';
     }
-  } catch (error) {
-    error.value = error.message;
+  } catch (err) {
+    if (err instanceof Error) {
+      error.value = err.message;
+    } else {
+      error.value = 'Unknown error';
+    }
   }
 }
 

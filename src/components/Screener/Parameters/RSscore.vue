@@ -75,15 +75,15 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
@@ -101,16 +101,26 @@ let showRSscore = ref(false);
 async function SetRSscore() {
   try {
     if (!props.selectedScreener) {
-      props.isScreenerError = true
-      throw new Error('Please select a screener')
+      // props.isScreenerError is readonly, use notification pattern
+      if (props.notification && typeof props.notification === 'object') {
+        props.notification.message = 'Please select a screener';
+        props.notification.type = 'error';
+      }
+      throw new Error('Please select a screener');
     }
 
-    const value1 = parseFloat(document.getElementById('RSscore1Minput1').value)
-    const value2 = parseFloat(document.getElementById('RSscore1Minput2').value)
-    const value3 = parseFloat(document.getElementById('RSscore4Minput1').value)
-    const value4 = parseFloat(document.getElementById('RSscore4Minput2').value)
-    const value5 = parseFloat(document.getElementById('RSscore1Winput1').value)
-    const value6 = parseFloat(document.getElementById('RSscore1Winput2').value)
+    function getInputValue(id: string): number {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (!el) return NaN;
+      return parseFloat(el.value);
+    }
+
+    const value1 = getInputValue('RSscore1Minput1');
+    const value2 = getInputValue('RSscore1Minput2');
+    const value3 = getInputValue('RSscore4Minput1');
+    const value4 = getInputValue('RSscore4Minput2');
+    const value5 = getInputValue('RSscore1Winput1');
+    const value6 = getInputValue('RSscore1Winput2');
 
     const response = await fetch('/api/screener/rs-score', {
       method: 'PATCH',
@@ -128,21 +138,30 @@ async function SetRSscore() {
         screenerName: props.selectedScreener,
         user: props.user
       })
-    })
+    });
     if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (data.message === 'updated successfully') {
-       emit('fetchScreeners', props.selectedScreener);
+      emit('fetchScreeners', props.selectedScreener);
     } else {
-      throw new Error('Error updating range')
+      throw new Error('Error updating range');
     }
-  } catch (error) {
-    error.value = error.message;
-     emit('fetchScreeners', props.selectedScreener);
+  } catch (error: unknown) {
+    let message = 'Unknown error';
+    if (typeof error === 'object' && error !== null && 'message' in error) {
+      message = (error as { message: string }).message;
+    } else if (typeof error === 'string') {
+      message = error;
+    }
+    if (props.notification && typeof props.notification === 'object') {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
+    emit('fetchScreeners', props.selectedScreener);
   }
 }
 

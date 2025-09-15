@@ -82,52 +82,49 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 
 import { ref, watch } from 'vue'
-const emit = defineEmits(['close', 'save'])
 
-const props = defineProps({
-  apiKey: {
-    type: String,
-    required: true
-  },
-  user: {
-    type: String,
-    required: true
-  },
-  indicatorList: {
-    type: Array,
-    required: true
-  }
-})
+interface Indicator {
+  type: string;
+  timeframe: number;
+  visible: boolean;
+}
 
-// Initialize indicators from prop
-const indicators = ref(props.indicatorList.map(ind => ({ ...ind })));
+const emit = defineEmits(['close', 'save', 'settings-saved'])
 
-// Watch for prop changes and update indicators
-watch(() => props.indicatorList, (newList) => {
-  indicators.value = newList.map(ind => ({ ...ind }));
-}, { immediate: true });
+const props = defineProps<{
+  apiKey: string;
+  user: string;
+  indicatorList: Indicator[];
+}>()
 
-function toggleIndicatorVisibility(idx) {
+const indicators = ref<Indicator[]>(
+  props.indicatorList.map(ind => ({ ...ind }))
+)
+
+watch(() => props.indicatorList, (newList: Indicator[]) => {
+  indicators.value = newList.map(ind => ({ ...ind }))
+}, { immediate: true })
+
+function toggleIndicatorVisibility(idx: number) {
   indicators.value[idx].visible = !indicators.value[idx].visible
 }
 
-const showIntrinsicValue = ref(true)
-const dropdownOpen = ref(null)
+const showIntrinsicValue = ref<boolean>(true)
+const dropdownOpen = ref<number | null>(null)
 
-function toggleDropdown(idx) {
+function toggleDropdown(idx: number) {
   dropdownOpen.value = dropdownOpen.value === idx ? null : idx
 }
 
-function selectType(idx, type) {
+function selectType(idx: number, type: string) {
   indicators.value[idx].type = type
   dropdownOpen.value = null
 }
 
 async function postChartSettings() {
-  // Prepare the payload (only indicators and intrinsicValue)
   const payload = {
     indicators: indicators.value.map(ind => ({
       type: ind.type,
@@ -150,7 +147,6 @@ async function postChartSettings() {
       }
     )
   } catch (e) {
-    // Optionally handle error
     console.error('Failed to save chart settings', e)
   }
 }
@@ -158,7 +154,7 @@ async function postChartSettings() {
 async function saveSettings() {
   await postChartSettings()
   emit('save', { indicators: indicators.value, showIntrinsicValue: showIntrinsicValue.value })
-  emit('settings-saved') // Notify parent to refresh chart data
+  emit('settings-saved')
   close()
 }
 

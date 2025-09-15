@@ -46,16 +46,23 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
+
+interface SummaryField {
+  order: number;
+  tag: string;
+  name: string;
+  hidden: boolean;
+}
 
 const store = useStore();
 let user = store.getters.getUser;
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 const emit = defineEmits(['close', 'updated', 'panel-updated']);
 
-const initialFields = [
+const initialFields: SummaryField[] = [
   { order: 1, tag: 'Symbol', name: 'Symbol', hidden: false },
   { order: 2, tag: 'CompanyName', name: 'Company Name', hidden: false },
   { order: 3, tag: 'AssetType', name: 'Asset Type', hidden: false },
@@ -100,41 +107,42 @@ const initialFields = [
   { order: 42, tag: 'Description', name: 'Description', hidden: false },
 ];
 
-const summaryFields = ref(initialFields.map(field => ({ ...field })));
 
-const dragStart = (event, index) => {
-  event.dataTransfer.setData('index', index);
-  event.dataTransfer.effectAllowed = 'move';
+const summaryFields = ref<SummaryField[]>(initialFields.map(field => ({ ...field })));
+
+const dragStart = (event: DragEvent, index: number) => {
+  event.dataTransfer?.setData('index', String(index));
+  event.dataTransfer!.effectAllowed = 'move';
 };
 
-const dragOver = (event) => {
+const dragOver = (event: DragEvent) => {
   event.preventDefault();
-  event.dataTransfer.dropEffect = 'move';
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
 };
 
-const drop = (event, index) => {
-  const draggedIndex = event.dataTransfer.getData('index');
-  if (draggedIndex === '') return;
+const drop = (event: DragEvent, index: number) => {
+  const draggedIndex = Number(event.dataTransfer?.getData('index'));
+  if (isNaN(draggedIndex)) return;
 
   const draggedField = summaryFields.value[draggedIndex];
   summaryFields.value.splice(draggedIndex, 1);
   summaryFields.value.splice(index, 0, draggedField);
-  updateOrder()
+  updateOrder();
 };
 
-const toggleHidden = (index) => {
+const toggleHidden = (index: number) => {
   summaryFields.value[index].hidden = !summaryFields.value[index].hidden;
 };
 
 function updateOrder() {
-  summaryFields.value.forEach((section, index) => {
+  summaryFields.value.forEach((section: SummaryField, index: number) => {
     section.order = index + 1;
   });
 }
 
 const resetOrder = () => {
   summaryFields.value = initialFields.map(field => ({ ...field }));
-  updateOrder()
+  updateOrder();
 };
 
 async function updatePanel2() {
@@ -196,7 +204,7 @@ onMounted(() => {
 });
 
 
-function moveFieldUp(index) {
+function moveFieldUp(index: number) {
   if (index > 0) {
     const temp = summaryFields.value[index - 1];
     summaryFields.value[index - 1] = summaryFields.value[index];
@@ -205,7 +213,7 @@ function moveFieldUp(index) {
   }
 }
 
-function moveFieldDown(index) {
+function moveFieldDown(index: number) {
   if (index < summaryFields.value.length - 1) {
     const temp = summaryFields.value[index + 1];
     summaryFields.value[index + 1] = summaryFields.value[index];

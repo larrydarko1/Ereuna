@@ -36,16 +36,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 const emit = defineEmits(['close', 'refresh'])
 const props = defineProps({
   user: String,
   apiKey: String,
   portfolio: {
-  type: Number,
-  required: true
-}
+    type: Number,
+    required: true
+  }
 })
 
 const today = new Date().toISOString().slice(0, 10)
@@ -64,8 +64,8 @@ async function submitCash() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': props.apiKey
-      },
+        'x-api-key': props.apiKey ?? ''
+      } as Record<string, string>,
       body: JSON.stringify({
         username: props.user,
         portfolio: props.portfolio, 
@@ -74,10 +74,10 @@ async function submitCash() {
       })
     })
     if (!response.ok) throw new Error('Failed to add cash')
-    emit('cash-added')
+    emit('refresh')
     close()
   } catch (err) {
-    error.value = err.message
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error'
   }
 }
 

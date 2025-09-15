@@ -1,39 +1,108 @@
+// TypeScript interfaces
+export interface Trade {
+    Date: string;
+    Symbol?: string;
+    Action?: string;
+    Shares?: number;
+    Price?: number;
+    Total?: number;
+}
 
-function safeDiv(a, b) {
+export interface Position {
+    Symbol: string;
+    Shares: number;
+    Price: number;
+}
+
+export interface PortfolioDoc {
+    cash?: number;
+    BaseValue?: number;
+}
+
+export interface ClosedPosition {
+    symbol: string;
+    buyDate: string;
+    sellDate: string;
+    buyPrice: number;
+    sellPrice: number;
+    shares: number;
+    pnl: number;
+    holdDays: number;
+}
+
+export interface ChartBin {
+    min: number;
+    max: number;
+    range: string;
+    count: number;
+    positive: boolean;
+}
+
+export interface PortfolioStats {
+    portfolioValueHistory: { date: string; value: number }[];
+    realizedPL: number;
+    realizedPLPercent: number;
+    avgPositionSize: number;
+    avgHoldTimeWinners: number;
+    avgHoldTimeLosers: number;
+    avgGain: number;
+    avgLoss: number;
+    avgGainAbs: number;
+    avgLossAbs: number;
+    gainLossRatio: number | null;
+    riskRewardRatio: number | null;
+    winnerCount: number;
+    winnerPercent: number;
+    loserCount: number;
+    loserPercent: number;
+    breakevenCount: number;
+    breakevenPercent: number;
+    profitFactor: number | null;
+    sortinoRatio: number | null;
+    biggestWinner: { ticker: string; amount: number; tradeCount: number } | null;
+    biggestLoser: { ticker: string; amount: number; tradeCount: number } | null;
+    tradeReturnsChart: { labels: string[]; bins: ChartBin[]; medianBinIndex: number };
+}
+
+function safeDiv(a: number, b: number): number {
     return b ? a / b : 0;
 }
 
-export async function updatePortfolioStats(db, username, portfolioNumber) {
-    const trades = await db.collection('Trades').find({ Username: username, PortfolioNumber: portfolioNumber }).toArray();
-    const positions = await db.collection('Positions').find({ Username: username, PortfolioNumber: portfolioNumber }).toArray();
-    const portfolioDoc = await db.collection('Portfolios').findOne({ Username: username, Number: portfolioNumber });
-    const cash = portfolioDoc && typeof portfolioDoc.cash === 'number' ? portfolioDoc.cash : 0.0;
-    const baseValue = portfolioDoc && typeof portfolioDoc.BaseValue === 'number' ? portfolioDoc.BaseValue : 0.0;
+export async function updatePortfolioStats(
+    db: any,
+    username: string,
+    portfolioNumber: number
+): Promise<PortfolioStats> {
+    const trades: Trade[] = await db.collection('Trades').find({ Username: username, PortfolioNumber: portfolioNumber }).toArray();
+    const positions: Position[] = await db.collection('Positions').find({ Username: username, PortfolioNumber: portfolioNumber }).toArray();
+    const portfolioDoc: PortfolioDoc = await db.collection('Portfolios').findOne({ Username: username, Number: portfolioNumber });
+    const cash: number = portfolioDoc && typeof portfolioDoc.cash === 'number' ? portfolioDoc.cash : 0.0;
+    const baseValue: number = portfolioDoc && typeof portfolioDoc.BaseValue === 'number' ? portfolioDoc.BaseValue : 0.0;
 
     // --- Portfolio Value History Calculation ---
-    const txs = trades.filter(tx => tx.Date).sort((a, b) => new Date(a.Date) - new Date(b.Date));
-    let holdings = {};
-    let runningCash = 0;
-    let valueHistory = [];
-    let lastDate = null;
+    const txs: Trade[] = trades.filter(tx => tx.Date).sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime());
+    let holdings: { [symbol: string]: number } = {};
+    let runningCash: number = 0;
+    let valueHistory: { date: string; value: number }[] = [];
+    let lastDate: string | null = null;
     for (const tx of txs) {
         if (!tx.Date) continue;
-        if (tx.Action === 'Buy') {
+        if (tx.Action === 'Buy' && tx.Symbol && typeof tx.Shares === 'number' && typeof tx.Total === 'number') {
             holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) + tx.Shares;
             runningCash -= tx.Total;
-        } else if (tx.Action === 'Sell') {
+        } else if (tx.Action === 'Sell' && tx.Symbol && typeof tx.Shares === 'number' && typeof tx.Total === 'number') {
             holdings[tx.Symbol] = (holdings[tx.Symbol] || 0) - tx.Shares;
             runningCash += tx.Total;
-        } else if (tx.Action === 'Cash Deposit') {
+        } else if (tx.Action === 'Cash Deposit' && typeof tx.Total === 'number') {
             runningCash += tx.Total;
         }
-        let positionsValue = 0;
+        let positionsValue: number = 0;
         for (const [symbol, shares] of Object.entries(holdings)) {
-            if (shares === 0) continue;
-            let price = 0;
+            if (typeof shares !== 'number' || shares === 0) continue;
+            let price: number = 0;
             for (let i = txs.length - 1; i >= 0; i--) {
                 if (txs[i].Symbol === symbol && new Date(txs[i].Date) <= new Date(tx.Date)) {
-                    price = txs[i].Price;
+                    price = txs[i].Price || 0;
                     break;
                 }
             }
@@ -48,15 +117,15 @@ export async function updatePortfolioStats(db, username, portfolioNumber) {
         }
     }
 
-    function computeRealizedPL(trades) {
-        const txs = trades.filter(tx => tx.Date && tx.Symbol && tx.Action).sort((a, b) => new Date(a.Date) - new Date(b.Date));
+    function computeRealizedPL(trades: Trade[]): number {
+        const txs = trades.filter(tx => tx.Date && tx.Symbol && tx.Action).sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime());
         let realized = 0;
-        let lots = {};
+        let lots: { [symbol: string]: { shares: number; price: number }[] } = {};
         for (const tx of txs) {
-            if (tx.Action === 'Buy') {
+            if (tx.Action === 'Buy' && tx.Symbol && typeof tx.Shares === 'number' && typeof tx.Price === 'number') {
                 lots[tx.Symbol] = lots[tx.Symbol] || [];
                 lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price });
-            } else if (tx.Action === 'Sell') {
+            } else if (tx.Action === 'Sell' && tx.Symbol && typeof tx.Shares === 'number' && typeof tx.Price === 'number') {
                 let sharesToSell = tx.Shares;
                 lots[tx.Symbol] = lots[tx.Symbol] || [];
                 while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
@@ -72,23 +141,23 @@ export async function updatePortfolioStats(db, username, portfolioNumber) {
         return realized;
     }
 
-    function getClosedPositions(trades) {
-        const txs = trades.filter(tx => tx.Date).sort((a, b) => new Date(a.Date) - new Date(b.Date));
-        const positions = [];
-        const lots = {};
+    function getClosedPositions(trades: Trade[]): ClosedPosition[] {
+        const txs = trades.filter(tx => tx.Date).sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime());
+        const positions: ClosedPosition[] = [];
+        const lots: { [symbol: string]: { shares: number; price: number; date: string }[] } = {};
         for (const tx of txs) {
             if (!tx.Symbol || !tx.Action) continue;
-            if (tx.Action === 'Buy') {
+            if (tx.Action === 'Buy' && typeof tx.Shares === 'number' && typeof tx.Price === 'number' && tx.Date) {
                 lots[tx.Symbol] = lots[tx.Symbol] || [];
                 lots[tx.Symbol].push({ shares: tx.Shares, price: tx.Price, date: tx.Date });
-            } else if (tx.Action === 'Sell') {
+            } else if (tx.Action === 'Sell' && typeof tx.Shares === 'number' && typeof tx.Price === 'number' && tx.Date) {
                 let sharesToSell = tx.Shares;
                 lots[tx.Symbol] = lots[tx.Symbol] || [];
                 while (sharesToSell > 0 && lots[tx.Symbol].length > 0) {
                     let lot = lots[tx.Symbol][0];
                     let sellShares = Math.min(lot.shares, sharesToSell);
                     let pnl = lot.price ? ((tx.Price - lot.price) / lot.price) * 100 : 0;
-                    let holdDays = Math.max(0, Math.round((new Date(tx.Date) - new Date(lot.date)) / (1000 * 60 * 60 * 24)));
+                    let holdDays = Math.max(0, Math.round((new Date(tx.Date).getTime() - new Date(lot.date).getTime()) / (1000 * 60 * 60 * 24)));
                     positions.push({
                         symbol: tx.Symbol,
                         buyDate: lot.date,
@@ -109,9 +178,9 @@ export async function updatePortfolioStats(db, username, portfolioNumber) {
     }
 
     // Sort trades by symbol, then by date ascending
-    const tradesSorted = trades.sort((a, b) => {
-        if (a.Symbol === b.Symbol) return new Date(a.Date) - new Date(b.Date);
-        return a.Symbol.localeCompare(b.Symbol);
+    const tradesSorted = trades.sort((a: Trade, b: Trade) => {
+        if (a.Symbol === b.Symbol) return new Date(a.Date).getTime() - new Date(b.Date).getTime();
+        return (a.Symbol || '').localeCompare(b.Symbol || '');
     });
     const closedPositions = getClosedPositions(tradesSorted);
     const winnerPositions = closedPositions.filter(p => p.pnl > 0);
@@ -151,14 +220,14 @@ export async function updatePortfolioStats(db, username, portfolioNumber) {
     const sortinoRatio = downsideDev !== 0 ? safeDiv(avgReturn - riskFreeRate, downsideDev) : null;
 
     // Biggest winner/loser
-    const plByTicker = {};
-    const tradeCounts = {};
+    const plByTicker: { [symbol: string]: number } = {};
+    const tradeCounts: { [symbol: string]: number } = {};
     for (const p of closedPositions) {
         plByTicker[p.symbol] = (plByTicker[p.symbol] || 0) + ((p.sellPrice - p.buyPrice) * p.shares);
         tradeCounts[p.symbol] = (tradeCounts[p.symbol] || 0) + 1;
     }
-    let biggestWinner = null;
-    let biggestLoser = null;
+    let biggestWinner: { ticker: string; amount: number; tradeCount: number } | null = null;
+    let biggestLoser: { ticker: string; amount: number; tradeCount: number } | null = null;
     if (Object.keys(plByTicker).length) {
         const maxTicker = Object.keys(plByTicker).reduce((a, b) => plByTicker[a] > plByTicker[b] ? a : b);
         const minTicker = Object.keys(plByTicker).reduce((a, b) => plByTicker[a] < plByTicker[b] ? a : b);
@@ -175,12 +244,12 @@ export async function updatePortfolioStats(db, username, portfolioNumber) {
     }
 
     // Trade Returns Chart Data (binning)
-    function computeTradeReturnsBins(closedPositions) {
+    function computeTradeReturnsBins(closedPositions: ClosedPosition[]): { labels: string[]; bins: ChartBin[]; medianBinIndex: number } {
         if (!closedPositions.length) return { labels: [], bins: [], medianBinIndex: -1 };
         const returns = closedPositions.map(p => p.pnl);
         const minReturn = Math.floor(Math.min(...returns) / 2) * 2;
         const maxReturn = Math.ceil(Math.max(...returns) / 2) * 2;
-        const bins = [];
+        const bins: ChartBin[] = [];
         for (let i = minReturn; i < maxReturn; i += 2) {
             bins.push({ min: i, max: i + 2, range: `${i} to ${i + 2}%`, count: 0, positive: i + 2 > 0 });
         }
@@ -202,10 +271,10 @@ export async function updatePortfolioStats(db, username, portfolioNumber) {
     const tradeReturnsChart = computeTradeReturnsBins(closedPositions);
 
     // Avg position size (as percent of portfolio value at buy)
-    function computeAvgPositionSize(trades, baseValue) {
-        const buys = trades.filter(tx => tx.Action === 'Buy' && tx.Total);
+    function computeAvgPositionSize(trades: Trade[], baseValue: number): number {
+        const buys = trades.filter(tx => tx.Action === 'Buy' && typeof tx.Total === 'number');
         if (!buys.length || baseValue <= 0) return 0.0;
-        const avgPercents = buys.map(tx => safeDiv(tx.Total, baseValue) * 100);
+        const avgPercents = buys.map(tx => safeDiv(tx.Total as number, baseValue) * 100);
         return safeDiv(avgPercents.reduce((a, b) => a + b, 0), avgPercents.length);
     }
     const avgPositionSize = computeAvgPositionSize(trades, baseValue);
@@ -214,7 +283,7 @@ export async function updatePortfolioStats(db, username, portfolioNumber) {
     const realizedPLPercent = baseValue ? safeDiv(realizedPL * 100, baseValue) : 0;
 
     // Update stats in Portfolios collection
-    const stats = {
+    const stats: PortfolioStats = {
         portfolioValueHistory: valueHistory,
         realizedPL: Number(realizedPL.toFixed(2)),
         realizedPLPercent: Number(realizedPLPercent.toFixed(2)),

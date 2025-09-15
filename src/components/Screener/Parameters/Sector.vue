@@ -67,15 +67,15 @@
         </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
-function handleMouseOver(event, type) {
+function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
 
-function handleMouseOut(event) {
+function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
@@ -88,8 +88,8 @@ const props = defineProps({
 })
 
 let ShowSector = ref(false);
-const Sectors = ref([]); // hosts all available sectors 
-const selectedSectors = ref([]);
+const Sectors = ref<string[]>([]); // hosts all available sectors 
+const selectedSectors = ref<boolean[]>([]);
 
 // generates options for checkboxes for sectors
 async function GetSectors() {
@@ -99,20 +99,27 @@ async function GetSectors() {
         'X-API-KEY': props.apiKey,
       },
     });
-    const data = await response.json();
+    const data: string[] = await response.json();
     Sectors.value = data;
-    selectedSectors.value = new Array(data.length).fill(false); // Initialize selection state
-  } catch (error) {
-    error.value = error.message;
+    selectedSectors.value = new Array(data.length).fill(false);
+  } catch (error: unknown) {
+    let message = 'Unknown error';
+    if (typeof error === 'object' && error !== null && 'message' in error) {
+      message = (error as { message: string }).message;
+    } else if (typeof error === 'string') {
+      message = error;
+    }
+    if (props.notification && typeof props.notification === 'object') {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
   }
 }
 GetSectors();
 
-
-const toggleSector = (index) => {
+const toggleSector = (index: number) => {
   selectedSectors.value[index] = !selectedSectors.value[index]; // Toggle the selected state
 };
-
 
 // sends sectors data to update screener
 async function SetSector() {
@@ -134,8 +141,17 @@ async function SetSector() {
 
     const data = await response.json();
     emit('fetchScreeners', props.selectedScreener); // Update the list after setting the sector
-  } catch (error) {
-    error.value = error.message;
+  } catch (error: unknown) {
+    let message = 'Unknown error';
+    if (typeof error === 'object' && error !== null && 'message' in error) {
+      message = (error as { message: string }).message;
+    } else if (typeof error === 'string') {
+      message = error;
+    }
+    if (props.notification && typeof props.notification === 'object') {
+      props.notification.message = message;
+      props.notification.type = 'error';
+    }
     emit('fetchScreeners', props.selectedScreener);
   }
 }

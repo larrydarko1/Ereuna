@@ -25,7 +25,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import QrcodeVue from 'qrcode.vue'
 import { ref, onMounted } from 'vue';
 
@@ -98,7 +98,13 @@ async function toggleTwoFa() {
           error.value = data.message || 'No QR code found.';
         }
       } catch (err) {
-        error.value = err.message;
+        let errorMsg = 'Unknown error';
+        if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
+          errorMsg = (err as any).message;
+        } else if (typeof err === 'string') {
+          errorMsg = err;
+        }
+        error.value = errorMsg;
       }
       return;
     }
@@ -123,7 +129,13 @@ async function toggleTwoFa() {
         error.value = data.message || 'Failed to initiate 2FA';
       }
     } catch (err) {
-      error.value = err.message;
+      let errorMsg = 'Unknown error';
+      if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
+        errorMsg = (err as any).message;
+      } else if (typeof err === 'string') {
+        errorMsg = err;
+      }
+      error.value = errorMsg;
     }
   } else {
     // Disable 2FA
@@ -148,7 +160,13 @@ async function toggleTwoFa() {
         error.value = data.message || 'Failed to disable 2FA';
       }
     } catch (err) {
-      error.value = err.message;
+      let errorMsg = 'Unknown error';
+      if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
+        errorMsg = (err as any).message;
+      } else if (typeof err === 'string') {
+        errorMsg = err;
+      }
+      error.value = errorMsg;
     }
   }
 }
@@ -179,7 +197,13 @@ async function confirmTwoFa() {
       error.value = data.message || 'Verification failed';
     }
   } catch (err) {
-    error.value = err.message;
+    let errorMsg = 'Unknown error';
+    if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
+      errorMsg = (err as any).message;
+    } else if (typeof err === 'string') {
+      errorMsg = err;
+    }
+    error.value = errorMsg;
   }
 }
 </script>

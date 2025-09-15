@@ -32,15 +32,20 @@
     :user="user"
     :watchPanel="watchPanel"
     :fetchWatchPanel="fetchWatchPanel"
-    :notify="(msg) => notification.value.show(msg)"
+    :notify="(msg: string) => {}"
     @close="closeEditor"
     @update="fetchWatchPanel"
   />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import WatchPanelEditor from '@/components/charts/WatchPanelEditor.vue';
+
+interface WatchPanelTicker {
+  Symbol: string;
+  percentageReturn: string;
+}
 
 const props = defineProps({
   user: { type: String, required: true },
@@ -49,15 +54,15 @@ const props = defineProps({
 });
 const emit = defineEmits(['select-symbol', 'open-editor']);
 
-function selectSymbol(symbol) {
+function selectSymbol(symbol: string) {
   emit('select-symbol', symbol);
 }
 
-const watchPanel = ref([]);
+const watchPanel = ref<WatchPanelTicker[]>([]);
 
 // --- WebSocket WatchPanel data fetcher ---
-let ws = null;
-let wsReconnectTimeout = null;
+let ws: WebSocket | null = null;
+let wsReconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 let wsReceived = false;
 function closeWatchPanelWS() {
   if (ws) {
@@ -88,7 +93,7 @@ async function fetchWatchPanel() {
     watchPanel.value = newWatchPanel;
 
   } catch (error) {
-    if (error.name === 'AbortError') {
+    if (typeof error === 'object' && error !== null && 'name' in error && (error as any).name === 'AbortError') {
       return;
     }
   }
