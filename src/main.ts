@@ -5,6 +5,7 @@ import router from './router';
 import authPlugin from './auth-plugin';
 import './style.scss';
 import { useMaintenanceStore } from './store/maintenance';
+import { useUserStore } from './store/store';
 
 // If your store is Vuex, you need to migrate it to Pinia for full TS support. If already Pinia, you don't need to use 'store' as a plugin.
 // import store from './store/store'; // Remove if using Pinia only
@@ -13,6 +14,9 @@ const app = createApp(App);
 const pinia = createPinia();
 
 app.use(pinia);
+// Persist user session from token
+const userStore = useUserStore();
+userStore.loadUserFromToken();
 app.use(router);
 app.use(authPlugin);
 

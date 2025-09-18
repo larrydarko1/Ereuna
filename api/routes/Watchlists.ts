@@ -1,6 +1,6 @@
-import crypto from 'crypto';
 import { param } from '../utils/validationUtils.js';
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
+import { handleError } from '../utils/logger.js';
 
 // --- Type Definitions ---
 interface Watchlist {
@@ -50,8 +50,7 @@ export default function (app: any, deps: any) {
             validationSchemas.userParam('user')
         ]),
         async (req: Request, res: Response) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -113,8 +112,7 @@ export default function (app: any, deps: any) {
             validationSchemas.watchlistName()
         ]),
         async (req: Request, res: Response) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -171,8 +169,7 @@ export default function (app: any, deps: any) {
 
     // Retrieves OHCLV for multiple elements inside the watchlist
     app.get('/data-values', async (req: Request, res: Response) => {
-        const { handleError } = require('../utils/logger');
-        let client;
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -264,9 +261,8 @@ export default function (app: any, deps: any) {
                 .isLength({ min: 1, max: 12 }).withMessage('Symbol must be between 1 and 12 characters')
                 .matches(/^[A-Z0-9]+$/).withMessage('Symbol must be uppercase alphanumeric')
         ]),
-        async (req: Request, res: Response, next: NextFunction) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+        async (req: Request, res: Response) => {
+            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -405,8 +401,7 @@ export default function (app: any, deps: any) {
             validationSchemas.symbolParam('ticker')
         ]),
         async (req: Request, res: Response) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -513,8 +508,7 @@ export default function (app: any, deps: any) {
             validationSchemas.watchlistName()
         ]),
         async (req: Request, res: Response) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -574,9 +568,8 @@ export default function (app: any, deps: any) {
             validationSchemas.userParam('user'),
             validationSchemas.watchlistName()
         ]),
-        async (req: Request, res: Response, next: NextFunction) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+        async (req: Request, res: Response) => {
+            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -687,8 +680,7 @@ export default function (app: any, deps: any) {
             validationSchemas.newname()
         ]),
         async (req: Request, res: Response) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -781,8 +773,7 @@ export default function (app: any, deps: any) {
                 })
         ]),
         async (req: Request, res: Response) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -869,8 +860,7 @@ export default function (app: any, deps: any) {
                 .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores')
         ]),
         async (req: Request, res: Response) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -985,8 +975,7 @@ export default function (app: any, deps: any) {
                 .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores')
         ]),
         async (req: Request, res: Response) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1041,8 +1030,7 @@ export default function (app: any, deps: any) {
     //endpoint that retrieves exchanges for each symbol (related to assigning pictures correctly)
     app.get('/symbols-exchanges',
         async (req: Request, res: Response) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1101,8 +1089,7 @@ export default function (app: any, deps: any) {
     // Endpoint that retrieves the last update date
     app.get('/getlastupdate',
         async (req: Request, res: Response) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1166,8 +1153,7 @@ export default function (app: any, deps: any) {
             validationSchemas.chartData('ticker')
         ]),
         async (req: Request, res: Response) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1223,8 +1209,7 @@ export default function (app: any, deps: any) {
     // Endpoint that retrieves watch panel data for a user
     app.get('/watchpanel/:user',
         async (req: Request, res: Response) => {
-            const { handleError } = require('../utils/logger');
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1300,8 +1285,7 @@ export default function (app: any, deps: any) {
         validationSchemas.userParam('user'),
         validationSchemas.symbolsArray()
     ]), async (req: Request, res: Response) => {
-        const { handleError } = require('../utils/logger');
-        let client;
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -1383,10 +1367,9 @@ export default function (app: any, deps: any) {
 
     // endpoint to get news for a ticker
     app.get('/:symbol/news', validate(validationSets.newsSearch), async (req: Request, res: Response) => {
-        const { handleError } = require('../utils/logger');
         const ticker = req.params.symbol.toUpperCase();
         const sanitizedTicker = sanitizeInput(ticker);
-        let client;
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);

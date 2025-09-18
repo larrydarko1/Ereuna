@@ -119,8 +119,17 @@ async function fetchWatchPanelWS() {
       console.error('WebSocket parse error', e, event.data);
       return;
     }
-    if (msg.type === 'init' || msg.type === 'update') {
+    if (msg.type === 'init') {
       watchPanel.value = msg.data;
+      wsReceived = true;
+    } else if (msg.type === 'update') {
+      // Merge updates into existing array
+      for (const update of msg.data) {
+        const idx = watchPanel.value.findIndex(t => t.Symbol === update.Symbol);
+        if (idx !== -1) {
+          watchPanel.value[idx] = { ...watchPanel.value[idx], ...update };
+        }
+      }
       wsReceived = true;
     } else if (msg.error) {
       console.error('WebSocket error:', msg.error);

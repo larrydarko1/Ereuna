@@ -47,8 +47,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useStore } from 'vuex';
+import { ref, onMounted, computed } from 'vue';
+import { useUserStore } from '@/store/store';
 
 interface SummaryField {
   order: number;
@@ -57,8 +57,8 @@ interface SummaryField {
   hidden: boolean;
 }
 
-const store = useStore();
-let user = store.getters.getUser;
+const userStore = useUserStore();
+const user = computed(() => userStore.getUser);
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 const emit = defineEmits(['close', 'updated', 'panel-updated']);
 
@@ -156,7 +156,7 @@ async function updatePanel2() {
       hidden: section.hidden,
     }));
     const requestBody = {
-      username: user,
+      username: user.value?.Username,
       newListOrder,
     };
 

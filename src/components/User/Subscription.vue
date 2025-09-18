@@ -1,7 +1,7 @@
 <template>
-  <div style="margin-bottom: 30px; border-bottom: 3px #262435 solid; padding-bottom: 25px;">
-    <h1>Subscription Status</h1>
+  <div>
     <div class="subscription-meter">
+  <h1 class="subscription-title">Subscription Status</h1>
       <div class="meter-labels">
         <span><strong>Username:</strong> {{ user }}</span>
         <span><strong>Subscription Days left:</strong> {{ expirationDays !== null ? expirationDays : 'Loading...' }}</span>
@@ -12,8 +12,8 @@
         <button class="userbtn refund-btn">Ask for Refund</button>
       </div>
     </div>
-    <h1>Receipts</h1>
     <div class="receipts">
+      <h1>Receipts</h1>
       <div class="receipt-header">
         <p style="flex:1; font-weight: bold;">Payment Date</p>
         <p style="flex:1; font-weight: bold;">Amount</p>
@@ -32,7 +32,7 @@
           <p style="flex:1; text-align: center;">{{ (receipt.Amount) / 100 }}€</p>
           <p style="flex:1; text-align: center;">{{ receipt.Method }}</p>
           <p style="flex:1; text-align: center;">{{ formatSubscription(receipt.Subscription) }}</p>
-          <div style="flex:1;"><button class="downloadbtn">
+          <div class="download-cell"><button class="downloadbtn">
               <svg class="icon3" viewBox="0 0 24.00 24.00" fill="var(--text3)" xmlns="http://www.w3.org/2000/svg"
                 stroke="var(--text3)" stroke-width="0.696">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -52,7 +52,6 @@
       </div>
     </div>
   </div>
-  <div style="height: 100px"></div>
 </template>
 
 <script setup lang="ts">
@@ -199,19 +198,17 @@ function formatSubscription(subscriptionValue: number) {
   text-align: center;
   align-items: center;
   align-self: center;
-  padding: 10px;
-  margin: 10px;
   border: none;
 }
 
 .subscription-meter {
-  margin-bottom: 25px;
   background: var(--base2);
-  border-radius: 8px;
   padding: 18px 10px 10px 10px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  margin-bottom: 5px;
+  margin-left: 5px;
 }
 .meter-labels {
   display: flex;
@@ -228,7 +225,6 @@ function formatSubscription(subscriptionValue: number) {
 .meter-bar-container {
   display: flex;
   align-items: center;
-  margin-top: 5px;
 }
 
 .subscription-actions {
@@ -240,13 +236,22 @@ function formatSubscription(subscriptionValue: number) {
 .receipts {
   padding: 20px;
   background: var(--base2);
-  border-radius: 10px;
-  margin-top: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-left: 5px;
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  height: 100vh;
 }
 
 h1 {
   font-size: 2rem;
+}
+.subscription-title {
+  font-size: 2rem;
+  text-align: center;
+  width: 100%;
+  margin-bottom: 20px;
 }
 
 .receipt-header {
@@ -296,6 +301,13 @@ h1 {
   transition: background 0.2s, opacity 0.2s;
   cursor: pointer;
   display: flex;
+  margin: 0 auto;
+}
+.download-cell {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .downloadbtn:hover {

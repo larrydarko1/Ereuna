@@ -415,11 +415,13 @@ function initializeSortable() {
   }
 }
 
-// fetches initial item data (elements of watchlists)
-async function fetchItemData(item: string): Promise<void> {
+
+// fetches initial item data for all tickers at once
+async function fetchAllItemData(items: string[]): Promise<void> {
+  // getData will call fetchDataWS with all tickers at once
   await Promise.all([
-    getData(item),
-    props.getImagePath(item)
+    getData(items),
+    ...items.map(props.getImagePath)
   ]);
 }
 
@@ -436,7 +438,9 @@ async function initializeComponent() {
     ]);
 
     if (watchlist2.tickers && watchlist2.tickers.length > 0) {
-      await Promise.all(watchlist2.tickers.map(fetchItemData));
+      // Only use non-empty ticker names
+      const tickers = watchlist2.tickers.filter(Boolean);
+      await fetchAllItemData(tickers);
     }
 
     await nextTick();
@@ -527,11 +531,12 @@ async function filterWatchlist(watch?: WatchlistTicker): Promise<void> {
       },
     });
     const data = await response.json();
-    watchlist2.tickers = data;
-    isLoading2.value = true;
-    // Fetch data for each ticker in the updated watchlist
-    await Promise.all(watchlist2.tickers.map(ticker => fetchItemData(ticker)));
-    isLoading2.value = false;
+  watchlist2.tickers = data;
+  isLoading2.value = true;
+  // Fetch data for all tickers in the updated watchlist at once
+  const tickers = watchlist2.tickers.filter(Boolean);
+  await fetchAllItemData(tickers);
+  isLoading2.value = false;
     await nextTick(() => {
       initializeWatchlistNavigation();
       initializeSortable(); // Reinitialize Sortable after data updates
@@ -686,7 +691,7 @@ async function addWatchlist() {
       }
 
       const data = await patchResponse.json();
-      await fetchItemData(symbol);
+      await fetchAllItemData([symbol]);
       await filterWatchlist();
     }
   } catch (err) {
@@ -1055,7 +1060,10 @@ async function fetchDataREST(items: string[] | string): Promise<void> {
 async function fetchDataWS(items: string[]): Promise<void> {
   closeDataWS();
   wsReceived = false;
-  const tickersParam = items.map(encodeURIComponent).join(',');
+  // Filter out empty/undefined tickers
+  const validItems = items.filter(Boolean);
+  console.log('[Watchlist] Sending tickers to WS:', validItems);
+  const tickersParam = validItems.map(encodeURIComponent).join(',');
   const wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
   const wsUrl = `${wsProto}://localhost:8000/ws/data-values?tickers=${tickersParam}`;
   let triedRest = false;
@@ -1069,13 +1077,18 @@ async function fetchDataWS(items: string[]): Promise<void> {
       console.error('WebSocket parse error', e, event.data);
       return;
     }
-    if (msg.type === 'init' || msg.type === 'update') {
-      for (const item of items) {
-        if (msg.data[item]) {
-          quotes[item] = parseFloat(msg.data[item].close).toFixed(2);
-          changes[item] = parseFloat(msg.data[item].closeDiff);
-          perc[item] = parseFloat(msg.data[item].percentChange);
-        }
+    if (msg.type === 'init') {
+      for (const item in msg.data) {
+        quotes[item] = parseFloat(msg.data[item].close).toFixed(2);
+        changes[item] = parseFloat(msg.data[item].closeDiff);
+        perc[item] = parseFloat(msg.data[item].percentChange);
+      }
+      wsReceived = true;
+    } else if (msg.type === 'update') {
+      for (const item in msg.data) {
+        quotes[item] = parseFloat(msg.data[item].close).toFixed(2);
+        changes[item] = parseFloat(msg.data[item].closeDiff);
+        perc[item] = parseFloat(msg.data[item].percentChange);
       }
       wsReceived = true;
     } else if (msg.error) {
@@ -1111,13 +1124,15 @@ async function getData(items: string[] | string): Promise<void> {
 // Usage example (mirrors your onMounted logic)
 onMounted(() => {
   if (props.user) {
-  fetchDataWS(watchlist.tickers.map(t => t.Name));
-  setTimeout(() => {
-    if (!wsReceived) {
-      fetchDataREST(watchlist.tickers.map(t => t.Name));
-    }
-  }, 2000);
-}
+    // Only use non-empty ticker names
+    const tickers = watchlist.tickers.map(t => t.Name).filter(Boolean);
+    fetchDataWS(tickers);
+    setTimeout(() => {
+      if (!wsReceived) {
+        fetchDataREST(tickers);
+      }
+    }, 2000);
+  }
 });
 
 // Cleanup

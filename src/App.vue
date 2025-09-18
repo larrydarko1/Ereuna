@@ -4,35 +4,26 @@
 </template>
 
 <script setup lang="ts">
+
 import { ref, computed, onMounted } from 'vue';
 import Message from '@/components/message.vue';
 import { useRoute } from 'vue-router';
-
+import { useUserStore } from '@/store/store';
 
 const apiKey: string = import.meta.env.VITE_EREUNA_KEY;
-
-const number = ref<number>(0); // Replace this with your actual number variable
-
-const numberClass = computed(() => {
-  return number.value > 0 ? 'positive' : 'negative';
-});
-
-const themes: string[] = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
-const currentTheme = ref<string>('default');
-
-const user = ref<string>(localStorage.getItem('username') || '');
+const userStore = useUserStore();
 const error = ref<string>('');
 
-interface ThemeResponse {
-  message?: string;
-  theme?: string;
-}
+const themes: string[] = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
+
+const user = computed(() => userStore.getUser);
+const currentTheme = computed(() => userStore.currentTheme);
 
 async function setTheme(newTheme: string) {
   const root = document.documentElement;
   root.classList.remove(...themes);
   root.classList.add(newTheme);
-  localStorage.setItem('user-theme', newTheme);
+  userStore.setTheme(newTheme);
   try {
     const response = await fetch('/api/theme', {
       method: 'POST',
@@ -40,12 +31,10 @@ async function setTheme(newTheme: string) {
         'Content-Type': 'application/json',
         'X-API-KEY': apiKey,
       },
-      body: JSON.stringify({ theme: newTheme, username: user.value }),
+  body: JSON.stringify({ theme: newTheme, username: (user.value && 'username' in user.value) ? user.value.username : '' }),
     });
-    const data: ThemeResponse = await response.json();
-    if (data.message === 'Theme updated') {
-      currentTheme.value = newTheme;
-    } else {
+    const data = await response.json();
+    if (data.message !== 'Theme updated') {
       error.value = data.message || '';
     }
   } catch (err: any) {
@@ -61,9 +50,9 @@ async function loadTheme() {
         'Content-Type': 'application/json',
         'X-API-KEY': apiKey,
       },
-      body: JSON.stringify({ username: user.value }),
+  body: JSON.stringify({ username: (user.value && 'username' in user.value) ? user.value.username : '' }),
     });
-    const data: ThemeResponse = await response.json();
+    const data = await response.json();
     if (data.theme) {
       setTheme(data.theme);
     } else {
@@ -74,7 +63,10 @@ async function loadTheme() {
   }
 }
 
-loadTheme();
+onMounted(() => {
+  userStore.loadUserFromToken();
+  loadTheme();
+});
 
 defineExpose({
   loadTheme,

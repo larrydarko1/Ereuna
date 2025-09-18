@@ -302,6 +302,7 @@ onMounted(async () => {
     lineWidth: 1,
     lastValueVisible: false,
     priceLineVisible: false,
+    crosshairMarkerVisible: false,
   });
 
   const MaSeries2 = chart.addLineSeries({
@@ -309,6 +310,7 @@ onMounted(async () => {
     lineWidth: 1,
     lastValueVisible: false,
     priceLineVisible: false,
+    crosshairMarkerVisible: false,
   });
 
   const MaSeries3 = chart.addLineSeries({
@@ -316,6 +318,7 @@ onMounted(async () => {
     lineWidth: 1,
     lastValueVisible: false,
     priceLineVisible: false,
+    crosshairMarkerVisible: false,
   });
 
   const MaSeries4 = chart.addLineSeries({
@@ -323,6 +326,7 @@ onMounted(async () => {
     lineWidth: 1,
     lastValueVisible: false,
     priceLineVisible: false,
+    crosshairMarkerVisible: false,
   });
 
   Histogram.priceScale().applyOptions({

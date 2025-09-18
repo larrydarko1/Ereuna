@@ -1,6 +1,5 @@
 <template>
   <Header />
-  <Assistant />
   <div id="main">
     <div class="sidebar">
       <div class="inner2">
@@ -83,14 +82,14 @@
     <div class="content">
       <div v-if="selectedIndex === 0">
         <AccountSettings
-          :user="user"
+          :user="user?.Username ?? ''"
           :apiKey="apiKey"
           :formatDate="formatDate"
         />
       </div>
 <div v-if="selectedIndex === 1">
 <Subscription
-:user="user"
+:user="user?.Username ?? ''"
 :apiKey="apiKey"
 :formatDate="formatDate"
 />
@@ -98,7 +97,7 @@
 <div v-if="selectedIndex === 2">
 <Themes 
 :apiKey="apiKey" 
-:user="user"
+:user="user?.Username ?? ''"
 />
 </div>
       <div v-if="selectedIndex === 4">
@@ -110,7 +109,7 @@
       <div v-if="selectedIndex === 3">
         <TwoFA 
         :apiKey="apiKey"
-        :user="user"
+        :user="user?.Username ?? ''"
         />
       </div>
     </div>
@@ -120,9 +119,8 @@
 
 <script setup lang="ts">
 import Header from '@/components/Header.vue'
-import Assistant from '@/components/assistant.vue';
-import { useStore } from 'vuex';
-import { ref, Ref } from 'vue';
+import { useUserStore } from '@/store/store';
+import { ref, computed } from 'vue';
 import NotificationPopup from '@/components/NotificationPopup.vue';
 
 // Component Sections
@@ -132,8 +130,8 @@ import Themes from '@/components/User/Themes.vue';
 import Subscription from '@/components/User/Subscription.vue';
 import AccountSettings from '@/components/User/AccountSettings.vue';
 
-const store = useStore();
-const user = store.getters.getUser;
+const userStore = useUserStore();
+const user = computed(() => userStore.getUser);
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 // for popup notifications
@@ -170,62 +168,6 @@ function formatDate(bsonDate: string | number | Date) {
   });
 }
 
-const themes = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
-const currentTheme = ref('default');
-const error: Ref<string> = ref('');
-
-async function loadTheme() {
-  try {
-    const response = await fetch('/api/load-theme', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ username: user }),
-    });
-    const data = await response.json();
-    if (data.theme) {
-      setTheme(data.theme);
-    } else {
-      setTheme('default');
-    }
-  } catch (error) {
-    setTheme('default');
-  }
-}
-
-loadTheme()
-
-async function setTheme(newTheme: string) {
-  const root = document.documentElement;
-  root.classList.remove(...themes);
-  root.classList.add(newTheme);
-  localStorage.setItem('user-theme', newTheme);
-  try {
-    const response = await fetch('/api/theme', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ theme: newTheme, username: user }),
-    });
-    const data = await response.json();
-    if (data.message === 'Theme updated') {
-      currentTheme.value = newTheme;
-    } else {
-      error.value = data.message;
-    }
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      error.value = err.message;
-    } else {
-      error.value = String(err);
-    }
-  }
-}
-
 </script>
 
 <style lang="scss" scoped>
@@ -253,9 +195,8 @@ async function setTheme(newTheme: string) {
   display: flex;
   position: relative;
   flex-direction: column;
-  width: 85%;
+  width: 100%;
   background-color: var(--base4);
-  padding: 20px;
   text-align: center;
   overflow-y: auto;
 }

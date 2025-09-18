@@ -179,7 +179,6 @@ const currentFinancials = computed<Financial[]>(() => {
 
 async function fetchFinancials() {
   try {
-    console.log('Fetching financials for:', props.ticker);
     const headers = {
       'x-api-key': props.apiKey
     };
@@ -192,12 +191,10 @@ async function fetchFinancials() {
     }
 
     const newFinancials = await response.json();
-    console.log('API response:', newFinancials);
   AnnualFinancials.value = newFinancials.annualFinancials as Financial[];
   QuarterlyFinancials.value = newFinancials.quarterlyFinancials as Financial[];
 
   } catch (error) {
-    console.error('Error fetching financials:', error);
     if (error && typeof error === 'object' && 'name' in error && (error as { name?: string }).name === 'AbortError') {
       return;
     }

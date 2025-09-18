@@ -1,38 +1,234 @@
 <template>
     <Header />
-  <Assistant />
-  <section class="portfolio-container scrollable-content">
-    <div class="portfolio-header">
-      <div>
-         <h1>Simulated Portfolio</h1>
-      <div class="portfolio-selector">
-  <button
+  <div class="portfolio-menu">
+    <div style="display: flex; margin-left: 10px;">
+     <button
     v-for="n in 10"
     :key="n"
     :class="['portfolio-btn', selectedPortfolioIndex === n - 1 ? 'selected' : '']"
     @click="selectPortfolio(n - 1)"
   >
     {{ n }}
-  </button>
-</div>
-      </div>
-      <div>
-        <button class="trade-btn" @click="showTradeModal = true">New Trade</button>
-        <button class="trade-btn" style="margin-left: 12px;" @click="showAddCashModal = true">Add Cash</button>
-        <button class="trade-btn" style="margin-left: 12px;" @click="showBaseValueModal = true">Set Base Value</button>
-        <button class="trade-btn2" style="margin-left: 12px;" @click="showResetDialog = true">Reset</button>
-       <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
-      <button class="trade-btn" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)" @click="showImportPopup = true">Import</button>
-<button class="trade-btn" :disabled="isPortfolioBlank" @click="showDownloadPopup = true">Export</button>
+  </button> 
+    </div>
+      <div style="display: flex; gap: 8px; margin-right: 10px;">
+        <button class="menu-btn" @click="showTradeModal = true">New Trade</button>
+        <button class="menu-btn"  @click="showAddCashModal = true">Add Cash</button>
+        <button class="menu-btn"  @click="showBaseValueModal = true">Set Base Value</button>
+        <button class="menu-btn"  @click="showResetDialog = true">Reset</button>
+      <button class="menu-btn" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)" @click="showImportPopup = true">Import</button>
+<button class="menu-btn" :disabled="isPortfolioBlank" @click="showDownloadPopup = true">Export</button>
 <DownloadPortfolioPopup
   v-if="showDownloadPopup"
-  :user="user"
+  :user="user?.Username ?? ''"
   :api-key="apiKey"
   :portfolio="selectedPortfolioIndex"
   @close="showDownloadPopup = false"
 />
-    </div>
       </div>
+  </div>
+  <div class="portfolio-summary-main">
+    <div class="portfolio-summary">
+      <div class="summary-row">
+        <div class="attribute">Base Value</div>
+        <div class="value">
+          ${{ portfolioSummary?.BaseValue?.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) ?? '-' }}
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Total Value</div>
+        <div class="value">
+          ${{ portfolioSummary?.totalPortfolioValue2?.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) ?? '-' }}
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Active Positions</div>
+        <div class="value">
+          ${{ portfolioSummary?.totalPortfolioValue?.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) ?? '-' }}
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Cash</div>
+        <div class="value">
+          ${{ portfolioSummary?.cash?.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) ?? '-' }}
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Total P/L</div>
+        <div class="value" :class="(portfolioSummary?.totalPL ?? 0) >= 0 ? 'positive' : 'negative'">
+          {{ (portfolioSummary?.totalPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.totalPL?.toLocaleString(undefined, {
+            minimumFractionDigits: 2, maximumFractionDigits: 2
+          }) ?? '-' }}
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Total P/L (%)</div>
+        <div class="value" :class="(portfolioSummary?.totalPL ?? 0) > 0 ? 'positive' : (portfolioSummary?.totalPL ?? 0) < 0 ? 'negative' : ''">
+          <template v-if="portfolioSummary?.totalPLPercent !== '' && Number(portfolioSummary?.totalPLPercent) !== 0">
+            {{ (portfolioSummary?.totalPL ?? 0) > 0 ? '+' : '' }}{{ portfolioSummary?.totalPLPercent }}%
+          </template>
+          <template v-else>
+            -
+          </template>
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Unrealized P/L</div>
+        <div class="value" :class="(portfolioSummary?.unrealizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
+          {{ (portfolioSummary?.unrealizedPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.unrealizedPL?.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) ?? '-' }}
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Unrealized P/L (%)</div>
+        <div class="value" :class="(portfolioSummary?.unrealizedPL ?? 0) > 0 ? 'positive' : (portfolioSummary?.unrealizedPL ?? 0) < 0 ? 'negative' : ''">
+          <template v-if="portfolioSummary?.unrealizedPLPercent !== '' && Number(portfolioSummary?.unrealizedPLPercent) !== 0">
+            {{ (portfolioSummary?.unrealizedPL ?? 0) >= 0 ? '+' : '' }}{{ portfolioSummary?.unrealizedPLPercent }}%
+          </template>
+          <template v-else>
+            -
+          </template>
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Realized P/L</div>
+        <div class="value" :class="(portfolioSummary?.realizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
+          {{ (portfolioSummary?.realizedPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.realizedPL?.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) ?? '-' }}
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Realized P/L (%)</div>
+        <div class="value" :class="(portfolioSummary?.realizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
+          {{ (portfolioSummary?.realizedPL ?? 0) >= 0 ? '+' : '' }}{{ portfolioSummary?.realizedPLPercent }}%
+        </div>
+      </div>
+      <!-- Advanced Portfolio Stats -->
+      <div class="summary-row">
+        <div class="attribute">Avg. Position Size</div>
+        <div class="value">{{ portfolioSummary?.avgPositionSize }}%</div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Avg. Hold Time (Winners)</div>
+        <div class="value">{{ portfolioSummary?.avgHoldTimeWinners }} days</div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Avg. Hold Time (Losers)</div>
+        <div class="value">{{ portfolioSummary?.avgHoldTimeLosers }} days</div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Avg. Gain %</div>
+        <div class="value positive">+{{ portfolioSummary?.avgGain }}%</div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Avg. Loss %</div>
+        <div class="value negative">{{ portfolioSummary?.avgLoss }}%</div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Avg. Gain</div>
+        <div class="value positive">
+          +${{ portfolioSummary?.avgGainAbs }}
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Avg. Loss</div>
+        <div class="value negative">
+          -${{ portfolioSummary?.avgLossAbs }}
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Gain/Loss Ratio</div>
+        <div class="value">{{ portfolioSummary?.gainLossRatio }}</div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Risk/Reward Ratio</div>
+        <div class="value">{{ portfolioSummary?.riskRewardRatio }}</div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Winning Trades</div>
+        <div class="value positive">
+          {{ portfolioSummary?.winnerCount }} ({{ portfolioSummary?.winnerPercent }}%)
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Losing Trades</div>
+        <div class="value negative">
+          {{ portfolioSummary?.loserCount }} ({{ portfolioSummary?.loserPercent }}%)
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Breakeven Trades</div>
+        <div class="value">
+          {{ portfolioSummary?.breakevenCount }} ({{ portfolioSummary?.breakevenPercent }}%)
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Profit Factor</div>
+        <div class="value">{{ portfolioSummary?.profitFactor }}</div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Sortino Ratio</div>
+        <div class="value">{{ portfolioSummary?.sortinoRatio }}</div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Biggest Winner</div>
+        <div class="value positive">
+          <template v-if="portfolioSummary?.biggestWinner?.ticker">
+            {{ portfolioSummary.biggestWinner.ticker }} (+${{ portfolioSummary.biggestWinner.amount }})
+          </template>
+          <template v-else>
+            -
+          </template>
+          <div v-if="portfolioSummary?.biggestWinner?.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
+            Trades: {{ portfolioSummary.biggestWinner.tradeCount }}
+          </div>
+        </div>
+      </div>
+      <div class="summary-row">
+        <div class="attribute">Biggest Loser</div>
+        <div class="value negative">
+          <template v-if="portfolioSummary?.biggestLoser?.ticker">
+            {{ portfolioSummary.biggestLoser.ticker }} (-${{ portfolioSummary.biggestLoser.amount }})
+          </template>
+          <template v-else>
+            -
+          </template>
+          <div v-if="portfolioSummary?.biggestLoser?.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
+            Trades: {{ portfolioSummary.biggestLoser.tradeCount }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="portfolio-charts">
+      <div class="portfolio-linechart-container">
+        <div class="linechart-fixed-height">
+          <Line :data="lineData" :options="lineOptions" />
+        </div>
+      </div>
+      <div class="portfolio-bar-chart-container">
+        <h3 style="color: var(--accent1); margin-bottom: 12px;">Trade Returns (%)</h3>
+        <Bar :data="tradeReturnsChartData" :options="(tradeReturnsChartOptions as any)" />
+      </div>
+    </div>
+  </div>
+  <section class="portfolio-container">
+    <div class="portfolio-header">
        <div v-if="showResetDialog" class="reset-modal-overlay">
       <div class="reset-modal">
         <h3>Reset Portfolio</h3>
@@ -46,7 +242,7 @@
     </div>
       <TradePopup
   v-if="showTradeModal"
-  :user="user"
+  :user="user?.Username ?? ''"
   :api-key="apiKey"
   :portfolio="selectedPortfolioIndex"
   @close="showTradeModal = false"
@@ -61,259 +257,34 @@
   :currentPrice="latestQuotes[sellPosition.symbol]"
   @close="showSellModal = false"
   @sell="handleSell"
-  :user="user"
+  :user="user?.Username ?? ''"
   :api-key="apiKey"
   :portfolio="selectedPortfolioIndex"
 />
 <AddCashPopup
   v-if="showAddCashModal"
-  :user="user"
+  :user="user?.Username ?? ''"
   :api-key="apiKey"
   :portfolio="selectedPortfolioIndex"
   @close="showAddCashModal = false"
-  @cash-added="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showAddCashModal = false }"
+  @refresh="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showAddCashModal = false }"
 />
 <BaseValuePopup
   v-if="showBaseValueModal"
-  :user="user"
+  :user="user?.Username ?? ''"
   :api-key="apiKey"
   :portfolio="selectedPortfolioIndex"
   @close="showBaseValueModal = false"
   @base-value-updated="fetchPortfolioSummary(); fetchPortfolio(); showBaseValueModal = false"
 />
-<Archetypes v-if="showLossesInfo" @close="showLossesInfo = false" />
 <ImportPortfolioPopup
           v-if="showImportPopup"
-          :user="user"
+          :user="user?.Username ?? ''"
           :api-key="apiKey"
           :portfolio="selectedPortfolioIndex"
           @close="showImportPopup = false"
           @imported="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showImportPopup = false }"
         />
-    </div>
-   <div class="portfolio-archetype">
-  <div class="archetype-flex">
-    <svg class="archetype-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-      <g id="SVGRepo_iconCarrier">
-        <circle cx="34.52" cy="11.43" r="5.82" :stroke="text2" :fill="text2"/>
-        <circle cx="53.63" cy="31.6" r="5.82" :stroke="text2" :fill="text2"/>
-        <circle cx="34.52" cy="50.57" r="5.82" :stroke="text2" :fill="text2" />
-        <circle cx="15.16" cy="42.03" r="5.82" :stroke="text2" :fill="text2" />
-        <circle cx="15.16" cy="19.27" r="5.82" :stroke="text2" :fill="text2" />
-        <circle cx="34.51" cy="29.27" r="4.7" :stroke="text2" :fill="text2" />
-        <line x1="20.17" y1="16.3" x2="28.9" y2="12.93" :stroke="text2" />
-        <line x1="38.6" y1="15.59" x2="49.48" y2="27.52" :stroke="text2" />
-        <line x1="50.07" y1="36.2" x2="38.67" y2="46.49" :stroke="text2" />
-        <line x1="18.36" y1="24.13" x2="30.91" y2="46.01" :stroke="text2" />
-        <line x1="20.31" y1="44.74" x2="28.7" y2="48.63" :stroke="text2" />
-        <line x1="17.34" y1="36.63" x2="31.37" y2="16.32" :stroke="text2" />
-        <line x1="20.52" y1="21.55" x2="30.34" y2="27.1" :stroke="text2" />
-        <line x1="39.22" y1="29.8" x2="47.81" y2="30.45" :stroke="text2" />
-        <line x1="34.51" y1="33.98" x2="34.52" y2="44.74" :stroke="text2" />
-      </g>
-    </svg>
-    <div class="archetype-content">
-      <div class="archetype-header">
-        <h2>Archetype: {{ currentArchetype.name }}</h2>
-        <span @click="showLossesInfo = true" :class="['archetype-badge', currentArchetype.type]">
-          {{ currentArchetype.type === 'good' ? 'Good Archetype' : 'Bad Archetype' }}
-        </span>
-      </div>
-      <p>{{ currentArchetype.desc }}</p>
-    </div>
-  </div>
-</div>
-    <div class="portfolio-summary">
-      <div class="summary-card">
-      <div class="summary-title">Base Value</div>
-      <div class="summary-value">
-        ${{ portfolioSummary?.BaseValue?.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        }) ?? '-' }}
-      </div>
-    </div>
-      <div class="summary-card">
-      <div class="summary-title">Total Value</div>
-      <div class="summary-value">
-        ${{ portfolioSummary?.totalPortfolioValue2?.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        }) ?? '-' }}
-      </div>
-    </div>
-  <div class="summary-card">
-  <div class="summary-title">Active Positions</div>
-  <div class="summary-value">
-    ${{ portfolioSummary?.totalPortfolioValue?.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }) ?? '-' }}
-  </div>
-</div>
-      <div class="summary-card">
-  <div class="summary-title">Cash</div>
-  <div class="summary-value">
-    ${{ portfolioSummary?.cash?.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }) ?? '-' }}
-  </div>
-</div>
-      <div class="summary-card">
-        <div class="summary-title">Total P/L</div>
-        <div class="summary-value" :class="(portfolioSummary?.totalPL ?? 0) >= 0 ? 'positive' : 'negative'">
-          {{ (portfolioSummary?.totalPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.totalPL?.toLocaleString(undefined, {
-            minimumFractionDigits: 2, maximumFractionDigits: 2
-          }) ?? '-' }}
-        </div>
-      </div>
-      <div class="summary-card">
-      <div class="summary-title">Total P/L (%)</div>
-      <div class="summary-value" :class="(portfolioSummary?.totalPL ?? 0) > 0 ? 'positive' : (portfolioSummary?.totalPL ?? 0) < 0 ? 'negative' : ''">
-        <template v-if="portfolioSummary?.totalPLPercent !== '' && Number(portfolioSummary?.totalPLPercent) !== 0">
-          {{ (portfolioSummary?.totalPL ?? 0) > 0 ? '+' : '' }}{{ portfolioSummary?.totalPLPercent }}%
-        </template>
-        <template v-else>
-          -
-        </template>
-      </div>
-    </div>
-      <div class="summary-card">
-        <div class="summary-title">Unrealized P/L</div>
-        <div class="summary-value" :class="(portfolioSummary?.unrealizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
-          {{ (portfolioSummary?.unrealizedPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.unrealizedPL?.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          }) ?? '-' }}
-        </div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-title">Unrealized P/L (%)</div>
-        <div class="summary-value" :class="(portfolioSummary?.unrealizedPL ?? 0) > 0 ? 'positive' : (portfolioSummary?.unrealizedPL ?? 0) < 0 ? 'negative' : ''">
-  <template v-if="portfolioSummary?.unrealizedPLPercent !== '' && Number(portfolioSummary?.unrealizedPLPercent) !== 0">
-    {{ (portfolioSummary?.unrealizedPL ?? 0) >= 0 ? '+' : '' }}{{ portfolioSummary?.unrealizedPLPercent }}%
-  </template>
-  <template v-else>
-    -
-  </template>
-</div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-title">Realized P/L</div>
-        <div class="summary-value" :class="(portfolioSummary?.realizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
-          {{ (portfolioSummary?.realizedPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.realizedPL?.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          }) ?? '-' }}
-        </div>
-      </div>
-      <div class="summary-card">
-        <div class="summary-title">Realized P/L (%)</div>
-        <div class="summary-value" :class="(portfolioSummary?.realizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
-          {{ (portfolioSummary?.realizedPL ?? 0) >= 0 ? '+' : '' }}{{ portfolioSummary?.realizedPLPercent }}%
-        </div>
-      </div>
-      <!-- Advanced Portfolio Stats -->
-  <div class="summary-card">
-  <div class="summary-title">Avg. Position Size</div>
-  <div class="summary-value">{{ portfolioSummary?.avgPositionSize }}%</div>
-</div>
-  <div class="summary-card">
-    <div class="summary-title">Avg. Hold Time (Winners)</div>
-    <div class="summary-value">{{ portfolioSummary?.avgHoldTimeWinners }} days</div>
-  </div>
-  <div class="summary-card">
-    <div class="summary-title">Avg. Hold Time (Losers)</div>
-    <div class="summary-value">{{ portfolioSummary?.avgHoldTimeLosers }} days</div>
-  </div>
-  <div class="summary-card">
-    <div class="summary-title">Avg. Gain %</div>
-    <div class="summary-value positive">+{{ portfolioSummary?.avgGain }}%</div>
-  </div>
-  <div class="summary-card">
-    <div class="summary-title">Avg. Loss %</div>
-    <div class="summary-value negative">{{ portfolioSummary?.avgLoss }}%</div>
-  </div>
-  <div class="summary-card">
-  <div class="summary-title">Avg. Gain</div>
-  <div class="summary-value positive">
-    +${{ portfolioSummary?.avgGainAbs }}
-  </div>
-</div>
-<div class="summary-card">
-  <div class="summary-title">Avg. Loss</div>
-  <div class="summary-value negative">
-    -${{ portfolioSummary?.avgLossAbs }}
-  </div>
-</div>
-<div class="summary-card">
-  <div class="summary-title">Gain/Loss Ratio</div>
-  <div class="summary-value">{{ portfolioSummary?.gainLossRatio }}</div>
-</div>
-<div class="summary-card">
-  <div class="summary-title">Risk/Reward Ratio</div>
-  <div class="summary-value">{{ portfolioSummary?.riskRewardRatio }}</div>
-</div>
-<div class="summary-card">
-  <div class="summary-title">Winning Trades</div>
-  <div class="summary-value positive">
-    {{ portfolioSummary?.winnerCount }} ({{ portfolioSummary?.winnerPercent }}%)
-  </div>
-</div>
-<div class="summary-card">
-  <div class="summary-title">Losing Trades</div>
-  <div class="summary-value negative">
-    {{ portfolioSummary?.loserCount }} ({{ portfolioSummary?.loserPercent }}%)
-  </div>
-</div>
-<div class="summary-card">
-  <div class="summary-title">Breakeven Trades</div>
-  <div class="summary-value">
-    {{ portfolioSummary?.breakevenCount }} ({{ portfolioSummary?.breakevenPercent }}%)
-  </div>
-</div>
-<div class="summary-card">
-  <div class="summary-title">Profit Factor</div>
-  <div class="summary-value">{{ portfolioSummary?.profitFactor }}</div>
-</div>
-<div class="summary-card">
-  <div class="summary-title">Sortino Ratio</div>
-  <div class="summary-value">{{ portfolioSummary?.sortinoRatio }}</div>
-</div>
-<div class="summary-card">
-  <div class="summary-title">Biggest Winner</div>
-  <div class="summary-value positive">
-    <template v-if="portfolioSummary?.biggestWinner?.ticker">
-      {{ portfolioSummary.biggestWinner.ticker }} (+${{ portfolioSummary.biggestWinner.amount }})
-    </template>
-    <template v-else>
-      -
-    </template>
-    <div v-if="portfolioSummary?.biggestWinner?.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
-      Trades: {{ portfolioSummary.biggestWinner.tradeCount }}
-    </div>
-  </div>
-</div>
-<div class="summary-card">
-  <div class="summary-title">Biggest Loser</div>
-  <div class="summary-value negative">
-    <template v-if="portfolioSummary?.biggestLoser?.ticker">
-      {{ portfolioSummary.biggestLoser.ticker }} (-${{ portfolioSummary.biggestLoser.amount }})
-    </template>
-    <template v-else>
-      -
-    </template>
-    <div v-if="portfolioSummary?.biggestLoser?.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
-      Trades: {{ portfolioSummary.biggestLoser.tradeCount }}
-    </div>
-  </div>
-</div>
-    </div>
-    <div class="portfolio-linechart-container">
-      <div class="linechart-fixed-height">
-        <Line :data="lineData" :options="lineOptions" :height="200" />
-      </div>
     </div>
     <div class="portfolio-main-flex">
       <div class="portfolio-pie-container">
@@ -321,7 +292,7 @@
             <Pie :data="pieChartData" :options="pieOptions" />
           </template>
           <template v-else>
-            <div class="too-many-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; height: 350px ;color: var(--text2); background: var(--base2); border-radius: 10px;">
+            <div class="too-many-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; height: 350px ;color: var(--text2); background: var(--base2);">
               <strong>Too many positions to display pie chart.</strong><br>
               Please reduce the number of positions to view allocation breakdown.
             </div>
@@ -400,10 +371,6 @@
         </table>
       </div>
     </div>
- <div class="portfolio-bar-chart-container" style="margin-bottom: 32px; background: var(--base2); border-radius: 10px; padding: 24px; box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);">
-  <h3 style="color: var(--accent1); margin-bottom: 12px;">Trade Returns (%)</h3>
-  <Bar :data="tradeReturnsChartData" :options="(tradeReturnsChartOptions as any)" :height="70" />
-</div>
     <div class="portfolio-history-container scrollable-table">
       <h2>Transaction History</h2>
       <table class="portfolio-table">
@@ -445,10 +412,8 @@
 import Header from '@/components/Header.vue';
 import { ref, watch, onMounted, computed, onUnmounted, nextTick } from 'vue';
 import TradePopup from '@/components/Portfolio/trade.vue'
-// TypeScript: declare .vue modules
 import SellTradePopup from '@/components/Portfolio/SellTradePopup.vue'
 import AddCashPopup from '@/components/Portfolio/addCash.vue'
-import Archetypes from '@/components/Portfolio/archetypes.vue'
 import { Pie, Line, Bar } from 'vue-chartjs'
 import {
   Chart,
@@ -461,16 +426,15 @@ import {
   CategoryScale,
   BarElement 
 } from 'chart.js'
-import { useStore } from 'vuex';
+import { useUserStore } from '@/store/store';
 import annotationPlugin from 'chartjs-plugin-annotation';
-import Assistant from '@/components/assistant.vue';
 import ImportPortfolioPopup from '@/components/Portfolio/ImportPortfolioPopup.vue';
 import DownloadPortfolioPopup from '@/components/Portfolio/DownloadPortfolioPopup.vue'
 import BaseValuePopup from '@/components/Portfolio/BaseValue.vue'
 
 // access user from store 
-const store = useStore();
-let user = store.getters.getUser;
+const userStore = useUserStore();
+const user = computed(() => userStore.getUser);
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 // Types
@@ -493,7 +457,6 @@ const showTradeModal = ref(false)
 const showSellModal = ref(false)
 const sellPosition = ref({ symbol: '', shares: 0, price: 0 })
 const showAddCashModal = ref(false)
-const showLossesInfo = ref(false)
 const showImportPopup = ref(false)
 const showDownloadPopup = ref(false)
 const showBaseValueModal = ref(false)
@@ -599,19 +562,24 @@ function getPnLDollar(position: Position): string {
 }
 
 
-const pieOptions = computed(() => {
-  return {
-    plugins: {
-      legend: {
-        display: portfolio.value.length <= 32,
-        labels: {
-          color: text2,
-          font: { size: 14 }
+const pieOptions = computed(() => ({
+  plugins: {
+    legend: {
+      display: false, // Hide the legend
+    },
+    tooltip: {
+      enabled: true, // Show tooltip on hover/click
+      callbacks: {
+        label: function(context: any) {
+          // Show label and value in tooltip
+          const label = context.label || '';
+          const value = context.parsed || 0;
+          return `${label}: $${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
-      }
+      },
     }
-  };
-});
+  }
+}));
 
 // --- Total Value Over Time (Line Chart) ---
 
@@ -675,7 +643,7 @@ async function fetchTransactionHistory() {
       'x-api-key': apiKey
     };
     const response = await fetch(
-      `/api/trades?username=${user}&portfolio=${selectedPortfolioIndex.value}&limit=${tradesLimit.value}&skip=${tradesSkip.value}`,
+      `/api/trades?username=${user.value?.Username ?? ''}&portfolio=${selectedPortfolioIndex.value}&limit=${tradesLimit.value}&skip=${tradesSkip.value}`,
       { headers }
     );
     if (!response.ok) {
@@ -717,7 +685,7 @@ async function fetchPortfolio({ append = false } = {}) {
       'x-api-key': apiKey
     };
     const response = await fetch(
-      `/api/portfolio?username=${user}&portfolio=${selectedPortfolioIndex.value}&limit=${portfolioLimit.value}&skip=${portfolioSkip.value}`,
+      `/api/portfolio?username=${user.value?.Username ?? ''}&portfolio=${selectedPortfolioIndex.value}&limit=${portfolioLimit.value}&skip=${portfolioSkip.value}`,
       { headers }
     );
     if (!response.ok) {
@@ -748,9 +716,7 @@ let wsTimeout: ReturnType<typeof setTimeout> | null = null;
 let wsConnected = false;
 
 async function fetchQuotes() {
-  console.log('[fetchQuotes] called, portfolio:', portfolio.value);
   if (!portfolio.value.length) {
-    console.log('[fetchQuotes] portfolio is empty, aborting');
     return;
   }
   const symbols = portfolio.value.map((p) => p.Symbol).join(',');
@@ -758,14 +724,12 @@ async function fetchQuotes() {
 
   // Helper to update quotes from message
   function handleWSMessage(event: MessageEvent) {
-    console.log('[WebSocket] Message received:', event.data);
     try {
       const data = JSON.parse(event.data);
       if (data && typeof data === 'object') {
         latestQuotes.value = data;
       }
     } catch (e) {
-      console.warn('[WebSocket] Failed to parse message:', e);
     }
   }
 
@@ -797,12 +761,10 @@ async function fetchQuotes() {
     ws.onmessage = handleWSMessage;
     ws.onerror = (err) => {
       wsConnected = false;
-      console.error('[WebSocket] Error:', err);
   if (ws) ws.close();
     };
     ws.onclose = (event) => {
       wsConnected = false;
-      console.warn('[WebSocket] Connection closed:', event);
       // Try to reconnect after 2s if portfolio still exists
       if (portfolio.value.length) {
         wsReconnectTimer = setTimeout(connectWS, 2000);
@@ -854,7 +816,6 @@ onUnmounted(() => {
 
 // Fetch quotes whenever portfolio changes
 watch(portfolio, (newVal) => {
-  console.log('[portfolio watcher] triggered, newVal:', newVal);
   if (newVal.length) fetchQuotes();
 });
 
@@ -971,7 +932,7 @@ async function confirmResetPortfolio() {
   try {
     const headers = { 'x-api-key': apiKey, 'Content-Type': 'application/json' };
     const response = await fetch(
-      `/api/portfolio?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
+      `/api/portfolio?username=${user.value?.Username ?? ''}&portfolio=${selectedPortfolioIndex.value}`,
       {
         method: 'DELETE',
         headers
@@ -998,7 +959,7 @@ async function fetchCash() {
     };
 
     const response = await fetch(
-      `/api/portfolio/cash?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
+      `/api/portfolio/cash?username=${user.value?.Username ?? ''}&portfolio=${selectedPortfolioIndex.value}`,
       { headers }
     );
 
@@ -1018,8 +979,6 @@ async function fetchCash() {
   }
 }
 
-// Helper: Find all round-trips (buy then sell) for stats
-// Use backend-provided tradeReturnsChart data
 const tradeReturnsChartData = computed(() => {
   const chart = portfolioSummary.value?.tradeReturnsChart;
   if (!chart || !Array.isArray(chart.labels) || !Array.isArray(chart.bins)) return { labels: [], datasets: [] };
@@ -1089,30 +1048,6 @@ function selectPortfolio(idx: number) {
 // On mount, load the first portfolio by default
 onMounted(() => {
   selectPortfolio(0);
-});
-
-// --- Archetype Definitions --- for the Portfolio Archetype feature
-const archetypes = [
-  { name: "The Disciplined Planner", desc: "Follows a tested strategy, manages risk well, and sticks to the plan.", type: "good" },
-  { name: "The Adaptive Strategist", desc: "Adjusts to market conditions, maximizes opportunities, and learns from mistakes.", type: "good" },
-  { name: "The Patient Investor", desc: "Benefits from compounding and long-term trends, rarely trades on emotion.", type: "good" },
-  { name: "The Diversifier", desc: "Reduces risk through diversification across assets and strategies.", type: "good" },
-  { name: "The Boom & Buster", desc: "Goes all-in with leverage, riding big wins—until one loss wipes out everything.", type: "bad" },
-  { name: "The Stopless Hero", desc: "Refuses to use stop-losses, letting small losses snowball into disasters.", type: "bad" },
-  { name: "The FOMO Chaser", desc: "Buys tops and sells bottoms, always late to the party, driven by hype and fear of missing out.", type: "bad" },
-  { name: "The Averager", desc: "Keeps doubling down on losers, hoping for a turnaround that rarely comes.", type: "bad" },
-  { name: "The Risk Ignorer", desc: "Puts too much on one trade or ignores diversification, exposing themselves to huge drawdowns.", type: "bad" },
-  { name: "The Planless Gambler", desc: "Trades on gut feeling, rumors, or tips—never with a real plan or system.", type: "bad" },
-  { name: "The Revenge Trader", desc: "Tries to win back losses with bigger, riskier bets, digging the hole deeper.", type: "bad" },
-  { name: "The Emotional Reactor", desc: "Lets fear, greed, or frustration dictate every move, abandoning logic and discipline.", type: "bad" },
-  { name: "The Market Ignorer", desc: "Uses the same strategy in all conditions, never adapting to volatility or trends.", type: "bad" },
-  { name: "The Overtrader", desc: "Trades too often, chasing every move and racking up fees and mistakes.", type: "bad" }
-];
-
-// Computed property to determine the current archetype based on selected portfolio index
-const currentArchetype = computed(() => {
-  // Placeholder: assign archetype by selectedPortfolioIndex
-  return archetypes[selectedPortfolioIndex.value % archetypes.length];
 });
 
 // Infinite scroll for portfolio positions
@@ -1208,19 +1143,17 @@ onUnmounted(() => {
   cleanupTransactionHistoryScroll();
 });
 
-// (Removed duplicate declaration)
-
 async function fetchPortfolioSummary() {
   try {
     const headers = { 'x-api-key': apiKey };
     const response = await fetch(
-      `/api/portfolio/summary?username=${user}&portfolio=${selectedPortfolioIndex.value}`,
+      `/api/portfolio/summary?username=${user.value?.Username ?? ''}&portfolio=${selectedPortfolioIndex.value}`,
       { headers }
     );
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    portfolioSummary.value = await response.json();
+    const data = await response.json();
+    portfolioSummary.value = data;
   } catch (error) {
-    console.error('Error fetching portfolio summary:', error);
     portfolioSummary.value = null;
   }
 }
@@ -1233,42 +1166,32 @@ const isPortfolioBlank = computed(() => {
 
 <style lang="scss" scoped>
 .portfolio-container {
-  background: linear-gradient(90deg, var(--base4) 0%, var(--base2) 100%);
+  background: var(--base1);
   color: var(--text1);
-  padding: 32px 24px;
   min-height: 80vh;
 }
 
-.portfolio-header {
+.portfolio-menu {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-
-  h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--accent1);
-    margin: 0;
-  }
+  flex-direction: row;
+  background-color: var(--base2);
+  width: 100%;
+  padding: 5px 0px;
+  justify-content: space-between; 
 }
 
-.portfolio-selector {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-
-  .portfolio-btn {
+.menu-btn {
     background: var(--base3);
     color: var(--text1);
     border: none;
     border-radius: 6px;
     padding: 10px 10px;
-    min-width: 30px;
+    min-width: 100px;
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s;
+    margin: 2px; 
 
     &.selected {
       background: var(--accent1);
@@ -1280,91 +1203,30 @@ const isPortfolioBlank = computed(() => {
       color: var(--text3);
     }
   }
-}
-/* Archetype display styling */
-.portfolio-archetype {
-  background: var(--base2);
-  border-radius: 10px;
-  border: 1px solid var(--base3);
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.08);
-  padding: 10px 14px;
-  margin: 18px 0 24px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  min-width: 260px;
-  color: var(--text1);
-  position: relative;
 
-    .archetype-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+.portfolio-btn {
+    background: var(--base3);
+    color: var(--text1);
+    border: none;
+    border-radius: 6px;
+    padding: 10px 10px;
+    min-width: 30px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin: 2px;
+
+    &.selected {
+      background: var(--accent1);
+      color: var(--text3);
+    }
+
+    &:hover {
+      background: var(--accent2);
+      color: var(--text3);
+    }
   }
-
-  .archetype-header {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    position: relative;
-  }
-
-    .archetype-icon {
-    width: 32px;
-    min-width: 32px;
-    margin-right: 18px;
-    margin-top: 2px;
-  }
-
-    .archetype-flex {
-    display: flex;
-    align-items: flex-start;
-    width: 100%;
-    position: relative;
-  }
-
-  h2 {
-    color: var(--accent1);
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-bottom: 0;
-  }
-}
-
-.archetype-badge {
-  display: inline-block;
-  padding: 4px 14px;
-  border-radius: 5px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  box-shadow: 0 1px 6px 0 rgba(0,0,0,0.08);
-  border: none;
-  margin-left: 2px;
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  z-index: 2;
-  cursor: pointer;
-
-  &.good {
-    background: linear-gradient(90deg, var(--positive) 60%, var(--positive) 100%);
-    color: var(--text3);
-  }
-
-  &.bad {
-    background: linear-gradient(90deg, var(--negative) 60%, var(--negative) 100%);
-    color: var(--text3);
-  }
-}
-
-.portfolio-archetype p {
-  color: var(--text2);
-  font-size: 1.05rem;
-  margin-bottom: 0;
-  line-height: 1.5;
-}
 
 .trade-btn {
   background: var(--accent1);
@@ -1409,32 +1271,58 @@ const isPortfolioBlank = computed(() => {
   }
 }
 
-.portfolio-summary {
+
+.portfolio-summary-main {
   display: flex;
-  gap: 24px;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
+  width: 100%;
+  align-items: stretch;
+  margin-top: 5px;
+  gap: 5px;
+  height: auto;
 }
 
-.summary-card {
-  background: var(--base2);
-  border-radius: 10px;
-  padding: 24px 32px;
-  min-width: 100px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+
+.portfolio-summary {
+  flex: 1 1 0;
+  max-width: 33.33%;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  background-color: var(--base2);
+  margin-top: 0;
+  height: auto;
+  box-sizing: border-box;
+}
+
+.portfolio-charts {
+  flex: 2 1 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  min-width: 0;
+  height: auto;
+  box-sizing: border-box;
+}
 
-  .summary-title {
-    color: var(--text2);
-    font-size: 1rem;
-    margin-bottom: 8px;
+.summary-row {
+  display: flex;
+  flex-direction: row;
+  width: 50%;
+  box-sizing: border-box;
+  align-items: center;
+
+  .attribute, .value {
+    flex: 1;
+    padding: 8px 12px;
+    font-weight: 600;
   }
 
-  .summary-value {
-    font-size: 1.5rem;
-    font-weight: 700;
+  .attribute {
+    color: var(--text1);
+  }
+
+  .value {
+    color: var(--text2);
+    text-align: right;
 
     &.positive {
       color: var(--positive);
@@ -1449,38 +1337,28 @@ const isPortfolioBlank = computed(() => {
 /* FLEX LAYOUT FOR PIE + TABLE */
 .portfolio-main-flex {
   display: flex;
-  gap: 32px;
   align-items: flex-start;
-  margin-bottom: 32px;
   flex-wrap: wrap;
+  margin-top: 5px;
 }
 
 .portfolio-pie-container {
   background: var(--base2);
-  border-radius: 10px;
-  padding: 24px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
-  max-width: 400px;
-  flex: 1 1 300px;
+  flex: 1 1 0;
+  height: 400px;
 }
 
 .portfolio-table-container {
   background: var(--base2);
-  border-radius: 10px;
-  padding: 24px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
   overflow-x: auto;
-  flex: 2 1 400px;
-  max-height: 520px; // 8 rows * ~60px per row + header
+  flex: 2 1 0;
   overflow-y: auto;
+  margin-left: 5px;
 }
 
 .portfolio-history-container {
   background: var(--base2);
-  border-radius: 10px;
-  padding: 24px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
-  margin-top: 32px;
+  margin-top: 5px;
 
   h2 {
     color: var(--accent1);
@@ -1537,21 +1415,22 @@ const isPortfolioBlank = computed(() => {
   }
 }
 
-.portfolio-linechart-container {
+
+.portfolio-linechart-container,
+.portfolio-bar-chart-container {
   background: var(--base2);
-  border-radius: 10px;
-  padding: 24px;
-  margin-bottom: 32px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.08);
+  padding: 15px;
+  display: block;
 }
 
 .linechart-fixed-height {
-  height: 200px; // adjust as needed for 1/3 the original height
+  width: 100%;
+}
 
-  canvas {
-    height: 100% !important;
-    max-height: 200px !important;
-  }
+.linechart-fixed-height canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 260px;
 }
 
 .reset-modal-overlay {

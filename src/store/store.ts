@@ -1,26 +1,40 @@
-import { createStore } from 'vuex';
+import { defineStore } from 'pinia';
 
-const store = createStore({
-    state: {}, // Add an empty state object
-    getters: {
-        getUser(state) {
+export const useUserStore = defineStore('user', {
+    state: () => ({
+        user: null as null | { username: string;[key: string]: any },
+        theme: localStorage.getItem('user-theme') || 'default',
+    }),
+    actions: {
+        setUser(user: { username: string;[key: string]: any }) {
+            this.user = user;
+        },
+        setTheme(theme: string) {
+            this.theme = theme;
+            localStorage.setItem('user-theme', theme);
+        },
+        loadUserFromToken() {
             const token = localStorage.getItem('token');
             if (!token) {
-                return null;
+                this.user = null;
+                console.log('No token found in localStorage');
+                return;
             }
-            // Decode and validate the token
-            const decodedToken = JSON.parse(atob(token.split('.')[1])); // decode the token
-
-            // Validate the token
+            const decodedToken = JSON.parse(atob(token.split('.')[1]));
+            console.log('Decoded token:', decodedToken);
             if (decodedToken.exp < Date.now() / 1000) {
-                // Token has expired, remove it and return null
                 localStorage.removeItem('token');
-                return null;
+                this.user = null;
+                console.log('Token expired');
+                return;
             }
-            // Token is valid, return the user object
-            return decodedToken.user;
+            this.user = decodedToken.user as { username: string;[key: string]: any };
+            console.log('Loaded user:', this.user);
         },
     },
+    getters: {
+        getUser: (state): null | { username: string;[key: string]: any } => state.user,
+        currentTheme: (state): string => state.theme,
+        username: (state): string => state.user?.username ?? '',
+    },
 });
-
-export default store;

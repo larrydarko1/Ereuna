@@ -1,9 +1,8 @@
 <template>
   <body>
     <Header />
-    <Assistant />
-   <WatchPanel
-  :user="user"
+  <WatchPanel
+  :user="user?.Username ?? ''"
   :apiKey="apiKey"
   :defaultSymbol="defaultSymbol ?? ''"
   @select-symbol="(symbol) => { defaultSymbol = symbol; selectRow(symbol); }"
@@ -58,9 +57,9 @@
         </div>
       </div>
       <div id="center" :class="{ 'hidden-mobile': selected !== 'chart' }">
-       <MainChart
+  <MainChart
       :apiKey="apiKey"
-      :user="user"
+      :user="user?.Username ?? ''"
       :defaultSymbol="defaultSymbol ?? ''"
       :selectedSymbol="selectedSymbol"
       :assetInfo="assetInfo"
@@ -84,7 +83,7 @@
 />
          <Watchlist
            :apiKey="apiKey"
-           :user="user"
+           :user="user?.Username ?? ''"
            :defaultSymbol="defaultSymbol ?? ''"
            :selectedSymbol="selectedSymbol"
            :getImagePath="getImagePath"
@@ -103,8 +102,8 @@
 
 <script setup lang="ts">
 // main imports
-import { reactive, onMounted, ref } from 'vue';
-import { useStore } from 'vuex';
+import { reactive, onMounted, ref, computed } from 'vue';
+import { useUserStore } from '@/store/store';
 
 // upper components
 import Header from '@/components/Header.vue'
@@ -134,16 +133,14 @@ import Watchlist from '@/components/charts/Watchlist.vue';
 // utility components
 import Loader from '@/components/loader.vue';
 import NotificationPopup from '@/components/NotificationPopup.vue';
-import Assistant from '@/components/assistant.vue';
 
-// access user from store 
 const selectedSymbol = ref<string>('');
 const isLoading3 = ref<boolean>(false);
 const isMobile = ref<boolean>(false);
 const isChartLoading = ref<boolean>(false);
 const isLoading = ref<boolean>(false);
-const store = useStore();
-let user = store.getters.getUser;
+const userStore = useUserStore();
+const user = computed(() => userStore.getUser);
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 // Error handling
@@ -157,6 +154,17 @@ function handlePanelUpdated() {
 }
 
 onMounted(async () => {
+  // Guard: Wait until user is loaded before calling anything else
+  if (!user.value || !user.value.Username) {
+    // Try to load user from token if not present
+    if (userStore.loadUserFromToken) {
+      userStore.loadUserFromToken();
+    }
+  }
+  if (!user.value || !user.value.Username) {
+    console.warn('User not loaded, skipping API calls in onMounted');
+    return;
+  }
   await fetchSymbolsAndExchanges();
   await searchTicker(defaultSymbol || '');
   await fetchPanel();
@@ -167,7 +175,6 @@ const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
 const showNotification = () => {
   if (notification.value) notification.value.show('This is a custom notification message!');
 };
-;
 const showPopup = ref(false) // div for financial statements
 
 const searchQuery = ref('');
@@ -181,15 +188,16 @@ const selectedItem = ref(defaultSymbol);
 
 async function fetchUserDefaultSymbol() {
   try {
-    if (!user) return null;
-
-    const response = await fetch(`/api/${user}/default-symbol`, {
+    if (!user.value?.Username) {
+      console.warn('User or username missing, not fetching default symbol');
+      return null;
+    }
+    const response = await fetch(`/api/${user.value.Username}/default-symbol`, {
       headers: {
         'X-API-KEY': apiKey,
       },
     });
     if (!response.ok) throw new Error('Failed to fetch default symbol');
-
     const data = await response.json();
     return data.defaultSymbol;
   } catch (error) {
@@ -215,9 +223,11 @@ onMounted(async () => {
 
 async function updateUserDefaultSymbol(symbol: string) {
   try {
-    if (!user) return;
-
-    const response = await fetch(`/api/${user}/update-default-symbol`, {
+    if (!user.value?.Username) {
+      console.warn('User or username missing, not updating default symbol');
+      return;
+    }
+    const response = await fetch(`/api/${user.value.Username}/update-default-symbol`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -493,73 +503,6 @@ function select(option: string) {
 const activeIndex = ref(-1);
 const showPanel = ref(false);
 
-
-const themes = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
-const currentTheme = ref('default');
-
-const themeDisplayNames = {
-  default: 'Default Theme (Dark)',
-  ihatemyeyes: 'I Hate My Eyes (light-mode)',
-  colorblind: "I'm Colorblind",
-  catpuccin: 'Catpuccin',
-};
-
-async function setTheme(newTheme: string) {
-  const root = document.documentElement;
-  root.classList.remove(...themes);
-  root.classList.add(newTheme);
-  localStorage.setItem('user-theme', newTheme);
-  try {
-    const response = await fetch('/api/theme', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ theme: newTheme, username: user }),
-    });
-    const data = await response.json();
-    if (data.message === 'Theme updated') {
-      currentTheme.value = newTheme;
-    } else {
-      errorMessage.value = data.message;
-    }
-  } catch (error) {
-    if (error instanceof Error) {
-      errorMessage.value = error.message;
-    } else {
-      errorMessage.value = String(error);
-    }
-  }
-}
-
-async function loadTheme() {
-  try {
-    const response = await fetch('/api/load-theme', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ username: user }),
-    });
-    const data = await response.json();
-    if (data.theme) {
-      setTheme(data.theme);
-    } else {
-      setTheme('default');
-    }
-  } catch (error) {
-    setTheme('default');
-  }
-}
-
-loadTheme()
-
-defineExpose({
-  loadTheme,
-});
-
 const refreshKey = ref(0);
 function handleRefreshNotes() {
   refreshKey.value++;
@@ -576,7 +519,7 @@ async function fetchPanel() {
       'x-api-key': apiKey
     };
 
-    const response = await fetch(`/api/panel?username=${user}`, {
+  const response = await fetch(`/api/panel?username=${user.value?.Username ?? ''}`, {
       headers: headers
     });
 
@@ -658,14 +601,14 @@ function getSidebarProps(tag: string) {
     case 'Financials':
       return {};
     case 'Notes':
-  return {
-    formatDate,
-    symbol: selectedItem.value,
-    apiKey,
-    refreshKey: refreshKey.value,
-    user,
-    defaultSymbol
-  };
+      return {
+        formatDate,
+        symbol: selectedItem.value,
+        apiKey,
+        refreshKey: refreshKey.value,
+        user: user.value?.Username,
+        defaultSymbol
+      };
     case 'News':
   return {
     formatDate,

@@ -234,7 +234,7 @@ async def market_hours_manager():
                     break
                 if not subscribed:
                     # hardcoded tickers for testing
-                    stock_symbols = ['TSLA']
+                    stock_symbols = ['TSLA', 'NET', 'AMZN', 'META', 'AAPL', 'ARKK', 'IWM', 'DIA', 'RDDT', 'RBLX']
                     tickers_to_subscribe = stock_symbols
                     logger.info(f"[MarketHours] Subscribing to {len(stock_symbols)} stock/ETF tickers: {stock_symbols}")
                     stock_subscribe_msg = {
@@ -731,7 +731,8 @@ async def websocket_watchpanel(
         return
 
     tickers = user_doc['WatchPanel'][:20]
-    # Initial send: use cached candle for today if available, else fallback to latest two DB candles
+    # In-memory cache for last two closes per ticker for this client
+    last_two_closes = {}
     watch_panel_data = []
     for ticker in tickers:
         docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
@@ -739,20 +740,19 @@ async def websocket_watchpanel(
         def get_ts(doc):
             return doc.get('timestamp', doc.get('start'))
         if cached_candle and docs:
+            latest = cached_candle
             cached_ts = get_ts(cached_candle)
             doc0_ts = get_ts(docs[0]) if docs else None
             previous = docs[0] if docs and doc0_ts != cached_ts else (docs[1] if len(docs) > 1 else None)
-            latest_close = float(str(cached_candle['close'])[:8])
-            previous_close = float(str(previous['close'])[:8]) if previous else None
-            if previous_close is not None:
-                percentage_change = ((latest_close - previous_close) / previous_close) * 100
-                watch_panel_data.append({
-                    "Symbol": ticker,
-                    "percentageReturn": f"{percentage_change:.2f}%"
-                })
-        elif docs and len(docs) > 1:
-            latest_close = float(str(docs[0]['close'])[:8])
-            previous_close = float(str(docs[1]['close'])[:8])
+        elif docs:
+            latest = docs[0]
+            previous = docs[1] if len(docs) > 1 else None
+        else:
+            continue
+        last_two_closes[ticker] = [latest, previous] if previous else [latest]
+        latest_close = float(str(latest['close'])[:8])
+        previous_close = float(str(previous['close'])[:8]) if previous else None
+        if previous_close is not None:
             percentage_change = ((latest_close - previous_close) / previous_close) * 100
             watch_panel_data.append({
                 "Symbol": ticker,
@@ -765,47 +765,42 @@ async def websocket_watchpanel(
         await websocket.close()
         return
 
-    # Subscribe to pubsub for each ticker (daily channel)
-    queues = []
+    # --- Per-client queue and pubsub subscription ---
+    client_queue = asyncio.Queue()
+    pubsub_refs = []
     for ticker in tickers:
+        async def pubsub_listener(q, t):
+            while True:
+                cndl = await q.get()
+                await client_queue.put((t, cndl))
         q = asyncio.Queue()
         pubsub_channels[(ticker, '1d')].append(q)
-        queues.append((ticker, q))
+        pubsub_refs.append((ticker, q))
+        asyncio.create_task(pubsub_listener(q, ticker))
 
     try:
         while True:
-            update_tasks = [asyncio.create_task(q.get()) for _, q in queues]
-            done, _ = await asyncio.wait(update_tasks, return_when=asyncio.FIRST_COMPLETED)
-            updates = []
-            for idx, (ticker, q) in enumerate(queues):
-                if update_tasks[idx] in done:
-                    try:
-                        cndl = update_tasks[idx].result()
-                        previous_docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).skip(1).limit(1).to_list(length=1)
-                        cached_candle = get_latest_in_progress_candle(ticker, '1d')
-                        if cached_candle and previous_docs:
-                            latest_close = float(str(cached_candle['close'])[:8])
-                            previous_close = float(str(previous_docs[0]['close'])[:8])
-                            percentage_change = ((latest_close - previous_close) / previous_close) * 100
-                            updates.append({
-                                "Symbol": ticker,
-                                "percentageReturn": f"{percentage_change:.2f}%"
-                            })
-                        else:
-                            docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
-                            if len(docs) == 2:
-                                latest_close = float(str(docs[0]['close'])[:8])
-                                previous_close = float(str(docs[1]['close'])[:8])
-                                percentage_change = ((latest_close - previous_close) / previous_close) * 100
-                                updates.append({
-                                    "Symbol": ticker,
-                                    "percentageReturn": f"{percentage_change:.2f}%"
-                                })
-                    except Exception as e:
-                        logger.error(f"[WatchPanel WS] Error processing update for {ticker}: {e}")
-            if updates:
+            ticker, cndl = await client_queue.get()
+            prevs = last_two_closes.get(ticker, [])
+            # If the update is for a new timestamp, shift previous
+            if prevs and prevs[0].get('timestamp', prevs[0].get('start')) != cndl['timestamp']:
+                previous = prevs[0]
+                latest = cndl
+                last_two_closes[ticker] = [latest, previous]
+            else:
+                latest = cndl
+                previous = prevs[1] if len(prevs) > 1 else None
+                last_two_closes[ticker] = [latest] + ([previous] if previous else [])
+            latest_close = float(str(latest['close'])[:8])
+            previous_close = float(str(previous['close'])[:8]) if previous else None
+            if previous_close is not None:
+                percentage_change = ((latest_close - previous_close) / previous_close) * 100
+                update = {
+                    "Symbol": ticker,
+                    "percentageReturn": f"{percentage_change:.2f}%"
+                }
                 try:
-                    await websocket.send_text(json.dumps({"type": "update", "data": updates}))
+                    await websocket.send_text(json.dumps({"type": "update", "data": [update]}))
                 except Exception as e:
                     logger.error(f"[WatchPanel WS] Error sending update: {e}")
                     break
@@ -818,7 +813,7 @@ async def websocket_watchpanel(
         except Exception:
             pass
     finally:
-        for ticker, q in queues:
+        for ticker, q in pubsub_refs:
             try:
                 pubsub_channels[(ticker, '1d')].remove(q)
             except (KeyError, ValueError):
@@ -828,6 +823,7 @@ async def websocket_watchpanel(
         except Exception:
             pass
 
+# --- WebSocket endpoint for data values (latest close, change, %change) ---
 @app.websocket("/ws/data-values")
 async def websocket_data_values(
     websocket: WebSocket,
@@ -854,11 +850,10 @@ async def websocket_data_values(
         await websocket.close()
         return
 
+    # In-memory cache for last two closes per ticker for this client
+    last_two_closes = {}
     results = {}
-
-    # Initial payload: latest two docs for each ticker, prefer cached candle
     for ticker in ticker_list:
-        # Try cached candle first
         cached_candle = get_latest_in_progress_candle(ticker, '1d')
         docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
         def get_ts(doc):
@@ -873,7 +868,8 @@ async def websocket_data_values(
             previous = docs[1] if len(docs) > 1 else None
         else:
             continue
-
+        # Store in-memory for fast update lookup
+        last_two_closes[ticker] = [latest, previous] if previous else [latest]
         responseData = {
             "close": float(latest['close']),
             "timestamp": str(latest.get('timestamp', latest.get('start'))),
@@ -896,52 +892,60 @@ async def websocket_data_values(
     try:
         await websocket.send_text(json.dumps({"type": "init", "data": results}))
     except WebSocketDisconnect:
-        logger.info("Client disconnected before initial data could be sent.")
         return
 
-    # Subscribe to pubsub for real-time updates
-    queues = []
+    # --- Per-client queue and pubsub subscription ---
+    client_queue = asyncio.Queue()
+    # Register a pubsub listener for each ticker that puts updates into the client queue
+    pubsub_refs = []
     for ticker in ticker_list:
+        async def pubsub_listener(q, t):
+            while True:
+                cndl = await q.get()
+                await client_queue.put((t, cndl))
         q = asyncio.Queue()
         pubsub_channels[(ticker, '1d')].append(q)
-        queues.append((ticker, q))
+        pubsub_refs.append((ticker, q))
+        # Start a background task for each ticker's pubsub queue
+        asyncio.create_task(pubsub_listener(q, ticker))
 
     try:
         while True:
-            update_tasks = [asyncio.create_task(q.get()) for _, q in queues]
-            done, _ = await asyncio.wait(update_tasks, return_when=asyncio.FIRST_COMPLETED)
-            updates = {}
-            for idx, (ticker, q) in enumerate(queues):
-                if update_tasks[idx] in done:
-                    try:
-                        cndl = update_tasks[idx].result()
-                        docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
-                        previous = docs[0] if docs and docs[0]['timestamp'] != cndl['timestamp'] else (docs[1] if len(docs) > 1 else None)
-                        responseData = {
-                            "close": float(cndl['close']),
-                            "timestamp": str(cndl['timestamp']),
-                        }
-                        if previous:
-                            closeDiff = float(cndl['close']) - float(previous['close'])
-                            percentChange = ((closeDiff / float(previous['close'])) * 100) if float(previous['close']) != 0 else 0
-                            responseData["closeDiff"] = round(closeDiff, 2)
-                            responseData["percentChange"] = round(percentChange, 2)
-                            responseData["latestClose"] = float(cndl['close'])
-                            responseData["previousClose"] = float(previous['close'])
-                            responseData["timestampPrevious"] = str(previous['timestamp'])
-                        else:
-                            responseData["closeDiff"] = 0
-                            responseData["percentChange"] = 0
-                            responseData["message"] = "Insufficient historical data for comparison"
-                        updates[ticker] = responseData
-                    except Exception as e:
-                        logger.error(f"[ws/data-values] Error processing update for {ticker}: {e}")
-            if updates:
-                try:
-                    await websocket.send_text(json.dumps({"type": "update", "data": updates}))
-                except WebSocketDisconnect:
-                    logger.info("Client disconnected during update send.")
-                    break
+            # Wait for any update from any ticker
+            ticker, cndl = await client_queue.get()
+            # Use in-memory cache for last two closes, update it
+            prevs = last_two_closes.get(ticker, [])
+            # If the update is for a new timestamp, shift previous
+            if prevs and prevs[0].get('timestamp', prevs[0].get('start')) != cndl['timestamp']:
+                previous = prevs[0]
+                latest = cndl
+                last_two_closes[ticker] = [latest, previous]
+            else:
+                # If same timestamp, just update latest
+                latest = cndl
+                previous = prevs[1] if len(prevs) > 1 else None
+                last_two_closes[ticker] = [latest] + ([previous] if previous else [])
+            responseData = {
+                "close": float(latest['close']),
+                "timestamp": str(latest.get('timestamp', latest.get('start'))),
+            }
+            if previous:
+                closeDiff = float(latest['close']) - float(previous['close'])
+                percentChange = ((closeDiff / float(previous['close'])) * 100) if float(previous['close']) != 0 else 0
+                responseData["closeDiff"] = round(closeDiff, 2)
+                responseData["percentChange"] = round(percentChange, 2)
+                responseData["latestClose"] = float(latest['close'])
+                responseData["previousClose"] = float(previous['close'])
+                responseData["timestampPrevious"] = str(previous.get('timestamp', previous.get('start')))
+            else:
+                responseData["closeDiff"] = 0
+                responseData["percentChange"] = 0
+                responseData["message"] = "Insufficient historical data for comparison"
+            # Send only the updated ticker
+            try:
+                await websocket.send_text(json.dumps({"type": "update", "data": {ticker: responseData}}))
+            except WebSocketDisconnect:
+                break
     except WebSocketDisconnect:
         logger.info(f"[ws/data-values] Client disconnected: tickers={ticker_list}")
     except Exception as e:
@@ -953,7 +957,7 @@ async def websocket_data_values(
         except Exception:
             pass
     finally:
-        for ticker, q in queues:
+        for ticker, q in pubsub_refs:
             try:
                 pubsub_channels[(ticker, '1d')].remove(q)
             except (KeyError, ValueError):
@@ -1272,6 +1276,6 @@ async def websocket_chartdata_dl(
             pass
         
         
-# curl -X POST http://localhost:8000/admin/unsubscribe_all
-# wscat -c "ws://localhost:8000/ws/tiingo_raw"
-# wscat -c "ws://localhost:8000/ws/quotes?symbols=TSLA&x-api-key=A3hdbeuyewhedhweuHHS3263ed9d8h32dh238dh32hd82hd928hdjddh23hd8923Y"
+# curl -X POST https://localhost:8000/admin/unsubscribe_all
+# wscat -c "wss://localhost:8000/ws/tiingo_raw" --no-check
+# wscat -c "wss://localhost:8000/ws/quotes?symbols=TSLA&x-api-key=A3hdbeuyewhedhweuHHS3263ed9d8h32dh238dh32hd82hd928hdjddh23hd8923Y" --no-check
