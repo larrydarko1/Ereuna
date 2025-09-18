@@ -294,7 +294,6 @@ onMounted(async () => {
     wickUpColor: theme.positive,
     priceLineVisible: false,
     lastValueVisible: false,
-    // crosshairMarkerVisible: false, // Not a valid property in type
   });
 
   const Histogram = chart.addHistogramSeries({
@@ -305,7 +304,6 @@ onMounted(async () => {
       type: 'volume',
     },
     priceScaleId: '',
-    // crosshairMarkerVisible: false, // Not a valid property in type
   });
 
   const MaSeries1 = chart.addLineSeries({
@@ -313,7 +311,7 @@ onMounted(async () => {
     lastValueVisible: false,
     priceLineVisible: false,
     lineWidth: 1,
-    // crosshairMarkerVisible: false, // Not a valid property in type
+    crosshairMarkerVisible: false,
   });
 
   const MaSeries2 = chart.addLineSeries({
@@ -321,7 +319,7 @@ onMounted(async () => {
     lineWidth: 1,
     lastValueVisible: false,
     priceLineVisible: false,
-    // crosshairMarkerVisible: false, // Not a valid property in type
+    crosshairMarkerVisible: false,
   });
 
   const MaSeries3 = chart.addLineSeries({
@@ -329,7 +327,7 @@ onMounted(async () => {
     lineWidth: 1,
     lastValueVisible: false,
     priceLineVisible: false,
-    // crosshairMarkerVisible: false, // Not a valid property in type
+    crosshairMarkerVisible: false,
   });
 
   const MaSeries4 = chart.addLineSeries({
@@ -337,7 +335,7 @@ onMounted(async () => {
     lineWidth: 1,
     lastValueVisible: false,
     priceLineVisible: false,
-    // crosshairMarkerVisible: false, // Not a valid property in type
+    crosshairMarkerVisible: false,
   });
 
   Histogram.priceScale().applyOptions({

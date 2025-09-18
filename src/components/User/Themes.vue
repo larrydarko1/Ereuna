@@ -143,11 +143,8 @@ async function setTheme(newTheme: string) {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 5px;
   width: 100%;
   height: 3000px;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
 }
 
 .theme-spacer {
@@ -159,8 +156,9 @@ async function setTheme(newTheme: string) {
   height: 100px;
   font-size: 1.5rem;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
+  margin-bottom: 5px;
+  margin-left: 5px;
   background-color: var(--base2);
 }
 

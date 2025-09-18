@@ -73,7 +73,7 @@
 <script setup lang="ts">
 
 import Loader from '@/components/loader.vue';
-import { onMounted, ref, watch, computed, Ref } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 import {
   createChart,
   ColorType,
@@ -346,7 +346,6 @@ onMounted(async () => {
       mainSeries = chart.addBarSeries({
         downColor: theme.negative,
         upColor: theme.positive,
-        // BarSeries does not support borderDownColor, borderUpColor, wickDownColor, wickUpColor
         lastValueVisible: true,
         priceLineVisible: true,
       });
@@ -401,6 +400,7 @@ onMounted(async () => {
     lineWidth: 1,
     lastValueVisible: false,
     priceLineVisible: false,
+    crosshairMarkerVisible: false,
   });
 
   const MaSeries2 = chart.addLineSeries({
@@ -408,6 +408,7 @@ onMounted(async () => {
     lineWidth: 1,
     lastValueVisible: false,
     priceLineVisible: false,
+    crosshairMarkerVisible: false,
   });
 
   const MaSeries3 = chart.addLineSeries({
@@ -415,6 +416,7 @@ onMounted(async () => {
     lineWidth: 1,
     lastValueVisible: false,
     priceLineVisible: false,
+    crosshairMarkerVisible: false,
   });
 
   const MaSeries4 = chart.addLineSeries({
@@ -422,6 +424,7 @@ onMounted(async () => {
     lineWidth: 1,
     lastValueVisible: false,
     priceLineVisible: false,
+    crosshairMarkerVisible: false,
   });
 
   Histogram.priceScale().applyOptions({

@@ -1169,7 +1169,7 @@ export default function (app: any, deps: any) {
                         { $match: { tickerID: { $in: batch } } },
                         { $sort: { timestamp: -1 } },
                         { $group: { _id: "$tickerID", doc: { $first: "$$ROOT" } } },
-                        { $project: { tickerID: "_id", close: "doc.close" } }
+                        { $project: { tickerID: "$_id", close: "$doc.close" } }
                     ]).toArray();
                     docs.forEach((doc: any) => {
                         quotes[doc.tickerID] = doc.close;
@@ -1183,6 +1183,7 @@ export default function (app: any, deps: any) {
             let pieChartLabels: string[] = [];
             let pieChartData: number[] = [];
             let unrealizedPL = 0;
+            // ...existing code...
             portfolioArr.forEach((pos: { Symbol: string; Shares: number; AvgPrice: number }) => {
                 const quote = quotes[pos.Symbol];
                 if (quote !== undefined && typeof pos.Shares === 'number') {
@@ -1421,7 +1422,7 @@ export default function (app: any, deps: any) {
             // Remove unwanted fields
             const {
                 Username,
-                Number,
+                Number: portfolioNum,
                 portfolioValueHistory,
                 tradeReturnsChart,
                 ...portfolioStats

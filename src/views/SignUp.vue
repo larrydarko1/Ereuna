@@ -88,7 +88,7 @@
 <script setup lang="ts">
 
 import NotificationPopup from '@/components/NotificationPopup.vue';
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { loadStripe } from '@stripe/stripe-js'; 
 import Policy from '@/components/policy.vue';

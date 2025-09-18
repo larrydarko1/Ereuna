@@ -19,7 +19,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
-import { useStore } from 'vuex';
+import { useUserStore } from '@/store/store';
 import Symbol from '@/components/sidebar/summary/ticker.vue';
 import Name from '@/components/sidebar/summary/name.vue';
 import AssetType from '@/components/sidebar/summary/AssetType.vue';
@@ -64,8 +64,8 @@ import AV4 from '@/components/sidebar/summary/AV4.vue';
 import Description from '@/components/sidebar/summary/description.vue';
 
 // access user from store 
-const store = useStore();
-let user = store.getters.getUser;
+const userStore = useUserStore();
+const user = computed(() => userStore.getUser);
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 const props = defineProps(['assetInfo', 'formatDate', 'showAllDescription', 'refreshKey']);
@@ -174,8 +174,9 @@ const initialFields = [
 
 async function fetchPanel2() {
   try {
-    const headers = { 'X-API-KEY': apiKey };
-    const response = await fetch(`/api/panel2?username=${user}`, { headers });
+  const headers = { 'X-API-KEY': apiKey };
+  const username = user.value?.Username || '';
+  const response = await fetch(`/api/panel2?username=${username}`, { headers });
 
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -218,6 +219,7 @@ const getSidebarProps = (tag: string) => {
 };
 
 </script>
+
 <style lang="scss">
 
 </style>

@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 interface PanelSection {
   order: number;
   tag: string;
@@ -63,7 +63,7 @@ interface PanelSection {
   hidden: boolean;
 }
 const emit = defineEmits(['updated', 'panel-updated', 'close']);
-import { useStore } from 'vuex';
+import { useUserStore } from '@/store/store';
 import Panel2 from '@/components/charts/panel2.vue'; 
 
 function onPanelUpdated() {
@@ -71,8 +71,8 @@ function onPanelUpdated() {
   emit('panel-updated');
 }
 
-const store = useStore();
-let user = store.getters.getUser;
+const userStore = useUserStore();
+const user = computed(() => userStore.getUser);
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 const sections = ref<PanelSection[]>([]); // Start empty, fill from backend
@@ -80,8 +80,9 @@ const showEditSummary = ref<boolean>(false);
 
 async function fetchPanel() {
   try {
-    const headers = { 'X-API-KEY': apiKey };
-    const response = await fetch(`/api/panel?username=${user}`, { headers });
+  const headers = { 'X-API-KEY': apiKey };
+  const username = user.value?.Username || '';
+  const response = await fetch(`/api/panel?username=${username}`, { headers });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const newPanel = await response.json();
     // Defensive: fallback to default if empty
@@ -161,8 +162,9 @@ async function updatePanel() {
       name: section.name,
       hidden: section.hidden,
     }));
+    const username = user.value?.Username || '';
     const requestBody = {
-      username: user,
+      username,
       newListOrder,
     };
 

@@ -135,6 +135,7 @@ import Watchlists from './routes/Watchlists.js';
 import Screener from './routes/Screener.js';
 import Maintenance from './routes/Maintenance.js';
 import Portfolio from './routes/Portfolio.js';
+import Dashboard from './routes/Dashboard.js';
 
 Users(app, { validate, validationSchemas, sanitizeInput, logger, crypto, MongoClient, uri, argon2, jwt, config });
 Notes(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri });
@@ -143,6 +144,7 @@ Watchlists(app, { validate, validationSchemas, validationSets, body, sanitizeInp
 Screener(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri, crypto, query });
 Maintenance(app, { validate, body, sanitizeInput, logger, MongoClient, uri, crypto });
 Portfolio(app, { validate, validationSchemas, body, query, sanitizeInput, logger, MongoClient, uri });
+Dashboard(app, { sanitizeInput, logger, MongoClient, uri });
 
 // Error-handling middleware (must be last before export)
 import type { ErrorRequestHandler } from 'express';

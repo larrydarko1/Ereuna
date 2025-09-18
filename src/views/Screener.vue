@@ -1,7 +1,6 @@
 <template>
   <body>
     <Header />
-    <Assistant />
     <div class="mobilenav">
       <button class="mnavbtn" :class="{ selected: selected === 'filters' }" @click="select('filters')">
         Filters
@@ -106,7 +105,7 @@
       </div>
       <div id="filters" :class="{ 'hidden-mobile': selected !== 'filters' }">
        <Price
-  :user="user"
+  :user="user?.Username ?? ''"
   :apiKey="apiKey"
   :notification="notification"
   :selectedScreener="selectedScreener"
@@ -117,7 +116,7 @@
   @reset="Reset('price')"
 />
      <MarketCap
-       :user="user"
+       :user="user?.Username ?? ''"
   :apiKey="apiKey"
   :notification="notification"
   :selectedScreener="selectedScreener"
@@ -128,7 +127,7 @@
   @reset="Reset('Marketcap')"
   />
        <IPO 
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -139,7 +138,7 @@
        @reset="Reset('IPO')"
        />
        <AssetType 
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -150,7 +149,7 @@
        @reset="Reset('AssetType')"
        />
        <Sector 
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -161,7 +160,7 @@
        @reset="Reset('Sector')"
        />
        <Exchange
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -172,7 +171,7 @@
        @reset="Reset('Exchange')"
        />
        <Country
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -183,7 +182,7 @@
        @reset="Reset('Country')"
        />
        <PE
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -194,7 +193,7 @@
        @reset="Reset('PE')"
        />
         <PS
-        :user="user"
+        :user="user?.Username ?? ''"
         :apiKey="apiKey"
         :notification="notification"
         :selectedScreener="selectedScreener"
@@ -205,7 +204,7 @@
         @reset="Reset('PS')"
         />
        <PEG
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -216,7 +215,7 @@
        @reset="Reset('PEG')"
        />
        <EPS
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -227,7 +226,7 @@
        @reset="Reset('EPS')"
        />
        <PB
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -238,7 +237,7 @@
        @reset="Reset('PB')"
        />
         <DivYield
-        :user="user"
+        :user="user?.Username ?? ''"
         :apiKey="apiKey"
         :notification="notification"
         :selectedScreener="selectedScreener"
@@ -249,7 +248,7 @@
         @reset="Reset('DivYield')"
         />
        <ShowFundYoYQoQ
-        :user="user"
+        :user="user?.Username ?? ''"
         :apiKey="apiKey"
         :notification="notification"
         :selectedScreener="selectedScreener"
@@ -260,7 +259,7 @@
         @reset="Reset('FundGrowth')"
        />
        <PricePerf
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -271,7 +270,7 @@
        @reset="Reset('PricePerformance')"
        />
        <RSscore
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -282,7 +281,7 @@
        @reset="Reset('RSscore')"
        />
        <Volume
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -293,7 +292,7 @@
        @reset="Reset('Volume')"
        />
        <ADV
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -304,7 +303,7 @@
        @reset="Reset('ADV')"
        />
        <ROE
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -315,7 +314,7 @@
        @reset="Reset('ROE')"
        />
        <ROA
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -326,7 +325,7 @@
        @reset="Reset('ROA')"
        />
        <CurrentRatio
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -337,7 +336,7 @@
        @reset="Reset('CurrentRatio')"
        />
        <CurrentAsset
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -348,7 +347,7 @@
        @reset="Reset('CurrentAssets')"
        />
      <CurrentLiability
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -359,7 +358,7 @@
        @reset="Reset('CurrentLiabilities')"
      />
        <CurrentDebt
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -370,7 +369,7 @@
        @reset="Reset('CurrentDebt')"
        />
        <CashEquivalents
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -381,7 +380,7 @@
        @reset="Reset('CashEquivalents')"
        />
        <FCF
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -392,7 +391,7 @@
        @reset="Reset('FCF')"
        />
        <ProfitMargin
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -403,7 +402,7 @@
        @reset="Reset('ProfitMargin')"
        />
        <GrossMargin
-       :user="user"
+       :user="user?.Username ?? ''"
        :apiKey="apiKey"
        :notification="notification"
        :selectedScreener="selectedScreener"
@@ -414,7 +413,7 @@
        @reset="Reset('GrossMargin')"
        />
         <DebtEquity
-          :user="user"
+          :user="user?.Username ?? ''"
           :apiKey="apiKey"
           :notification="notification"
           :selectedScreener="selectedScreener"
@@ -425,7 +424,7 @@
           @reset="Reset('DebtEquity')"
         />
        <BookValue
-         :user="user"
+         :user="user?.Username ?? ''"
          :apiKey="apiKey"
          :notification="notification"
          :selectedScreener="selectedScreener"
@@ -436,7 +435,7 @@
          @reset="Reset('BookValue')"
        />
        <EV
-         :user="user"
+         :user="user?.Username ?? ''"
          :apiKey="apiKey"
          :notification="notification"
          :selectedScreener="selectedScreener"
@@ -447,7 +446,7 @@
          @reset="Reset('EV')"
        />
         <RSI
-          :user="user"
+          :user="user?.Username ?? ''"
           :apiKey="apiKey"
           :notification="notification"
           :selectedScreener="selectedScreener"
@@ -458,7 +457,7 @@
           @reset="Reset('RSI')"
         />
         <Gap
-          :user="user"
+          :user="user?.Username ?? ''"
           :apiKey="apiKey"
           :notification="notification"
           :selectedScreener="selectedScreener"
@@ -469,7 +468,7 @@
           @reset="Reset('Gap')"
         />
         <IntrinsicValue 
-          :user="user"
+          :user="user?.Username ?? ''"
           :apiKey="apiKey"
           :notification="notification"
           :selectedScreener="selectedScreener"
@@ -484,7 +483,7 @@
       <div id="resultsDiv" :class="{ 'hidden-mobile': selected !== 'list' }">
 <CreateScreener
   v-if="showCreateScreener"
-  :user="user"
+  :user="user?.Username ?? ''"
   :apiKey="apiKey"
   :notification="notification"
   :GetScreeners="GetScreeners"
@@ -494,7 +493,7 @@
 />
       <RenameScreener
   v-if="showRenameScreener"
-  :user="user"
+  :user="user?.Username ?? ''"
   :apiKey="apiKey"
   :notification="notification"
   :currentName="selectedScreener"
@@ -503,7 +502,7 @@
 />
 <EditColumn
   v-if="showEditColumn"
-  :user="user"
+  :user="user?.Username ?? ''"
   :apiKey="apiKey"
   :notification="notification"
   :selectedAttributes="selectedAttributes"
@@ -683,9 +682,8 @@
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
 import Selector from '@/components/Screener/Selector.vue';
-import Assistant from '@/components/assistant.vue';
-import { computed, onMounted, ref, watch, nextTick, reactive, toRef, Ref } from 'vue';
-import { useStore } from 'vuex';
+import { computed, onMounted, ref, watch, nextTick, reactive, toRef } from 'vue';
+import { useUserStore } from '@/store/store';
 import NotificationPopup from '@/components/NotificationPopup.vue';
 
 // popups 
@@ -741,8 +739,8 @@ import IntrinsicValue from '@/components/Screener/Parameters/IntrinsicValue.vue'
 
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 //user import - user session 
-const store = useStore();
-let user = store.getters.getUser;
+const userStore = useUserStore();
+const user = computed(() => userStore.getUser);
 
 const errorMessage = ref('');
 const showPriceInputs = ref(false);
@@ -809,7 +807,9 @@ const toggleWatchlist = async (ticker: string, symbol: string) => {
   const simulatedEvent: CheckboxEvent = { target: { checked: !isCurrentlyInWatchlist } };
   await addtoWatchlist(ticker, symbol, simulatedEvent);
   updateCheckbox(ticker, symbol, simulatedEvent);
-  await getFullWatchlists(user);
+  if (user.value && user.value.Username) {
+    await getFullWatchlists(user.value.Username);
+  }
 };
 
 
@@ -835,7 +835,7 @@ async function GetScreenerResultsAll(reset: boolean = false): Promise<void> {
   if (loading.value || page.value > totalPages.value) return;
   loading.value = true;
   try {
-    const response = await fetch(`/api/${user}/screener/results/all?page=${page.value}&limit=${limit.value}`, {
+    const response = await fetch(`/api/${user.value?.Username ?? ''}/screener/results/all?page=${page.value}&limit=${limit.value}`, {
       headers: { 'X-API-KEY': apiKey },
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -887,7 +887,7 @@ async function fetchScreenerResults(screenerName: string): Promise<void> {
   if (filterLoading.value || filterPage.value > filterTotalPages.value) return;
   filterLoading.value = true;
   try {
-    const response = await fetch(`/api/screener/${user}/results/filtered/${screenerName}?page=${filterPage.value}&limit=${filterLimit.value}`, {
+    const response = await fetch(`/api/screener/${user.value?.Username ?? ''}/results/filtered/${screenerName}?page=${filterPage.value}&limit=${filterLimit.value}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -946,7 +946,7 @@ async function GetHiddenResults(reset: boolean = false): Promise<void> {
   if (hiddenLoading.value || hiddenPage.value > hiddenTotalPages.value) return;
   hiddenLoading.value = true;
   try {
-    const response = await fetch(`/api/${user}/screener/results/hidden?page=${hiddenPage.value}&limit=${hiddenLimit.value}`, {
+    const response = await fetch(`/api/${user.value?.Username ?? ''}/screener/results/hidden?page=${hiddenPage.value}&limit=${hiddenLimit.value}`, {
       headers: {
         'X-API-KEY': apiKey,
       },
@@ -1001,7 +1001,7 @@ async function GetCompoundedResults(reset: boolean = false): Promise<void> {
   if (compoundedLoading.value || compoundedPage.value > compoundedTotalPages.value) return;
   compoundedLoading.value = true;
   try {
-    const response = await fetch(`/api/screener/${user}/all?page=${compoundedPage.value}&limit=${compoundedLimit.value}`, {
+    const response = await fetch(`/api/screener/${user.value?.Username ?? ''}/all?page=${compoundedPage.value}&limit=${compoundedLimit.value}`, {
       headers: {
         'X-API-KEY': apiKey,
       }
@@ -1047,9 +1047,9 @@ let defaultSymbol = localStorage.getItem('defaultSymbol');
 
 async function updateUserDefaultSymbol(symbol: string): Promise<void> {
   try {
-    if (!user) return;
+    if (!user.value?.Username) return;
 
-    const response = await fetch(`/api/${user}/update-default-symbol`, {
+    const response = await fetch(`/api/${user.value?.Username ?? ''}/update-default-symbol`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -1230,7 +1230,7 @@ async function showMainResults() {
 // gets all screener values for user 
 async function GetScreeners() {
   try {
-    const response = await fetch(`/api/screener/${user}/names`, {
+    const response = await fetch(`/api/screener/${user.value?.Username ?? ''}/names`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -1254,7 +1254,7 @@ GetScreeners();
 async function hideStock(asset: any) {
   try {
     const symbol = asset.Symbol;
-    const url = `/api/screener/${user}/hidden/${symbol}`;
+    const url = `/api/screener/${user.value?.Username ?? ''}/hidden/${symbol}`;
 
     if (!symbol) {
       throw new Error('Please provide a valid symbol');
@@ -1301,7 +1301,7 @@ async function hideStock(asset: any) {
 // shows elements of hide list in screener
 async function getHideList() {
   try {
-    const response = await fetch(`/api/screener/results/${user}/hidden`, {
+    const response = await fetch(`/api/screener/results/${user.value?.Username ?? ''}/hidden`, {
       headers: {
         'X-API-KEY': apiKey,
       },
@@ -1361,7 +1361,7 @@ function logElement(): void {
 async function ShowStock(asset: Record<string, any>): Promise<void> {
   try {
     const symbol = asset.Symbol;
-    const url = `/api/screener/${user}/show/${symbol}`;
+    const url = `/api/screener/${user.value?.Username ?? ''}/show/${symbol}`;
 
     if (!symbol) {
       throw new Error('Please provide a valid symbol');
@@ -1402,7 +1402,7 @@ async function ShowStock(asset: Record<string, any>): Promise<void> {
 
 // deletes screeners 
 async function DeleteScreener(screenerName: string): Promise<void> {
-  const apiUrl = `/api/${user}/delete/screener/${screenerName}`;
+  const apiUrl = `/api/${user.value?.Username ?? ''}/delete/screener/${screenerName}`;
   const requestOptions = {
     method: 'DELETE',
     headers: {
@@ -1432,7 +1432,7 @@ async function CurrentScreener(): Promise<void> {
   const Name = selectedScreener.value;
 
   try {
-    const response = await fetch(`/api/screener/datavalues/${user}/${Name}`, {
+    const response = await fetch(`/api/screener/datavalues/${user.value?.Username ?? ''}/${Name}`, {
       headers: {
         'X-API-KEY': apiKey,
       }
@@ -1685,14 +1685,14 @@ async function ResetScreener(): Promise<void> {
   const Name = selectedScreener.value;
 
   try {
-    const response = await fetch(`/api/screener/reset/${user}/${Name}`, {
+    const response = await fetch(`/api/screener/reset/${user.value?.Username ?? ''}/${Name}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
-        user,
+        user: user.value?.Username ?? '',
         Name
       })
     });
@@ -1759,7 +1759,7 @@ async function Reset(value: string): Promise<void> {
 
     const requestBody = {
       stringValue,
-      user,
+      user: user.value?.Username ?? '',
       Name
     };
 
@@ -1794,7 +1794,7 @@ async function SummaryScreener(): Promise<void> {
   const Name = selectedScreener.value;
 
   try {
-    const response = await fetch(`/api/screener/summary/${user}/${Name}`, {
+    const response = await fetch(`/api/screener/summary/${user.value?.Username ?? ''}/${Name}`, {
       headers: {
         'X-API-KEY': apiKey,
       }
@@ -1913,7 +1913,7 @@ const selectedWatchlist = ref([]);
 // generates all watchlist names 
 async function getWatchlists(): Promise<void> {
   try {
-    const response = await fetch(`/api/${user}/watchlists`, {
+    const response = await fetch(`/api/${user.value?.Username ?? ''}/watchlists`, {
       headers: {
         'X-API-KEY': apiKey,
       }
@@ -1924,7 +1924,7 @@ async function getWatchlists(): Promise<void> {
     const data = await response.json();
     watchlist.tickers = data;
   } catch (err) {
-    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as { message?: string }).message ?? String(err) : String(err);
+    errorMessage.value = typeof err === 'object' && err !== null && 'message' in err ? (err as { message?: string }).message ?? String(err) : String(err);
   }
 }
 
@@ -1943,7 +1943,7 @@ async function addtoWatchlist(ticker: string, symbol: string, $event: Event | Ch
       body: JSON.stringify({
         watchlistName: ticker,
         symbol: symbol,
-        user: user
+        user: user.value?.Username ?? ''
       }),
     })
 
@@ -1984,22 +1984,25 @@ const updateCheckbox = (ticker: any, symbol: string, $event: Event | CheckboxEve
     checkedWatchlists.value[ticker.Name] = checkedWatchlists.value[ticker.Name].filter((s: string) => s !== symbol);
   }
   addtoWatchlist(ticker, symbol, $event);
-  getFullWatchlists(user);
+    if (user.value && user.value.Username) {
+          getFullWatchlists(user.value.Username);
+        }
   isAssetInWatchlist(ticker, symbol);
 };
 
 const FullWatchlists = ref([]);
 
-async function getFullWatchlists(user: string): Promise<void> {
-  const response = await fetch(`/api/${user}/full-watchlists`, {
+async function getFullWatchlists(user: any): Promise<void> {
+  const response = await fetch(`/api/${user.value?.Username ?? ''}/full-watchlists`, {
     headers: {
       'X-API-KEY': apiKey,
     }
   })
   FullWatchlists.value = await response.json()
 };
-getFullWatchlists(user);
-
+ if (user.value && user.value.Username) {
+getFullWatchlists(user.value.Username);
+};
 
 const isAssetInWatchlist = (ticker: string, symbol: string): boolean => {
   const watchlist = FullWatchlists.value.find((w: any) => w && w.Name === ticker);
@@ -2017,7 +2020,7 @@ const isAssetInWatchlist = (ticker: string, symbol: string): boolean => {
 };
 
 async function ExcludeScreener(screener: string): Promise<void> {
-  const apiUrl = `/api/${user}/toggle/screener/${screener}`;
+  const apiUrl = `/api/${user.value?.Username ?? ''}/toggle/screener/${screener}`;
   const requestOptions = {
     method: 'PATCH',
     headers: {
@@ -2253,62 +2256,6 @@ function select(option: string) {
   selected.value = option
 }
 
-const themes = ['default', 'ihatemyeyes', 'colorblind', 'catpuccin'];
-const currentTheme = ref('default');
-const error: Ref<string> = ref('');
-
-async function setTheme(newTheme: string) {
-  const root = document.documentElement;
-  root.classList.remove(...themes);
-  root.classList.add(newTheme);
-  localStorage.setItem('user-theme', newTheme);
-  try {
-    const response = await fetch('/api/theme', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ theme: newTheme, username: user }),
-    });
-    const data = await response.json();
-    if (data.message === 'Theme updated') {
-      currentTheme.value = newTheme;
-    } else {
-      errorMessage.value = data.message;
-    }
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      errorMessage.value = error.message;
-    } else {
-      errorMessage.value = String(error);
-    }
-  }
-}
-
-async function loadTheme() {
-  try {
-    const response = await fetch('/api/load-theme', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ username: user }),
-    });
-    const data = await response.json();
-    if (data.theme) {
-      setTheme(data.theme);
-    } else {
-      setTheme('default');
-    }
-  } catch (error) {
-    setTheme('default');
-  }
-}
-
-loadTheme()
-
 function arrayToCSV(data: Record<string, any>[]) {
   if (!data.length) return '';
   const keys = Object.keys(data[0]);
@@ -2388,7 +2335,7 @@ const selectedAttributes = ref<any[]>([]);
 
 async function loadColumns() {
   try {
-    const response = await fetch(`/api/get/columns?user=${encodeURIComponent(user)}`,
+    const response = await fetch(`/api/get/columns?user=${encodeURIComponent(user.value?.Username ?? '')}`,
       {
         method: 'GET',
         headers: {

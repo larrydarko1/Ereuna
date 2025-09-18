@@ -625,11 +625,11 @@ async function GenerateNewKey() {
 
 .userdiv {
   background-color: var(--base2);
-  width: 80%;
-  border-radius: 10px;
+  width: 100%;
   padding: 15px;
   margin: 0 auto;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
+  margin-left: 5px;
 }
 
 .toggle-icon {

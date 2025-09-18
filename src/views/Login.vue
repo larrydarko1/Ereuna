@@ -249,11 +249,15 @@ async function login() {
         }
       } else {
         // MFA verification not required, proceed with login
-        isLogged.value = true;
-        isLoaderVisible.value = true;
-        const token = responseBody.token;
-        localStorage.setItem('token', token);
-        router.push({ name: 'Charts' });
+  isLogged.value = true;
+  isLoaderVisible.value = true;
+  const token = responseBody.token;
+  localStorage.setItem('token', token);
+  // Immediately update Pinia user store after login
+  const { useUserStore } = await import('@/store/store');
+  const userStore = useUserStore();
+  userStore.loadUserFromToken();
+  router.push({ name: 'Dashboard' });
       }
     } else {
       // Use exact string matching

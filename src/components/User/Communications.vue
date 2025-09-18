@@ -2,14 +2,13 @@
   <div v-if="communications.length === 0" style="margin-top: 30px;">
           <p>No communications found.</p>
         </div>
-        <div v-else>
-          <div v-for="(comm, idx) in communications" :key="idx" class="notification-popup"
-            style="background: var(--base2); border: 1px solid var(--accent1); border-radius: 8px; margin: 20px auto; max-width: 500px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); text-align: left; position: relative;">
-            <h2 style="color: var(--accent3); margin-bottom: 10px;">{{ comm.header }}</h2>
-            <span style="position: absolute; top: 20px; right: 20px; color: var(--text2); font-size: 12px;">
+        <div v-else class="communications-list">
+          <div v-for="(comm, idx) in communications" :key="idx" class="communication-message">
+            <h2 class="comm-header">{{ comm.header }}</h2>
+            <span class="comm-date">
               {{ formatDate(comm.publishedDate) }}
             </span>
-            <p style="color: var(--text1); white-space: pre-line;">{{ comm.message }}</p>
+            <p class="comm-message">{{ comm.message }}</p>
           </div>
         </div>
 </template>
@@ -28,13 +27,8 @@ const props = defineProps({
   }
 });
 
-interface Communication {
-  header: string;
-  publishedDate: string;
-  message: string;
-}
 
-const communications = ref<Communication[]>([]); // list of communications as a ref
+const communications = ref<any[]>([]); // list of communications as a ref
 
 async function fetchCommunications() {
   try {
@@ -51,13 +45,24 @@ async function fetchCommunications() {
     }
 
     const communicationsList = await response.json();
-    communications.value = communicationsList; // store in ref
+    const commArray = Array.isArray(communicationsList)
+      ? communicationsList
+      : Array.isArray(communicationsList.communications)
+        ? communicationsList.communications
+        : [];
+    const mappedList = commArray.map((comm: any) => ({
+      ...comm,
+      publishedDate:
+        comm.publishedDate && typeof comm.publishedDate === 'object' && '$date' in comm.publishedDate
+          ? comm.publishedDate.$date
+          : comm.publishedDate
+    }));
+    communications.value = mappedList; // store in ref
 
   } catch (err) {
     if (typeof err === 'object' && err !== null && 'name' in err && (err as any).name === 'AbortError') {
       return;
     }
-    console.error('Error fetching communications:', err);
     communications.value = [];
   }
 }
@@ -70,4 +75,42 @@ onMounted(() => {
 
 <style scoped>
 
+
+.communications-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.communication-message {
+  width: 100%;
+  min-height: 100px;
+  background: var(--base2);
+  padding: 20px;
+  text-align: left;
+  position: relative;
+  box-sizing: border-box;
+  margin-bottom: 5px;
+  margin-left: 5px;
+}
+
+.comm-header {
+  color: var(--accent3);
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+
+.comm-date {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: var(--text2);
+  font-size: 1.5rem;
+}
+
+.comm-message {
+  color: var(--text1);
+  white-space: pre-line;
+  margin-top: 10px;
+  font-size: 1.5rem;
+}
 </style>

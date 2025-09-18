@@ -25,7 +25,7 @@ export default function (app: any, deps: any) {
             validationSchemas.rememberMe()
         ]),
         async (req: Request, res: Response) => {
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const { username, password, rememberMe } = req.body;
                 const apiKey = req.header('x-api-key');
@@ -100,7 +100,9 @@ export default function (app: any, deps: any) {
                 await usersCollection.updateOne({ Username: user.Username }, { $set: { Paid: true } });
                 await usersCollection.updateOne({ Username: user.Username }, { $set: { LastLogin: new Date() } });
                 let tokenExpiration = rememberMe === 'true' ? '7d' : '1h';
-                const token = jwt.sign({ user: user.Username }, config.secretKey, { expiresIn: tokenExpiration });
+                // Exclude sensitive fields from user object
+                const { Password, ...safeUserData } = user;
+                const token = jwt.sign({ user: safeUserData }, config.secretKey, { expiresIn: tokenExpiration });
                 logger.info({
                     msg: 'User logged in successfully',
                     username: sanitizedUsername,
@@ -136,7 +138,7 @@ export default function (app: any, deps: any) {
             validationSchemas.promoCode()
         ]),
         async (req: Request, res: Response) => {
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -511,7 +513,7 @@ export default function (app: any, deps: any) {
             validationSchemas.rememberMe()
         ]),
         async (req: Request, res: Response) => {
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const { username, mfaCode, rememberMe } = req.body;
                 const apiKey = req.header('x-api-key');
@@ -604,7 +606,7 @@ export default function (app: any, deps: any) {
             // to do: validate mfaCode and secret for confirmation
         ]),
         async (req: Request, res: Response) => {
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const { username, enabled, mode, mfaCode, secret } = req.body;
                 const apiKey = req.header('x-api-key');
@@ -773,7 +775,7 @@ export default function (app: any, deps: any) {
             validationSchemas.username()
         ]),
         async (req: Request, res: Response) => {
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const { username } = req.body;
                 const apiKey = req.header('x-api-key');
@@ -851,7 +853,7 @@ export default function (app: any, deps: any) {
             validationSchemas.recoveryKey()
         ]),
         async (req: Request, res: Response) => {
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -933,7 +935,7 @@ export default function (app: any, deps: any) {
             validationSchemas.password()
         ]),
         async (req: Request, res: Response) => {
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1046,7 +1048,7 @@ export default function (app: any, deps: any) {
 
     // Endpoint to actually retrieve the key using the token
     app.get('/retrieve-key', async (req: Request, res: Response) => {
-        let client;
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -1147,7 +1149,7 @@ export default function (app: any, deps: any) {
                     }))
                 });
             }
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1365,7 +1367,7 @@ export default function (app: any, deps: any) {
             validationSchemas.newUsername()
         ]),
         async (req: Request, res: Response) => {
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1502,7 +1504,7 @@ export default function (app: any, deps: any) {
             validationSchemas.password()
         ]),
         async (req: Request, res: Response) => {
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1620,7 +1622,7 @@ export default function (app: any, deps: any) {
                 });
             }
             const sanitizedUsername = sanitizeInput(username);
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1700,7 +1702,7 @@ export default function (app: any, deps: any) {
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1787,7 +1789,7 @@ export default function (app: any, deps: any) {
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1820,14 +1822,6 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(404).json({ message: 'User not found' });
                 }
-                logger.info({
-                    msg: 'Default Symbol Retrieved',
-                    requestId,
-                    username: username.substring(0, 3) + '...',
-                    defaultSymbol: userDoc.defaultSymbol,
-                    context: 'GET /:user/default-symbol',
-                    statusCode: 200
-                });
                 res.json({ defaultSymbol: userDoc.defaultSymbol });
             } catch (error) {
                 const errObj = handleError(error, 'GET /:user/default-symbol', {
@@ -1880,7 +1874,7 @@ export default function (app: any, deps: any) {
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1940,23 +1934,8 @@ export default function (app: any, deps: any) {
                     return res.status(404).json({ message: 'User not found' });
                 }
                 if (result.modifiedCount === 0) {
-                    logger.warn({
-                        msg: 'No changes made during symbol update',
-                        requestId,
-                        username: username.substring(0, 3) + '...',
-                        context: 'PATCH /:user/update-default-symbol',
-                        statusCode: 400
-                    });
                     return res.status(400).json({ message: 'No changes made' });
                 }
-                logger.info({
-                    msg: 'Default Symbol Updated Successfully',
-                    requestId,
-                    username: username.substring(0, 3) + '...',
-                    defaultSymbol,
-                    context: 'PATCH /:user/update-default-symbol',
-                    statusCode: 200
-                });
                 res.json({ message: 'Default symbol updated successfully' });
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /:user/update-default-symbol', {
@@ -2001,7 +1980,7 @@ export default function (app: any, deps: any) {
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client;
+            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -2079,7 +2058,7 @@ export default function (app: any, deps: any) {
         validationSchemas.theme(),
         validationSchemas.username()
     ]), async (req: Request, res: Response) => {
-        let client;
+        let client: typeof MongoClient | undefined;;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2136,7 +2115,7 @@ export default function (app: any, deps: any) {
     app.post('/load-theme', validate([
         validationSchemas.username()
     ]), async (req: Request, res: Response) => {
-        let client;
+        let client: typeof MongoClient | undefined;;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2208,7 +2187,7 @@ export default function (app: any, deps: any) {
             .isBoolean()
             .withMessage('Hidden must be a boolean'),
     ]), async (req: Request, res: Response) => {
-        let client;
+        let client: typeof MongoClient | undefined;;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2286,7 +2265,7 @@ export default function (app: any, deps: any) {
     app.get('/panel', validate([
         validationSchemas.usernameQuery()
     ]), async (req: Request, res: Response) => {
-        let client;
+        let client: typeof MongoClient | undefined;;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2358,7 +2337,7 @@ export default function (app: any, deps: any) {
             .isBoolean()
             .withMessage('Hidden must be a boolean'),
     ]), async (req: Request, res: Response) => {
-        let client;
+        let client: typeof MongoClient | undefined;;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2450,7 +2429,7 @@ export default function (app: any, deps: any) {
     app.get('/panel2', validate([
         validationSchemas.usernameQuery()
     ]), async (req: Request, res: Response) => {
-        let client;
+        let client: typeof MongoClient | undefined;;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2506,7 +2485,7 @@ export default function (app: any, deps: any) {
     app.get('/panel', validate([
         validationSchemas.usernameQuery()
     ]), async (req: Request, res: Response) => {
-        let client;
+        let client: typeof MongoClient | undefined;;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);

@@ -37,32 +37,20 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>SPY</td>
-              <td>$450.23</td>
-              <td class="positive">+0.85%</td>
-              <td class="positive">+2.1%</td>
-              <td class="positive">+5.3%</td>
-              <td class="positive">+12.4%</td>
-              <td class="positive">+8.7%</td>
+            <tr v-if="statsLoading">
+              <td colspan="7">Loading...</td>
             </tr>
-            <tr>
-              <td>QQQ</td>
-              <td>$370.45</td>
-              <td class="negative">-0.56%</td>
-              <td class="positive">+1.8%</td>
-              <td class="positive">+4.9%</td>
-              <td class="positive">+15.2%</td>
-              <td class="positive">+10.1%</td>
+            <tr v-else-if="statsError">
+              <td colspan="7">{{ statsError }}</td>
             </tr>
-            <tr>
-              <td>DIA</td>
-              <td>$350.67</td>
-              <td class="positive">+0.12%</td>
-              <td class="positive">+1.2%</td>
-              <td class="positive">+3.7%</td>
-              <td class="positive">+8.9%</td>
-              <td class="positive">+6.3%</td>
+            <tr v-else v-for="idx in indexData" :key="idx.symbol">
+              <td>{{ idx.symbol }}</td>
+              <td>{{ idx.lastPrice !== '-' ? '$' + Number(idx.lastPrice).toFixed(2) : '-' }}</td>
+              <td :class="getPerfClass(idx.d1)">{{ idx.d1 }}</td>
+              <td :class="getPerfClass(idx.m1)">{{ idx.m1 }}</td>
+              <td :class="getPerfClass(idx.m4)">{{ idx.m4 }}</td>
+              <td :class="getPerfClass(idx.y1)">{{ idx.y1 }}</td>
+              <td :class="getPerfClass(idx.ytd)">{{ idx.ytd }}</td>
             </tr>
           </tbody>
         </table>
@@ -77,8 +65,8 @@
               <div class="bar-negative" :style="{ width: sma.belowPercent + '%' }"></div>
             </div>
             <div class="bar-values">
-              <span class="positive">{{ sma.above }}</span>
-              <span class="negative">{{ sma.below }}</span>
+              <span class="positive">{{ sma.above }}%</span>
+              <span class="negative">{{ sma.below }}%</span>
             </div>
           </div>
         </div>
@@ -88,110 +76,180 @@
     <!-- Second Row: Sectors & Movers/Volume/Sentiment -->
     <div class="dashboard-row2">
          <section class="movers-volume-sentiment card">
-        <h2>Top Movers & Volume Leaders</h2>
-        <div class="movers-volume">
-          <div>
-            <h3>Top 10 Gainers</h3>
-            <ul>
-              <li>AAPL +400.2%</li>
-              <li>NVDA +320.8%</li>
-              <li>TSLA +31.1%</li>
-              <li>AAPL +42.2%</li>
-              <li>NVDA +38.8%</li>
-              <li>TSLA +31.1%</li>
-              <li>AAPL +22.2%</li>
-              <li>NVDA +20.8%</li>
-              <li>TSLA +15.1%</li>
-              <li>TSLA +10.1%</li>
-            </ul>
-          </div>
-          <div>
-            <h3>Top 10 Losers</h3>
-            <ul>
-              <li>INTC -99.5%</li>
-              <li>IBM -90.1%</li>
-              <li>CSCO -88.8%</li>
-               <li>INTC -75.5%</li>
-              <li>IBM -50.1%</li>
-              <li>CSCO -44.8%</li>
-               <li>INTC -40.5%</li>
-              <li>IBM -37.1%</li>
-              <li>CSCO -30.8%</li>
-               <li>INTC -25.5%</li>
-            </ul>
-          </div>
-          <div>
-            <h3>Volume Leaders</h3>
-            <ul>
-              <li>AAPL 120M</li>
-              <li>TSLA 98M</li>
-              <li>AMD 85M</li>
-                <li>AAPL 120M</li>
-              <li>TSLA 98M</li>
-              <li>AMD 85M</li>
-                <li>AAPL 120M</li>
-              <li>TSLA 98M</li>
-              <li>AMD 85M</li>
-                <li>AAPL 120M</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-      <section class="sectors-movers card">
-        <h2>Sector Strength</h2>
+        <h2>Quarter Sector / Industry Strength</h2>
         <div class="sector-lists">
           <div>
             <h3>Strongest Sectors</h3>
             <ul>
-              <li>Technology</li>
-              <li>Healthcare</li>
-              <li>Consumer Discretionary</li>
+              <li v-for="s in topSectors" :key="s.sector">
+                {{ s.sector }} <span class="positive">{{ s.avgReturnStr }}</span>
+              </li>
             </ul>
           </div>
           <div>
             <h3>Weakest Sectors</h3>
             <ul>
-              <li>Utilities</li>
-              <li>Energy</li>
-              <li>Real Estate</li>
+              <li v-for="s in bottomSectors" :key="s.sector">
+                {{ s.sector }} <span class="negative">{{ s.avgReturnStr }}</span>
+              </li>
             </ul>
           </div>
-           <div>
+          <div>
             <h3>Strongest Industries</h3>
             <ul>
-              <li>Software</li>
-              <li>Biotechnology</li>
-              <li>E-commerce</li>
+              <li v-for="i in topIndustries" :key="i.industry">
+                {{ i.industry }} <span class="positive">{{ i.avgReturnStr }}</span>
+              </li>
             </ul>
           </div>
           <div>
             <h3>Weakest Industries</h3>
             <ul>
-              <li>Utilities</li>
-              <li>Energy</li>
-              <li>Real Estate</li>
+              <li v-for="i in bottomIndustries" :key="i.industry">
+                {{ i.industry }} <span class="negative">{{ i.avgReturnStr }}</span>
+              </li>
             </ul>
           </div>
         </div>
-         <div class="sentiment-overview">
-          <h3>Market Sentiment</h3>
-          <div class="sentiment-bar">
-            <span class="sentiment-label">Bullish</span>
-            <div class="sentiment-progress">
-              <div class="sentiment-positive" style="width: 70%"></div>
-              <div class="sentiment-negative" style="width: 30%"></div>
-            </div>
-            <span class="sentiment-label">Bearish</span>
+      </section>
+      <section class="sectors-movers card">
+         <h2>Daily Top Movers</h2>
+        <div class="movers-volume">
+          <div>
+            <h3>Top 10 Gainers</h3>
+            <ul>
+              <li v-if="statsLoading">Loading...</li>
+              <li v-else-if="statsError">{{ statsError }}</li>
+              <li v-else-if="!topGainers.length">No data</li>
+              <li v-else v-for="g in topGainers" :key="g.symbol">
+                {{ g.symbol }} <span class="positive">+{{ g.daily_return }}%</span>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3>Top 10 Losers</h3>
+            <ul>
+              <li v-if="statsLoading">Loading...</li>
+              <li v-else-if="statsError">{{ statsError }}</li>
+              <li v-else-if="!topLosers.length">No data</li>
+              <li v-else v-for="l in topLosers" :key="l.symbol">
+                {{ l.symbol }} <span class="negative">{{ l.daily_return > 0 ? '+' : '' }}{{ l.daily_return }}%</span>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
     </div>
+      <!-- Third Row: Placeholder for future widgets -->
+  <div class="dashboard-row3">
+    <section class="card dashboard-row3-content">
+    </section>
   </div>
+</div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import Header from '../components/Header.vue';
+
+// Helper for index performance class
+function getPerfClass(val: string) {
+  if (!val || val === '-') return '';
+  // Remove % and + if present
+  const num = parseFloat(val.replace('%', '').replace('+', ''));
+  if (isNaN(num)) return '';
+  if (num > 0) return 'positive';
+  if (num < 0) return 'negative';
+  return '';
+}
+
+const topGainers = computed(() => {
+  if (!marketStats.value?.top10DailyGainers) return [];
+  return marketStats.value.top10DailyGainers.map((g: any) => ({
+    symbol: g.symbol,
+    daily_return: g.daily_return.toFixed(2)
+  }));
+});
+
+const topLosers = computed(() => {
+  if (!marketStats.value?.top10DailyLosers) return [];
+  return marketStats.value.top10DailyLosers.map((l: any) => ({
+    symbol: l.symbol,
+    daily_return: l.daily_return.toFixed(2)
+  }));
+});
+
+// Expose to template
+defineExpose({ topGainers, topLosers, getPerfClass });
+
+const topSectors = computed(() => {
+  if (!marketStats.value?.sectorTierList) return [];
+  return [...marketStats.value.sectorTierList]
+    .sort((a, b) => b.average_return - a.average_return)
+    .slice(0, 3)
+    .map(s => ({
+      sector: s.sector,
+      avgReturnStr: (s.average_return * 100 > 0 ? '+' : '') + (s.average_return * 100).toFixed(2) + '%'
+    }));
+});
+
+const bottomSectors = computed(() => {
+  if (!marketStats.value?.sectorTierList) return [];
+  return [...marketStats.value.sectorTierList]
+    .sort((a, b) => a.average_return - b.average_return)
+    .slice(0, 3)
+    .map(s => ({
+      sector: s.sector,
+      avgReturnStr: (s.average_return * 100 > 0 ? '+' : '') + (s.average_return * 100).toFixed(2) + '%'
+    }));
+});
+
+const topIndustries = computed(() => {
+  if (!marketStats.value?.industryTierList) return [];
+  return [...marketStats.value.industryTierList]
+    .sort((a, b) => b.average_return - a.average_return)
+    .slice(0, 3)
+    .map(i => ({
+      industry: i.industry,
+      avgReturnStr: (i.average_return * 100 > 0 ? '+' : '') + (i.average_return * 100).toFixed(2) + '%'
+    }));
+});
+
+const bottomIndustries = computed(() => {
+  if (!marketStats.value?.industryTierList) return [];
+  return [...marketStats.value.industryTierList]
+    .sort((a, b) => a.average_return - b.average_return)
+    .slice(0, 3)
+    .map(i => ({
+      industry: i.industry,
+      avgReturnStr: (i.average_return * 100 > 0 ? '+' : '') + (i.average_return * 100).toFixed(2) + '%'
+    }));
+});
+
+// --- Market stats state ---
+const marketStats = ref<any>(null);
+const statsLoading = ref(true);
+const statsError = ref('');
+
+// --- Fetch market stats from backend ---
+async function fetchMarketStats() {
+  statsLoading.value = true;
+  statsError.value = '';
+  try {
+    const res = await fetch('/api/market-stats', {
+      headers: {
+        'x-api-key': import.meta.env.VITE_EREUNA_KEY || ''
+      }
+    });
+    if (!res.ok) throw new Error('Failed to fetch market stats');
+    marketStats.value = await res.json();
+  } catch (e: any) {
+    statsError.value = e?.message || 'Error fetching market stats';
+    marketStats.value = null;
+  } finally {
+    statsLoading.value = false;
+  }
+}
 
 // Date & Time logic
 const currentDate = ref('');
@@ -268,31 +326,57 @@ onMounted(() => {
   setInterval(updateDateTime, 1000);
 });
 
-// Placeholder SMA data for progress bars
-const SMA_MAX = 8500;
-const rawSmaData = [
-  { period: 10, above: 320, below: 180 },
-  { period: 20, above: 290, below: 210 },
-  { period: 50, above: 250, below: 250 },
-  { period: 100, above: 200, below: 300 },
-  { period: 200, above: 150, below: 350 },
-];
-const smaData = rawSmaData.map(sma => {
-  const total = sma.above + sma.below;
-  let above = 0, below = 0;
-  if (total > 0) {
-    above = Math.round((sma.above / total) * SMA_MAX);
-    below = SMA_MAX - above;
-  }
-  const abovePercent = total > 0 ? Math.round((above / SMA_MAX) * 100) : 0;
-  const belowPercent = total > 0 ? 100 - abovePercent : 0;
-  return {
-    period: sma.period,
-    above,
-    below,
-    abovePercent,
-    belowPercent
-  };
+// SMA data from API
+const smaPeriods = [10, 20, 50, 200];
+const smaData = ref<any[]>([]);
+
+function updateSmaData() {
+  if (!marketStats.value) return;
+  smaData.value = smaPeriods.map(period => {
+    const key = 'SMA' + period;
+    const obj = marketStats.value[key];
+    if (!obj) return { period, above: 0, below: 0, abovePercent: 0, belowPercent: 0 };
+    const above = obj.up;
+    const below = obj.down;
+    const abovePercent = Math.round(above * 100);
+    const belowPercent = Math.round(below * 100);
+    return {
+      period,
+      above: abovePercent,
+      below: belowPercent,
+      abovePercent,
+      belowPercent
+    };
+  });
+}
+
+// Indexes from API
+const indexList = ['SPY', 'QQQ', 'DIA'];
+const indexData = ref<any[]>([]);
+function updateIndexData() {
+  if (!marketStats.value || !marketStats.value.indexPerformance) return;
+  indexData.value = indexList.map(symbol => {
+    const idx = marketStats.value.indexPerformance[symbol];
+    if (!idx) return { symbol, lastPrice: '-', d1: '-', m1: '-', m4: '-', y1: '-', ytd: '-' };
+    return {
+      symbol,
+      lastPrice: idx.lastPrice != null ? idx.lastPrice : '-',
+      d1: idx['1D'] != null ? (idx['1D'] * 100).toFixed(2) + '%' : '-',
+      m1: idx['1M'] != null ? (idx['1M'] * 100).toFixed(2) + '%' : '-',
+      m4: idx['4M'] != null ? (idx['4M'] * 100).toFixed(2) + '%' : '-',
+      y1: idx['1Y'] != null ? (idx['1Y'] * 100).toFixed(2) + '%' : '-',
+      ytd: idx['YTD'] != null ? (idx['YTD'] * 100).toFixed(2) + '%' : '-'
+    };
+  });
+}
+
+onMounted(() => {
+  updateDateTime();
+  setInterval(updateDateTime, 1000);
+  fetchMarketStats().then(() => {
+    updateSmaData();
+    updateIndexData();
+  });
 });
 </script>
 
@@ -301,20 +385,35 @@ const smaData = rawSmaData.map(sma => {
   min-height: 100vh;
   width: 100vw;
   box-sizing: border-box;
-  background-color: var(--base2);
+  background-color: var(--base4);
   overflow-x: scroll;
 }
 .dashboard-row {
   display: flex;
-  gap: 32px;
-  padding: 32px 24px 0 24px;
-  margin-bottom: 0;
+  gap: 5px;
+  margin-bottom: 5px;
 }
 .dashboard-row2 {
   display: flex;
-  gap: 32px;
-  padding: 32px 24px 0 24px;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+.dashboard-row3 {
+  display: flex;
+  gap: 5px;
+  flex: 1 1 0;
+  min-height: 0;
   margin-bottom: 0;
+}
+.dashboard-row3-content {
+  flex: 1 1 0;
+  min-width: 320px;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 120px;
 }
 .dashboard-row .market-indexes.card {
   flex: 0 0 350px;
@@ -366,7 +465,7 @@ const smaData = rawSmaData.map(sma => {
   display: flex;
   gap: 24px;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 5px;
 }
 .movers-volume h3 {
   margin-bottom: 8px;
@@ -430,7 +529,7 @@ const smaData = rawSmaData.map(sma => {
 .bar-container {
   display: flex;
   height: 18px;
-  width: 400px;
+  width: 90%;
   background: var(--base3);
   border-radius: 8px;
   overflow: hidden;
@@ -453,7 +552,9 @@ const smaData = rawSmaData.map(sma => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 32px 24px 0 24px;
+  padding: 10px;
+  margin-bottom: 5px;
+  background-color: var(--base2);
 }
 .datetime {
   color: var(--text1);
@@ -487,11 +588,8 @@ const smaData = rawSmaData.map(sma => {
   color: var(--base4);
 }
 .card {
-  background: var(--base1);
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(44, 44, 84, 0.12);
+  background: var(--base2);
   padding: 24px;
-  margin: 32px 24px 0 24px;
 }
 .market-indexes table,
 .sma-distribution table {

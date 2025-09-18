@@ -164,13 +164,6 @@ export default function (app: any, deps: any) {
                     Username: sanitizedUsername
                 }).toArray();
                 if (!notes || notes.length === 0) {
-                    logger.warn({
-                        msg: 'No notes found',
-                        symbol: sanitizedTicker,
-                        usernamePartial: sanitizedUsername,
-                        context: 'GET /:user/:symbol/notes',
-                        statusCode: 404
-                    });
                     return res.status(404).json({ message: 'No notes found' });
                 }
                 res.status(200).json(notes);
@@ -237,14 +230,6 @@ export default function (app: any, deps: any) {
                     Username: sanitizedUsername
                 });
                 if (!result.value) {
-                    logger.warn({
-                        msg: 'Note Not Found',
-                        symbol: ticker,
-                        usernamePartial: sanitizedUsername,
-                        noteId: noteIdParam,
-                        context: 'DELETE /:symbol/notes/:noteId',
-                        statusCode: 404
-                    });
                     return res.status(404).json({ message: 'Note not found' });
                 }
                 res.status(200).json({ message: 'Note deleted successfully' });
