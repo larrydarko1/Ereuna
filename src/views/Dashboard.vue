@@ -570,7 +570,7 @@ onMounted(() => {
 .market-status {
   font-size: 1.2rem;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 5px;
   background: var(--base3);
   color: var(--text1);
   font-weight: bold;

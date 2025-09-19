@@ -10,6 +10,27 @@ import { useUserStore } from './store/store';
 // If your store is Vuex, you need to migrate it to Pinia for full TS support. If already Pinia, you don't need to use 'store' as a plugin.
 // import store from './store/store'; // Remove if using Pinia only
 
+
+
+// --- THEME PERSISTENCE LOGIC (run before app creation) ---
+const themes = [
+    'default', 'ihatemyeyes', 'colorblind', 'catpuccin', 'black',
+    'nord', 'dracula', 'gruvbox', 'tokyo-night', 'solarized',
+    'synthwave', 'github-dark', 'everforest', 'ayu-dark', 'rose-pine',
+    'material', 'one-dark', 'night-owl', 'panda', 'monokai-pro',
+    'tomorrow-night', 'oceanic-next', 'palenight', 'cobalt', 'poimandres',
+    'github-light', 'neon', 'moonlight', 'nightfox', 'spacemacs',
+    'borland', 'amber', 'cyberpunk', 'matrix', 'sunset',
+    'deep-ocean', 'gotham', 'retro', 'spotify', 'autumn',
+    'noctis', 'iceberg', 'tango', 'horizon', 'railscasts',
+    'vscode-dark', 'slack-dark', 'mintty', 'atom-one', 'light-owl'
+];
+const root = document.documentElement;
+root.classList.remove(...themes);
+const theme = localStorage.getItem('user-theme') || 'default';
+root.classList.add(theme);
+
+// Now create the app and Pinia
 const app = createApp(App);
 const pinia = createPinia();
 
@@ -17,6 +38,7 @@ app.use(pinia);
 // Persist user session from token
 const userStore = useUserStore();
 userStore.loadUserFromToken();
+
 app.use(router);
 app.use(authPlugin);
 

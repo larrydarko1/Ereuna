@@ -184,11 +184,6 @@ export default function (app: any, deps: any) {
             }
             const tickersParam = req.query.tickers;
             if (!tickersParam || typeof tickersParam !== 'string') {
-                logger.warn({
-                    msg: 'No tickers provided',
-                    context: 'GET /data-values',
-                    statusCode: 400
-                });
                 return res.status(400).json({ message: 'No tickers provided' });
             }
             const tickers = (tickersParam as string).split(',').map((t: string) => sanitizeInput(t));

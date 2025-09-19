@@ -292,7 +292,19 @@
                     </div>
                   </div>
                   <div style="flex: 1; text-align: center;">
-                    <img class="cmp-logo" :src="getImagePath(item)" alt="" />
+                    <div class="cmp-logo-wrapper" style="position: relative; display: inline-block;">
+                      <img
+                        class="cmp-logo"
+                        :src="getImagePath(item)"
+                        alt=""
+                        @error="logoError[item] = true"
+                        @load="logoError[item] = false"
+                        style="display: block;"
+                      />
+                      <div v-if="logoError[item]" class="cmp-logo-fallback">
+                        N/A
+                      </div>
+                    </div>
                   </div>
                   <div style="flex: 1; text-align: center;" class="btsymbol">{{ item }}</div>
                   <div style="flex: 1; text-align: center;">{{ quotes[item] }}</div>
@@ -373,7 +385,7 @@ interface Notification {
 
 const error = ref<string>('');
 const notification = ref<Notification>({ show: (msg: string) => { alert(msg); } });
-
+const logoError = ref<Record<string, boolean>>({});
 
 const props = defineProps<{
   apiKey: string;
@@ -1141,3 +1153,37 @@ onUnmounted(() => {
 });
 
 </script>
+
+<style scoped>
+.cmp-logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 25%;
+  border: solid var(--text2) 1px;
+  margin-right: 5px;
+  object-fit: cover;
+  background: transparent;
+  text-align: center;
+}
+
+.cmp-logo-fallback {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background: var(--text2);
+  color: var(--base2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  border-radius: 25%;
+  z-index: 2;
+  pointer-events: none;
+  border: solid var(--text2) 1px;
+  margin-right: 5px;
+}
+
+</style>

@@ -153,7 +153,8 @@ async function fetchChartDataREST(symbolParam: string | null, before: string | n
 }
 
 
-// WebSocket fetch for daily chart data
+
+// WebSocket fetch for daily chart data with immediate REST fallback
 async function fetchChartDataWS(symbolParam: string | null): Promise<void> {
   closeChartWS();
   chartWSReceived = false;
@@ -185,6 +186,7 @@ async function fetchChartDataWS(symbolParam: string | null): Promise<void> {
       data5.value = ma50;
       data6.value = ma200;
       chartWSReceived = true;
+      isChartLoading2.value = false;
     } else if (msg.error) {
       console.error('WebSocket error:', msg.error);
     }
@@ -206,15 +208,10 @@ async function fetchChartDataWS(symbolParam: string | null): Promise<void> {
 }
 
 
-// Unified fetchChartData function
+// Unified fetchChartData function with immediate fallback logic
 async function fetchChartData(symbolParam: string | null, before: string | number | null = null, append: boolean = false): Promise<void> {
-  chartWSReceived = false;
-  fetchChartDataWS(symbolParam);
-  setTimeout(() => {
-    if (!chartWSReceived) {
-      fetchChartDataREST(symbolParam, before, append);
-    }
-  }, 2000);
+  isChartLoading2.value = true;
+  await fetchChartDataWS(symbolParam);
 }
 
 

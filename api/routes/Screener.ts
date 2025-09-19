@@ -3417,15 +3417,6 @@ export default function (app: any, deps: any) {
                             details: 'No matching screener exists for the given user and name'
                         });
                     }
-                    logger.info({
-                        msg: 'Price range updated successfully',
-                        Username,
-                        screenerName,
-                        minPrice,
-                        maxPrice,
-                        context: 'PATCH /screener/price',
-                        statusCode: 200
-                    });
                     res.json({
                         message: 'Price range updated successfully',
                         updatedScreener: result.value
@@ -3602,15 +3593,6 @@ export default function (app: any, deps: any) {
                             details: 'Unable to update screener'
                         });
                     }
-                    logger.info({
-                        msg: 'Market Cap range updated successfully',
-                        Username,
-                        screenerName,
-                        minMarketCap: finalMinPrice,
-                        maxMarketCap: finalMaxPrice,
-                        context: 'PATCH /screener/marketcap',
-                        statusCode: 200
-                    });
                     res.json({
                         message: 'Market Cap range updated successfully',
                         updatedScreener: {
@@ -3793,15 +3775,6 @@ export default function (app: any, deps: any) {
                             details: 'Unable to update screener'
                         });
                     }
-                    logger.info({
-                        msg: 'IPO date range updated successfully',
-                        Username,
-                        screenerName,
-                        minIpoDate: finalMinPrice.toISOString(),
-                        maxIpoDate: finalMaxPrice.toISOString(),
-                        context: 'PATCH /screener/ipo-date',
-                        statusCode: 200
-                    });
                     res.json({
                         message: 'IPO date range updated successfully',
                         updatedScreener: {
@@ -3911,13 +3884,6 @@ export default function (app: any, deps: any) {
                     const filter = { Username: Username };
                     const updateDoc = { $addToSet: { Hidden: symbol } };
                     const result = await usersCollection.updateOne(filter, updateDoc);
-                    logger.info({
-                        msg: 'Hidden List updated successfully',
-                        symbol,
-                        username: Username,
-                        context: 'PATCH /screener/:user/hidden/:symbol',
-                        statusCode: 200
-                    });
                     res.json({ message: 'Hidden List updated successfully', symbol });
                 } catch (dbError) {
                     const errObj = handleError(dbError, 'PATCH /screener/:user/hidden/:symbol', {
@@ -4001,20 +3967,8 @@ export default function (app: any, deps: any) {
                         return res.status(404).json({ message: 'User not found', username: obfuscateUsername(username) });
                     }
                     if (!userDoc.Hidden || userDoc.Hidden.length === 0) {
-                        logger.info({
-                            msg: 'Hidden list is empty',
-                            username: username,
-                            context: 'GET /screener/results/:user/hidden',
-                            statusCode: 200
-                        });
                         return res.json([]);
                     }
-                    logger.info({
-                        msg: 'Hidden list retrieved successfully',
-                        username: username,
-                        context: 'GET /screener/results/:user/hidden',
-                        statusCode: 200
-                    });
                     res.json(userDoc.Hidden);
                 } catch (dbError) {
                     const errObj = handleError(dbError, 'GET /screener/results/:user/hidden', {
@@ -4088,13 +4042,6 @@ export default function (app: any, deps: any) {
                         }
                     }).toArray();
                     if (userDocs.length > 0) {
-                        logger.info({
-                            msg: 'Screeners found for user',
-                            username: username,
-                            count: userDocs.length,
-                            context: 'GET /screener/:user/names',
-                            statusCode: 200
-                        });
                         res.status(200).json(userDocs);
                     } else {
                         logger.warn({
@@ -4415,14 +4362,6 @@ export default function (app: any, deps: any) {
                         });
                         return res.status(errObj.statusCode || 404).json(errObj);
                     }
-                    logger.info({
-                        msg: 'Asset types updated successfully',
-                        username: Username,
-                        screenerName,
-                        assetTypes: sanitizedAssetTypes,
-                        context: 'PATCH /screener/asset-types',
-                        statusCode: 200
-                    });
                     res.json({
                         message: 'Asset types updated successfully',
                         assetTypes: sanitizedAssetTypes
@@ -4501,12 +4440,6 @@ export default function (app: any, deps: any) {
                             sector !== undefined
                         )
                         .slice(0, 50); // Optional: limit to 50 sectors to prevent potential DoS
-                    logger.info({
-                        msg: 'Sectors retrieved successfully',
-                        count: uniqueSectors.length,
-                        context: 'GET /screener/sectors',
-                        statusCode: 200
-                    });
                     res.status(200).json(uniqueSectors);
                 } catch (dbError) {
                     const errObj = handleError(dbError, 'GET /screener/sectors', {}, 500);
@@ -4613,14 +4546,6 @@ export default function (app: any, deps: any) {
                         });
                         return res.status(errObj.statusCode || 404).json(errObj);
                     }
-                    logger.info({
-                        msg: 'Sectors updated successfully',
-                        username: Username,
-                        screenerName,
-                        sectors: sanitizedSectors,
-                        context: 'PATCH /screener/sectors',
-                        statusCode: 200
-                    });
                     res.json({
                         message: 'Sectors updated successfully',
                         sectors: sanitizedSectors
@@ -4699,12 +4624,6 @@ export default function (app: any, deps: any) {
                             exchange !== undefined
                         )
                         .slice(0, 10); // Optional: limit to 10 exchanges to prevent potential DoS 
-                    logger.info({
-                        msg: 'Exchanges retrieved successfully',
-                        count: uniqueExchanges.length,
-                        context: 'GET /screener/exchange',
-                        statusCode: 200
-                    });
                     res.status(200).json(uniqueExchanges);
                 } catch (dbError) {
                     const errObj = handleError(dbError, 'GET /screener/exchange', {}, 500);
@@ -4819,14 +4738,6 @@ export default function (app: any, deps: any) {
                             }
                         });
                     }
-                    logger.info({
-                        msg: 'Exchanges updated successfully',
-                        username: Username,
-                        screenerName,
-                        exchanges: sanitizedExchanges,
-                        context: 'PATCH /screener/exchange',
-                        statusCode: 200
-                    });
                     res.json({
                         message: 'Exchanges updated successfully',
                         exchanges: sanitizedExchanges
@@ -4893,12 +4804,6 @@ export default function (app: any, deps: any) {
                     const Country = await assetInfoCollection.distinct('Country');
                     // Remove any null or undefined values from the array
                     const uniqueCountry = Country.filter((country: string) => country !== null && country !== undefined);
-                    logger.info({
-                        msg: 'Countries retrieved successfully',
-                        count: uniqueCountry.length,
-                        context: 'GET /screener/country',
-                        statusCode: 200
-                    });
                     res.status(200).json(uniqueCountry);
                 } catch (dbError) {
                     const errObj = handleError(dbError, 'GET /screener/country', {}, 500);
@@ -5014,14 +4919,6 @@ export default function (app: any, deps: any) {
                             }
                         });
                     }
-                    logger.info({
-                        msg: 'Countries updated successfully',
-                        username: Username,
-                        screenerName,
-                        countries: sanitizedCountries,
-                        context: 'PATCH /screener/country',
-                        statusCode: 200
-                    });
                     res.json({
                         message: 'Countries updated successfully',
                         countries: sanitizedCountries
@@ -5149,15 +5046,6 @@ export default function (app: any, deps: any) {
                             details: 'No matching screener exists for the given user and name'
                         });
                     }
-                    logger.info({
-                        msg: 'PE range updated successfully',
-                        username: Username,
-                        screenerName,
-                        minPrice,
-                        maxPrice,
-                        context: 'PATCH /screener/pe',
-                        statusCode: 200
-                    });
                     res.json({
                         message: 'PE range updated successfully',
                         updatedScreener: result.value
@@ -5314,15 +5202,6 @@ export default function (app: any, deps: any) {
                         details: 'Unable to update screener'
                     });
                 }
-                logger.info({
-                    msg: 'PEG range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minPrice,
-                    maxPrice,
-                    context: 'PATCH /screener/peg',
-                    statusCode: 200
-                });
                 res.json({
                     message: 'PEG range updated successfully',
                     updatedScreener: result.value
@@ -5480,15 +5359,6 @@ export default function (app: any, deps: any) {
                         details: 'Unable to update screener'
                     });
                 }
-                logger.info({
-                    msg: 'EPS range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minPrice,
-                    maxPrice,
-                    context: 'PATCH /screener/eps',
-                    statusCode: 200
-                });
                 res.json({
                     message: 'EPS range updated successfully',
                     updatedScreener: result.value
@@ -5646,15 +5516,6 @@ export default function (app: any, deps: any) {
                         details: 'Unable to update screener'
                     });
                 }
-                logger.info({
-                    msg: 'Price to Sales Ratio range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minPrice,
-                    maxPrice,
-                    context: 'PATCH /screener/ps-ratio',
-                    statusCode: 200
-                });
                 res.json({
                     message: 'Price to Sales Ratio range updated successfully',
                     updatedScreener: result.value
@@ -5812,15 +5673,6 @@ export default function (app: any, deps: any) {
                         details: 'Unable to update screener'
                     });
                 }
-                logger.info({
-                    msg: 'Price to Book Ratio range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minPrice,
-                    maxPrice,
-                    context: 'PATCH /screener/pb-ratio',
-                    statusCode: 200
-                });
                 res.json({
                     message: 'Price to Book Ratio range updated successfully',
                     updatedScreener: result.value
@@ -5988,15 +5840,6 @@ export default function (app: any, deps: any) {
                         details: 'Unable to update screener'
                     });
                 }
-                logger.info({
-                    msg: 'Dividend Yield range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minDividendYield: effectiveMinPrice,
-                    maxDividendYield: effectiveMaxPrice,
-                    context: 'PATCH /screener/div-yield',
-                    statusCode: 200
-                });
                 res.json({
                     message: 'Dividend Yield range updated successfully',
                     updatedScreener: result.value,
@@ -6203,14 +6046,6 @@ export default function (app: any, deps: any) {
                     details: 'Unable to update screener document'
                 });
             }
-            logger.info({
-                msg: 'Fundamental growth parameters updated successfully',
-                username: Username,
-                screenerName,
-                updatedAttributes: Object.keys(updateDoc.$set),
-                context: 'PATCH /screener/fundamental-growth',
-                statusCode: 200
-            });
             res.json({
                 message: 'Fundamental growth parameters updated successfully',
                 updatedScreener: result.value,
@@ -6342,14 +6177,6 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(404).json({ message: 'Screener not found' });
             }
-            logger.info({
-                msg: 'Volume parameters updated successfully',
-                username: Username,
-                screenerName,
-                updatedFields: Object.keys(updateDoc),
-                context: 'PATCH /screener/volume',
-                statusCode: 200
-            });
             res.json({ message: 'Document updated successfully', updatedFields: Object.keys(updateDoc) });
         } catch (error) {
             let errObj;
@@ -6461,14 +6288,6 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(404).json({ message: 'Screener not found' });
             }
-            logger.info({
-                msg: 'RS Score updated successfully',
-                username: Username,
-                screenerName,
-                updatedFields: Object.keys(updateDoc),
-                context: 'PATCH /screener/rs-score',
-                statusCode: 200
-            });
             res.json({
                 message: 'RS Score updated successfully',
                 updatedFields: Object.keys(updateDoc)
@@ -6571,14 +6390,6 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(404).json({ message: 'Screener not found' });
             }
-            logger.info({
-                msg: 'ADV updated successfully',
-                username: Username,
-                screenerName,
-                updatedFields: Object.keys(updateDoc.$set),
-                context: 'PATCH /screener/adv',
-                statusCode: 200
-            });
             res.json({
                 message: 'ADV updated successfully',
                 updatedFields: Object.keys(updateDoc.$set)
@@ -6910,16 +6721,6 @@ export default function (app: any, deps: any) {
                     });
                 }
 
-                logger.info({
-                    msg: 'ROA range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minROA,
-                    maxROA,
-                    context: 'PATCH /screener/roa',
-                    statusCode: 200
-                });
-
                 res.json({
                     message: 'ROA range updated successfully',
                     updatedScreener: result.value
@@ -7021,16 +6822,6 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(500).json({ message: 'Failed to update screener' });
                 }
-
-                logger.info({
-                    msg: 'Screener Include toggled',
-                    username: user,
-                    screenerName: list,
-                    Include: updatedIncludeValue,
-                    context: 'PATCH /:user/toggle/screener/:list',
-                    statusCode: 200,
-                    requestId
-                });
 
                 res.status(200).json({
                     message: 'Screener updated successfully',
@@ -7472,15 +7263,6 @@ export default function (app: any, deps: any) {
                     Gap: document.Gap,
                     IV: document.IV,
                 };
-
-                logger.info({
-                    msg: 'Screener data retrieved',
-                    username: usernameID,
-                    screenerName: name,
-                    context: 'GET /screener/datavalues/:user/:name',
-                    statusCode: 200
-                });
-
                 res.status(200).json(response);
             } catch (error: any) {
                 const errObj = handleError(error, 'GET /screener/datavalues/:user/:name', {
@@ -7579,15 +7361,6 @@ export default function (app: any, deps: any) {
                         filteredData[attribute] = performanceData[attribute];
                     }
                 }
-
-                logger.info({
-                    msg: 'Screener summary retrieved',
-                    username: usernameID,
-                    screenerName: name,
-                    context: 'GET /screener/summary/:usernameID/:name',
-                    statusCode: 200,
-                    requestId
-                });
 
                 res.status(200).json(filteredData);
             } catch (error: any) {
@@ -7689,16 +7462,6 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(500).json({ message: 'Failed to update screener' });
                 }
-
-                logger.info({
-                    msg: 'Screener Include toggled',
-                    username: user,
-                    screenerName: list,
-                    Include: updatedIncludeValue,
-                    context: 'PATCH /:user/toggle/screener/:list',
-                    statusCode: 200,
-                    requestId
-                });
 
                 res.status(200).json({
                     message: 'Screener updated successfully',
@@ -7898,16 +7661,6 @@ export default function (app: any, deps: any) {
                 return res.status(404).json(errObj);
             }
 
-            logger.info({
-                msg: 'Current Ratio range updated successfully',
-                username: Username,
-                screenerName,
-                minCurrentRatio,
-                maxCurrentRatio,
-                context: 'PATCH /screener/current-ratio',
-                statusCode: 200
-            });
-
             res.json({
                 message: 'Current Ratio range updated successfully',
                 updatedScreener: result.value
@@ -8100,16 +7853,6 @@ export default function (app: any, deps: any) {
                     );
                     return res.status(404).json(errObj);
                 }
-
-                logger.info({
-                    msg: 'Current Assets range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minCurrentAssets,
-                    maxCurrentAssets,
-                    context: 'PATCH /screener/current-assets',
-                    statusCode: 200
-                });
 
                 res.json({
                     message: 'Current Assets range updated successfully',
@@ -8304,16 +8047,6 @@ export default function (app: any, deps: any) {
                     return res.status(404).json(errObj);
                 }
 
-                logger.info({
-                    msg: 'Current Liabilities range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minCurrentLiabilities,
-                    maxCurrentLiabilities,
-                    context: 'PATCH /screener/current-liabilities',
-                    statusCode: 200
-                });
-
                 res.json({
                     message: 'Current Liabilities range updated successfully',
                     updatedScreener: result.value
@@ -8507,16 +8240,6 @@ export default function (app: any, deps: any) {
                     return res.status(404).json(errObj);
                 }
 
-                logger.info({
-                    msg: 'Current Debt range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minCurrentDebt,
-                    maxCurrentDebt,
-                    context: 'PATCH /screener/current-debt',
-                    statusCode: 200
-                });
-
                 res.json({
                     message: 'Current Debt range updated successfully',
                     updatedScreener: result.value
@@ -8706,15 +8429,6 @@ export default function (app: any, deps: any) {
                         details: 'Unable to update screener'
                     });
                 }
-                logger.info({
-                    msg: 'Cash Equivalents range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minCashEquivalents,
-                    maxCashEquivalents,
-                    context: 'PATCH /screener/cash-equivalents',
-                    statusCode: 200
-                });
                 res.json({
                     message: 'Cash Equivalents range updated successfully',
                     updatedScreener: result.value
@@ -8923,15 +8637,6 @@ export default function (app: any, deps: any) {
                         details: 'Unable to update screener'
                     });
                 }
-                logger.info({
-                    msg: 'Free Cash Flow range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minFreeCashFlow,
-                    maxFreeCashFlow,
-                    context: 'PATCH /screener/free-cash-flow',
-                    statusCode: 200
-                });
                 res.json({
                     message: 'Free Cash Flow range updated successfully',
                     updatedScreener: result.value
@@ -9147,16 +8852,6 @@ export default function (app: any, deps: any) {
                         details: 'Unable to update screener'
                     });
                 }
-
-                logger.info({
-                    msg: 'Profit Margin range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minProfitMargin,
-                    maxProfitMargin,
-                    context: 'PATCH /screener/profit-margin',
-                    statusCode: 200
-                });
 
                 res.json({
                     message: 'Profit Margin range updated successfully',
@@ -9374,16 +9069,6 @@ export default function (app: any, deps: any) {
                     });
                 }
 
-                logger.info({
-                    msg: 'Gross Margin range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minGrossMargin,
-                    maxGrossMargin,
-                    context: 'PATCH /screener/gross-margin',
-                    statusCode: 200
-                });
-
                 res.json({
                     message: 'Gross Margin range updated successfully',
                     updatedScreener: result.value
@@ -9599,16 +9284,6 @@ export default function (app: any, deps: any) {
                         details: 'Unable to update screener'
                     });
                 }
-
-                logger.info({
-                    msg: 'Debt to Equity Ratio range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minDebtToEquityRatio,
-                    maxDebtToEquityRatio,
-                    context: 'PATCH /screener/debt-to-equity-ratio',
-                    statusCode: 200
-                });
 
                 res.json({
                     message: 'Debt to Equity Ratio range updated successfully',
@@ -9829,16 +9504,6 @@ export default function (app: any, deps: any) {
                     });
                 }
 
-                logger.info({
-                    msg: 'Book Value range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minBookValue,
-                    maxBookValue,
-                    context: 'PATCH /screener/book-value',
-                    statusCode: 200
-                });
-
                 res.json({
                     message: 'Book Value range updated successfully',
                     updatedScreener: result.value
@@ -10055,16 +9720,6 @@ export default function (app: any, deps: any) {
                     });
                 }
 
-                logger.info({
-                    msg: 'EV range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minPrice,
-                    maxPrice,
-                    context: 'PATCH /screener/ev',
-                    statusCode: 200
-                });
-
                 res.json({
                     message: 'EV range updated successfully',
                     updatedScreener: result.value
@@ -10227,16 +9882,6 @@ export default function (app: any, deps: any) {
                         details: 'No matching screener exists for the given user and name'
                     });
                 }
-
-                logger.info({
-                    msg: 'RSI range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minRSI,
-                    maxRSI,
-                    context: 'PATCH /screener/rsi',
-                    statusCode: 200
-                });
 
                 res.json({
                     message: 'RSI range updated successfully',
@@ -10445,16 +10090,6 @@ export default function (app: any, deps: any) {
                     });
                 }
 
-                logger.info({
-                    msg: 'Gap range updated successfully',
-                    username: Username,
-                    screenerName,
-                    minGap,
-                    maxGap,
-                    context: 'PATCH /screener/gap-percent',
-                    statusCode: 200
-                });
-
                 res.json({
                     message: 'Gap range updated successfully',
                     updatedScreener: result.value
@@ -10532,31 +10167,10 @@ export default function (app: any, deps: any) {
             );
 
             if (updateResult.matchedCount === 0 && updateResult.upsertedCount === 1) {
-                logger.info({
-                    msg: 'Table created for user',
-                    username: sanitizedUser,
-                    columns,
-                    context: 'PATCH /update/columns',
-                    statusCode: 201
-                });
                 return res.status(201).json({ message: 'Table created for user' });
             } else if (updateResult.modifiedCount === 1) {
-                logger.info({
-                    msg: 'Table updated for user',
-                    username: sanitizedUser,
-                    columns,
-                    context: 'PATCH /update/columns',
-                    statusCode: 200
-                });
                 return res.status(200).json({ message: 'Table updated for user' });
             } else {
-                logger.info({
-                    msg: 'No changes made to Table',
-                    username: sanitizedUser,
-                    columns,
-                    context: 'PATCH /update/columns',
-                    statusCode: 200
-                });
                 return res.status(200).json({ message: 'No changes made to Table' });
             }
         } catch (error: unknown) {
@@ -10619,14 +10233,6 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(404).json({ message: 'No columns found for user' });
             }
-
-            logger.info({
-                msg: 'Table columns retrieved successfully',
-                username: sanitizedUser,
-                columns: userDoc.Table,
-                context: 'GET /get/columns',
-                statusCode: 200
-            });
             return res.status(200).json({ columns: userDoc.Table });
         } catch (error: unknown) {
             const errObj = handleError(error instanceof Error ? error : new Error(String(error)), 'GET /get/columns', {
@@ -10812,16 +10418,6 @@ export default function (app: any, deps: any) {
                             details: 'No matching screener exists for the given user and name'
                         });
                     }
-
-                    logger.info({
-                        msg: 'Intrinsic Value range updated successfully',
-                        username: Username,
-                        screenerName,
-                        minIV,
-                        maxIV,
-                        context: 'PATCH /screener/intrinsic-value',
-                        statusCode: 200
-                    });
 
                     res.json({
                         message: 'Intrinsic Value range updated successfully',

@@ -145,7 +145,8 @@ async function fetchChartDataREST(symbolParam: string | null, before: string | n
   }
 }
 
-// WebSocket fetch for chart data
+
+// WebSocket fetch for chart data with immediate REST fallback
 async function fetchChartDataWS(symbolParam: string | null): Promise<void> {
   closeChartWS();
   chartWSReceived = false;
@@ -156,31 +157,32 @@ async function fetchChartDataWS(symbolParam: string | null): Promise<void> {
   let triedRest = false;
   chartWS.onopen = () => {};
   chartWS.onmessage = (event) => {
-  let msg;
-  try {
-    msg = JSON.parse(event.data);
-  } catch (e) {
-    console.error('WebSocket parse error', e, event.data);
-    return;
-  }
-  if (msg.type === 'init' || msg.type === 'update') {
-    const ohlc = msg.data.ohlc || [];
-    const volume = msg.data.volume || [];
-    const ma10 = msg.data.MA10 || [];
-    const ma20 = msg.data.MA20 || [];
-    const ma50 = msg.data.MA50 || [];
-    const ma200 = msg.data.MA200 || [];
-    data.value = ohlc;
-    data2.value = volume;
-    data3.value = ma10;
-    data4.value = ma20;
-    data5.value = ma50;
-    data6.value = ma200;
-    chartWSReceived = true;
-  } else if (msg.error) {
-    console.error('WebSocket error:', msg.error);
-  }
-};
+    let msg;
+    try {
+      msg = JSON.parse(event.data);
+    } catch (e) {
+      console.error('WebSocket parse error', e, event.data);
+      return;
+    }
+    if (msg.type === 'init' || msg.type === 'update') {
+      const ohlc = msg.data.ohlc || [];
+      const volume = msg.data.volume || [];
+      const ma10 = msg.data.MA10 || [];
+      const ma20 = msg.data.MA20 || [];
+      const ma50 = msg.data.MA50 || [];
+      const ma200 = msg.data.MA200 || [];
+      data.value = ohlc;
+      data2.value = volume;
+      data3.value = ma10;
+      data4.value = ma20;
+      data5.value = ma50;
+      data6.value = ma200;
+      chartWSReceived = true;
+      isChartLoading1.value = false;
+    } else if (msg.error) {
+      console.error('WebSocket error:', msg.error);
+    }
+  };
   chartWS.onerror = async (e) => {
     console.error('WebSocket error', e);
     if (!triedRest) {
@@ -197,15 +199,10 @@ async function fetchChartDataWS(symbolParam: string | null): Promise<void> {
   };
 }
 
-// Unified fetchChartData function
+// Unified fetchChartData function with immediate fallback logic
 async function fetchChartData(symbolParam: string | null, before: string | number | null = null, append: boolean = false): Promise<void> {
-  chartWSReceived = false;
-  fetchChartDataWS(symbolParam);
-  setTimeout(() => {
-    if (!chartWSReceived) {
-      fetchChartDataREST(symbolParam, before, append);
-    }
-  }, 2000);
+  isChartLoading1.value = true;
+  await fetchChartDataWS(symbolParam);
 }
 onUnmounted(() => {
   closeChartWS();

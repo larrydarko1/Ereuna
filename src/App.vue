@@ -4,7 +4,6 @@
 </template>
 
 <script setup lang="ts">
-
 import { ref, computed, onMounted } from 'vue';
 import Message from '@/components/message.vue';
 import { useRoute } from 'vue-router';
@@ -42,7 +41,9 @@ async function setTheme(newTheme: string) {
   }
 }
 
+
 async function loadTheme() {
+  const localTheme = localStorage.getItem('user-theme');
   try {
     const response = await fetch('/api/load-theme', {
       method: 'POST',
@@ -50,16 +51,20 @@ async function loadTheme() {
         'Content-Type': 'application/json',
         'X-API-KEY': apiKey,
       },
-  body: JSON.stringify({ username: (user.value && 'username' in user.value) ? user.value.username : '' }),
+      body: JSON.stringify({ username: (user.value && 'username' in user.value) ? user.value.username : '' }),
     });
     const data = await response.json();
     if (data.theme) {
       setTheme(data.theme);
-    } else {
+    } else if (!localTheme) {
       setTheme('default');
     }
+    // If localTheme exists, do nothing (let main.ts/localStorage logic win)
   } catch (err) {
-    setTheme('default');
+    if (!localTheme) {
+      setTheme('default');
+    }
+    // If localTheme exists, do nothing
   }
 }
 
