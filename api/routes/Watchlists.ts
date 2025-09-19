@@ -6,7 +6,7 @@ import { handleError } from '../utils/logger.js';
 interface Watchlist {
     Name: string;
     UsernameID: string;
-    List: string[];
+    List: { ticker: string; exchange: string }[];
     createdAt?: Date;
     lastUpdated?: Date;
     [key: string]: any;
@@ -309,7 +309,7 @@ export default function (app: any, deps: any) {
                         details: 'Maximum of 100 symbols per watchlist'
                     });
                 }
-                if (watchlist.List && watchlist.List.includes(sanitizedSymbol)) {
+                if (watchlist.List && watchlist.List.some((item: { ticker: string }) => item.ticker === sanitizedSymbol)) {
                     logger.warn({
                         msg: 'Symbol already exists in watchlist',
                         user,
@@ -337,10 +337,11 @@ export default function (app: any, deps: any) {
                         symbol: sanitizedSymbol
                     });
                 }
+                const symbolObj = { ticker: sanitizedSymbol, exchange: assetExists.Exchange || '' };
                 const result = await collection.updateOne(
                     { Name: sanitizedName, UsernameID: user },
                     {
-                        $addToSet: { List: sanitizedSymbol },
+                        $addToSet: { List: symbolObj },
                         $set: { lastUpdated: new Date() }
                     }
                 );
@@ -433,7 +434,7 @@ export default function (app: any, deps: any) {
                         details: 'The specified watchlist does not exist or you do not have access to it'
                     });
                 }
-                if (!watchlist.List || !watchlist.List.includes(ticker)) {
+                if (!watchlist.List || !watchlist.List.some((item: { ticker: string }) => item.ticker === ticker)) {
                     logger.warn({
                         msg: 'Ticker not found in watchlist',
                         user,
@@ -448,7 +449,7 @@ export default function (app: any, deps: any) {
                 }
                 const filter = { Name: list, UsernameID: user };
                 const update = {
-                    $pull: { List: ticker },
+                    $pull: { List: { ticker: ticker } },
                     $set: { lastUpdated: new Date() }
                 };
                 const result = await collection.updateOne(filter, update);
@@ -784,7 +785,10 @@ export default function (app: any, deps: any) {
                 // Sanitize inputs
                 const user = sanitizeInput(req.body.user);
                 const Name = sanitizeInput(req.params.Name);
-                const newListOrder = req.body.newListOrder.map((item: string) => sanitizeInput(item));
+                const newListOrder = req.body.newListOrder.map((item: { ticker: string; exchange: string }) => ({
+                    ticker: sanitizeInput(item.ticker),
+                    exchange: sanitizeInput(item.exchange)
+                }));
                 client = new MongoClient(uri);
                 await client.connect();
                 const db = client.db('EreunaDB');
@@ -901,16 +905,22 @@ export default function (app: any, deps: any) {
                 }
                 let result;
                 if (isAdding) {
-                    // Add the symbol to the List array if it doesn't exist
+                    // Add the symbol object to the List array if it doesn't exist
+                    const assetInfoCollection = db.collection('AssetInfo');
+                    const assetExists = await assetInfoCollection.findOne({ Symbol: symbol });
+                    if (!assetExists) {
+                        return res.status(404).json({ message: 'Symbol not found', symbol });
+                    }
+                    const symbolObj = { ticker: symbol, exchange: assetExists.Exchange || '' };
                     result = await collection.updateOne(
                         { Name: watchlistName, UsernameID: user },
-                        { $addToSet: { List: symbol } }
+                        { $addToSet: { List: symbolObj } }
                     );
                 } else {
-                    // Remove the symbol from the List array
+                    // Remove the symbol object from the List array
                     result = await collection.updateOne(
                         { Name: watchlistName },
-                        { $pull: { List: symbol } }
+                        { $pull: { List: { ticker: symbol } } }
                     );
                 }
                 if (result.matchedCount === 0) {

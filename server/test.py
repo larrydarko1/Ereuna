@@ -391,4 +391,35 @@ def generate_realistic_portfolio(username, portfolio_number, num_closed=250, num
 # Example usage:
 # update_all_portfolios_for_user("LarryDarko")
 
-update_all_portfolios_for_user("LarryDarko")
+import pymongo
+
+# MongoDB connection
+client = pymongo.MongoClient("mongodb://localhost:27017/")
+db = client["EreunaDB"]
+watchlists = db["Watchlists"]
+assetinfo = db["AssetInfo"]
+
+for wl in watchlists.find():
+    updated_list = []
+    changed = False
+    for entry in wl.get("List", []):
+        if isinstance(entry, str):
+            asset = assetinfo.find_one({"Symbol": entry})
+            if asset and "Exchange" in asset:
+                updated_list.append({"ticker": entry, "exchange": asset["Exchange"]})
+                changed = True
+            else:
+                print(f"Warning: No exchange found for {entry} in AssetInfo")
+        else:
+            updated_list.append(entry)  # Already migrated
+    if changed:
+        watchlists.update_one(
+            {"_id": wl["_id"]},
+            {"$set": {"List": updated_list}}
+        )
+        print(f"Migrated watchlist: {wl.get('Name')} for user {wl.get('UsernameID')}")
+    else:
+        print(f"No migration needed for: {wl.get('Name')}")
+
+print("Migration complete.")
+
