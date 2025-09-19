@@ -762,8 +762,13 @@ export default function (app: any, deps: any) {
             body('newListOrder')
                 .isArray().withMessage('New list order must be an array')
                 .custom((value: any[]) => {
-                    if (!value.every((item: string) => typeof item === 'string' && item.length <= 12)) {
-                        throw new Error('Each list item must be a string with max 12 characters');
+                    if (!value.every((item: any) =>
+                        typeof item === 'object' &&
+                        typeof item.ticker === 'string' &&
+                        item.ticker.length <= 12 &&
+                        (typeof item.exchange === 'string' || typeof item.exchange === 'undefined')
+                    )) {
+                        throw new Error('Each list item must be an object with a string ticker (max 12 chars) and optional string exchange');
                     }
                     return true;
                 })
