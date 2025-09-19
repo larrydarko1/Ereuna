@@ -371,7 +371,7 @@ interface CheckedWatchlistsMap {
 
 interface FullWatchlist {
   Name: string;
-  List: string[];
+  List: { ticker: string; exchange?: string }[];
 }
 
 interface ImagePath {
@@ -855,8 +855,16 @@ async function UpdateWatchlistOrder() {
 
   if (!selectedWatchlist.value) return;
   const selectedOption = selectedWatchlist.value.Name; // Use the reactive reference
+
+    // Get the current tickers array (array of objects)
+    const tickers = watchlist2.tickers || [];
+    // Build new order as array of objects, not just ticker strings
     const newListOrder = [...sortable.value.children]
-      .map(item => item.querySelector('.btsymbol')?.textContent)
+      .map(item => {
+        const ticker = item.querySelector('.btsymbol')?.textContent;
+        // Find the full object (ticker + exchange) in the original array
+        return tickers.find(obj => obj.ticker === ticker);
+      })
       .filter(Boolean); // Filter out any undefined values
 
     const requestBody = {
@@ -979,7 +987,7 @@ getFullWatchlists(props.user);
 const isAssetInWatchlist = (ticker: string, symbol: string): boolean => {
   const watchlist = FullWatchlists.value.find(w => w.Name === ticker);
   if (watchlist) {
-    return watchlist.List.includes(symbol);
+    return watchlist.List.some((item: { ticker: string }) => item.ticker === symbol);
   }
   return false;
 };
@@ -1177,6 +1185,323 @@ onUnmounted(() => {
   pointer-events: none;
   border: solid var(--text2) 1px;
   margin-right: 5px;
+}
+
+/* IDs */
+#wlnav {
+  border-top: var(--base1) solid 1px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--base2);
+}
+
+#realwatchlist {
+  height: 20px;
+  outline: none;
+  border: none;
+  color: var(--text2);
+  text-align: center;
+  flex-grow: 1;
+  background-color: transparent;
+}
+
+#watch-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+#list:focus {
+  outline: none;
+}
+
+/* Classes */
+.dropdown-icon {
+  width: 20px;
+  position: absolute;
+  left: 0;
+  margin: 3%;
+}
+
+.select-container {
+  position: relative;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 1000;
+  align-items: center;
+}
+
+.dropdown-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+}
+
+.watchlist-dropdown-menu {
+  background-color: var(--base4);
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 5px;
+  font-weight: bold;
+  color: var(--base4);
+  text-align: center;
+  vertical-align: baseline;
+  border-radius: 25px;
+  background-color: var(--text1);
+}
+
+.icondlt {
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  float: right;
+  opacity: 0.60;
+}
+.icondlt:hover {
+  cursor: pointer;
+  opacity: 1;
+}
+
+.imgm {
+  width: 20px;
+  height: 20px;
+  border: none;
+}
+
+.navbtn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0.80;
+  color: var(--text1);
+  transition: opacity 0.2s ease;
+  padding: 5px;
+  margin: 5px;
+}
+.navbtn:hover {
+  background-color: var(--base1);
+  border-radius: 5px;
+  opacity: 1;
+}
+.navbtn svg {
+  transition: all 0.3s ease;
+  margin-right: 3px;
+}
+.navbtn:hover svg {
+  animation: hoverAnim 0.3s ease;
+}
+
+.img {
+  width: 10px;
+  height: 10px;
+  border: none;
+  text-align: center;
+}
+
+.wlbtn {
+  flex-shrink: 0;
+  color: var(--text1);
+  background-color: transparent;
+  border: none;
+  padding: 5px;
+  outline: none;
+  cursor: pointer;
+  height: 22px;
+  opacity: 0.60;
+}
+.wlbtn:hover {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.dropdown-vnav {
+  display: none;
+  position: absolute;
+  right: 0;
+  min-width: 180px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+}
+
+.watchlist-dropdown-menu2 {
+  background-color: var(--base4);
+  padding: 5px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+  background-color: var(--base4);
+  border: none;
+  color: var(--text1);
+  text-align: left;
+  cursor: pointer;
+}
+.dropdown-item:hover {
+  background-color: var(--base2);
+  border-radius: 5px;
+  cursor: pointer;
+}
+.dropdown-item img {
+  margin-right: 10px;
+}
+
+.img4 {
+  width: 15px;
+  height: 15px;
+  float: left;
+  margin-right: 1rem;
+  border: none;
+}
+
+.tbl {
+  text-align: center;
+  display: flex;
+  flex-direction: row;
+  background-color: var(--base1);
+  border: none;
+  color: var(--text1);
+  cursor: pointer;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.tbl:hover {
+  background-color: var(--base2);
+}
+
+.ntbl {
+  text-align: center;
+  background-color: var(--base1);
+  border: none;
+  color: var(--text2);
+}
+
+.wlist {
+  background-color: var(--base2);
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text1);
+}
+.wlist:hover {
+  cursor: pointer;
+  background-color: var(--base3);
+}
+.wlist .dbtn {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+.wlist:hover .dbtn {
+  opacity: 1;
+}
+.wlist.selected {
+  background-color: var(--base3);
+  color: var(--text1);
+}
+
+.delete-cell {
+  text-align: center;
+  top: -30%;
+}
+
+.dbtn {
+  background-color: transparent;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+}
+
+.dropdown-btn {
+  background-color: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dropdown-menu3 {
+  display: none;
+  cursor: pointer;
+  width: 200px;
+  max-height: 190px;
+  overflow-y: scroll;
+  position: absolute;
+  z-index: 1000;
+  top: -10px;
+  left: 20px;
+}
+
+.watchlist-dropdown-menu3 {
+  background-color: var(--base4);
+  padding: 7px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  border-radius: 5px;
+}
+.watchlist-dropdown-menu3>div {
+  background-color: var(--base4);
+  padding: 1px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+.watchlist-dropdown-menu3>div:hover {
+  background-color: var(--base2);
+  border-radius: 5px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+}
+
+.empty-list-message {
+  text-align: center;
+  padding: 20px;
+  color: var(--text1);
+  opacity: 0.70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 50px;
+}
+.empty-list-message p {
+  font-size: 18px;
+  margin-left: 10px;
+}
+
+.import-btn {
+  margin-top: 12px;
+  padding: 8px 18px;
+  background-color: var(--base2);
+  color: var(--text2);
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.import-btn:hover {
+  background-color: var(--base3);
+  color: var(--text1);
 }
 
 </style>
