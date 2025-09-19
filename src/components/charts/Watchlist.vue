@@ -230,8 +230,8 @@
           <div id="list" ref="watchlistContainer" tabindex="0" @keydown="handleKeydown" @click="handleClick">
             <div v-if="watchlist2.tickers && watchlist2.tickers.length > 0">
               <div ref="sortable">
-                <div v-for="(item, index) in watchlist2.tickers" :key="item"
-                  :class="{ 'selected': selectedItem === item, 'wlist': true }" @click="selectSymbol(item, index);">
+                <div v-for="(item, index) in watchlist2.tickers" :key="item.ticker"
+                  :class="{ 'selected': selectedItem === item.ticker, 'wlist': true }" @click="selectSymbol(item.ticker, index);">
                   <div style="flex: 0.5; position: relative;">
                     <button class="dropdown-btn">
                       <svg class="imgm" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -254,8 +254,8 @@
                       <div class="watchlist-dropdown-menu3">
                         <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
                           <label :for="'watchlist-' + index" class="checkbox-label">
-                            <div @click.stop="toggleWatchlist(ticker, item)" style="cursor: pointer;">
-                              <svg width="24" height="24" v-if="isAssetInWatchlist(ticker.Name, item)"
+                            <div @click.stop="toggleWatchlist(ticker, item.ticker)" style="cursor: pointer;">
+                              <svg width="24" height="24" v-if="isAssetInWatchlist(ticker.Name, item.ticker)"
                                 viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -295,25 +295,25 @@
                     <div class="cmp-logo-wrapper" style="position: relative; display: inline-block;">
                       <img
                         class="cmp-logo"
-                        :src="getImagePath(item)"
+                        :src="getImagePath(item.ticker, item.exchange)"
                         alt=""
-                        @error="logoError[item] = true"
-                        @load="logoError[item] = false"
+                        @error="logoError[item.ticker] = true"
+                        @load="logoError[item.ticker] = false"
                         style="display: block;"
                       />
-                      <div v-if="logoError[item]" class="cmp-logo-fallback">
+                      <div v-if="logoError[item.ticker]" class="cmp-logo-fallback">
                         N/A
                       </div>
                     </div>
                   </div>
-                  <div style="flex: 1; text-align: center;" class="btsymbol">{{ item }}</div>
-                  <div style="flex: 1; text-align: center;">{{ quotes[item] }}</div>
-                  <div style="flex: 1; text-align: center;" :class="changes[item] > 0 ? 'positive' : 'negative'">{{
-                    changes[item] }}</div>
-                  <div style="flex: 1; text-align: center;" :class="perc[item] > 0 ? 'positive' : 'negative'">{{
-                    perc[item] }}%</div>
+                  <div style="flex: 1; text-align: center;" class="btsymbol">{{ item.ticker }}</div>
+                  <div style="flex: 1; text-align: center;">{{ quotes[item.ticker] }}</div>
+                  <div style="flex: 1; text-align: center;" :class="changes[item.ticker] > 0 ? 'positive' : 'negative'">{{
+                    changes[item.ticker] }}</div>
+                  <div style="flex: 1; text-align: center;" :class="perc[item.ticker] > 0 ? 'positive' : 'negative'">{{
+                    perc[item.ticker] }}%</div>
                   <div class="delete-cell" style="position: relative;">
-                    <button class="dbtn" @click="deleteTicker(item)" style="position: absolute; right: 0;" @click.stop>
+                    <button class="dbtn" @click="deleteTicker(item.ticker)" style="position: absolute; right: 0;" @click.stop>
                      <svg class="imgm" viewBox="0 0 16 16" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
   <rect transform="rotate(45)" y="-1" x="4.3137083" height="2" width="14" style="fill:var(--text1);" />
   <rect transform="rotate(-45)" y="10.313708" x="-7" height="2" width="14" style="fill:var(--text1);" />
@@ -393,7 +393,7 @@ const props = defineProps<{
   defaultSymbol: string;
   selectedSymbol?: string | null;
   selectedItem?: string | null;
-  getImagePath: (symbol: string) => string;
+  getImagePath: (symbol: string, exchange: string) => string;
   ImagePaths: ImagePath[];
 }>();
 
@@ -429,11 +429,12 @@ function initializeSortable() {
 
 
 // fetches initial item data for all tickers at once
-async function fetchAllItemData(items: string[]): Promise<void> {
-  // getData will call fetchDataWS with all tickers at once
+async function fetchAllItemData(items: { ticker: string; exchange: string }[]): Promise<void> {
+  const tickers = items.map(item => item.ticker);
+  const exchanges = items.map(item => item.exchange);
   await Promise.all([
-    getData(items),
-    ...items.map(props.getImagePath)
+    getData(tickers),
+    ...items.map(item => props.getImagePath(item.ticker, item.exchange))
   ]);
 }
 
@@ -450,9 +451,7 @@ async function initializeComponent() {
     ]);
 
     if (watchlist2.tickers && watchlist2.tickers.length > 0) {
-      // Only use non-empty ticker names
-      const tickers = watchlist2.tickers.filter(Boolean);
-      await fetchAllItemData(tickers);
+      await fetchAllItemData(watchlist2.tickers.filter(Boolean));
     }
 
     await nextTick();
@@ -484,7 +483,7 @@ onMounted(async () => {
 
 
 const watchlist = reactive<Watchlist>({ tickers: [] });
-const watchlist2 = reactive<{ tickers: string[] }>({ tickers: [] });
+const watchlist2 = reactive<{ tickers: { ticker: string; exchange: string }[] }>({ tickers: [] });
 const quotes = reactive<QuotesMap>({});
 const changes = reactive<ChangesMap>({});
 const perc = reactive<PercMap>({});
@@ -546,8 +545,7 @@ async function filterWatchlist(watch?: WatchlistTicker): Promise<void> {
   watchlist2.tickers = data;
   isLoading2.value = true;
   // Fetch data for all tickers in the updated watchlist at once
-  const tickers = watchlist2.tickers.filter(Boolean);
-  await fetchAllItemData(tickers);
+  await fetchAllItemData(watchlist2.tickers.filter(Boolean));
   isLoading2.value = false;
     await nextTick(() => {
       initializeWatchlistNavigation();
@@ -657,7 +655,7 @@ async function addWatchlist() {
       selectedWatchlistName = watchlistNameElement.textContent.trim();
 
       // Check if the symbol already exists in the watchlist
-  if (watchlist2.tickers.includes(symbol)) {
+  if (watchlist2.tickers.some(item => item.ticker === symbol)) {
         return;
       }
 
@@ -703,7 +701,7 @@ async function addWatchlist() {
       }
 
       const data = await patchResponse.json();
-      await fetchAllItemData([symbol]);
+  await fetchAllItemData([{ ticker: symbol, exchange: assetData.Exchange || '' }]);
       await filterWatchlist();
     }
   } catch (err) {
@@ -734,7 +732,7 @@ function handleClick() {
 
 function updateSelectedIndex() {
   if (watchlist2.tickers && watchlist2.tickers.length > 0) {
-    selectedIndex.value = watchlist2.tickers.findIndex((item) => item === props.selectedItem);
+    selectedIndex.value = watchlist2.tickers.findIndex((item) => item.ticker === props.selectedItem);
     if (selectedIndex.value === -1) {
       selectedIndex.value = 0;
     }
@@ -748,8 +746,8 @@ function handleKeydown(event: KeyboardEvent): void {
     const newRowIndex = selectedIndex.value + direction;
 
     if (newRowIndex >= 0 && newRowIndex < rowCount.value) {
-      const newSelectedItem = watchlist2.tickers[newRowIndex];
-  selectSymbol(newSelectedItem, newRowIndex);
+    const newSelectedItem = watchlist2.tickers[newRowIndex];
+    selectSymbol(newSelectedItem.ticker, newRowIndex);
       selectedIndex.value = newRowIndex;
     }
   }
@@ -780,26 +778,24 @@ function sortTable(key: string): void {
 
   watchlist2.tickers.sort((a, b) => {
     let valueA, valueB;
-
     switch (sortKey) {
       case 'ticker':
-        valueA = a;
-        valueB = b;
+        valueA = a.ticker;
+        valueB = b.ticker;
         break;
       case 'last':
-        valueA = parseFloat(quotes[a]);
-        valueB = parseFloat(quotes[b]);
+        valueA = parseFloat(quotes[a.ticker]);
+        valueB = parseFloat(quotes[b.ticker]);
         break;
       case 'chg':
-        valueA = changes[a];
-        valueB = changes[b];
+        valueA = changes[a.ticker];
+        valueB = changes[b.ticker];
         break;
       case 'perc':
-        valueA = perc[a];
-        valueB = perc[b];
+        valueA = perc[a.ticker];
+        valueB = perc[b.ticker];
         break;
     }
-
     if (valueA === undefined && valueB === undefined) return 0;
     if (valueA === undefined) return -sortOrder;
     if (valueB === undefined) return sortOrder;
@@ -992,12 +988,9 @@ const isAssetInWatchlist = (ticker: string, symbol: string): boolean => {
 function exportWatchlist() {
   if (!watchlist2.tickers || watchlist2.tickers.length === 0) return;
   const imagePathsArray = Array.isArray(props.ImagePaths) ? props.ImagePaths : [];
-  const exportList = watchlist2.tickers.map(symbol => {
-    let exchange = '-';
-    // Try to match symbol case-insensitively
-    const imageObj = imagePathsArray.find(img => img.symbol && img.symbol.toUpperCase() === symbol.toUpperCase());
-    if (imageObj && imageObj.exchange) exchange = imageObj.exchange;
-    return `${exchange}:${symbol}`;
+  const exportList = watchlist2.tickers.map(item => {
+    let exchange = item.exchange || '-';
+    return `${exchange}:${item.ticker}`;
   });
   const fileName = selectedWatchlist.value?.Name
     ? `${selectedWatchlist.value.Name}.txt`

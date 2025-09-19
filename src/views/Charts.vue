@@ -63,7 +63,7 @@
       :defaultSymbol="defaultSymbol ?? ''"
       :selectedSymbol="selectedSymbol"
       :assetInfo="assetInfo"
-      :getImagePath="getImagePath"
+      :getImagePath="(symbol) => getImagePath(symbol, assetInfo.Exchange)"
         />
        <Notice :apiKey="apiKey"/>
       </div>
@@ -86,9 +86,9 @@
            :user="user?.Username ?? ''"
            :defaultSymbol="defaultSymbol ?? ''"
            :selectedSymbol="selectedSymbol"
-           :getImagePath="getImagePath"
            :selectedItem="selectedItem ?? ''"
-           :ImagePaths="ImagePaths"
+           :getImagePath="(symbol, exchange) => getImagePath(symbol, exchange)"
+           :ImagePaths="[]"
            @select-symbol="(symbol) => { defaultSymbol = symbol; selectRow(symbol); }"
            @refresh-notes="handleRefreshNotes"
          />
@@ -165,7 +165,6 @@ onMounted(async () => {
     console.warn('User not loaded, skipping API calls in onMounted');
     return;
   }
-  await fetchSymbolsAndExchanges();
   await searchTicker(defaultSymbol || '');
   await fetchPanel();
 });
@@ -453,47 +452,13 @@ async function showTicker() {
 }
 
 type ImagePathType = { symbol: string; exchange: string };
-const ImagePaths = ref<ImagePathType[]>([]);
 
-// Async function to fetch symbols and exchanges and fills ImagePaths 
-async function fetchSymbolsAndExchanges() {
-  try {
-    const response = await fetch(`/api/symbols-exchanges`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    // Map the data to the required format for ImagePaths
-    ImagePaths.value = data.map((item: { Symbol: string; Exchange: string }) => ({
-      symbol: item.Symbol,
-      exchange: item.Exchange,
-    }));
-  } catch (error) {
-    if (error instanceof Error) {
-      errorMessage.value = error.message;
-    } else {
-      errorMessage.value = String(error);
-    }
+// Flexible helper function to get static image path for any symbol/exchange
+function getImagePath(symbol: string, exchange: string): string {
+  if (symbol && exchange) {
+    return `/src/assets/images/${exchange}/${symbol}.svg`;
   }
-}
-
-// Helper function to get image path based on symbol
-function getImagePath(item: string): string {
-  const matchedImageObject = ImagePaths.value.find((image: ImagePathType) =>
-    image.symbol === item
-  );
-  if (matchedImageObject) {
-    return new URL(`/src/assets/images/${matchedImageObject.exchange}/${matchedImageObject.symbol}.svg`, import.meta.url).href;
-  }
-  // Fallback to a default image path if not found
-  return new URL(`/src/assets/images/default.svg`, import.meta.url).href;
+  return `/src/assets/images/default.svg`;
 }
 
 const selected = ref('info')
