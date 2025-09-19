@@ -919,14 +919,6 @@ function getSidebarProps(tag: string) {
   text-align: center;
 }
 
-.cmp-logo {
-  width: 20px;
-  height: 20px;
-  border: none;
-  text-align: center;
-  border-radius: 25%;
-}
-
 .delete-cell {
   text-align: center;
   top: -30%;

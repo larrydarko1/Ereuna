@@ -9,7 +9,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+
+import { computed, ref, onMounted, watch } from 'vue';
+import { useUserStore } from '@/store/store';
 
 const props = defineProps({
   user: {
@@ -34,24 +36,20 @@ const themes = [
   'noctis', 'iceberg', 'tango', 'horizon', 'railscasts',
   'vscode-dark', 'slack-dark', 'mintty', 'atom-one', 'light-owl'
 ];
-const currentTheme = ref<string>('default');
+const userStore = useUserStore();
+const currentTheme = computed(() => userStore.currentTheme);
 const error = ref<string | null>(null);
 
+// Ensure the theme class is always applied on mount and whenever the store value changes
 onMounted(() => {
-  // Try to get theme from localStorage
-  const storedTheme = localStorage.getItem('user-theme');
-  if (storedTheme && themes.includes(storedTheme)) {
-    currentTheme.value = storedTheme;
-  } else {
-    // Fallback: check document root class
-    const root = document.documentElement;
-    for (const theme of themes) {
-      if (root.classList.contains(theme)) {
-        currentTheme.value = theme;
-        break;
-      }
-    }
-  }
+  const root = document.documentElement;
+  root.classList.remove(...themes);
+  root.classList.add(currentTheme.value);
+});
+watch(currentTheme, (newTheme) => {
+  const root = document.documentElement;
+  root.classList.remove(...themes);
+  root.classList.add(newTheme);
 });
 
 const themeDisplayNames: Record<string, string> = {
@@ -111,7 +109,7 @@ async function setTheme(newTheme: string) {
   const root = document.documentElement;
   root.classList.remove(...themes);
   root.classList.add(newTheme);
-  localStorage.setItem('user-theme', newTheme);
+  userStore.setTheme(newTheme);
   try {
     const response = await fetch('/api/theme', {
       method: 'POST',
@@ -122,9 +120,7 @@ async function setTheme(newTheme: string) {
       body: JSON.stringify({ theme: newTheme, username: props.user }),
     });
     const data = await response.json();
-    if (data.message === 'Theme updated') {
-      currentTheme.value = newTheme;
-    } else {
+    if (data.message !== 'Theme updated') {
       error.value = typeof data.message === 'string' ? data.message : 'Unknown error';
     }
   } catch (err) {

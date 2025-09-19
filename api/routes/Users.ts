@@ -2013,13 +2013,6 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(404).json({ message: 'User not found' });
                 }
-                logger.info({
-                    msg: 'Hidden List Retrieved',
-                    requestId,
-                    username: username.substring(0, 3) + '...',
-                    context: 'GET /:user/hidden',
-                    statusCode: 200
-                });
                 res.json({ Hidden: userDoc.Hidden });
             } catch (error) {
                 const errObj = handleError(error, 'GET /:user/hidden', {
@@ -2294,12 +2287,6 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(404).json({ message: 'User not found' });
             }
-            logger.info({
-                msg: 'Panel list retrieved',
-                username: sanitizedUser.substring(0, 3) + '...',
-                context: 'GET /panel',
-                statusCode: 200
-            });
             return res.status(200).json({ panel: userDocument.panel || [] });
         } catch (error) {
             const errObj = handleError(error, 'GET /panel', {
@@ -2458,12 +2445,6 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(404).json({ message: 'User not found' });
             }
-            logger.info({
-                msg: 'Panel2 list retrieved',
-                username: sanitizedUser.substring(0, 3) + '...',
-                context: 'GET /panel2',
-                statusCode: 200
-            });
             return res.status(200).json({ panel2: userDocument.panel2 || [] });
         } catch (error) {
             const errObj = handleError(error, 'GET /panel2', {

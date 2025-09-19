@@ -12,7 +12,19 @@
                                     <Loader />
                                   </div>
                                   <div id="legend">
-                                      <img class="chart-img" :src="getImagePath(assetInfo?.Symbol)" alt="">
+                                      <div class="chart-img-wrapper" style="position: relative; display: inline-block;">
+                                        <img
+                                          class="chart-img"
+                                          :src="getImagePath(assetInfo?.Symbol)"
+                                          alt=""
+                                          @error="imgError = true"
+                                          @load="imgError = false"
+                                          style="display: block;"
+                                        >
+                                        <div v-if="imgError" class="chart-img-fallback">
+                                          N/A
+                                        </div>
+                                      </div>
   <p class="ticker">{{ assetInfo?.Symbol }} </p>
   <p class="name"> - {{ assetInfo?.Name }}</p>
   <div v-if="isInHiddenList(assetInfo?.Symbol)" class="hidden-message">
@@ -122,6 +134,7 @@ interface ChartDataResult {
 
 
 const showEditChart = ref(false);
+const imgError = ref(false);
 let isLoadingMore: boolean = false;
 let allDataLoaded: boolean = false;
 
@@ -891,10 +904,33 @@ font-size: 8px;
 font-weight: bold;
 }
 
+
 .chart-img {
   width: 20px;
   height: 20px;
   border-radius: 25%;
+  border: solid var(--text2) 1px;
+  margin-right: 5px;
+  object-fit: cover;
+  background: transparent;
+}
+
+.chart-img-fallback {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background: var(--text2);
+  color: var(--base2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  border-radius: 25%;
+  z-index: 2;
+  pointer-events: none;
   border: solid var(--text2) 1px;
   margin-right: 5px;
 }

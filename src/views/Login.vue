@@ -257,6 +257,42 @@ async function login() {
   const { useUserStore } = await import('@/store/store');
   const userStore = useUserStore();
   userStore.loadUserFromToken();
+  // Robust theme restore after login
+  const themes = [
+    'default', 'ihatemyeyes', 'colorblind', 'catpuccin', 'black',
+    'nord', 'dracula', 'gruvbox', 'tokyo-night', 'solarized',
+    'synthwave', 'github-dark', 'everforest', 'ayu-dark', 'rose-pine',
+    'material', 'one-dark', 'night-owl', 'panda', 'monokai-pro',
+    'tomorrow-night', 'oceanic-next', 'palenight', 'cobalt', 'poimandres',
+    'github-light', 'neon', 'moonlight', 'nightfox', 'spacemacs',
+    'borland', 'amber', 'cyberpunk', 'matrix', 'sunset',
+    'deep-ocean', 'gotham', 'retro', 'spotify', 'autumn',
+    'noctis', 'iceberg', 'tango', 'horizon', 'railscasts',
+    'vscode-dark', 'slack-dark', 'mintty', 'atom-one', 'light-owl'
+  ];
+  let theme = localStorage.getItem('user-theme') || 'default';
+  try {
+    const apiKey = import.meta.env.VITE_EREUNA_KEY;
+    const response = await fetch('/api/load-theme', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+      },
+      body: JSON.stringify({ username }),
+    });
+    const data = await response.json();
+    if (data.theme) {
+      theme = data.theme;
+      localStorage.setItem('user-theme', theme);
+    }
+  } catch (err) {
+    // fallback to localStorage/default
+  }
+  const root = document.documentElement;
+  root.classList.remove(...themes);
+  root.classList.add(theme);
+  userStore.setTheme(theme);
   router.push({ name: 'Dashboard' });
       }
     } else {
