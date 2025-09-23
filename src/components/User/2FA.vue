@@ -210,13 +210,9 @@ async function confirmTwoFa() {
 
 <style scoped>
 .twofa-container {
-  max-width: 400px;
-  margin: 40px auto;
   padding: 20px;
+  margin-left: 5px;
   background-color: var(--base2);
-  border: 1px solid var(--text2);
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .twofa-title {
@@ -323,5 +319,9 @@ async function confirmTwoFa() {
   color: #e74c3c;
   margin-top: 8px;
   font-size: 13px;
+}
+
+@media (max-width: 1150px) {
+
 }
 </style>

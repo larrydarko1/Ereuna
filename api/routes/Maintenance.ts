@@ -148,12 +148,6 @@ export default function (app: any, deps: any) {
                 const db = client.db('EreunaDB');
                 const alertsCollection = db.collection('Alerts');
                 const communications = await alertsCollection.find({}).sort({ publishedDate: -1 }).toArray();
-                logger.info({
-                    msg: 'Communications fetched',
-                    count: communications.length,
-                    requestId,
-                    context: 'GET /communications',
-                });
                 return res.status(200).json({ communications, requestId });
             } catch (error: any) {
                 const errObj = handleError(error, 'GET /communications', { requestId }, 500);

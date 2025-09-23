@@ -22,11 +22,6 @@ const routes = [
     component: () => import('../views/Portfolio.vue')
   },
   {
-    path: '/archie',
-    name: 'Archie',
-    component: () => import('../views/archie.vue')
-  },
-  {
     path: '/login',
     name: 'Login',
     component: () => import('../views/Login.vue')
@@ -47,11 +42,6 @@ const routes = [
     component: () => import('../views/SignUp.vue')
   },
   {
-    path: '/upload',
-    name: 'Upload',
-    component: () => import('../views/Upload.vue')
-  },
-  {
     path: '/maintenance',
     name: 'Maintenance',
     component: () => import('../views/maintenance.vue')
@@ -63,8 +53,8 @@ const routes = [
   },
   {
     path: '/:catchAll(.*)', // Catch-all route
-    name: 'NotFound',
-    component: () => import('../views/404.vue')
+    name: 'Home',
+    component: () => import('../views/Home.vue')
   },
   {
     path: '/recovery',

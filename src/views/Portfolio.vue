@@ -223,7 +223,9 @@
       </div>
       <div class="portfolio-bar-chart-container">
         <h3 style="color: var(--accent1); margin-bottom: 12px;">Trade Returns (%)</h3>
-        <Bar :data="tradeReturnsChartData" :options="(tradeReturnsChartOptions as any)" />
+        <div class="linechart-fixed-height">
+          <Bar :data="tradeReturnsChartData" :options="(tradeReturnsChartOptions as any)" />
+        </div>
       </div>
     </div>
   </div>
@@ -404,8 +406,6 @@
       </table>
     </div>
   </section>
-  <br>
-  <br>
 </template>
 
 <script setup lang="ts">
@@ -1184,7 +1184,7 @@ const isPortfolioBlank = computed(() => {
     background: var(--base3);
     color: var(--text1);
     border: none;
-    border-radius: 6px;
+    border-radius: 3px;
     padding: 10px 10px;
     min-width: 100px;
     font-size: 0.9rem;
@@ -1208,7 +1208,7 @@ const isPortfolioBlank = computed(() => {
     background: var(--base3);
     color: var(--text1);
     border: none;
-    border-radius: 6px;
+    border-radius: 3px;
     padding: 10px 10px;
     min-width: 30px;
     font-size: 0.9rem;
@@ -1411,16 +1411,27 @@ const isPortfolioBlank = computed(() => {
 
   &:hover {
     background: var(--accent2);
-    color: var(--text1);
+    color: var(--text3);
   }
 }
 
 
 .portfolio-linechart-container,
+
 .portfolio-bar-chart-container {
   background: var(--base2);
   padding: 15px;
   display: block;
+  height: 210px; /* Reduced height for desktop */
+  min-height: 120px;
+  canvas {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    display: block;
+    box-sizing: border-box;
+  }
 }
 
 .linechart-fixed-height {
@@ -1430,7 +1441,7 @@ const isPortfolioBlank = computed(() => {
 .linechart-fixed-height canvas {
   width: 100% !important;
   height: auto !important;
-  max-height: 260px;
+  max-height: 190px;
 }
 
 .reset-modal-overlay {
@@ -1465,6 +1476,127 @@ const isPortfolioBlank = computed(() => {
 .scrollable-table {
   max-height: 400px;
   overflow-y: auto;
+}
+
+/* --- MOBILE RESPONSIVE DESIGN (<=1150px) --- */
+@media (max-width: 1150px) {
+  .portfolio-menu {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 8px 0;
+  }
+  .portfolio-menu > div {
+    margin: 0 !important;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .portfolio-btn, .menu-btn {
+    min-width: 40px;
+    font-size: 0.85rem;
+    padding: 8px 6px;
+  }
+  .portfolio-summary-main {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .portfolio-summary {
+    max-width: 100%;
+    width: 100%;
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+  .summary-row {
+    width: 100%;
+    flex-direction: row;
+    font-size: 0.95em;
+    padding: 0 2px;
+  }
+  .portfolio-charts {
+    flex-direction: column;
+    min-width: 0;
+    width: 100%;
+    gap: 10px;
+  }
+  .portfolio-main-flex {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .portfolio-pie-container,
+  .portfolio-table-container {
+    width: 100%;
+    margin-left: 0;
+    min-width: 0;
+    height: auto;
+    max-height: 350px;
+  }
+  .portfolio-table-container {
+    margin-top: 10px;
+    max-height: 300px;
+  }
+  .portfolio-history-container {
+    margin-top: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .portfolio-table th, .portfolio-table td {
+    padding: 8px 6px;
+    font-size: 0.92em;
+  }
+  .portfolio-table {
+    font-size: 0.95em;
+  }
+  .portfolio-linechart-container, .portfolio-bar-chart-container {
+    padding: 8px 2px;
+  }
+  .reset-modal {
+    min-width: 90vw;
+    padding: 18px 4px;
+  }
+  .portfolio-container {
+    min-height: 60vh;
+    padding: 0 2px;
+  }
+  .scrollable-table {
+    max-height: 220px;
+  }
+  .portfolio-table th, .portfolio-table td {
+    word-break: break-word;
+  }
+
+  /* Hide Import/Export buttons on mobile */
+  .portfolio-menu > div:last-child .menu-btn:nth-child(5),
+  .portfolio-menu > div:last-child .menu-btn:nth-child(6) {
+    display: none !important;
+  }
+  /* Center and shrink the 10 portfolio buttons */
+  .portfolio-menu > div:first-child {
+    justify-content: center !important;
+    width: 100%;
+    display: flex !important;
+    margin: 0 auto !important;
+    padding: 0;
+  }
+  .portfolio-btn {
+    min-width: 22px;
+    max-width: 30px;
+    width: 8vw;
+    font-size: 0.82rem;
+    padding: 7px 2px;
+    margin: 2px 2px;
+  }
+    /* Center the menu-btn area (second div) */
+    .portfolio-menu > div:last-child {
+      justify-content: center !important;
+      width: 100%;
+      display: flex !important;
+      margin: 0 auto !important;
+      padding: 0;
+    }
+
+    .menu-btn {
+    min-width: 80px;
+  }
 }
 
 </style>

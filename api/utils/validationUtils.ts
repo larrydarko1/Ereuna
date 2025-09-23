@@ -1,3 +1,65 @@
+/**
+ * =====================================================================
+ *  Main Validation Rules (for consistency across backend and frontend)
+ * =====================================================================
+ *
+ * BODY FIELDS:
+ *
+ * Username (username, Username, newUsername, user):
+ *   - Required, trimmed, 3-25 characters
+ *   - Only letters, numbers, and underscores (^[a-zA-Z0-9_]+$)
+ *
+ * Password (password, oldPassword, newPassword):
+ *   - Required, trimmed, 5-40 characters
+ *
+ * API Key (apiKey):
+ *   - Required, trimmed
+ *   - Only letters and numbers (^[a-zA-Z0-9]+$)
+ *
+ * MFA Code (mfaCode):
+ *   - Required, trimmed, exactly 6 digits
+ *   - Only numbers (^[0-9]+$)
+ *
+ * Recovery Key (recoveryKey):
+ *   - Required, trimmed, 64-128 characters
+ *   - Only hexadecimal (^[0-9a-fA-F]+$)
+ *
+ * Email (email):
+ *   - Required, trimmed, valid email format
+ *
+ * Credit Card (creditCardNumber):
+ *   - Required, trimmed, valid credit card number
+ *
+ * Note (note):
+ *   - Required, trimmed, 1-350 characters
+ *
+ * PARAM FIELDS:
+ *
+ * Symbol (symbol, symbolParam):
+ *   - Required, trimmed, 1-12 characters
+ *   - Only uppercase letters and numbers (^[A-Z0-9]+$)
+ *
+ * Identifier (identifier):
+ *   - Required, trimmed, 1-12 characters
+ *   - Only uppercase letters and numbers (^[A-Z0-9]+$)
+ *
+ * Note ID (noteId):
+ *   - Required, valid MongoDB ObjectId
+ *
+ * API Key (apiKeyParam):
+ *   - Required, trimmed
+ *   - Only letters and numbers (^[a-zA-Z0-9]+$)
+ *
+ * QUERY FIELDS:
+ *
+ * Username (userQuery, usernameQuery):
+ *   - Required, trimmed, 3-25 characters
+ *   - Only letters, numbers, and underscores (^[a-zA-Z0-9_]+$)
+ *
+ *
+ * These rules are enforced in this file and should be mirrored in frontend validation for a consistent user experience.
+ * =====================================================================
+ */
 import { body, validationResult, param, query } from 'express-validator';
 import validator from 'validator';
 

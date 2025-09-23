@@ -641,4 +641,21 @@ async function GenerateNewKey() {
   display: flex;
   justify-content: center;
 }
+
+@media (max-width: 1150px) {
+  .changepassword {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .userdiv {
+  background-color: var(--base2);
+  width: 90%;
+  padding: 15px;
+  margin: 0 auto;
+  margin-bottom: 5px;
+  margin-left: 5px;
+}
+}
 </style>

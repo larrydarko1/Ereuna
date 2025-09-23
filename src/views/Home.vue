@@ -349,6 +349,7 @@ function setupCardAnimations() {
   right: -35%;
   transform: translate(-50%, -50%);
   width: 500px;
+  max-width: 100vw;
   height: 500px;
   border-radius: 50%;
   background: radial-gradient(ellipse at center, #8c8dfe 0%, 
@@ -359,6 +360,22 @@ function setupCardAnimations() {
   filter: blur(100px);
   z-index: 500;
   opacity: 0.20;
+  pointer-events: none;
+}
+
+/* Prevent horizontal overflow for sphere-gradient2 on all screens */
+.features, .content-section {
+  overflow-x: hidden;
+}
+
+@media (max-width: 700px) {
+  .sphere-gradient2 {
+    right: -50%;
+    width: 100vw;
+    max-width: 100vw;
+    min-width: 0;
+    left: 0;
+  }
 }
 
 .content {

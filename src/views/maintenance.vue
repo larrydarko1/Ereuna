@@ -686,13 +686,13 @@ onUnmounted(() => {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh; /* adjust to your desired height */
+    height: 100vh; 
   }
   
   .gif {
-    width: 250px; /* adjust to your desired width */
+    width: 250px; 
     height: 250px;
-    margin-bottom: 20px; /* add some space between the gif and the text */
+    margin-bottom: 20px; 
   }
 
   h1{

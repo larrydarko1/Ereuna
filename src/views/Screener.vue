@@ -13,16 +13,21 @@
       </button>
     </div>
    <div style="display: flex;">
-<Selector
-          :ScreenersName="ScreenersName"
-          :selectedScreener="selectedScreener"
-          :isScreenerError="isScreenerError"
-          :showDropdown="showDropdown"
-          @selectScreener="selectScreener"
-          @excludeScreener="ExcludeScreener"
-          @deleteScreener="DeleteScreener"
-          :getScreenerImage="getScreenerImage"
-        />
+     <div class="selector-container"
+       v-show="showSelector"
+       style="flex-shrink:0;"
+     >
+       <Selector
+         :ScreenersName="ScreenersName"
+         :selectedScreener="selectedScreener"
+         :isScreenerError="isScreenerError"
+         :showDropdown="showDropdown"
+         @selectScreener="selectScreener"
+         @excludeScreener="ExcludeScreener"
+         @deleteScreener="DeleteScreener"
+         :getScreenerImage="getScreenerImage"
+       />
+     </div>
          <div class="navmenu" style="margin-left: 2px;">
           <h1 class="results-count" :key="resultListLength">RESULTS: {{ resultListLength }}</h1>
          <button class="edit-watch-panel-btn" :class="{ 'edit-watch-panel-btn2': showEditColumn }"
@@ -512,74 +517,57 @@
   @close="showEditColumn = false"
 />
         <div class="navmenu-mobile">
+           <h1 class="results-count" :key="resultListLength">RESULTS: {{ resultListLength }}</h1>
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
             @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover title="Create New Screener">
-            <svg class="img2" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg"
-              xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <title>new-indicator</title>
-                <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                  <g id="scheduler" fill="var(--text1)" transform="translate(85.333333, 85.333333)">
-                    <path
-                      d="M170.666667,1.42108547e-14 C264.923264,-3.10380131e-15 341.333333,76.4100694 341.333333,170.666667 C341.333333,264.923264 264.923264,341.333333 170.666667,341.333333 C76.4100694,341.333333 2.57539587e-14,264.923264 1.42108547e-14,170.666667 C2.6677507e-15,76.4100694 76.4100694,3.15255107e-14 170.666667,1.42108547e-14 Z M170.666667,42.6666667 C99.9742187,42.6666667 42.6666667,99.9742187 42.6666667,170.666667 C42.6666667,241.359115 99.9742187,298.666667 170.666667,298.666667 C241.359115,298.666667 298.666667,241.359115 298.666667,170.666667 C298.666667,99.9742187 241.359115,42.6666667 170.666667,42.6666667 Z M192,85.3333333 L191.999333,149.333333 L256,149.333333 L256,192 L191.999333,191.999333 L192,256 L149.333333,256 L149.333333,191.999333 L85.3333333,192 L85.3333333,149.333333 L149.333333,149.333333 L149.333333,85.3333333 L192,85.3333333 Z"
-                      id="Combined-Shape"> </path>
-                  </g>
-                </g>
-              </g>
-            </svg></button>
+           <svg class="img2" viewBox="0 0 512 512" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
+  <g fill="var(--text1)" transform="translate(85.333333, 85.333333)">
+    <path d="M170.67,0C264.92,0,341.33,76.41,341.33,170.67S264.92,341.33,170.67,341.33S0,264.92,0,170.67S76.41,0,170.67,0ZM170.67,42.67c-70.69,0-128,57.31-128,128s57.31,128,128,128s128-57.31,128-128S241.36,42.67,170.67,42.67ZM192,85.33v64h64v42.67h-64v64h-42.67v-64h-64v-42.67h64v-64H192Z"/>
+  </g>
+</svg></button>
           <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }"
             @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover title="Rename Current Screener">
-            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path>
-                <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
-                <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path>
-              </g>
-            </svg>
-          </button>
-          <button class="snavbtn" v-b-tooltip.hover title="Reset Screener"
-            @click="async () => { await ResetScreener(); await CurrentScreener(); }">
-            <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" data-name="Layer 1" id="Layer_1"
-              xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="20.48">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <path
-                  d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z">
-                </path>
-              </g>
-            </svg>
-          </button>
+          <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path>
+  <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
+  <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path>
+</svg></button>
+         <!-- Replace your current Reset button with this: -->
+<button class="snavbtn" v-b-tooltip.hover title="Reset Screener" @click="showResetDialog = true">
+  <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="5">
+    <path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z"/>
+  </svg>
+</button>
+<div v-if="showResetDialog" class="reset-modal-overlay">
+  <div class="reset-modal">
+    <h3>Reset Screener</h3>
+    <p>Are you sure you want to reset the current screener? <br>This cannot be undone.</p>
+    <div style="margin-top: 16px;">
+      <button class="trade-btn" @click="confirmResetScreener">Yes, Reset</button>
+      <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">Cancel</button>
+    </div>
+    <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
+  </div>
+</div>
+          <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning === true }"
+            @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Results">
+            <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
+  <path fill="var(--text1)" fill-rule="evenodd"
+    d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z">
+  </path>
+</svg></button>
           <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'hidden' }" v-b-tooltip.hover
             title="Hidden List" @click="showHiddenResults()">
-            <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <g id="Edit / Hide">
-                  <path id="Vector"
-                    d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
-                    stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                </g>
-              </g>
-            </svg>
-          </button>
+          <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
+    stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></button>
           <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover
             title="Show Combined Screener Results" @click="showCombinedResults()">
-            <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-              <g id="SVGRepo_iconCarrier">
-                <path
-                  d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z">
-                </path>
-              </g>
-            </svg>
-
+          <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <path d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z"/>
+</svg>
           </button>
         </div>
         <div v-if="listMode === 'main'">
@@ -2370,6 +2358,15 @@ onMounted(() => {
 async function handleFetchScreeners(val: string) {
   await fetchScreenerResults(val);
 }
+
+// Show Selector only when not on mobile charts
+const showSelector = computed(() => {
+  if (typeof window !== 'undefined') {
+    return !(selected.value === 'charts' && window.innerWidth <= 1150);
+  }
+  return true;
+});
+
 </script>
 
 <style lang="scss" scoped>
@@ -3230,28 +3227,26 @@ h1 {
     display: flex;
     flex-direction: row;
     gap: 12px;
-    /* space between buttons */
     padding: 8px 12px;
-    background-color: rgba(var(--base4), 0.1);
-    /* subtle transparent background */
-    border-radius: 10px;
+    background-color: var(--base2);
     justify-content: center;
     align-items: center;
+    margin-bottom: 3px;
   }
 
   .mnavbtn {
-    margin-top: 5px;
+    margin-bottom: 3px;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--base2);
+    background-color: var(--base3);
     padding: 10px 30px;
     color: var(--text1);
     font-size: 1.5rem;
     font-weight: 600;
     letter-spacing: 0.02em;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 3px;
     transition: background-color 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
     opacity: 0.85;
     height: 3rem;
@@ -3262,6 +3257,7 @@ h1 {
 
   .mnavbtn:hover {
     background-color: var(--accent1);
+    color: var(--text3);
     opacity: 1;
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -3269,6 +3265,7 @@ h1 {
 
   .mnavbtn.selected {
     background-color: var(--accent1);
+    color: var(--text3);
     opacity: 1;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
@@ -3304,49 +3301,6 @@ h1 {
     text-align: center;
   }
 
-  .snavbtn {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin: 5px;
-    padding: 5px 8px;
-    cursor: pointer;
-    text-decoration: none;
-    color: var(--text1);
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-  }
-
-  .snavbtn span {
-    font-size: 14px;
-    user-select: none;
-    transition: color 0.3s ease;
-  }
-
-  .snavbtn:hover,
-  .snavbtn.active {
-    background-color: var(--base3);
-  }
-
-  .snavbtn.active span,
-  .activeText {
-    color: var(--accent1);
-  }
-
-  .snavbtnslct {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin: 5px;
-    padding: 5px 8px;
-    cursor: pointer;
-    text-decoration: none;
-    color: var(--text1);
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-    background-color: var(--accent1);
-  }
-
   #wk-chart,
   #dl-chart {
     background-repeat: no-repeat;
@@ -3359,12 +3313,27 @@ h1 {
     width: 200px;
     outline: none;
     color: var(--text1);
-    /* Dark text color */
     transition: border-color 0.3s, box-shadow 0.3s;
-    /* Smooth transition for focus effects */
     border: solid 1px var(--base4);
     background-color: var(--base4);
     text-align: left;
+  }
+
+  .selector-container {
+    width: 100%;
+  }
+
+  .img2 {
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    object-fit: contain;
+    vertical-align: middle;
+  }
+  .img2 svg, .img2 img {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
 
 }

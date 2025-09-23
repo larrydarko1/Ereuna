@@ -1743,79 +1743,39 @@ async def update_market_stats():
     for obj in top_10_losers:
         obj["daily_return"] = round(obj["daily_return"] * 100, 2)
 
-    # Get all assets with Symbol, Sector, Industry
-    assets = []
-    async for doc in asset_info_col.find({}, {"Symbol": 1, "Sector": 1, "Industry": 1, "_id": 0}):
-        assets.append(doc)
-    symbol_map = {a["Symbol"]: a for a in assets}
-
-    # Calculate quarter start
-    now = datetime.now(timezone.utc)
-    quarter_ago = now - timedelta(days=90)
-
-    # Gather gain data
+    # Calculate sector/industry tier lists using 4M (82 trading days) return, like indexPerformance
     gain_data = []
-    ytd_data = []
     for symbol, info in symbol_map.items():
         cursor = ohlcv_col.find(
-            {"tickerID": symbol, "timestamp": {"$gte": quarter_ago}},
-            {"close": 1, "timestamp": 1, "_id": 0}
-        ).sort("timestamp", 1)
-        closes = [doc async for doc in cursor]
-        # For YTD calculation, get all closes for the year
-        ytd_cursor = ohlcv_col.find(
             {"tickerID": symbol},
             {"close": 1, "timestamp": 1, "_id": 0}
-        ).sort("timestamp", 1)
-        ytd_closes = [doc async for doc in ytd_cursor]
-        if len(closes) < 2:
+        ).sort("timestamp", -1)
+        docs = await cursor.to_list(length=82)
+        closes = [doc["close"] for doc in docs if "close" in doc]
+        if len(closes) < 82:
             continue
-        first_close = closes[0]["close"]
-        last_close = closes[-1]["close"]
-        if first_close and last_close and first_close != 0:
-            gain = (last_close - first_close) / first_close
+        # closes[0] is most recent, closes[81] is 82 trading days ago
+        try:
+            ret_4m = (closes[0] - closes[81]) / closes[81] if closes[81] != 0 else None
+        except Exception:
+            ret_4m = None
+        if ret_4m is not None:
             sector = info.get("Sector", "")
             industry = info.get("Industry", "")
             gain_data.append({
                 "symbol": symbol,
                 "sector": sector,
                 "industry": industry,
-                "gain": gain
+                "gain": ret_4m
             })
-        # YTD calculation
-        ytd_start_idx = None
-        for i, doc in enumerate(ytd_closes):
-            ts = doc["timestamp"]
-            if hasattr(ts, 'year') and ts.year == now.year:
-                ytd_start_idx = i
-                break
-        if ytd_start_idx is not None and ytd_start_idx < len(ytd_closes):
-            ytd_start_close = ytd_closes[ytd_start_idx]["close"]
-            ytd_last_close = ytd_closes[-1]["close"]
-            if ytd_start_close and ytd_last_close and ytd_start_close != 0:
-                ytd_return = (ytd_last_close - ytd_start_close) / ytd_start_close
-                ytd_data.append({
-                    "symbol": symbol,
-                    "sector": info.get("Sector", ""),
-                    "industry": info.get("Industry", ""),
-                    "ytd_return": ytd_return
-                })
-
 
     if not gain_data:
         print("No gain data found for any symbol.")
         return
 
     gain_df = pd.DataFrame(gain_data)
-    ytd_df = pd.DataFrame(ytd_data)
-
-    # Exclude empty sector/industry values
     gain_df = gain_df[gain_df["sector"] != ""]
     gain_df = gain_df[gain_df["industry"] != ""]
-    ytd_df = ytd_df[ytd_df["sector"] != ""]
-    ytd_df = ytd_df[ytd_df["industry"] != ""]
-
-    # Sectors/Industries: full tier lists (strongest to weakest)
     sector_gains = gain_df.groupby("sector")["gain"].mean().sort_values(ascending=False)
     industry_gains = gain_df.groupby("industry")["gain"].mean().sort_values(ascending=False)
     sector_tier_list = [
@@ -1825,52 +1785,8 @@ async def update_market_stats():
         {"industry": industry, "average_return": industry_gains[industry]} for industry in industry_gains.index
     ]
 
-    # For each sector/industry: greatest gain/loss and average
-    sector_stats = {}
-    for sector in sector_tier_list:
-        sector_df = gain_df[gain_df["sector"] == sector]
-        if not sector_df.empty:
-            max_row = sector_df.loc[sector_df["gain"].idxmax()]
-            min_row = sector_df.loc[sector_df["gain"].idxmin()]
-            sector_stats[sector] = {
-                "greatest_gain_symbol": max_row["symbol"],
-                "greatest_gain": max_row["gain"],
-                "greatest_loss_symbol": min_row["symbol"],
-                "greatest_loss": min_row["gain"],
-                "average_gain": sector_df["gain"].mean()
-            }
-
-    industry_stats = {}
-    for industry in industry_tier_list:
-        industry_df = gain_df[gain_df["industry"] == industry]
-        if not industry_df.empty:
-            max_row = industry_df.loc[industry_df["gain"].idxmax()]
-            min_row = industry_df.loc[industry_df["gain"].idxmin()]
-            industry_stats[industry] = {
-                "greatest_gain_symbol": max_row["symbol"],
-                "greatest_gain": max_row["gain"],
-                "greatest_loss_symbol": min_row["symbol"],
-                "greatest_loss": min_row["gain"],
-                "average_gain": industry_df["gain"].mean()
-            }
-
-    # Find best/worst YTD symbol
-    best_ytd_symbol = None
-    best_ytd_return = None
-    worst_ytd_symbol = None
-    worst_ytd_return = None
-    if not ytd_df.empty:
-        best_idx = ytd_df["ytd_return"].idxmax()
-        worst_idx = ytd_df["ytd_return"].idxmin()
-        best_ytd_symbol = ytd_df.loc[best_idx, "symbol"]
-        best_ytd_return = ytd_df.loc[best_idx, "ytd_return"]
-        worst_ytd_symbol = ytd_df.loc[worst_idx, "symbol"]
-        worst_ytd_return = ytd_df.loc[worst_idx, "ytd_return"]
-
-    # SMA stats as percentages
-    sma_periods = [10, 20, 50, 200]
+    sma_periods = [10, 20, 50, 100, 200]
     sma_stats = {}
-    n_assets = len(symbol_map)
     for period in sma_periods:
         up = 0
         down = 0
@@ -1892,31 +1808,26 @@ async def update_market_stats():
         total = up + down if (up + down) > 0 else 1
         sma_stats[f"SMA{period}"] = {"up": up / total, "down": down / total}
 
-    # Performance for SPY, QQQ, DIA
-    index_tickers = ["SPY", "QQQ", "DIA"]
+    # Performance for SPY, QQQ, DIA, IWM, EFA, EEM
+    index_tickers = ["SPY", "QQQ", "DIA", "IWM", "EFA", "EEM"]
     index_performance = {}
     for ticker in index_tickers:
-        # Get most recent 300 closes, sorted descending (most recent first)
         cursor = ohlcv_col.find({"tickerID": ticker}, {"close": 1, "timestamp": 1, "_id": 0}).sort("timestamp", -1)
         docs = await cursor.to_list(length=300)
         closes = [doc["close"] for doc in docs if "close" in doc]
         timestamps = [doc["timestamp"] for doc in docs if "timestamp" in doc]
         if not closes or len(closes) < 2:
             continue
-        # closes[0] is most recent, closes[1] is previous day, etc.
         today_close = closes[0]
         perf = {"lastPrice": today_close}
-        # 1D
         perf["1D"] = ((closes[0] - closes[1]) / closes[1]) if len(closes) >= 2 else None
-        # 1M (21 trading days ago)
         perf["1M"] = ((closes[0] - closes[21]) / closes[21]) if len(closes) >= 22 else None
-        # 4M (82 trading days ago)
         perf["4M"] = ((closes[0] - closes[81]) / closes[81]) if len(closes) >= 82 else None
-        # 1Y (253 trading days ago)
         perf["1Y"] = ((closes[0] - closes[252]) / closes[252]) if len(closes) >= 253 else None
         # YTD: find first close of current year
+        now = datetime.now(timezone.utc)
         ytd_idx = None
-        for i, ts in enumerate(timestamps[::-1]):  # oldest to newest
+        for i, ts in enumerate(timestamps[::-1]):
             if hasattr(ts, 'year') and ts.year == now.year:
                 ytd_idx = len(timestamps) - 1 - i
                 break
@@ -1934,17 +1845,12 @@ async def update_market_stats():
     stats_doc = {
         "sectorTierList": sector_tier_list,
         "industryTierList": industry_tier_list,
-        "sectorStats": sector_stats,
-        "industryStats": industry_stats,
         "SMA10": sma_stats["SMA10"],
         "SMA20": sma_stats["SMA20"],
         "SMA50": sma_stats["SMA50"],
+        "SMA100": sma_stats["SMA100"],
         "SMA200": sma_stats["SMA200"],
         "indexPerformance": index_performance,
-        "bestYTDSymbol": best_ytd_symbol,
-        "bestYTDReturn": best_ytd_return,
-        "worstYTDSymbol": worst_ytd_symbol,
-        "worstYTDReturn": worst_ytd_return,
         "top10DailyGainers": top_10_gainers,
         "top10DailyLosers": top_10_losers,
         "updatedAt": datetime.now(timezone.utc)

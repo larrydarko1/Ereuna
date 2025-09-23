@@ -15,11 +15,11 @@
     <div class="receipts">
       <h1>Receipts</h1>
       <div class="receipt-header">
-        <p style="flex:1; font-weight: bold;">Payment Date</p>
-        <p style="flex:1; font-weight: bold;">Amount</p>
-        <p style="flex:1; font-weight: bold;">Paid with</p>
-        <p style="flex:1; font-weight: bold;">Subscription Plan</p>
-        <p style="flex:1; font-weight: bold;">Download</p>
+        <p class="receipt-header-date" style="flex:1; font-weight: bold;">Payment Date</p>
+        <p class="receipt-header-amount" style="flex:1; font-weight: bold;">Amount</p>
+        <p class="receipt-header-method" style="flex:1; font-weight: bold;">Paid with</p>
+        <p class="receipt-header-plan" style="flex:1; font-weight: bold;">Subscription Plan</p>
+        <p class="receipt-header-download" style="flex:1; font-weight: bold;">Download</p>
       </div>
       <div v-if="loading">Loading receipts...</div>
       <div style="background-color: #262435; padding: 3px;" v-else-if="error">{{ error }}</div>
@@ -28,11 +28,12 @@
       </div>
       <div v-else>
   <div v-for="receipt in receipts" :key="(receipt as Receipt)._id" class="receipt-item">
-          <p style="flex:1; text-align: center;">{{ formatDate(receipt.Date) }}</p>
-          <p style="flex:1; text-align: center;">{{ (receipt.Amount) / 100 }}€</p>
-          <p style="flex:1; text-align: center;">{{ receipt.Method }}</p>
-          <p style="flex:1; text-align: center;">{{ formatSubscription(receipt.Subscription) }}</p>
-          <div class="download-cell"><button class="downloadbtn">
+  <p class="receipt-date receipt-date-desktop" style="flex:1; text-align: center;">{{ formatDate(receipt.Date) }}</p>
+  <p class="receipt-date receipt-date-mobile" style="flex:1; text-align: center;">{{ formatShortDate(receipt.Date) }}</p>
+    <p class="receipt-amount" style="flex:1; text-align: center;">{{ (receipt.Amount) / 100 }}€</p>
+    <p class="receipt-method" style="flex:1; text-align: center;">{{ formatMethod(receipt.Method) }}</p>
+    <p class="receipt-plan" style="flex:1; text-align: center;">{{ formatShortSubscription(receipt.Subscription) }}</p>
+    <div class="download-cell receipt-download"><button class="downloadbtn">
               <svg class="icon3" viewBox="0 0 24.00 24.00" fill="var(--text3)" xmlns="http://www.w3.org/2000/svg"
                 stroke="var(--text3)" stroke-width="0.696">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -49,6 +50,9 @@
             </button>
           </div>
         </div>
+      </div>
+       <div class="mobile-download-info">
+        To download receipts, please use the desktop version.
       </div>
     </div>
   </div>
@@ -189,6 +193,30 @@ function formatSubscription(subscriptionValue: number) {
     : 'Unknown');
 }
 
+// Format date as DD/MM/YY
+const formatShortDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = String(date.getFullYear()).slice(-2);
+  return `${day}/${month}/${year}`;
+};
+
+// Shorten method label for mobile
+const formatMethod = (method: string) => {
+  if (method.toLowerCase().includes('credit')) return 'Card';
+  if (method.toLowerCase().includes('crypto')) return 'Crypto';
+  return method;
+};
+
+// Shorten subscription plan for mobile
+const formatShortSubscription = (subscriptionValue: number) => {
+  return (subscriptionValue === 1 ? '1M'
+    : subscriptionValue === 2 ? '4M'
+    : subscriptionValue === 3 ? '6M'
+    : subscriptionValue === 4 ? '1Y'
+    : 'Unknown');
+};
 </script>
 
 <style scoped>
@@ -349,6 +377,97 @@ h1 {
 .icon3 {
   width: 15px;
   height: 15px;
+}
+
+.mobile-download-info {
+  display: none;
+  color: var(--accent1);
+  background: var(--base1);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-top: 12px;
+  font-size: 1rem;
+  text-align: center;
+}
+
+@media (max-width: 1150px) {
+  .meter-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+  margin-left: 10px;
+  flex-wrap: wrap;
+  text-align: left;
+}
+.subscription-actions {
+  display: flex;
+  gap: 0px;
+  margin-top: 10px;
+}
+  /* Receipt table mobile adjustments */
+  .receipt-header-download {
+    display: none !important;
+  }
+  .receipt-download {
+    display: none !important;
+  }
+  .receipt-header-date {
+    font-size: 0;
+  }
+  .receipt-header-date::after {
+    content: 'Date';
+    font-size: 15px;
+    font-weight: bold;
+  }
+  .receipt-date-desktop {
+    display: none !important;
+  }
+  .receipt-date-mobile {
+    display: block !important;
+  }
+  .receipt-header-method {
+    font-size: 0;
+  }
+  .receipt-header-amount {
+    font-size: 0;
+  }
+  .receipt-header-amount::after {
+    content: 'Amount';
+    font-size: 15px;
+    font-weight: bold;
+  }
+  .receipt-header-method::after {
+    content: 'Card';
+    font-size: 15px;
+    font-weight: bold;
+  }
+  .receipt-header-plan {
+    font-size: 0;
+  }
+  .receipt-header-plan::after {
+    content: 'Plan';
+    font-size: 15px;
+    font-weight: bold;
+  }
+  .receipt-date, .receipt-method, .receipt-plan, .receipt-amount {
+    font-size: 14px;
+  }
+   .mobile-download-info {
+    display: block;
+  }
+}
+
+@media (min-width: 1151px) {
+  .receipt-date-desktop {
+    display: block !important;
+  }
+  .receipt-date-mobile {
+    display: none !important;
+  }
+  .mobile-download-info {
+    display: none !important;
+  }
 }
 
 </style>

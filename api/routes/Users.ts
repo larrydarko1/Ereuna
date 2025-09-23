@@ -812,12 +812,6 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(404).json({ message: 'User not found' });
                 }
-                logger.info({
-                    msg: '2FA status retrieved',
-                    username: sanitizedUsername,
-                    context: 'POST /twofa-status',
-                    statusCode: 200
-                });
                 return res.status(200).json({
                     enabled: !!user.MFA,
                     qrCode: user.secret ? speakeasy.otpauthURL({
@@ -1654,13 +1648,6 @@ export default function (app: any, deps: any) {
                 const expiresDate = new Date(userDoc.Expires);
                 const differenceInTime = expiresDate.getTime() - today.getTime();
                 const differenceInDays = Math.ceil(differenceInTime / (1000 * 3600 * 24));
-                logger.info({
-                    msg: 'Expiration Date Retrieved',
-                    username: sanitizedUsername.substring(0, 3) + '...',
-                    expirationDays: differenceInDays,
-                    context: 'GET /get-expiration-date',
-                    statusCode: 200
-                });
                 res.json({ expirationDays: differenceInDays });
             } catch (error) {
                 const errObj = handleError(error, 'GET /get-expiration-date', {
@@ -1737,14 +1724,6 @@ export default function (app: any, deps: any) {
                 const receiptsCollection = db.collection('Receipts');
                 const query = { UserID: userDoc._id };
                 const userReceipts = await receiptsCollection.find(query).toArray();
-                logger.info({
-                    msg: 'Receipts Retrieved',
-                    requestId,
-                    username: user.substring(0, 3) + '...',
-                    receiptsCount: userReceipts.length,
-                    context: 'GET /get-receipts/:user',
-                    statusCode: 200
-                });
                 res.json({ receipts: userReceipts, requestId });
             } catch (error) {
                 const errObj = handleError(error, 'GET /get-receipts/:user', {
@@ -2138,12 +2117,6 @@ export default function (app: any, deps: any) {
                 return res.status(404).json({ message: 'User not found' });
             }
             const theme = userDocument.theme;
-            logger.info({
-                msg: 'Theme loaded',
-                username: sanitizedUser.substring(0, 3) + '...',
-                context: 'POST /load-theme',
-                statusCode: 200
-            });
             return res.status(200).json({ theme });
         } catch (error) {
             const errObj = handleError(error, 'POST /load-theme', {
@@ -2513,6 +2486,52 @@ export default function (app: any, deps: any) {
                 statusCode: errObj.statusCode || 500
             });
             return res.status(errObj.statusCode || 500).json({ message: 'An error occurred while retrieving the panel list' });
+        } finally {
+            if (client) await client.close();
+        }
+    });
+
+    // Endpoint to get the VAT rates list
+    app.get('/vat-rates', async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
+        try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'GET /vat-rates',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+            client = new MongoClient(uri);
+            await client.connect();
+            const db = client.db('EreunaDB');
+            const statsCollection = db.collection('Stats');
+            const vatDoc = await statsCollection.findOne(
+                { _id: 'vat_rates' },
+                { projection: { countries: 1, _id: 0 } }
+            );
+            if (!vatDoc || !vatDoc.countries) {
+                logger.warn({
+                    msg: 'VAT rates not found',
+                    context: 'GET /vat-rates',
+                    statusCode: 404
+                });
+                return res.status(404).json({ message: 'VAT rates not found' });
+            }
+            return res.status(200).json({ countries: vatDoc.countries });
+        } catch (error) {
+            const errObj = handleError(error, 'GET /vat-rates', {}, 500);
+            logger.error({
+                msg: 'Error retrieving VAT rates',
+                error: error instanceof Error ? error.message : String(error),
+                context: 'GET /vat-rates',
+                statusCode: errObj.statusCode || 500
+            });
+            return res.status(errObj.statusCode || 500).json({ message: 'An error occurred while retrieving VAT rates' });
         } finally {
             if (client) await client.close();
         }
