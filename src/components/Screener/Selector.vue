@@ -276,4 +276,11 @@ function toggleDropdown() {
   50% { box-shadow: 0 0 24px 8px rgba(255, 77, 79, 0.45); }
   100% { box-shadow: 0 0 16px 4px rgba(255, 77, 79, 0.32); }
 }
+
+@media (max-width: 1150px) {
+  .screener-select-container {
+    width: 100%;
+  }
+}
+
 </style>

@@ -293,4 +293,29 @@ p {
   outline: none;
 }
 
+@media (max-width: 1150px) {
+  .sidebar {
+    width: 60px;
+    min-width: 60px;
+    padding: 10px 0;
+    align-items: center;
+  }
+  .menu {
+    width: 40px;
+    min-width: 40px;
+    justify-content: center;
+    padding: 10px 0;
+  }
+  .menu .icon {
+    margin-right: 0;
+  }
+  .menu {
+    font-size: 0;
+  }
+  .menu .icon {
+    font-size: 20px;
+    width: 24px;
+    height: 24px;
+  }
+}
 </style>

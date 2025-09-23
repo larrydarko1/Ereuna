@@ -78,8 +78,8 @@
     <a href="#" @click.prevent="showPolicy = true">Terms of Service & Privacy Policy</a></label>
 </div>
       <button @click="Trial()" class="userbtn">Create</button>
-      <p style="cursor: default;"><label style="color: #8c8dfe; font-size: inherit;">Security Notice:</label> A unique Recovery Key is required for password recovery. You can download this key in the Dashboard section of your account. Please store it securely, as it will be the only means of regaining access to your account in the event of a lost or forgotten password.</p>
-      <p style="cursor: default;"> <label style="color: #8c8dfe; font-size: inherit;">2-Factor Authentication (2FA)</label>  is available as an optional security feature. To activate 2FA, navigate to the 'Security' section within your user session. Note that only authentication app-based 2FA is currently supported, with no SMS or email options available. </p>
+      <p style="cursor: default;"><label style="color: #8c8dfe; font-size: inherit;">Security Notice:</label> A unique Recovery Key is required for password recovery. You can download this key in the Account section. Please store it securely, as it will be the only means of regaining access to your account in the event of a lost or forgotten password.</p>
+      <p style="cursor: default;"> <label style="color: #8c8dfe; font-size: inherit;">2-Factor Authentication (2FA)</label>  is available as an optional security feature. To activate 2FA, navigate to the 'Security' section within your Account settings. Note that only authentication app-based 2FA is currently supported, with no SMS or email options available. </p>
     </div>
    <Policy :visible="showPolicy" @close="showPolicy = false" />
 <NotificationPopup ref="notification" />
@@ -202,236 +202,34 @@ async function Trial(): Promise<void> {
   }
 }
 
-const countries = [
-  { code: 'AT', name: 'Austria', vat: 0.20, flag: '🇦🇹' },
-  { code: 'BE', name: 'Belgium', vat: 0.21, flag: '🇧🇪' },
-  { code: 'BG', name: 'Bulgaria', vat: 0.20, flag: '🇧🇬' },
-  { code: 'HR', name: 'Croatia', vat: 0.25, flag: '🇭🇷' },
-  { code: 'CY', name: 'Cyprus', vat: 0.19, flag: '🇨🇾' },
-  { code: 'CZ', name: 'Czech Republic', vat: 0.21, flag: '🇨🇿' },
-  { code: 'DK', name: 'Denmark', vat: 0.25, flag: '🇩🇰' },
-  { code: 'EE', name: 'Estonia', vat: 0.20, flag: '🇪🇪' },
-  { code: 'FI', name: 'Finland', vat: 0.24, flag: '🇫🇮' },
-  { code: 'FR', name: 'France', vat: 0.20, flag: '🇫🇷' },
-  { code: 'DE', name: 'Germany', vat: 0.19, flag: '🇩🇪' },
-  { code: 'GR', name: 'Greece', vat: 0.24, flag: '🇬🇷' },
-  { code: 'HU', name: 'Hungary', vat: 0.27, flag: '🇭🇺' },
-  { code: 'IE', name: 'Ireland', vat: 0.23, flag: '🇮🇪' },
-  { code: 'IT', name: 'Italy', vat: 0.22, flag: '🇮🇹' },
-  { code: 'LV', name: 'Latvia', vat: 0.21, flag: '🇱🇻' },
-  { code: 'LT', name: 'Lithuania', vat: 0.21, flag: '🇱🇹' },
-  { code: 'LU', name: 'Luxembourg', vat: 0.16, flag: '🇱🇺' },
-  { code: 'MT', name: 'Malta', vat: 0.18, flag: '🇲🇹' },
-  { code: 'NL', name: 'Netherlands', vat: 0.21, flag: '🇳🇱' },
-  { code: 'NO', name: 'Norway', vat: 0.25, flag: '🇳🇴' },
-  { code: 'PL', name: 'Poland', vat: 0.23, flag: '🇵🇱' },
-  { code: 'PT', name: 'Portugal', vat: 0.23, flag: '🇵🇹' },
-  { code: 'RO', name: 'Romania', vat: 0.19, flag: '🇷🇴' },
-  { code: 'SK', name: 'Slovakia', vat: 0.20, flag: '🇸🇰' },
-  { code: 'SI', name: 'Slovenia', vat: 0.22, flag: '🇸🇮' },
-  { code: 'ES', name: 'Spain', vat: 0.21, flag: '🇪🇸' },
-  { code: 'SE', name: 'Sweden', vat: 0.25, flag: '🇸🇪' },
-  { code: 'CH', name: 'Switzerland', vat: 0.08, flag: '🇨🇭' },
-  { code: 'GB', name: 'United Kingdom', vat: 0.20, flag: '🇬🇧' },
-  { code: 'UA', name: 'Ukraine', vat: 0.20, flag: '🇺🇦' },
-  { code: 'AL', name: 'Albania', vat: 0.20, flag: '🇦🇱' },
-  { code: 'AM', name: 'Armenia', vat: 0.20, flag: '🇦🇲' },
-  { code: 'AZ', name: 'Azerbaijan', vat: 0.18, flag: '🇦🇿' },
-  { code: 'BY', name: 'Belarus', vat: 0.20, flag: '🇧🇾' },
-  { code: 'BA', name: 'Bosnia and Herzegovina', vat: 0.17, flag: '🇧🇦' },
-  { code: 'GE', name: 'Georgia', vat: 0.18, flag: '🇬🇪' },
-  { code: 'KA', name: 'Kazakhstan', vat: 0.12, flag: '🇰🇿' },
-  { code: 'KG', name: 'Kyrgyzstan', vat: 0.12, flag: '🇰🇬' },
-  { code: 'MD', name: 'Moldova', vat: 0.20, flag: '🇲🇩' },
-  { code: 'ME', name: 'Montenegro', vat: 0.21, flag: '🇲🇪' },
-  { code: 'MK', name: 'North Macedonia', vat: 0.18, flag: '🇲🇰' },
-  { code: 'RS', name: 'Serbia', vat: 0.20, flag: '🇷🇸' },
-  { code: 'TJ', name: 'Tajikistan', vat: 0.18, flag: '🇹🇯' },
-  { code: 'UZ', name: 'Uzbekistan', vat: 0.12, flag: '🇺🇿' },
-  { code: 'AF', name: 'Afghanistan', vat: 0.10, flag: '🇦🇫' },
-  { code: 'SA', name: 'Saudi Arabia', vat: 0.15, flag: '🇸🇦' },
-  { code: 'AE', name: 'United Arab Emirates', vat: 0.05, flag: '🇦🇪' },
-  { code: 'BH', name: 'Bahrain', vat: 0.05, flag: '🇧🇭' },
-  { code: 'BD', name: 'Bangladesh', vat: 0.15, flag: '🇧🇩' },
-  { code: 'BT', name: 'Bhutan', vat: 0.05, flag: '🇧🇹' },
-  { code: 'BN', name: 'Brunei', vat: 0.08, flag: '🇧🇳' },
-  { code: 'KH', name: 'Cambodia', vat: 0.10, flag: '🇰🇭' },
-  { code: 'CN', name: 'China', vat: 0.13, flag: '🇨🇳' },
-  { code: 'HK', name: 'Hong Kong', vat: 0.00, flag: '🇭🇰' },
-  { code: 'IN', name: 'India', vat: 0.18, flag: '🇮🇳' },
-  { code: 'ID', name: 'Indonesia', vat: 0.10, flag: '🇮🇩' },
-  { code: 'IR', name: 'Iran', vat: 0.09, flag: '🇮🇷' },
-  { code: 'IQ', name: 'Iraq', vat: 0.05, flag: '🇮🇶' },
-  { code: 'IL', name: 'Israel', vat: 0.17, flag: '🇮🇱' },
-  { code: 'JP', name: 'Japan', vat: 0.10, flag: '🇯🇵' },
-  { code: 'JO', name: 'Jordan', vat: 0.16, flag: '🇯🇴' },
-  { code: 'KP', name: 'North Korea', vat: 0.05, flag: '🇰🇵' },
-  { code: 'KR', name: 'South Korea', vat: 0.10, flag: '🇰🇷' },
-  { code: 'KW', name: 'Kuwait', vat: 0.05, flag: '🇰🇼' },
-  { code: 'LA', name: 'Laos', vat: 0.10, flag: '🇱🇦' },
-  { code: 'LB', name: 'Lebanon', vat: 0.11, flag: '🇱🇧' },
-  { code: 'MO', name: 'Macau', vat: 0.00, flag: '🇲🇴' },
-  { code: 'MY', name: 'Malaysia', vat: 0.06, flag: '🇲🇾' },
-  { code: 'MV', name: 'Maldives', vat: 0.15, flag: '🇲🇻' },
-  { code: 'MM', name: 'Myanmar', vat: 0.05, flag: '🇲🇲' },
-  { code: 'NP', name: 'Nepal', vat: 0.13, flag: '🇳🇵' },
-  { code: 'OM', name: 'Oman', vat: 0.05, flag: '🇴🇲' },
-  { code: 'PK', name: 'Pakistan', vat: 0.17, flag: '🇵🇰' },
-  { code: 'PH', name: 'Philippines', vat: 0.12, flag: '🇵🇭' },
-  { code: 'QA', name: 'Qatar', vat: 0.05, flag: '🇶🇦' },
-  { code: 'SG', name: 'Singapore', vat: 0.08, flag: '🇸🇬' },
-  { code: 'LK', name: 'Sri Lanka', vat: 0.15, flag: '🇱🇰' },
-  { code: 'SY', name: 'Syria', vat: 0.10, flag: '🇸🇾' },
-  { code: 'TW', name: 'Taiwan', vat: 0.05, flag: '🇹🇼' },
-  { code: 'TH', name: 'Thailand', vat: 0.07, flag: '🇹🇭' },
-  { code: 'TL', name: 'Timor-Leste', vat: 0.10, flag: '🇹🇱' },
-  { code: 'TR', name: 'Turkey', vat: 0.18, flag: '🇹🇷' },
-  { code: 'TM', name: 'Turkmenistan', vat: 0.10, flag: '🇹🇲' },
-  { code: 'UY', name: 'Uruguay', vat: 0.22, flag: '🇺🇾' },
-  { code: 'VN', name: 'Vietnam', vat: 0.10, flag: '🇻🇳' },
-  { code: 'YE', name: 'Yemen', vat: 0.05, flag: '🇾🇪' },
-  { code: 'ZW', name: 'Zimbabwe', vat: 0.15, flag: '🇿🇼' },
-  { code: 'AO', name: 'Angola', vat: 0.14, flag: '🇦🇴' },
-  { code: 'BJ', name: 'Benin', vat: 0.18, flag: '🇧🇯' },
-  { code: 'BW', name: 'Botswana', vat: 0.12, flag: '🇧🇼' },
-  { code: 'BF', name: 'Burkina Faso', vat: 0.18, flag: '🇧🇫' },
-  { code: 'BI', name: 'Burundi', vat: 0.18, flag: '🇧🇮' },
-  { code: 'CM', name: 'Cameroon', vat: 0.19, flag: '🇨🇲' },
-  { code: 'CV', name: 'Cape Verde', vat: 0.15, flag: '🇨🇻' },
-  { code: 'CF', name: 'Central African Republic', vat: 0.19, flag: '🇨🇫' },
-  { code: 'TD', name: 'Chad', vat: 0.19, flag: '🇹🇩' },
-  { code: 'KM', name: 'Comoros', vat: 0.05, flag: '🇰🇲' },
-  { code: 'CG', name: 'Congo', vat: 0.20, flag: '🇨🇬' },
-  { code: 'CI', name: 'Côte d\'Ivoire', vat: 0.18, flag: '🇨🇮' },
-  { code: 'DJ', name: 'Djibouti', vat: 0.10, flag: '🇩🇯' },
-  { code: 'EG', name: 'Egypt', vat: 0.14, flag: '🇪🇬' },
-  { code: 'GQ', name: 'Equatorial Guinea', vat: 0.15, flag: '🇬🇶' },
-  { code: 'ER', name: 'Eritrea', vat: 0.15, flag: '🇪🇷' },
-  { code: 'ET', name: 'Ethiopia', vat: 0.15, flag: '🇪🇹' },
-  { code: 'GA', name: 'Gabon', vat: 0.20, flag: '🇬🇦' },
-  { code: 'GM', name: 'Gambia', vat: 0.15, flag: '🇬🇲' },
-  { code: 'GH', name: 'Ghana', vat: 0.12, flag: '🇬🇭' },
-  { code: 'GN', name: 'Guinea', vat: 0.18, flag: '🇬🇳' },
-  { code: 'GW', name: 'Guinea-Bissau', vat: 0.15, flag: '🇬🇼' },
-  { code: 'KE', name: 'Kenya', vat: 0.16, flag: '🇰🇪' },
-  { code: 'LS', name: 'Lesotho', vat: 0.15, flag: '🇱🇸' },
-  { code: 'LR', name: 'Liberia', vat: 0.10, flag: '🇱🇷' },
-  { code: 'LY', name: 'Libya', vat: 0.10, flag: '🇱🇾' },
-  { code: 'MG', name: 'Madagascar', vat: 0.20, flag: '🇲🇬' },
-  { code: 'MW', name: 'Malawi', vat: 0.16, flag: '🇲🇼' },
-  { code: 'ML', name: 'Mali', vat: 0.18, flag: '🇲🇱' },
-   { code: 'MR', name: 'Mauritania', vat: 0.18, flag: '🇲🇷' },
-  { code: 'MU', name: 'Mauritius', vat: 0.15, flag: '🇲🇺' },
-  { code: 'MA', name: 'Morocco', vat: 0.20, flag: '🇲🇦' },
-  { code: 'MZ', name: 'Mozambique', vat: 0.17, flag: '🇲🇿' },
-  { code: 'NA', name: 'Namibia', vat: 0.15, flag: '🇳🇦' },
-  { code: 'NE', name: 'Niger', vat: 0.19, flag: '🇳🇪' },
-  { code: 'NG', name: 'Nigeria', vat: 0.07, flag: '🇳🇬' },
-  { code: 'RE', name: 'Réunion', vat: 0.08, flag: '🇷🇪' },
-  { code: 'RW', name: 'Rwanda', vat: 0.18, flag: '🇷🇼' },
-  { code: 'ST', name: 'São Tomé and Príncipe', vat: 0.15, flag: '🇸🇹' },
-  { code: 'SN', name: 'Senegal', vat: 0.18, flag: '🇸🇳' },
-  { code: 'SC', name: 'Seychelles', vat: 0.15, flag: '🇸🇨' },
-  { code: 'SL', name: 'Sierra Leone', vat: 0.15, flag: '🇸🇱' },
-  { code: 'SO', name: 'Somalia', vat: 0.10, flag: '🇸🇴' },
-  { code: 'ZA', name: 'South Africa', vat: 0.15, flag: '🇿🇦' },
-  { code: 'SS', name: 'South Sudan', vat: 0.10, flag: '🇸🇸' },
-  { code: 'SD', name: 'Sudan', vat: 0.10, flag: '🇸🇩' },
-  { code: 'SZ', name: 'Swaziland', vat: 0.15, flag: '🇸🇿' },
-  { code: 'TZ', name: 'Tanzania', vat: 0.18, flag: '🇹🇿' },
-  { code: 'TG', name: 'Togo', vat: 0.18, flag: '🇹🇬' },
-  { code: 'TN', name: 'Tunisia', vat: 0.19, flag: '🇹🇳' },
-  { code: 'UG', name: 'Uganda', vat: 0.18, flag: '🇺🇬' },
-  { code: 'ZM', name: 'Zambia', vat: 0.16, flag: '🇿🇲' },
-  { code: 'ZW', name: 'Zimbabwe', vat: 0.15, flag: '🇿🇼' },
-  { code: 'AR', name: 'Argentina', vat: 0.21, flag: '🇦🇷' },
-  { code: 'BO', name: 'Bolivia', vat: 0.13, flag: '🇧🇴' },
-  { code: 'BR', name: 'Brazil', vat: 0.12, flag: '🇧🇷' },
-  { code: 'CL', name: 'Chile', vat: 0.19, flag: '🇨🇱' },
-  { code: 'CO', name: 'Colombia', vat: 0.19, flag: '🇨🇴' },
-  { code: 'EC', name: 'Ecuador', vat: 0.12, flag: '🇪🇨' },
-  { code: 'FK', name: 'Falkland Islands', vat: 0.00, flag: '🇫🇰' },
-  { code: 'GF', name: 'French Guiana', vat: 0.08, flag: '🇬🇫' },
-  { code: 'GY', name: 'Guyana', vat: 0.14, flag: '🇬🇾' },
-  { code: 'PY', name: 'Paraguay', vat: 0.10, flag: '🇵🇾' },
-  { code: 'PE', name: 'Peru', vat: 0.18, flag: '🇵🇪' },
-  { code: 'SR', name: 'Suriname', vat: 0.20, flag: '🇸🇷' },
-  { code: 'UY', name: 'Uruguay', vat: 0.22, flag: '🇺🇾' },
-  { code: 'VE', name: 'Venezuela', vat: 0.16, flag: '🇻🇪' },
-  { code: 'AW', name: 'Aruba', vat: 0.06, flag: '🇦🇼' },
-  { code: 'BS', name: 'Bahamas', vat: 0.07, flag: '🇧🇸' },
-  { code: 'BB', name: 'Barbados', vat: 0.17, flag: '🇧🇧' },
-  { code: 'BZ', name: 'Belize', vat: 0.12, flag: '🇧🇿' },
-  { code: 'BM', name: 'Bermuda', vat: 0.07, flag: '🇧🇲' },
-  { code: 'CA', name: 'Canada', vat: 0.05, flag: '🇨🇦' },
-  { code: 'KY', name: 'Cayman Islands', vat: 0.00, flag: '🇰🇾' },
-  { code: 'CR', name: 'Costa Rica', vat: 0.13, flag: '🇨🇷' },
-  { code: 'CU', name: 'Cuba', vat: 0.10, flag: '🇨🇺' },
-  { code: 'DM', name: 'Dominica', vat: 0.15, flag: '🇩🇲' },
-  { code: 'DO', name: 'Dominican Republic', vat: 0.18, flag: '🇩🇴' },
-  { code: 'SV', name: 'El Salvador', vat: 0.13, flag: '🇸🇻' },
-  { code: 'GL', name: 'Greenland', vat: 0.25, flag: '🇬🇱' },
-  { code: 'GD', name: 'Grenada', vat: 0.15, flag: '🇬🇩' },
-  { code: 'GT', name: 'Guatemala', vat: 0.12, flag: '🇬🇹' },
-  { code: 'HT', name: 'Haiti', vat: 0.15, flag: '🇭🇹' },
-  { code: 'HN', name: 'Honduras', vat: 0.15, flag: '🇭🇳' },
-  { code: 'JM', name: 'Jamaica', vat: 0.16, flag: '🇯🇲' },
-  { code: 'MQ', name: 'Martinique', vat: 0.08, flag: '🇲🇶' },
-  { code: 'MX', name: 'Mexico', vat: 0.16, flag: '🇲🇽' },
-  { code: 'MS', name: 'Montserrat', vat: 0.15, flag: '🇲🇸' },
-  { code: 'NI', name: 'Nicaragua', vat: 0.15, flag: '🇳🇮' },
-  { code: 'PA', name: 'Panama', vat: 0.07, flag: '🇵🇦' },
-  { code: 'BL', name: 'Saint Barthélemy', vat: 0.08, flag: '🇧🇱' },
-  { code: 'KN', name: 'Saint Kitts and Nevis', vat: 0.17, flag: '🇰🇳' },
-  { code: 'LC', name: 'Saint Lucia', vat: 0.15, flag: '🇱🇨' },
-  { code: 'MF', name: 'Saint Martin', vat: 0.08, flag: '🇲🇫' },
-  { code: 'PM', name: 'Saint Pierre and Miquelon', vat: 0.08, flag: '🇵🇲' },
-  { code: 'VC', name: 'Saint Vincent and the Grenadines', vat: 0.15, flag: '🇻🇨' },
-  { code: 'SR', name: 'Suriname', vat: 0.20, flag: '🇸🇷' },
-  { code: 'TT', name: 'Trinidad and Tobago', vat: 0.12, flag: '🇹🇹' },
-  { code: 'TC', name: 'Turks and Caicos Islands', vat: 0.00, flag: '🇹🇨' },
-  { code: 'US', name: 'United States', vat: 0.00, flag: '🇺🇸' },
-  { code: 'VI', name: 'U.S. Virgin Islands', vat: 0.05, flag: '🇻🇮' },
-  { code: 'UZ', name: 'Uzbekistan', vat: 0.12, flag: '🇺🇿' },
-  { code: 'AS', name: 'American Samoa', vat: 0.04, flag: '🇦🇸' },
-  { code: 'AU', name: 'Australia', vat: 0.10, flag: '🇦🇺' },
-  { code: 'CK', name: 'Cook Islands', vat: 0.15, flag: '🇨🇰' },
-  { code: 'FJ', name: 'Fiji', vat: 0.09, flag: '🇫🇯' },
-  { code: 'GU', name: 'Guam', vat: 0.04, flag: '🇬🇺' },
-  { code: 'KI', name: 'Kiribati', vat: 0.12, flag: '🇰🇮' },
-  { code: 'MH', name: 'Marshall Islands', vat: 0.05, flag: '🇲🇭' },
-  { code: 'FM', name: 'Micronesia', vat: 0.05, flag: '🇫🇲' },
-  { code: 'NR', name: 'Nauru', vat: 0.15, flag: '🇳🇷' },
-  { code: 'NC', name: 'New Caledonia', vat: 0.08, flag: '🇳🇨' },
-  { code: 'NZ', name: 'New Zealand', vat: 0.15, flag: '🇳🇿' },
-  { code: 'NU', name: 'Niue', vat: 0.15, flag: '🇳🇺' },
-  { code: 'NF', name: 'Norfolk Island', vat: 0.10, flag: '🇳🇫' },
-  { code: 'MP', name: 'Northern Mariana Islands', vat: 0.05, flag: '🇲🇵' },
-  { code: 'PW', name: 'Palau', vat: 0.10, flag: '🇵🇼' },
-  { code: 'PG', name: 'Papua New Guinea', vat: 0.10, flag: '🇵🇬' },
-  { code: 'PN', name: 'Pitcairn Islands', vat: 0.00, flag: '🇵🇳' },
-  { code: 'WS', name: 'Samoa', vat: 0.15, flag: '🇼🇸' },
-  { code: 'SB', name: 'Solomon Islands', vat: 0.10, flag: '🇸🇧' },
-  { code: 'TK', name: 'Tokelau', vat: 0.15, flag: '🇹🇰' },
-  { code: 'TO', name: 'Tonga', vat: 0.15, flag: '🇹🇴' },
-  { code: 'TV', name: 'Tuvalu', vat: 0.15, flag: '🇹🇻' },
-  { code: 'VU', name: 'Vanuatu', vat: 0.15, flag: '🇻🇺' },
-  { code: 'WF', name: 'Wallis and Futuna', vat: 0.08, flag: '🇼🇫' },
-  { code: 'AQ', name: 'Antarctica', vat: 0.00, flag: '🇦🇶' },
-  { code: 'BV', name: 'Bouvet Island', vat: 0.00, flag: '🇧🇻' },
-  { code: 'CX', name: 'Christmas Island', vat: 0.00, flag: '🇨🇽' },
-  { code: 'CC', name: 'Cocos (Keeling) Islands', vat: 0.00, flag: '🇨🇨' },
-  { code: 'HM', name: 'Heard Island and McDonald Islands', vat: 0.00, flag: '🇭🇲' },
-  { code: 'NF', name: 'Norfolk Island', vat: 0.00, flag: '🇳🇫' },
-  { code: 'NF', name: 'Norfolk Island', vat: 0.00, flag: '🇳🇫' },
-  { code: 'AK', name: 'Azerbaijan', vat: 0.18, flag: '🇦🇿' },
-  { code: 'PS', name: 'Palestine', vat: 0.16, flag: '🇵🇸' },
-  { code: 'TL', name: 'Timor-Leste', vat: 0.10, flag: '🇹🇱' },
-  { code: 'EH', name: 'Western Sahara', vat: 0.20, flag: '🇪🇭' },
-  { code: 'AX', name: 'Åland Islands', vat: 0.24, flag: '🇦🇽' }
-];
+interface CountryVat {
+  code: string;
+  name: string;
+  vat: number;
+  flag: string;
+}
 
-countries.sort((a, b) => a.name.localeCompare(b.name));
+
+const countries = ref<CountryVat[]>([]);
+
+async function fetchVatRates() {
+  try {
+    const response = await fetch('/api/vat-rates', {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
+    if (!response.ok) throw new Error('Failed to fetch VAT rates');
+    const data = await response.json();
+    countries.value = data.sort((a: CountryVat, b: CountryVat) => a.name.localeCompare(b.name));
+  } catch (err) {
+    notification.value?.show('Could not load VAT rates, using defaults.');
+  }
+}
+
+onMounted(() => {
+  fetchVatRates();
+});
 
 const dropdownOpen = ref(false);
 
@@ -439,24 +237,26 @@ function toggleDropdown() {
   dropdownOpen.value = !dropdownOpen.value;
 }
 
+
 function selectCountry(country: { code: string }) {
   selectedCountry.value = country.code;
   dropdownOpen.value = false;
 }
 
-const selectedCountryObj = computed(() =>
-  countries.find(c => c.code === selectedCountry.value) || countries[0]
-);
+const selectedCountryObj = computed(() => {
+  return countries.value.find(c => c.code === selectedCountry.value) || countries.value[0] || { code: '', name: '', vat: 0 };
+});
 
 // Only premium plan is available
 const selectedDuration = ref(1);  // Default to 1 month
 const selectedCountry = ref('MT'); // Default to Malta
 
+
 function calculateTotalPrice(): string {
   const basePrice = 14.99;
   let totalMonths = selectedDuration.value;
   let totalPrice = basePrice * totalMonths;
-  const country = countries.find(c => c.code === selectedCountry.value);
+  const country = countries.value.find(c => c.code === selectedCountry.value);
   const vatRate = country ? country.vat : 0;
   const vatAmount = totalPrice * vatRate;
   const totalWithVat = totalPrice + vatAmount;
@@ -531,25 +331,27 @@ function initializeStripe() {
 
   .input {
     border: solid 2px transparent;
-    border-radius: 10px;
-    background-color:$base2;
+    border-radius: 1.5rem;
+    background-color:$base2;;
     padding: 1.5rem;
     font-size: 1.2rem;
-    width: 400px;
+    width: 80%;
     color: $text2;
     transition: border 150ms cubic-bezier(0.4,0,0.2,1);
   }
 
-  .user-label {
-    text-align: center;
-    position: absolute;
-    left: 180px;
-    bottom: 45px;
-    color: #cdcdcd;
-    pointer-events: none;
-    transform: translateY(1.5rem);
-    transition: 150ms cubic-bezier(0.4,0,0.2,1);
-  }
+
+.user-label {
+  position: absolute;
+  left: 10%;
+  padding-left: 1.5rem; // match input's padding
+  bottom: 45px;
+  color: $text2;
+  pointer-events: none;
+  transform: translateY(1.5rem);
+  transition: 150ms cubic-bezier(0.4,0,0.2,1);
+  text-align: left;
+}
 
   .input:focus, .input:valid {
     outline: none;
@@ -563,42 +365,34 @@ function initializeStripe() {
     color: $accent1;
   }
 
-  .userbtn {
-  background-color: transparent;
-  color: $text1;
+.userbtn {
+  background-color: $accent1;
+  text-align: center;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  color: $text4;
   border-radius: 10px;
   outline: none;
   border: none;
-  background-color: $accent1;
   padding: 10px;
   margin: 10px;
-  width: 400px;
+  width: 90%;
   cursor: pointer;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
-  font-size: 16px; /* Added font size for better readability */
-  font-weight: 500; /* Added font weight for better typography */
+  font-size: 16px;
+  font-weight: bold;
 }
 
 .userbtn:hover {
   background-color: $accent2;
-  color: white;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  transform: scale(1.05); /* New animation: scale up on hover */
-  transition: all 0.3s ease-in-out; /* Changed transition timing function for smoother animation */
-}
-
-.userbtn:active {
-  transform: scale(0.95); /* New animation: scale down on click */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Reduced shadow on click */
-  transition: all 0.1s ease-out; /* Faster transition on click */
 }
 
   .signup-form {
     border: none;
     border-radius: 15px;
     padding: 30px;
-    width: 800px;
+    width: 80%;
     margin: 70px auto;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     text-align: center;
@@ -946,11 +740,11 @@ h1{
 
 /* Mobile version */
 @media (max-width: 1150px) {
-  .signup-form {
+ .signup-form {
     border: none;
     border-radius: 15px;
     padding: 30px;
-    width: 300px;
+    width: 80%;
     margin: 50px auto;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     text-align: center;
@@ -961,88 +755,29 @@ h1{
   .input {
     border: solid 2px transparent;
     border-radius: 1.5rem;
-    background-color:#2c2b3e;;
+    background-color:$base2;;
     padding: 1.5rem;
     font-size: 1.2rem;
-    width: 240px;
-    color: #f5f5f5;
+    width: 80%;
+    color: $text2;
     transition: border 150ms cubic-bezier(0.4,0,0.2,1);
   }
 
-  .userbtn {
-  background-color: transparent;
-  color: $text1;
-  border-radius: 10px;
-  outline: none;
-  border: solid 3px #8c8dfe;
-  padding: 10px;
-  margin: 10px;
-  width: 225px;
-  cursor: pointer;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-  font-size: 16px; /* Added font size for better readability */
-  font-weight: 500; /* Added font weight for better typography */
+    .userbtn {
+      width: 80%;
 }
 
-.user-label {
-    text-align: center;
+  .user-label {
     position: absolute;
-    left: 37.5px;
+    left: 10%;
+    padding-left: 1.5rem;
     bottom: 45px;
-    color: #cdcdcd;
+    color: $text2;
     pointer-events: none;
     transform: translateY(1.5rem);
     transition: 150ms cubic-bezier(0.4,0,0.2,1);
+    text-align: left;
   }
-
-  .modal {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: $base2;
-  padding: 30px;
-  border-radius: 20px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  width: 300px;
-}
-
-.checkmark {
-  width: 12px; /* Smaller width */
-  height: 6px; /* Smaller height */
-  background-color: whitesmoke;
-  border-radius: 50%; /* Make it circular */
-  margin-right: 10px;
-  display: inline-block;
-  transition: background-color 0.3s, border-color 0.3s; /* Add transition for border color */
-}
-
-.plan-options {
-    flex-direction: column;
-  }
-  
-  .plan-card {
-    margin-bottom: 20px;
-  }
-  
-  .duration-options {
-    flex-direction: column;
-  }
-  
-  .duration-option {
-    margin-bottom: 10px;
-  }
-  
-  .total-price {
-    text-align: center;
-  }
-
 }
 
 </style>

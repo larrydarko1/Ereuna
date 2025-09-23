@@ -7,6 +7,17 @@
   :defaultSymbol="defaultSymbol ?? ''"
   @select-symbol="(symbol) => { defaultSymbol = symbol; selectRow(symbol); }"
 />
+   <div class="mobilenav">
+      <button class="mnavbtn" :class="{ selected: selected === 'info' }" @click="select('info')">
+        Info
+      </button>
+      <button class="mnavbtn" :class="{ selected: selected === 'chart' }" @click="select('chart')">
+        Chart
+      </button>
+      <button class="mnavbtn" :class="{ selected: selected === 'watchlists' }" @click="select('watchlists')">
+        Watchlist
+      </button>
+    </div>
     <div id="main">
       <div id="sidebar-left" :class="{ 'hidden-mobile': selected !== 'info' }">
         <div v-if="isLoading3" style="position: relative; height: 100%;">
@@ -465,6 +476,7 @@ const selected = ref('info')
 function select(option: string) {
   selected.value = option
 }
+
 const activeIndex = ref(-1);
 const showPanel = ref(false);
 
@@ -1724,6 +1736,89 @@ function getSidebarProps(tag: string) {
   #sidebar-right {
     display: block !important;
   }
+}
+
+@media (max-width: 1150px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+
+  .navmenu {
+    display: none;
+  }
+
+  .navmenu-mobile {
+    display: flex;
+  }
+
+  .mobilenav {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    padding: 8px 12px;
+    background-color: var(--base2);
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 3px;
+  }
+
+  .mnavbtn {
+    margin-bottom: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--base3);
+    padding: 10px 30px;
+    color: var(--text1);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background-color 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
+    opacity: 0.85;
+    height: 3rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    user-select: none;
+    border: transparent;
+  }
+
+  .mnavbtn:hover {
+    background-color: var(--accent1);
+    color: var(--text3);
+    opacity: 1;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .mnavbtn.selected {
+    background-color: var(--accent1);
+    color: var(--text3);
+    opacity: 1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Make Watchlist sidebar fill 100% width on mobile */
+  #sidebar-right {
+    min-width: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    left: 0;
+    right: 0;
+    position: relative;
+    box-sizing: border-box;
+    padding: 0;
+  }
+  /* Remove extra padding from Watchlist inner containers if needed */
+  #sidebar-right > div {
+    padding: 0 !important;
+  }
+
+  #legend2 {
+    margin-top: 55px !important;
+    margin-right: 30px !important;
+  }
+
 }
 
 </style>

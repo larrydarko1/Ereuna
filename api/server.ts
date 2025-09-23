@@ -167,4 +167,3 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   });
 };
 app.use(errorHandler);
-

@@ -1,86 +1,93 @@
 <template>
-  <div v-if="mfaRequired" class="mfa-popup">
+  <div v-if="mfaRequired" class="mfa-popup" aria-modal="true" role="dialog" aria-label="Two-factor authentication">
     <h3 style="font-size: 2rem; font-weight: bold;">Enter 2FA Code</h3>
     <div class="mfa-input-group">
       <input v-for="(digit, idx) in mfaDigits" :key="idx" type="text" maxlength="1" class="mfa-digit" v-model="mfaDigits[idx]"
-        @input="focusNext(idx)" @keydown.backspace="focusPrev(idx)" :ref="el => mfaRefs[idx].value = el" autocomplete="one-time-code" />
+        @input="focusNext(idx)" @keydown.backspace="focusPrev(idx)" :ref="el => mfaRefs[idx].value = el" autocomplete="one-time-code" aria-label="2FA digit" />
     </div>
-    <button type="button" class="verify-mfa" @click="verifyMfa">Verify</button>
+    <button type="button" class="verify-mfa" @click="verifyMfa" aria-label="Verify 2FA code">Verify</button>
   </div>
-<div class="container">
-<div class="image-background">
-<h3 class="quote" v-if="quote">{{ quote.text }}</h3>
-<p class="author" v-if="quote">— {{ quote.author }}</p>
-  <img class="bg" src="@/assets/images/bg.png" alt="" draggable="false">
-</div>
-<div class="login container">
-  <div class="login-form" @keydown.enter="login()">
-    <div class="logo-container">
-      <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/ereuna.png" alt="" draggable="false">
+  <div class="container">
+    <div class="image-background">
+      <h3 class="quote" v-if="quote">{{ quote.text }}</h3>
+      <p class="author" v-if="quote">— {{ quote.author }}</p>
+      <img class="bg" src="@/assets/images/bg.png" alt="Background image" draggable="false">
     </div>
-    <br>
-    <br>
-    <div class="input-group">
-        <input required type="text" :class="error" name="Username" autocomplete="off" class="form-input">
-        <label :class="error" class="user-label">Username</label>
+    <div class="login container">
+      <form class="login-form" @submit.prevent="login" autocomplete="on" aria-label="Login form">
+        <div class="logo-container">
+          <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/ereuna.png" alt="Ereuna logo" draggable="false">
+        </div>
+        <br>
+        <br>
+        <div class="input-group">
+          <input required type="text" :class="error" name="Username" autocomplete="username" class="form-input" aria-label="Username" autofocus>
+          <label :class="error" class="user-label">Username</label>
+        </div>
+        <div class="input-group">
+          <input required :type="showPassword ? 'text' : 'password'" :class="error" name="Password" autocomplete="current-password" class="form-input" aria-label="Password">
+          <label :class="error" class="user-label">Password</label>
+          <button 
+            type="button" 
+            class="toggle-password" 
+            @click="showPassword = !showPassword"
+            aria-label="Toggle password visibility"
+          >
+            <img 
+              :src="showPassword ? hideIcon : showIcon" 
+              alt="Toggle Password Visibility" 
+              class="toggle-icon"
+            >
+          </button>
+        </div>
+        <div 
+          class="custom-checkbox" 
+          :class="{ checked: rememberMe }"
+          @click="rememberMe = !rememberMe"
+          style="justify-content: right;"
+        >
+          <input type="checkbox" v-model="rememberMe" id="remember-me-checkbox" style="display: none;">
+          <span class="checkmark"></span>
+          <label for="remember-me-checkbox" class="label-text">Remember Me</label>
+        </div>
+        <button
+          class="userbtn"
+          type="submit"
+          :disabled="isLoggingIn"
+          aria-label="Log in"
+        >
+          <span v-if="isLoaderVisible" class="loader4">
+            <svg class="spinner" viewBox="0 0 50 50">
+              <circle
+                class="path"
+                cx="25"
+                cy="25"
+                r="20"
+                fill="none"
+                stroke-width="5"
+              />
+            </svg>
+          </span>
+          {{ isLogged ? 'Welcome!' : 'Log In' }}
+        </button>
+        <br>
+        <p class="text">Don't have an account? <router-link to="/signup" class="text">Sign Up</router-link></p>
+        <p class="text forgot-password">
+          <img class="img" src="@/assets/icons/forgot.png" alt="Forgot password icon">
+          <span>Forgot your Password?</span>
+          <router-link to="/recovery" class="text">Click Here</router-link>
+        </p>
+      </form>
+      <div v-if="usernameError" class="error-popup" aria-live="polite">
+        <h3>Username doesn't exist</h3>
       </div>
-      <div class="input-group">
-        <input required :type="showPassword ? 'text' : 'password'" :class="error" name="Password" autocomplete="off" class="form-input">
-        <label :class="error" class="user-label">Password</label>
-    <button 
-  type="button" 
-  class="toggle-password" 
-  @click="showPassword = !showPassword"
->
-  <img 
-    :src="showPassword ? hideIcon : showIcon" 
-    alt="Toggle Password Visibility" 
-    class="toggle-icon"
-  >
-</button>
+      <div v-if="passwordError" class="error-popup" aria-live="polite">
+        <h3>Password is incorrect</h3>
       </div>
-  <div 
-  class="custom-checkbox" 
-  :class="{ checked: rememberMe }"
-  @click="rememberMe = !rememberMe"
-  style="justify-content: right;">
-  <input type="checkbox" v-model="rememberMe" id="remember-me-checkbox" required style="display: none;">
-  <span class="checkmark"></span>
-  <label for="remember-me-checkbox" class="label-text">Remember Me</label>
-</div>
-   <div class="userbtn" @click="login" :disabled="isLoggingIn">
-  <span v-if="isLoaderVisible" class="loader4">
-    <svg class="spinner" viewBox="0 0 50 50">
-      <circle
-        class="path"
-        cx="25"
-        cy="25"
-        r="20"
-        fill="none"
-        stroke-width="5"
-      />
-    </svg>
-  </span>
-  {{ isLogged ? 'Welcome!' : 'Log In' }}
-</div>
-    <br>
-    <p class="text">Don't have an account? <router-link to="/signup" class="text">Sign Up</router-link></p>
-    <p class="text forgot-password">
-  <img class="img" src="@/assets/icons/forgot.png" alt="">
-  <span>Forgot your Password?</span>
-  <router-link to="/recovery" class="text">Click Here</router-link>
-</p>
-  </div>
-  <div v-if="usernameError" class="error-popup">
-    <h3>Username doesn't exist</h3>
-  </div>
-  <div v-if="passwordError" class="error-popup">
-    <h3>Password is incorrect</h3>
-  </div>
-  <div v-if="fieldsError" class="error-popup">
-    <h3>Please fill both username and password fields</h3>
-  </div>
-  </div>
+      <div v-if="fieldsError" class="error-popup" aria-live="polite">
+        <h3>Please fill both username and password fields</h3>
+      </div>
+    </div>
   </div>
   <NotificationPopup ref="notification" />
 </template>
@@ -186,23 +193,30 @@ onMounted(() => {
   quote.value = quotes[randomIndex];
 });
 
+
 const router = useRouter();
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
-const welcomePopup = ref(false);
 const rememberMe = ref(false);
 const showPassword = ref(false);
-const mfaError = ref(false);
 const mfaRequired = ref(false);
 const mfaDigits = ref(['', '', '', '', '', '']);
 const storedUsername = ref('');
-const welcomeMessage = ref('');
 
 type MFARef = Ref<Element | ComponentPublicInstance | null>;
 const mfaRefs: MFARef[] = Array.from({ length: 6 }, () => ref<Element | ComponentPublicInstance | null>(null));
 
+
+// Type for login API response
+type LoginResponse = {
+  mfaRequired?: boolean;
+  token?: string;
+  message?: string;
+};
+
 async function login() {
   isLogged.value = false;
   isLoaderVisible.value = false;
+  isLoggingIn.value = true;
   const usernameInput = document.querySelector('input[name="Username"]') as HTMLInputElement | null;
   const passwordInput = document.querySelector('input[name="Password"]') as HTMLInputElement | null;
 
@@ -212,14 +226,11 @@ async function login() {
   // Update the stored username
   storedUsername.value = username;
 
-  // Reset all error states
-  welcomePopup.value = false;
-
   // Check for empty fields first
   if (!username || !password) {
-  if (notification.value) notification.value.show('Please fill both username and password fields');
-  if (!username && usernameInput) usernameInput.classList.add('error');
-  if (!password && passwordInput) passwordInput.classList.add('error');
+    if (notification.value) notification.value.show('Please fill both username and password fields');
+    if (!username && usernameInput) usernameInput.classList.add('error');
+    if (!password && passwordInput) passwordInput.classList.add('error');
     return;
   }
 
@@ -237,9 +248,10 @@ async function login() {
       })
     });
 
-    const responseBody = await response.json();
+    const responseBody: LoginResponse = await response.json();
 
     if (response.ok) {
+      isLoggingIn.value = false;
       if (responseBody.mfaRequired) {
         mfaRequired.value = true;
         mfaDigits.value = ['', '', '', '', '', ''];
@@ -249,53 +261,54 @@ async function login() {
         }
       } else {
         // MFA verification not required, proceed with login
-  isLogged.value = true;
-  isLoaderVisible.value = true;
-  const token = responseBody.token;
-  localStorage.setItem('token', token);
-  // Immediately update Pinia user store after login
-  const { useUserStore } = await import('@/store/store');
-  const userStore = useUserStore();
-  userStore.loadUserFromToken();
-  // Robust theme restore after login
-  const themes = [
-    'default', 'ihatemyeyes', 'colorblind', 'catpuccin', 'black',
-    'nord', 'dracula', 'gruvbox', 'tokyo-night', 'solarized',
-    'synthwave', 'github-dark', 'everforest', 'ayu-dark', 'rose-pine',
-    'material', 'one-dark', 'night-owl', 'panda', 'monokai-pro',
-    'tomorrow-night', 'oceanic-next', 'palenight', 'cobalt', 'poimandres',
-    'github-light', 'neon', 'moonlight', 'nightfox', 'spacemacs',
-    'borland', 'amber', 'cyberpunk', 'matrix', 'sunset',
-    'deep-ocean', 'gotham', 'retro', 'spotify', 'autumn',
-    'noctis', 'iceberg', 'tango', 'horizon', 'railscasts',
-    'vscode-dark', 'slack-dark', 'mintty', 'atom-one', 'light-owl'
-  ];
-  let theme = localStorage.getItem('user-theme') || 'default';
-  try {
-    const apiKey = import.meta.env.VITE_EREUNA_KEY;
-    const response = await fetch('/api/load-theme', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-KEY': apiKey,
-      },
-      body: JSON.stringify({ username }),
-    });
-    const data = await response.json();
-    if (data.theme) {
-      theme = data.theme;
-      localStorage.setItem('user-theme', theme);
-    }
-  } catch (err) {
-    // fallback to localStorage/default
-  }
-  const root = document.documentElement;
-  root.classList.remove(...themes);
-  root.classList.add(theme);
-  userStore.setTheme(theme);
-  router.push({ name: 'Dashboard' });
+        isLogged.value = true;
+        isLoaderVisible.value = true;
+        const token = responseBody.token;
+        if (token) localStorage.setItem('token', token);
+        // Immediately update Pinia user store after login
+        const { useUserStore } = await import('@/store/store');
+        const userStore = useUserStore();
+        userStore.loadUserFromToken();
+        // Robust theme restore after login
+        const themes = [
+          'default', 'ihatemyeyes', 'colorblind', 'catpuccin', 'black',
+          'nord', 'dracula', 'gruvbox', 'tokyo-night', 'solarized',
+          'synthwave', 'github-dark', 'everforest', 'ayu-dark', 'rose-pine',
+          'material', 'one-dark', 'night-owl', 'panda', 'monokai-pro',
+          'tomorrow-night', 'oceanic-next', 'palenight', 'cobalt', 'poimandres',
+          'github-light', 'neon', 'moonlight', 'nightfox', 'spacemacs',
+          'borland', 'amber', 'cyberpunk', 'matrix', 'sunset',
+          'deep-ocean', 'gotham', 'retro', 'spotify', 'autumn',
+          'noctis', 'iceberg', 'tango', 'horizon', 'railscasts',
+          'vscode-dark', 'slack-dark', 'mintty', 'atom-one', 'light-owl'
+        ];
+        let theme = localStorage.getItem('user-theme') || 'default';
+        try {
+          const apiKey = import.meta.env.VITE_EREUNA_KEY;
+          const response = await fetch('/api/load-theme', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-KEY': apiKey,
+            },
+            body: JSON.stringify({ username }),
+          });
+          const data = await response.json();
+          if (data.theme) {
+            theme = data.theme;
+            localStorage.setItem('user-theme', theme);
+          }
+        } catch (err) {
+          // fallback to localStorage/default
+        }
+        const root = document.documentElement;
+        root.classList.remove(...themes);
+        root.classList.add(theme);
+        userStore.setTheme(theme);
+        router.push({ name: 'Dashboard' });
       }
     } else {
+      isLoggingIn.value = false;
       // Use exact string matching
       if (responseBody.message === 'Username doesn\'t exist') {
         if (notification.value) notification.value.show('Username doesn\'t exist');
@@ -314,6 +327,7 @@ async function login() {
       }
     }
   } catch (err) {
+    isLoggingIn.value = false;
     error.value = err instanceof Error ? err.message : String(err);
   }
 }
@@ -354,7 +368,7 @@ async function verifyMfa() {
       isLoaderVisible.value = true;
       const token = mfaResponseBody.token;
       localStorage.setItem('token', token);
-      router.push({ name: 'Charts' });
+      router.push({ name: 'Dashboard' });
       mfaRequired.value = false;
     } else {
       if (notification.value) notification.value.show('Invalid MFA Code, try again.');
@@ -588,11 +602,11 @@ p{
 .form-input {
   border: solid 2px transparent;
   border-radius: 1.5rem;
-  background-color:#2c2b3e;
+  background-color:$base2;
   padding: 1.5rem;
   font-size: 1.2rem;
   width: 400px;
-  color: #f5f5f5;
+  color: $text2;
   transition: border 150ms cubic-bezier(0.4,0,0.2,1);
 }
 
@@ -601,7 +615,7 @@ p{
   position: absolute;
   left: 30px;
   bottom: 45px;
-  color: #cdcdcd;
+  color: $text2;
   pointer-events: none;
   transform: translateY(1.5rem);
   transition: 150ms cubic-bezier(0.4,0,0.2,1);
@@ -609,14 +623,14 @@ p{
 
 .form-input:focus, .form-input:valid {
   outline: none;
-  border: 2px solid #8c8dfe;
+  border: 2px solid $accent1;
 }
 
 .form-input:focus ~ label, .form-input:valid ~ label {
   transform: translateY(-50%) scale(0.8);
   background-color: #212121;
   padding: 0 .4em;
-  color: #8c8dfe;
+  color: $accent1;
 }
 
 .userbtn {
