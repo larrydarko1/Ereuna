@@ -7,7 +7,11 @@
     <div class="twofa-toggle">
       <label>
         <div class="twofa-toggle-switch" :class="{ 'twofa-toggle-switch-checked': isTwoFaEnabled }"
-          @click="toggleTwoFa()"></div>
+          @click="toggleTwoFa()"
+          role="switch"
+          :aria-checked="isTwoFaEnabled ? 'true' : 'false'"
+          aria-label="Enable two-factor authentication toggle"
+        ></div>
         <span class="twofa-toggle-label">Enable 2FA</span>
       </label>
     </div>
@@ -17,8 +21,27 @@
       </div>
       <br><br>
       <div v-if="showVerificationInput">
-        <input v-model="mfaCode" placeholder="Enter verification code" class="twofa-input" />
-        <button class="twofa-btn" @click="confirmTwoFa">Confirm 2FA</button>
+        <div class="twofa-row">
+          <input v-model="mfaCode" placeholder="Enter verification code" class="twofa-input" maxlength="6" inputmode="numeric" pattern="[0-9]*" />
+          <button class="twofa-btn" @click="confirmTwoFa" :disabled="loading">
+            <span class="btn-content-row">
+              <span v-if="loading" class="loader4">
+                <svg class="spinner" viewBox="0 0 50 50">
+                  <circle
+                    class="path"
+                    cx="25"
+                    cy="25"
+                    r="20"
+                    fill="none"
+                    stroke-width="5"
+                  />
+                </svg>
+              </span>
+              <span v-if="!loading">Confirm 2FA</span>
+              <span v-else style="margin-left: 8px;">Processing...</span>
+            </span>
+          </button>
+        </div>
         <div v-if="error" class="error">{{ error }}</div>
       </div>
     </div>
@@ -27,7 +50,7 @@
 
 <script setup lang="ts">
 import QrcodeVue from 'qrcode.vue'
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, defineEmits } from 'vue';
 
 const props = defineProps({
   user: {
@@ -40,12 +63,15 @@ const props = defineProps({
   }
 });
 
+const emit = defineEmits(['notify']);
+
 const isTwoFaEnabled = ref(false);
 const qrCode = ref('');
 const secret = ref('');
 const mfaCode = ref('');
 const showVerificationInput = ref(false);
 const error = ref('');
+const loading = ref(false);
 
 onMounted(async () => {
   const username = props.user;
@@ -156,8 +182,10 @@ async function toggleTwoFa() {
         showVerificationInput.value = false;
         mfaCode.value = '';
         error.value = '';
+        emit('notify', 'Two-factor authentication disabled.');
       } else {
         error.value = data.message || 'Failed to disable 2FA';
+        emit('notify', error.value);
       }
     } catch (err) {
       let errorMsg = 'Unknown error';
@@ -173,6 +201,8 @@ async function toggleTwoFa() {
 
 async function confirmTwoFa() {
   const username = props.user;
+  loading.value = true;
+  error.value = '';
   try {
     const response = await fetch('/api/twofa', {
       method: 'POST',
@@ -192,18 +222,16 @@ async function confirmTwoFa() {
     if (data.message === '2FA enabled') {
       showVerificationInput.value = false;
       error.value = '';
-      // Optionally show a success message
+      emit('notify', 'Two-factor authentication enabled!');
     } else {
-      error.value = data.message || 'Verification failed';
+      error.value = data.message && typeof data.message === 'string' ? data.message : 'Verification failed';
+      emit('notify', error.value);
     }
   } catch (err) {
-    let errorMsg = 'Unknown error';
-    if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string') {
-      errorMsg = (err as any).message;
-    } else if (typeof err === 'string') {
-      errorMsg = err;
-    }
-    error.value = errorMsg;
+    error.value = 'Something went wrong. Please try again.';
+    emit('notify', error.value);
+  } finally {
+    loading.value = false;
   }
 }
 </script>
@@ -289,9 +317,13 @@ async function confirmTwoFa() {
   font-weight: bold;
   border: none;
   outline: none;
-  padding: 10px;
+  padding: 0 16px;
   margin: 5px;
   width: 150px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -305,15 +337,17 @@ async function confirmTwoFa() {
 }
 .twofa-input {
   border-radius: 5px;
-  padding: 10px 10px 10px 15px;
+  padding: 0 16px;
   margin: 7px;
   width: 160px;
+  height: 40px;
   font-weight: bold;
   outline: none;
   color: var(--base3);
   transition: border-color 0.3s, box-shadow 0.3s;
   border: solid 1px var(--base4);
   background-color: var(--base4);
+  color: var(--text1);
 }
 .error {
   color: #e74c3c;
@@ -321,7 +355,57 @@ async function confirmTwoFa() {
   font-size: 13px;
 }
 
-@media (max-width: 1150px) {
+.twofa-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
 
+/* Spinner and loader4 styles from Renew.vue */
+.btn-content-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.loader4 {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  margin-right: 10px;
+}
+.spinner {
+  animation: rotate 2s linear infinite;
+  width: 24px;
+  height: 24px;
+}
+.path {
+  stroke: #000000;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
 }
 </style>

@@ -118,6 +118,7 @@
             <ul>
               <li v-for="s in topSectors" :key="s.sector">
                 {{ s.sector }} <span class="positive">{{ s.avgReturnStr }}</span>
+                <span class="count">({{ s.count }})</span>
               </li>
             </ul>
           </div>
@@ -126,6 +127,7 @@
             <ul>
               <li v-for="s in bottomSectors" :key="s.sector">
                 {{ s.sector }} <span class="negative">{{ s.avgReturnStr }}</span>
+                <span class="count">({{ s.count }})</span>
               </li>
             </ul>
           </div>
@@ -134,6 +136,7 @@
             <ul>
               <li v-for="i in topIndustries" :key="i.industry">
                 {{ i.industry }} <span class="positive">{{ i.avgReturnStr }}</span>
+                <span class="count">({{ i.count }})</span>
               </li>
             </ul>
           </div>
@@ -142,6 +145,7 @@
             <ul>
               <li v-for="i in bottomIndustries" :key="i.industry">
                 {{ i.industry }} <span class="negative">{{ i.avgReturnStr }}</span>
+                <span class="count">({{ i.count }})</span>
               </li>
             </ul>
           </div>
@@ -213,8 +217,8 @@ interface IndexData {
 interface MarketStats {
   top10DailyGainers: Array<{ symbol: string; daily_return: number }>;
   top10DailyLosers: Array<{ symbol: string; daily_return: number }>;
-  sectorTierList: Array<{ sector: string; average_return: number }>;
-  industryTierList: Array<{ industry: string; average_return: number }>;
+  sectorTierList: Array<{ sector: string; average_return: number; count: number }>;
+  industryTierList: Array<{ industry: string; average_return: number; count: number }>;
   indexPerformance: Record<string, IndexPerformance>;
   [key: string]: any;
 }
@@ -253,10 +257,11 @@ const topSectors = computed(() => {
   if (!marketStats.value?.sectorTierList) return [];
   return [...marketStats.value.sectorTierList]
     .sort((a, b) => b.average_return - a.average_return)
-    .slice(0, 3)
+    .slice(0, 5)
     .map(s => ({
       sector: s.sector,
-      avgReturnStr: (s.average_return * 100 > 0 ? '+' : '') + (s.average_return * 100).toFixed(2) + '%'
+      avgReturnStr: (s.average_return * 100 > 0 ? '+' : '') + (s.average_return * 100).toFixed(2) + '%',
+      count: s.count
     }));
 });
 
@@ -264,10 +269,11 @@ const bottomSectors = computed(() => {
   if (!marketStats.value?.sectorTierList) return [];
   return [...marketStats.value.sectorTierList]
     .sort((a, b) => a.average_return - b.average_return)
-    .slice(0, 3)
+    .slice(0, 5)
     .map(s => ({
       sector: s.sector,
-      avgReturnStr: (s.average_return * 100 > 0 ? '+' : '') + (s.average_return * 100).toFixed(2) + '%'
+      avgReturnStr: (s.average_return * 100 > 0 ? '+' : '') + (s.average_return * 100).toFixed(2) + '%',
+      count: s.count
     }));
 });
 
@@ -275,10 +281,11 @@ const topIndustries = computed(() => {
   if (!marketStats.value?.industryTierList) return [];
   return [...marketStats.value.industryTierList]
     .sort((a, b) => b.average_return - a.average_return)
-    .slice(0, 3)
+    .slice(0, 5)
     .map(i => ({
       industry: i.industry,
-      avgReturnStr: (i.average_return * 100 > 0 ? '+' : '') + (i.average_return * 100).toFixed(2) + '%'
+      avgReturnStr: (i.average_return * 100 > 0 ? '+' : '') + (i.average_return * 100).toFixed(2) + '%',
+      count: i.count
     }));
 });
 
@@ -286,10 +293,11 @@ const bottomIndustries = computed(() => {
   if (!marketStats.value?.industryTierList) return [];
   return [...marketStats.value.industryTierList]
     .sort((a, b) => a.average_return - b.average_return)
-    .slice(0, 3)
+    .slice(0, 5)
     .map(i => ({
       industry: i.industry,
-      avgReturnStr: (i.average_return * 100 > 0 ? '+' : '') + (i.average_return * 100).toFixed(2) + '%'
+      avgReturnStr: (i.average_return * 100 > 0 ? '+' : '') + (i.average_return * 100).toFixed(2) + '%',
+      count: i.count
     }));
 });
 
@@ -409,7 +417,7 @@ function updateDateTime() {
 }
 
 // SMA data from API
-const smaPeriods = [10, 20, 50, 100, 200];
+const smaPeriods = [5, 10, 20, 50, 100, 150, 200];
 const smaData = ref<SmaData[]>([]);
 
 function updateSmaData() {

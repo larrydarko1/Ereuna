@@ -78,7 +78,7 @@ const props = defineProps({
   required: true
 }
 })
-const emit = defineEmits(['close', 'sell'])
+const emit = defineEmits(['close', 'sell', 'notify'])
 
 const today = new Date().toISOString().slice(0, 10)
 const sellDate = ref(today)
@@ -99,9 +99,40 @@ watch(() => props.currentPrice, (val) => { if (val) sellPrice.value = val })
 function close() {
   emit('close')
 }
+const loading = ref(false)
+const errorMsg = ref('')
+
+function validateInputs() {
+  if (!props.symbol || typeof props.symbol !== 'string') {
+    errorMsg.value = 'Invalid symbol.'
+    return false
+  }
+  if (!sellDate.value) {
+    errorMsg.value = 'Date is required.'
+    return false
+  }
+  if (isNaN(sellShares.value) || sellShares.value < 1 || (props.maxShares !== undefined && sellShares.value > props.maxShares)) {
+    errorMsg.value = `Shares must be between 1 and ${props.maxShares}`
+    return false
+  }
+  if (isNaN(sellPrice.value) || sellPrice.value <= 0) {
+    errorMsg.value = 'Price must be greater than 0.'
+    return false
+  }
+  if (isNaN(sellCommission.value) || sellCommission.value < 0) {
+    errorMsg.value = 'Commission must be 0 or positive.'
+    return false
+  }
+  errorMsg.value = ''
+  return true
+}
 
 async function submitSell() {
-  if (props.maxShares !== undefined && sellShares.value > props.maxShares) return
+  if (!validateInputs()) {
+    emit('notify', errorMsg.value)
+    return
+  }
+  loading.value = true
   const trade = {
     Symbol: props.symbol,
     Shares: sellShares.value,
@@ -125,13 +156,17 @@ async function submitSell() {
       })
     })
     if (!response.ok) {
+      emit('notify', 'Failed to add trade')
       throw new Error('Failed to add trade')
     }
     emit('sell', trade)
+    emit('notify', 'Trade added successfully!')
   } catch (error) {
-    // Optionally handle error
+    emit('notify', 'Error adding trade')
+  } finally {
+    loading.value = false
+    close()
   }
-  close()
 }
 </script>
 
@@ -159,6 +194,21 @@ async function submitSell() {
   flex-direction: column;
   gap: 18px;
   animation: popup-in 0.18s cubic-bezier(.4,1.4,.6,1) backwards;
+}
+/* Loader styles from BaseValue */
+.loader {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--accent1);
+  border-radius: 50%;
+  border-top: 3px solid var(--base3);
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 @keyframes popup-in {
   from { transform: translateY(30px) scale(0.98); opacity: 0; }

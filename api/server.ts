@@ -102,7 +102,7 @@ const bruteForceProtection = rateLimit({
 });
 
 // Apply CORS and Brute Force Protection (max 10 requests per minute)
-app.use(/^\/(login|signup|verify|recover|generate-key|download-key|retrieve-key|password-change|change-password2|change-username|account-delete|verify-mfa|twofa)(\/.*)?$/, cors(corsOptions), bruteForceProtection);
+app.use(/^\/(login|signup-paywall|verify|recover|generate-key|download-key|retrieve-key|password-change|change-password2|change-username|account-delete|verify-mfa|twofa)(\/.*)?$/, cors(corsOptions), bruteForceProtection);
 
 // SSL/TLS Certificate options
 let options;

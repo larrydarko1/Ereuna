@@ -3,8 +3,16 @@
   <div id="main">
     <div class="sidebar">
       <div class="inner2">
-        <div class="menu-wrapper">
-          <div class="menu selected" @click="selectMenu($event, 0)">
+        <div class="menu-wrapper" role="menu" aria-label="User settings menu">
+          <div
+            class="menu"
+            :class="{ selected: selectedIndex === 0 }"
+            role="menuitem"
+            aria-label="Account"
+            tabindex="0"
+            @click="selectMenu(0, $event)"
+            @keydown.enter="selectMenu(0, $event)"
+          >
             <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20"
               height="20" aria-hidden="true" focusable="false">
               <path
@@ -12,7 +20,15 @@
             </svg>
             Account
           </div>
-          <div class="menu" @click="selectMenu($event, 1)">
+          <div
+            class="menu"
+            :class="{ selected: selectedIndex === 1 }"
+            role="menuitem"
+            aria-label="Subscription"
+            tabindex="0"
+            @click="selectMenu(1, $event)"
+            @keydown.enter="selectMenu(1, $event)"
+          >
             <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20"
               height="20" aria-hidden="true" focusable="false">
               <path
@@ -20,7 +36,15 @@
             </svg>
             Subscription
           </div>
-          <div class="menu" @click="selectMenu($event, 2)">
+          <div
+            class="menu"
+            :class="{ selected: selectedIndex === 2 }"
+            role="menuitem"
+            aria-label="Themes"
+            tabindex="0"
+            @click="selectMenu(2, $event)"
+            @keydown.enter="selectMenu(2, $event)"
+          >
             <svg class="icon" version="1.1" id="_x32_" xmlns="http://www.w3.org/2000/svg"
               xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" fill="currentColor">
               <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -51,7 +75,15 @@
             </svg>
             Themes
           </div>
-          <div class="menu" @click="selectMenu($event, 3)">
+          <div
+            class="menu"
+            :class="{ selected: selectedIndex === 3 }"
+            role="menuitem"
+            aria-label="Security / 2FA"
+            tabindex="0"
+            @click="selectMenu(3, $event)"
+            @keydown.enter="selectMenu(3, $event)"
+          >
             <svg class="icon" version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
               xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64 64" enable-background="new 0 0 64 64"
               xml:space="preserve" fill="currentColor">
@@ -64,7 +96,15 @@
               </g>
             </svg>Security / 2FA
           </div>
-          <div class="menu" @click="selectMenu($event, 4)">
+          <div
+            class="menu"
+            :class="{ selected: selectedIndex === 4 }"
+            role="menuitem"
+            aria-label="Communications"
+            tabindex="0"
+            @click="selectMenu(4, $event)"
+            @keydown.enter="selectMenu(4, $event)"
+          >
             <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
               <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -82,35 +122,49 @@
     <div class="content">
       <div v-if="selectedIndex === 0">
         <AccountSettings
+          v-if="!loading.account"
+          :user="user?.Username ?? ''"
+          :apiKey="apiKey"
+          :formatDate="formatDate"
+           @notify="showNotification"
+        />
+        <Loader v-else />
+      </div>
+      <div v-if="selectedIndex === 1">
+        <Subscription
+          v-if="!loading.subscription"
           :user="user?.Username ?? ''"
           :apiKey="apiKey"
           :formatDate="formatDate"
         />
+        <Loader v-else />
       </div>
-<div v-if="selectedIndex === 1">
-<Subscription
-:user="user?.Username ?? ''"
-:apiKey="apiKey"
-:formatDate="formatDate"
-/>
-</div>
-<div v-if="selectedIndex === 2">
-<Themes 
-:apiKey="apiKey" 
-:user="user?.Username ?? ''"
-/>
-</div>
+      <div v-if="selectedIndex === 2">
+        <Themes
+          v-if="!loading.themes"
+          :apiKey="apiKey"
+          :user="user?.Username ?? ''"
+          @notify="showNotification"
+        />
+        <Loader v-else />
+      </div>
       <div v-if="selectedIndex === 4">
         <Communications
-        :apiKey="apiKey" 
-        :formatDate="formatDate"
+          v-if="!loading.communications"
+          :apiKey="apiKey"
+          :formatDate="formatDate"
+          @notify="showNotification"
         />
+        <Loader v-else />
       </div>
       <div v-if="selectedIndex === 3">
-        <TwoFA 
-        :apiKey="apiKey"
-        :user="user?.Username ?? ''"
+        <TwoFA
+          v-if="!loading.twofa"
+          :apiKey="apiKey"
+          :user="user?.Username ?? ''"
+          @notify="showNotification"
         />
+        <Loader v-else />
       </div>
     </div>
   </div>
@@ -120,8 +174,9 @@
 <script setup lang="ts">
 import Header from '@/components/Header.vue'
 import { useUserStore } from '@/store/store';
-import { ref, computed } from 'vue';
+import { ref, computed, watchEffect } from 'vue';
 import NotificationPopup from '@/components/NotificationPopup.vue';
+import Loader from '@/components/loader.vue';
 
 // Component Sections
 import TwoFA from '@/components/User/2FA.vue';
@@ -136,25 +191,45 @@ const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 // for popup notifications
 const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
-const showNotification = () => {
+const showNotification = (msg: string) => {
   if (notification.value) {
-    notification.value.show('This is a custom notification message!');
+    notification.value.show(msg);
   }
 };
 
-let selectedIndex = ref(0);
 
-function selectMenu(event: MouseEvent, index: number) {
-  const menus = document.querySelectorAll('.menu');
-  menus.forEach((menu, i) => {
-    if (i === index) {
-      menu.classList.add('selected');
-    } else {
-      menu.classList.remove('selected');
-    }
-  });
+let selectedIndex = ref(0);
+// Loading and error state for each section
+const loading = ref({
+  account: false,
+  subscription: false,
+  themes: false,
+  communications: false,
+  twofa: false
+});
+const error = ref({
+  account: '',
+  subscription: '',
+  themes: '',
+  communications: '',
+  twofa: ''
+});
+
+type SectionKey = 'account' | 'subscription' | 'themes' | 'twofa' | 'communications';
+const sectionKeys: SectionKey[] = ['account', 'subscription', 'themes', 'twofa', 'communications'];
+
+function selectMenu(index: number, event?: MouseEvent | KeyboardEvent) {
   selectedIndex.value = index;
+  const key = sectionKeys[index];
+  if (key) {
+    loading.value[key] = true;
+    error.value[key] = '';
+    setTimeout(() => {
+      loading.value[key] = false;
+    }, 500);
+  }
 }
+
 
 function formatDate(bsonDate: string | number | Date) {
   const date = new Date(bsonDate);
@@ -167,6 +242,15 @@ function formatDate(bsonDate: string | number | Date) {
     hour12: false
   });
 }
+
+// Watch for errors and show notification if any
+watchEffect(() => {
+  Object.entries(error.value).forEach(([key, val]) => {
+    if (val) {
+      showNotification(val);
+    }
+  });
+});
 
 </script>
 

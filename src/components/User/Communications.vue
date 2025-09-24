@@ -2,7 +2,7 @@
   <div v-if="communications.length === 0" style="margin-top: 30px;">
           <p>No communications found.</p>
         </div>
-        <div v-else class="communications-list">
+        <div v-else class="communications-list" role="region" aria-label="Communications list">
           <div v-for="(comm, idx) in communications" :key="idx" class="communication-message">
             <h2 class="comm-header">{{ comm.header }}</h2>
             <span class="comm-date">
@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, defineEmits } from 'vue';
 
 const props = defineProps({
   apiKey: {
@@ -27,8 +27,15 @@ const props = defineProps({
   }
 });
 
+const emit = defineEmits(['notify']);
 
-const communications = ref<any[]>([]); // list of communications as a ref
+interface Communication {
+  header: string;
+  message: string;
+  publishedDate: string | number | Date;
+}
+
+const communications = ref<Communication[]>([]); // list of communications as a ref
 
 async function fetchCommunications() {
   try {
@@ -63,6 +70,7 @@ async function fetchCommunications() {
     if (typeof err === 'object' && err !== null && 'name' in err && (err as any).name === 'AbortError') {
       return;
     }
+    emit('notify', 'Failed to load communications. Please try again later.');
     communications.value = [];
   }
 }

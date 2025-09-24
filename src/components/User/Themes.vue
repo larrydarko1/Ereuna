@@ -1,16 +1,22 @@
 <template>
  <div class="theme-buttons">
-        <button v-for="(theme, index) in themes" :key="index" @click="setTheme(theme)"
-          :class="{ active: currentTheme === theme }">
-          {{ themeDisplayNames[theme] }}
-        </button>
-        <div class="theme-spacer"></div>
-      </div>
+   <button
+     v-for="(theme, index) in themes"
+     :key="index"
+     @click="setTheme(theme)"
+     :class="{ active: currentTheme === theme }"
+     :aria-pressed="currentTheme === theme ? 'true' : 'false'"
+     :disabled="loading"
+   >
+     {{ themeDisplayNames[theme] }}
+   </button>
+   <div class="theme-spacer"></div>
+ </div>
 </template>
 
 <script setup lang="ts">
-
 import { computed, ref, onMounted, watch } from 'vue';
+import { defineEmits } from 'vue';
 import { useUserStore } from '@/store/store';
 
 const props = defineProps({
@@ -38,7 +44,8 @@ const themes = [
 ];
 const userStore = useUserStore();
 const currentTheme = computed(() => userStore.currentTheme);
-const error = ref<string | null>(null);
+const loading = ref(false);
+const emit = defineEmits(['notify']);
 
 // Ensure the theme class is always applied on mount and whenever the store value changes
 onMounted(() => {
@@ -106,6 +113,8 @@ const themeDisplayNames: Record<string, string> = {
 };
 
 async function setTheme(newTheme: string) {
+  if (loading.value) return;
+  loading.value = true;
   const root = document.documentElement;
   root.classList.remove(...themes);
   root.classList.add(newTheme);
@@ -121,14 +130,12 @@ async function setTheme(newTheme: string) {
     });
     const data = await response.json();
     if (data.message !== 'Theme updated') {
-      error.value = typeof data.message === 'string' ? data.message : 'Unknown error';
+      emit('notify', 'Failed to save theme. Please try again.');
     }
   } catch (err) {
-    if (err instanceof Error) {
-      error.value = err.message;
-    } else {
-      error.value = 'Unknown error';
-    }
+    emit('notify', 'Failed to save theme. Please try again.');
+  } finally {
+    loading.value = false;
   }
 }
 
@@ -167,6 +174,5 @@ async function setTheme(newTheme: string) {
   background-color: var(--accent2);
   color: var(--text3);
 }
-
 
 </style>
