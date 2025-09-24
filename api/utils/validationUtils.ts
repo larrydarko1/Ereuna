@@ -650,7 +650,15 @@ const validationSchemas = {
 import { Request, Response, NextFunction } from 'express';
 const validate = (validations: any[]) => {
     return async (req: Request, res: Response, next: NextFunction) => {
-        await Promise.all(validations.map((validation: any) => validation.run(req)));
+        // Flatten validations in case of nested arrays (e.g., spread operator or grouped schemas)
+        const flatValidations = validations.flat(Infinity);
+        await Promise.all(flatValidations.map((validation: any) => {
+            if (typeof validation.run === 'function') {
+                return validation.run(req);
+            }
+            // If not a validation chain, skip (or throw if strict)
+            return Promise.resolve();
+        }));
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -673,8 +681,67 @@ const sanitizeInput = (input: string): string => {
     return validator.trim(validator.escape(input));
 };
 
-// Comprehensive Validation Sets
+// Validation for /signup-paywall endpoint (A/B paywall signup)
+const signupPaywall = [
+    validationSchemas.username(),
+    validationSchemas.password(),
+    body('payment_method_id')
+        .notEmpty().withMessage('Payment method ID is required'),
+    body('duration')
+        .isInt({ min: 1, max: 12 }).withMessage('Invalid duration').toInt(),
+    body('country')
+        .isString().isLength({ min: 2, max: 2 }).withMessage('Invalid country code'),
+    body('vat')
+        .isFloat({ min: 0, max: 1 }).withMessage('Invalid VAT rate').toFloat(),
+    body('total')
+        .isInt({ min: 50 }).withMessage('Invalid total price (must be integer cents, min 50)'),
+    body('promoCode')
+        .optional()
+        .trim()
+        .isLength({ max: 10 }).withMessage('Promo code cannot exceed 10 characters')
+        .matches(/^[A-Z0-9]+$/).withMessage('Promo code can only contain uppercase letters and numbers')
+];
+
+const renewalPaywall = [
+    // Username is sent as 'user' from frontend
+    validationSchemas.user(),
+    // payment_method_id is required
+    body('payment_method_id')
+        .notEmpty().withMessage('Payment method ID is required'),
+    // duration: integer, 1-12
+    body('duration')
+        .isInt({ min: 1, max: 12 }).withMessage('Invalid duration').toInt(),
+    // country: 2-letter string
+    body('country')
+        .isString().isLength({ min: 2, max: 2 }).withMessage('Invalid country code'),
+    // vat: float 0-1
+    body('vat')
+        .isFloat({ min: 0, max: 1 }).withMessage('Invalid VAT rate').toFloat(),
+    // total: string, decimal format
+    body('total')
+        .isInt({ min: 50 }).withMessage('Invalid total price (must be integer cents, min 50)'),
+    // promoCode: optional, up to 10 chars, uppercase letters/numbers
+    body('promoCode')
+        .optional()
+        .trim()
+        .isLength({ max: 10 }).withMessage('Promo code cannot exceed 10 characters')
+        .matches(/^[A-Z0-9]+$/).withMessage('Promo code can only contain uppercase letters and numbers')
+];
+
+const refundRequest = [
+    validationSchemas.user(),
+    body('amount')
+        .isInt({ min: 50 }).withMessage('Invalid refund amount (must be integer cents, min 50)').toInt(),
+    body('paymentIntentId')
+        .notEmpty().withMessage('PaymentIntentId is required')
+        .isString().withMessage('PaymentIntentId must be a string'),
+];
+
+
 const validationSets = {
+    signupPaywall,
+    renewalPaywall,
+    refundRequest,
     // Registration Validation
     registration: [
         validationSchemas.username(),

@@ -21,8 +21,22 @@
         <span v-if="recoveryKeyError" id="recoveryKeyErrorMsg" class="sr-only">Invalid recovery key</span>
       </div>
       <button class="userbtn" @click="validateRecoveryKey" :disabled="loading">
-        <span v-if="loading">Validating...</span>
-        <span v-else>Recover Account</span>
+        <span class="btn-content-row">
+          <span v-if="loading" class="loader4">
+            <svg class="spinner" viewBox="0 0 50 50">
+              <circle
+                class="path"
+                cx="25"
+                cy="25"
+                r="20"
+                fill="none"
+                stroke-width="5"
+              />
+            </svg>
+          </span>
+          <span v-if="!loading">Recover Account</span>
+          <span v-else style="margin-left: 8px;">Validating...</span>
+        </span>
       </button>
     </div>
 
@@ -62,8 +76,22 @@
         <span v-if="confirmPasswordError" id="confirmPasswordErrorMsg" class="sr-only">Passwords do not match</span>
       </div>
       <button class="userbtn" @click="changePassword" :disabled="loading">
-        <span v-if="loading">Changing...</span>
-        <span v-else>Change Password</span>
+        <span class="btn-content-row">
+          <span v-if="loading" class="loader4">
+            <svg class="spinner" viewBox="0 0 50 50">
+              <circle
+                class="path"
+                cx="25"
+                cy="25"
+                r="20"
+                fill="none"
+                stroke-width="5"
+              />
+            </svg>
+          </span>
+          <span v-if="!loading">Change Password</span>
+          <span v-else style="margin-left: 8px;">Changing...</span>
+        </span>
       </button>
     </div>
   </div>
@@ -272,6 +300,7 @@ const changePassword = async (): Promise<void> => {
   outline: none;
   border: none;
   padding: 10px;
+  height: 40px;
   margin: 10px;
   width: 400px;
   cursor: pointer;
@@ -333,4 +362,46 @@ const changePassword = async (): Promise<void> => {
   transition: border 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 }
+  .btn-content-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  .loader4 {
+    display: flex;
+    align-items: center;
+    height: 20px;
+    margin-right: 10px;
+  }
+  .spinner {
+    animation: rotate 2s linear infinite;
+    width: 25px;
+    height: 25px;
+  }
+  .path {
+    stroke: #000000;
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+  }
+  @keyframes rotate {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes dash {
+    0% {
+      stroke-dasharray: 1, 150;
+      stroke-dashoffset: 0;
+    }
+    50% {
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: -35;
+    }
+    100% {
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: -124;
+    }
+  }
 </style>

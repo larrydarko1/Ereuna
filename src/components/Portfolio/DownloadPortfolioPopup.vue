@@ -1,14 +1,14 @@
 <template>
-  <div class="download-modal-overlay" @click="$emit('close')">
+  <div class="download-modal-overlay" @click="$emit('close')" aria-modal="true" role="dialog">
     <div class="download-modal" @click.stop>
-      <h3>Download Portfolio</h3>
-      <div class="download-options">
-        <button class="input" @click="downloadPDF">PDF (for presentation and sharing.)</button>
-        <button class="input" @click="exportPortfolioData">CSV (for import/export, data only.)</button>
+      <h3 id="download-title">Download Portfolio</h3>
+      <div class="download-options" role="group" aria-label="Download Options">
+        <button class="input" @click="downloadPDF" aria-label="Download portfolio as PDF">PDF (for presentation and sharing.)</button>
+        <button class="input" @click="exportPortfolioData" aria-label="Download portfolio as CSV">CSV (for import/export, data only.)</button>
       </div>
-      <div v-if="error" class="download-error">{{ error }}</div>
+      <div v-if="error" class="download-error" aria-live="polite">{{ error }}</div>
       <div class="download-actions">
-        <button class="trade-btn" @click="$emit('close')">Cancel</button>
+        <button class="trade-btn" @click="$emit('close')" aria-label="Cancel download">Cancel</button>
       </div>
     </div>
   </div>

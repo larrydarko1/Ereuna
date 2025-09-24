@@ -250,6 +250,7 @@
   @close="showTradeModal = false"
   @refresh-history="{ fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showTradeModal = false }"
   :cash="cash"
+  @notify="showNotification($event)"
 />
       <SellTradePopup
   v-if="showSellModal"
@@ -262,6 +263,7 @@
   :user="user?.Username ?? ''"
   :api-key="apiKey"
   :portfolio="selectedPortfolioIndex"
+  @notify="showNotification($event)"
 />
 <AddCashPopup
   v-if="showAddCashModal"
@@ -270,6 +272,7 @@
   :portfolio="selectedPortfolioIndex"
   @close="showAddCashModal = false"
   @refresh="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showAddCashModal = false }"
+  @notify="showNotification($event)"
 />
 <BaseValuePopup
   v-if="showBaseValueModal"
@@ -278,15 +281,18 @@
   :portfolio="selectedPortfolioIndex"
   @close="showBaseValueModal = false"
   @base-value-updated="fetchPortfolioSummary(); fetchPortfolio(); showBaseValueModal = false"
+  @notify="showNotification($event)"
 />
 <ImportPortfolioPopup
-          v-if="showImportPopup"
-          :user="user?.Username ?? ''"
-          :api-key="apiKey"
-          :portfolio="selectedPortfolioIndex"
-          @close="showImportPopup = false"
-          @imported="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showImportPopup = false }"
-        />
+  v-if="showImportPopup"
+  :user="user?.Username ?? ''"
+  :api-key="apiKey"
+  :portfolio="selectedPortfolioIndex"
+  @close="showImportPopup = false"
+  @imported="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showImportPopup = false }"
+  @import-success="showNotification('Portfolio imported successfully!')"
+  @notify="showNotification($event)"
+/>
     </div>
     <div class="portfolio-main-flex">
       <div class="portfolio-pie-container">
@@ -301,7 +307,7 @@
           </template>
       </div>
       <div class="portfolio-table-container scrollable-table">
-        <table class="portfolio-table">
+  <table class="portfolio-table" aria-label="Portfolio Positions Table">
           <thead>
             <tr>
               <th>% of Portfolio</th>
@@ -364,7 +370,8 @@
               </td>
               <td>
                 <button class="action-btn"
-                  @click="openSellModal({ symbol: position.Symbol, shares: position.Shares, price: position.AvgPrice })">
+                  @click="openSellModal({ symbol: position.Symbol, shares: position.Shares, price: position.AvgPrice })"
+                  :aria-label="`Sell ${position.Symbol}`">
                   Sell
                 </button>
               </td>
@@ -375,7 +382,7 @@
     </div>
     <div class="portfolio-history-container scrollable-table">
       <h2>Transaction History</h2>
-      <table class="portfolio-table">
+  <table class="portfolio-table" aria-label="Transaction History Table">
         <thead>
           <tr>
             <th>Date</th>
@@ -406,6 +413,7 @@
       </table>
     </div>
   </section>
+  <NotificationPopup ref="notification" />
 </template>
 
 <script setup lang="ts">
@@ -431,11 +439,20 @@ import annotationPlugin from 'chartjs-plugin-annotation';
 import ImportPortfolioPopup from '@/components/Portfolio/ImportPortfolioPopup.vue';
 import DownloadPortfolioPopup from '@/components/Portfolio/DownloadPortfolioPopup.vue'
 import BaseValuePopup from '@/components/Portfolio/BaseValue.vue'
+import NotificationPopup from '@/components/NotificationPopup.vue';
 
 // access user from store 
 const userStore = useUserStore();
 const user = computed(() => userStore.getUser);
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
+
+// for popup notifications
+const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
+const showNotification = (msg: string) => {
+  if (notification.value) {
+    notification.value.show(msg);
+  }
+};
 
 // Types
 type Position = {
@@ -498,7 +515,6 @@ const accent1 = getVar('--accent1') || '#8c8dfe';
 const accent2 = getVar('--accent2') || '#a9a5ff';
 const accent3 = getVar('--accent3') || '#cfcbff';
 const accent4 = getVar('--accent4') || '#a9a5ff53';
-const base3 = getVar('--base3') || '#8a8a90';
 const base1 = getVar('--base1') || '#1e1e2f';
 const text1 = getVar('--text1') || '#ffffff';
 const text2 = getVar('--text2') || '#cad3f5';
@@ -657,7 +673,7 @@ async function fetchTransactionHistory() {
     if ((error as any).name === 'AbortError') {
       return;
     }
-    console.error('Error fetching transaction history:', error);
+  showNotification('Error fetching transaction history.');
   } finally {
     tradesLoading.value = false;
   }
@@ -702,7 +718,7 @@ async function fetchPortfolio({ append = false } = {}) {
     if ((error as any).name === 'AbortError') {
       return;
     }
-    console.error('Error fetching portfolio:', error);
+  showNotification('Error fetching portfolio.');
   } finally {
     portfolioLoading.value = false;
   }
@@ -751,11 +767,9 @@ async function fetchQuotes() {
   // Use port 8000 for local development
   const wsPort = 8000;
   const wsUrl = `${wsProto}://${window.location.hostname}:${wsPort}/ws/quotes?symbols=${symbols}&x-api-key=${apiKey}`;
-    console.log('[WebSocket] Attempting to connect:', wsUrl, { symbols, apiKey });
     ws = new WebSocket(wsUrl);
     ws.onopen = () => {
       wsConnected = true;
-  if (ws) console.log('[WebSocket] Connection opened:', ws.url);
       // Optionally, send a ping or subscribe message if needed
     };
     ws.onmessage = handleWSMessage;
@@ -780,7 +794,6 @@ async function fetchQuotes() {
           const data = await response.json();
           latestQuotes.value = data;
         } catch (error) {
-          console.error('Error fetching quotes (REST fallback):', error);
         }
       }
     }, 2000);
@@ -796,7 +809,6 @@ async function fetchQuotes() {
       const data = await response.json();
       latestQuotes.value = data;
     } catch (err) {
-      console.error('Error fetching quotes (REST fallback):', err);
     }
   }
 }
@@ -944,8 +956,10 @@ async function confirmResetPortfolio() {
     fetchCash();
     fetchPortfolioSummary();
     showResetDialog.value = false;
+    showNotification('Portfolio reset successfully!');
   } catch (error) {
     resetError.value = 'Error resetting portfolio: ' + (error instanceof Error ? error.message : String(error));
+    showNotification('Error resetting portfolio.');
   }
 }
 
@@ -975,7 +989,7 @@ async function fetchCash() {
     if (error instanceof Error && error.name === 'AbortError') {
       return;
     }
-    console.error('Error fetching cash balance:', error);
+  showNotification('Error fetching cash balance.');
   }
 }
 
@@ -1180,6 +1194,15 @@ const isPortfolioBlank = computed(() => {
   justify-content: space-between; 
 }
 
+.benchmark-panel {
+  display: flex;
+  flex-direction: row;
+  background-color: var(--base2);
+  width: 100%;
+  padding: 5px 0px;
+  justify-content: space-between; 
+}
+
 .menu-btn {
     background: var(--base3);
     color: var(--text1);
@@ -1190,7 +1213,7 @@ const isPortfolioBlank = computed(() => {
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, color 0.2s;
     margin: 2px; 
 
     &.selected {
@@ -1198,11 +1221,18 @@ const isPortfolioBlank = computed(() => {
       color: var(--text3);
     }
 
-    &:hover {
+    &:hover:enabled {
       background: var(--accent2);
       color: var(--text3);
     }
-  }
+
+    &:disabled {
+      background: var(--base1);
+      color: var(--text2);
+      cursor: not-allowed;
+      opacity: 1;
+    }
+}
 
 .portfolio-btn {
     background: var(--base3);
@@ -1312,7 +1342,8 @@ const isPortfolioBlank = computed(() => {
 
   .attribute, .value {
     flex: 1;
-    padding: 8px 12px;
+    padding-left: 10px;
+    padding-right: 10px;
     font-weight: 600;
   }
 
@@ -1596,6 +1627,10 @@ const isPortfolioBlank = computed(() => {
 
     .menu-btn {
     min-width: 80px;
+  }
+
+    .attribute, .value {
+    padding: 8px 12px;
   }
 }
 

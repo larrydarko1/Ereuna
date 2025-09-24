@@ -11,14 +11,28 @@
             </h2>
             <div style="display: flex; justify-content: center;">
               <input class="userinput" type="text" maxlength="25" placeholder="Type New Username" v-model="newUsername"
-                :class="{ 'error-input': usernameError }" />
+                :class="{ 'error-input': usernameError }" aria-label="New Username" />
             </div>
-            <div style="display: flex; justify-content: center;">
-              <p v-if="usernameError" class="error-text">{{ usernameErrorMessage }}</p>
-              <p v-if="usernameSuccess" class="success-text">{{ usernameSuccessMessage }}</p>
-            </div>
+            <!-- Popup notifications only, no inline error/success text -->
             <br>
-            <button class="userbtn" @click="changeUsername()">Change Username</button>
+            <button class="userbtn" @click="changeUsername()" :disabled="loading.username" aria-label="Change Username">
+              <span class="btn-content-row">
+                <span v-if="loading.username" class="loader4">
+                  <svg class="spinner" viewBox="0 0 50 50">
+                    <circle
+                      class="path"
+                      cx="25"
+                      cy="25"
+                      r="20"
+                      fill="none"
+                      stroke-width="5"
+                    />
+                  </svg>
+                </span>
+                <span v-if="!loading.username">Change Username</span>
+                <span v-else style="margin-left: 8px;">Processing...</span>
+              </span>
+            </button>
           </div>
         </div>
         <div>
@@ -41,7 +55,7 @@
               <div style="margin-right: 3px;">
                 <div style="position: relative;">
                   <input class="userinput" placeholder="Type Old Password" :type="showOldPassword ? 'text' : 'password'"
-                    v-model="oldPassword" :class="{ 'error-input': oldPasswordError }" />
+                    v-model="oldPassword" :class="{ 'error-input': oldPasswordError }" aria-label="Old Password"/>
                   <button @click="showOldPassword = !showOldPassword" type="button" class="password-toggle">
                     <svg v-if="showOldPassword" class="toggle-icon" viewBox="0 0 48 48"
                       xmlns="http://www.w3.org/2000/svg" fill="currentColor">
@@ -76,7 +90,7 @@
               <div style="margin-right: 3px;">
                 <div style="position: relative;">
                   <input class="userinput" :type="showNewPassword ? 'text' : 'password'" placeholder="Type New Password"
-                    v-model="newPassword" :class="{ 'error-input': newPasswordError }" />
+                    v-model="newPassword" :class="{ 'error-input': newPasswordError }" aria-label="New Password"/>
                   <button @click="showNewPassword = !showNewPassword" type="button" class="password-toggle">
                     <svg v-if="showNewPassword" class="toggle-icon" viewBox="0 0 48 48"
                       xmlns="http://www.w3.org/2000/svg" fill="currentColor">
@@ -112,7 +126,7 @@
                 <div style="position: relative;">
                   <input class="userinput" :type="showConfirmPassword ? 'text' : 'password'"
                     placeholder="Confirm New Password" v-model="confirmPassword"
-                    :class="{ 'error-input': confirmPasswordError }" />
+                    :class="{ 'error-input': confirmPasswordError }" aria-label="Confirm New Password"/>
                   <button @click="showConfirmPassword = !showConfirmPassword" type="button" class="password-toggle">
                     <svg v-if="showConfirmPassword" class="toggle-icon" viewBox="0 0 48 48"
                       xmlns="http://www.w3.org/2000/svg" fill="currentColor">
@@ -145,13 +159,26 @@
                 </div>
               </div>
             </div>
-            <div style="display: flex; justify-content: center; ">
-              <p v-if="confirmPasswordError" class="error-text">Password doesn't match</p>
-              <p v-if="passwordSuccess" class="success-text">Password changed successfully!</p>
-              <p v-if="oldPasswordError" class="error-text">Password is incorrect</p>
-            </div>
+            <!-- Popup notifications only, no inline error/success text -->
             <br>
-            <button class="userbtn" @click="changePassword()">Change Password</button>
+            <button class="userbtn" @click="changePassword()" :disabled="loading.password" aria-label="Change Password">
+              <span class="btn-content-row">
+                <span v-if="loading.password" class="loader4">
+                  <svg class="spinner" viewBox="0 0 50 50">
+                    <circle
+                      class="path"
+                      cx="25"
+                      cy="25"
+                      r="20"
+                      fill="none"
+                      stroke-width="5"
+                    />
+                  </svg>
+                </span>
+                <span v-if="!loading.password">Change Password</span>
+                <span v-else style="margin-left: 8px;">Processing...</span>
+              </span>
+            </button>
           </div>
         </div>
         <div>
@@ -174,7 +201,7 @@
             <div style="position: relative;">
               <p>To generate a new recovery key, type your password</p>
               <div style="position: relative;">
-                <input class="userinput" :type="showPswauth ? 'text' : 'password'" v-model="Pswauth" />
+                <input class="userinput" :type="showPswauth ? 'text' : 'password'" v-model="Pswauth" aria-label="Password for Recovery Key"/>
                 <button @click="showPswauth = !showPswauth" type="button" class="password-toggle3">
                   <svg v-if="showPswauth" class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"
                     fill="currentColor">
@@ -206,13 +233,27 @@
                 </button>
               </div>
             </div>
-            <div style="display: flex; justify-content: center; ">
-              <p v-if="keyError" class="error-text">{{ keyErrorMessage }}</p>
-              <p v-if="keySuccess" class="success-text">{{ keySuccessMessage }}</p>
-            </div>
+            <!-- Popup notifications only, no inline error/success text -->
             <br>
             <div>
-              <button class="userbtn" @click="GenerateNewKey()">Generate New Key</button>
+              <button class="userbtn" @click="GenerateNewKey()" :disabled="loading.key" aria-label="Generate New Recovery Key">
+                <span class="btn-content-row">
+                  <span v-if="loading.key" class="loader4">
+                    <svg class="spinner" viewBox="0 0 50 50">
+                      <circle
+                        class="path"
+                        cx="25"
+                        cy="25"
+                        r="20"
+                        fill="none"
+                        stroke-width="5"
+                      />
+                    </svg>
+                  </span>
+                  <span v-if="!loading.key">Generate New Key</span>
+                  <span v-else style="margin-left: 8px;">Processing...</span>
+                </span>
+              </button>
             </div>
 
           </div>
@@ -232,7 +273,7 @@
             </h2>
             <p>To delete your account, type your Password</p>
             <div style="position: relative;">
-              <input class="userinput" :type="showPswDelete ? 'text' : 'password'" v-model="PswDelete" />
+              <input class="userinput" :type="showPswDelete ? 'text' : 'password'" v-model="PswDelete" aria-label="Password for Account Deletion"/>
               <button @click="showPswDelete = !showPswDelete" type="button" class="password-toggle3">
                 <svg v-if="showPswDelete" class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"
                   fill="currentColor">
@@ -274,7 +315,24 @@
 
               Thank you for your understanding.</p>
             <br>
-            <button class="userbtn" @click="deleteAccount()">Delete Account</button>
+            <button class="userbtn" @click="deleteAccount()" :disabled="loading.delete" aria-label="Delete Account">
+              <span class="btn-content-row">
+                <span v-if="loading.delete" class="loader4">
+                  <svg class="spinner" viewBox="0 0 50 50">
+                    <circle
+                      class="path"
+                      cx="25"
+                      cy="25"
+                      r="20"
+                      fill="none"
+                      stroke-width="5"
+                    />
+                  </svg>
+                </span>
+                <span v-if="!loading.delete">Delete Account</span>
+                <span v-else style="margin-left: 8px;">Processing...</span>
+              </span>
+            </button>
           </div>
         </div>
         <div style="height: 100px"></div>
@@ -283,27 +341,18 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { ref } from 'vue';
+import { defineEmits } from 'vue';
 
 // Notification system (assume a notification component is available)
-const notification = ref({ show: (msg: string) => { alert(msg); } });
+const emit = defineEmits(['notify']);
 
 // Username change state
 const usernameError = ref(false);
-const usernameErrorMessage = ref('');
-const usernameSuccess = ref(false);
-const usernameSuccessMessage = ref('');
 
 // Password change state
 const oldPasswordError = ref(false);
 const newPasswordError = ref(false);
 const confirmPasswordError = ref(false);
-const passwordSuccess = ref(false);
-
-// Key generation state
-const keyError = ref(false);
-const keyErrorMessage = ref('');
-const keySuccess = ref(false);
-const keySuccessMessage = ref('');
 
 const props = defineProps({
   user: {
@@ -342,22 +391,29 @@ const showConfirmPassword = ref(false);
 const showPswDelete = ref(false);
 const showPswauth = ref(false);
 
+const loading = ref({
+  username: false,
+  password: false,
+  key: false,
+  delete: false
+});
+
 async function changePassword() {
   if (oldPassword.value === '') {
-    notification.value.show('Please enter your old password');
+    emit('notify', 'Please enter your old password');
     return;
   }
 
   if (newPassword.value === '') {
-    notification.value.show('Please enter a new password');
+    emit('notify', 'Please enter a new password');
     return;
   }
 
   if (confirmPassword.value !== newPassword.value) {
-    notification.value.show('Passwords do not match');
+    emit('notify', 'Passwords do not match');
     return;
   }
-
+  loading.value.password = true;
   try {
     const response = await fetch('/api/password-change', {
       method: 'PATCH',
@@ -371,15 +427,17 @@ async function changePassword() {
     const data = await response.json();
 
     if (data.confirm) {
-      notification.value.show('Password changed successfully');
+      emit('notify', 'Password changed successfully');
       // Password changed successfully
     } else if (data.error === 'old_password_incorrect') {
-      notification.value.show('Old password is incorrect');
+      emit('notify', 'Old password is incorrect');
     } else {
-      notification.value.show('Failed to change password');
+      emit('notify', 'Failed to change password');
     }
   } catch (error) {
-    notification.value.show('Failed to change password');
+    emit('notify', 'Failed to change password');
+  } finally {
+    loading.value.password = false;
   }
 }
 
@@ -387,15 +445,15 @@ let newUsername = ref('');
 
 async function changeUsername() {
   if (newUsername.value === '') {
-    notification.value.show('Please enter a new username');
+    emit('notify', 'Please enter a new username');
     return;
   }
 
   if (newUsername.value === props.user) {
-    notification.value.show('Current username and new username cannot be the same');
+    emit('notify', 'Current username and new username cannot be the same');
     return;
   }
-
+  loading.value.username = true;
   try {
     const response = await fetch('/api/change-username', {
       method: 'PATCH',
@@ -409,20 +467,21 @@ async function changeUsername() {
     const data = await response.json();
 
     if (data.error === 'username_taken') {
-      notification.value.show('Username already taken');
+      emit('notify', 'Username already taken');
     } else if (data.error === 'current username and new username cannot be the same') {
-      notification.value.show('Current username and new username cannot be the same');
+      emit('notify', 'Current username and new username cannot be the same');
     } else if (data.confirm) {
-      // Username changed successfully
-      notification.value.show('Username changed successfully!');
+      emit('notify', 'Username changed successfully!');
       setTimeout(() => {
         LogOut();
       }, 3000);
     } else {
-      notification.value.show('Failed to change username');
+      emit('notify', 'Failed to change username');
     }
   } catch (error) {
-    notification.value.show('Failed to change username');
+    emit('notify', 'Failed to change username');
+  } finally {
+    loading.value.username = false;
   }
 }
 
@@ -430,10 +489,10 @@ let PswDelete = ref('');
 
 async function deleteAccount() {
   if (PswDelete.value === '') {
-    notification.value.show('Please enter your password');
+    emit('notify', 'Please enter your password');
     return;
   }
-
+  loading.value.delete = true;
   try {
     const response = await fetch('/api/account-delete', {
       method: 'DELETE',
@@ -447,29 +506,29 @@ async function deleteAccount() {
     const data = await response.json();
 
     if (data.error === 'password_incorrect') {
-      notification.value.show('Password is incorrect');
+      emit('notify', 'Password is incorrect');
     } else if (data.confirm) {
-      // Account deleted successfully
-      notification.value.show('Account deleted successfully!');
-      await LogOut(); // Call LogOut function after successful deletion
+      emit('notify', 'Account deleted successfully!');
+      await LogOut();
     } else {
-      notification.value.show('Failed to delete account');
+      emit('notify', 'Failed to delete account');
     }
   } catch (error) {
-    notification.value.show('Failed to delete account');
+    emit('notify', 'Failed to delete account');
+  } finally {
+    loading.value.delete = false;
   }
 }
 
 const Pswauth = ref('');
 
 async function GenerateNewKey() {
-
   // Validate password input
   if (!Pswauth.value.trim()) {
-    notification.value.show('Please enter your password');
+    emit('notify', 'Please enter your password');
     return;
   }
-
+  loading.value.key = true;
   try {
     // Call the generate-key endpoint
     const response = await fetch('/api/generate-key', {
@@ -479,8 +538,8 @@ async function GenerateNewKey() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        user: props.user, // Use .value if user is a ref
-        password: Pswauth.value // Send the password
+        user: props.user,
+        password: Pswauth.value
       }),
     });
 
@@ -488,8 +547,7 @@ async function GenerateNewKey() {
 
     if (response.ok) {
       if (data.confirm) {
-        // Key generation successful
-        notification.value.show('New key generated successfully!');
+        emit('notify', 'New key generated successfully!');
 
         // Trigger download of the raw key
         const rawAuthKey = data.rawAuthKey; // Raw key returned from the endpoint
@@ -510,37 +568,64 @@ async function GenerateNewKey() {
         Pswauth.value = '';
       } else {
         // Handle unexpected response
-        notification.value.show('An unexpected error occurred');
+        emit('notify', 'An unexpected error occurred');
       }
     } else {
       // Handle API errors
-      notification.value.show(data.message || 'An error occurred');
+      emit('notify', data.message || 'An error occurred');
     }
   } catch (error) {
-    notification.value.show('Network error. Please try again.');
+    emit('notify', 'Network error. Please try again.');
+  } finally {
+    loading.value.key = false;
   }
 }
 </script>
 
 <style scoped>
-.error-input {
-  border: 1px solid red;
-}
 
-.error-text {
-  color: red;
-  border: 1px solid red;
-  font-size: 12px;
-  margin-bottom: 10px;
-  padding: 4px;
+/* Loader spinner styles (copied from SignUpA.vue) */
+.btn-content-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
-
-.success-text {
-  color: green;
-  border: 1px solid green;
-  font-size: 12px;
-  margin-bottom: 10px;
-  padding: 4px;
+.loader4 {
+  display: flex;
+  align-items: center;
+  height: 10px;
+  margin-right: 10px;
+}
+.spinner {
+  animation: rotate 2s linear infinite;
+  width: 20px;
+  height: 20px;
+}
+.path {
+  stroke: #000000;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
 }
 
 .userbtn {

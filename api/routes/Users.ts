@@ -1,3 +1,8 @@
+// TypeScript: declare global Stripe instance for type safety
+declare global {
+    // eslint-disable-next-line no-var
+    var stripeInstance: any | undefined;
+}
 import { handleError } from '../utils/logger.js';
 import { validationSets, body, validationResult, param } from '../utils/validationUtils.js';
 import speakeasy from 'speakeasy';
@@ -131,150 +136,184 @@ export default function (app: any, deps: any) {
     );
 
     // endpoint that creates users / assuming payment has been successful on client-side 
-    app.post('/signup',
-        validate([
-            ...validationSets.registration,
-            validationSchemas.paymentMethodId(),
-            validationSchemas.promoCode()
-        ]),
-        async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
+    app.post('/signup-paywall', validate([
+        validationSets.signupPaywall
+    ]), async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
+        try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'POST /signup-paywall',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+            // Map frontend fields to backend logic and sanitize all relevant fields
+            const {
+                username,
+                password,
+                payment_method_id,
+                duration,
+                country,
+                vat,
+                total,
+                promoCode
+            } = req.body;
+
+            // Sanitize all relevant fields
+            const sanitizedUsername = sanitizeInput(username);
+            const sanitizedPassword = typeof password === 'string' ? sanitizeInput(password) : '';
+            const sanitizedPaymentMethodId = typeof payment_method_id === 'string' ? sanitizeInput(payment_method_id) : '';
+            // duration, vat, total are numbers but could be strings from frontend, so sanitize and parse
+            const sanitizedDuration = typeof duration === 'number' ? duration : parseInt(sanitizeInput(duration));
+            const sanitizedCountry = typeof country === 'string' ? sanitizeInput(country) : '';
+            const sanitizedVat = typeof vat === 'number' ? vat : parseFloat(sanitizeInput(vat));
+            const sanitizedTotal = typeof total === 'number' ? total : parseFloat(sanitizeInput(total));
+            const sanitizedPromoCode = promoCode ? sanitizeInput(promoCode) : null;
+
+            // Map duration to subscriptionPlan (1, 4, 6, 12 months)
+            let parsedSubscriptionPlan = 1;
+            if (sanitizedDuration === 4) parsedSubscriptionPlan = 4;
+            else if (sanitizedDuration === 6) parsedSubscriptionPlan = 6;
+            else if (sanitizedDuration === 12) parsedSubscriptionPlan = 12;
+            logger.info({
+                msg: 'Signup attempt (paywall)',
+                username: sanitizedUsername,
+                subscriptionPlan: parsedSubscriptionPlan,
+                promoCode: sanitizedPromoCode,
+                country: sanitizedCountry,
+                vat: sanitizedVat,
+                total: sanitizedTotal,
+                context: 'POST /signup-paywall'
+            });
+            client = new MongoClient(uri);
+            await client.connect();
+            const db = client.db('EreunaDB');
+            const usersCollection = db.collection('Users');
+            const agentsCollection = db.collection('Agents');
+            if (await isUsernameTaken(usersCollection, sanitizedUsername, logger)) {
+                logger.warn({
+                    msg: 'Username already exists',
+                    username: sanitizedUsername,
+                    context: 'POST /signup-paywall',
+                    statusCode: 400
+                });
+                return res.status(400).json({ errors: [{ field: 'username', message: 'Username already exists' }] });
+            }
+            const expirationDate = calculateSubscription(parsedSubscriptionPlan, logger);
+            if (!expirationDate) {
+                logger.warn({
+                    msg: 'Invalid subscription plan or expiration date',
+                    attemptedPlan: parsedSubscriptionPlan,
+                    context: 'POST /signup-paywall',
+                    statusCode: 400
+                });
+                return res.status(400).json({ errors: [{ field: 'subscriptionPlan', message: 'Invalid subscription plan or expiration date' }] });
+            }
+            const promoCodeValidated = await validatePromoCode(agentsCollection, sanitizedPromoCode, sanitizedTotal, logger);
+            const hashedPassword = await argon2.hash(sanitizedPassword);
+            const rawAuthKey = crypto.randomBytes(64).toString('hex');
+            if (!sanitizedPaymentMethodId) {
+                logger.warn({
+                    msg: 'Signup attempt without payment method',
+                    username: sanitizedUsername,
+                    context: 'POST /signup-paywall',
+                    statusCode: 400
+                });
+                return res.status(400).json({ errors: [{ field: 'paymentMethodId', message: 'Payment method ID is required' }] });
+            }
+            // Use window.location.origin as return_url for SCA
+            const return_url = req.body.return_url || (req.headers.origin || '');
+            const paymentIntent = await createPaymentIntent(sanitizedTotal, sanitizedPaymentMethodId, return_url, logger);
+            if (!paymentIntent) {
+                logger.error({
+                    msg: 'Payment failed',
+                    username: sanitizedUsername,
+                    context: 'POST /signup-paywall',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Payment failed' });
+            }
+            if (paymentIntent.status === 'requires_action') {
+                logger.info({
+                    msg: 'Payment requires action',
+                    username: sanitizedUsername,
+                    context: 'POST /signup-paywall',
+                    statusCode: 200
+                });
+                return res.json({ requiresAction: true, clientSecret: paymentIntent.client_secret });
+            }
+            const newUser = await createUser(usersCollection, sanitizedUsername, hashedPassword, expirationDate, parsedSubscriptionPlan, promoCodeValidated, rawAuthKey, logger);
+            if (!newUser) {
+                logger.error({
+                    msg: 'Failed to create user',
+                    username: sanitizedUsername,
+                    context: 'POST /signup-paywall',
+                    statusCode: 500
+                });
+                return res.status(500).json({ message: 'Failed to create user' });
+            }
+            // Create 10 portfolio documents for the new user
+            const portfoliosCollection = db.collection('Portfolios');
+            const portfolioDocs = Array.from({ length: 10 }, (_, i) => ({
+                Username: sanitizedUsername,
+                Number: i + 1,
+                trades: [],
+                BaseValue: 0,
+                portfolio: [],
+                cash: 0
+            }));
             try {
-                const apiKey = req.header('x-api-key');
-                const sanitizedKey = sanitizeInput(apiKey);
-                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                    logger.warn({
-                        msg: 'Invalid API key',
-                        providedApiKey: !!sanitizedKey,
-                        context: 'POST /signup',
-                        statusCode: 401
-                    });
-                    return res.status(401).json({ message: 'Unauthorized API Access' });
-                }
-                const { username, password, subscriptionPlan, paymentMethodId, return_url, promoCode } = req.body;
-                const sanitizedUsername = sanitizeInput(username);
-                const sanitizedPromoCode = promoCode ? sanitizeInput(promoCode) : null;
-                const parsedSubscriptionPlan = parseInt(subscriptionPlan, 10);
-                logger.info({
-                    msg: 'Signup attempt',
-                    username: sanitizedUsername,
-                    subscriptionPlan: parsedSubscriptionPlan,
-                    promoCode: sanitizedPromoCode,
-                    context: 'POST /signup'
+                await portfoliosCollection.insertMany(portfolioDocs);
+            } catch (portfolioError) {
+                const err = portfolioError instanceof Error ? portfolioError : new Error(String(portfolioError));
+                logger.error({
+                    msg: 'Portfolio Creation Failed',
+                    error: err.message,
+                    name: err.name,
+                    context: 'POST /signup-paywall'
                 });
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
-                const usersCollection = db.collection('Users');
-                const agentsCollection = db.collection('Agents');
-                if (await isUsernameTaken(usersCollection, sanitizedUsername, logger)) {
-                    logger.warn({
-                        msg: 'Username already exists',
-                        username: sanitizedUsername,
-                        context: 'POST /signup',
-                        statusCode: 400
-                    });
-                    return res.status(400).json({ errors: [{ field: 'username', message: 'Username already exists' }] });
-                }
-                const { amount, expirationDate } = calculateSubscription(parsedSubscriptionPlan, logger);
-                if (!amount || !expirationDate) {
-                    logger.warn({
-                        msg: 'Invalid subscription plan or expiration date',
-                        attemptedPlan: parsedSubscriptionPlan,
-                        context: 'POST /signup',
-                        statusCode: 400
-                    });
-                    return res.status(400).json({ errors: [{ field: 'subscriptionPlan', message: 'Invalid subscription plan or expiration date' }] });
-                }
-                const promoCodeValidated = await validatePromoCode(agentsCollection, sanitizedPromoCode, amount, logger);
-                const hashedPassword = await argon2.hash(password);
-                const rawAuthKey = crypto.randomBytes(64).toString('hex');
-                if (!paymentMethodId) {
-                    logger.warn({
-                        msg: 'Signup attempt without payment method',
-                        username: sanitizedUsername,
-                        context: 'POST /signup',
-                        statusCode: 400
-                    });
-                    return res.status(400).json({ errors: [{ field: 'paymentMethodId', message: 'Payment method ID is required' }] });
-                }
-                const paymentIntent = await createPaymentIntent(amount, paymentMethodId, return_url, logger);
-                if (!paymentIntent) {
-                    logger.error({
-                        msg: 'Payment failed',
-                        username: sanitizedUsername,
-                        context: 'POST /signup',
-                        statusCode: 400
-                    });
-                    return res.status(400).json({ message: 'Payment failed' });
-                }
-                if (paymentIntent.status === 'requires_action') {
-                    logger.info({
-                        msg: 'Payment requires action',
-                        username: sanitizedUsername,
-                        context: 'POST /signup',
-                        statusCode: 200
-                    });
-                    return res.json({ requiresAction: true, clientSecret: paymentIntent.client_secret });
-                }
-                const newUser = await createUser(usersCollection, sanitizedUsername, hashedPassword, expirationDate, parsedSubscriptionPlan, promoCodeValidated, rawAuthKey, logger);
-                if (!newUser) {
-                    logger.error({
-                        msg: 'Failed to create user',
-                        username: sanitizedUsername,
-                        context: 'POST /signup',
-                        statusCode: 500
-                    });
-                    return res.status(500).json({ message: 'Failed to create user' });
-                }
-                // Create 10 portfolio documents for the new user
-                const portfoliosCollection = db.collection('Portfolios');
-                const portfolioDocs = Array.from({ length: 10 }, (_, i) => ({
-                    Username: sanitizedUsername,
-                    Number: i + 1,
-                    trades: [],
-                    BaseValue: 0,
-                    portfolio: [],
-                    cash: 0
-                }));
+            }
+            await createReceipt(
+                db.collection('Receipts'),
+                newUser.insertedId,
+                sanitizedTotal,
+                parsedSubscriptionPlan,
+                promoCodeValidated,
+                logger,
+                sanitizedVat,
+                sanitizedCountry,
+                paymentIntent.id
+            );
+            logger.info({
+                msg: 'User created successfully',
+                username: sanitizedUsername,
+                context: 'POST /signup-paywall',
+                statusCode: 201
+            });
+            return res.status(201).json({ message: 'User created successfully', rawAuthKey: rawAuthKey, success: true });
+        } catch (error) {
+            const errObj = handleError(error, 'POST /signup-paywall', {}, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
+        } finally {
+            if (client) {
                 try {
-                    await portfoliosCollection.insertMany(portfolioDocs);
-                } catch (portfolioError) {
-                    const err = portfolioError instanceof Error ? portfolioError : new Error(String(portfolioError));
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
                     logger.error({
-                        msg: 'Portfolio Creation Failed',
-                        error: err.message,
-                        name: err.name,
-                        context: 'POST /signup'
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'POST /signup-paywall'
                     });
-                }
-                await createReceipt(db.collection('Receipts'), newUser.insertedId, amount, parsedSubscriptionPlan, promoCodeValidated, logger);
-                logger.info({
-                    msg: 'User created successfully',
-                    username: sanitizedUsername,
-                    context: 'POST /signup',
-                    statusCode: 201
-                });
-                return res.status(201).json({ message: 'User created successfully', rawAuthKey });
-            } catch (error) {
-                const errObj = handleError(error, 'POST /signup', {}, 500);
-                return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'POST /signup'
-                        });
-                    }
                 }
             }
         }
-    );
+    });
 
     // Helper functions
     async function isUsernameTaken(collection: any, username: string, logger: any): Promise<boolean> {
@@ -292,18 +331,21 @@ export default function (app: any, deps: any) {
         return false;
     }
 
-    function calculateSubscription(plan: number, logger: any): { amount: number | null, expirationDate: Date | null } {
+    function calculateSubscription(plan: number, logger: any): Date | null {
         const today = new Date();
         let expirationDate: Date | null = null;
-        let amount: number | null = null;
         switch (plan) {
             case 1:
                 expirationDate = new Date(today.setMonth(today.getMonth() + 1));
-                amount = 599;
                 break;
-            case 2:
+            case 4:
                 expirationDate = new Date(today.setMonth(today.getMonth() + 4));
-                amount = 2399;
+                break;
+            case 6:
+                expirationDate = new Date(today.setMonth(today.getMonth() + 6));
+                break;
+            case 12:
+                expirationDate = new Date(today.setMonth(today.getMonth() + 12));
                 break;
             default:
                 logger.warn({
@@ -312,9 +354,9 @@ export default function (app: any, deps: any) {
                     context: 'calculateSubscription',
                     statusCode: 400
                 });
-                return { amount: null, expirationDate: null };
+                return null;
         }
-        return { amount, expirationDate };
+        return expirationDate;
     }
 
     async function validatePromoCode(collection: any, promoCode: string | null, amount: number, logger: any): Promise<string> {
@@ -341,7 +383,78 @@ export default function (app: any, deps: any) {
     }
 
     async function createPaymentIntent(amount: number, paymentMethodId: string, return_url: string, logger: any): Promise<any> {
-        // Simulate payment processing
+        // Stripe payment processing
+        try {
+            // Use Stripe instance from global or create/import if not present
+            let stripe = globalThis.stripeInstance;
+            if (!stripe) {
+                const StripeModule = await import('stripe');
+                const secretKey = process.env.STRIPE_SECRET_KEY || '';
+                if (!secretKey) {
+                    throw new Error('Stripe secret key is not defined');
+                }
+                stripe = new StripeModule.default(secretKey);
+                globalThis.stripeInstance = stripe;
+            }
+            // Ensure amount is an integer in cents (Stripe requires this)
+            const amountCents = Math.round(Number(amount));
+            // Create a PaymentIntent with the provided payment method
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amountCents, // amount in cents, integer only
+                currency: 'eur',
+                payment_method: paymentMethodId,
+                confirmation_method: 'manual',
+                confirm: true,
+                return_url: return_url,
+                setup_future_usage: 'off_session',
+                metadata: {
+                    description: 'Ereuna subscription signup',
+                },
+            });
+            // Handle SCA (3D Secure) or other required actions
+            if (paymentIntent.status === 'requires_action' && paymentIntent.next_action?.type === 'use_stripe_sdk') {
+                logger.info({
+                    msg: 'PaymentIntent requires action (SCA)',
+                    paymentIntentId: paymentIntent.id,
+                    context: 'createPaymentIntent',
+                    statusCode: 200
+                });
+                return {
+                    status: 'requires_action',
+                    client_secret: paymentIntent.client_secret,
+                    id: paymentIntent.id
+                };
+            } else if (paymentIntent.status === 'succeeded') {
+                logger.info({
+                    msg: 'PaymentIntent succeeded',
+                    paymentIntentId: paymentIntent.id,
+                    context: 'createPaymentIntent',
+                    statusCode: 200
+                });
+                return {
+                    status: 'succeeded',
+                    client_secret: paymentIntent.client_secret,
+                    id: paymentIntent.id
+                };
+            } else {
+                logger.error({
+                    msg: 'PaymentIntent failed or unexpected status',
+                    paymentIntentId: paymentIntent.id,
+                    status: paymentIntent.status,
+                    context: 'createPaymentIntent',
+                    statusCode: 400
+                });
+                return null;
+            }
+        } catch (err: any) {
+            logger.error({
+                msg: 'Stripe PaymentIntent error',
+                error: err.message,
+                context: 'createPaymentIntent',
+                statusCode: 400
+            });
+            return null;
+        }
     }
 
     async function createUser(collection: any, username: string, hashedPassword: string, expirationDate: Date, subscriptionPlan: number, promoCode: string, rawAuthKey: string, logger: any): Promise<any> {
@@ -398,8 +511,18 @@ export default function (app: any, deps: any) {
         }
     }
 
-    async function createReceipt(collection: any, userId: any, amount: number, subscriptionPlan: number, promoCode: string, logger: any): Promise<any> {
-        const receiptDocument = {
+    async function createReceipt(
+        collection: any,
+        userId: any,
+        amount: number,
+        subscriptionPlan: number,
+        promoCode: string,
+        logger: any,
+        vatPercent?: number,
+        country?: string,
+        paymentIntentId?: string
+    ): Promise<any> {
+        const receiptDocument: any = {
             UserID: userId,
             Amount: amount,
             Date: new Date(),
@@ -407,6 +530,16 @@ export default function (app: any, deps: any) {
             Subscription: subscriptionPlan,
             PROMOCODE: promoCode
         };
+        if (typeof vatPercent === 'number') {
+            receiptDocument.VAT = vatPercent;
+        }
+        if (country) {
+            receiptDocument.Country = country;
+        }
+        // Add paymentIntentId if provided (for Stripe refunds)
+        if (paymentIntentId) {
+            receiptDocument.PaymentIntentId = paymentIntentId;
+        }
         try {
             return await collection.insertOne(receiptDocument);
         } catch (receiptError: any) {
@@ -420,6 +553,298 @@ export default function (app: any, deps: any) {
             throw new Error('Receipt insertion failed');
         }
     }
+
+    // endpoint for subscription renewal
+    app.post('/renew-subscription', validate([
+        validationSets.renewalPaywall
+    ]), async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
+        try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'POST /renew-subscription',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+            // Sanitize and extract fields
+            const {
+                user,
+                payment_method_id,
+                duration,
+                country,
+                vat,
+                total,
+                promoCode
+            } = req.body;
+
+            const sanitizedUsername = sanitizeInput(user);
+            const sanitizedPaymentMethodId = typeof payment_method_id === 'string' ? sanitizeInput(payment_method_id) : '';
+            const sanitizedDuration = typeof duration === 'number' ? duration : parseInt(sanitizeInput(duration));
+            const sanitizedCountry = typeof country === 'string' ? sanitizeInput(country) : '';
+            const sanitizedVat = typeof vat === 'number' ? vat : parseFloat(sanitizeInput(vat));
+            const sanitizedTotal = typeof total === 'number' ? total : parseFloat(sanitizeInput(total));
+            const sanitizedPromoCode = promoCode ? sanitizeInput(promoCode) : null;
+
+            logger.info({
+                msg: 'Renewal attempt',
+                username: sanitizedUsername,
+                duration: sanitizedDuration,
+                promoCode: sanitizedPromoCode,
+                country: sanitizedCountry,
+                vat: sanitizedVat,
+                total: sanitizedTotal,
+                context: 'POST /renew-subscription'
+            });
+
+            client = new MongoClient(uri);
+            await client.connect();
+            const db = client.db('EreunaDB');
+            const usersCollection = db.collection('Users');
+            const agentsCollection = db.collection('Agents');
+            const userDoc = await usersCollection.findOne({ Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } });
+            if (!userDoc) {
+                logger.warn({
+                    msg: 'User not found for renewal',
+                    username: sanitizedUsername,
+                    context: 'POST /renew-subscription',
+                    statusCode: 404
+                });
+                return res.status(404).json({ message: 'User not found' });
+            }
+            if (!sanitizedPaymentMethodId) {
+                logger.warn({
+                    msg: 'Renewal attempt without payment method',
+                    username: sanitizedUsername,
+                    context: 'POST /renew-subscription',
+                    statusCode: 400
+                });
+                return res.status(400).json({ errors: [{ field: 'paymentMethodId', message: 'Payment method ID is required' }] });
+            }
+
+            // Prevent double renewal: check for a recent receipt (last 2 minutes) for this user and payment method
+            const receiptsCollection = db.collection('Receipts');
+            const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+            const recentReceipt = await receiptsCollection.findOne({
+                UserID: userDoc._id,
+                Method: 'Credit Card',
+                Date: { $gte: twoMinutesAgo },
+                Amount: sanitizedTotal
+            });
+            if (recentReceipt) {
+                logger.warn({
+                    msg: 'Duplicate renewal attempt detected',
+                    username: sanitizedUsername,
+                    context: 'POST /renew-subscription',
+                    statusCode: 429
+                });
+                return res.status(429).json({ message: 'Renewal already processed recently. Please wait a moment.' });
+            }
+
+            // Use window.location.origin as return_url for SCA
+            const return_url = req.body.return_url || (req.headers.origin || '');
+            // You may want to use the same payment intent logic as signup
+            const paymentIntent = await createPaymentIntent(sanitizedTotal, sanitizedPaymentMethodId, return_url, logger);
+            if (!paymentIntent) {
+                logger.error({
+                    msg: 'Payment failed',
+                    username: sanitizedUsername,
+                    context: 'POST /renew-subscription',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Payment failed' });
+            }
+            if (paymentIntent.status === 'requires_action') {
+                logger.info({
+                    msg: 'Payment requires action',
+                    username: sanitizedUsername,
+                    context: 'POST /renew-subscription',
+                    statusCode: 200
+                });
+                return res.json({ requiresAction: true, clientSecret: paymentIntent.client_secret });
+            }
+
+            // Calculate new expiration date
+            let monthsToAdd = sanitizedDuration;
+            let currentExpiration = userDoc.Expires ? new Date(userDoc.Expires) : new Date();
+            let newExpiration = new Date(currentExpiration);
+            newExpiration.setMonth(newExpiration.getMonth() + monthsToAdd);
+
+            // Validate promo code if needed
+            const promoCodeValidated = await validatePromoCode(agentsCollection, sanitizedPromoCode, sanitizedTotal, logger);
+
+            // Update user expiration and paid status
+            await usersCollection.updateOne(
+                { Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } },
+                {
+                    $set: {
+                        Expires: newExpiration,
+                        Paid: true
+                    }
+                }
+            );
+
+            // Create a new receipt
+            await createReceipt(
+                db.collection('Receipts'),
+                userDoc._id,
+                sanitizedTotal,
+                sanitizedDuration,
+                promoCodeValidated,
+                logger,
+                sanitizedVat,
+                sanitizedCountry,
+                paymentIntent.id
+            );
+
+            logger.info({
+                msg: 'User renewed successfully',
+                username: sanitizedUsername,
+                newExpiration,
+                context: 'POST /renew-subscription',
+                statusCode: 200
+            });
+            return res.status(200).json({ message: 'Renewal successful', newExpiration, success: true });
+        } catch (error) {
+            const errObj = handleError(error, 'POST /renew-subscription', {}, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
+        } finally {
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'POST /renew-subscription'
+                    });
+                }
+            }
+        }
+    });
+
+    // endpoint for free signup (no payment, 1 year free, no receipt)
+    app.post('/signup-free', validate([
+        validationSchemas.username(),
+        validationSchemas.password(),
+        // Optionally: country, promoCode, etc. (add as needed)
+    ]), async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
+        try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'POST /signup-free',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+            // Sanitize input fields
+            const { username, password, country, promoCode } = req.body;
+            const sanitizedUsername = sanitizeInput(username);
+            const sanitizedPassword = typeof password === 'string' ? sanitizeInput(password) : '';
+            const sanitizedCountry = country ? sanitizeInput(country) : '';
+            const sanitizedPromoCode = promoCode ? sanitizeInput(promoCode) : null;
+
+            logger.info({
+                msg: 'Signup attempt (free)',
+                username: sanitizedUsername,
+                country: sanitizedCountry,
+                promoCode: sanitizedPromoCode,
+                context: 'POST /signup-free'
+            });
+            client = new MongoClient(uri);
+            await client.connect();
+            const db = client.db('EreunaDB');
+            const usersCollection = db.collection('Users');
+            if (await isUsernameTaken(usersCollection, sanitizedUsername, logger)) {
+                logger.warn({
+                    msg: 'Username already exists',
+                    username: sanitizedUsername,
+                    context: 'POST /signup-free',
+                    statusCode: 400
+                });
+                return res.status(400).json({ errors: [{ field: 'username', message: 'Username already exists' }] });
+            }
+            // 1 year free subscription
+            const today = new Date();
+            const expirationDate = new Date(today.setFullYear(today.getFullYear() + 1));
+            const hashedPassword = await argon2.hash(sanitizedPassword);
+            const rawAuthKey = crypto.randomBytes(64).toString('hex');
+            // Create user
+            const newUser = await createUser(
+                usersCollection,
+                sanitizedUsername,
+                hashedPassword,
+                expirationDate,
+                99, // SubscriptionPlan: 99 = free
+                sanitizedPromoCode || 'None',
+                rawAuthKey,
+                logger
+            );
+            if (!newUser) {
+                logger.error({
+                    msg: 'Failed to create user (free)',
+                    username: sanitizedUsername,
+                    context: 'POST /signup-free',
+                    statusCode: 500
+                });
+                return res.status(500).json({ message: 'Failed to create user' });
+            }
+            // Create 10 portfolio documents for the new user
+            const portfoliosCollection = db.collection('Portfolios');
+            const portfolioDocs = Array.from({ length: 10 }, (_, i) => ({
+                Username: sanitizedUsername,
+                Number: i + 1,
+                trades: [],
+                BaseValue: 0,
+                portfolio: [],
+                cash: 0
+            }));
+            try {
+                await portfoliosCollection.insertMany(portfolioDocs);
+            } catch (portfolioError) {
+                const err = portfolioError instanceof Error ? portfolioError : new Error(String(portfolioError));
+                logger.error({
+                    msg: 'Portfolio Creation Failed (free)',
+                    error: err.message,
+                    name: err.name,
+                    context: 'POST /signup-free'
+                });
+            }
+            logger.info({
+                msg: 'User created successfully (free)',
+                username: sanitizedUsername,
+                context: 'POST /signup-free',
+                statusCode: 201
+            });
+            return res.status(201).json({ message: 'User created successfully', rawAuthKey: rawAuthKey, success: true });
+        } catch (error) {
+            const errObj = handleError(error, 'POST /signup-free', {}, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
+        } finally {
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection (free)',
+                        error: closeErr.message,
+                        context: 'POST /signup-free'
+                    });
+                }
+            }
+        }
+    });
 
     // Endpoint for verifying the token
     app.get('/verify', (req: Request, res: Response) => {
@@ -1543,7 +1968,10 @@ export default function (app: any, deps: any) {
                     { name: 'Users', filter: { Username: sanitizedUsername }, logMessage: 'User Document Deleted' },
                     { name: 'Screeners', filter: { UsernameID: sanitizedUsername }, logMessage: 'Screeners Cleaned Up' },
                     { name: 'Watchlists', filter: { UsernameID: sanitizedUsername }, logMessage: 'Watchlists Cleaned Up' },
-                    { name: 'Notes', filter: { Username: sanitizedUsername }, logMessage: 'Notes Cleaned Up' }
+                    { name: 'Notes', filter: { Username: sanitizedUsername }, logMessage: 'Notes Cleaned Up' },
+                    { name: 'Portfolios', filter: { Username: sanitizedUsername }, logMessage: 'Portfolios Cleaned Up' },
+                    { name: 'Positions', filter: { Username: sanitizedUsername }, logMessage: 'Positions Cleaned Up' },
+                    { name: 'Trades', filter: { Username: sanitizedUsername }, logMessage: 'Trades Cleaned Up' }
                 ];
                 for (const collection of collectionsToClean) {
                     try {
@@ -2534,6 +2962,142 @@ export default function (app: any, deps: any) {
             return res.status(errObj.statusCode || 500).json({ message: 'An error occurred while retrieving VAT rates' });
         } finally {
             if (client) await client.close();
+        }
+    });
+
+    // Endpoint for requesting a refund (manual review, 14-day window)
+    app.post('/request-refund', validate([
+        validationSets.refundRequest
+    ]), async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
+        try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'POST /request-refund',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+
+            // Sanitize and extract fields
+            const { user, amount, paymentIntentId } = req.body;
+            const sanitizedUsername = sanitizeInput(user);
+            const sanitizedAmount = typeof amount === 'number' ? amount : parseFloat(sanitizeInput(amount));
+            const sanitizedPaymentIntentId = sanitizeInput(paymentIntentId);
+
+            client = new MongoClient(uri);
+            await client.connect();
+            const db = client.db('EreunaDB');
+            const usersCollection = db.collection('Users');
+            const receiptsCollection = db.collection('Receipts');
+            const refundsCollection = db.collection('Refunds');
+
+            // Find user
+            const userDoc = await usersCollection.findOne({ Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } });
+            if (!userDoc) {
+                logger.warn({
+                    msg: 'Refund request: user not found',
+                    username: sanitizedUsername,
+                    context: 'POST /request-refund',
+                    statusCode: 404
+                });
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            // Find the receipt by PaymentIntentId and user, and check it's within 14 days
+            const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+            const receipt = await receiptsCollection.findOne({
+                UserID: userDoc._id,
+                PaymentIntentId: sanitizedPaymentIntentId,
+                Date: { $gte: fourteenDaysAgo }
+            });
+
+            if (!receipt) {
+                logger.warn({
+                    msg: 'Refund request: no eligible receipt found',
+                    username: sanitizedUsername,
+                    context: 'POST /request-refund',
+                    statusCode: 400,
+                });
+                return res.status(400).json({ message: 'No eligible purchase found for refund (must be within 14 days).' });
+            }
+
+            // Prevent duplicate refund requests for the same PaymentIntentId
+            const existingRefund = await refundsCollection.findOne({
+                PaymentIntentId: receipt.PaymentIntentId,
+                Status: { $in: ['pending', 'approved'] }
+            });
+            if (existingRefund) {
+                logger.warn({
+                    msg: 'Refund request: duplicate request',
+                    username: sanitizedUsername,
+                    context: 'POST /request-refund',
+                    statusCode: 409
+                });
+                return res.status(409).json({ message: 'A refund request for this transaction is already pending or approved.' });
+            }
+
+            // Store refund request for staff review (can be partial refund, e.g. net of VAT)
+            // Helper to add N business days (skipping weekends)
+            function addBusinessDays(date: Date, days: number): Date {
+                let result = new Date(date);
+                let added = 0;
+                while (added < days) {
+                    result.setDate(result.getDate() + 1);
+                    const day = result.getDay();
+                    if (day !== 0 && day !== 6) { // 0 = Sunday, 6 = Saturday
+                        added++;
+                    }
+                }
+                return result;
+            }
+
+            const requestDate = new Date();
+            const staffDeadlineDate = addBusinessDays(requestDate, 5);
+
+            const refundDoc = {
+                Username: sanitizedUsername,
+                UserID: userDoc._id,
+                Amount: sanitizedAmount,
+                PurchaseDate: receipt.Date,
+                RequestDate: requestDate,
+                MaxRefundDate: new Date(receipt.Date.getTime() + 14 * 24 * 60 * 60 * 1000),
+                StaffDeadlineDate: staffDeadlineDate,
+                PaymentIntentId: receipt.PaymentIntentId,
+                Status: 'pending', // pending, approved, rejected, refunded
+                StaffNotes: '',
+                ProcessedDate: null
+            };
+            await refundsCollection.insertOne(refundDoc);
+
+            logger.info({
+                msg: 'Refund request submitted',
+                username: sanitizedUsername,
+                refundDoc,
+                context: 'POST /request-refund',
+                statusCode: 200
+            });
+            return res.status(200).json({ message: 'Refund request submitted for review. Staff will contact you soon.', success: true });
+        } catch (error) {
+            const errObj = handleError(error, 'POST /request-refund', {}, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
+        } finally {
+            if (client) {
+                try {
+                    await client.close();
+                } catch (closeError) {
+                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                    logger.error({
+                        msg: 'Error closing database connection',
+                        error: closeErr.message,
+                        context: 'POST /request-refund'
+                    });
+                }
+            }
         }
     });
 

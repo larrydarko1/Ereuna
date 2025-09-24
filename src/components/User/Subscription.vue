@@ -8,9 +8,27 @@
   <span><strong>Money left:</strong> {{ expirationDays !== null ? ((14.99 / 30) * expirationDays).toFixed(2) : '0.00' }}€</span>
       </div>
       <div class="subscription-actions" style="margin-top: 18px;">
-        <button class="userbtn">Renew</button>
-        <button class="userbtn refund-btn">Ask for Refund</button>
+  <button class="userbtn" @click="showRenew = true" aria-label="Renew Subscription">Renew</button>
+  <button class="userbtn refund-btn" @click="handleRefundClick" aria-label="Request Refund">Ask for Refund</button>
       </div>
+      <RenewPopup 
+        v-if="showRenew" 
+        :user="user" 
+        :apiKey="apiKey" 
+        @close="showRenew = false" 
+        role="dialog" 
+        aria-modal="true" 
+        aria-labelledby="renew-title"
+      />
+      <RefundPopup
+        v-if="showRefund && refundProps"
+        v-bind="refundProps"
+        @close="showRefund = false"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="refund-title"
+      />
+  <NotificationPopup ref="notification" role="alert" aria-live="polite" />
     </div>
     <div class="receipts">
       <h1>Receipts</h1>
@@ -22,8 +40,7 @@
         <p class="receipt-header-download" style="flex:1; font-weight: bold;">Download</p>
       </div>
       <div v-if="loading">Loading receipts...</div>
-      <div style="background-color: #262435; padding: 3px;" v-else-if="error">{{ error }}</div>
-      <div style="background-color: #262435; padding: 3px;" v-if="receipts.length === 0">
+      <div style="background-color: var(--base2); padding: 3px;" v-if="receipts.length === 0">
         <p>No receipts found</p>
       </div>
       <div v-else>
@@ -59,6 +76,10 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, computed } from 'vue';
+import RenewPopup from './Renew.vue';
+import RefundPopup from './Refund.vue';
+import NotificationPopup from '@/components/NotificationPopup.vue';
 
 interface Receipt {
   _id: string;
@@ -66,13 +87,20 @@ interface Receipt {
   Amount: number;
   Method: string;
   Subscription: number;
+  VAT?: number;
+  Country?: string;
+  PaymentIntentId: string;
 }
 
-import { ref, onMounted } from 'vue';
+
 const expirationDays = ref<number | null>(null);
 const receipts = ref<Receipt[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
+
+const showRenew = ref(false);
+const showRefund = ref(false);
+const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
 
 const props = defineProps({
   user: {
@@ -88,9 +116,6 @@ const props = defineProps({
     required: true
   }
 });
-
-// Create a ref to store the expiration days
-// Already declared above as: const expirationDays = ref<number | null>(null);
 
 // Create a function to get the expiration date
 async function getExpirationDate() {
@@ -181,18 +206,6 @@ onMounted(() => {
   GetReceipts();
 });
 
-async function Renew() {
-  await GetReceipts(); // keep this line to dynamically update receipts 
-}
-
-function formatSubscription(subscriptionValue: number) {
-  return (subscriptionValue === 1 ? '1 Month'
-    : subscriptionValue === 2 ? '4 Months'
-    : subscriptionValue === 3 ? '6 Months'
-    : subscriptionValue === 4 ? '1 Year'
-    : 'Unknown');
-}
-
 // Format date as DD/MM/YY
 const formatShortDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -212,11 +225,52 @@ const formatMethod = (method: string) => {
 // Shorten subscription plan for mobile
 const formatShortSubscription = (subscriptionValue: number) => {
   return (subscriptionValue === 1 ? '1M'
-    : subscriptionValue === 2 ? '4M'
-    : subscriptionValue === 3 ? '6M'
-    : subscriptionValue === 4 ? '1Y'
+    : subscriptionValue === 4 ? '4M'
+    : subscriptionValue === 6 ? '6M'
+    : subscriptionValue === 12 ? '1Y'
     : 'Unknown');
 };
+
+// Refund eligibility logic
+const getMostRecentReceipt = () => {
+  if (!receipts.value.length) return null;
+  // Sort by date descending
+  return receipts.value.slice().sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime())[0];
+};
+
+const isRefundEligible = computed(() => {
+  const receipt = getMostRecentReceipt();
+  if (!receipt) return false;
+  const purchaseDate = new Date(receipt.Date);
+  const now = new Date();
+  const diffDays = (now.getTime() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24);
+  return diffDays <= 14;
+});
+
+const refundProps = computed(() => {
+  const receipt = getMostRecentReceipt();
+  if (!receipt) return null;
+  return {
+    amountPaid: receipt.Amount / 100,
+    daysLeft: expirationDays.value ?? 0,
+    purchaseDate: receipt.Date,
+    vatPercent: receipt.VAT || 0,
+    eligible: isRefundEligible.value,
+    user: props.user,
+    apiKey: props.apiKey,
+    paymentIntentId: receipt.PaymentIntentId // Use lowercase for backend contract
+  };
+});
+
+function handleRefundClick() {
+  if (!isRefundEligible.value) {
+    if (notification.value) {
+      notification.value.show('Automatic refunds are inactive after 14 days of purchase. For custom support, contact assistance.');
+    }
+    return;
+  }
+  showRefund.value = true;
+}
 </script>
 
 <style scoped>

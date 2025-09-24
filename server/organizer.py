@@ -1712,7 +1712,7 @@ async def update_market_stats():
 
     # Get all assets with Symbol, Sector, Industry
     assets = []
-    async for doc in asset_info_col.find({}, {"Symbol": 1, "Sector": 1, "Industry": 1, "_id": 0}):
+    async for doc in asset_info_col.find({}, {"Symbol": 1, "Sector": 1, "Industry": 1, "MarketCapitalization": 1, "_id": 0}):
         assets.append(doc)
     symbol_map = {a["Symbol"]: a for a in assets}
 
@@ -1743,30 +1743,37 @@ async def update_market_stats():
     for obj in top_10_losers:
         obj["daily_return"] = round(obj["daily_return"] * 100, 2)
 
-    # Calculate sector/industry tier lists using 4M (82 trading days) return, like indexPerformance
+    # --- Restore old logic for sector/industry tier calculation ---
+    now = datetime.now(timezone.utc)
+    quarter_ago = now - timedelta(days=90)
+
+
     gain_data = []
     for symbol, info in symbol_map.items():
+        # Get closes for the last quarter (timestamp ascending)
         cursor = ohlcv_col.find(
-            {"tickerID": symbol},
-            {"close": 1, "timestamp": 1, "_id": 0}
-        ).sort("timestamp", -1)
-        docs = await cursor.to_list(length=82)
-        closes = [doc["close"] for doc in docs if "close" in doc]
-        if len(closes) < 82:
+            {"tickerID": symbol, "timestamp": {"$gte": quarter_ago}},
+            {"close": 1, "timestamp": 1, "_id": 0, "volume": 1}
+        ).sort("timestamp", 1)
+        closes = [doc async for doc in cursor]
+        if len(closes) < 2:
             continue
-        # closes[0] is most recent, closes[81] is 82 trading days ago
-        try:
-            ret_4m = (closes[0] - closes[81]) / closes[81] if closes[81] != 0 else None
-        except Exception:
-            ret_4m = None
-        if ret_4m is not None:
+        first_close = closes[0]["close"]
+        last_close = closes[-1]["close"]
+        if first_close and last_close and first_close != 0:
+            gain = (last_close - first_close) / first_close
             sector = info.get("Sector", "")
             industry = info.get("Industry", "")
+            # Get market cap from AssetInfo
+            market_cap = info.get("MarketCapitalization", None)
+            if market_cap is None or market_cap == 0:
+                continue
             gain_data.append({
                 "symbol": symbol,
                 "sector": sector,
                 "industry": industry,
-                "gain": ret_4m
+                "gain": gain,
+                "market_cap": market_cap
             })
 
     if not gain_data:
@@ -1776,16 +1783,33 @@ async def update_market_stats():
     gain_df = pd.DataFrame(gain_data)
     gain_df = gain_df[gain_df["sector"] != ""]
     gain_df = gain_df[gain_df["industry"] != ""]
-    sector_gains = gain_df.groupby("sector")["gain"].mean().sort_values(ascending=False)
-    industry_gains = gain_df.groupby("industry")["gain"].mean().sort_values(ascending=False)
-    sector_tier_list = [
-        {"sector": sector, "average_return": sector_gains[sector]} for sector in sector_gains.index
-    ]
-    industry_tier_list = [
-        {"industry": industry, "average_return": industry_gains[industry]} for industry in industry_gains.index
-    ]
+    gain_df = gain_df[gain_df["market_cap"] > 0]
 
-    sma_periods = [10, 20, 50, 100, 200]
+    # Save gain_df to CSV for debugging
+    import os
+    csv_path = os.path.join(os.path.dirname(__file__), "sector_industry_gains.csv")
+    gain_df.to_csv(csv_path, index=False)
+
+    # Market-cap-weighted average returns for sector, with stock count
+    sector_tier_list = []
+    for sector, group in gain_df.groupby("sector"):
+        total_cap = group["market_cap"].sum()
+        if total_cap == 0:
+            continue
+        weighted_return = (group["gain"] * group["market_cap"]).sum() / total_cap
+        stock_count = len(group)
+        sector_tier_list.append({"sector": sector, "average_return": weighted_return, "count": stock_count})
+    sector_tier_list = sorted(sector_tier_list, key=lambda x: x["average_return"], reverse=True)
+
+    # Median returns for industry, with stock count, but keep attribute name 'average_return'
+    industry_tier_list = []
+    for industry, group in gain_df.groupby("industry"):
+        median_return = group["gain"].median()
+        stock_count = len(group)
+        industry_tier_list.append({"industry": industry, "average_return": median_return, "count": stock_count})
+    industry_tier_list = sorted(industry_tier_list, key=lambda x: x["average_return"], reverse=True)
+
+    sma_periods = [5, 10, 20, 50, 100, 150, 200]
     sma_stats = {}
     for period in sma_periods:
         up = 0
@@ -1845,10 +1869,12 @@ async def update_market_stats():
     stats_doc = {
         "sectorTierList": sector_tier_list,
         "industryTierList": industry_tier_list,
+        "SMA5": sma_stats["SMA5"],
         "SMA10": sma_stats["SMA10"],
         "SMA20": sma_stats["SMA20"],
         "SMA50": sma_stats["SMA50"],
         "SMA100": sma_stats["SMA100"],
+        "SMA150": sma_stats["SMA150"],
         "SMA200": sma_stats["SMA200"],
         "indexPerformance": index_performance,
         "top10DailyGainers": top_10_gainers,

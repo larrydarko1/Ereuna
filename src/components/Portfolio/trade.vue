@@ -55,7 +55,17 @@
           <span style="font-size: 0.98em;">The trade will not be executed.</span>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn" :disabled="insufficientCash">Submit</button>
+          <button type="submit" class="trade-btn" :disabled="insufficientCash || isLoading" aria-label="Submit Trade">
+  <span class="btn-content-row">
+    <span v-if="isLoading" class="loader4">
+      <svg class="spinner" viewBox="0 0 50 50">
+        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
+      </svg>
+    </span>
+    <span v-if="!isLoading">Submit</span>
+    <span v-else style="margin-left: 8px;">Processing...</span>
+  </span>
+</button>
           <button type="button" class="cancel-btn" @click="close">Cancel</button>
         </div>
       </form>
@@ -65,16 +75,16 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-const emit = defineEmits(['close', 'trade', 'refresh-history'])
+const emit = defineEmits(['close', 'trade', 'refresh-history', 'notify'])
 
 const props = defineProps({
   user: String,
   apiKey: String,
   cash: Number,
   portfolio: {
-  type: Number,
-  required: true
-}
+    type: Number,
+    required: true
+  }
 })
 
 const symbol = ref('')
@@ -83,12 +93,29 @@ const price = ref(0)
 const commission = ref(0)
 const today = new Date().toISOString().slice(0, 10)
 const tradeDate = ref(today)
+const error = ref('')
+const isLoading = ref(false)
 
 const total = computed(() => Number((shares.value * price.value + (commission.value || 0)).toFixed(2)))
 const insufficientCash = computed(() => props.cash !== undefined && total.value > props.cash)
 
+const showNotification = (msg: string) => {
+  emit('notify', msg)
+}
+
 async function submitTrade() {
-  if (insufficientCash.value) return
+  error.value = ''
+  if (insufficientCash.value) {
+    error.value = 'Insufficient cash: You need $' + total.value.toFixed(2) + ', but you only have $' + (props.cash?.toFixed(2) ?? '0.00') + '.'
+    showNotification(error.value)
+    return
+  }
+  if (!symbol.value || !shares.value || !price.value) {
+    error.value = 'Please fill in all required fields.'
+    showNotification(error.value)
+    return
+  }
+  isLoading.value = true
   const trade = {
     Symbol: symbol.value,
     Shares: shares.value,
@@ -118,8 +145,13 @@ async function submitTrade() {
     }
 
     emit('refresh-history')
-  } catch (error) {
-    // Optionally show error to user
+    showNotification('Trade added successfully!')
+    close()
+  } catch (err) {
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error'
+    showNotification(error.value)
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -129,6 +161,48 @@ function close() {
 </script>
 
 <style scoped>
+.btn-content-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+.loader4 {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  margin-right: 10px;
+}
+.spinner {
+  animation: rotate 2s linear infinite;
+  width: 25px;
+  height: 25px;
+}
+.path {
+  stroke: #000000;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}
 .modal-backdrop {
   position: fixed;
   inset: 0;

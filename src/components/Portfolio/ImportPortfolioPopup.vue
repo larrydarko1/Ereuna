@@ -1,12 +1,13 @@
 <template>
-  <div class="import-modal-overlay" @click="$emit('close')">
-    <div class="import-modal" @click.stop>
-      <h3>Import Portfolio</h3>
+  <div class="import-modal-overlay" @click="$emit('close')" aria-label="Import Portfolio Modal Overlay">
+    <div class="import-modal" @click.stop role="dialog" aria-modal="true" aria-labelledby="import-title">
+      <h3 id="import-title">Import Portfolio</h3>
       <p>Select a CSV file exported from Ereuna to import your portfolio, transaction history, and cash.</p>
-      <input type="file" accept=".csv" @change="handleImportFile" />
+      <input type="file" accept=".csv" @change="handleImportFile" aria-label="Select CSV file to import" />
       <div v-if="importError" class="import-error">{{ importError }}</div>
       <div class="import-actions">
         <button class="trade-btn" :disabled="loading" @click="$emit('close')">Cancel</button>
+        <span v-if="loading" style="margin-left: 12px; color: var(--accent1); font-size: 1.1em;">Loading...</span>
       </div>
     </div>
   </div>
@@ -20,10 +21,31 @@ const props = defineProps({
   apiKey: String,
   portfolio: Number
 });
-const emit = defineEmits(['imported', 'close']);
+const emit = defineEmits(['imported', 'close', 'import-success', 'notify']);
 
 const importError = ref('');
 const loading = ref(false);
+
+// Typesafety for Ereuna export structure
+interface Stats {
+  cash: string;
+  totalValue: string;
+  [key: string]: string;
+}
+interface Position {
+  ticker: string;
+  shares: string;
+  price: string;
+  [key: string]: string;
+}
+interface Trade {
+  date: string;
+  ticker: string;
+  shares: string;
+  price: string;
+  [key: string]: string;
+}
+
 
 async function handleImportFile(event: Event) {
   importError.value = '';
@@ -31,6 +53,7 @@ async function handleImportFile(event: Event) {
   if (!file) return;
   // Security: limit file size to 1MB
   if (file.size > 1_000_000) {
+    emit('notify', 'File is too large.');
     importError.value = 'File is too large.';
     return;
   }
@@ -45,7 +68,7 @@ async function handleImportFile(event: Event) {
     const tradesIdx = lines.findIndex((l: string) => l.trim() === 'Trades');
 
     // --- Stats section ---
-    let stats: Record<string, string> = {};
+    let stats: Stats = {} as Stats;
     if (statsIdx !== -1 && positionsIdx !== -1) {
       let i = statsIdx + 1;
       while (i < positionsIdx) {
@@ -53,7 +76,6 @@ async function handleImportFile(event: Event) {
         const [key, value] = lines[i].split(',');
         if (key && value !== undefined) {
           let v = value.replace(/^"|"$/g, '').trim();
-          // Unescape single quote prefix
           if (v.startsWith("'")) v = v.slice(1);
           stats[key.trim()] = v;
         }
@@ -62,7 +84,7 @@ async function handleImportFile(event: Event) {
     }
 
     // --- Positions section ---
-    let positions: Record<string, string>[] = [];
+    let positions: Position[] = [];
     if (positionsIdx !== -1 && tradesIdx !== -1) {
       let headerLine = positionsIdx + 1;
       while (lines[headerLine] !== undefined && !lines[headerLine].trim()) headerLine++;
@@ -72,10 +94,9 @@ async function handleImportFile(event: Event) {
         if (!lines[i] || !lines[i].trim()) { i++; continue; }
         const values = lines[i].split(',').map((s: string) => s.replace(/^"|"$/g, '').trim());
         if (values.length === headers.length) {
-          const obj: Record<string, string> = {};
+          const obj: Position = {} as Position;
           headers.forEach((h: string, idx: number) => {
             let v = values[idx];
-            // Unescape single quote prefix
             if (typeof v === 'string' && v.startsWith("'")) v = v.slice(1);
             obj[h] = v;
           });
@@ -86,7 +107,7 @@ async function handleImportFile(event: Event) {
     }
 
     // --- Trades section ---
-    let trades: Record<string, string>[] = [];
+    let trades: Trade[] = [];
     if (tradesIdx !== -1) {
       let headerLine = tradesIdx + 1;
       while (lines[headerLine] !== undefined && !lines[headerLine].trim()) headerLine++;
@@ -96,7 +117,7 @@ async function handleImportFile(event: Event) {
         if (!lines[i] || !lines[i].trim()) { i++; continue; }
         const values = lines[i].split(',').map((s: string) => s.replace(/^"|"$/g, '').trim());
         if (values.length === headers.length) {
-          const obj: Record<string, string> = {};
+          const obj: Trade = {} as Trade;
           headers.forEach((h: string, idx: number) => {
             let v = values[idx];
             if (typeof v === 'string' && v.startsWith("'")) v = v.slice(1);
@@ -116,13 +137,17 @@ async function handleImportFile(event: Event) {
     for (const row of [...positions, ...trades]) {
       for (let v of Object.values(row)) {
         if (isDangerousCSVValue(v)) {
-          throw new Error('Potentially dangerous value detected in CSV.');
+          emit('notify', 'Potentially dangerous value detected in CSV.');
+          loading.value = false;
+          return;
         }
       }
     }
     for (let v of Object.values(stats)) {
       if (isDangerousCSVValue(v)) {
-        throw new Error('Potentially dangerous value detected in CSV.');
+        emit('notify', 'Potentially dangerous value detected in CSV.');
+        loading.value = false;
+        return;
       }
     }
 
@@ -143,14 +168,23 @@ async function handleImportFile(event: Event) {
       } as Record<string, string>,
       body: JSON.stringify(payload)
     });
-    if (!response.ok) throw new Error('Failed to import portfolio');
-    emit('imported');
-    emit('close');
+    if (!response.ok) {
+      emit('notify', 'Failed to import portfolio');
+      importError.value = 'Failed to import portfolio';
+      loading.value = false;
+      return;
+    }
+  emit('imported');
+  emit('import-success');
+  emit('notify', 'Portfolio imported successfully!');
+  emit('close');
   } catch (error) {
-    importError.value = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : 'Import failed.';
-  } finally {
+    const msg = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : 'Import failed.';
+    emit('notify', msg);
+    importError.value = msg;
     loading.value = false;
   }
+  loading.value = false;
 }
 </script>
 
