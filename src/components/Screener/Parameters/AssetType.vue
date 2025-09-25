@@ -5,7 +5,8 @@
       style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
       <p>Asset Type</p>
       <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-        @mouseover="handleMouseOver($event, 'assetType')" @mouseout="handleMouseOut">
+        @mouseover="handleMouseOver($event, 'assetType')" @mouseout="handleMouseOut"
+        aria-label="Show info for Asset Type parameter">
         <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
         <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
@@ -20,7 +21,7 @@
       </svg>
     </div>
     <label style="float:right" class="switch">
-      <input type="checkbox" v-model="ShowAssetType">
+      <input type="checkbox" v-model="ShowAssetType" aria-label="Toggle Asset Type filter">
       <span class="slider round"></span>
     </label>
   </div>
@@ -28,14 +29,17 @@
     <div class="row2">
       <div class="check" v-for="(asset, index) in AssetTypes" :key="index">
         <div :id="`asset-type-${index}`" class="custom-checkbox" :class="{ checked: selectedAssetTypes[index] }"
-          @click="toggleAssetType(index)">
+          @click="toggleAssetType(index)"
+          :aria-label="'Toggle ' + asset + ' asset type'"
+          role="checkbox"
+          :aria-checked="selectedAssetTypes[index]">
           <span class="checkmark"></span>
           {{ asset }}
         </div>
       </div>
     </div>
     <div class="row">
-      <button class="btns" style="float:right" @click="SetAssetType">
+  <button class="btns" style="float:right" @click="SetAssetType" aria-label="Set Asset Type filter">
         <!-- Same SVG as before -->
         <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
           style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
@@ -51,7 +55,7 @@
           </g>
         </svg>
       </button>
-      <button class="btnsr" style="float:right" @click="emit('reset'), ShowAssetType = false">
+  <button class="btnsr" style="float:right" @click="emit('reset'), ShowAssetType = false" aria-label="Reset Asset Type filter">
         <!-- Same SVG as before -->
         <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
           transform="rotate(90)">
@@ -72,7 +76,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -84,23 +89,25 @@ function handleMouseOut(event: MouseEvent) {
 const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
-  notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
   isScreenerError: { type: Boolean, required: true }
-})
+});
 
 let ShowAssetType = ref(false);
-const AssetTypes = (['Stock', 'ETF']); // hosts all available asset types
+const AssetTypes = (['Stock', 'ETF']); 
 const selectedAssetTypes = ref<boolean[]>([]);
 
 const toggleAssetType = (index: number) => {
-  selectedAssetTypes.value[index] = !selectedAssetTypes.value[index]; // Toggle the selected state
+  selectedAssetTypes.value[index] = !selectedAssetTypes.value[index]; 
 };
+
+function showNotification(msg: string) {
+  emit('notify', msg);
+}
 
 // Sends asset types data to update screener
 async function SetAssetType() {
   const selected = AssetTypes.filter((_, index) => selectedAssetTypes.value[index]); // Get selected asset types
-
   try {
     const response = await fetch('/api/screener/asset-types', {
       method: 'PATCH',
@@ -114,18 +121,14 @@ async function SetAssetType() {
         user: props.user 
       })
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (response.status !== 200) {
+      const data = await response.json();
+      throw new Error(data.message || `Error: ${response.status} ${response.statusText}`);
     }
-
-    const data = await response.json();
-     emit('fetchScreeners', props.selectedScreener); // Update the list after setting asset types
+    emit('fetchScreeners', props.selectedScreener); 
   } catch (error) {
     const msg = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : 'Unknown error';
-    if (props.notification && typeof props.notification.show === 'function') {
-      props.notification.show(msg);
-    }
+    showNotification(msg);
     emit('fetchScreeners', props.selectedScreener);
   }
 }

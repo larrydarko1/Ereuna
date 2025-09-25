@@ -83,6 +83,10 @@ export default function (app: any, deps: any) {
                 const today = new Date();
                 const expiresDate = new Date(user.Expires);
                 const MFA = user.MFA;
+                let tokenExpiration = rememberMe === 'true' ? '7d' : '1h';
+                // Exclude sensitive fields from user object
+                const { Password, ...safeUserData } = user;
+                const token = jwt.sign({ user: safeUserData }, config.secretKey, { expiresIn: tokenExpiration });
                 if (today > expiresDate) {
                     logger.warn({
                         msg: 'Login attempt with expired subscription',
@@ -91,7 +95,8 @@ export default function (app: any, deps: any) {
                         statusCode: 402
                     });
                     await usersCollection.updateOne({ Username: user.Username }, { $set: { Paid: false } });
-                    return res.status(402).json({ message: 'Subscription is expired' });
+                    // Return token so frontend can allow renewal
+                    return res.status(402).json({ message: 'Subscription is expired', token });
                 }
                 if (MFA === true) {
                     logger.info({
@@ -104,10 +109,6 @@ export default function (app: any, deps: any) {
                 }
                 await usersCollection.updateOne({ Username: user.Username }, { $set: { Paid: true } });
                 await usersCollection.updateOne({ Username: user.Username }, { $set: { LastLogin: new Date() } });
-                let tokenExpiration = rememberMe === 'true' ? '7d' : '1h';
-                // Exclude sensitive fields from user object
-                const { Password, ...safeUserData } = user;
-                const token = jwt.sign({ user: safeUserData }, config.secretKey, { expiresIn: tokenExpiration });
                 logger.info({
                     msg: 'User logged in successfully',
                     username: sanitizedUsername,
@@ -670,9 +671,18 @@ export default function (app: any, deps: any) {
 
             // Calculate new expiration date
             let monthsToAdd = sanitizedDuration;
-            let currentExpiration = userDoc.Expires ? new Date(userDoc.Expires) : new Date();
-            let newExpiration = new Date(currentExpiration);
-            newExpiration.setMonth(newExpiration.getMonth() + monthsToAdd);
+            let now = new Date();
+            let currentExpiration = userDoc.Expires ? new Date(userDoc.Expires) : now;
+            let newExpiration;
+            if (currentExpiration < now) {
+                // Expired: add months from today
+                newExpiration = new Date(now);
+                newExpiration.setMonth(newExpiration.getMonth() + monthsToAdd);
+            } else {
+                // Not expired: add months from current expiration
+                newExpiration = new Date(currentExpiration);
+                newExpiration.setMonth(newExpiration.getMonth() + monthsToAdd);
+            }
 
             // Validate promo code if needed
             const promoCodeValidated = await validatePromoCode(agentsCollection, sanitizedPromoCode, sanitizedTotal, logger);
@@ -701,6 +711,13 @@ export default function (app: any, deps: any) {
                 paymentIntent.id
             );
 
+            // Fetch updated user for new token
+            const updatedUser = await usersCollection.findOne({ Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } });
+            let token = null;
+            if (updatedUser) {
+                const { Password, ...safeUserData } = updatedUser;
+                token = jwt.sign({ user: safeUserData }, config.secretKey, { expiresIn: '7d' });
+            }
             logger.info({
                 msg: 'User renewed successfully',
                 username: sanitizedUsername,
@@ -708,7 +725,7 @@ export default function (app: any, deps: any) {
                 context: 'POST /renew-subscription',
                 statusCode: 200
             });
-            return res.status(200).json({ message: 'Renewal successful', newExpiration, success: true });
+            return res.status(200).json({ message: 'Renewal successful', newExpiration, success: true, token });
         } catch (error) {
             const errObj = handleError(error, 'POST /renew-subscription', {}, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
@@ -2488,12 +2505,6 @@ export default function (app: any, deps: any) {
                 return res.status(404).json({ message: 'User not found' });
             }
             await usersCollection.updateOne({ Username: sanitizedUser }, { $set: { theme } });
-            logger.info({
-                msg: 'Theme updated',
-                username: sanitizedUser.substring(0, 3) + '...',
-                context: 'POST /theme',
-                statusCode: 200
-            });
             return res.status(200).json({ message: 'Theme updated' });
         } catch (error) {
             const errObj = handleError(error, 'POST /theme', {

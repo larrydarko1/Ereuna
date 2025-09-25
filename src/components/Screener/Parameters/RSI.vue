@@ -5,7 +5,7 @@
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>RSI (Relative Strength Index)</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'rsi')" @mouseout="handleMouseOut">
+                aria-label="RSI Info" @mouseover="handleMouseOver($event, 'rsi')" @mouseout="handleMouseOut">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -26,11 +26,11 @@
           </div>
           <div style="border: none;" v-if="showRSI">
             <div class="row">
-              <input class="left input" id="left-rsi" type="number" placeholder="min" min="1" max="100">
-              <input class="right input" id="right-rsi" type="number" placeholder="max" min="1" max="100">
+              <input class="left input" id="left-rsi" type="number" placeholder="min" min="1" max="100" aria-label="RSI Min">
+              <input class="right input" id="right-rsi" type="number" placeholder="max" min="1" max="100" aria-label="RSI Max">
             </div>
             <div class="row">
-              <button class="btns" style="float:right" @click="SetRSI()">
+              <button class="btns" style="float:right" @click="SetRSI()" aria-label="Set RSI">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showRSI = false">
+              <button class="btnsr" style="float:right" @click="emit('reset'), showRSI = false" aria-label="Reset RSI">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -88,28 +88,31 @@ let showRSI = ref(false);
 async function SetRSI() {
   try {
     if (!props.selectedScreener) {
-      // Cannot assign to readonly prop, use notification pattern
-      if (props.notification) {
-        props.notification.message = 'Please select a screener';
-        props.notification.type = 'error';
-      }
-      throw new Error('Please select a screener');
+      emit('notify', { message: 'Please select a screener', type: 'error' });
+      emit('fetchScreeners', props.selectedScreener);
+      return;
     }
 
     const leftInput = document.getElementById('left-rsi') as HTMLInputElement | null;
     const rightInput = document.getElementById('right-rsi') as HTMLInputElement | null;
     if (!leftInput || !rightInput) {
-      throw new Error('Input elements not found');
+      emit('notify', { message: 'Input elements not found', type: 'error' });
+      emit('fetchScreeners', props.selectedScreener);
+      return;
     }
     const leftRSI = parseFloat(leftInput.value);
     const rightRSI = parseFloat(rightInput.value);
 
     if (isNaN(leftRSI) || isNaN(rightRSI)) {
-      throw new Error('Please enter valid numbers');
+      emit('notify', { message: 'Please enter valid numbers', type: 'error' });
+      emit('fetchScreeners', props.selectedScreener);
+      return;
     }
 
     if (leftRSI >= rightRSI) {
-      throw new Error('Min cannot be higher than or equal to max');
+      emit('notify', { message: 'Min cannot be higher than or equal to max', type: 'error' });
+      emit('fetchScreeners', props.selectedScreener);
+      return;
     }
 
     const response = await fetch('/api/screener/rsi', {
@@ -126,28 +129,19 @@ async function SetRSI() {
       })
     });
 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (data.message === 'updated successfully') {
-      // Success
+    if (response.status === 200) {
+      emit('fetchScreeners', props.selectedScreener);
     } else {
-      throw new Error('Error updating RSI range');
+      const data = await response.json();
+      emit('notify', { message: data?.message || `Error: ${response.status} ${response.statusText}`, type: 'error' });
+      emit('fetchScreeners', props.selectedScreener);
     }
-    emit('fetchScreeners', props.selectedScreener);
   } catch (error: unknown) {
-    // Defensive error handling for unknown type
     let message = 'Unknown error';
     if (error instanceof Error) {
       message = error.message;
     }
-    if (props.notification) {
-      props.notification.message = message;
-      props.notification.type = 'error';
-    }
+    emit('notify', { message, type: 'error' });
     emit('fetchScreeners', props.selectedScreener);
   }
 }

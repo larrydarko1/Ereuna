@@ -4,8 +4,8 @@
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>IPO Date</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                 @mouseover="handleMouseOver($event, 'ipo')" @mouseout="handleMouseOut($event)">
+          <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+            @mouseover="handleMouseOver($event, 'ipo')" @mouseout="handleMouseOut($event)" aria-label="Show info for IPO Date parameter">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,17 +20,17 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showIPOInputs">
+              <input type="checkbox" v-model="showIPOInputs" aria-label="Toggle IPO Date filter">
               <span class="slider round"></span>
             </label>
           </div>
           <div style="border: none;" v-if="showIPOInputs">
             <div class="row">
-              <input class="left input" id="left-ipo" type="date" placeholder="min">
-              <input class="right input" id="right-ipo" type="date" placeholder="max">
+              <input class="left input" id="left-ipo" type="date" placeholder="min" aria-label="IPO Date minimum">
+              <input class="right input" id="right-ipo" type="date" placeholder="max" aria-label="IPO Date maximum">
             </div>
             <div class="row">
-              <button class="btns" style="float:right" @click="SetIpoDate()">
+              <button class="btns" style="float:right" @click="SetIpoDate()" aria-label="Set IPO Date filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showIPOInputs = false">
+              <button class="btnsr" style="float:right" @click="emit('reset'), showIPOInputs = false" aria-label="Reset IPO Date filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -77,33 +77,40 @@ function handleMouseOut(event: MouseEvent) {
 const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
-  notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
   isScreenerError: { type: Boolean, required: true }
 })
 
 let showIPOInputs = ref(false);
+const error = ref('');
+const isLoading = ref(false);
+
+function showNotification(msg: string) {
+  emit('notify', msg);
+}
 
 // add and or modifies market cap value and sends it
 async function SetIpoDate() {
+  error.value = '';
+  if (!props.selectedScreener) {
+    emit('reset');
+    error.value = 'Please select a screener';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftInput = document.getElementById('left-ipo') as HTMLInputElement | null;
+  const rightInput = document.getElementById('right-ipo') as HTMLInputElement | null;
+  if (!leftInput || !rightInput) {
+    error.value = 'Input elements not found';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftPrice = leftInput.value;
+  const rightPrice = rightInput.value;
+  isLoading.value = true;
   try {
-    if (!props.selectedScreener) {
-      // Cannot assign to readonly prop, use notification pattern
-      if (props.notification && typeof props.notification === 'object') {
-        props.notification.message = 'Please select a screener';
-        props.notification.type = 'error';
-      }
-      throw new Error('Please select a screener');
-    }
-
-    const leftInput = document.getElementById('left-ipo') as HTMLInputElement | null;
-    const rightInput = document.getElementById('right-ipo') as HTMLInputElement | null;
-    if (!leftInput || !rightInput) {
-      throw new Error('Input elements not found');
-    }
-    const leftPrice = leftInput.value;
-    const rightPrice = rightInput.value;
-
     const response = await fetch('/api/screener/ipo-date', {
       method: 'PATCH',
       headers: {
@@ -117,33 +124,17 @@ async function SetIpoDate() {
         user: props.user
       })
     });
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (data.message === 'ipo updated successfully') {
-      // Optionally notify success
-      if (props.notification && typeof props.notification === 'object') {
-        props.notification.message = 'IPO date updated successfully';
-        props.notification.type = 'success';
-      }
-      emit('fetchScreeners', props.selectedScreener);
-    } else {
-      throw new Error('Error updating range');
-    }
-  } catch (error: unknown) {
-    let message = 'Unknown error';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    if (props.notification && typeof props.notification === 'object') {
-      props.notification.message = message;
-      props.notification.type = 'error';
+    if (response.status !== 200) {
+      const data = await response.json();
+      throw new Error(data.message || `Error: ${response.status} ${response.statusText}`);
     }
     emit('fetchScreeners', props.selectedScreener);
+  } catch (err) {
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+  } finally {
+    isLoading.value = false;
   }
 }
 

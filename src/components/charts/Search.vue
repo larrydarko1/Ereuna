@@ -8,6 +8,7 @@
       :value="modelValue"
       @input="onInput"
       @keydown.enter="onSearch"
+      aria-label="Search ticker or ISIN"
     />
     <button
       class="wlbtn2"
@@ -15,6 +16,7 @@
       @click="onSearch"
       v-b-tooltip.hover
       title="Search Symbol"
+      aria-label="Search for ticker or ISIN"
     >
       <svg height="15" width="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path

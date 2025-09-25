@@ -6,7 +6,8 @@
           <template v-for="repeat in watchPanel.length > 12 ? 2 : 1">
             <button v-for="(ticker, i) in watchPanel" :key="repeat + '-' + i"
               :class="{ active: props.defaultSymbol === ticker.Symbol, 'index-btn': true }"
-              @click="selectSymbol(ticker.Symbol)">
+              @click="selectSymbol(ticker.Symbol)"
+              :aria-label="`Select symbol ${ticker.Symbol} with return ${ticker.percentageReturn}`">
               {{ ticker.Symbol }}
               <span :class="parseFloat(ticker.percentageReturn) > 0 ? 'positive' : 'negative'">
                 {{ ticker.percentageReturn }}
@@ -21,7 +22,7 @@
         <span class="no-symbols">No Symbols in Watch Panel</span>
       </template>
     </div>
-    <button class="edit-watch-panel-btn" @click="editWatchPanel = true;">
+    <button class="edit-watch-panel-btn" @click="editWatchPanel = true;" aria-label="Edit watch panel">
       Edit Watch Panel
     </button>
     <slot></slot>

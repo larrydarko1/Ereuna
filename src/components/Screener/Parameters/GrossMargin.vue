@@ -5,7 +5,7 @@
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Gross Margin</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'gross-margin')" @mouseout="handleMouseOut">
+                @mouseover="handleMouseOver($event, 'gross-margin')" @mouseout="handleMouseOut" aria-label="Show info for Gross Margin parameter">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,17 +20,17 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="gross-margin-check" v-model="showGrossMargin" style="border: none;">
+              <input type="checkbox" id="gross-margin-check" v-model="showGrossMargin" style="border: none;" aria-label="Toggle Gross Margin filter">
               <span class="slider round"></span>
             </label>
           </div>
           <div style="border: none;" v-if="showGrossMargin">
             <div class="row">
-              <input class="left input" id="left-gm" type="text" placeholder="min">
-              <input class="right input" id="right-gm" type="text" placeholder="max">
+              <input class="left input" id="left-gm" type="text" placeholder="min" aria-label="Gross Margin minimum">
+              <input class="right input" id="right-gm" type="text" placeholder="max" aria-label="Gross Margin maximum">
             </div>
             <div class="row">
-              <button class="btns" style="float:right" @click="SetGrossMargin()">
+              <button class="btns" style="float:right" @click="SetGrossMargin()" aria-label="Set Gross Margin filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showGrossMargin = false">
+              <button class="btnsr" style="float:right" @click="emit('reset'), showGrossMargin = false" aria-label="Reset Gross Margin filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -77,39 +77,51 @@ function handleMouseOut(event: MouseEvent) {
 const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
-  notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
   isScreenerError: { type: Boolean, required: true }
 })
 
 let showGrossMargin = ref(false);
+const error = ref('');
+const isLoading = ref(false);
+
+function showNotification(msg: string) {
+  emit('notify', msg);
+}
 
 async function SetGrossMargin() {
+  error.value = '';
+  if (!props.selectedScreener) {
+    emit('reset');
+    error.value = 'Please select a screener';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftInput = document.getElementById('left-gm') as HTMLInputElement | null;
+  const rightInput = document.getElementById('right-gm') as HTMLInputElement | null;
+  if (!leftInput || !rightInput) {
+    error.value = 'Input elements not found';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftGrossMargin = parseFloat(leftInput.value) / 100;
+  const rightGrossMargin = parseFloat(rightInput.value) / 100;
+  if (isNaN(leftGrossMargin) || isNaN(rightGrossMargin)) {
+    error.value = 'Please enter valid numbers';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  if (leftGrossMargin >= rightGrossMargin) {
+    error.value = 'Min cannot be higher than or equal to max';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  isLoading.value = true;
   try {
-    if (!props.selectedScreener) {
-      // Cannot assign to readonly prop, use notification pattern
-      if (props.notification && typeof props.notification === 'object') {
-        props.notification.message = 'Please select a screener';
-        props.notification.type = 'error';
-      }
-      throw new Error('Please select a screener');
-    }
-
-    const leftInput = document.getElementById('left-gm') as HTMLInputElement | null;
-    const rightInput = document.getElementById('right-gm') as HTMLInputElement | null;
-    if (!leftInput || !rightInput) {
-      throw new Error('Input elements not found');
-    }
-    const leftGrossMargin = parseFloat(leftInput.value) / 100;
-    const rightGrossMargin = parseFloat(rightInput.value) / 100;
-
-    if (isNaN(leftGrossMargin) || isNaN(rightGrossMargin)) {
-      throw new Error('Please enter valid numbers');
-    }
-    if (leftGrossMargin >= rightGrossMargin) {
-      throw new Error('Min cannot be higher than or equal to max');
-    }
-
     const response = await fetch('/api/screener/gross-margin', {
       method: 'PATCH',
       headers: {
@@ -123,33 +135,17 @@ async function SetGrossMargin() {
         user: props.user
       })
     });
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (data.message === 'updated successfully') {
-      // Optionally notify success
-      if (props.notification && typeof props.notification === 'object') {
-        props.notification.message = 'Gross Margin updated successfully';
-        props.notification.type = 'success';
-      }
-    } else {
-      throw new Error('Error updating Gross Margin range');
+    if (response.status !== 200) {
+      const data = await response.json();
+      throw new Error(data.message || `Error: ${response.status} ${response.statusText}`);
     }
     emit('fetchScreeners', props.selectedScreener);
-  } catch (error: unknown) {
-    let message = 'Unknown error';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    if (props.notification && typeof props.notification === 'object') {
-      props.notification.message = message;
-      props.notification.type = 'error';
-    }
+  } catch (err) {
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error';
+    showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
+  } finally {
+    isLoading.value = false;
   }
 }
 

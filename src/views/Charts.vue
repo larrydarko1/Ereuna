@@ -6,15 +6,16 @@
   :apiKey="apiKey"
   :defaultSymbol="defaultSymbol ?? ''"
   @select-symbol="(symbol) => { defaultSymbol = symbol; selectRow(symbol); }"
+  @notify="showNotification($event)"
 />
    <div class="mobilenav">
-      <button class="mnavbtn" :class="{ selected: selected === 'info' }" @click="select('info')">
+      <button class="mnavbtn" :class="{ selected: selected === 'info' }" @click="select('info')" aria-label="Show info panel">
         Info
       </button>
-      <button class="mnavbtn" :class="{ selected: selected === 'chart' }" @click="select('chart')">
+      <button class="mnavbtn" :class="{ selected: selected === 'chart' }" @click="select('chart')" aria-label="Show chart panel">
         Chart
       </button>
-      <button class="mnavbtn" :class="{ selected: selected === 'watchlists' }" @click="select('watchlists')">
+      <button class="mnavbtn" :class="{ selected: selected === 'watchlists' }" @click="select('watchlists')" aria-label="Show watchlist panel">
         Watchlist
       </button>
     </div>
@@ -91,6 +92,7 @@
   v-model="searchQuery"
   @search="searchTicker"
   @input="toUpperCase"
+  ref="searchbarRef"
 />
          <Watchlist
            :apiKey="apiKey"
@@ -102,6 +104,7 @@
            :ImagePaths="[]"
            @select-symbol="(symbol) => { defaultSymbol = symbol; selectRow(symbol); }"
            @refresh-notes="handleRefreshNotes"
+           @notify="showNotification($event)"
          />
         </div>
         <div class="results2"></div>
@@ -113,7 +116,7 @@
 
 <script setup lang="ts">
 // main imports
-import { reactive, onMounted, ref, computed } from 'vue';
+import { reactive, onMounted, ref, computed, nextTick } from 'vue';
 import { useUserStore } from '@/store/store';
 
 // upper components
@@ -160,46 +163,33 @@ const errorMessage = ref('');
 // reactive code to refresh summary panel
 const summaryRefreshKey = ref(0);
 function handlePanelUpdated() {
-  summaryRefreshKey.value++; // This will trigger a prop change
-  fetchPanel(); // Also refresh the panel sections if needed
+  summaryRefreshKey.value++;
+  fetchPanel();
 }
-
-onMounted(async () => {
-  // Guard: Wait until user is loaded before calling anything else
-  if (!user.value || !user.value.Username) {
-    // Try to load user from token if not present
-    if (userStore.loadUserFromToken) {
-      userStore.loadUserFromToken();
-    }
-  }
-  if (!user.value || !user.value.Username) {
-    console.warn('User not loaded, skipping API calls in onMounted');
-    return;
-  }
-  await searchTicker(defaultSymbol || '');
-  await fetchPanel();
-});
 
 // for popup notifications
 const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
-const showNotification = () => {
-  if (notification.value) notification.value.show('This is a custom notification message!');
+const showNotification = (msg: string) => {
+  if (notification.value) notification.value.show(msg);
 };
-const showPopup = ref(false) // div for financial statements
+const showPopup = ref(false); // div for financial statements
 
 const searchQuery = ref('');
 const toUpperCase = () => {
   searchQuery.value = searchQuery.value.toUpperCase();
 };
 
-// retirves and updates the default symbol for the user 
-let defaultSymbol = localStorage.getItem('defaultSymbol');
-const selectedItem = ref(defaultSymbol);
+// Use ref for defaultSymbol for reactivity, but pass .value to children
+const defaultSymbol = ref(localStorage.getItem('defaultSymbol') || '');
+const selectedItem = ref(defaultSymbol.value);
+
+// Use ref for searchbar
+const searchbarRef = ref<HTMLInputElement | null>(null);
 
 async function fetchUserDefaultSymbol() {
   try {
     if (!user.value?.Username) {
-      console.warn('User or username missing, not fetching default symbol');
+      showNotification('User or username missing, not fetching default symbol');
       return null;
     }
     const response = await fetch(`/api/${user.value.Username}/default-symbol`, {
@@ -211,33 +201,45 @@ async function fetchUserDefaultSymbol() {
     const data = await response.json();
     return data.defaultSymbol;
   } catch (error) {
-    if (error instanceof Error) {
-      errorMessage.value = error.message;
-    } else {
-      errorMessage.value = String(error);
-    }
+    showNotification(error instanceof Error ? error.message : String(error));
     return null;
   }
 }
 
+// Combined onMounted logic for clarity
 onMounted(async () => {
-    localStorage.removeItem('defaultSymbol');
-    const symbol = await fetchUserDefaultSymbol();
-    if (symbol) {
-      defaultSymbol = symbol;
-      selectedItem.value = symbol;
-      localStorage.setItem('defaultSymbol', symbol);
+  // Try to load user if not present
+  if (!user.value || !user.value.Username) {
+    if (userStore.loadUserFromToken) {
+      userStore.loadUserFromToken();
     }
-    await showTicker();
-  });
+  }
+  // Wait for user to be loaded
+  await nextTick();
+  if (!user.value || !user.value.Username) {
+    showNotification('User not loaded, skipping API calls in onMounted');
+    return;
+  }
+  // Remove and fetch default symbol
+  localStorage.removeItem('defaultSymbol');
+  const symbol = await fetchUserDefaultSymbol();
+  if (symbol) {
+    defaultSymbol.value = symbol;
+    selectedItem.value = symbol;
+    localStorage.setItem('defaultSymbol', symbol);
+  }
+  await showTicker();
+  await searchTicker(defaultSymbol.value || '');
+  await fetchPanel();
+});
 
 async function updateUserDefaultSymbol(symbol: string) {
   try {
     if (!user.value?.Username) {
-      console.warn('User or username missing, not updating default symbol');
+      showNotification('User or username missing, not updating default symbol');
       return;
     }
-    const response = await fetch(`/api/${user.value.Username}/update-default-symbol`, {
+    await fetch(`/api/${user.value.Username}/update-default-symbol`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -246,11 +248,7 @@ async function updateUserDefaultSymbol(symbol: string) {
       body: JSON.stringify({ defaultSymbol: symbol })
     });
   } catch (error) {
-    if (error instanceof Error) {
-      errorMessage.value = error.message;
-    } else {
-      errorMessage.value = String(error);
-    }
+    showNotification(error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -259,9 +257,13 @@ async function searchTicker(providedSymbol: string, options: Record<string, any>
   let response;
   activeIndex.value = -1;
   try {
-  const searchbar = document.getElementById('searchbar') as HTMLInputElement | null;
-  let baseSymbol = (searchbar && searchbar.value) ? searchbar.value : (defaultSymbol || '');
-  let symbol = baseSymbol.toUpperCase();
+    let baseSymbol = '';
+    if (searchbarRef.value && searchbarRef.value.value) {
+      baseSymbol = searchbarRef.value.value;
+    } else {
+      baseSymbol = defaultSymbol.value || '';
+    }
+    let symbol = baseSymbol.toUpperCase();
 
     // Build query string from options
     const params = new URLSearchParams();
@@ -277,15 +279,15 @@ async function searchTicker(providedSymbol: string, options: Record<string, any>
     });
 
     if (response.status === 404) {
-  if (notification.value) notification.value.show('Ticker not Found');
+      showNotification('Ticker not Found');
       return;
     }
 
     const data = await response.json();
 
-  if (searchbar) searchbar.value = data.Symbol;
+    if (searchbarRef.value) searchbarRef.value.value = data.Symbol;
     localStorage.setItem('defaultSymbol', data.Symbol);
-    defaultSymbol = data.Symbol;
+    defaultSymbol.value = data.Symbol;
     selectedItem.value = data.Symbol;
     await updateUserDefaultSymbol(data.Symbol);
 
@@ -308,30 +310,25 @@ async function searchTicker(providedSymbol: string, options: Record<string, any>
     });
 
   } catch (err) {
-    if (err instanceof Error) {
-      errorMessage.value = err.message;
-    } else {
-      errorMessage.value = String(err);
-    }
+    showNotification(err instanceof Error ? err.message : String(err));
   }
 }
 
 // same effect input 
 async function selectRow(item: string) {
   localStorage.setItem('defaultSymbol', item);
-  defaultSymbol = item;
+  defaultSymbol.value = item;
   selectedItem.value = item;
   await updateUserDefaultSymbol(item);
   try {
-    const searchbar = document.getElementById('searchbar') as HTMLInputElement | null;
-    if (searchbar) {
-      searchbar.value = item;
+    if (searchbarRef.value) {
+      searchbarRef.value.value = item;
       await searchTicker(item);
     } else {
-      console.error('Searchbar element not found');
+      showNotification('Searchbar element not found');
     }
   } catch (err) {
-    console.log(err);
+    showNotification(err instanceof Error ? err.message : String(err));
   }
 }
 
@@ -483,7 +480,6 @@ const showPanel = ref(false);
 const refreshKey = ref(0);
 function handleRefreshNotes() {
   refreshKey.value++;
-  console.log('refreshKey incremented:', refreshKey.value);
 }
 
 type PanelItem = { tag: string; hidden?: boolean; [key: string]: any };
@@ -496,7 +492,7 @@ async function fetchPanel() {
       'x-api-key': apiKey
     };
 
-  const response = await fetch(`/api/panel?username=${user.value?.Username ?? ''}`, {
+    const response = await fetch(`/api/panel?username=${user.value?.Username ?? ''}`, {
       headers: headers
     });
 
@@ -505,18 +501,13 @@ async function fetchPanel() {
     }
 
     const newPanel = await response.json();
-    panelData.value = newPanel.panel || []; // Assign the panel array
+    panelData.value = newPanel.panel || [];
 
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
       return;
     }
-    if (error instanceof Error) {
-      errorMessage.value = error.message;
-    } else {
-      errorMessage.value = String(error);
-    }
-    console.error('Error fetching panel data:', error);
+    showNotification(error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -605,7 +596,6 @@ function getSidebarProps(tag: string) {
 #main {
   display: flex;
   height: 100%;
-  //max-height: 760px;
 }
 
 #sidebar-left {
@@ -646,7 +636,6 @@ function getSidebarProps(tag: string) {
   display: flex;
   flex-direction: column;
   background-color: var(--base4);
-  overflow-y: scroll;
   min-width: 300px;
 }
 

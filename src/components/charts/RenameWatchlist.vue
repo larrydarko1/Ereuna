@@ -14,14 +14,15 @@
             :class="{ 'input-error': watchlistName.length > 20 }"
             maxlength="20"
             required
+            aria-label="Watchlist Name Input"
           />
           <div class="char-count" :class="{ error: watchlistName.length > 20 }">
             {{ watchlistName.length }}/20
           </div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn">Submit</button>
-          <button type="button" class="cancel-btn" @click="close">Cancel</button>
+          <button type="submit" class="trade-btn" aria-label="Submit Rename">Submit</button>
+          <button type="button" class="cancel-btn" @click="close" aria-label="Cancel Rename">Cancel</button>
         </div>
       </form>
     </div>
@@ -30,14 +31,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'notify'])
 
 const props = defineProps({
   user: String,
   apiKey: String,
   watchlist: Object,
   selectedWatchlist: Object,
-  notification: Object,
   getWatchlists: Function,
   filterWatchlist: Function
 })
@@ -53,18 +53,14 @@ async function UpdateWatchlist() {
   const existingWatchlists = props.watchlist.tickers.map((watch: any) => watch.Name)
 
   if (existingWatchlists.includes(watchlistName.value)) {
-    if (props.notification && props.notification.value) {
-      props.notification.value.show('Watchlist already exists')
-    }
+    emit('notify', 'Watchlist already exists')
     return
   }
   if (!watchlistName.value) {
     return
   }
   if (watchlistName.value.length > 20) {
-    if (props.notification && props.notification.value) {
-      props.notification.value.show('Watchlist name cannot exceed 20 characters.')
-    }
+    emit('notify', 'Watchlist name cannot exceed 20 characters.')
     return
   }
   try {
@@ -85,10 +81,8 @@ async function UpdateWatchlist() {
       // Optionally handle errorData
     }
   } catch (error) {
-    if (props.notification && props.notification.value) {
-      const message = error instanceof Error ? error.message : String(error)
-      props.notification.value.show(message)
-    }
+    const message = error instanceof Error ? error.message : String(error)
+    emit('notify', message)
   }
   emit('close')
   if (props.getWatchlists) await props.getWatchlists()
@@ -210,7 +204,7 @@ input.input-error,
 
 .trade-btn {
   background: var(--accent1);
-  color: var(--text1);
+  color: var(--text3);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;

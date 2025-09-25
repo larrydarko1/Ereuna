@@ -5,7 +5,8 @@
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Volume</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'volume')" @mouseout="handleMouseOut">
+                @mouseover="handleMouseOver($event, 'volume')" @mouseout="handleMouseOut"
+                aria-label="Show info about Volume">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,23 +21,23 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showVolume" style="border: none;">
-              <span class="slider round"></span>
+              <input type="checkbox" id="price-check" v-model="showVolume" style="border: none;" aria-label="Toggle Volume inputs">
+              <span class="slider round" aria-label="Toggle switch"></span>
             </label>
           </div>
           <div style="border: none;" v-if="showVolume">
             <div class="DataInputs">
               <p>Relative Volume</p>
               <div style="display: flex; align-items: center;">
-                <input class="input" id="left-relvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;">
+                <input class="input" id="left-relvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;" aria-label="Relative Volume min">
                 <input class="input" id="right-relvol" type="text" placeholder="max"
-                  style="width: 70px; margin: 0 5px;">
+                  style="width: 70px; margin: 0 5px;" aria-label="Relative Volume max">
                 <div class="relvol-select-container" style="margin-left: 5px;">
-                  <div class="relvol-dropdown-btn">
+                  <div class="relvol-dropdown-btn" aria-label="Select Relative Volume period">
                     <p class="selected-value">{{ relVolSelect }}</p>
                   </div>
                   <div class="relvol-dropdown-menu">
-                    <div v-for="(option, index) in relVolOptions" :key="index" @click="selectRelVolOption(option)">
+                    <div v-for="(option, index) in relVolOptions" :key="index" @click="selectRelVolOption(option)" aria-label="Relative Volume option {{ option }}">
                       {{ option }}
                     </div>
                   </div>
@@ -44,15 +45,15 @@
               </div>
               <p>Average Volume (1000s)</p>
               <div style="display: flex; align-items: center;">
-                <input class="input" id="left-avgvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;">
+                <input class="input" id="left-avgvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;" aria-label="Average Volume min">
                 <input class="input" id="right-avgvol" type="text" placeholder="max"
-                  style="width: 70px; margin: 0 5px;">
+                  style="width: 70px; margin: 0 5px;" aria-label="Average Volume max">
                 <div class="avgvol-select-container" style="margin-left: 5px;">
-                  <div class="avgvol-dropdown-btn">
+                  <div class="avgvol-dropdown-btn" aria-label="Select Average Volume period">
                     <p class="selected-value">{{ avgVolSelect }}</p>
                   </div>
                   <div class="avgvol-dropdown-menu">
-                    <div v-for="(option, index) in avgVolOptions" :key="index" @click="selectAvgVolOption(option)">
+                    <div v-for="(option, index) in avgVolOptions" :key="index" @click="selectAvgVolOption(option)" aria-label="Average Volume option {{ option }}">
                       {{ option }}
                     </div>
                   </div>
@@ -60,7 +61,7 @@
               </div>
             </div>
             <div class="row">
-              <button class="btns" style="float:right" @click="SetVolume()">
+              <button class="btns" style="float:right" @click="SetVolume()" aria-label="Set Volume">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -75,7 +76,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showVolume = false">
+              <button class="btnsr" style="float:right" @click="emit('reset'), showVolume = false" aria-label="Reset Volume">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -95,7 +96,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -110,7 +112,7 @@ const props = defineProps({
   notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
   isScreenerError: { type: Boolean, required: true }
-})
+});
 
 let showVolume = ref(false);
 
@@ -148,15 +150,11 @@ function getInputValue(id: string): number {
   return parseFloat(el.value);
 }
 
-// updates screener value with volume parameters 
+// updates screener value with volume parameters
 async function SetVolume() {
   try {
     if (!props.selectedScreener) {
-      // props.isScreenerError is readonly, use notification pattern
-      if (props.notification && typeof props.notification === 'object') {
-        props.notification.message = 'Please select a screener';
-        props.notification.type = 'error';
-      }
+      emit('notify', 'Please select a screener');
       throw new Error('Please select a screener');
     }
 
@@ -174,23 +172,23 @@ async function SetVolume() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        value1: value1,
-        value2: value2,
-        value3: value3,
-        value4: value4,
-        relVolOption: relVolOption,
-        avgVolOption: avgVolOption,
+        value1,
+        value2,
+        value3,
+        value4,
+        relVolOption,
+        avgVolOption,
         screenerName: props.selectedScreener,
         user: props.user
       })
     });
-    if (!response.ok) {
+    if (response.status !== 200) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
 
-    if (data.message === 'updated successfully') {
+    if (data && data.message && data.message.toLowerCase().includes('updated')) {
       emit('fetchScreeners', props.selectedScreener);
     } else {
       throw new Error('Error updating price range');
@@ -202,10 +200,7 @@ async function SetVolume() {
     } else if (typeof error === 'string') {
       message = error;
     }
-    if (props.notification && typeof props.notification === 'object') {
-      props.notification.message = message;
-      props.notification.type = 'error';
-    }
+    emit('notify', message);
     emit('fetchScreeners', props.selectedScreener);
   }
 }

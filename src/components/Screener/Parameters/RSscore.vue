@@ -1,11 +1,12 @@
 <template>
-    <div :class="[showRSscore ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showRSscore ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Technical Score</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'rs')" @mouseout="handleMouseOut">
+                @mouseover="handleMouseOver($event, 'rs')" @mouseout="handleMouseOut"
+                aria-label="Show info about Technical Score">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,30 +21,30 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showRSscore" style="border: none;">
-              <span class="slider round"></span>
+              <input type="checkbox" id="price-check" v-model="showRSscore" style="border: none;" aria-label="Toggle Technical Score inputs">
+              <span class="slider round" aria-label="Toggle switch"></span>
             </label>
           </div>
           <div style="border: none;" v-if="showRSscore">
             <div class="DataInputs">
               <p>Technical Score (1W)</p>
               <input class="input" type="number" placeholder="min (1)" id="RSscore1Winput1" name="input5" min="1"
-                max="100">
+                max="100" aria-label="Technical Score 1W min">
               <input class="input" type="number" placeholder="max (100)" id="RSscore1Winput2" name="input6" min="1"
-                max="100">
+                max="100" aria-label="Technical Score 1W max">
               <p>Technical Score (1M)</p>
               <input class="input" type="number" placeholder="min (1)" id="RSscore1Minput1" name="input1" min="1"
-                max="100">
+                max="100" aria-label="Technical Score 1M min">
               <input class="input" type="number" placeholder="max (100)" id="RSscore1Minput2" name="input2" min="1"
-                max="100">
+                max="100" aria-label="Technical Score 1M max">
               <p>Technical Score (4M)</p>
               <input class="input" type="number" placeholder="min (1)" id="RSscore4Minput1" name="input3" min="1"
-                max="100">
+                max="100" aria-label="Technical Score 4M min">
               <input class="input" type="number" placeholder="max (100)" id="RSscore4Minput2" name="input4" min="1"
-                max="100">
+                max="100" aria-label="Technical Score 4M max">
             </div>
             <div class="row">
-              <button class="btns" style="float:right" @click="SetRSscore()">
+              <button class="btns" style="float:right" @click="SetRSscore()" aria-label="Set Technical Score">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -58,7 +59,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showRSscore = false">
+              <button class="btnsr" style="float:right" @click="emit('reset'), showRSscore = false" aria-label="Reset Technical Score">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -78,7 +79,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -93,19 +95,15 @@ const props = defineProps({
   notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
   isScreenerError: { type: Boolean, required: true }
-})
+});
 
 let showRSscore = ref(false);
 
-// updates screener value with RS Score parameters 
+// updates screener value with RS Score parameters
 async function SetRSscore() {
   try {
     if (!props.selectedScreener) {
-      // props.isScreenerError is readonly, use notification pattern
-      if (props.notification && typeof props.notification === 'object') {
-        props.notification.message = 'Please select a screener';
-        props.notification.type = 'error';
-      }
+      emit('notify', 'Please select a screener');
       throw new Error('Please select a screener');
     }
 
@@ -129,23 +127,23 @@ async function SetRSscore() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        value1: value1,
-        value2: value2,
-        value3: value3,
-        value4: value4,
-        value5: value5,
-        value6: value6,
+        value1,
+        value2,
+        value3,
+        value4,
+        value5,
+        value6,
         screenerName: props.selectedScreener,
         user: props.user
       })
     });
-    if (!response.ok) {
+    if (response.status !== 200) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
 
-    if (data.message === 'updated successfully') {
+    if (data && data.message && data.message.toLowerCase().includes('updated')) {
       emit('fetchScreeners', props.selectedScreener);
     } else {
       throw new Error('Error updating range');
@@ -157,10 +155,7 @@ async function SetRSscore() {
     } else if (typeof error === 'string') {
       message = error;
     }
-    if (props.notification && typeof props.notification === 'object') {
-      props.notification.message = message;
-      props.notification.type = 'error';
-    }
+    emit('notify', message);
     emit('fetchScreeners', props.selectedScreener);
   }
 }

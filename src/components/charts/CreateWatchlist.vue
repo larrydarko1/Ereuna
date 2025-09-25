@@ -14,14 +14,15 @@
             :class="{ 'input-error': watchlistName.length > 20 }"
             maxlength="20"
             required
+            aria-label="Watchlist Name Input"
           />
           <div class="char-count" :class="{ error: watchlistName.length > 20 }">
             {{ watchlistName.length }}/20
           </div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn">Submit</button>
-          <button type="button" class="cancel-btn" @click="close">Cancel</button>
+          <button type="submit" class="trade-btn" aria-label="Submit new watchlist">Submit</button>
+          <button type="button" class="cancel-btn" @click="close" aria-label="Cancel creation">Cancel</button>
         </div>
       </form>
     </div>
@@ -29,14 +30,14 @@
 </template>
 
 <script setup lang="ts">
+
 import { ref } from 'vue'
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'notify'])
 
 const props = defineProps({
   user: String,
   apiKey: String,
   watchlist: Object,
-  notification: Object,
   getWatchlists: Function,
   filterWatchlist: Function
 })
@@ -51,11 +52,11 @@ async function CreateWatchlist() {
   const existingWatchlists = props.watchlist?.tickers?.map((watch: { Name: string }) => watch.Name) ?? []
 
   if (existingWatchlists.includes(watchlistName.value)) {
-    props.notification?.value?.show?.('Watchlist already exists')
+    emit('notify', 'Watchlist already exists')
     return
   }
   if (watchlistName.value.length > 20) {
-    props.notification?.value?.show?.('Watchlist name cannot exceed 20 characters.')
+    emit('notify', 'Watchlist name cannot exceed 20 characters.')
     return
   }
   try {
@@ -71,15 +72,15 @@ async function CreateWatchlist() {
     } else if (response.status === 400) {
       const errorData = await response.json()
       if (errorData.message === 'Maximum number of watchlists (20) has been reached') {
-        props.notification?.value?.show?.('Maximum number of watchlists (20) has been reached')
+        emit('notify', 'Maximum number of watchlists (20) has been reached')
       } else {
-        props.notification?.value?.show?.('Failed to create watchlist')
+        emit('notify', 'Failed to create watchlist')
       }
     } else {
-      props.notification?.value?.show?.('Failed to create watchlist')
+      emit('notify', 'Failed to create watchlist')
     }
   } catch (err) {
-    props.notification?.value?.show?.((err as Error).message)
+    emit('notify', (err as Error).message)
   }
   emit('close')
   if (props.getWatchlists) await props.getWatchlists()
@@ -201,7 +202,7 @@ input.input-error,
 
 .trade-btn {
   background: var(--accent1);
-  color: var(--text1);
+  color: var(--text3);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;

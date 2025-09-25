@@ -4,7 +4,7 @@ from organizer import Daily
 import datetime as dt
 import os
 import json
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Request,status
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Request, status, Body
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import websockets
@@ -18,6 +18,9 @@ from bson import ObjectId
 from dateutil.parser import isoparse
 import datetime
 from starlette.websockets import WebSocketDisconnect
+from ipo import IPO
+from pydantic import BaseModel, validator
+import re
 
 load_dotenv()
 
@@ -311,6 +314,32 @@ async def start_market_hours_manager():
     logger.info("Starting flush_daily_weekly_candles_at_market_close task on startup.")
     asyncio.create_task(flush_daily_weekly_candles_at_market_close(daily_collection, weekly_collection))
 
+class IPORequest(BaseModel):
+    tickers: list[str]
+
+    @validator('tickers', each_item=True)
+    def validate_ticker(cls, v):
+        # Only allow uppercase letters, numbers, max 8 chars
+        if not re.match(r'^[A-Z0-9\.]{1,8}$', v.upper()):
+            raise ValueError(f"Invalid ticker: {v}")
+        return v.upper()
+
+@app.post("/admin/add_ipo_ticker", status_code=200)
+async def admin_add_ipo_ticker(request: Request, ipo_req: IPORequest = Body(...)):
+    api_key = request.headers.get('x-api-key') or request.headers.get('sec-websocket-protocol')
+    if api_key != API_KEY:
+        logger.warning(f"Unauthorized IPO insert attempt: {api_key}")
+        return {"error": "Unauthorized"}
+    tickers = ipo_req.tickers
+    logger.info(f"Admin IPO insert: {tickers}")
+    try:
+        await IPO(tickers)
+        logger.info(f"IPO tickers processed: {tickers}")
+        return {"success": True, "tickers": tickers}
+    except Exception as e:
+        logger.error(f"IPO insert error: {e}")
+        return {"error": str(e)}
+    
 # --- Admin endpoint to manually unsubscribe all tickers ---
 @app.post("/admin/unsubscribe_all")
 async def admin_unsubscribe_all():
@@ -663,11 +692,11 @@ def sanitize_input(val):
 @app.websocket("/ws/quotes")
 async def websocket_quotes(
     websocket: WebSocket,
-    symbols: str = Query(...),
-    x_api_key: str = Query(None, alias="x-api-key")
+    symbols: str = Query(...)
 ):
-    # Validate API key
-    if x_api_key != API_KEY:
+    # Get API key from Sec-WebSocket-Protocol header
+    api_key = websocket.headers.get('sec-websocket-protocol')
+    if api_key != API_KEY:
         await websocket.accept()
         try:
             await websocket.send_text(json.dumps({"error": "Invalid API key"}))
@@ -676,7 +705,7 @@ async def websocket_quotes(
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    await websocket.accept()
+    await websocket.accept(subprotocol=api_key)
     symbol_list = [sanitize_input(s) for s in symbols.split(',') if s.strip()]
     try:
         while True:
@@ -1277,5 +1306,11 @@ async def websocket_chartdata_dl(
         
         
 # curl -X POST https://localhost:8000/admin/unsubscribe_all
+'''
+curl -X POST https://localhost:8000/admin/add_ipo_ticker \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: A3hdbeuyewhedhweuHHS3263ed9d8h32dh238dh32hd82hd928hdjddh23hd8923Y" \
+  -d '{"tickers": ["TSLA", "AMZN" ]}' --insecure
+'''
 # wscat -c "wss://localhost:8000/ws/tiingo_raw" --no-check
 # wscat -c "wss://localhost:8000/ws/quotes?symbols=TSLA&x-api-key=A3hdbeuyewhedhweuHHS3263ed9d8h32dh238dh32hd82hd928hdjddh23hd8923Y" --no-check

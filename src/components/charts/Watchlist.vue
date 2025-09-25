@@ -1,44 +1,44 @@
 <template>
   <div id="wlnav">
     <CreateNote
-  v-if="showCreateNoteModal"
-  :user="user"
-  :api-key="apiKey"
-  :default-symbol="selectedItem  ?? ''"
-  :notification="notification"
-  @close="showCreateNoteModal = false"
-  @refresh-notes="emit('refresh-notes', $event)"
-/>
-     <CreateWatchlist
-  v-if="showCreateWatchlistModal"
-  :user="user"
-  :api-key="apiKey"
-  :watchlist="watchlist"
-  :notification="notification"
-  :getWatchlists="getWatchlists"
-  :filterWatchlist="filterWatchlist"
-  @close="showCreateWatchlistModal = false"
-/>
-<RenameWatchlist
-  v-if="showRenameWatchlistModal"
-  :user="user"
-  :api-key="apiKey"
-  :watchlist="watchlist"
-  :selected-watchlist="selectedWatchlist || {}"
-  :notification="notification"
-  :getWatchlists="getWatchlists"
-  :filterWatchlist="filterWatchlist"
-  @close="showRenameWatchlistModal = false"
-/>
-<ImportWatchlist
-  v-if="showImportWatchlistModal"
-  :user="user"
-  :api-key="apiKey"
-  :selectedWatchlist="CurrentWatchlistName"
-  :notification="notification"
-  @close="showImportWatchlistModal = false"
-  @refresh="handleImportWatchlistRefresh"
-/>
+      v-if="showCreateNoteModal"
+      :user="user"
+      :api-key="apiKey"
+      :default-symbol="selectedItem  ?? ''"
+      @close="showCreateNoteModal = false"
+      @refresh-notes="emit('refresh-notes', $event)"
+      @notify="emit('notify', $event)"
+    />
+    <CreateWatchlist
+      v-if="showCreateWatchlistModal"
+      :user="user"
+      :api-key="apiKey"
+      :watchlist="watchlist"
+      :getWatchlists="getWatchlists"
+      :filterWatchlist="filterWatchlist"
+      @close="showCreateWatchlistModal = false"
+      @notify="emit('notify', $event)"
+    />
+    <RenameWatchlist
+      v-if="showRenameWatchlistModal"
+      :user="user"
+      :api-key="apiKey"
+      :watchlist="watchlist"
+      :selected-watchlist="selectedWatchlist || {}"
+      :getWatchlists="getWatchlists"
+      :filterWatchlist="filterWatchlist"
+      @close="showRenameWatchlistModal = false"
+      @notify="emit('notify', $event)"
+    />
+    <ImportWatchlist
+      v-if="showImportWatchlistModal"
+      :user="user"
+      :api-key="apiKey"
+      :selectedWatchlist="CurrentWatchlistName"
+      @close="showImportWatchlistModal = false"
+      @refresh="handleImportWatchlistRefresh"
+      @notify="emit('notify', $event)"
+    />
     <div
       id="realwatchlist"
       class="select-container"
@@ -103,6 +103,7 @@
               @click.stop="DeleteWatchlist(watch)"
               v-b-tooltip.hover
               title="Delete Watchlist"
+              :aria-label="`Delete watchlist ${watch.Name}`"
             >
               <svg class="imgm" viewBox="0 0 16 16" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
                 <rect transform="rotate(45)" y="-1" x="4.3137083" height="2" width="14" style="fill:var(--text1);" />
@@ -113,14 +114,14 @@
         </div>
       </div>
     </div>
-    <button class="navbtn" @click="addWatchlist" v-b-tooltip.hover title="Add ticker to watchlist">
+  <button class="navbtn" @click="addWatchlist" v-b-tooltip.hover title="Add ticker to watchlist" aria-label="Add symbol to watchlist">
       <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M4 12H20M12 4V20" stroke="var(--text1)" stroke-width="1.944" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
       <span>Add Symbol</span>
     </button>
     <div class="wlnav-dropdown">
-      <button class="dropdown-toggle wlbtn" v-b-tooltip.hover title="More Options">
+  <button class="dropdown-toggle wlbtn" v-b-tooltip.hover title="More Options" aria-label="Show more watchlist options">
         <svg class="img" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--text1)"></path>
           <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--text1)"></path>
@@ -129,14 +130,14 @@
       </button>
       <div class="dropdown-vnav">
         <div class="watchlist-dropdown-menu2">
-          <button class="dropdown-item" @click="AutoPlay" v-b-tooltip.hover title="Autoplay Watchlist">
+          <button class="dropdown-item" @click="AutoPlay" v-b-tooltip.hover title="Autoplay Watchlist" aria-label="Autoplay watchlist">
             <svg class="img4" viewBox="0 0 16 16" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
               <path fill="var(--text1)" fill-rule="evenodd"
                 d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z"/>
             </svg>
             Autoplay
           </button>
-          <button class="dropdown-item" @click="showCreateNoteModal = true" v-b-tooltip.hover title="Create a Note">
+          <button class="dropdown-item" @click="showCreateNoteModal = true" v-b-tooltip.hover title="Create a Note" aria-label="Create a note">
             <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <g id="File / Note_Edit">
                 <path id="Vector"
@@ -147,7 +148,7 @@
             </svg>
             Create Note
           </button>
-          <button class="dropdown-item" @click="showCreateWatchlistModal = true" v-b-tooltip.hover title="Create New Watchlist">
+          <button class="dropdown-item" @click="showCreateWatchlistModal = true" v-b-tooltip.hover title="Create New Watchlist" aria-label="Create new watchlist">
             <svg class="img4" viewBox="0 0 32.219 32.219" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
               <path style="fill:var(--text1);"
                 d="M32.144,12.402c-0.493-1.545-3.213-1.898-6.09-2.277c-1.578-0.209-3.373-0.445-3.914-0.844 c-0.543-0.398-1.304-2.035-1.978-3.482C18.94,3.17,17.786,0.686,16.166,0.68l-0.03-0.003c-1.604,0.027-2.773,2.479-4.016,5.082 c-0.684,1.439-1.463,3.07-2.005,3.463c-0.551,0.394-2.342,0.613-3.927,0.803c-2.877,0.352-5.598,0.68-6.108,2.217 c-0.507,1.539,1.48,3.424,3.587,5.424c1.156,1.094,2.465,2.34,2.67,2.98c0.205,0.639-0.143,2.414-0.448,3.977 c-0.557,2.844-1.084,5.535,0.219,6.5c0.312,0.225,0.704,0.338,1.167,0.328c1.331-0.023,3.247-1.059,5.096-2.062 c1.387-0.758,2.961-1.611,3.661-1.621c0.675,0.002,2.255,0.881,3.647,1.654c1.891,1.051,3.852,2.139,5.185,2.119 c0.414-0.01,0.771-0.117,1.06-0.322c1.312-0.947,0.814-3.639,0.285-6.494c-0.289-1.564-0.615-3.344-0.409-3.982 c0.213-0.639,1.537-1.867,2.702-2.955C30.628,15.808,32.634,13.945,32.144,12.402z M21.473,19.355h-3.722v3.797h-3.237v-3.797 h-3.768v-3.238h3.768v-3.691h3.237v3.691h3.722V19.355z"
@@ -155,7 +156,7 @@
             </svg>
             New Watchlist
           </button>
-          <button class="dropdown-item" @click="showRenameWatchlistModal = true" v-b-tooltip.hover title="Rename Watchlist">
+          <button class="dropdown-item" @click="showRenameWatchlistModal = true" v-b-tooltip.hover title="Rename Watchlist" aria-label="Rename watchlist">
             <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"/>
               <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"/>
@@ -163,7 +164,7 @@
             </svg>
             Rename Watchlist
           </button>
-          <button class="dropdown-item" @click="exportWatchlist" v-b-tooltip.hover title="Export Watchlist">
+          <button class="dropdown-item" @click="exportWatchlist" v-b-tooltip.hover title="Export Watchlist" aria-label="Export watchlist">
             <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 16V4M12 16L8 12M12 16L16 12" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               <rect x="4" y="18" width="16" height="2" rx="1" fill="var(--text1)"/>
@@ -313,7 +314,7 @@
                   <div style="flex: 1; text-align: center;" :class="perc[item.ticker] > 0 ? 'positive' : 'negative'">{{
                     perc[item.ticker] }}%</div>
                   <div class="delete-cell" style="position: relative;">
-                    <button class="dbtn" @click="deleteTicker(item.ticker)" style="position: absolute; right: 0;" @click.stop>
+                    <button class="dbtn" @click="deleteTicker(item.ticker)" style="position: absolute; right: 0;" @click.stop :aria-label="`Delete ticker ${item.ticker} from watchlist`">
                      <svg class="imgm" viewBox="0 0 16 16" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
   <rect transform="rotate(45)" y="-1" x="4.3137083" height="2" width="14" style="fill:var(--text1);" />
   <rect transform="rotate(-45)" y="10.313708" x="-7" height="2" width="14" style="fill:var(--text1);" />
@@ -328,15 +329,15 @@
                 <path d="M385.946,126.055c-6.524-6.525-17.102-6.525-23.626,0l-36.278,36.278c-7.82-5.861-16.298-10.691-25.249-14.389 c-14.036-5.803-29.225-8.832-44.792-8.83c-15.572-0.002-30.761,3.027-44.797,8.83c-14.037,5.799-26.917,14.372-37.901,25.36 c-11.376,11.375-19.956,24.598-25.656,38.689c-5.704,14.094-8.547,29.054-8.548,44.007c0,14.954,2.843,29.914,8.548,44.007 c3.693,9.131,8.603,17.892,14.691,26.027l-36.285,36.285c-6.524,6.524-6.524,17.102,0,23.627c6.525,6.524,17.102,6.524,23.627,0 l36.278-36.278c7.82,5.861,16.298,10.691,25.249,14.389c14.036,5.803,29.225,8.832,44.792,8.83 c15.572,0.002,30.761-3.027,44.797-8.83c14.037-5.799,26.917-14.372,37.901-25.359c11.376-11.375,19.955-24.599,25.656-38.689 c5.704-14.094,8.547-29.054,8.548-44.007c0-14.954-2.843-29.914-8.548-44.008c-3.693-9.131-8.603-17.892-14.691-26.027 l36.285-36.285C392.47,143.157,392.47,132.579,385.946,126.055z M178.621,287.472c-4.066-10.044-6.108-20.754-6.107-31.471 c0-10.717,2.042-21.428,6.107-31.472c4.07-10.047,10.146-19.431,18.31-27.599c7.908-7.906,17.06-13.98,27.036-18.106 c9.978-4.122,20.783-6.295,32.033-6.296c11.245,0.002,22.051,2.174,32.03,6.297c4.897,2.025,9.593,4.525,14.044,7.476 L186.305,302.069C183.229,297.418,180.669,292.53,178.621,287.472z M333.38,287.472c-4.07,10.047-10.146,19.431-18.31,27.599 c-7.908,7.906-17.06,13.98-27.036,18.106c-9.978,4.122-20.783,6.295-32.033,6.296c-11.245-0.002-22.05-2.174-32.03-6.297 c-4.897-2.025-9.593-4.526-14.044-7.476l115.769-115.769c3.076,4.651,5.636,9.539,7.684,14.597 c4.066,10.044,6.108,20.754,6.107,31.472C339.488,266.717,337.446,277.427,333.38,287.472z"/>
               </svg>
               <p>This list is empty</p>
-              <button v-if="watchlist.tickers && watchlist.tickers.length > 0" class="import-btn" @click="showImportWatchlistModal = true">
+              <button v-if="watchlist.tickers && watchlist.tickers.length > 0" class="import-btn" @click="showImportWatchlistModal = true" aria-label="Import watchlist">
                 Import Watchlist
               </button>
             </div>
           </div>
+
 </template>
 
 <script setup lang="ts">
-
 import { ref, reactive, computed, nextTick, onMounted, onUnmounted, watch, type Ref, type ComputedRef } from 'vue';
 import Sortable from 'sortablejs';
 import CreateNote from '@/components/charts/CreateNote.vue';
@@ -384,7 +385,6 @@ interface Notification {
 }
 
 const error = ref<string>('');
-const notification = ref<Notification>({ show: (msg: string) => { alert(msg); } });
 const logoError = ref<Record<string, boolean>>({});
 
 const props = defineProps<{
@@ -400,6 +400,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'select-symbol', symbol: string): void;
   (e: 'refresh-notes', payload: any): void;
+  (e: 'notify', msg: string): void;
 }>();
 
 // status for loading bars 
@@ -647,7 +648,7 @@ async function addWatchlist() {
       if (!realwatchlist) return;
       const selectedWatchlistElement = realwatchlist.querySelector('div.selected');
       if (!selectedWatchlistElement) {
-        notification.value.show('No watchlist selected');
+        emit('notify', 'No watchlist selected');
         return;
       }
       const watchlistNameElement = selectedWatchlistElement.querySelector('span.badge')?.previousSibling as HTMLElement | null;
@@ -667,13 +668,13 @@ async function addWatchlist() {
       });
       if (response.status === 404) {
         // Ticker not found
-        notification.value.show('Ticker not found');
+        emit('notify', 'Ticker not found');
         return;
       }
 
       const assetData = await response.json();
       if (!assetData.Symbol) {
-        notification.value.show('Invalid data, symbol doesn\'t exist');
+        emit('notify', "Invalid data, symbol doesn't exist");
         return;
       }
 
@@ -691,11 +692,11 @@ async function addWatchlist() {
       if (patchResponse.status === 400) {
         const errorResponse = await patchResponse.json();
         if (errorResponse.message === 'Maximum number of watchlists (20) has been reached') {
-          notification.value.show('You have reached the maximum number of watchlists (20). Please delete a watchlist before adding a new one.');
+          emit('notify', 'You have reached the maximum number of watchlists (20). Please delete a watchlist before adding a new one.');
         } else if (errorResponse.message === 'Limit reached, cannot add more than 100 symbols per watchlist') {
-          notification.value.show('Limit reached, cannot add more than 100 symbols per watchlist');
+          emit('notify', 'Limit reached, cannot add more than 100 symbols per watchlist');
         } else {
-          notification.value.show('Failed to add ticker to watchlist');
+          emit('notify', 'Failed to add ticker to watchlist');
         }
         return;
       }
@@ -926,7 +927,7 @@ async function addtoWatchlist(ticker: WatchlistTicker, symbol: string, $event: {
     // Check for 400 response from the server
     if (response.status === 400) {
       const errorResponse = await response.json();
-      notification.value.show(errorResponse.message || 'Limit reached, cannot add more than 100 symbols per watchlist');
+      emit('notify', errorResponse.message || 'Limit reached, cannot add more than 100 symbols per watchlist');
       return; // Exit the function if there's a 400 error
     }
 
@@ -1075,7 +1076,6 @@ async function fetchDataWS(items: string[]): Promise<void> {
   wsReceived = false;
   // Filter out empty/undefined tickers
   const validItems = items.filter(Boolean);
-  console.log('[Watchlist] Sending tickers to WS:', validItems);
   const tickersParam = validItems.map(encodeURIComponent).join(',');
   const wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
   const wsUrl = `${wsProto}://localhost:8000/ws/data-values?tickers=${tickersParam}`;
@@ -1210,6 +1210,10 @@ onUnmounted(() => {
   display: flex;
   flex-direction: row;
   width: 100%;
+}
+
+#list{
+    overflow-y: scroll;
 }
 
 #list:focus {

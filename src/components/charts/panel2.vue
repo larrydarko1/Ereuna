@@ -31,6 +31,7 @@
             class="hide-button"
             :class="{ 'hidden-button': field.hidden }"
             @click="toggleHidden(index)"
+            :aria-label="field.hidden ? 'Add field to summary' : 'Remove field from summary'"
           >
             {{ field.hidden ? 'Add' : 'Remove' }}
           </button>
@@ -38,9 +39,9 @@
         </div>
       </div>
       <div class="nav-buttons">
-        <button class="nav-button" @click="$emit('close')">Close</button>
-        <button class="nav-button" @click="resetOrder">Reset</button>
-        <button class="nav-button" @click="updatePanel2">Submit</button>
+  <button class="nav-button" @click="$emit('close')" aria-label="Close editor">Close</button>
+  <button class="nav-button" @click="resetOrder" aria-label="Reset summary fields order">Reset</button>
+  <button class="nav-button" @click="updatePanel2" aria-label="Submit summary fields">Submit</button>
       </div>
     </div>
   </div>

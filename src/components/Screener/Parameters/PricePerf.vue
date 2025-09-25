@@ -1,11 +1,11 @@
 <template>
- <div :class="[showPricePerf ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showPricePerf ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Price Performance</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'perf')" @mouseout="handleMouseOut">
+                aria-label="Price Performance Info" @mouseover="handleMouseOver($event, 'perf')" @mouseout="handleMouseOut">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,7 +20,7 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPricePerf" style="border: none;">
+              <input type="checkbox" id="price-check" v-model="showPricePerf" style="border: none;" aria-label="Toggle Price Performance">
               <span class="slider round"></span>
             </label>
           </div>
@@ -28,15 +28,15 @@
             <div class="DataInputs11">
               <p style="text-align: center;">Change %</p>
               <div style="display: flex; justify-content: center; align-items: center; border: none;">
-                <input class="input" id="changeperc1" type="text" style="width: 70px; margin: 0 5px;" placeholder="Min">
-                <input class="input" id="changeperc2" type="text" style="width: 70px; margin: 0 5px;" placeholder="Max">
+                <input class="input" id="changeperc1" type="text" style="width: 70px; margin: 0 5px;" placeholder="Min" aria-label="Change Percent Min">
+                <input class="input" id="changeperc2" type="text" style="width: 70px; margin: 0 5px;" placeholder="Max" aria-label="Change Percent Max">
                 <div class="changeperc-select-container">
-                  <div class="changeperc-dropdown-btn">
+                  <div class="changeperc-dropdown-btn" aria-label="Change Percent Select">
                     <p class="selected-value">{{ changepercSelect }}</p>
                   </div>
                   <div class="changeperc-dropdown-menu">
                     <div v-for="(option, index) in changepercOptions" :key="index"
-                      @click="selectChangepercOption(option)">
+                      @click="selectChangepercOption(option)" aria-label="Change Percent Option">
                       {{ option }}
                     </div>
                   </div>
@@ -45,22 +45,22 @@
               <div style="border: none;">
                 <p style="text-align: center;">% off 52weekhigh</p>
                 <div style="display: flex; justify-content: center; align-items: center; border:none;">
-                  <input class="input" type="text" id="weekhigh1" style="width: 70px; margin: 0 5px;" placeholder="Min">
-                  <input class="input" type="text" id="weekhigh2" style="width: 70px; margin: 0 5px;" placeholder="Max">
+                  <input class="input" type="text" id="weekhigh1" style="width: 70px; margin: 0 5px;" placeholder="Min" aria-label="52 Week High Min">
+                  <input class="input" type="text" id="weekhigh2" style="width: 70px; margin: 0 5px;" placeholder="Max" aria-label="52 Week High Max">
                 </div>
                 <p style="text-align: center;">% off 52weeklow</p>
                 <div style="display: flex; justify-content: center; align-items: center; border:none;">
-                  <input class="input" type="text" id="weeklow1" style="width: 70px; margin: 0 5px;" placeholder="Min">
-                  <input class="input" type="text" id="weeklow2" style="width: 70px; margin: 0 5px;" placeholder="Max">
+                  <input class="input" type="text" id="weeklow1" style="width: 70px; margin: 0 5px;" placeholder="Min" aria-label="52 Week Low Min">
+                  <input class="input" type="text" id="weeklow2" style="width: 70px; margin: 0 5px;" placeholder="Max" aria-label="52 Week Low Max">
                 </div>
               </div>
               <div style="display: flex; flex-direction: column; align-items: center; border:none;">
                 <br>
-                <div class="custom-checkbox" :class="{ checked: allTimeHigh }" @click="toggleAllTimeHigh">
+                <div class="custom-checkbox" :class="{ checked: allTimeHigh }" @click="toggleAllTimeHigh" aria-label="New All Time High">
                   <span class="checkmark"></span>
                   New All time High
                 </div>
-                <div class="custom-checkbox" :class="{ checked: allTimeLow }" @click="toggleAllTimeLow">
+                <div class="custom-checkbox" :class="{ checked: allTimeLow }" @click="toggleAllTimeLow" aria-label="New All Time Low">
                   <span class="checkmark"></span>
                   New All time Low
                 </div>
@@ -70,11 +70,11 @@
                 <div style="display: flex; align-items: center; border: none;">
                   <p style="margin-right: 10px;">200 DMA</p>
                   <div class="ma200-select-container">
-                    <div class="ma200-dropdown-btn">
+                    <div class="ma200-dropdown-btn" aria-label="200 DMA Select">
                       <p class="selected-value">{{ ma200Select }}</p>
                     </div>
                     <div class="ma200-dropdown-menu">
-                      <div v-for="(option, index) in ma200Options" :key="index" @click="selectMa200Option(option)">
+                      <div v-for="(option, index) in ma200Options" :key="index" @click="selectMa200Option(option)" aria-label="200 DMA Option">
                         {{ option }}
                       </div>
                     </div>
@@ -83,11 +83,11 @@
                 <div style="display: flex; align-items: center; border: none;">
                   <p style="margin-right: 10px;">50 DMA</p>
                   <div class="ma50-select-container">
-                    <div class="ma50-dropdown-btn">
+                    <div class="ma50-dropdown-btn" aria-label="50 DMA Select">
                       <p class="selected-value">{{ ma50Select }}</p>
                     </div>
                     <div class="ma50-dropdown-menu">
-                      <div v-for="(option, index) in ma50Options" :key="index" @click="selectMa50Option(option)">
+                      <div v-for="(option, index) in ma50Options" :key="index" @click="selectMa50Option(option)" aria-label="50 DMA Option">
                         {{ option }}
                       </div>
                     </div>
@@ -96,11 +96,11 @@
                 <div style="display: flex; align-items: center; border: none;">
                   <p style="margin-right: 10px;">20 DMA</p>
                   <div class="ma20-select-container">
-                    <div class="ma20-dropdown-btn">
+                    <div class="ma20-dropdown-btn" aria-label="20 DMA Select">
                       <p class="selected-value">{{ ma20Select }}</p>
                     </div>
                     <div class="ma20-dropdown-menu">
-                      <div v-for="(option, index) in ma20Options" :key="index" @click="selectMa20Option(option)">
+                      <div v-for="(option, index) in ma20Options" :key="index" @click="selectMa20Option(option)" aria-label="20 DMA Option">
                         {{ option }}
                       </div>
                     </div>
@@ -109,11 +109,11 @@
                 <div style="display: flex; align-items: center; border: none;">
                   <p style="margin-right: 10px;">10 DMA</p>
                   <div class="ma10-select-container">
-                    <div class="ma10-dropdown-btn">
+                    <div class="ma10-dropdown-btn" aria-label="10 DMA Select">
                       <p class="selected-value">{{ ma10Select }}</p>
                     </div>
                     <div class="ma10-dropdown-menu">
-                      <div v-for="(option, index) in ma10Options" :key="index" @click="selectMa10Option(option)">
+                      <div v-for="(option, index) in ma10Options" :key="index" @click="selectMa10Option(option)" aria-label="10 DMA Option">
                         {{ option }}
                       </div>
                     </div>
@@ -122,11 +122,11 @@
                 <div style="display: flex; align-items: center; border: none;">
                   <p style="margin-right: 10px;">Price</p>
                   <div class="price-select-container">
-                    <div class="price-dropdown-btn">
+                    <div class="price-dropdown-btn" aria-label="Price Select">
                       <p class="selected-value">{{ priceSelect }}</p>
                     </div>
                     <div class="price-dropdown-menu">
-                      <div v-for="(option, index) in priceOptions" :key="index" @click="selectPriception(option)">
+                      <div v-for="(option, index) in priceOptions" :key="index" @click="selectPriception(option)" aria-label="Price Option">
                         {{ option }}
                       </div>
                     </div>
@@ -135,7 +135,7 @@
               </div>
             </div>
             <div class="row">
-              <button class="btns" style="float:right" @click="SetPricePerformance()">
+              <button class="btns" style="float:right" @click="SetPricePerformance()" aria-label="Set Price Performance">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -150,7 +150,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showPricePerf = false">
+              <button class="btnsr" style="float:right" @click="emit('reset'), showPricePerf = false" aria-label="Reset Price Performance">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -170,7 +170,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', "notify"]);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -306,12 +306,9 @@ function toggleAllTimeLow() {
 async function SetPricePerformance() {
   try {
     if (!props.selectedScreener) {
-      // Cannot assign to readonly prop, use notification pattern
-      if (props.notification) {
-        props.notification.message = 'Please select a screener';
-        props.notification.type = 'error';
-      }
-      throw new Error('Please select a screener');
+      emit('notify', { message: 'Please select a screener', type: 'error' });
+      emit('fetchScreeners', props.selectedScreener);
+      return;
     }
     // Defensive DOM element access and typing
     const changeperc1Input = document.getElementById('changeperc1') as HTMLInputElement | null;
@@ -321,7 +318,9 @@ async function SetPricePerformance() {
     const weeklow1Input = document.getElementById('weeklow1') as HTMLInputElement | null;
     const weeklow2Input = document.getElementById('weeklow2') as HTMLInputElement | null;
     if (!changeperc1Input || !changeperc2Input || !weekhigh1Input || !weekhigh2Input || !weeklow1Input || !weeklow2Input) {
-      throw new Error('Input elements not found');
+      emit('notify', { message: 'Input elements not found', type: 'error' });
+      emit('fetchScreeners', props.selectedScreener);
+      return;
     }
     const changeperc1 = parseFloat(changeperc1Input.value) / 100;
     const changeperc2 = parseFloat(changeperc2Input.value) / 100;
@@ -363,34 +362,24 @@ async function SetPricePerformance() {
         user: props.user
       })
     });
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (data.message === 'updated successfully') {
+    if (response.status === 200) {
       emit('fetchScreeners', props.selectedScreener);
     } else {
-      throw new Error('Error updating');
+      const data = await response.json();
+      emit('notify', { message: data?.message || `Error: ${response.status} ${response.statusText}`, type: 'error' });
+      emit('fetchScreeners', props.selectedScreener);
     }
   } catch (error: unknown) {
-    // Defensive error handling for unknown type
     let message = 'Unknown error';
     if (typeof error === 'object' && error !== null) {
-      // Check for axios-style error
       if ('response' in error && typeof error.response === 'object' && error.response !== null && 'status' in error.response && error.response.status === 400) {
-        // Defensive type guard for error.response.data
         const data = 'data' in error.response && typeof error.response.data === 'object' ? error.response.data : undefined;
         message = (data && 'message' in data && typeof data.message === 'string' ? data.message : undefined) || 'Bad request';
       } else if ('message' in error && typeof error.message === 'string') {
         message = error.message;
       }
     }
-    if (props.notification) {
-      props.notification.message = message;
-      props.notification.type = 'error';
-    }
+    emit('notify', { message, type: 'error' });
     emit('fetchScreeners', props.selectedScreener);
   }
 }
