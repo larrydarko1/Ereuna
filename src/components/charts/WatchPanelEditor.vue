@@ -7,17 +7,18 @@
           v-model="newSymbol"
           @keyup.enter="addSymbol"
           placeholder="Enter symbol (e.g. AAPL)"
+          aria-label="Enter symbol to add to watch panel"
         />
-        <button @click="addSymbol" :disabled="!newSymbol.trim()">Add</button>
+        <button @click="addSymbol" :disabled="!newSymbol.trim()" aria-label="Add symbol to watch panel">Add</button>
       </div>
       <div class="symbols-list">
         <div v-for="(symbol, idx) in symbols" :key="symbol.Symbol" class="symbol-item">
           <span>{{ symbol.Symbol }}</span>
-          <button @click="removeSymbol(idx)">Remove</button>
+          <button @click="removeSymbol(idx)" aria-label="Remove symbol {{ symbol.Symbol }} from watch panel">Remove</button>
         </div>
       </div>
       <slot></slot>
-      <button @click="close">Close</button>
+  <button @click="close" aria-label="Close watch panel editor">Close</button>
     </div>
   </div>
 </template>

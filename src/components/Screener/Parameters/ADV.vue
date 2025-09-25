@@ -1,11 +1,12 @@
 <template>
-   <div :class="[showADV ? 'param-s1-expanded' : 'param-s1']">
+   <div :class="[showADVModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Average Daily Volatility (ADV)</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'adv')" @mouseout="handleMouseOut">
+                @mouseover="handleMouseOver($event, 'adv')" @mouseout="handleMouseOut"
+                aria-label="Show info for ADV parameter">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,27 +21,27 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showADV" style="border: none;">
+              <input type="checkbox" id="price-check" v-model="showADVModel" style="border: none;" aria-label="Toggle ADV filter">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showADV">
+          <div style="border: none;" v-if="showADVModel">
             <div class="DataInputs">
               <p>ADV (1W)</p>
-              <input class="input" type="number" placeholder="min (%)" id="ADV1Winput1" name="input1">
-              <input class="input" type="number" placeholder="max (%)" id="ADV1Winput2" name="input2">
+              <input class="input" type="number" placeholder="min (%)" id="ADV1Winput1" name="input1" aria-label="ADV 1W minimum">
+              <input class="input" type="number" placeholder="max (%)" id="ADV1Winput2" name="input2" aria-label="ADV 1W maximum">
               <p>ADV (1M)</p>
-              <input class="input" type="number" placeholder="min (%)" id="ADV1Minput1" name="input3">
-              <input class="input" type="number" placeholder="max (%)" id="ADV1Minput2" name="input4">
+              <input class="input" type="number" placeholder="min (%)" id="ADV1Minput1" name="input3" aria-label="ADV 1M minimum">
+              <input class="input" type="number" placeholder="max (%)" id="ADV1Minput2" name="input4" aria-label="ADV 1M maximum">
               <p>ADV (4M)</p>
-              <input class="input" type="number" placeholder="min (%)" id="ADV4Minput1" name="input5">
-              <input class="input" type="number" placeholder="max (%)" id="ADV4Minput2" name="input6">
+              <input class="input" type="number" placeholder="min (%)" id="ADV4Minput1" name="input5" aria-label="ADV 4M minimum">
+              <input class="input" type="number" placeholder="max (%)" id="ADV4Minput2" name="input6" aria-label="ADV 4M maximum">
               <p>ADV (1Y)</p>
-              <input class="input" type="number" placeholder="min (%)" id="ADV1Yinput1" name="input7">
-              <input class="input" type="number" placeholder="max (%)" id="ADV1Yinput2" name="input8">
+              <input class="input" type="number" placeholder="min (%)" id="ADV1Yinput1" name="input7" aria-label="ADV 1Y minimum">
+              <input class="input" type="number" placeholder="max (%)" id="ADV1Yinput2" name="input8" aria-label="ADV 1Y maximum">
             </div>
             <div class="row">
-              <button class="btns" style="float:right" @click="SetADV()">
+              <button class="btns" style="float:right" @click="SetADV()" aria-label="Set ADV filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -55,7 +56,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showADV = false">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showADV', false)" aria-label="Reset ADV filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -73,9 +74,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+import { ref, computed } from 'vue';
+
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showADV']);
+
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -84,36 +87,44 @@ function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
-const props = defineProps({
-  user: { type: String, required: true },
-  apiKey: { type: String, required: true },
-  notification: { type: Object, required: true },
-  selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
-})
+const props = defineProps<{
+  user: string;
+  apiKey: string;
+  selectedScreener: string;
+  isScreenerError: boolean;
+  showADV: boolean;
+}>();
 
-let showADV = ref(false);
+const isLoading = ref(false);
+const error = ref('');
+
+function showNotification(msg: string) {
+  emit('notify', msg);
+}
 
 // updates screener value with ADV parameters 
 async function SetADV() {
+  error.value = '';
+  if (!props.selectedScreener) {
+    emit('reset');
+    error.value = 'Please select a screener';
+    showNotification(error.value);
+    return;
+  }
+  function getInputValue(id: string): string {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    return el ? parseFloat(el.value).toFixed(2) : '0.00';
+  }
+  const value1 = getInputValue('ADV1Winput1');
+  const value2 = getInputValue('ADV1Winput2');
+  const value3 = getInputValue('ADV1Minput1');
+  const value4 = getInputValue('ADV1Minput2');
+  const value5 = getInputValue('ADV4Minput1');
+  const value6 = getInputValue('ADV4Minput2');
+  const value7 = getInputValue('ADV1Yinput1');
+  const value8 = getInputValue('ADV1Yinput2');
+  isLoading.value = true;
   try {
-    if (!props.selectedScreener) {
-      emit('reset');
-      throw new Error('Please select a screener');
-    }
-    function getInputValue(id: string): string {
-      const el = document.getElementById(id) as HTMLInputElement | null;
-      return el ? parseFloat(el.value).toFixed(2) : '0.00';
-    }
-    const value1 = getInputValue('ADV1Winput1');
-    const value2 = getInputValue('ADV1Winput2');
-    const value3 = getInputValue('ADV1Minput1');
-    const value4 = getInputValue('ADV1Minput2');
-    const value5 = getInputValue('ADV4Minput1');
-    const value6 = getInputValue('ADV4Minput2');
-    const value7 = getInputValue('ADV1Yinput1');
-    const value8 = getInputValue('ADV1Yinput2');
-
     const response = await fetch('/api/screener/adv', {
       method: 'PATCH',
       headers: {
@@ -132,27 +143,26 @@ async function SetADV() {
         screenerName: props.selectedScreener,
         user: props.user
       })
-    })
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
+    });
+    if (response.status !== 200) {
+      const data = await response.json();
+      throw new Error(data.message || `Error: ${response.status} ${response.statusText}`);
     }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-      emit('fetchScreeners', props.selectedScreener);
-    } else {
-      throw new Error('Error updating range')
-    }
-  } catch (error) {
-    const msg = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : 'Unknown error';
     emit('fetchScreeners', props.selectedScreener);
-    // Optionally show error to user via notification
-    if (props.notification && typeof props.notification.show === 'function') {
-      props.notification.show(msg);
-    }
+  } catch (err) {
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+  } finally {
+    isLoading.value = false;
   }
 }
+
+// Computed getter/setter for v-model
+const showADVModel = computed({
+  get: () => props.showADV,
+  set: (val: boolean) => emit('update:showADV', val)
+});
 
 </script>
 

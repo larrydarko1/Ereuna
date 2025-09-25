@@ -1,8 +1,9 @@
 <template>
-  <div id="chartdiv2">
-    <img src="@/assets/images/logos/tiingo.png" alt="Image"
-      style="height: 15px; margin-right: 10px; margin-bottom: 7px;">
-    <p style="margin: 0; font-size: 10px;">
+  <div id="chartdiv2" aria-label="Financial data notice" role="region">
+    <img src="@/assets/images/logos/tiingo.png" alt="Tiingo logo"
+      style="height: 15px; margin-right: 10px; margin-bottom: 7px;"
+      aria-label="Tiingo logo">
+    <p style="margin: 0; font-size: 10px;" aria-label="Financial data source and update info">
       Core financial data provided by Tiingo.com as of {{ currentDate }} -
       Any metrics or calculations not directly provided by Tiingo are derived internally using their core data.
       End-of-day (EOD) data updates occur daily, Monday through Friday, between 6:00 PM and 6:30 PM ET, subject
@@ -36,7 +37,7 @@ async function getLastUpdate() {
     const data = await response.json();
     currentDate.value = data.date;
   } catch (error) {
-    console.error('Error fetching last update:', error);
+    // Error fetching last update (silently fail)
   }
 }
 

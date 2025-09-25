@@ -5,7 +5,7 @@
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>PE Ratio</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'pe')" @mouseout="handleMouseOut">
+                @mouseover="handleMouseOver($event, 'pe')" @mouseout="handleMouseOut" aria-label="Show info for PE Ratio parameter">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,17 +20,17 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPEInputs" style="border: none;">
+              <input type="checkbox" id="price-check" v-model="showPEInputs" style="border: none;" aria-label="Toggle PE Ratio filter">
               <span class="slider round"></span>
             </label>
           </div>
           <div style="border: none;" v-if="showPEInputs">
             <div class="row">
-              <input class="left input" id="left-pe" type="text" placeholder="min">
-              <input class="right input" id="right-pe" type="text" placeholder="max">
+              <input class="left input" id="left-pe" type="text" placeholder="min" aria-label="PE Ratio minimum">
+              <input class="right input" id="right-pe" type="text" placeholder="max" aria-label="PE Ratio maximum">
             </div>
             <div class="row">
-              <button class="btns" style="float:right" @click="SetPE()">
+              <button class="btns" style="float:right" @click="SetPE()" aria-label="Set PE Ratio filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showPEInputs = false">
+              <button class="btnsr" style="float:right" @click="emit('reset'), showPEInputs = false" aria-label="Reset PE Ratio filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -77,40 +77,52 @@ function handleMouseOut(event: MouseEvent) {
 const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
-  notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
   isScreenerError: { type: Boolean, required: true }
 })
 
 let showPEInputs = ref(false);
+const error = ref('');
+const isLoading = ref(false);
+
+function showNotification(msg: string) {
+  emit('notify', msg);
+}
 
 // adds and modifies PE Ratio value for screener 
 async function SetPE() {
+  error.value = '';
+  if (!props.selectedScreener) {
+    emit('reset');
+    error.value = 'Please select a screener';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftInput = document.getElementById('left-pe') as HTMLInputElement | null;
+  const rightInput = document.getElementById('right-pe') as HTMLInputElement | null;
+  if (!leftInput || !rightInput) {
+    error.value = 'Input elements not found';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftPrice = parseFloat(leftInput.value);
+  const rightPrice = parseFloat(rightInput.value);
+  if (isNaN(leftPrice) || isNaN(rightPrice)) {
+    error.value = 'Please enter valid numbers';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  if (leftPrice >= rightPrice) {
+    error.value = 'Min cannot be higher than or equal to max';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  isLoading.value = true;
   try {
-    if (!props.selectedScreener) {
-      // Cannot assign to readonly prop, use notification pattern
-      if (props.notification && typeof props.notification === 'object') {
-        props.notification.message = 'Please select a screener';
-        props.notification.type = 'error';
-      }
-      throw new Error('Please select a screener');
-    }
-
-    const leftInput = document.getElementById('left-pe') as HTMLInputElement | null;
-    const rightInput = document.getElementById('right-pe') as HTMLInputElement | null;
-    if (!leftInput || !rightInput) {
-      throw new Error('Input elements not found');
-    }
-    const leftPrice = parseFloat(leftInput.value);
-    const rightPrice = parseFloat(rightInput.value);
-
-    if (isNaN(leftPrice) || isNaN(rightPrice)) {
-      throw new Error('Please enter valid numbers');
-    }
-    if (leftPrice >= rightPrice) {
-      throw new Error('Min cannot be higher than or equal to max');
-    }
-
     const response = await fetch('/api/screener/pe', {
       method: 'PATCH',
       headers: {
@@ -124,34 +136,17 @@ async function SetPE() {
         user: props.user
       })
     });
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (data.message === 'updated successfully') {
-      // Optionally notify success
-      if (props.notification && typeof props.notification === 'object') {
-        props.notification.message = 'PE Ratio updated successfully';
-        props.notification.type = 'success';
-      }
-      emit('fetchScreeners', props.selectedScreener);
-    } else {
-      throw new Error('Error updating price range');
+    if (response.status !== 200) {
+      const data = await response.json();
+      throw new Error(data.message || `Error: ${response.status} ${response.statusText}`);
     }
     emit('fetchScreeners', props.selectedScreener);
-  } catch (error: unknown) {
-    let message = 'Unknown error';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    if (props.notification && typeof props.notification === 'object') {
-      props.notification.message = message;
-      props.notification.type = 'error';
-    }
+  } catch (err) {
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error';
+    showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
+  } finally {
+    isLoading.value = false;
   }
 }
 

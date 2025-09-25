@@ -19,6 +19,7 @@
               @keydown.enter.space="toggleIndicatorVisibility(idx)"
               role="checkbox"
               :aria-checked="indicator.visible"
+              :aria-label="'Toggle visibility for indicator ' + (idx + 1)"
               title="Toggle indicator visibility"
             >
               <span class="checkmark"></span>
@@ -26,7 +27,7 @@
           </div>
           <div class="indicator-label">Indicator {{ idx + 1 }}</div>
           <div class="indicator-piece">
-            <div class="custom-dropdown" @click="toggleDropdown(idx)">
+            <div class="custom-dropdown" @click="toggleDropdown(idx)" :aria-label="'Select indicator type for indicator ' + (idx + 1)">
               <div class="selected-value">
                 {{ indicator.type }}
                 <span class="dropdown-arrow" :class="{ open: dropdownOpen === idx }">
@@ -53,6 +54,7 @@
               placeholder="Timeframe"
               required
               class="indicator-input"
+              :aria-label="'Timeframe for indicator ' + (idx + 1)"
             />
           </div>
         </div>
@@ -66,6 +68,7 @@
               @keydown.enter.space="showIntrinsicValue = !showIntrinsicValue"
               role="checkbox"
               :aria-checked="showIntrinsicValue"
+              aria-label="Toggle intrinsic value visibility"
               title="Toggle intrinsic value visibility"
             >
               <span class="checkmark"></span>
@@ -74,8 +77,8 @@
           <div class="indicator-label">Intrinsic Value</div>
         </div>
         <div class="modal-actions">
-          <button type="button" class="cancel-btn" @click="close">Cancel</button>
-          <button type="submit" class="trade-btn">Save</button>
+          <button type="button" class="cancel-btn" @click="close" aria-label="Cancel chart settings">Cancel</button>
+          <button type="submit" class="trade-btn" aria-label="Save chart settings">Save</button>
         </div>
       </form>
     </div>

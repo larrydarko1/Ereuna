@@ -1,11 +1,11 @@
 <template>
- <div :class="[showPriceInputs ? 'param-s1-expanded' : 'param-s1']">
+ <div :class="[showPriceInputsModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Price</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'price')" @mouseout="handleMouseOut($event)">
+                @mouseover="handleMouseOver($event, 'price')" @mouseout="handleMouseOut($event)" aria-label="Show info for Price parameter">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,17 +20,17 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPriceInputs" style="border: none;">
+              <input type="checkbox" id="price-check" v-model="showPriceInputsModel" style="border: none;" aria-label="Toggle Price filter">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showPriceInputs">
+          <div style="border: none;" v-if="showPriceInputsModel">
             <div class="row">
-              <input class="left input" id="left-p" type="text" placeholder="min">
-              <input class="right input" id="right-p" type="text" placeholder="max">
+              <input class="left input" id="left-p" type="text" placeholder="min" aria-label="Price minimum">
+              <input class="right input" id="right-p" type="text" placeholder="max" aria-label="Price maximum">
             </div>
             <div class="row" style="flex-direction: row;">
-              <button class="btns" style="float:right" @click="SetPrice()">
+              <button class="btns" style="float:right" @click="SetPrice()" aria-label="Set Price filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showPriceInputs = false">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showPriceInputs', false)" aria-label="Reset Price filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -63,9 +63,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showPriceInputs']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -78,41 +78,52 @@ function handleMouseOut(event: MouseEvent) {
 const props = defineProps<{
   user: string;
   apiKey: string;
-  notification: { message?: string; type?: string };
   selectedScreener: string;
   isScreenerError: boolean;
+  showPriceInputs: boolean;
 }>();
 
-const showPriceInputs = ref(false);
+const error = ref('');
+const isLoading = ref(false);
+
+function showNotification(msg: string) {
+  emit('notify', msg);
+}
 
 // adds and modifies price value for screener 
 async function SetPrice() {
+  error.value = '';
+  if (!props.selectedScreener) {
+    emit('reset');
+    error.value = 'Please select a screener';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftInput = document.getElementById('left-p') as HTMLInputElement | null;
+  const rightInput = document.getElementById('right-p') as HTMLInputElement | null;
+  if (!leftInput || !rightInput) {
+    error.value = 'Input elements not found';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftPrice = parseFloat(leftInput.value);
+  const rightPrice = parseFloat(rightInput.value);
+  if (isNaN(leftPrice) || isNaN(rightPrice)) {
+    error.value = 'Please enter valid numbers';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  if (leftPrice >= rightPrice) {
+    error.value = 'Min price cannot be higher than or equal to max price';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  isLoading.value = true;
   try {
-    if (!props.selectedScreener) {
-      // Cannot assign to readonly prop, use notification pattern
-      if (props.notification) {
-        props.notification.message = 'Please select a screener';
-        props.notification.type = 'error';
-      }
-      throw new Error('Please select a screener');
-    }
-
-    const leftInput = document.getElementById('left-p') as HTMLInputElement | null;
-    const rightInput = document.getElementById('right-p') as HTMLInputElement | null;
-    if (!leftInput || !rightInput) {
-      throw new Error('Input elements not found');
-    }
-    const leftPrice = parseFloat(leftInput.value);
-    const rightPrice = parseFloat(rightInput.value);
-
-    if (isNaN(leftPrice) || isNaN(rightPrice)) {
-      throw new Error('Please enter valid numbers');
-    }
-
-    if (leftPrice >= rightPrice) {
-      throw new Error('Min price cannot be higher than or equal to max price');
-    }
-
     const response = await fetch('/api/screener/price', {
       method: 'PATCH',
       headers: {
@@ -126,31 +137,25 @@ async function SetPrice() {
         user: props.user
       })
     });
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (data.message === 'Price range updated successfully') {
-      emit('fetchScreeners', props.selectedScreener); // Fetch updated screeners
-    } else {
-      throw new Error('Error updating price range');
-    }
-  } catch (error: unknown) {
-    // Defensive error handling for unknown type
-    let message = 'Unknown error';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    if (props.notification) {
-      props.notification.message = message;
-      props.notification.type = 'error';
+    if (response.status !== 200) {
+      const data = await response.json();
+      throw new Error(data.message || `Error: ${response.status} ${response.statusText}`);
     }
     emit('fetchScreeners', props.selectedScreener);
+  } catch (err) {
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+  } finally {
+    isLoading.value = false;
   }
 }
+
+// Computed getter/setter for v-model
+const showPriceInputsModel = computed({
+  get: () => props.showPriceInputs,
+  set: (val: boolean) => emit('update:showPriceInputs', val)
+});
 
 </script>
 

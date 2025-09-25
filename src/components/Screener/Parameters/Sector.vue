@@ -5,7 +5,8 @@
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Sector</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'sector')" @mouseout="handleMouseOut($event)">
+                @mouseover="handleMouseOver($event, 'sector')" @mouseout="handleMouseOut($event)"
+                aria-label="Show info about Sector">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,22 +21,22 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" v-model="ShowSector">
-              <span class="slider round"></span>
+              <input type="checkbox" v-model="ShowSector" aria-label="Toggle Sector inputs">
+              <span class="slider round" aria-label="Toggle switch"></span>
             </label>
           </div>
           <div style="border: none" v-if="ShowSector">
             <div class="row2">
               <div class="check" v-for="(sector, index) in Sectors" :key="index">
                 <div :id="`sector-${index}`" class="custom-checkbox" :class="{ checked: selectedSectors[index] }"
-                  @click="toggleSector(index)">
-                  <span class="checkmark"></span>
+                  @click="toggleSector(index)" aria-label="Toggle sector {{ sector }}">
+                  <span class="checkmark" aria-label="Checkbox for {{ sector }}"></span>
                   {{ sector }}
                 </div>
               </div>
             </div>
             <div class="row">
-              <button class="btns2" style="float:right" @click="SetSector">
+              <button class="btns2" style="float:right" @click="SetSector" aria-label="Set Sector">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -50,7 +51,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btns2r" style="float:right" @click="emit('reset'), ShowSector = false">
+              <button class="btns2r" style="float:right" @click="emit('reset'), ShowSector = false" aria-label="Reset Sector">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -70,7 +71,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -85,10 +87,10 @@ const props = defineProps({
   notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
   isScreenerError: { type: Boolean, required: true }
-})
+});
 
 let ShowSector = ref(false);
-const Sectors = ref<string[]>([]); // hosts all available sectors 
+const Sectors = ref<string[]>([]); // hosts all available sectors
 const selectedSectors = ref<boolean[]>([]);
 
 // generates options for checkboxes for sectors
@@ -99,6 +101,9 @@ async function GetSectors() {
         'X-API-KEY': props.apiKey,
       },
     });
+    if (response.status !== 200) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
+    }
     const data: string[] = await response.json();
     Sectors.value = data;
     selectedSectors.value = new Array(data.length).fill(false);
@@ -109,10 +114,7 @@ async function GetSectors() {
     } else if (typeof error === 'string') {
       message = error;
     }
-    if (props.notification && typeof props.notification === 'object') {
-      props.notification.message = message;
-      props.notification.type = 'error';
-    }
+    emit('notify', message);
   }
 }
 GetSectors();
@@ -126,6 +128,10 @@ async function SetSector() {
   const selected = Sectors.value.filter((_, index) => selectedSectors.value[index]); // Get selected sectors
 
   try {
+    if (!props.selectedScreener) {
+      emit('notify', 'Please select a screener');
+      throw new Error('Please select a screener');
+    }
     const response = await fetch('/api/screener/sectors', {
       method: 'PATCH',
       headers: {
@@ -135,8 +141,8 @@ async function SetSector() {
       body: JSON.stringify({ sectors: selected, screenerName: props.selectedScreener, user: props.user })
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (response.status !== 200) {
+      throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -148,10 +154,7 @@ async function SetSector() {
     } else if (typeof error === 'string') {
       message = error;
     }
-    if (props.notification && typeof props.notification === 'object') {
-      props.notification.message = message;
-      props.notification.type = 'error';
-    }
+    emit('notify', message);
     emit('fetchScreeners', props.selectedScreener);
   }
 }

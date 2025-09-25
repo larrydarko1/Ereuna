@@ -1,9 +1,11 @@
 <template>
   <div class="renewal-container">
+     <img class="logo" src="@/assets/icons/ereuna.png" alt="Owl Icon" draggable="false">
     <div class="expired-message">
       <h1>Subscription Expired</h1>
-      <p>Your subscription has expired. Please renew to resume access to all features.</p>
+      <p>Hi {{ username}}, your subscription has expired. Please renew to resume access to all features.</p>
     </div>
+    <div class="subscription-section">
       <div class="duration-selection">
         <h3 class="subtitle">Subscription Duration</h3>
         <div class="duration-options">
@@ -15,140 +17,259 @@
       </div>
       <div class="total-price">
         <div class="card-element-container">
-          <div id="card-element"></div>
-          <div id="card-errors" role="alert"></div>
+          <div id="card-element" aria-label="Credit Card Input"></div>
         </div>
-        <div class="country-select">
-          <div class="dropdown" @click="toggleDropdown">
-            <div class="dropdown-selected">
-              {{ selectedCountryObj.name }} ({{ (selectedCountryObj.vat * 100).toFixed(0)}}% VAT)
-              <span class="dropdown-arrow" :class="{ open: dropdownOpen }">&#9662;</span>
-            </div>
-            <div class="dropdown-list" v-if="dropdownOpen">
-              <div
-                v-for="country in countries"
-                :key="country.code"
-                class="dropdown-item"
-                @click.stop="selectCountry(country)"
-              >
-                {{ country.flag }} {{ country.name }} ({{ (country.vat * 100).toFixed(0) }}% VAT )
+        <div class="total-row">
+          <div class="country-select">
+            <div class="dropdown" @click="toggleDropdown">
+              <div class="dropdown-selected">
+                {{ selectedCountryObj.name }} ({{ (selectedCountryObj.vat * 100).toFixed(0)}}% VAT)
+                <span class="dropdown-arrow" :class="{ open: dropdownOpen }">&#9662;</span>
+              </div>
+              <div class="dropdown-list" v-if="dropdownOpen">
+                <div
+                  v-for="country in countries"
+                  :key="country.code"
+                  class="dropdown-item"
+                  @click.stop="selectCountry(country)"
+                >
+                  {{ country.flag }} {{ country.name }} ({{ (country.vat * 100) }}% VAT )
+                </div>
               </div>
             </div>
           </div>
+          <p class="total-text">Total: <span>€{{ calculateTotalPrice() }}</span></p>
         </div>
-        <p class="total-text">Total: <span>€{{ calculateTotalPrice() }}</span></p>
       </div>
-      <button class="renew-button">Renew Subscription</button>
+      <button @click="handleRenewal" class="userbtn" :disabled="isLoading || vatLoadFailed" type="button" aria-label="Renew Subscription">
+        <span class="btn-content-row">
+          <span v-if="isLoading" class="loader4">
+            <svg class="spinner" viewBox="0 0 50 50">
+              <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
+            </svg>
+          </span>
+          <span :style="{ 'font-size': '12px' }" v-if="!isLoading">Renew Subscription</span>
+          <span :style="{ 'font-size': '12px' }" v-else style="margin-left: 8px;">Processing...</span>
+        </span>
+      </button>
+      <NotificationPopup ref="notification" role="alert" aria-live="polite" />
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useUserStore } from '@/store/store';
 import { loadStripe } from '@stripe/stripe-js';
+import NotificationPopup from '@/components/NotificationPopup.vue';
 
-// Stripe refs
-import type { Stripe, StripeElements, StripeCardElement } from '@stripe/stripe-js';
-const stripe = ref<Stripe | null>(null);
-const elements = ref<StripeElements | null>(null);
-const card = ref<StripeCardElement | null>(null);
+const userStore = useUserStore();
+const username = computed(() => userStore.getUser?.Username ?? '');
 
-// Plan, duration, country
-const selectedPlan = ref('core');
+const stripe = ref<any>(null);
+const elements = ref<any>(null);
+const card = ref<any>(null);
+const isLoading = ref(false);
+const vatLoadFailed = ref(false);
+const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
+const showNotification = (msg: string) => {
+  if (notification.value) notification.value.show(msg);
+};
+
+interface CountryVat {
+  code: string;
+  name: string;
+  vat: number;
+  flag: string;
+}
+
+const countries = ref<CountryVat[]>([]);
+const selectedCountry = ref('MT');
 const selectedDuration = ref(1);
-const selectedCountry = ref('MT'); // Default Malta
 const dropdownOpen = ref(false);
 
-// Country list (full, sorted)
-const countries = [
-  { code: 'IT', name: 'Italy', flag: '🇮🇹', vat: 0.22 },
-  { code: 'DE', name: 'Germany', flag: '🇩🇪', vat: 0.19 },
-  { code: 'FR', name: 'France', flag: '🇫🇷', vat: 0.20 },
-  { code: 'ES', name: 'Spain', flag: '🇪🇸', vat: 0.21 },
-  { code: 'US', name: 'United States', flag: '🇺🇸', vat: 0.00 },
-  { code: 'MT', name: 'Malta', flag: '🇲🇹', vat: 0.18 },
-  // ...add more as needed
-];
-countries.sort((a, b) => a.name.localeCompare(b.name));
-
-const selectedCountryObj = computed(() =>
-  countries.find(c => c.code === selectedCountry.value) || countries[0]
-);
+const selectedCountryObj = computed(() => {
+  return countries.value.find((c: CountryVat) => c.code === selectedCountry.value) || countries.value[0] || { code: '', name: '', vat: 0 };
+});
 
 function toggleDropdown() {
   dropdownOpen.value = !dropdownOpen.value;
 }
+
 function selectCountry(country: { code: string }) {
   selectedCountry.value = country.code;
   dropdownOpen.value = false;
 }
 
-function calculateTotalPrice() {
-  const prices: Record<string, number> = {
-    core: 5.99,
-    premium: 14.99
-  };
-  let basePrice = prices[selectedPlan.value] ?? 0;
+function calculateTotalPrice(): string {
+  const basePrice = 14.99;
   let totalMonths = selectedDuration.value;
   let totalPrice = basePrice * totalMonths;
-  const country = countries.find(c => c.code === selectedCountry.value);
+  const country = countries.value.find((c: CountryVat) => c.code === selectedCountry.value);
   const vatRate = country ? country.vat : 0;
   const vatAmount = totalPrice * vatRate;
   const totalWithVat = totalPrice + vatAmount;
   return totalWithVat.toFixed(2);
 }
 
-// Stripe card element logic
+function calculateTotalPriceCents(): number {
+  const basePrice = 14.99;
+  let totalMonths = selectedDuration.value;
+  let totalPrice = basePrice * totalMonths;
+  const country = countries.value.find((c: CountryVat) => c.code === selectedCountry.value);
+  const vatRate = country ? country.vat : 0;
+  const vatAmount = totalPrice * vatRate;
+  const totalWithVat = totalPrice + vatAmount;
+  return Math.round(totalWithVat * 100);
+}
+
+async function fetchVatRates() {
+  try {
+    const response = await fetch('/api/vat-rates', {
+      headers: {
+        'X-API-KEY': import.meta.env.VITE_EREUNA_KEY,
+      },
+    });
+    if (!response.ok) throw new Error('Failed to fetch VAT rates');
+    const data = await response.json();
+    countries.value = (data.countries || []).sort((a: CountryVat, b: CountryVat) => a.name.localeCompare(b.name));
+    vatLoadFailed.value = false;
+  } catch (err) {
+    notification.value?.show('Could not load VAT rates. Renewal is temporarily disabled.');
+    vatLoadFailed.value = true;
+  }
+}
+
 onMounted(async () => {
+  await fetchVatRates();
   if (!stripe.value) {
-    stripe.value = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY) as Stripe | null;
+    stripe.value = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
   }
   initializeStripe();
 });
 
 function initializeStripe() {
-  if (stripe.value) {
-    elements.value = stripe.value.elements();
-    if (elements.value) {
-      card.value = elements.value.create('card', {
-        style: {
-          base: {
-            color: '#ffffff',
-            fontFamily: 'Helvetica Neue, Helvetica, sans-serif',
-            fontSmoothing: 'antialiased',
-            fontSize: '16px',
-            '::placeholder': { color: '#aab7c4' }
-          },
-          invalid: {
-            color: '#fa755a',
-            iconColor: '#fa755a'
-          }
-        }
-      });
-      setTimeout(() => {
-        const cardElement = document.getElementById('card-element');
-        if (cardElement && card.value) {
-          card.value.mount('#card-element');
-        }
-      }, 100);
-      if (card.value) {
-        card.value.on('change', function(event: any) {
-          const displayError = document.getElementById('card-errors');
-          if (displayError) {
-            if (event.error) {
-              displayError.textContent = event.error.message;
-            } else {
-              displayError.textContent = '';
-            }
-          }
-        });
-      }
+  if (!stripe.value) return;
+  elements.value = stripe.value.elements();
+  if (!elements.value) return;
+  const text1 = getComputedStyle(document.documentElement).getPropertyValue('--text1') || '#32325d';
+  card.value = elements.value.create('card', {
+    style: {
+      base: {
+        color: text1.trim(),
+        fontFamily: 'Arial, sans-serif',
+        fontSmoothing: 'antialiased',
+        fontSize: '16px',
+        '::placeholder': {
+          color: '#aab7c4',
+        },
+      },
+      invalid: {
+        color: '#fa755a',
+        iconColor: '#fa755a',
+      },
+    },
+  });
+  setTimeout(() => {
+    const cardElement = document.getElementById('card-element');
+    if (cardElement && card.value) {
+      card.value.mount('#card-element');
     }
+  }, 100);
+  if (card.value) {
+    card.value.on('change', function(event: any) {
+      if (event.error) {
+        showNotification(event.error.message);
+      }
+    });
+  }
+}
+
+async function handleRenewal() {
+  if (isLoading.value) return;
+  isLoading.value = true;
+  if (!stripe.value || !card.value) {
+    showNotification('Payment form not ready. Please wait for the payment form to load.');
+    isLoading.value = false;
+    return;
+  }
+  let paymentMethod, pmError;
+  try {
+    const result = await stripe.value.createPaymentMethod({
+      type: 'card',
+      card: card.value,
+      billing_details: { name: username.value || 'User' }
+    });
+    paymentMethod = result.paymentMethod;
+    pmError = result.error;
+  } catch (err) {
+    showNotification('Unexpected error creating payment method.');
+    isLoading.value = false;
+    return;
+  }
+  if (pmError || !paymentMethod) {
+    showNotification(pmError?.message || 'Payment method error.');
+    isLoading.value = false;
+    return;
+  }
+  try {
+    const response = await fetch('/api/renew-subscription', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': import.meta.env.VITE_EREUNA_KEY,
+      },
+      body: JSON.stringify({
+        user: username.value,
+        payment_method_id: paymentMethod.id,
+        duration: selectedDuration.value,
+        country: selectedCountry.value,
+  vat: (countries.value.find((c: CountryVat) => c.code === selectedCountry.value)?.vat || 0),
+        total: calculateTotalPriceCents(),
+        return_url: window.location.origin
+      }),
+    });
+    let result;
+    try {
+      result = await response.json();
+    } catch (jsonErr) {
+      showNotification('Server error: invalid response.');
+      isLoading.value = false;
+      return;
+    }
+    if (response.ok && result.success) {
+      showNotification('Renewal and payment successful!');
+      if (result.token) {
+        localStorage.setItem('token', result.token);
+        userStore.loadUserFromToken();
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1500);
+      } else {
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      }
+    } else {
+      showNotification(result.message || 'Renewal or payment failed.');
+    }
+  } catch (error) {
+    showNotification('Network or server error. Please check your connection.');
+  } finally {
+    isLoading.value = false;
   }
 }
 </script>
 
 <style lang="scss" scoped>
 @use '../style.scss' as *;
+
+.logo {
+  display: block;
+  margin: 0 auto 1.5rem auto;
+  height: 100px;
+  user-select: none;
+}
 
 .renewal-container {
   max-width: 1000px;
@@ -184,121 +305,53 @@ function initializeStripe() {
   text-align: center;
   font-weight: 600;
 }
-.plan-options {
-  display: flex;
-  gap: 5rem;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-.plan-card {
-  background: $base2;
-  border-radius: 1rem;
-  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.08);
-  padding: 1.2rem 1rem 1rem 1rem;
-  width: 400px;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: border 0.2s, box-shadow 0.2s, transform 0.18s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 260px;
-}
-.plan-card.selected-plan {
-  border: 2px solid $accent1;
-  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.18);
-  transform: scale(1.04);
-}
-.plan-header {
-  font-size: 2rem;
-  font-weight: 700;
-  color: $accent1;
-  margin-bottom: 0.4rem;
-  letter-spacing: 0.04em;
-}
-.plan-price {
-  font-size: 1.70rem;
-  font-weight: 700;
-  margin-bottom: 0.6rem;
-  color: $text1;
-}
-.plan-price span {
-  font-size: 0.98rem;
-  color: $text2;
-}
-.plan-features {
-  list-style: none;
-  color: $text2;
-  font-size: 0.97rem;
-  margin: 0;
-  padding-left: 0;
-  text-align: left;
-}
-.plan-features li {
-  padding: 7px 0 7px 22px;
-  position: relative;
-}
-.plan-features li:before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 13px;
-  width: 12px;
-  height: 12px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Ccircle cx='10' cy='10' r='10' fill='%238c8dfe'/%3E%3Cpath d='M6 10.5l2.5 2.5 5-5' stroke='%23fff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-}
 .duration-selection {
-  margin-top: 18px;
-  margin-bottom: 1.2rem;
+  margin-top: 30px;
 }
 .duration-options {
   display: flex;
-  gap: 0.7rem;
-  justify-content: center;
+  justify-content: space-between;
   flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 15px;
 }
 .duration-option {
-  background: $base2;
+  background-color: $base2;
   color: $text2;
-  border-radius: 18px;
-  padding: 8px 16px;
+  border-radius: 7px;
+  padding: 10px 18px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.18s;
   text-align: center;
-  border: 2px solid transparent;
-  font-size: 1rem;
+  flex: 1;
   min-width: 80px;
+  border: 1.5px solid $base3;
+  font-weight: 600;
 }
 .duration-option:hover {
-  background: $base3;
+  background-color: $base3;
 }
 .duration-option.selected-duration {
-  background: $accent1;
+  background-color: $accent1;
   color: $text4;
-  font-weight: 500;
-  border: 2px solid $accent1;
+  border-color: $accent1;
 }
 .total-price {
-  margin-top: 1.7rem;
+  margin-top: 30px;
   text-align: right;
   padding: 10px 0 0 0;
   border-top: 1px solid $base2;
 }
 .total-price p {
-  font-size: 2rem;
+  font-size: 18px;
   color: $text2;
 }
 .total-price span {
-  font-size: 2rem;
+  font-size: 22px;
   color: $accent1;
   font-weight: 700;
   margin-left: 8px;
 }
-
 .card-element-container {
   margin-bottom: 1.1rem;
 }
@@ -315,114 +368,261 @@ function initializeStripe() {
 #card-element.StripeElement--focus {
   border-color: $accent1;
 }
-#card-errors {
-  color: #ff6b6b;
-  font-size: 0.98rem;
-  margin-top: 6px;
-  min-height: 18px;
-}
 .country-select {
   margin-top: 1rem;
-  display: flex;
-  justify-content: left;
 }
-.dropdown {
+.country-select .dropdown {
   position: relative;
-  width: 220px;
+  width: 250px;
   cursor: pointer;
   user-select: none;
 }
-.dropdown-selected {
+.country-select .dropdown-selected {
   background: $base2;
   color: $text1;
-  border-radius: 5px;
-  padding: 6px 10px;
-  border: 1px solid $base1;
-  font-size: 0.95rem;
+  border-radius: 7px;
+  padding: 10px 12px;
+  border: 1.5px solid $base3;
+  font-size: 0.98rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   min-height: 10px;
+  transition: border-color 0.18s;
 }
-.dropdown-arrow {
+.country-select .dropdown-selected:focus {
+  border-color: $accent1;
+}
+.country-select .dropdown-arrow {
   margin-left: 6px;
   font-size: 0.9em;
   transition: transform 0.2s;
 }
-.dropdown-arrow.open {
+.country-select .dropdown-arrow.open {
   transform: rotate(180deg);
 }
-.dropdown-list {
+.country-select .dropdown-list {
   position: absolute;
   top: 105%;
   left: 0;
   width: 100%;
   background: $base2;
-  border: 1px solid $base1;
-  border-radius: 5px;
+  border: 1.5px solid $base3;
+  border-radius: 7px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   z-index: 10;
   max-height: 150px;
   overflow-y: auto;
 }
-.dropdown-item {
-  padding: 6px 10px;
+.country-select .dropdown-item {
+  padding: 10px 12px;
   color: $text1;
   text-align: left;
   cursor: pointer;
-  font-size: 0.95rem;
-  &:hover {
-    background: $accent1;
-    color: $text4;
-  }
+  font-size: 0.98rem;
+  border-radius: 7px;
+  transition: background 0.18s, color 0.18s;
 }
-
-.renew-button{
-  width: 100%;
+.country-select .dropdown-item:hover {
   background: $accent1;
   color: $text4;
+}
+.userbtn {
+  background: $accent1;
+  text-align: center;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  color: $text4;
+  border-radius: 10px;
+  outline: none;
   border: none;
-  border-radius: 5px;
-  padding: 12px 16px;
-  font-size: 2rem;
+  padding: 15px;
+  margin: 10px 0 0 0;
+  width: 100%;
   cursor: pointer;
-  transition: background 0.2s;
-
-  &:hover {
-    background: $accent2;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+.userbtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.userbtn:hover:not(:disabled) {
+  background: $accent2;
+}
+.btn-content-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+.loader4 {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  margin-right: 10px;
+}
+.spinner {
+  animation: rotate 2s linear infinite;
+  width: 25px;
+  height: 25px;
+}
+.path {
+  stroke: #000000;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
   }
 }
-
-@media (max-width: 600px) {
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}
+@media (max-width: 1150px) {
   .renewal-container {
     padding: 1.1rem 0.2rem;
     max-width: 99vw;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   }
-  .plan-options {
-    flex-direction: column;
-    align-items: center;
+  .logo {
+    height: 60px;
+    margin-bottom: 1rem;
   }
-  .plan-card {
-    width: 100%;
-    min-width: 0;
-    margin-bottom: 18px;
+  .expired-message h1 {
+    font-size: 2.2rem;
+  }
+  .expired-message p {
+    font-size: 1.1rem;
+  }
+  .subscription-section {
+    padding: 10px;
+    margin-top: 0.5rem;
+    border-radius: 10px;
+  }
+  .subtitle {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+  .duration-selection {
+    margin-top: 18px;
   }
   .duration-options {
+    display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     gap: 0.5rem;
+    margin-top: 10px;
+    max-width: 340px;
+    margin-left: auto;
+    margin-right: auto;
   }
   .duration-option {
     min-width: 0;
     width: 100%;
+    max-width: 320px;
+    font-size: 1rem;
+    padding: 10px 10px;
+    box-sizing: border-box;
   }
-  .total-price {
-    text-align: center;
+  .total-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+    width: 100%;
+  }
+  .total-row .country-select {
+    width: auto;
+    margin-top: 0;
+    flex: 0 0 auto;
+  }
+  .country-select .dropdown {
+    width: auto;
+    min-width: 120px;
+  }
+  .country-select .dropdown-selected {
+    font-size: 1.35rem;
+    padding: 12px 16px;
+  }
+  .country-select .dropdown-list {
+    font-size: 1.15rem;
+  }
+  .country-select .dropdown-item {
+    padding: 12px 16px;
+  }
+  .total-row .total-text {
+    font-size: 1.45rem;
+    margin: 0;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .total-row span {
+    font-size: 1.55rem;
+  }
+  .card-element-container {
+    margin-bottom: 0.7rem;
+  }
+  #card-element {
+    padding: 10px;
+    font-size: 1rem;
   }
   .country-select {
     width: 100%;
+    margin-top: 0.7rem;
   }
-  .dropdown {
+  .country-select .dropdown {
     width: 100%;
+  }
+  .country-select .dropdown-selected {
+    font-size: 0.95rem;
+    padding: 8px 10px;
+  }
+  .country-select .dropdown-list {
+    font-size: 0.95rem;
+  }
+  .country-select .dropdown-item {
+    padding: 8px 10px;
+  }
+  .userbtn {
+    width: 100%;
+    font-size: 1rem;
+    padding: 10px;
+    margin: 10px 0 0 0;
+    border-radius: 8px;
+  }
+  .btn-content-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  .loader4 {
+    height: 18px;
+    margin-right: 8px;
+  }
+  .spinner {
+    width: 20px;
+    height: 20px;
   }
 }
 </style>

@@ -5,7 +5,8 @@
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Country</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'country')" @mouseout="handleMouseOut">
+                @mouseover="handleMouseOver($event, 'country')" @mouseout="handleMouseOut"
+                aria-label="Show info for Country parameter">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,7 +21,7 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" v-model="ShowCountry">
+              <input type="checkbox" v-model="ShowCountry" aria-label="Toggle Country filter">
               <span class="slider round"></span>
             </label>
           </div>
@@ -28,14 +29,17 @@
             <div class="row2">
               <div class="check" v-for="(country, index) in Country" :key="index">
                 <div :id="`country-${index}`" class="custom-checkbox" :class="{ checked: selectedCountries[index] }"
-                  @click="toggleCountry(index)">
+                  @click="toggleCountry(index)"
+                  :aria-label="'Toggle ' + country + ' country'"
+                  role="checkbox"
+                  :aria-checked="selectedCountries[index]">
                   <span class="checkmark"></span>
                   {{ country }}
                 </div>
               </div>
             </div>
             <div class="row">
-              <button class="btns" style="float:right" @click="SetCountry">
+              <button class="btns" style="float:right" @click="SetCountry" aria-label="Set Country filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -50,7 +54,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), ShowCountry = false">
+              <button class="btnsr" style="float:right" @click="emit('reset'), ShowCountry = false" aria-label="Reset Country filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -70,7 +74,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -82,14 +87,17 @@ function handleMouseOut(event: MouseEvent) {
 const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
-  notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
   isScreenerError: { type: Boolean, required: true }
-})
+});
 
 let ShowCountry = ref(false);
 const Country = ref<string[]>([]); // hosts all available countries 
 const selectedCountries = ref<boolean[]>([]);
+
+function showNotification(msg: string) {
+  emit('notify', msg);
+}
 
 // generates options for checkboxes for country 
 async function GetCountry() {
@@ -107,10 +115,7 @@ async function GetCountry() {
     if (error instanceof Error) {
       message = error.message;
     }
-    if (props.notification && typeof props.notification === 'object') {
-      props.notification.message = message;
-      props.notification.type = 'error';
-    }
+    showNotification(message);
   }
 }
 GetCountry();
@@ -121,18 +126,13 @@ const toggleCountry = (index: number) => {
 
 // sends country data to update screener
 async function SetCountry() {
-  const selected = Country.value.filter((_, index) => selectedCountries.value[index]); // Get selected countries
-
+  const selected = Country.value.filter((_, index) => selectedCountries.value[index]);
   try {
     if (!props.selectedScreener) {
-      // Cannot assign to readonly prop, use notification pattern
-      if (props.notification && typeof props.notification === 'object') {
-        props.notification.message = 'Please select a screener';
-        props.notification.type = 'error';
-      }
-      throw new Error('Please select a screener');
+      showNotification('Please select a screener');
+      emit('fetchScreeners', props.selectedScreener);
+      return;
     }
-
     const response = await fetch('/api/screener/country', {
       method: 'PATCH',
       headers: {
@@ -141,22 +141,17 @@ async function SetCountry() {
       },
       body: JSON.stringify({ countries: selected, screenerName: props.selectedScreener, user: props.user })
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (response.status !== 200) {
+      const data = await response.json();
+      throw new Error(data.message || `Error: ${response.status} ${response.statusText}`);
     }
-
-    const data = await response.json();
-    emit('fetchScreeners', props.selectedScreener); // Update the list after setting the country
+    emit('fetchScreeners', props.selectedScreener);
   } catch (error: unknown) {
     let message = 'Unknown error';
     if (error instanceof Error) {
       message = error.message;
     }
-    if (props.notification && typeof props.notification === 'object') {
-      props.notification.message = message;
-      props.notification.type = 'error';
-    }
+    showNotification(message);
     emit('fetchScreeners', props.selectedScreener);
   }
 }

@@ -1,5 +1,3 @@
-
-# All imports and shared variables at the top
 import os
 import requests
 from datetime import datetime

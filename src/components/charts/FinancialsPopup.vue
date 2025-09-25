@@ -2,10 +2,10 @@
   <div v-if="showPopup" class="popup" @click.self="$emit('close')">
     <div class="popup-content">
       <div>
-        <button @click="toggleFinancials" class="toggle-button">
+        <button @click="toggleFinancials" class="toggle-button" :aria-label="isAnnualFinancials ? 'Switch to quarterly financial reports' : 'Switch to annual financial reports'">
           {{ isAnnualFinancials ? 'Switch to Quarterly Reports' : 'Switch to Annual Reports' }}
         </button>
-        <button class="toggle-button" @click="$emit('close')">Close</button>
+        <button class="toggle-button" @click="$emit('close')" aria-label="Close financials popup">Close</button>
       </div>
       <br>
       <div class="financials-scroll-container">
@@ -22,7 +22,8 @@
             <div class="attribute-name" style="display: grid; grid-template-columns: 1fr auto;">
               {{ attributeMap[attribute] || attribute }}
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut">
+                @mouseover="handleMouseOver($event, { attribute })" @mouseout="handleMouseOut"
+                :aria-label="'Show info for ' + (attributeMap[attribute] || attribute)">
                 <path
                   d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
                   stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round">

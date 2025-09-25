@@ -3,7 +3,7 @@
     <div class="modal-content">
       <button class="close-x" @click="close" aria-label="Close">&times;</button>
       <h2>Rename Screener</h2>
-      <form @submit.prevent="UpdateScreener">
+      <form @submit.prevent="UpdateScreener" aria-label="Rename Screener Form">
         <div class="input-row">
           <label for="inputrename">Screener Name</label>
           <input
@@ -14,14 +14,23 @@
             :class="{ 'input-error': screenerName.length > 20 }"
             maxlength="20"
             required
+            aria-label="Screener Name Input"
           />
           <div class="char-count" :class="{ error: screenerName.length > 20 }">
             {{ screenerName.length }}/20
           </div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn">Submit</button>
-          <button type="button" class="cancel-btn" @click="close">Cancel</button>
+          <button type="submit" class="trade-btn" :disabled="isLoading" aria-label="Submit Rename Screener">
+            <span v-if="isLoading" class="loader4">
+              <svg class="spinner" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
+              </svg>
+            </span>
+            <span v-if="!isLoading">Submit</span>
+            <span v-else style="margin-left: 8px;">Processing...</span>
+          </button>
+          <button type="button" class="cancel-btn" @click="close" aria-label="Cancel">Cancel</button>
         </div>
       </form>
     </div>
@@ -41,9 +50,10 @@ const props = defineProps({
   error: { type: Object, required: false }
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'notify'])
 
 const screenerName = ref(props.currentName)
+const isLoading = ref(false)
 
 function close() {
   emit('close')
@@ -51,17 +61,21 @@ function close() {
 
 // renames screener 
 async function UpdateScreener() {
+  if (isLoading.value) return;
+  isLoading.value = true;
   try {
     const newName = screenerName.value.trim()
     const oldName = props.currentName
 
     if (newName.length > 20) {
-      props.notification.value.show('Screener name cannot be longer than 20 characters')
+      emit('notify', 'Screener name cannot be longer than 20 characters')
+      isLoading.value = false;
       return
     }
 
     if (newName === oldName) {
-      props.notification.value.show('New screener name must be different from the current name')
+      emit('notify', 'New screener name must be different from the current name')
+      isLoading.value = false;
       return
     }
 
@@ -74,12 +88,19 @@ async function UpdateScreener() {
       body: JSON.stringify({ newname: newName, oldname: oldName })
     })
 
-    const responseData = await response.json()
+    let responseData: { message?: string } = {};
+    try {
+      responseData = await response.json();
+    } catch (jsonErr) {
+      emit('notify', 'Server error: invalid response.');
+      isLoading.value = false;
+      return;
+    }
 
     if (response.ok) {
       emit('close')
     } else {
-      props.notification.value.show(responseData.message || 'Failed to rename screener')
+      emit('notify', responseData?.message || 'Failed to rename screener')
     }
   } catch (err) {
     let errorMsg = 'Unknown error';
@@ -89,13 +110,15 @@ async function UpdateScreener() {
       errorMsg = err;
     }
     if (props.error) props.error.value = errorMsg;
-    props.notification.value.show(errorMsg);
+    emit('notify', errorMsg);
+  } finally {
+    isLoading.value = false;
   }
 }
 </script>
 
 <style scoped>
-/* Copy the modal styles from CreateScreener.vue for consistency */
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -206,7 +229,7 @@ input.input-error,
 
 .trade-btn {
   background: var(--accent1);
-  color: var(--text1);
+  color: var(--text3);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;
@@ -214,9 +237,48 @@ input.input-error,
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .trade-btn:hover {
   background: var(--accent2);
+}
+
+.loader4 {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  margin-right: 10px;
+}
+.spinner {
+  animation: rotate 2s linear infinite;
+  width: 25px;
+  height: 25px;
+}
+.path {
+  stroke: #000000;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
 }
 
 .cancel-btn {

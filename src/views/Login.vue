@@ -317,6 +317,13 @@ async function login() {
         if (notification.value) notification.value.show('Password is incorrect');
         if (passwordInput) passwordInput.classList.add('error');
       } else if (responseBody.message === 'Subscription is expired') {
+        // Store the token if present, so user can renew
+        if (responseBody.token) {
+          localStorage.setItem('token', responseBody.token);
+          const { useUserStore } = await import('@/store/store');
+          const userStore = useUserStore();
+          userStore.loadUserFromToken();
+        }
         router.push({ path: '/renew-subscription' });
       } else if (responseBody.message === 'Please fill both username and password fields') {
         if (notification.value) notification.value.show('Please fill both username and password fields');

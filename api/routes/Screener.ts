@@ -57,7 +57,7 @@ export default function (app: any, deps: any) {
                 if (screenerCount >= 20) {
                     logger.warn({
                         msg: 'Attempt to create screener beyond limit',
-                        user: obfuscateUsername(user),
+                        user: user,
                         screenerCount,
                         context: 'POST /:user/create/screener/:list',
                         statusCode: 400
@@ -68,7 +68,7 @@ export default function (app: any, deps: any) {
                 if (existingScreener) {
                     logger.warn({
                         msg: 'Attempt to create duplicate screener',
-                        user: obfuscateUsername(user),
+                        user: user,
                         screenerName: '[masked]',
                         context: 'POST /:user/create/screener/:list',
                         statusCode: 400
@@ -90,7 +90,7 @@ export default function (app: any, deps: any) {
                 } else {
                     logger.error({
                         msg: 'Failed to create screener',
-                        user: obfuscateUsername(user),
+                        user: user,
                         screenerName: '[masked]',
                         context: 'POST /:user/create/screener/:list',
                         statusCode: 500
@@ -147,7 +147,7 @@ export default function (app: any, deps: any) {
                 if (!newname) {
                     logger.warn({
                         msg: 'Attempt to rename screener with empty name',
-                        user: obfuscateUsername(Username),
+                        user: Username,
                         oldname: '[masked]',
                         context: 'PATCH /:user/rename/screener',
                         statusCode: 400
@@ -157,7 +157,7 @@ export default function (app: any, deps: any) {
                 if (oldname === newname) {
                     logger.warn({
                         msg: 'Attempt to rename screener with same name',
-                        user: obfuscateUsername(Username),
+                        user: Username,
                         screenerName: '[masked]',
                         context: 'PATCH /:user/rename/screener',
                         statusCode: 400
@@ -172,7 +172,7 @@ export default function (app: any, deps: any) {
                 if (existingScreener) {
                     logger.warn({
                         msg: 'Attempt to create duplicate screener name',
-                        user: obfuscateUsername(Username),
+                        user: Username,
                         screenerName: '[masked]',
                         context: 'PATCH /:user/rename/screener',
                         statusCode: 400
@@ -185,7 +185,7 @@ export default function (app: any, deps: any) {
                 if (result.modifiedCount === 0) {
                     logger.warn({
                         msg: 'Screener not found for renaming',
-                        user: obfuscateUsername(Username),
+                        user: Username,
                         oldname: '[masked]',
                         context: 'PATCH /:user/rename/screener',
                         statusCode: 404
@@ -248,7 +248,7 @@ export default function (app: any, deps: any) {
                 if (result.deletedCount === 0) {
                     logger.warn({
                         msg: 'Screener not found for deletion',
-                        user: obfuscateUsername(user),
+                        user: user,
                         screenerName: '[masked]',
                         context: 'DELETE /:user/delete/screener/:list',
                         statusCode: 404
@@ -362,7 +362,7 @@ export default function (app: any, deps: any) {
                 if (!userDoc) {
                     logger.warn({
                         msg: 'User not found',
-                        user: obfuscateUsername(user),
+                        user: user,
                         context: 'GET /:user/screener/results/all',
                         statusCode: 404
                     });
@@ -778,7 +778,7 @@ export default function (app: any, deps: any) {
                 if (!userDoc) {
                     logger.warn({
                         msg: 'User not found',
-                        user: obfuscateUsername(user),
+                        user: user,
                         context: 'GET /screener/:user/results/filtered/:name',
                         statusCode: 404
                     });
@@ -855,7 +855,7 @@ export default function (app: any, deps: any) {
                 if (!screenerData) {
                     logger.warn({
                         msg: 'Screener data not found',
-                        user: obfuscateUsername(user),
+                        user: user,
                         screenerName,
                         context: 'GET /screener/:user/results/filtered/:name',
                         statusCode: 404
@@ -4355,6 +4355,7 @@ export default function (app: any, deps: any) {
                         }, 404);
                         logger.warn({
                             msg: 'Screener not found',
+                            filter,
                             username: Username,
                             screenerName,
                             context: 'PATCH /screener/asset-types',

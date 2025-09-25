@@ -5,7 +5,8 @@
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Revenue / Earnings / EPS Growth</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'growth')" @mouseout="handleMouseOut">
+                @mouseover="handleMouseOver($event, 'growth')" @mouseout="handleMouseOut"
+                aria-label="Show info about Revenue / Earnings / EPS Growth">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,33 +21,33 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showFundYoYQoQ" style="border: none;">
-              <span class="slider round"></span>
+              <input type="checkbox" id="price-check" v-model="showFundYoYQoQ" style="border: none;" aria-label="Toggle Revenue / Earnings / EPS Growth inputs">
+              <span class="slider round" aria-label="Toggle switch"></span>
             </label>
           </div>
           <div style="border: none;" v-if="showFundYoYQoQ">
             <div class="DataInputs">
               <p>Revenue Growth (YoY)</p>
-              <input id="left-RevYoY" class="input" type="text" placeholder="min">
-              <input id="right-RevYoY" class="input" type="text" placeholder="max">
+              <input id="left-RevYoY" class="input" type="text" placeholder="min" aria-label="Revenue Growth YoY min">
+              <input id="right-RevYoY" class="input" type="text" placeholder="max" aria-label="Revenue Growth YoY max">
               <p>Revenue Growth (QoQ)</p>
-              <input id="left-RevQoQ" class="input" type="text" placeholder="min">
-              <input id="right-RevQoQ" class="input" type="text" placeholder="max">
+              <input id="left-RevQoQ" class="input" type="text" placeholder="min" aria-label="Revenue Growth QoQ min">
+              <input id="right-RevQoQ" class="input" type="text" placeholder="max" aria-label="Revenue Growth QoQ max">
               <p>Earnings Growth (YoY)</p>
-              <input id="left-EarningsYoY" class="input" type="text" placeholder="min">
-              <input id="right-EarningsYoY" class="input" type="text" placeholder="max">
+              <input id="left-EarningsYoY" class="input" type="text" placeholder="min" aria-label="Earnings Growth YoY min">
+              <input id="right-EarningsYoY" class="input" type="text" placeholder="max" aria-label="Earnings Growth YoY max">
               <p>Earnings Growth (QoQ)</p>
-              <input id="left-EarningsQoQ" class="input" type="text" placeholder="min">
-              <input id="right-EarningsQoQ" class="input" type="text" placeholder="max">
+              <input id="left-EarningsQoQ" class="input" type="text" placeholder="min" aria-label="Earnings Growth QoQ min">
+              <input id="right-EarningsQoQ" class="input" type="text" placeholder="max" aria-label="Earnings Growth QoQ max">
               <p>EPS Growth (YoY)</p>
-              <input id="left-EPSYoY" class="input" type="text" placeholder="min">
-              <input id="right-EPSYoY" class="input" type="text" placeholder="max">
+              <input id="left-EPSYoY" class="input" type="text" placeholder="min" aria-label="EPS Growth YoY min">
+              <input id="right-EPSYoY" class="input" type="text" placeholder="max" aria-label="EPS Growth YoY max">
               <p>EPS Growth (QoQ)</p>
-              <input id="left-EPSQoQ" class="input" type="text" placeholder="min">
-              <input id="right-EPSQoQ" class="input" type="text" placeholder="max">
+              <input id="left-EPSQoQ" class="input" type="text" placeholder="min" aria-label="EPS Growth QoQ min">
+              <input id="right-EPSQoQ" class="input" type="text" placeholder="max" aria-label="EPS Growth QoQ max">
             </div>
             <div class="row">
-              <button class="btns" style="float:right" @click="SetFundamentalGrowth()">
+              <button class="btns" style="float:right" @click="SetFundamentalGrowth()" aria-label="Set Revenue / Earnings / EPS Growth">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -61,7 +62,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showFundYoYQoQ = false">
+              <button class="btnsr" style="float:right" @click="emit('reset'), showFundYoYQoQ = false" aria-label="Reset Revenue / Earnings / EPS Growth">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -81,7 +82,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -96,19 +98,15 @@ const props = defineProps({
   notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
   isScreenerError: { type: Boolean, required: true }
-})
+});
 
 let showFundYoYQoQ = ref(false);
 
-// adds and modifies YoY and/or Qoq value for screener 
+// adds and modifies YoY and/or Qoq value for screener
 async function SetFundamentalGrowth() {
   try {
     if (!props.selectedScreener) {
-      // props.isScreenerError is readonly, use notification pattern
-      if (props.notification && typeof props.notification === 'object') {
-        props.notification.message = 'Please select a screener';
-        props.notification.type = 'error';
-      }
+      emit('notify', 'Please select a screener');
       throw new Error('Please select a screener');
     }
 
@@ -154,20 +152,19 @@ async function SetFundamentalGrowth() {
         user: props.user
       })
     });
-    if (!response.ok) {
+    if (response.status !== 200) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
 
-    if (data.message === 'updated successfully') {
+    if (data && data.message && data.message.toLowerCase().includes('updated')) {
       emit('fetchScreeners', props.selectedScreener);
     } else {
       throw new Error('Error updating');
     }
   } catch (error: unknown) {
     let message = 'Unknown error';
-    // Defensive error handling for possible axios-like error shape
     if (typeof error === 'object' && error !== null) {
       if ('response' in error && typeof (error as any).response === 'object' && (error as any).response !== null) {
         const response = (error as any).response;
@@ -180,10 +177,7 @@ async function SetFundamentalGrowth() {
     } else if (typeof error === 'string') {
       message = error;
     }
-    if (props.notification && typeof props.notification === 'object') {
-      props.notification.message = message;
-      props.notification.type = 'error';
-    }
+    emit('notify', message);
     emit('fetchScreeners', props.selectedScreener);
   }
 }

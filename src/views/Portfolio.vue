@@ -2,30 +2,31 @@
     <Header />
   <div class="portfolio-menu">
     <div style="display: flex; margin-left: 10px;">
-     <button
-    v-for="n in 10"
-    :key="n"
-    :class="['portfolio-btn', selectedPortfolioIndex === n - 1 ? 'selected' : '']"
-    @click="selectPortfolio(n - 1)"
-  >
-    {{ n }}
-  </button> 
+      <button
+        v-for="n in 10"
+        :key="n"
+        :class="['portfolio-btn', selectedPortfolioIndex === n - 1 ? 'selected' : '']"
+        @click="selectPortfolio(n - 1)"
+        :aria-label="`Select portfolio ${n}`"
+      >
+        {{ n }}
+      </button>
     </div>
-      <div style="display: flex; gap: 8px; margin-right: 10px;">
-        <button class="menu-btn" @click="showTradeModal = true">New Trade</button>
-        <button class="menu-btn"  @click="showAddCashModal = true">Add Cash</button>
-        <button class="menu-btn"  @click="showBaseValueModal = true">Set Base Value</button>
-        <button class="menu-btn"  @click="showResetDialog = true">Reset</button>
-      <button class="menu-btn" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)" @click="showImportPopup = true">Import</button>
-<button class="menu-btn" :disabled="isPortfolioBlank" @click="showDownloadPopup = true">Export</button>
-<DownloadPortfolioPopup
-  v-if="showDownloadPopup"
-  :user="user?.Username ?? ''"
-  :api-key="apiKey"
-  :portfolio="selectedPortfolioIndex"
-  @close="showDownloadPopup = false"
-/>
-      </div>
+    <div style="display: flex; gap: 8px; margin-right: 10px;">
+      <button class="menu-btn" @click="showTradeModal = true" aria-label="Open New Trade dialog">New Trade</button>
+      <button class="menu-btn" @click="showAddCashModal = true" aria-label="Open Add Cash dialog">Add Cash</button>
+      <button class="menu-btn" @click="showBaseValueModal = true" aria-label="Open Set Base Value dialog">Set Base Value</button>
+      <button class="menu-btn" :disabled="isPortfolioBlank" @click="showResetDialog = true" aria-label="Open Reset Portfolio dialog">Reset</button>
+      <button class="menu-btn" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)" @click="showImportPopup = true" aria-label="Open Import Portfolio dialog">Import</button>
+      <button class="menu-btn" :disabled="isPortfolioBlank" @click="showDownloadPopup = true" aria-label="Open Export Portfolio dialog">Export</button>
+      <DownloadPortfolioPopup
+        v-if="showDownloadPopup"
+        :user="user?.Username ?? ''"
+        :api-key="apiKey"
+        :portfolio="selectedPortfolioIndex"
+        @close="showDownloadPopup = false"
+      />
+    </div>
   </div>
   <div class="portfolio-summary-main">
     <div class="portfolio-summary">
@@ -216,12 +217,12 @@
       </div>
     </div>
     <div class="portfolio-charts">
-      <div class="portfolio-linechart-container">
+      <div class="portfolio-linechart-container" aria-label="Portfolio total value over time chart">
         <div class="linechart-fixed-height">
           <Line :data="lineData" :options="lineOptions" />
         </div>
       </div>
-      <div class="portfolio-bar-chart-container">
+      <div class="portfolio-bar-chart-container" aria-label="Trade returns bar chart">
         <h3 style="color: var(--accent1); margin-bottom: 12px;">Trade Returns (%)</h3>
         <div class="linechart-fixed-height">
           <Bar :data="tradeReturnsChartData" :options="(tradeReturnsChartOptions as any)" />
@@ -295,16 +296,16 @@
 />
     </div>
     <div class="portfolio-main-flex">
-      <div class="portfolio-pie-container">
-          <template v-if="portfolioSummary?.positionsCount !== undefined ? portfolioSummary.positionsCount <= 100 : portfolio.length <= 100">
-            <Pie :data="pieChartData" :options="pieOptions" />
-          </template>
-          <template v-else>
-            <div class="too-many-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; height: 350px ;color: var(--text2); background: var(--base2);">
-              <strong>Too many positions to display pie chart.</strong><br>
-              Please reduce the number of positions to view allocation breakdown.
-            </div>
-          </template>
+      <div class="portfolio-pie-container" aria-label="Portfolio allocation pie chart">
+        <template v-if="portfolioSummary?.positionsCount !== undefined ? portfolioSummary.positionsCount <= 100 : portfolio.length <= 100">
+          <Pie :data="pieChartData" :options="pieOptions" />
+        </template>
+        <template v-else>
+          <div class="too-many-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; height: 350px ;color: var(--text2); background: var(--base2);">
+            <strong>Too many positions to display pie chart.</strong><br>
+            Please reduce the number of positions to view allocation breakdown.
+          </div>
+        </template>
       </div>
       <div class="portfolio-table-container scrollable-table">
   <table class="portfolio-table" aria-label="Portfolio Positions Table">
@@ -381,7 +382,7 @@
       </div>
     </div>
     <div class="portfolio-history-container scrollable-table">
-      <h2>Transaction History</h2>
+      <h2 style="margin-left: 10px;">Transaction History</h2>
   <table class="portfolio-table" aria-label="Transaction History Table">
         <thead>
           <tr>
@@ -766,23 +767,25 @@ async function fetchQuotes() {
   const wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
   // Use port 8000 for local development
   const wsPort = 8000;
-  const wsUrl = `${wsProto}://${window.location.hostname}:${wsPort}/ws/quotes?symbols=${symbols}&x-api-key=${apiKey}`;
-    ws = new WebSocket(wsUrl);
+  const wsUrl = `${wsProto}://${window.location.hostname}:${wsPort}/ws/quotes?symbols=${symbols}`;
+    ws = new WebSocket(wsUrl, apiKey);
     ws.onopen = () => {
       wsConnected = true;
       // Optionally, send a ping or subscribe message if needed
     };
     ws.onmessage = handleWSMessage;
-    ws.onerror = (err) => {
+    ws.onerror = () => {
       wsConnected = false;
-  if (ws) ws.close();
+      if (ws) ws.close();
+      // No error logging here
     };
-    ws.onclose = (event) => {
+    ws.onclose = () => {
       wsConnected = false;
-      // Try to reconnect after 2s if portfolio still exists
+      // Try to reconnect after 60s if portfolio still exists
       if (portfolio.value.length) {
-        wsReconnectTimer = setTimeout(connectWS, 2000);
+        wsReconnectTimer = setTimeout(connectWS, 60000);
       }
+      // No error logging here
     };
 
     // Fallback to REST if no message after 2s
@@ -790,10 +793,11 @@ async function fetchQuotes() {
       if (!wsConnected || Object.keys(latestQuotes.value).length === 0) {
         try {
           const response = await fetch(`/api/quotes?symbols=${symbols}`, { headers });
-          if (!response.ok) throw new Error('Failed to fetch quotes');
+          if (!response.ok) return;
           const data = await response.json();
           latestQuotes.value = data;
-        } catch (error) {
+        } catch {
+          // No error logging here
         }
       }
     }, 2000);
@@ -801,14 +805,15 @@ async function fetchQuotes() {
 
   try {
     connectWS();
-  } catch (error) {
+  } catch {
     // If websocket fails, fallback to REST
     try {
       const response = await fetch(`/api/quotes?symbols=${symbols}`, { headers });
-      if (!response.ok) throw new Error('Failed to fetch quotes');
+      if (!response.ok) return;
       const data = await response.json();
       latestQuotes.value = data;
-    } catch (err) {
+    } catch {
+      // No error logging here
     }
   }
 }

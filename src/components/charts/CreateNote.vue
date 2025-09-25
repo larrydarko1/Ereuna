@@ -15,14 +15,15 @@
             maxlength="350"
             rows="5"
             required
+            aria-label="Note content input"
           ></textarea>
           <div class="char-count" :class="{ error: characterCount > 350 }">
             {{ characterCount }}/350
           </div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn">Submit</button>
-          <button type="button" class="cancel-btn" @click="close">Cancel</button>
+          <button type="submit" class="trade-btn" aria-label="Submit note">Submit</button>
+          <button type="button" class="cancel-btn" @click="close" aria-label="Cancel note creation">Cancel</button>
         </div>
       </form>
     </div>
@@ -31,14 +32,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-const emit = defineEmits(['close', 'refresh-notes'])
+const emit = defineEmits(['close', 'refresh-notes', 'notify'])
 
 const props = defineProps({
   user: String,
   apiKey: String,
   defaultSymbol: String,
   showCreateNote: Boolean,
-  notification: Object,
   searchNotes: Function,
 })
 
@@ -53,12 +53,16 @@ function close() {
   emit('close')
 }
 
+function showNotification(msg: string) {
+  emit('notify', msg)
+}
+
 async function sendNote() {
   const note = noteContent.value
   const symbol = (document.getElementById('searchbar') as HTMLInputElement | null)?.value || props.defaultSymbol
 
   if (characterCount.value > 350) {
-    props.notification?.value?.show?.('Note exceeds 350 character limit')
+    showNotification('Note exceeds 350 character limit')
     return
   }
 
@@ -78,12 +82,12 @@ async function sendNote() {
         close()
         if (props.searchNotes) await props.searchNotes(symbol)
       } else if (response.status === 400) {
-        props.notification?.value?.show?.('Maximum note limit (10) reached for this symbol')
+        showNotification('Maximum note limit (10) reached for this symbol')
       } else {
-        props.notification?.value?.show?.('Failed to create note')
+        showNotification('Failed to create note')
       }
     } catch (err) {
-      props.notification?.value?.show?.((err as Error).message)
+      showNotification((err as Error).message)
     }
   }
 }
@@ -200,7 +204,7 @@ textarea.error,
 
 .trade-btn {
   background: var(--accent1);
-  color: var(--text1);
+  color: var(--text3);
   border: none;
   border-radius: 7px;
   padding: 10px 24px;

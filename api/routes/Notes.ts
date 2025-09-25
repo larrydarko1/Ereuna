@@ -163,10 +163,8 @@ export default function (app: any, deps: any) {
                     Symbol: sanitizedTicker,
                     Username: sanitizedUsername
                 }).toArray();
-                if (!notes || notes.length === 0) {
-                    return res.status(404).json({ message: 'No notes found' });
-                }
-                res.status(200).json(notes);
+                // Always return 200, even if no notes found
+                res.status(200).json(notes || []);
             } catch (error) {
                 const errObj = handleError(error, 'GET /:user/:symbol/notes', { user: req.params?.user }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);

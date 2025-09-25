@@ -31,6 +31,7 @@
             class="hide-button"
             :class="{ 'hidden-button': section.hidden }"
             @click="toggleHidden(index)"
+            :aria-label="section.hidden ? 'Add section to panel' : 'Remove section from panel'"
           >
             {{ section.hidden ? 'Add' : 'Remove' }}
           </button>
@@ -39,15 +40,16 @@
             v-if="section.tag === 'Summary'"
             class="edit-summary-btn"
             @click="showEditSummary = true"
+            aria-label="Edit summary fields"
           >
             Edit Summary
           </button>
         </div>
       </div>
       <div class="nav-buttons">
-        <button class="nav-button" @click="$emit('close')">Close</button>
-        <button class="nav-button" @click="resetOrder">Reset</button>
-        <button class="nav-button" @click="updatePanel">Submit</button>
+  <button class="nav-button" @click="$emit('close')" aria-label="Close editor">Close</button>
+  <button class="nav-button" @click="resetOrder" aria-label="Reset panel sections order">Reset</button>
+  <button class="nav-button" @click="updatePanel" aria-label="Submit panel sections">Submit</button>
       </div>
       <Panel2 v-if="showEditSummary" @close="showEditSummary = false" @panel-updated="onPanelUpdated" />
     </div>

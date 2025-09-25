@@ -11,12 +11,13 @@
             accept=".txt"
             @change="handleFileChange"
             required
+            aria-label="Select watchlist file (.txt)"
           />
           <div v-if="fileName" class="char-count">{{ fileName }}</div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn" @click="importWatchlist">Import</button>
-          <button type="button" class="cancel-btn" @click="close">Cancel</button>
+          <button type="submit" class="trade-btn" @click="importWatchlist" aria-label="Import watchlist">Import</button>
+          <button type="button" class="cancel-btn" @click="close" aria-label="Cancel import">Cancel</button>
         </div>
       </form>
     </div>

@@ -5,7 +5,8 @@
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Book Value (1000s)</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'book-value')" @mouseout="handleMouseOut">
+                @mouseover="handleMouseOver($event, 'book-value')" @mouseout="handleMouseOut"
+                aria-label="Show info for Book Value parameter">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,17 +21,17 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="book-value-check" v-model="showBookValue" style="border: none;">
+              <input type="checkbox" id="book-value-check" v-model="showBookValue" style="border: none;" aria-label="Toggle Book Value filter">
               <span class="slider round"></span>
             </label>
           </div>
           <div style="border: none;" v-if="showBookValue">
             <div class="row">
-              <input class="left input" id="left-bv" type="text" placeholder="min">
-              <input class="right input" id="right-bv" type="text" placeholder="max">
+              <input class="left input" id="left-bv" type="text" placeholder="min" aria-label="Book Value minimum">
+              <input class="right input" id="right-bv" type="text" placeholder="max" aria-label="Book Value maximum">
             </div>
             <div class="row">
-              <button class="btns" style="float:right" @click="SetBookValue()">
+              <button class="btns" style="float:right" @click="SetBookValue()" aria-label="Set Book Value filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -45,7 +46,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showBookValue = false">
+              <button class="btnsr" style="float:right" @click="emit('reset'), showBookValue = false" aria-label="Reset Book Value filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -65,7 +66,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -77,30 +79,39 @@ function handleMouseOut(event: MouseEvent) {
 const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
-  notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
   isScreenerError: { type: Boolean, required: true }
-})
+});
 
 let showBookValue = ref(false);
+const isLoading = ref(false);
+const error = ref('');
+
+function showNotification(msg: string) {
+  emit('notify', msg);
+}
 
 async function SetBookValue() {
+  error.value = '';
+  if (!props.selectedScreener) {
+    emit('reset');
+    error.value = 'Please select a screener';
+    showNotification(error.value);
+    return;
+  }
+  function getInputValue(id: string): number {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    return el ? parseFloat(el.value) : 0;
+  }
+  const leftBookValue = getInputValue('left-bv');
+  const rightBookValue = getInputValue('right-bv');
+  if (leftBookValue >= rightBookValue) {
+    error.value = 'Min cannot be higher than or equal to max';
+    showNotification(error.value);
+    return;
+  }
+  isLoading.value = true;
   try {
-    if (!props.selectedScreener) {
-      emit('reset');
-      throw new Error('Please select a screener');
-    }
-    function getInputValue(id: string): number {
-      const el = document.getElementById(id) as HTMLInputElement | null;
-      return el ? parseFloat(el.value) : 0;
-    }
-    const leftBookValue = getInputValue('left-bv');
-    const rightBookValue = getInputValue('right-bv');
-
-    if (leftBookValue >= rightBookValue) {
-      throw new Error('Min cannot be higher than or equal to max');
-    }
-
     const response = await fetch('/api/screener/book-value', {
       method: 'PATCH',
       headers: {
@@ -113,25 +124,18 @@ async function SetBookValue() {
         screenerName: props.selectedScreener,
         user: props.user
       })
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`)
-    }
-
-    const data = await response.json()
-
-    if (data.message === 'updated successfully') {
-    } else {
-      throw new Error('Error updating Book Value range')
+    });
+    if (response.status !== 200) {
+      const data = await response.json();
+      throw new Error(data.message || `Error: ${response.status} ${response.statusText}`);
     }
     emit('fetchScreeners', props.selectedScreener);
-  } catch (error) {
-    const msg = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : 'Unknown error';
+  } catch (err) {
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error';
+    showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
-    if (props.notification && typeof props.notification.show === 'function') {
-      props.notification.show(msg);
-    }
+  } finally {
+    isLoading.value = false;
   }
 }
 

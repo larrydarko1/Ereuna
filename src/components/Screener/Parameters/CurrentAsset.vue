@@ -5,7 +5,8 @@
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Current Assets (1000s)</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'current-assets')" @mouseout="handleMouseOut">
+                @mouseover="handleMouseOver($event, 'current-assets')" @mouseout="handleMouseOut"
+                aria-label="Show info for Current Assets parameter">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,17 +21,17 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showCurrentAssets">
+              <input type="checkbox" v-model="showCurrentAssets" aria-label="Toggle Current Assets filter">
               <span class="slider round"></span>
             </label>
           </div>
           <div style="border: none;" v-if="showCurrentAssets">
             <div class="row">
-              <input class="left input" id="left-ca" type="text" placeholder="min">
-              <input class="right input" id="right-ca" type="text" placeholder="max">
+              <input class="left input" id="left-ca" type="text" placeholder="min" aria-label="Current Assets minimum">
+              <input class="right input" id="right-ca" type="text" placeholder="max" aria-label="Current Assets maximum">
             </div>
             <div class="row">
-              <button class="btns" style="float:right" @click="SetCurrentAssets()">
+              <button class="btns" style="float:right" @click="SetCurrentAssets()" aria-label="Set Current Assets filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
                   xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
@@ -45,7 +46,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showCurrentAssets = false">
+              <button class="btnsr" style="float:right" @click="emit('reset'), showCurrentAssets = false" aria-label="Reset Current Assets filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -65,7 +66,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -77,39 +79,46 @@ function handleMouseOut(event: MouseEvent) {
 const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
-  notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
   isScreenerError: { type: Boolean, required: true }
-})
+});
 
 let showCurrentAssets = ref(false);
+const isLoading = ref(false);
+const error = ref('');
+
+function showNotification(msg: string) {
+  emit('notify', msg);
+}
 
 async function SetCurrentAssets() {
+  error.value = '';
+  if (!props.selectedScreener) {
+    error.value = 'Please select a screener';
+    showNotification(error.value);
+    return;
+  }
+  const leftInput = document.getElementById('left-ca') as HTMLInputElement | null;
+  const rightInput = document.getElementById('right-ca') as HTMLInputElement | null;
+  if (!leftInput || !rightInput) {
+    error.value = 'Input elements not found';
+    showNotification(error.value);
+    return;
+  }
+  const leftCurrentAssets = parseFloat(leftInput.value);
+  const rightCurrentAssets = parseFloat(rightInput.value);
+  if (isNaN(leftCurrentAssets) || isNaN(rightCurrentAssets)) {
+    error.value = 'Please enter valid numbers';
+    showNotification(error.value);
+    return;
+  }
+  if (leftCurrentAssets >= rightCurrentAssets) {
+    error.value = 'Min cannot be higher than or equal to max';
+    showNotification(error.value);
+    return;
+  }
+  isLoading.value = true;
   try {
-    if (!props.selectedScreener) {
-      // Cannot assign to readonly prop, use notification pattern
-      if (props.notification && typeof props.notification === 'object') {
-        props.notification.message = 'Please select a screener';
-        props.notification.type = 'error';
-      }
-      throw new Error('Please select a screener');
-    }
-
-    const leftInput = document.getElementById('left-ca') as HTMLInputElement | null;
-    const rightInput = document.getElementById('right-ca') as HTMLInputElement | null;
-    if (!leftInput || !rightInput) {
-      throw new Error('Input elements not found');
-    }
-    const leftCurrentAssets = parseFloat(leftInput.value);
-    const rightCurrentAssets = parseFloat(rightInput.value);
-
-    if (isNaN(leftCurrentAssets) || isNaN(rightCurrentAssets)) {
-      throw new Error('Please enter valid numbers');
-    }
-    if (leftCurrentAssets >= rightCurrentAssets) {
-      throw new Error('Min cannot be higher than or equal to max');
-    }
-
     const response = await fetch('/api/screener/current-assets', {
       method: 'PATCH',
       headers: {
@@ -123,33 +132,17 @@ async function SetCurrentAssets() {
         user: props.user
       })
     });
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (data.message === 'updated successfully') {
-      // Optionally notify success
-      if (props.notification && typeof props.notification === 'object') {
-        props.notification.message = 'Current Assets updated successfully';
-        props.notification.type = 'success';
-      }
-    } else {
-      throw new Error('Error updating Current Assets range');
+    if (response.status !== 200) {
+      const data = await response.json();
+      throw new Error(data.message || `Error: ${response.status} ${response.statusText}`);
     }
     emit('fetchScreeners', props.selectedScreener);
-  } catch (error: unknown) {
-    let message = 'Unknown error';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    if (props.notification && typeof props.notification === 'object') {
-      props.notification.message = message;
-      props.notification.type = 'error';
-    }
+  } catch (err) {
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error';
+    showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
+  } finally {
+    isLoading.value = false;
   }
 }
 

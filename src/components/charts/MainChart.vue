@@ -47,12 +47,40 @@
     <button class="navbt2" @click="showEditChart = true">
       Edit Chart
     </button>
-    <button class="navbt" v-b-tooltip.hover title="Change Chart type" @click="toggleChartType"
+    <button class="navbt navbt-svg" v-b-tooltip.hover title="Change Chart type" @click="toggleChartType"
       aria-label="Toggle chart type">
-      {{ isBarChart ? 'C' : 'B' }}
+      <span v-if="isBarChart">
+        <!-- Bar chart SVG -->
+        <svg class="chart-type-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="10" width="3" height="8" fill="currentColor"/>
+          <rect x="10" y="6" width="3" height="12" fill="currentColor"/>
+          <rect x="16" y="2" width="3" height="16" fill="currentColor"/>
+        </svg>
+      </span>
+      <span v-else>
+        <!-- Candlestick chart SVG (custom) -->
+        <svg class="chart-type-icon" version="1.1" id="_x32_" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" fill="currentColor">
+          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+          <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+          <g id="SVGRepo_iconCarrier">
+            <g>
+              <polygon class="st0" points="195.047,75.844 178.797,75.844 178.797,109.047 138.156,109.047 138.156,320.344 178.797,320.344 178.797,360.297 195.047,360.297 195.047,320.344 235.688,320.344 235.688,109.047 195.047,109.047 "></polygon>
+              <polygon class="st0" points="512,49.438 471.375,49.438 471.375,16.25 455.109,16.25 455.109,49.438 414.469,49.438 414.469,293.25 455.109,293.25 455.109,333.203 471.375,333.203 471.375,293.25 512,293.25 "></polygon>
+              <path class="st0" d="M56.875,203.172h-16.25v36.578H0v219.422h40.625v36.578h16.25v-36.578h40.656V239.75H56.875V203.172z M81.281,256v186.922H16.25V256H81.281z"></path>
+              <path class="st0" d="M333.203,151.703h-16.25v33.188h-40.641v227.563h40.641v39.953h16.25v-39.953h40.641V184.891h-40.641V151.703z M357.594,201.156v195.047h-65.031V201.156H357.594z"></path>
+            </g>
+          </g>
+        </svg>
+      </span>
     </button>
-    <button class="navbt">
-      <svg width="5" height="5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M2 15.6157C2 16.463 2.68179 17.1448 4.04537 18.5083L5.49167 19.9546C6.85525 21.3182 7.53704 22 8.38426 22C9.23148 22 9.91327 21.3182 11.2769 19.9546L19.9546 11.2769C21.3182 9.91327 22 9.23148 22 8.38426C22 7.53704 21.3182 6.85525 19.9546 5.49167L18.5083 4.04537C17.1448 2.68179 16.463 2 15.6157 2C14.8623 2 14.2396 2.53926 13.1519 3.61778C13.1817 3.63981 13.2103 3.66433 13.2373 3.69135L14.6515 5.10556C14.9444 5.39846 14.9444 5.87333 14.6515 6.16622C14.3586 6.45912 13.8837 6.45912 13.5908 6.16622L12.1766 4.75201C12.1494 4.7248 12.1247 4.69601 12.1026 4.66595L11.0299 5.73861C11.06 5.76077 11.0888 5.78545 11.116 5.81267L13.2373 7.93399C13.5302 8.22688 13.5302 8.70176 13.2373 8.99465C12.9444 9.28754 12.4695 9.28754 12.1766 8.99465L10.0553 6.87333C10.0281 6.84612 10.0034 6.81733 9.98125 6.78726L8.90859 7.85993C8.93865 7.88209 8.96744 7.90678 8.99465 7.93399L10.4089 9.3482C10.7018 9.6411 10.7018 10.116 10.4089 10.4089C10.116 10.7018 9.6411 10.7018 9.3482 10.4089L7.93399 8.99465C7.90678 8.96744 7.88209 8.93865 7.85993 8.90859L6.78727 9.98125C6.81733 10.0034 6.84612 10.0281 6.87333 10.0553L8.99465 12.1766C9.28754 12.4695 9.28754 12.9444 8.99465 13.2373C8.70176 13.5302 8.22688 13.5302 7.93399 13.2373L5.81267 11.116C5.78545 11.0888 5.76077 11.06 5.73861 11.0299L4.66595 12.1026C4.69601 12.1247 4.7248 12.1494 4.75201 12.1766L6.16622 13.5908C6.45912 13.8837 6.45912 14.3586 6.16622 14.6515C5.87333 14.9444 5.39846 14.9444 5.10556 14.6515L3.69135 13.2373C3.66433 13.2103 3.63981 13.1817 3.61778 13.1519C2.53926 14.2396 2 14.8623 2 15.6157Z" fill="#ffffff"></path> </g></svg>
+    <button class="navbt navbt-svg disabled">
+      <svg class="chart-type-icon" width="24" height="24" viewBox="0 0 24 24" fill="var(--accent1)" xmlns="http://www.w3.org/2000/svg">
+        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_iconCarrier">
+          <path d="M2 15.6157C2 16.463 2.68179 17.1448 4.04537 18.5083L5.49167 19.9546C6.85525 21.3182 7.53704 22 8.38426 22C9.23148 22 9.91327 21.3182 11.2769 19.9546L19.9546 11.2769C21.3182 9.91327 22 9.23148 22 8.38426C22 7.53704 21.3182 6.85525 19.9546 5.49167L18.5083 4.04537C17.1448 2.68179 16.463 2 15.6157 2C14.8623 2 14.2396 2.53926 13.1519 3.61778C13.1817 3.63981 13.2103 3.66433 13.2373 3.69135L14.6515 5.10556C14.9444 5.39846 14.9444 5.87333 14.6515 6.16622C14.3586 6.45912 13.8837 6.45912 13.5908 6.16622L12.1766 4.75201C12.1494 4.7248 12.1247 4.69601 12.1026 4.66595L11.0299 5.73861C11.06 5.76077 11.0888 5.78545 11.116 5.81267L13.2373 7.93399C13.5302 8.22688 13.5302 8.70176 13.2373 8.99465C12.9444 9.28754 12.4695 9.28754 12.1766 8.99465L10.0553 6.87333C10.0281 6.84612 10.0034 6.81733 9.98125 6.78726L8.90859 7.85993C8.93865 7.88209 8.96744 7.90678 8.99465 7.93399L10.4089 9.3482C10.7018 9.6411 10.7018 10.116 10.4089 10.4089C10.116 10.7018 9.6411 10.7018 9.3482 10.4089L7.93399 8.99465C7.90678 8.96744 7.88209 8.93865 7.85993 8.90859L6.78727 9.98125C6.81733 10.0034 6.84612 10.0281 6.87333 10.0553L8.99465 12.1766C9.28754 12.4695 9.28754 12.9444 8.99465 13.2373C8.70176 13.5302 8.22688 13.5302 7.93399 13.2373L5.81267 11.116C5.78545 11.0888 5.76077 11.06 5.73861 11.0299L4.66595 12.1026C4.69601 12.1247 4.7248 12.1494 4.75201 12.1766L6.16622 13.5908C6.45912 13.8837 6.45912 14.3586 6.16622 14.6515C5.87333 14.9444 5.39846 14.9444 5.10556 14.6515L3.69135 13.2373C3.66433 13.2103 3.63981 13.1817 3.61778 13.1519C2.53926 14.2396 2 14.8623 2 15.6157Z" fill="currentColor"></path>
+        </g>
+      </svg>
     </button>
   </div>
 </div>
@@ -943,13 +971,28 @@ font-weight: bold;
   cursor: pointer;
   border: solid var(--text2) 1px;
   border-radius: 5px;
-  padding: 12px;
   opacity: 0.60;
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
   align-items: center;
   display: flex;
   font-weight: bold;
+  padding: 0;
+}
+
+.navbt-svg {
+  background-color: var(--text2);
+}
+
+.chart-type-icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .navbt:hover {
@@ -971,10 +1014,10 @@ font-weight: bold;
   cursor: pointer;
   border: solid var(--text2) 1px;
   border-radius: 5px;
-  padding: 12px;
+  padding: 15px;
   opacity: 0.60;
   width: 89px;
-  height: 20px;
+  height: 25px;
   align-items: center;
   display: flex;
   font-weight: bold;
