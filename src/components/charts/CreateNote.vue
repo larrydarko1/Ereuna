@@ -10,7 +10,7 @@
             id="notes-container"
             v-model="noteContent"
             :class="{ error: characterCount > 350 }"
-            @input="updateCharacterCount"
+            @input="onInputNote"
             placeholder="Write notes here"
             maxlength="350"
             rows="5"
@@ -42,11 +42,19 @@ const props = defineProps({
   searchNotes: Function,
 })
 
+
 const noteContent = ref('')
 const characterCount = ref(0)
 
-function updateCharacterCount() {
-  characterCount.value = noteContent.value.length
+function onInputNote(e: Event) {
+  const input = (e.target as HTMLTextAreaElement)
+  let value = input.value
+  if (/[<>]/.test(value)) {
+    value = value.replace(/[<>]/g, '')
+    input.value = value
+  }
+  noteContent.value = value
+  characterCount.value = value.length
 }
 
 function close() {

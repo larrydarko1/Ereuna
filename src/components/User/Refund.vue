@@ -6,6 +6,10 @@
       <div class="refund-section">
         <div>
           <div class="eligible-msg-block">
+              <div class="disclaimer" style="margin-bottom:10px;">
+          <strong>Important:</strong> If you request a refund, your access will be immediately revoked and you will be logged out. You will not be able to log in again unless you renew your subscription.<br>
+          <span style="color:var(--text1);font-weight:600;">Please download all your receipts and any data you need before requesting a refund.</span>
+        </div>
             <p class="eligible-msg">
               You are eligible for an automatic refund.
             </p>
@@ -15,7 +19,7 @@
             </div>
           </div>
         </div>
-          <div class="disclaimer">
+        <div class="disclaimer">
           <strong>Disclaimer:</strong> VAT is not refundable. Automatic refunds are processed to your original payment method within 5 business days. If you encounter any issues, please contact support at contact@ereuna.io and provide your account name and receipt ID.
         </div>
         <button
@@ -42,6 +46,17 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+// LogOut function as provided by user
+async function LogOut() {
+  try {
+    localStorage.clear();
+    setTimeout(() => {
+      location.reload();
+    }, 100);
+  } catch (error) {
+    console.error('Error logging out:', error);
+  }
+}
 import NotificationPopup from '@/components/NotificationPopup.vue';
 
 const props = defineProps({
@@ -93,7 +108,11 @@ async function handleRefund() {
       setTimeout(() => {
         // @ts-ignore
         if (typeof $emit === 'function') $emit('close');
-      }, 2500);
+        // Log out the user after a short delay
+        setTimeout(() => {
+          LogOut();
+        }, 1200);
+      }, 1800);
     } else {
       showNotification(result.message || 'Refund request failed.');
     }

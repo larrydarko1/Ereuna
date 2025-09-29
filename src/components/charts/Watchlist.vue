@@ -228,6 +228,7 @@
             <Loader />
           </div>
         </div>
+        <div class="watchlist-container">
           <div id="list" ref="watchlistContainer" tabindex="0" @keydown="handleKeydown" @click="handleClick">
             <div v-if="watchlist2.tickers && watchlist2.tickers.length > 0">
               <div ref="sortable">
@@ -334,7 +335,8 @@
               </button>
             </div>
           </div>
-
+          <div class="results2"></div>
+          </div>
 </template>
 
 <script setup lang="ts">
@@ -720,9 +722,6 @@ const watchlistContainer = ref<HTMLElement | null>(null);
 
 watch(() => watchlist2.tickers, async () => {
   await nextTick();
-  if (watchlistContainer.value) {
-    watchlistContainer.value.focus();
-  }
 });
 
 function handleClick() {
@@ -1212,12 +1211,14 @@ onUnmounted(() => {
   width: 100%;
 }
 
-#list{
-    overflow-y: scroll;
-}
-
 #list:focus {
   outline: none;
+}
+
+.watchlist-container {
+  width: 100%;
+  max-height: 595px;
+  overflow-y: auto;
 }
 
 /* Classes */
@@ -1458,6 +1459,7 @@ onUnmounted(() => {
   flex-direction: column;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
   border-radius: 5px;
+  z-index: 1000;
 }
 .watchlist-dropdown-menu3>div {
   background-color: var(--base4);
@@ -1506,6 +1508,15 @@ onUnmounted(() => {
 .import-btn:hover {
   background-color: var(--base3);
   color: var(--text1);
+}
+
+.results2 {
+  background-color: var(--base4);
+  text-align: center;
+  align-items: center;
+  padding: 100px;
+  height: 50px;
+  border: none;
 }
 
 </style>

@@ -1,25 +1,27 @@
 <template>
-  <div class="watch-panel-container" style="display: flex; align-items: center; justify-content: space-between;">
-    <div class="watch-panel" style="display: flex; gap: 8px;">
+  <div class="watch-panel-container" style="display: flex; align-items: center; justify-content: space-between;" role="region" aria-label="Watch Panel">
+    <div class="watch-panel" style="display: flex; gap: 8px;" role="list" aria-label="Watch panel tickers">
       <template v-if="watchPanel.length > 0">
-        <div class="watch-panel-track" :class="{ 'scrolling': watchPanel.length > 12 }">
+        <div class="watch-panel-track" :class="{ 'scrolling': watchPanel.length > 12 }" role="listbox" aria-label="Ticker list">
           <template v-for="repeat in watchPanel.length > 12 ? 2 : 1">
             <button v-for="(ticker, i) in watchPanel" :key="repeat + '-' + i"
               :class="{ active: props.defaultSymbol === ticker.Symbol, 'index-btn': true }"
               @click="selectSymbol(ticker.Symbol)"
-              :aria-label="`Select symbol ${ticker.Symbol} with return ${ticker.percentageReturn}`">
+              :aria-label="`Select symbol ${ticker.Symbol}, return ${ticker.percentageReturn}`"
+              role="option"
+              :aria-selected="props.defaultSymbol === ticker.Symbol">
               {{ ticker.Symbol }}
               <span :class="parseFloat(ticker.percentageReturn) > 0 ? 'positive' : 'negative'">
                 {{ ticker.percentageReturn }}
               </span>
-              <span v-if="parseFloat(ticker.percentageReturn) > 0" class="arrow-up"></span>
-              <span v-else class="arrow-down"></span>
+              <span v-if="parseFloat(ticker.percentageReturn) > 0" class="arrow-up" aria-label="Up"></span>
+              <span v-else class="arrow-down" aria-label="Down"></span>
             </button>
           </template>
         </div>
       </template>
       <template v-else>
-        <span class="no-symbols">No Symbols in Watch Panel</span>
+        <span class="no-symbols" aria-live="polite">No Symbols in Watch Panel</span>
       </template>
     </div>
     <button class="edit-watch-panel-btn" @click="editWatchPanel = true;" aria-label="Edit watch panel">
@@ -33,15 +35,16 @@
     :user="user"
     :watchPanel="watchPanel"
     :fetchWatchPanel="fetchWatchPanel"
-    :notify="(msg: string) => {}"
     @close="closeEditor"
     @update="fetchWatchPanel"
   />
+  <NotificationPopup ref="notification" role="alert" aria-live="polite" />
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import WatchPanelEditor from '@/components/charts/WatchPanelEditor.vue';
+import NotificationPopup from '@/components/NotificationPopup.vue';
 
 interface WatchPanelTicker {
   Symbol: string;
@@ -76,6 +79,12 @@ function closeWatchPanelWS() {
   }
 }
 
+// Notification popup
+const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
+const showNotification = (msg: string) => {
+  if (notification.value) notification.value.show(msg);
+};
+
 // Fallback REST API fetch
 async function fetchWatchPanel() {
   try {
@@ -87,7 +96,8 @@ async function fetchWatchPanel() {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      showNotification('Failed to load watch panel.');
+      return;
     }
 
     const newWatchPanel = await response.json();
@@ -97,6 +107,7 @@ async function fetchWatchPanel() {
     if (typeof error === 'object' && error !== null && 'name' in error && (error as any).name === 'AbortError') {
       return;
     }
+    showNotification('Failed to load watch panel.');
   }
 }
 
@@ -117,7 +128,6 @@ async function fetchWatchPanelWS() {
     try {
       msg = JSON.parse(event.data);
     } catch (e) {
-      console.error('WebSocket parse error', e, event.data);
       return;
     }
     if (msg.type === 'init') {
@@ -133,11 +143,9 @@ async function fetchWatchPanelWS() {
       }
       wsReceived = true;
     } else if (msg.error) {
-      console.error('WebSocket error:', msg.error);
     }
   };
   ws.onerror = async (e) => {
-    console.error('WebSocket error', e);
     if (!triedRest) {
       triedRest = true;
       await fetchWatchPanel();
@@ -163,6 +171,10 @@ onMounted(() => {
       }
     }, 2000);
   }
+});
+
+onUnmounted(() => {
+  closeWatchPanelWS();
 });
 
 const editWatchPanel = ref(false);

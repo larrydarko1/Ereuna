@@ -258,15 +258,42 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(500).json({ message: 'Failed to create user' });
             }
-            // Create 10 portfolio documents for the new user
+            // Create 10 portfolio documents for the new user, numbered 0 to 9, with full structure
             const portfoliosCollection = db.collection('Portfolios');
             const portfolioDocs = Array.from({ length: 10 }, (_, i) => ({
                 Username: sanitizedUsername,
-                Number: i + 1,
-                trades: [],
+                Number: i,
+                cash: 0,
                 BaseValue: 0,
-                portfolio: [],
-                cash: 0
+                avgGain: 0,
+                avgGainAbs: 0,
+                avgHoldTimeLosers: 0,
+                avgHoldTimeWinners: 0,
+                avgLoss: 0,
+                avgLossAbs: 0,
+                avgPositionSize: 0,
+                biggestLoser: { ticker: '', amount: 0, tradeCount: 0 },
+                biggestWinner: { ticker: '', amount: 0, tradeCount: 0 },
+                breakevenCount: 0,
+                breakevenPercent: 0,
+                gainLossRatio: 0,
+                loserCount: 0,
+                loserPercent: 0,
+                profitFactor: 0,
+                realizedPL: 0,
+                realizedPLPercent: 0,
+                riskRewardRatio: 0,
+                sortinoRatio: 0,
+                winnerCount: 0,
+                winnerPercent: 0,
+                portfolioValueHistory: [],
+                tradeReturnsChart: {
+                    labels: [],
+                    bins: [],
+                    medianBinIndex: 0
+                },
+                trades: [],
+                portfolio: []
             }));
             try {
                 await portfoliosCollection.insertMany(portfolioDocs);
@@ -816,15 +843,42 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(500).json({ message: 'Failed to create user' });
             }
-            // Create 10 portfolio documents for the new user
+            // Create 10 portfolio documents for the new user, numbered 0 to 9, with full structure
             const portfoliosCollection = db.collection('Portfolios');
             const portfolioDocs = Array.from({ length: 10 }, (_, i) => ({
                 Username: sanitizedUsername,
-                Number: i + 1,
-                trades: [],
+                Number: i,
+                cash: 0,
                 BaseValue: 0,
-                portfolio: [],
-                cash: 0
+                avgGain: 0,
+                avgGainAbs: 0,
+                avgHoldTimeLosers: 0,
+                avgHoldTimeWinners: 0,
+                avgLoss: 0,
+                avgLossAbs: 0,
+                avgPositionSize: 0,
+                biggestLoser: { ticker: '', amount: 0, tradeCount: 0 },
+                biggestWinner: { ticker: '', amount: 0, tradeCount: 0 },
+                breakevenCount: 0,
+                breakevenPercent: 0,
+                gainLossRatio: 0,
+                loserCount: 0,
+                loserPercent: 0,
+                profitFactor: 0,
+                realizedPL: 0,
+                realizedPLPercent: 0,
+                riskRewardRatio: 0,
+                sortinoRatio: 0,
+                winnerCount: 0,
+                winnerPercent: 0,
+                portfolioValueHistory: [],
+                tradeReturnsChart: {
+                    labels: [],
+                    bins: [],
+                    medianBinIndex: 0
+                },
+                trades: [],
+                portfolio: []
             }));
             try {
                 await portfoliosCollection.insertMany(portfolioDocs);
@@ -1011,8 +1065,10 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(401).json({ message: 'Invalid MFA code' });
                 }
+                // Remove sensitive fields from user object
+                const { Password, secret, qrCode, ...safeUser } = user;
                 let tokenExpiration = rememberMe === 'true' ? '7d' : '1h';
-                const token = jwt.sign({ user: user.Username }, config.secretKey, { expiresIn: tokenExpiration });
+                const token = jwt.sign({ user: safeUser }, config.secretKey, { expiresIn: tokenExpiration });
                 logger.info({
                     msg: 'MFA verified and user logged in',
                     username: sanitizedUsername,
@@ -1096,24 +1152,28 @@ export default function (app: any, deps: any) {
                             context: 'POST /twofa',
                             statusCode: 200
                         });
+                        // Add image parameter for 2FAS Auth and similar apps
+                        const baseQr = speakeasy.otpauthURL({
+                            secret: user.secret,
+                            label: `${user.Username}@Ereuna`,
+                            issuer: 'Ereuna',
+                            encoding: 'base32'
+                        });
+                        const qrCodeWithIcon = `${baseQr}&image=https://ereuna.io/icons/owl.png`;
                         return res.status(200).json({
                             message: '2FA already enabled',
-                            qrCode: speakeasy.otpauthURL({
-                                secret: user.secret,
-                                label: `${user.Username}@Ereuna`,
-                                issuer: 'Ereuna',
-                                encoding: 'base32'
-                            }),
+                            qrCode: qrCodeWithIcon,
                             secret: user.secret
                         });
                     }
                     const secretObj = speakeasy.generateSecret({ length: 20 });
-                    const qrCode = speakeasy.otpauthURL({
+                    const baseQr = speakeasy.otpauthURL({
                         secret: secretObj.base32,
                         label: `${sanitizedUsername}@Ereuna`,
                         issuer: 'Ereuna',
                         encoding: 'base32'
                     });
+                    const qrCode = `${baseQr}&image=https://ereuna.io/icons/owl.png`;
                     logger.info({
                         msg: '2FA initiation successful',
                         username: sanitizedUsername,
@@ -1152,12 +1212,13 @@ export default function (app: any, deps: any) {
                         });
                         return res.status(401).json({ message: 'Invalid verification code' });
                     }
-                    const qrCode = speakeasy.otpauthURL({
+                    const baseQr = speakeasy.otpauthURL({
                         secret,
                         label: `${user.Username}@Ereuna`,
                         issuer: 'Ereuna',
                         encoding: 'base32'
                     });
+                    const qrCode = `${baseQr}&image=https://ereuna.io/icons/owl.png`;
                     await usersCollection.updateOne(
                         { Username: user.Username },
                         { $set: { MFA: true, secret, qrCode } }
@@ -1256,12 +1317,12 @@ export default function (app: any, deps: any) {
                 }
                 return res.status(200).json({
                     enabled: !!user.MFA,
-                    qrCode: user.secret ? speakeasy.otpauthURL({
+                    qrCode: user.secret ? `${speakeasy.otpauthURL({
                         secret: user.secret,
                         label: `${user.Username}@Ereuna`,
                         issuer: 'Ereuna',
                         encoding: 'base32'
-                    }) : null
+                    })}&image=https://ereuna.io/icons/owl.png` : null
                 });
             } catch (error) {
                 const errObj = handleError(error, 'POST /twofa-status', {}, 500);
@@ -3052,7 +3113,7 @@ export default function (app: any, deps: any) {
                 return res.status(409).json({ message: 'A refund request for this transaction is already pending or approved.' });
             }
 
-            // Store refund request for staff review (can be partial refund, e.g. net of VAT)
+            // Store refund request and immediately revoke access
             // Helper to add N business days (skipping weekends)
             function addBusinessDays(date: Date, days: number): Date {
                 let result = new Date(date);
@@ -3085,14 +3146,27 @@ export default function (app: any, deps: any) {
             };
             await refundsCollection.insertOne(refundDoc);
 
+            // Immediately revoke access: set Paid to false and Expires to now (or partial if needed)
+            // If partial refund, you may want to reduce Expires by a proportional amount
+            // For now, set Expires to now and Paid to false
+            await usersCollection.updateOne(
+                { _id: userDoc._id },
+                {
+                    $set: {
+                        Paid: false,
+                        Expires: new Date() // Set to now; adjust logic if partial refund
+                    }
+                }
+            );
+
             logger.info({
-                msg: 'Refund request submitted',
+                msg: 'Refund request submitted and access revoked',
                 username: sanitizedUsername,
                 refundDoc,
                 context: 'POST /request-refund',
                 statusCode: 200
             });
-            return res.status(200).json({ message: 'Refund request submitted for review. Staff will contact you soon.', success: true });
+            return res.status(200).json({ message: 'Refund request submitted and access revoked. Staff will contact you soon.', success: true });
         } catch (error) {
             const errObj = handleError(error, 'POST /request-refund', {}, 500);
             return res.status(errObj.statusCode || 500).json(errObj);

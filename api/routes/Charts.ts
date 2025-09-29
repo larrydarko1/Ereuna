@@ -986,11 +986,21 @@ export default function (app: any, deps: any) {
         if (!Array.isArray(symbols) || symbols.length === 0) {
             return res.status(400).json({ message: 'Invalid payload' });
         }
-        // Backend symbol validation: only allow A-Z, 0-9, max 20 chars, no spaces or special chars
+        // Backend validation for array of objects {ticker, exchange}
         const validSymbolRegex = /^[A-Z0-9]{1,20}$/i;
+        const validExchangeRegex = /^[A-Z]{2,10}$/i;
         const sanitizedSymbols = symbols
-            .map((s: string) => typeof s === 'string' ? s.replace(/[^A-Z0-9]/gi, '').toUpperCase() : '')
-            .filter((s: string, i: number, arr: string[]) => validSymbolRegex.test(s) && arr.indexOf(s) === i);
+            .map((s: any) => {
+                if (typeof s === 'object' && s.ticker && s.exchange) {
+                    const ticker = String(s.ticker).replace(/[^A-Z0-9]/gi, '').toUpperCase();
+                    const exchange = String(s.exchange).replace(/[^A-Z]/gi, '').toUpperCase();
+                    if (validSymbolRegex.test(ticker) && validExchangeRegex.test(exchange)) {
+                        return { ticker, exchange };
+                    }
+                }
+                return null;
+            })
+            .filter((s, i, arr) => s && arr.findIndex(o => o && o.ticker === s.ticker && o.exchange === s.exchange) === i);
         if (sanitizedSymbols.length === 0) {
             return res.status(400).json({ message: 'No valid symbols in payload' });
         }
@@ -1005,7 +1015,7 @@ export default function (app: any, deps: any) {
             if (!watchlistDoc) {
                 return res.status(404).json({ message: 'Watchlist not found' });
             }
-            // Update the List array with the sanitized symbols
+            // Update the List array with the sanitized symbol objects
             await watchlistsCollection.updateOne(
                 { UsernameID: user, Name: watchlistName },
                 { $set: { List: sanitizedSymbols } },

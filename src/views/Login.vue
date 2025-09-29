@@ -375,6 +375,46 @@ async function verifyMfa() {
       isLoaderVisible.value = true;
       const token = mfaResponseBody.token;
       localStorage.setItem('token', token);
+      // Immediately update Pinia user store after MFA login
+      const { useUserStore } = await import('@/store/store');
+      const userStore = useUserStore();
+      userStore.loadUserFromToken();
+      // Robust theme restore after MFA login (mirrors normal login)
+      const themes = [
+        'default', 'ihatemyeyes', 'colorblind', 'catpuccin', 'black',
+        'nord', 'dracula', 'gruvbox', 'tokyo-night', 'solarized',
+        'synthwave', 'github-dark', 'everforest', 'ayu-dark', 'rose-pine',
+        'material', 'one-dark', 'night-owl', 'panda', 'monokai-pro',
+        'tomorrow-night', 'oceanic-next', 'palenight', 'cobalt', 'poimandres',
+        'github-light', 'neon', 'moonlight', 'nightfox', 'spacemacs',
+        'borland', 'amber', 'cyberpunk', 'matrix', 'sunset',
+        'deep-ocean', 'gotham', 'retro', 'spotify', 'autumn',
+        'noctis', 'iceberg', 'tango', 'horizon', 'railscasts',
+        'vscode-dark', 'slack-dark', 'mintty', 'atom-one', 'light-owl'
+      ];
+      let theme = localStorage.getItem('user-theme') || 'default';
+      try {
+        const apiKey = import.meta.env.VITE_EREUNA_KEY;
+        const response = await fetch('/api/load-theme', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-KEY': apiKey,
+          },
+          body: JSON.stringify({ username: storedUsername.value }),
+        });
+        const data = await response.json();
+        if (data.theme) {
+          theme = data.theme;
+          localStorage.setItem('user-theme', theme);
+        }
+      } catch (err) {
+        // fallback to localStorage/default
+      }
+      const root = document.documentElement;
+      root.classList.remove(...themes);
+      root.classList.add(theme);
+      userStore.setTheme(theme);
       router.push({ name: 'Dashboard' });
       mfaRequired.value = false;
     } else {
@@ -516,24 +556,6 @@ async function verifyMfa() {
   align-items: center;
 }
 
-.beta {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%) rotate(-5deg);
-  border: solid 2px $accent1;
-  width: 160px;
-  border-radius: 5px;
-  color: $accent1;
-  text-align: center;
-  letter-spacing: 2px;
-  font-weight: bold;
-  padding: 3px;
-  margin-top: 90px;
-  cursor: default;
-  font-size: 16px;
-}
-
 .container {
   display: grid;
   grid-template-columns: 60% 40%;
@@ -608,7 +630,7 @@ p{
 
 .form-input {
   border: solid 2px transparent;
-  border-radius: 1.5rem;
+  border-radius: 5px;
   background-color:$base2;
   padding: 1.5rem;
   font-size: 1.2rem;
@@ -649,7 +671,7 @@ p{
   align-content: center;
   justify-content: center;
   color: $text4;
-  border-radius: 10px;
+  border-radius: 5px;
   outline: none;
   border: none;
   padding: 10px;

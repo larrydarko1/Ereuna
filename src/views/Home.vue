@@ -67,47 +67,54 @@
   <div class="sphere-gradient"></div>
   <!--rest of the content goes inside this div-->
   <div class="features">
-    <div id="features">
-      <br>
-      <h2 style="cursor: default;">FEATURES</h2>
-      <div class="feature-cards-modern">
-        <div class="feature-card-modern">
-          <div class="feature-icon-modern">
-            <img src="@/assets/icons/settings.png" alt="" draggable="false" />
-          </div>
-          <div class="feature-title-modern">Personalized Database</div>
-          <div class="feature-desc-modern">
-            You can customize your financial instruments database by hiding assets that are irrelevant to your workflow and investment criteria, tailoring the data to your individual investment needs and preferences.
-          </div>
-        </div>
-        <div class="feature-card-modern">
-          <div class="feature-icon-modern">
-            <img src="@/assets/icons/intersect.png" alt="" draggable="false" />
-          </div>
-          <div class="feature-title-modern">One-Click Multi-Screener</div>
-          <div class="feature-desc-modern">
-            You can run multiple screeners simultaneously, providing a comprehensive view of your desired results in a single click. Duplicate values are highlighted and sorted automatically.
-          </div>
-        </div>
-        <div class="feature-card-modern">
-          <div class="feature-icon-modern">
-            <svg width="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6.22209 4.60105C6.66665 4.304 7.13344 4.04636 7.6171 3.82976C8.98898 3.21539 9.67491 2.9082 10.5875 3.4994C11.5 4.09061 11.5 5.06041 11.5 7.00001V8.50001C11.5 10.3856 11.5 11.3284 12.0858 11.9142C12.6716 12.5 13.6144 12.5 15.5 12.5H17C18.9396 12.5 19.9094 12.5 20.5006 13.4125C21.0918 14.3251 20.7846 15.011 20.1702 16.3829C19.9536 16.8666 19.696 17.3334 19.399 17.7779C18.3551 19.3402 16.8714 20.5578 15.1355 21.2769C13.3996 21.9959 11.4895 22.184 9.64665 21.8175C7.80383 21.4509 6.11109 20.5461 4.78249 19.2175C3.45389 17.8889 2.5491 16.1962 2.18254 14.3534C1.81598 12.5105 2.00412 10.6004 2.72315 8.86451C3.44218 7.12861 4.65982 5.64492 6.22209 4.60105Z" fill="currentColor"></path> <path d="M21.446 7.06901C20.6342 5.00831 18.9917 3.36579 16.931 2.55398C15.3895 1.94669 14 3.34316 14 5.00002V9.00002C14 9.5523 14.4477 10 15 10H19C20.6569 10 22.0533 8.61055 21.446 7.06901Z" fill="currentColor"></path> </g></svg>
-          </div>
-          <div class="feature-title-modern">Portfolio Simulations</div>
-          <div class="feature-desc-modern">
-            Simulate different portfolios to discover which strategies work best for you, or simply track your progress over time. Test allocations, compare outcomes, and refine your investment approach with powerful, easy-to-use simulation tools.
-          </div>
-        </div>
-        <div class="feature-card-modern">
-          <div class="feature-icon-modern">
-            <svg width="32" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" stroke-width="3" stroke="currentColor" fill="none"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><circle cx="34.52" cy="11.43" r="5.82"></circle><circle cx="53.63" cy="31.6" r="5.82"></circle><circle cx="34.52" cy="50.57" r="5.82"></circle><circle cx="15.16" cy="42.03" r="5.82"></circle><circle cx="15.16" cy="19.27" r="5.82"></circle><circle cx="34.51" cy="29.27" r="4.7"></circle><line x1="20.17" y1="16.3" x2="28.9" y2="12.93"></line><line x1="38.6" y1="15.59" x2="49.48" y2="27.52"></line><line x1="50.07" y1="36.2" x2="38.67" y2="46.49"></line><line x1="18.36" y1="24.13" x2="30.91" y2="46.01"></line><line x1="20.31" y1="44.74" x2="28.7" y2="48.63"></line><line x1="17.34" y1="36.63" x2="31.37" y2="16.32"></line><line x1="20.52" y1="21.55" x2="30.34" y2="27.1"></line><line x1="39.22" y1="29.8" x2="47.81" y2="30.45"></line><line x1="34.51" y1="33.98" x2="34.52" y2="44.74"></line></g></svg>
-          </div>
-          <div class="feature-title-modern">Archie: AI Trading Assistant</div>
-          <div class="feature-desc-modern">
-            Meet Archie, your AI-powered trading assistant. Trained on millions of financial market documents, Archie suggests trades tailored to your preferred style, recognizes patterns to help predict outcomes, and adapts to your needs by learning from your simulated portfolios. Get personalized, data-driven insights and smarter trading decisions—instantly.
+      <div id="features">
+        <br>
+        <h2 style="cursor: default; color: var(--text1)">FEATURES</h2>
+        <!-- Department Cards -->
+        <div class="feature-cards-modern">
+          <div
+            v-for="dept in departments"
+            :key="dept.name"
+            class="department-card"
+            :class="{ selected: selectedDepartment === dept.name }"
+            @click="selectDepartment(dept.name)"
+            style="cursor: pointer; align-items: center; text-align: center;"
+          >
+            <span style="display: inline-flex; align-items: center; gap: 8px;">
+              <span v-if="dept.name === 'Dashboard'">
+                <svg width="28" height="28" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g><rect x="2" y="2" width="9" height="11" rx="2" fill="currentColor"/><rect x="13" y="2" width="9" height="7" rx="2" fill="currentColor"/><rect x="2" y="15" width="9" height="7" rx="2" fill="currentColor"/><rect x="13" y="11" width="9" height="11" rx="2" fill="currentColor"/></g></svg>
+              </span>
+              <span v-else-if="dept.name === 'Portfolio'">
+                <svg width="28" height="28" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g><path d="M21.6702 6.94942C21.0302 4.77942 19.2202 2.96942 17.0502 2.32942C15.4002 1.84942 14.2602 1.88942 13.4702 2.47942C12.5202 3.18942 12.4102 4.46942 12.4102 5.37942V7.86942C12.4102 10.3294 13.5302 11.5794 15.7302 11.5794H18.6002C19.5002 11.5794 20.7902 11.4694 21.5002 10.5194C22.1102 9.73942 22.1602 8.59942 21.6702 6.94942Z" fill="currentColor"/><path d="M18.9094 13.3611C18.6494 13.0611 18.2694 12.8911 17.8794 12.8911H14.2994C12.5394 12.8911 11.1094 11.4611 11.1094 9.70113V6.12113C11.1094 5.73113 10.9394 5.35113 10.6394 5.09113C10.3494 4.83113 9.94941 4.71113 9.56941 4.76113C7.21941 5.06113 5.05941 6.35113 3.64941 8.29113C2.22941 10.2411 1.70941 12.6211 2.15941 15.0011C2.80941 18.4411 5.55941 21.1911 9.00941 21.8411C9.55941 21.9511 10.1094 22.0011 10.6594 22.0011C12.4694 22.0011 14.2194 21.4411 15.7094 20.3511C17.6494 18.9411 18.9394 16.7811 19.2394 14.4311C19.2894 14.0411 19.1694 13.6511 18.9094 13.3611Z" fill="currentColor"/></g></svg>
+              </span>
+              <span v-else-if="dept.name === 'Charts'">
+                <svg width="28" height="28" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><g><path d="M29.5 7c-1.381 0-2.5 1.12-2.5 2.5 0 0.284 0.058 0.551 0.144 0.805l-6.094 5.247c-0.427-0.341-0.961-0.553-1.55-0.553-0.68 0-1.294 0.273-1.744 0.713l-4.774-2.39c-0.093-1.296-1.162-2.323-2.482-2.323-1.38 0-2.5 1.12-2.5 2.5 0 0.378 0.09 0.732 0.24 1.053l-4.867 5.612c-0.273-0.102-0.564-0.166-0.873-0.166-1.381 0-2.5 1.119-2.5 2.5s1.119 2.5 2.5 2.5c1.381 0 2.5-1.119 2.5-2.5 0-0.332-0.068-0.649-0.186-0.939l4.946-5.685c0.236 0.073 0.48 0.124 0.74 0.124 0.727 0 1.377-0.316 1.834-0.813l4.669 2.341c0.017 1.367 1.127 2.471 2.497 2.471 1.381 0 2.5-1.119 2.5-2.5 0-0.044-0.011-0.086-0.013-0.13l6.503-5.587c0.309 0.137 0.649 0.216 1.010 0.216 1.381 0 2.5-1.119 2.5-2.5s-1.119-2.5-2.5-2.5z" fill="currentColor"/></g></svg>
+              </span>
+              <span v-else-if="dept.name === 'Screener'">
+                <svg width="28" height="28" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><g><path d="M256,256c-13.47,0-26.94-2.39-37.44-7.17l-148-67.49C63.79,178.26,48,169.25,48,152.24s15.79-26,22.58-29.12L219.86,55.05c20.57-9.4,51.61-9.4,72.19,0l149.37,68.07c6.79,3.09,22.58,12.1,22.58,29.12s-15.79,26-22.58,29.11l-148,67.48C282.94,253.61,269.47,256,256,256ZM432.76,155.14h0Z" fill="currentColor"/><path d="M441.36,226.81,426.27,220,387.5,237.74l-94,43c-10.5,4.8-24,7.19-37.44,7.19s-26.93-2.39-37.42-7.19l-94.07-43L85.79,220l-15.22,6.84C63.79,229.93,48,239,48,256s15.79,26.08,22.56,29.17l148,67.63C229,357.6,242.49,360,256,360s26.94-2.4,37.44-7.19L441.31,285.2C448.12,282.11,464,273.09,464,256S448.23,229.93,441.36,226.81Z" fill="currentColor"/><path d="M441.36,330.8,426.27,324,387.5,341.73l-94,42.95c-10.5,4.78-24,7.18-37.44,7.18s-26.93-2.39-37.42-7.18l-94.07-43L85.79,324l-15.22,6.84C63.79,333.93,48,343,48,360s15.79,26.07,22.56,29.15l148,67.59C229,461.52,242.54,464,256,464s26.88-2.48,37.38-7.27l147.92-67.57C448.12,386.08,464,377.06,464,360S448.23,333.93,441.36,330.8Z" fill="currentColor"/></g></svg>
+              </span>
+              <span>{{ dept.name }}</span>
+            </span>
           </div>
         </div>
-      </div>
+        <!-- Department Features -->
+        <div v-if="selectedDepartment" class="feature-cards-modern" style="margin-top: 2rem;">
+          <div
+            v-for="feature in departmentFeatures[selectedDepartment]"
+            :key="feature.title"
+            class="feature-card-modern"
+          >
+            <div class="feature-title-modern">{{ feature.title }}</div>
+            <div class="feature-desc-modern">{{ feature.desc }}</div>
+          </div>
+        </div>
+        <!-- Documentation Message -->
+        <div style="text-align: center; margin-top: 2rem;">
+          <span style="font-size: 1.5rem; color: var(--text1);">
+            Want to see all features?
+            <router-link to="/documentation" style="color: var(--text1); font-size: 1.5rem; text-decoration: underline;">Check the documentation</router-link>
+          </span>
+        </div>
     <!-- Pricing Section -->
      <div class="division"></div>
     <div class="content-section" id="pricing" style="cursor: default;">
@@ -142,7 +149,7 @@
       No commitment, it's recharge based, no automatic / recurring charges, Eligible for refunds the first 15 days
     </div>
   </div>
- <button class="pricebtn full-width">Join Now</button> 
+ <button class="pricebtn full-width" @click="redirectToSign">Join Now</button> 
 </div>
 </div>
     </div>
@@ -162,13 +169,15 @@
       </div>
     </div>
   </div>
-
+    <div class="sphere-gradient3"></div>
     <!-- Footer -->
   <div class="footer">
   <div class="footer-main">
     <!-- Company Info -->
    <div class="footer-section">
-  <h4>Ereuna Ltd</h4>
+   <div style="display: flex; align-items: left; gap: 12px;">
+              <img src="@/assets/icons/ereuna.png" alt="Ereuna Logo" class="icon" style="height: 40px; opacity: 0.7;" draggable="false" />
+            </div>
   <p>Level 2, Valletta Buildings, South Street, Valletta VLT 1103, Malta</p>
   <p>Company Registration No.: C 123456</p>
   <p>VAT No.: MT12345678</p>
@@ -179,10 +188,8 @@
       <h4>Links</h4>
       <div style="display: flex; flex-direction: column; gap: 5px">
          <a href="#" @click.prevent="showPolicy = true">Terms of Service & Privacy Policy</a>
-        <a href="#">About</a>
         <router-link to="/documentation">Documentation</router-link>
-        <a href="#">Careers</a>
-        <a href="#">Contact</a>
+        <router-link to="/careers">Careers</router-link>
       </div>
     </div>
     <!-- Banking & Legal -->
@@ -228,39 +235,146 @@ function redirectToSign() {
   router.push('/signup');
 }
 
+// Department cards and features (no icons)
+const departments = [
+  { name: 'Dashboard' },
+  { name: 'Portfolio' },
+  { name: 'Charts' },
+  { name: 'Screener' },
+];
+
+const departmentFeatures: Record<string, Array<{ title: string; desc: string }>> = {
+  Dashboard: [
+      {
+        title: 'Market Indexes Table',
+        desc: 'View real-time prices and performance for major market indexes (SPY, QQQ, DIA, etc.) with daily, monthly, and yearly returns.',
+      },
+      {
+        title: 'SMA Distribution',
+        desc: 'Visualize the percentage of stocks above or below key Simple Moving Averages (5, 10, 20, 50, 100, 150, 200-day).',
+      },
+      {
+        title: 'Sector & Industry Strength',
+        desc: 'Instantly see the strongest and weakest sectors and industries for the current quarter, with average returns and counts.',
+      },
+      {
+        title: 'Top Movers',
+        desc: 'Track the top 10 daily gainers and losers in the market, updated every trading day.',
+      },
+    ],
+  Portfolio: [
+      {
+        title: 'Comprehensive Performance Analytics',
+        desc: 'Instantly see base value, total value, active positions, cash, and detailed P/L (total, realized, unrealized, and percentages) of up to 10 simulated portfolios.',
+      },
+      {
+        title: 'Advanced Trade Statistics',
+        desc: 'Access metrics like average position size, hold times, average gain/loss, gain/loss ratio, risk/reward ratio, profit factor, and Sortino ratio.',
+      },
+      {
+        title: 'Interactive Charts',
+        desc: 'Visualize your portfolio allocation (pie chart), value over time (line chart), and trade returns (bar chart) for deeper insights.',
+      },
+      {
+        title: 'Full Transaction & Position Management',
+        desc: 'Add trades, cash, set base value, import/export, reset, and view sortable tables for positions and transaction history.',
+      },
+    ],
+  Charts: [
+      {
+        title: 'Multi-Panel Layout',
+        desc: 'Analyze assets with a flexible layout—left for fundamentals/news/notes, center for interactive charts, right for watchlists and search.',
+      },
+      {
+        title: 'Customizable Charting',
+        desc: 'Use the main chart to view price, volume, and technical indicators for any symbol, with fast switching and mobile support.',
+      },
+      {
+        title: 'Fundamental Data Integration',
+        desc: 'Instantly access earnings, sales, dividends, splits, and full financials statements in side panels, all linked to the selected symbol.',
+      },
+      {
+        title: 'Watchlists & Symbol Search',
+        desc: 'Manage multiple watchlists, search and select symbols, and set your default asset for quick charting and research.',
+      },
+    ],
+  Screener: [
+      {
+        title: 'Extensive Filter Set',
+        desc: 'Screen assets using dozens of customizable filters—price, market cap, IPO, sector, exchange, valuation ratios, growth, profitability, technicals, and more.',
+      },
+      {
+        title: 'Multi-Screener & Combined Results',
+        desc: 'Run multiple screeners simultaneously, view combined results, and highlight duplicates or unique matches across your strategies.',
+      },
+      {
+        title: 'Hidden List Mode',
+        desc: 'Each user can customize the visibility of specific assets they do not want to see in results, hiding them from search and screener output.',
+      },
+      {
+        title: 'Save, Rename, Reset, and Download',
+        desc: 'Create, save, rename, reset, and download your custom screeners and results for future use and sharing.',
+      },
+    ],
+};
+
+const selectedDepartment = ref<string | null>('Dashboard');
+function selectDepartment(dept: string) {
+  selectedDepartment.value = dept;
+}
 
 const faqs = ref([
-  { 
-    question: 'Will there be more financial instruments added in the future?', 
-    answer: 'Yes, as the platform grows, there are plans to add more financial instruments to the platform, such as European Stocks, Asian Stocks, Forex and Cryptocurrencies.', 
-    show: true 
+  {
+    question: 'Who is this platform designed for?',
+    answer: 'Ereuna is designed primarily for retail traders and investors, especially those with a mid- to long-term investment horizon. The aim is to make advanced research tools more accessible and affordable, offering unique aggregation features that save time and help users make smarter decisions. The platform is built to be more cost-effective than the competition, with ongoing development of AI-enhanced research tools to assist and speed up the research process without compromising quality—making workflows more efficient and insightful.',
+    show: true
   },
-  { question: 'What is the payment method?', answer: 'Credit Card via Stripe, cryptocurrencies will be added in the future.', show: true },
-  { question: 'Is there a refund policy?', answer: 'Yes, you are eligible for refunds the first 15 days of registration. you have to write to contact@ereuna.io and provide your Username and invoice id, refunds will be processed within 5 business days', show: true },
-  { question: 'Can I use Ereuna on mobile?', answer: 'Yes, Ereuna has a mobile version available. However, please note that while we strive to make our website accessible and usable on all devices, the mobile experience is not yet as optimized as the desktop version. Some features may not work properly or may behave differently due to the smaller screen size and touch input. We are actively working on improving and refining the mobile experience, so some issues will be addressed in future updates.', show: true },
-  { question: 'Is there a commitment or contract?', answer: 'No, there is no commitment or contract. It\'s recharge based, no automatic / recurring charges. you can add more days to your subscription in the Dashboard session', show: true },
+    {
+    question: 'Will there be more financial instruments added in the future?',
+    answer: 'Of course! As the platform grows, there are plans to add more financial instruments to the platform, such as European Stocks, Asian Stocks, Forex and Cryptocurrencies.',
+    show: true
+  },
+  {
+    question: 'Can I use Ereuna on mobile?',
+    answer: 'Yes, a mobile version of Ereuna is available. While the website is intended to be accessible and usable on all devices, the mobile experience is not yet as optimized as the desktop version. Some features may not work properly or may behave differently due to the smaller screen size and touch input. Improvements and refinements to the mobile experience are ongoing, and issues will be addressed in future updates.',
+    show: true
+  },
+  {
+    question: 'Is my data private and secure?',
+    answer: 'Absolutely, no information that could deanonymize users is stored. Ereuna does not collect emails, payment information, or any personal data that might compromise user security. Only minimal logs are kept, and privacy is a top priority. No user data is shared or sold to third parties.',
+    show: true
+  },
+  {
+    question: 'What is the payment method?',
+    answer: 'Credit Card via Stripe. Cryptocurrencies will be added in the future.',
+    show: true
+  },
+  {
+    question: 'Is there a refund policy?',
+    answer: 'Yes, you are eligible for refunds the first 15 days of payment. You can initiate an automatic refund in the Account Section or by writing to contact@ereuna.io and providing your Username and invoice / payment id. Refunds will be processed within 5 business days.',
+    show: true
+  },
+  {
+    question: 'Is there a commitment or contract?',
+    answer: 'No, there is no commitment or contract. It\'s recharge based, no automatic / recurring charges. You can add more days to your subscription in the Account Section.',
+    show: true
+  },
+  {
+    question: 'Can I cancel my subscription at any time?',
+    answer: 'Yes, you can stop renewing at any time. There are no recurring charges and no penalties for leaving.',
+    show: true
+  },
+  {
+    question: 'Will there be more features in the future?',
+    answer: 'Yes, Ereuna is under heavy active development. New features and improvements are released regularly based on user feedback and market needs.',
+    show: true
+  },
 ]);
 
 const scrollToSection = (sectionId: string) => {
   const element = document.getElementById(sectionId);
   if (element) {
     element.scrollIntoView({ behavior: 'smooth' });
-  }
-
-  // Update the position of the .sphere-gradient element
-  const sphereGradient = document.querySelector('.sphere-gradient') as HTMLElement | null;
-  const scrollY = window.scrollY;
-  const heroElement = document.querySelector('.hero') as HTMLElement | null;
-  const heroHeight = heroElement ? heroElement.offsetHeight : 0;
-
-  if (sphereGradient) {
-    if (scrollY > heroHeight) {
-      sphereGradient.style.position = 'absolute';
-      sphereGradient.style.top = `${scrollY + 110}px`;
-    } else {
-      sphereGradient.style.position = 'fixed';
-      sphereGradient.style.top = '110%';
-    }
   }
 };
 
@@ -306,6 +420,30 @@ function setupCardAnimations() {
   background-color: transparent;
   color: $text1;
 }
+
+.department-card {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 5px;
+  padding: 5px 8px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text1);
+  font-size: 2rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.department-card span {
+  font-size: 2rem;
+}
+
+.department-card.selected,
+.department-card:hover {
+  background-color: var(--base2);
+}
+
 
 .video-container {
   position: relative;
@@ -358,7 +496,27 @@ function setupCardAnimations() {
     #c5c6fe 70%, 
     #fff 100%);
   filter: blur(100px);
-  z-index: 500;
+  z-index: 0;
+  opacity: 0.20;
+  pointer-events: none;
+}
+
+.sphere-gradient3 {
+  position: absolute;
+  top: 85%;
+  right: 65%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  max-width: 100vw;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, #8c8dfe 0%, 
+    #8c8dfe 30%, 
+    #a3a4fe 50%, 
+    #c5c6fe 70%, 
+    #fff 100%);
+  filter: blur(100px);
+  z-index: 0; // Lower z-index so it appears behind the footer
   opacity: 0.20;
   pointer-events: none;
 }
@@ -468,18 +626,18 @@ function setupCardAnimations() {
 }
 
 .icon {
-    height: 60px; /* Increased size for better visibility */
+    height: 60px; 
     opacity: 0.50;
   }
 
-  .navbar {
+ .navbar {
   display: flex;
-  justify-content: space-between; /* Push logo to the left and buttons to the right */
+  justify-content: space-between; 
   align-items: center;
   background-color: transparent;
   border-radius: 10px;
   color: $text2;
-  padding: 15px 30px; /* Add horizontal padding for better spacing */
+  padding: 15px 30px;
   position: sticky;
   top: 2%;
   left: 2%;
@@ -734,7 +892,6 @@ a:hover{
   color: $text1;
   align-items: center;
   margin: 0 auto;
-  border: solid 1px $accent3;
 }
 
 .bullet-list{
@@ -748,7 +905,7 @@ a:hover{
 .bullet{
   text-align: left;
   font-size: 14px;
-  color: #dcdcdc;
+  color: $text2;
 }
 
 .contract-title{
@@ -773,7 +930,6 @@ a:hover{
   }
 }
 
-/* Simplified & Elegant Feature Cards Modern */
 .feature-cards-modern {
   display: flex;
   flex-wrap: wrap;
@@ -781,41 +937,34 @@ a:hover{
   gap: 2rem;
   margin: 3rem 0 2rem 0;
 }
+
 .feature-card-modern {
-  background: $base2;
-  border-radius: 1rem;
-  box-shadow: 0 2px 12px rgba(30,41,59,0.08);
-  padding: 2rem 1.5rem;
-  width: 270px;
-  min-height: 140px;
   display: flex;
-  flex-direction: column;
+   flex-direction: column;
   align-items: flex-start;
-  transition: box-shadow 0.2s, transform 0.15s;
-  color: $text1;
-  border: 1px solid $accent3;
+  background: $base2;
+  width: 270px;
+  min-height: 70px;
+  align-items: center;
+  gap: 5px;
+  margin: 5px;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text1);
+  font-size: 2rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
 }
 .feature-card-modern:hover {
-  box-shadow: 0 6px 24px rgba(99,102,241,0.10);
   transform: translateY(-4px) scale(1.02);
 }
-.feature-icon-modern {
-  margin-bottom: 1rem;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.feature-icon-modern img, .feature-icon-modern svg {
-  width: 32px;
-  height: 32px;
-}
+
 .feature-title-modern {
   font-size: 1.15rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: $accent2;
+  color: $text1;
   text-align: left;
 }
 .feature-desc-modern {
@@ -841,12 +990,21 @@ h2{
   margin-bottom: 50px;
 }
 
+
 .footer {
   background: $base2;
   color: $text2;
   padding: 2rem 8rem 8rem 8rem; /* top right bottom left */
   border-top: 1px solid $accent3;
   margin-top: 4rem;
+  z-index: 2;
+  position: relative;
+}
+
+.footer-main, .footer-bottom {
+  position: relative;
+  z-index: 2;
+  background: inherit;
 }
 
 .footer h4{
@@ -868,7 +1026,7 @@ h2{
 }
 
 .footer a {
-  color: $accent3;
+  color: $text2;
   font-size: 1.3rem;
   text-decoration: none;
   transition: color 0.2s;
@@ -881,7 +1039,7 @@ h2{
 }
 
 .footer a:hover {
-  color: $accent2;
+  color: $text1;
 }
 
 .footer-bottom {

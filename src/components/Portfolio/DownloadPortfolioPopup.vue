@@ -475,21 +475,67 @@ async function downloadPDF() {
     }
     y -= 30;
 
-    // Add disclaimer to the bottom of the last page BEFORE saving
-    const lastPage = pdfDoc.getPages()[pdfDoc.getPageCount() - 1];
+    // Add disclaimer to the bottom of the last page, ensuring it does not overlap with the table
     const disclaimerLines = [
-      'Disclaimer: All data in this report is simulated and does not constitute real financial transactions.',
-      'Ereuna is not a financial institution and does not handle, process, or facilitate any actual trades or investments.',
-      'This report is provided for informational and educational purposes only and should not be considered financial advice.',
-      'Ereuna assumes no responsibility or liability for any decisions made based on this report.'
+      'Disclaimer: This report and all data herein are for informational and educational purposes only, and do not constitute real financial transactions or financial advice.',
+      'Ereuna (whether operated as an incorporated or non-incorporated business) is not a financial institution and does not handle, process, or facilitate any actual trades or investments.',
+      'No information in this report should be interpreted as investment advice, recommendation, or an offer to buy or sell any financial instrument.',
+      'Neither Ereuna, its owners, developers, nor any individual associated with the project, whether as a business entity or as a private individual, assume any responsibility or liability for any actions, losses, or decisions made based on this report.',
+      'By using this report, you acknowledge and agree that all risk remains with you, and you expressly waive any and all claims against Ereuna, its owners, and its developers, regardless of the business structure.'
     ];
     const disclaimerFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const disclaimerFontSize = 9;
-    let yPos = 32 + (disclaimerLines.length - 1) * (disclaimerFontSize + 3);
+    const pageWidth = 600;
+    const margin = 36; // 36px margin on each side
+    const maxWidth = pageWidth - margin * 2;
+    function wrapText(
+      line: string,
+      font: typeof disclaimerFont,
+      fontSize: number,
+      maxWidth: number
+    ): string[] {
+      const words = line.split(' ');
+      let lines: string[] = [];
+      let currentLine = '';
+      for (let i = 0; i < words.length; i++) {
+        const testLine = currentLine ? currentLine + ' ' + words[i] : words[i];
+        const width = font.widthOfTextAtSize(testLine, fontSize);
+        if (width > maxWidth && currentLine) {
+          lines.push(currentLine);
+          currentLine = words[i];
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine) lines.push(currentLine);
+      return lines;
+    }
+    // Flatten all disclaimer lines into wrapped lines
+    let wrappedDisclaimerLines: string[] = [];
     disclaimerLines.forEach(line => {
+      wrappedDisclaimerLines.push(...wrapText(line, disclaimerFont, disclaimerFontSize, maxWidth));
+    });
+    // Calculate required height for disclaimer
+    const disclaimerHeight = wrappedDisclaimerLines.length * (disclaimerFontSize + 3);
+    // Get the last page and check available space
+    let lastPage = pdfDoc.getPages()[pdfDoc.getPageCount() - 1];
+    // Find the lowest y used on the last page (y is decremented as content is added)
+    // We use y from the last table/trade section, which is already decremented to below the content
+    // y is still in scope from above, and is the current vertical position after all content
+    // If not, set y = 60 (bottom margin)
+    let minY = typeof y === 'number' ? y : 60;
+    // If not enough space, add a new page for the disclaimer
+    if (minY < disclaimerHeight + 32) {
+      lastPage = pdfDoc.addPage([pageWidth, 800]);
+      lastPage.drawRectangle({ x: 0, y: 0, width: pageWidth, height: 800, color: base1 });
+      minY = 60;
+    }
+    // Draw disclaimer at the bottom, spaced from the bottom margin
+    let yPos = 32 + (wrappedDisclaimerLines.length - 1) * (disclaimerFontSize + 3);
+    wrappedDisclaimerLines.forEach(line => {
       const disclaimerWidth = disclaimerFont.widthOfTextAtSize(line, disclaimerFontSize);
       lastPage.drawText(line, {
-        x: (600 - disclaimerWidth) / 2,
+        x: (pageWidth - disclaimerWidth) / 2,
         y: yPos,
         size: disclaimerFontSize,
         font: disclaimerFont,

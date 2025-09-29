@@ -500,7 +500,7 @@ function handleMouseOut(): void {
   padding: 5px;
   border-radius: 8px;
   border: none;
-  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  background: var(--accent1);
   color: var(--text3);
   font-weight: 600;
   font-size: 1.05rem;
@@ -509,8 +509,8 @@ function handleMouseOut(): void {
 }
 
 .toggle-button:hover {
-  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
-  color: var(--text4);
+  background: var(--accent2);
+  color: var(--text3);
   transform: scale(1.03);
 }
 

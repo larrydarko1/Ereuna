@@ -262,7 +262,25 @@ async function handleSignupWithPayment(): Promise<void> {
         router.push('/login');
       }, 3000);
     } else {
-      showNotification(result.message || 'Signup or payment failed.');
+      // Enhanced error handling for backend errors
+      if (result.errors && Array.isArray(result.errors)) {
+        // Show the first error message, highlight field if possible
+        const firstError = result.errors[0];
+        if (firstError && firstError.field && firstError.message) {
+          showNotification(firstError.message);
+          // Highlight the relevant field if possible
+          if (firstError.field === 'username') {
+            const usernameInput = document.querySelector('input[name="username"]') as HTMLInputElement | null;
+            if (usernameInput) usernameInput.classList.add('error');
+          }
+        } else {
+          // Fallback: show all error messages if present
+          const messages = result.errors.map((e: any) => e.message).join(' ');
+          showNotification(messages || 'Signup or payment failed.');
+        }
+      } else {
+        showNotification(result.message || 'Signup or payment failed.');
+      }
     }
   } catch (error) {
     showNotification('Network or server error. Please check your connection.');
@@ -451,7 +469,7 @@ p {
 
 .input {
   border: solid 2px transparent;
-  border-radius: 1.5rem;
+  border-radius: 5px;
   background-color: $base2;
   padding: 1.5rem;
   font-size: 1.2rem;
@@ -491,7 +509,7 @@ p {
   align-content: center;
   justify-content: center;
   color: $text4;
-  border-radius: 10px;
+  border-radius: 5px;
   outline: none;
   border: none;
   padding: 10px;
@@ -751,7 +769,7 @@ h1 {
 
   .input {
     border: solid 2px transparent;
-    border-radius: 1.5rem;
+    border-radius: 5px;
     background-color: $base2;
     padding: 1.5rem;
     font-size: 1.2rem;

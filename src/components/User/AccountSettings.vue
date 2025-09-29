@@ -399,17 +399,23 @@ const loading = ref({
 });
 
 async function changePassword() {
+  oldPasswordError.value = false;
+  newPasswordError.value = false;
+  confirmPasswordError.value = false;
   if (oldPassword.value === '') {
+    oldPasswordError.value = true;
     emit('notify', 'Please enter your old password');
     return;
   }
 
   if (newPassword.value === '') {
+    newPasswordError.value = true;
     emit('notify', 'Please enter a new password');
     return;
   }
 
   if (confirmPassword.value !== newPassword.value) {
+    confirmPasswordError.value = true;
     emit('notify', 'Passwords do not match');
     return;
   }
@@ -426,11 +432,24 @@ async function changePassword() {
 
     const data = await response.json();
 
-    if (data.confirm) {
+    // Enhanced error handling for backend errors
+    if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+      // Highlight fields based on error field
+      for (const err of data.errors) {
+        if (err.field === 'oldPassword') oldPasswordError.value = true;
+        if (err.field === 'newPassword') newPasswordError.value = true;
+        if (err.field === 'confirmPassword') confirmPasswordError.value = true;
+      }
+      emit('notify', data.errors[0].message || 'Failed to change password');
+    } else if (data.error === 'old_password_incorrect' || data.message === 'Current password is incorrect') {
+      oldPasswordError.value = true;
+      emit('notify', 'Old password is incorrect');
+    } else if (data.message === 'New password must be different from the current password') {
+      newPasswordError.value = true;
+      emit('notify', 'New password must be different from the current password');
+    } else if (data.confirm) {
       emit('notify', 'Password changed successfully');
       // Password changed successfully
-    } else if (data.error === 'old_password_incorrect') {
-      emit('notify', 'Old password is incorrect');
     } else {
       emit('notify', 'Failed to change password');
     }
@@ -444,12 +463,15 @@ async function changePassword() {
 let newUsername = ref('');
 
 async function changeUsername() {
+  usernameError.value = false;
   if (newUsername.value === '') {
+    usernameError.value = true;
     emit('notify', 'Please enter a new username');
     return;
   }
 
   if (newUsername.value === props.user) {
+    usernameError.value = true;
     emit('notify', 'Current username and new username cannot be the same');
     return;
   }
@@ -466,9 +488,17 @@ async function changeUsername() {
 
     const data = await response.json();
 
-    if (data.error === 'username_taken') {
+    // Enhanced error handling for backend errors
+    if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+      if (data.errors[0].field === 'newUsername') {
+        usernameError.value = true;
+      }
+      emit('notify', data.errors[0].message || 'Failed to change username');
+    } else if (data.error === 'username_taken') {
+      usernameError.value = true;
       emit('notify', 'Username already taken');
     } else if (data.error === 'current username and new username cannot be the same') {
+      usernameError.value = true;
       emit('notify', 'Current username and new username cannot be the same');
     } else if (data.confirm) {
       emit('notify', 'Username changed successfully!');
@@ -572,7 +602,17 @@ async function GenerateNewKey() {
       }
     } else {
       // Handle API errors
-      emit('notify', data.message || 'An error occurred');
+      // Custom notification for incorrect password
+      if (data.errors && Array.isArray(data.errors)) {
+        const passwordError = data.errors.find((e: { field?: string }) => e.field === 'password');
+        if (passwordError) {
+          emit('notify', 'Incorrect password. Please try again.');
+        } else {
+          emit('notify', data.errors[0]?.message || 'An error occurred');
+        }
+      } else {
+        emit('notify', data.message || 'An error occurred');
+      }
     }
   } catch (error) {
     emit('notify', 'Network error. Please try again.');
