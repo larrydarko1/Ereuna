@@ -628,5 +628,58 @@ def insert_vat_rates():
     )
     print("VAT rates inserted/updated.")
 
+
+# --- EDGE CASE TEST: Add up to 98 new tickers to Watchlist ---
+def add_symbols_to_watchlist():
+    """
+    Add up to 98 new tickers from AssetInfo to the 'Index Funds' watchlist for 'LarryDarko', respecting the 100-symbol cap.
+    """
+    client = MongoClient(MONGO_URI)
+    db = client[DB_NAME]
+    watchlists = db["Watchlists"]
+    asset_info = db["AssetInfo"]
+
+    # Find the target watchlist
+    watchlist = watchlists.find_one({"Name": "Index Funds", "UsernameID": "LarryDarko"})
+    if not watchlist:
+        print("Watchlist not found.")
+        client.close()
+        return
+
+    current_list = watchlist.get("List", [])
+    current_count = len(current_list)
+    symbols_needed = 100 - current_count
+    if symbols_needed <= 0:
+        print("Watchlist already has 100 symbols.")
+        client.close()
+        return
+
+    # Get all unique symbols not already in the list
+    existing_tickers = set(item["ticker"] for item in current_list)
+    asset_cursor = asset_info.find({}, {"Symbol": 1, "Exchange": 1, "_id": 0})
+    new_items = []
+    for asset in asset_cursor:
+        symbol = asset.get("Symbol")
+        exchange = asset.get("Exchange")
+        if symbol and exchange and symbol not in existing_tickers:
+            new_items.append({"ticker": symbol, "exchange": exchange})
+            if len(new_items) >= symbols_needed:
+                break
+
+    if not new_items:
+        print("No new symbols to add.")
+        client.close()
+        return
+
+    # Update the watchlist
+    updated_list = current_list + new_items
+    watchlists.update_one(
+        {"_id": watchlist["_id"]},
+        {"$set": {"List": updated_list}}
+    )
+    print(f"Added {len(new_items)} new symbols to the watchlist. Total now: {len(updated_list)}")
+    client.close()
+
 # Example usage:
 # update_all_portfolios_for_user("LarryDarko")
+#add_symbols_to_watchlist()

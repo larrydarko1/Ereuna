@@ -1,8 +1,8 @@
 <template>
   <div class="recovery-container">
-    <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/owl.png" alt="Logo" draggable="false" />
+  <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/ereuna.png" alt="Logo" draggable="false" />
     <br />
-    <div class="container" v-if="!isKeyValidated">
+  <div class="container" v-if="!isKeyValidated">
       <div class="input-group">
         <input
           id="recoveryKeyInput"
@@ -40,7 +40,7 @@
       </button>
     </div>
 
-    <div class="container" v-if="isKeyValidated">
+  <div class="container" v-if="isKeyValidated">
       <div class="input-group">
         <input
           id="newPasswordInput"
@@ -93,6 +93,9 @@
           <span v-else style="margin-left: 8px;">Changing...</span>
         </span>
       </button>
+    </div>
+    <div class="disclaimer">
+      <p><strong>Disclaimer:</strong> You can obtain a recovery key from the Account section after logging in. Keep your recovery key safe and do not share it with anyone. If you lose your recovery key, account recovery may not be possible. For further assistance, contact support.</p>
     </div>
   </div>
   <NotificationPopup ref="notification" />
@@ -220,6 +223,16 @@ const changePassword = async (): Promise<void> => {
 <style scoped lang="scss">
 @use '../style.scss' as *;
 
+.disclaimer {
+  margin-top: 30px;
+  font-size: 1rem;
+  color: $text2;
+  text-align: center;
+  max-width: 500px;
+  padding: 0 10px;
+  line-height: 1.5;
+}
+
 .recovery-container {
   display: flex;
   flex-direction: column;
@@ -244,7 +257,7 @@ const changePassword = async (): Promise<void> => {
 
 .input {
   border: solid 2px transparent;
-  border-radius: 1.5rem;
+  border-radius: 5px;
   background-color: $base2;
   padding: 1.5rem;
   font-size: 1.2rem;
@@ -296,7 +309,7 @@ const changePassword = async (): Promise<void> => {
   align-content: center;
   justify-content: center;
   color: $text4;
-  border-radius: 10px;
+  border-radius: 5px;
   outline: none;
   border: none;
   padding: 10px;
@@ -321,7 +334,7 @@ const changePassword = async (): Promise<void> => {
 .logo {
   align-items: center;
   justify-content: center;
-  width: 90px;
+  width: 300px;
   margin: 10px;
 }
 
@@ -343,7 +356,7 @@ const changePassword = async (): Promise<void> => {
 .logo {
   align-items: center;
   justify-content: center;
-  width: 80px;
+  width: 300px;
   margin: 10px;
 }
 
@@ -353,7 +366,7 @@ const changePassword = async (): Promise<void> => {
 
 .input {
   border: solid 2px transparent;
-  border-radius: 1.5rem;
+  border-radius: 5px;
   background-color: $base2;
   padding: 1.5rem;
   font-size: 1.2rem;

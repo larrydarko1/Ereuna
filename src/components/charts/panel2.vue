@@ -1,8 +1,8 @@
 <template>
-  <div class="watch-panel-editor-backdrop" @click.self="$emit('close')">
-    <div class="watch-panel-editor-modal">
-      <h2>Edit Summary Fields</h2>
-      <div class="sections-list">
+  <div class="watch-panel-editor-backdrop" @click.self="$emit('close')" role="dialog" aria-modal="true" aria-label="Edit Summary Fields">
+    <div class="watch-panel-editor-modal" role="document">
+      <h2 id="summary-editor-title">Edit Summary Fields</h2>
+      <div class="sections-list" role="list" aria-labelledby="summary-editor-title">
         <div
           v-for="(field, index) in summaryFields"
           :key="index"
@@ -12,19 +12,21 @@
           @dragstart="dragStart($event, index)"
           @dragover="dragOver($event)"
           @drop="drop($event, index)"
+          role="listitem"
+          :aria-label="field.name + (field.hidden ? ' (hidden)' : '')"
         >
           <span class="mobile-arrows">
             <button
               class="arrow-btn"
               :disabled="index === 0"
               @click="moveFieldUp(index)"
-              aria-label="Move up"
+              aria-label="Move field up"
             >▲</button>
             <button
               class="arrow-btn"
               :disabled="index === summaryFields.length - 1"
               @click="moveFieldDown(index)"
-              aria-label="Move down"
+              aria-label="Move field down"
             >▼</button>
           </span>
           <button
@@ -39,10 +41,11 @@
         </div>
       </div>
       <div class="nav-buttons">
-  <button class="nav-button" @click="$emit('close')" aria-label="Close editor">Close</button>
-  <button class="nav-button" @click="resetOrder" aria-label="Reset summary fields order">Reset</button>
-  <button class="nav-button" @click="updatePanel2" aria-label="Submit summary fields">Submit</button>
+        <button class="nav-button" @click="$emit('close')" aria-label="Close editor">Close</button>
+        <button class="nav-button" @click="resetOrder" aria-label="Reset summary fields order">Reset</button>
+        <button class="nav-button" @click="updatePanel2" aria-label="Submit summary fields">Submit</button>
       </div>
+      <NotificationPopup v-if="errorMsg" :message="errorMsg" type="error" @close="errorMsg = ''" />
     </div>
   </div>
 </template>
@@ -50,6 +53,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useUserStore } from '@/store/store';
+import NotificationPopup from '@/components/NotificationPopup.vue';
 
 interface SummaryField {
   order: number;
@@ -146,6 +150,8 @@ const resetOrder = () => {
   updateOrder();
 };
 
+const errorMsg = ref('');
+
 async function updatePanel2() {
   try {
     summaryFields.value.sort((a, b) => a.order - b.order);
@@ -177,26 +183,41 @@ async function updatePanel2() {
     // Emit event to inform parent that panel was updated
     emit('panel-updated');
   } catch (error) {
-    // error handling if needed
+    errorMsg.value = 'Error updating summary fields. Please try again.';
   }
 }
 
 async function fetchPanel2() {
   try {
     const headers = { 'X-API-KEY': apiKey };
-    const response = await fetch(`/api/panel2?username=${user}`, { headers });
-    
+    const response = await fetch(`/api/panel2?username=${user.value?.Username || ''}`, { headers });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    
     const newPanel = await response.json();
 
-    // Defensive: fallback to default if empty
-    summaryFields.value = (newPanel.panel2 && newPanel.panel2.length)
-      ? newPanel.panel2
-      : initialFields.map(field => ({ ...field }));
-
+    // Merge backend fields with initialFields for robust UI
+    if (newPanel.panel2 && Array.isArray(newPanel.panel2) && newPanel.panel2.length) {
+      // Create a map for quick lookup
+      const userMap = new Map(newPanel.panel2.map((f: any) => [f.tag, f]));
+      // Merge: use user order/hidden if present, else default
+      const merged = initialFields.map((field, idx) => {
+        const userField = userMap.get(field.tag) as Partial<SummaryField> | undefined;
+        return userField
+          ? {
+              ...field,
+              order: typeof userField.order === 'number' ? userField.order : idx + 1,
+              hidden: typeof userField.hidden === 'boolean' ? userField.hidden : field.hidden
+            }
+          : { ...field };
+      });
+      // Sort by order (user order if present, else default)
+      merged.sort((a, b) => a.order - b.order);
+      summaryFields.value = merged;
+    } else {
+      summaryFields.value = initialFields.map(field => ({ ...field }));
+    }
   } catch (error) {
-    console.error('Error fetching panel data:', error);
+    errorMsg.value = 'Error loading summary fields.';
+    summaryFields.value = initialFields.map(field => ({ ...field }));
   }
 }
 
@@ -222,7 +243,6 @@ function moveFieldDown(index: number) {
     updateOrder();
   }
 }
-
 
 </script>
 
@@ -293,7 +313,7 @@ function moveFieldDown(index: number) {
 
 .section-name {
   flex: 1;
-  color: var(--accent3);
+  color: var(--text1);
 }
 
 .hidden-section {
@@ -363,7 +383,7 @@ function moveFieldDown(index: number) {
   padding: 0.7rem 0;
   border-radius: 8px;
   border: none;
-  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  background: var(--accent1);
   color: var(--text3);
   font-weight: 600;
   font-size: 1.05rem;
@@ -371,7 +391,7 @@ function moveFieldDown(index: number) {
   transition: background 0.2s, transform 0.1s;
 }
 .nav-button:hover {
-  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  background: var(--accent2);
   color: var(--text4);
   transform: scale(1.03);
 }

@@ -1,3 +1,4 @@
+
 <template>
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
@@ -16,124 +17,138 @@
           <div v-if="fileName" class="char-count">{{ fileName }}</div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn" @click="importWatchlist" aria-label="Import watchlist">Import</button>
-          <button type="button" class="cancel-btn" @click="close" aria-label="Cancel import">Cancel</button>
+          <button type="submit" class="trade-btn" @click="importWatchlist" :disabled="isLoading" aria-label="Import watchlist">
+            <span class="btn-content-row">
+              <span v-if="isLoading" class="loader4">
+                <svg class="spinner" viewBox="0 0 50 50">
+                  <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
+                </svg>
+              </span>
+              <span v-if="!isLoading">Import</span>
+              <span v-else style="margin-left: 8px;">Processing...</span>
+            </span>
+          </button>
+          <button type="button" class="cancel-btn" @click="close" :disabled="isLoading" aria-label="Cancel import">Cancel</button>
         </div>
       </form>
+      <NotificationPopup ref="notification" role="alert" aria-live="polite" />
     </div>
   </div>
 </template>
 
+
 <script setup lang="ts">
-import { ref } from 'vue'
-const emit = defineEmits(['close', 'refresh'])
+import { ref } from 'vue';
+import NotificationPopup from '@/components/NotificationPopup.vue';
+
+const emit = defineEmits(['close', 'refresh']);
 
 const props = defineProps({
   user: String,
   apiKey: String,
   notification: Object,
-  selectedWatchlist: String 
-})
+  selectedWatchlist: String
+});
 
-const selectedFile = ref<File | null>(null)
-const fileName = ref<string>('')
-const fileContent = ref<string>('')
+const selectedFile = ref<File | null>(null);
+const fileName = ref<string>('');
+const fileContent = ref<string>('');
+const isLoading = ref(false);
+const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
+
+function showNotification(msg: string) {
+  if (notification.value) notification.value.show(msg);
+}
 
 function close() {
-  emit('close')
+  emit('close');
 }
 
 function handleFileChange(event: Event) {
-  const input = event.target as HTMLInputElement
-  const file = input.files ? input.files[0] : null
+  const input = event.target as HTMLInputElement;
+  const file = input.files ? input.files[0] : null;
   if (file && file.type === 'text/plain') {
-    selectedFile.value = file
-    fileName.value = file.name
-    const reader = new FileReader()
+    selectedFile.value = file;
+    fileName.value = file.name;
+    const reader = new FileReader();
     reader.onload = function(e: ProgressEvent<FileReader>) {
-      const result = e.target && e.target.result
-      fileContent.value = typeof result === 'string' ? result : ''
-    }
-    reader.readAsText(file)
+      const result = e.target && e.target.result;
+      fileContent.value = typeof result === 'string' ? result : '';
+    };
+    reader.readAsText(file);
   } else {
-    selectedFile.value = null
-    fileName.value = ''
-    fileContent.value = ''
-    if (props.notification && props.notification.value) {
-      props.notification.value.show('Please select a valid .txt file')
-    }
+    selectedFile.value = null;
+    fileName.value = '';
+    fileContent.value = '';
+    showNotification('Please select a valid .txt file');
   }
 }
 
-async function importWatchlist() {
+async function importWatchlist(e?: Event) {
+  if (e) e.preventDefault();
+  if (isLoading.value) return;
+  isLoading.value = true;
   if (!selectedFile.value || !fileContent.value) {
-    if (props.notification && props.notification.value) {
-      props.notification.value.show('No file selected or file is empty')
-    }
-    return
+    showNotification('No file selected or file is empty');
+    isLoading.value = false;
+    return;
   }
   // Extract symbols from fileContent
-  const lines = fileContent.value.split(/\r?\n/)
+  const lines = fileContent.value.split(/\r?\n/);
   // Symbol validation: only allow A-Z, 0-9, max 20 chars, no spaces or special chars
-  const validSymbolRegex = /^[A-Z0-9]{1,20}$/i
-  let symbols = lines
+  const validSymbolRegex = /^[A-Z0-9]{1,20}$/i;
+  let symbolObjs = lines
     .map(line => {
-      const parts = line.split(':')
+      const parts = line.split(':');
       if (parts.length === 2) {
-        let symbol = parts[1].trim().toUpperCase()
-        // Remove dangerous chars
-        symbol = symbol.replace(/[^A-Z0-9]/gi, '')
-        return validSymbolRegex.test(symbol) ? symbol : null
+        let exchange = parts[0].trim().toUpperCase().replace(/[^A-Z]/gi, '');
+        let ticker = parts[1].trim().toUpperCase().replace(/[^A-Z0-9]/gi, '');
+        if (exchange && ticker && validSymbolRegex.test(ticker)) {
+          return { ticker, exchange };
+        }
       }
-      return null
+      return null;
     })
-    .filter((s, i, arr) => s && arr.indexOf(s) === i) // Remove nulls and duplicates
+    .filter((obj, i, arr) => obj && arr.findIndex(o => o && o.ticker === obj.ticker && o.exchange === obj.exchange) === i);
   // Limit to 100 symbols per import
-  if (symbols.length > 100) {
-    if (props.notification && props.notification.value) {
-      props.notification.value.show('Too many symbols (max 100 allowed)')
-    }
-    return
+  if (symbolObjs.length > 100) {
+    showNotification('Too many symbols (max 100 allowed)');
+    isLoading.value = false;
+    return;
   }
-  if (symbols.length === 0) {
-    if (props.notification && props.notification.value) {
-      props.notification.value.show('No valid symbols found in file')
-    }
-    return
+  if (symbolObjs.length === 0) {
+    showNotification('No valid symbols found in file');
+    isLoading.value = false;
+    return;
   }
   const payload = {
     watchlistName: props.selectedWatchlist,
-    symbols: symbols
-  }
+    symbols: symbolObjs
+  };
   try {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json'
-    }
+    };
     if (props.apiKey) {
-      headers['X-API-KEY'] = props.apiKey
+      headers['X-API-KEY'] = props.apiKey;
     }
     const response = await fetch(`/api/${props.user}/import/watchlist`, {
       method: 'POST',
       headers,
       body: JSON.stringify(payload)
-    })
+    });
     if (response.ok) {
-      if (props.notification && props.notification.value) {
-        props.notification.value.show('Watchlist imported successfully')
-      }
-      emit('refresh') 
+      showNotification('Watchlist imported successfully');
+      emit('refresh');
     } else {
-      if (props.notification && props.notification.value) {
-        props.notification.value.show('Failed to import watchlist')
-      }
+      showNotification('Failed to import watchlist');
     }
   } catch (error) {
-    if (props.notification && props.notification.value) {
-      const message = error instanceof Error ? error.message : String(error)
-      props.notification.value.show(message)
-    }
+    const message = error instanceof Error ? error.message : String(error);
+    showNotification(message);
   }
-  emit('close')
+  isLoading.value = false;
+  emit('close');
 }
 </script>
 
@@ -246,6 +261,51 @@ input.input-error,
   justify-content: flex-end;
 }
 
+
+.btn-content-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.loader4 {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  margin-right: 10px;
+}
+.spinner {
+  animation: rotate 2s linear infinite;
+  width: 25px;
+  height: 25px;
+}
+.path {
+  stroke: #000000;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}
+
 .trade-btn {
   background: var(--accent1);
   color: var(--text3);
@@ -257,7 +317,11 @@ input.input-error,
   cursor: pointer;
   transition: background 0.18s;
 }
-.trade-btn:hover {
+.trade-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.trade-btn:hover:not(:disabled) {
   background: var(--accent2);
 }
 

@@ -91,7 +91,6 @@
          <SearchBar
   v-model="searchQuery"
   @search="searchTicker"
-  @input="toUpperCase"
   ref="searchbarRef"
 />
          <Watchlist
@@ -107,7 +106,6 @@
            @notify="showNotification($event)"
          />
         </div>
-        <div class="results2"></div>
       </div>
     </div>
     <NotificationPopup ref="notification" />
@@ -175,9 +173,6 @@ const showNotification = (msg: string) => {
 const showPopup = ref(false); // div for financial statements
 
 const searchQuery = ref('');
-const toUpperCase = () => {
-  searchQuery.value = searchQuery.value.toUpperCase();
-};
 
 // Use ref for defaultSymbol for reactivity, but pass .value to children
 const defaultSymbol = ref(localStorage.getItem('defaultSymbol') || '');
@@ -228,7 +223,6 @@ onMounted(async () => {
     selectedItem.value = symbol;
     localStorage.setItem('defaultSymbol', symbol);
   }
-  await showTicker();
   await searchTicker(defaultSymbol.value || '');
   await fetchPanel();
 });
@@ -257,12 +251,7 @@ async function searchTicker(providedSymbol: string, options: Record<string, any>
   let response;
   activeIndex.value = -1;
   try {
-    let baseSymbol = '';
-    if (searchbarRef.value && searchbarRef.value.value) {
-      baseSymbol = searchbarRef.value.value;
-    } else {
-      baseSymbol = defaultSymbol.value || '';
-    }
+    let baseSymbol = searchQuery.value || defaultSymbol.value || '';
     let symbol = baseSymbol.toUpperCase();
 
     // Build query string from options
@@ -285,7 +274,7 @@ async function searchTicker(providedSymbol: string, options: Record<string, any>
 
     const data = await response.json();
 
-    if (searchbarRef.value) searchbarRef.value.value = data.Symbol;
+    searchQuery.value = data.Symbol;
     localStorage.setItem('defaultSymbol', data.Symbol);
     defaultSymbol.value = data.Symbol;
     selectedItem.value = data.Symbol;
@@ -319,14 +308,10 @@ async function selectRow(item: string) {
   localStorage.setItem('defaultSymbol', item);
   defaultSymbol.value = item;
   selectedItem.value = item;
+  searchQuery.value = item;
   await updateUserDefaultSymbol(item);
   try {
-    if (searchbarRef.value) {
-      searchbarRef.value.value = item;
-      await searchTicker(item);
-    } else {
-      showNotification('Searchbar element not found');
-    }
+    await searchTicker(item);
   } catch (err) {
     showNotification(err instanceof Error ? err.message : String(err));
   }
@@ -617,7 +602,7 @@ function getSidebarProps(tag: string) {
 #chartdiv {
   flex: 1 1 auto;
   border: none;
-  min-height: 500px; // ensures it shrinks properly
+  min-height: 500px;
 }
 
 #chartdiv2 {
@@ -692,23 +677,16 @@ function getSidebarProps(tag: string) {
   padding: 10px 10px 10px 15px;
   margin: 7px;
   width: calc(100% - 30px);
-  /* Make space for the button */
   outline: none;
   color: var(--text2);
-  /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s;
-  /* Smooth transition for focus effects */
   border: solid 1px var(--base1);
   background-color: var(--base4);
 }
 
 #searchbar:focus {
   border-color: var(--accent1);
-  /* Change border color on focus */
-  //box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
-  /* Subtle shadow effect */
   outline: none;
-  /* Remove default outline */
 }
 
 /* button for searching symbols, inside searchbar */
@@ -776,17 +754,12 @@ function getSidebarProps(tag: string) {
   border: none;
   text-align: center;
   overflow: hidden;
-  /* Hide overflow when not expanded */
   transition: height 0.3s ease;
-  /* Smooth transition for height */
-  /* Set a fixed height when not expanded */
   height: 20px;
-  /* This should match your minHeight */
 }
 
 .description.expanded {
   height: auto;
-  /* Allow full height when expanded */
 }
 
 .category {
@@ -798,7 +771,6 @@ function getSidebarProps(tag: string) {
   border: none;
 }
 
-/* note section */
 .title {
   background-color: var(--base1);
   color: var(--text1);
@@ -1094,15 +1066,6 @@ function getSidebarProps(tag: string) {
   text-align: center;
   align-items: center;
   padding: 10px;
-  height: 50px;
-  border: none;
-}
-
-.results2 {
-  background-color: var(--base4);
-  text-align: center;
-  align-items: center;
-  padding: 100px;
   height: 50px;
   border: none;
 }

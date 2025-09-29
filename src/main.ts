@@ -53,7 +53,7 @@ router.beforeEach(async (
     const token = localStorage.getItem('token');
     const userStore = useUserStore();
     // List of public routes that do not require authentication
-    const publicPages = ['Login', 'SignUp', 'PaymentRenew', 'Recovery', 'Home', 'Documentation'];
+    const publicPages = ['Login', 'SignUp', 'PaymentRenew', 'Recovery', 'Home', 'Documentation', 'Careers'];
 
     // If no token and trying to access protected page, redirect to Login and clear caches
     if (!token && !publicPages.includes(String(to.name))) {

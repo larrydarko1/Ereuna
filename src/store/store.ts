@@ -17,19 +17,15 @@ export const useUserStore = defineStore('user', {
             const token = localStorage.getItem('token');
             if (!token) {
                 this.user = null;
-                // ...existing code...
                 return;
             }
             const decodedToken = JSON.parse(atob(token.split('.')[1]));
-            // ...existing code...
             if (decodedToken.exp < Date.now() / 1000) {
                 localStorage.removeItem('token');
                 this.user = null;
-                // ...existing code...
                 return;
             }
             this.user = decodedToken.user as { username: string;[key: string]: any };
-            // ...existing code...
         },
     },
     getters: {

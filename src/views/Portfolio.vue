@@ -297,8 +297,15 @@
     </div>
     <div class="portfolio-main-flex">
       <div class="portfolio-pie-container" aria-label="Portfolio allocation pie chart">
-        <template v-if="portfolioSummary?.positionsCount !== undefined ? portfolioSummary.positionsCount <= 100 : portfolio.length <= 100">
-          <Pie :data="pieChartData" :options="pieOptions" />
+        <template v-if="(portfolioSummary?.positionsCount !== undefined ? portfolioSummary.positionsCount <= 100 : portfolio.length <= 100)">
+          <template v-if="portfolio.length === 0 && cash === 0">
+            <div class="no-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; height: 350px; color: var(--text2); background: var(--base2);">
+              <strong>No Positions Available</strong>
+            </div>
+          </template>
+          <template v-else>
+            <Pie :data="pieChartData" :options="pieOptions" />
+          </template>
         </template>
         <template v-else>
           <div class="too-many-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; height: 350px ;color: var(--text2); background: var(--base2);">

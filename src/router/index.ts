@@ -7,6 +7,11 @@ const routes = [
     component: () => import('../views/HomeB.vue')
   },
   {
+    path: '/careers',
+    name: 'Careers',
+    component: () => import('../views/Careers.vue')
+  },
+  {
     path: '/charts',
     name: 'Charts',
     component: () => import('../views/Charts.vue')
@@ -53,7 +58,7 @@ const routes = [
   },
   {
     path: '/:catchAll(.*)', // Catch-all route
-    name: 'Home',
+    name: 'NotFound',
     component: () => import('../views/Home.vue')
   },
   {

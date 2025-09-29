@@ -1,7 +1,7 @@
 <template>
-  <div class="watch-panel-editor-backdrop" @click.self="close">
-    <div class="watch-panel-editor-modal">
-      <h2>Edit Watch Panel</h2>
+  <div class="modal-backdrop" @click.self="close" role="dialog" aria-modal="true" aria-labelledby="watchpanel-title">
+    <div class="modal-content">
+      <h2 id="watchpanel-title">Edit Watch Panel</h2>
       <div class="symbol-input-row">
         <input
           v-model="newSymbol"
@@ -11,22 +11,24 @@
         />
         <button @click="addSymbol" :disabled="!newSymbol.trim()" aria-label="Add symbol to watch panel">Add</button>
       </div>
-      <div class="symbols-list">
+      <div class="symbols-list" aria-label="Current watch panel symbols">
         <div v-for="(symbol, idx) in symbols" :key="symbol.Symbol" class="symbol-item">
           <span>{{ symbol.Symbol }}</span>
           <button @click="removeSymbol(idx)" aria-label="Remove symbol {{ symbol.Symbol }} from watch panel">Remove</button>
         </div>
       </div>
       <slot></slot>
-  <button @click="close" aria-label="Close watch panel editor">Close</button>
+      <button @click="close" aria-label="Close watch panel editor">Close</button>
+      <NotificationPopup ref="notification" role="alert" aria-live="polite" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import NotificationPopup from '@/components/NotificationPopup.vue';
 
-const emit = defineEmits(['close', 'update', 'notify'])
+const emit = defineEmits(['close', 'update'])
 const props = defineProps({
   apiKey: String,
   user: String,
@@ -34,8 +36,7 @@ const props = defineProps({
     type: Array as () => WatchPanelTicker[],
     default: () => []
   },
-  fetchWatchPanel: Function,
-  notify: Function
+  fetchWatchPanel: Function
 })
 
 interface WatchPanelTicker {
@@ -44,6 +45,11 @@ interface WatchPanelTicker {
 
 const symbols = ref<WatchPanelTicker[]>([...props.watchPanel])
 const newSymbol = ref('')
+
+const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
+const showNotification = (msg: string) => {
+  if (notification.value) notification.value.show(msg);
+};
 
 // Keep symbols in sync if parent changes watchPanel
 watch(() => props.watchPanel, (val: WatchPanelTicker[]) => {
@@ -54,7 +60,7 @@ const MAX_SYMBOLS = 20
 
 async function patchSymbols() {
   if (symbols.value.length > MAX_SYMBOLS) {
-    if (props.notify) props.notify('Cannot add more than 20 symbols');
+    showNotification('Cannot add more than 20 symbols');
     return;
   }
   try {
@@ -67,14 +73,17 @@ async function patchSymbols() {
       body: JSON.stringify({ symbols: symbols.value.map((obj: WatchPanelTicker) => obj.Symbol) })
     })
 
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+    if (!response.ok) {
+      showNotification('Failed to update symbols.');
+      return;
+    }
 
     // After patch, fetch the updated panel and emit
     if (typeof props.fetchWatchPanel === 'function') {
       await props.fetchWatchPanel()
     }
   } catch (error) {
-    console.error('Failed to update symbols:', error)
+    showNotification('Failed to update symbols.');
   }
 }
 
@@ -84,7 +93,15 @@ async function addSymbol() {
     !symbol ||
     symbols.value.some((obj: WatchPanelTicker) => obj.Symbol === symbol) ||
     symbols.value.length >= MAX_SYMBOLS
-  ) return
+  ) {
+    if (!symbol) return;
+    if (symbols.value.some((obj: WatchPanelTicker) => obj.Symbol === symbol)) {
+      showNotification('Symbol already in watch panel.');
+    } else if (symbols.value.length >= MAX_SYMBOLS) {
+      showNotification('Cannot add more than 20 symbols.');
+    }
+    return;
+  }
   symbols.value.push({ Symbol: symbol })
   newSymbol.value = ''
   await patchSymbols()
@@ -102,35 +119,42 @@ function close() {
 </script>
 
 <style scoped>
-.watch-panel-editor-backdrop {
+.modal-backdrop {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: color-mix(in srgb, var(--base1) 70%, transparent);
-  backdrop-filter: blur(4px);
+  inset: 0;
+  background: rgba(24, 25, 38, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
+  backdrop-filter: blur(2px);
 }
 
-.watch-panel-editor-modal {
-  background: color-mix(in srgb, var(--base2) 85%, transparent);
+.modal-content {
+  position: relative;
+  background: var(--base2);
   color: var(--text1);
-  padding: 2.5rem 2rem 2rem 2rem;
   border-radius: 18px;
+  padding: 36px 32px 28px 32px;
   min-width: 340px;
-  box-shadow: 0 8px 32px color-mix(in srgb, var(--base1) 35%, transparent);
-  border: 1.5px solid var(--base4);
-  backdrop-filter: blur(8px);
-  transition: box-shadow 0.2s;
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--accent4);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: popup-in 0.18s cubic-bezier(.4,1.4,.6,1) backwards;
 }
 
-.watch-panel-editor-modal h2 {
-  font-size: 1.5rem;
+@keyframes popup-in {
+  from { transform: translateY(30px) scale(0.98); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+.modal-content h2 {
+  margin: 0 0 12px 0;
+  font-size: 1.35rem;
   font-weight: 700;
-  margin-bottom: 1.5rem;
-  letter-spacing: 0.02em;
   color: var(--accent1);
+  letter-spacing: 0.01em;
 }
 
 .symbol-input-row {
@@ -159,7 +183,7 @@ function close() {
   padding: 0.6rem 1.2rem;
   border-radius: 5px;
   border: none;
-  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  background: var(--accent1);
   color: var(--text3);
   font-weight: 600;
   font-size: 1rem;
@@ -173,9 +197,7 @@ function close() {
   color: var(--text1);
 }
 .symbol-input-row button:not(:disabled):hover {
-  transform: translateY(-2px) scale(1.04);
-  background: linear-gradient(90deg, var(--accent2) 0%, var(--accent1) 100%);
-
+  background: var(--accent2);
 }
 
 .symbols-list {
@@ -200,7 +222,7 @@ function close() {
   font-size: 1.05rem;
   font-weight: 500;
   letter-spacing: 0.03em;
-  color: var(--accent3);
+  color: var(--text1);
 }
 
 .symbol-item button {
@@ -208,33 +230,33 @@ function close() {
   padding: 0.3rem 0.9rem;
   border-radius: 6px;
   border: none;
-  background: linear-gradient(90deg, var(--negative) 0%, var(--accent1) 100%);
+  background: var(--accent1);
   color: var(--text3);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s, transform 0.1s;
 }
 .symbol-item button:hover {
-  background: linear-gradient(90deg, var(--accent1) 0%, var(--negative) 100%);
+  background: var(--accent2);
   transform: scale(1.05);
 }
 
-.watch-panel-editor-modal > button:last-of-type {
+.modal-content > button:last-of-type {
   margin-top: 1.5rem;
   width: 100%;
   padding: 0.7rem 0;
   border-radius: 8px;
   border: none;
-  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  background: var(--accent1);
   color: var(--text3);
   font-weight: 600;
   font-size: 1.05rem;
   cursor: pointer;
   transition: background 0.2s, transform 0.1s;
 }
-.watch-panel-editor-modal > button:last-of-type:hover {
-  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+.modal-content > button:last-of-type:hover {
+  background: var(--accent2);
   color: var(--text3);
   transform: scale(1.03);
 }

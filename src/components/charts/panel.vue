@@ -1,8 +1,8 @@
 <template>
-  <div class="watch-panel-editor-backdrop" @click.self="$emit('close')">
-    <div class="watch-panel-editor-modal">
-      <h2>Edit Panel Sections</h2>
-      <div class="sections-list">
+  <div class="watch-panel-editor-backdrop" @click.self="$emit('close')" role="dialog" aria-modal="true" aria-label="Edit Watch Panel Sections">
+    <div class="watch-panel-editor-modal" role="document">
+      <h2 id="panel-editor-title">Edit Panel Sections</h2>
+      <div class="sections-list" role="list" aria-labelledby="panel-editor-title">
         <div
           v-for="(section, index) in sections"
           :key="index"
@@ -12,19 +12,21 @@
           @dragstart="dragStart($event, index)"
           @dragover="dragOver($event)"
           @drop="drop($event, index)"
+          role="listitem"
+          :aria-label="section.name + (section.hidden ? ' (hidden)' : '')"
         >
           <span class="mobile-arrows">
             <button
               class="arrow-btn"
               :disabled="index === 0"
               @click="moveSectionUp(index)"
-              aria-label="Move up"
+              aria-label="Move section up"
             >▲</button>
             <button
               class="arrow-btn"
               :disabled="index === sections.length - 1"
               @click="moveSectionDown(index)"
-              aria-label="Move down"
+              aria-label="Move section down"
             >▼</button>
           </span>
           <button
@@ -47,29 +49,33 @@
         </div>
       </div>
       <div class="nav-buttons">
-  <button class="nav-button" @click="$emit('close')" aria-label="Close editor">Close</button>
-  <button class="nav-button" @click="resetOrder" aria-label="Reset panel sections order">Reset</button>
-  <button class="nav-button" @click="updatePanel" aria-label="Submit panel sections">Submit</button>
+        <button class="nav-button" @click="$emit('close')" aria-label="Close editor">Close</button>
+        <button class="nav-button" @click="resetOrder" aria-label="Reset panel sections order">Reset</button>
+        <button class="nav-button" @click="updatePanel" aria-label="Submit panel sections">Submit</button>
       </div>
       <Panel2 v-if="showEditSummary" @close="showEditSummary = false" @panel-updated="onPanelUpdated" />
+      <NotificationPopup v-if="errorMsg" :message="errorMsg" type="error" @close="errorMsg = ''" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+
 import { ref, onMounted, computed } from 'vue';
+import { useUserStore } from '@/store/store';
+import Panel2 from '@/components/charts/panel2.vue';
+import NotificationPopup from '@/components/NotificationPopup.vue';
+
 interface PanelSection {
   order: number;
   tag: string;
   name: string;
   hidden: boolean;
 }
+
 const emit = defineEmits(['updated', 'panel-updated', 'close']);
-import { useUserStore } from '@/store/store';
-import Panel2 from '@/components/charts/panel2.vue'; 
 
 function onPanelUpdated() {
-  // Propagate event upward
   emit('panel-updated');
 }
 
@@ -79,12 +85,13 @@ const apiKey = import.meta.env.VITE_EREUNA_KEY;
 
 const sections = ref<PanelSection[]>([]); // Start empty, fill from backend
 const showEditSummary = ref<boolean>(false);
+const errorMsg = ref('');
 
 async function fetchPanel() {
   try {
-  const headers = { 'X-API-KEY': apiKey };
-  const username = user.value?.Username || '';
-  const response = await fetch(`/api/panel?username=${username}`, { headers });
+    const headers = { 'X-API-KEY': apiKey };
+    const username = user.value?.Username || '';
+    const response = await fetch(`/api/panel?username=${username}`, { headers });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const newPanel = await response.json();
     // Defensive: fallback to default if empty
@@ -102,7 +109,7 @@ async function fetchPanel() {
           { order: 9, tag: 'News', name: 'News', hidden: false },
         ];
   } catch (error) {
-    console.error('Error fetching panel data:', error);
+    errorMsg.value = 'Error loading panel data.';
   }
 }
 
@@ -178,13 +185,13 @@ async function updatePanel() {
       },
       body: JSON.stringify(requestBody),
     });
-     if (!response.ok) {
+    if (!response.ok) {
       throw new Error(`Error updating panel order: ${response.status}`);
     }
-     emit('updated');
+    emit('updated');
 
   } catch (error) {
-    // handle error if needed
+    errorMsg.value = 'Error updating panel. Please try again.';
   }
 }
 
@@ -275,7 +282,7 @@ function moveSectionDown(index: number) {
 
 .section-name {
   flex: 1;
-  color: var(--accent3);
+  color: var(--text1);
 }
 
 .hidden-section {
@@ -314,15 +321,15 @@ function moveSectionDown(index: number) {
   padding: 0.3rem 0.9rem;
   border-radius: 6px;
   border: none;
-  background: linear-gradient(90deg, var(--accent2) 0%, var(--accent1) 100%);
+  background: var(--accent1);
   color: var(--text3);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s, transform 0.1s;
 }
 .edit-summary-btn:hover {
-  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  background: var(--accent2);
   transform: scale(1.05);
 }
 
@@ -362,7 +369,7 @@ function moveSectionDown(index: number) {
   padding: 0.7rem 0;
   border-radius: 8px;
   border: none;
-  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  background: var(--accent1);
   color: var(--text3);
   font-weight: 600;
   font-size: 1.05rem;
@@ -370,7 +377,7 @@ function moveSectionDown(index: number) {
   transition: background 0.2s, transform 0.1s;
 }
 .nav-button:hover {
-  background: linear-gradient(90deg, var(--accent1) 0%, var(--accent2) 100%);
+  background: var(--accent2);
   color: var(--text4);
   transform: scale(1.03);
 }
