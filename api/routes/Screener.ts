@@ -7311,7 +7311,7 @@ export default function (app: any, deps: any) {
                     RSScore1W: 1, RSScore1M: 1, RSScore4M: 1, MA10: 1, MA20: 1, MA50: 1, MA200: 1, CurrentPrice: 1, NewHigh: 1, NewLow: 1, PercOffWeekHigh: 1,
                     PercOffWeekLow: 1, changePerc: 1, IPO: 1, ADV1W: 1, ADV1M: 1, ADV4M: 1, ADV1Y: 1, ROE: 1, ROA: 1, currentRatio: 1,
                     assetsCurrent: 1, liabilitiesCurrent: 1, debtCurrent: 1, cashAndEq: 1, freeCashFlow: 1, profitMargin: 1, grossMargin: 1,
-                    debtEquity: 1, bookVal: 1, EV: 1, RSI: 1, Gap: 1, AssetType: 1, IV: 1,
+                    debtEquity: 1, bookVal: 1, EV: 1, RSI: 1, Gap: 1, AssetTypes: 1, IV: 1,
                 };
 
                 const cursor = screenersCollection.find(query, { projection });
@@ -7336,7 +7336,7 @@ export default function (app: any, deps: any) {
                     Price: document.Price,
                     MarketCap: document.MarketCap,
                     Sectors: document.Sectors,
-                    AssetType: document.AssetType,
+                    AssetTypes: document.AssetTypes,
                     Exchanges: document.Exchanges,
                     Countries: document.Countries,
                     PE: document.PE,

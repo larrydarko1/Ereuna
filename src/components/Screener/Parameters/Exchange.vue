@@ -68,9 +68,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:ShowExchange']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -83,10 +83,15 @@ const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
   selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
+  isScreenerError: { type: Boolean, required: true },
+  ShowExchange: { type: Boolean, required: true },
+  initialSelected: { type: Array as () => string[], required: false, default: () => [] }
 })
 
-let ShowExchange = ref(false);
+const ShowExchange = computed({
+  get: () => props.ShowExchange,
+  set: (val: boolean) => emit('update:ShowExchange', val)
+});
 const Exchanges = ref<string[]>([]); // hosts all available exchanges 
 const selectedExchanges = ref<boolean[]>([]);
 const error = ref('');
@@ -111,12 +116,20 @@ async function GetExchanges() {
     const data: string[] = await response.json();
     Exchanges.value = data;
     selectedExchanges.value = new Array(data.length).fill(false);
+    if (props.initialSelected && props.initialSelected.length > 0) {
+      selectedExchanges.value = Exchanges.value.map(e => props.initialSelected.includes(e));
+    }
   } catch (err) {
     error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error';
     showNotification(error.value);
   }
 }
 GetExchanges();
+
+watch(() => props.initialSelected, (val: string[] | undefined) => {
+  if (!val || !Array.isArray(val) || Exchanges.value.length === 0) return;
+  selectedExchanges.value = Exchanges.value.map(e => val.includes(e));
+});
 
 const toggleExchange = (index: number) => {
   selectedExchanges.value[index] = !selectedExchanges.value[index];

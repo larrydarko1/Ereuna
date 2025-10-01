@@ -72,9 +72,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:ShowCountry']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -88,10 +88,15 @@ const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
   selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
+  isScreenerError: { type: Boolean, required: true },
+  ShowCountry: { type: Boolean, required: true },
+  initialSelected: { type: Array as () => string[], required: false, default: () => [] }
 });
 
-let ShowCountry = ref(false);
+const ShowCountry = computed({
+  get: () => props.ShowCountry,
+  set: (val: boolean) => emit('update:ShowCountry', val)
+});
 const Country = ref<string[]>([]); // hosts all available countries 
 const selectedCountries = ref<boolean[]>([]);
 
@@ -110,6 +115,9 @@ async function GetCountry() {
     const data: string[] = await response.json();
     Country.value = data;
     selectedCountries.value = new Array(data.length).fill(false);
+    if (props.initialSelected && props.initialSelected.length > 0) {
+      selectedCountries.value = Country.value.map(c => props.initialSelected.includes(c));
+    }
   } catch (error: unknown) {
     let message = 'Unknown error';
     if (error instanceof Error) {
@@ -119,6 +127,11 @@ async function GetCountry() {
   }
 }
 GetCountry();
+
+watch(() => props.initialSelected, (val: string[] | undefined) => {
+  if (!val || !Array.isArray(val) || Country.value.length === 0) return;
+  selectedCountries.value = Country.value.map(c => val.includes(c));
+});
 
 const toggleCountry = (index: number) => {
   selectedCountries.value[index] = !selectedCountries.value[index]; // Toggle the selected state

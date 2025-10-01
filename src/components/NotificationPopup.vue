@@ -29,8 +29,39 @@ const playNotificationSound = () => {
   }
 };
 
-const show = (msg: string) => {
-  message.value = msg;
+// Defensive extractor: accept string, object, array, or unknown and return a readable message
+function extractMessage(msg: unknown): string {
+  if (typeof msg === 'string') return msg;
+  if (msg == null) return '';
+  if (Array.isArray(msg)) {
+    const strings = msg.filter((x) => typeof x === 'string') as string[];
+    if (strings.length) return strings.join('; ');
+    try {
+      return JSON.stringify(msg);
+    } catch {
+      return String(msg);
+    }
+  }
+  if (typeof msg === 'object') {
+    const anyMsg = msg as any;
+    // Common locations for human-readable messages
+    const candidates = [anyMsg.message, anyMsg.msg, anyMsg.error, anyMsg.data?.message, anyMsg.data?.error];
+    for (const c of candidates) {
+      if (typeof c === 'string' && c.trim().length > 0) return c;
+    }
+    // If it's an Error-like object
+    if (anyMsg instanceof Error && typeof anyMsg.message === 'string') return anyMsg.message;
+    try {
+      return JSON.stringify(msg);
+    } catch {
+      return String(msg);
+    }
+  }
+  return String(msg);
+}
+
+const show = (msg: unknown) => {
+  message.value = extractMessage(msg);
   visible.value = true;
   if (audioRef.value) {
     playNotificationSound();

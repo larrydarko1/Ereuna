@@ -13,6 +13,8 @@ export default function (app: any, deps: any) {
         validate,
         validationSchemas,
         sanitizeInput,
+        sanitizeUsername,
+        sanitizeUsernameCanonical,
         logger,
         crypto,
         MongoClient,
@@ -2550,22 +2552,29 @@ export default function (app: any, deps: any) {
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
             const { theme, username } = req.body;
-            const sanitizedUser = sanitizeInput(username);
+            // normalize input using canonical sanitizer for lookups and preserve display-safe username
+            const sanitizedUser = sanitizeUsernameCanonical(username);
+            const displayUser = sanitizeUsername(username);
             client = new MongoClient(uri);
             await client.connect();
             const db = client.db('EreunaDB');
             const usersCollection = db.collection('Users');
-            const userDocument = await usersCollection.findOne({ Username: sanitizedUser });
+            // Use case-insensitive lookup via collation to match login behaviour and avoid regex injection
+            const userDocument = await usersCollection.findOne(
+                { Username: sanitizedUser },
+                { collation: { locale: 'en', strength: 2 } }
+            );
             if (!userDocument) {
                 logger.warn({
                     msg: 'User not found',
-                    username: sanitizedUser.substring(0, 3) + '...',
+                    username: displayUser.substring(0, 3) + '...',
                     context: 'POST /theme',
                     statusCode: 404
                 });
                 return res.status(404).json({ message: 'User not found' });
             }
-            await usersCollection.updateOne({ Username: sanitizedUser }, { $set: { theme } });
+            // Update using the actual stored Username to preserve original casing
+            await usersCollection.updateOne({ Username: userDocument.Username }, { $set: { theme } });
             return res.status(200).json({ message: 'Theme updated' });
         } catch (error) {
             const errObj = handleError(error, 'POST /theme', {
@@ -2601,16 +2610,22 @@ export default function (app: any, deps: any) {
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
             const { username } = req.body;
-            const sanitizedUser = sanitizeInput(username);
+            // normalize input using canonical sanitizer for lookups and preserve display-safe username
+            const sanitizedUser = sanitizeUsernameCanonical(username);
+            const displayUser = sanitizeUsername(username);
             client = new MongoClient(uri);
             await client.connect();
             const db = client.db('EreunaDB');
             const usersCollection = db.collection('Users');
-            const userDocument = await usersCollection.findOne({ Username: sanitizedUser });
+            // Case-insensitive lookup via collation to match login behaviour and avoid regex injection
+            const userDocument = await usersCollection.findOne(
+                { Username: sanitizedUser },
+                { collation: { locale: 'en', strength: 2 } }
+            );
             if (!userDocument) {
                 logger.warn({
                     msg: 'User not found',
-                    username: sanitizedUser.substring(0, 3) + '...',
+                    username: displayUser.substring(0, 3) + '...',
                     context: 'POST /load-theme',
                     statusCode: 404
                 });

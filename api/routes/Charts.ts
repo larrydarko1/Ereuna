@@ -927,11 +927,13 @@ export default function (app: any, deps: any) {
             const db = client.db('EreunaDB');
             const usersCollection = db.collection('Users');
             const userDoc = await usersCollection.findOne({ Username: user });
+            // If no ChartSettings exist for user, return defaults
             if (!userDoc || !userDoc.ChartSettings) {
-                return res.status(404).json({ message: 'ChartSettings not found for user' });
+                return res.status(200).json({ indicators: [], intrinsicValueVisible: false });
             }
-            // Return the indicators array (or the whole ChartSettings if you want)
-            return res.status(200).json(userDoc.ChartSettings.indicators || []);
+            const indicators = userDoc.ChartSettings.indicators || [];
+            const intrinsicValueVisible = !!(userDoc.ChartSettings.intrinsicValue && userDoc.ChartSettings.intrinsicValue.visible);
+            return res.status(200).json({ indicators, intrinsicValueVisible });
         } catch (error: any) {
             logger.error({
                 msg: 'Error retrieving chart indicators',

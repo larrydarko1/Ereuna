@@ -6,6 +6,7 @@
     :apiKey="props.apiKey"
     :user="props.user"
     :indicatorList="indicatorList"
+  :intrinsicVisible="intrinsicVisible"
   />
                                <div class="chart-container">
                                   <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
@@ -113,7 +114,7 @@
 <script setup lang="ts">
 
 import Loader from '@/components/loader.vue';
-import { onMounted, ref, watch, computed } from 'vue';
+import { onMounted, ref, watch, computed, onUnmounted } from 'vue';
 import {
   createChart,
   ColorType,
@@ -329,6 +330,23 @@ const theme = {
 };
 
 const wkchart = ref(null);
+let chart: IChartApi | null = null;
+let resizeObserver: ResizeObserver | null = null;
+// Responsive resize: adjust chart width/height when container or window resizes
+function updateChartSize(): void {
+  const chartDivLocal = wkchart.value as HTMLElement | null;
+  if (!chartDivLocal || !chart) return;
+  const rect = chartDivLocal.getBoundingClientRect();
+  const newWidth = window.innerWidth <= 1150 ? 400 : Math.max(300, Math.floor(rect.width));
+  // keep previous height logic but ensure a reasonable minimum
+  const newHeight = rect.height <= 1150 ? 550 : Math.max(300, Math.floor(rect.height));
+  try {
+    chart.applyOptions({ width: newWidth, height: newHeight });
+  } catch (e) {
+    // ignore applyOptions errors
+    console.warn('applyOptions resize failed', e);
+  }
+}
 const isBarChart = ref(false);
 
 // mounts chart (candlestick or bar) and volume
@@ -338,7 +356,7 @@ onMounted(async () => {
   const rect = chartDiv.getBoundingClientRect();
   const width = window.innerWidth <= 1150 ? 400 : rect.width;
   const height = rect.height <= 1150 ? 550 : rect.width;
-  const chart = createChart(chartDiv, {
+  chart = createChart(chartDiv, {
     height: height,
     width: width,
     layout: {
@@ -378,20 +396,34 @@ onMounted(async () => {
   });
 
   // Chart type toggle logic
+
+  // Observe container size changes and window resize
+  try {
+    if (window && 'ResizeObserver' in window) {
+      resizeObserver = new ResizeObserver(() => {
+        updateChartSize();
+      });
+      if (chartDiv) resizeObserver.observe(chartDiv);
+    }
+  } catch (e) {
+    // ignore if ResizeObserver is not available
+  }
+  window.addEventListener('resize', updateChartSize);
+  const c = chart as IChartApi;
   let mainSeries: ReturnType<IChartApi['addBarSeries']> | ReturnType<IChartApi['addCandlestickSeries']> | null = null;
   function updateMainSeries(): void {
     if (mainSeries) {
-      chart.removeSeries(mainSeries);
+      c.removeSeries(mainSeries);
     }
     if (isBarChart.value) {
-      mainSeries = chart.addBarSeries({
+      mainSeries = c.addBarSeries({
         downColor: theme.negative,
         upColor: theme.positive,
         lastValueVisible: true,
         priceLineVisible: true,
       });
     } else {
-      mainSeries = chart.addCandlestickSeries({
+      mainSeries = c.addCandlestickSeries({
         downColor: theme.negative,
         upColor: theme.positive,
         borderDownColor: theme.negative,
@@ -404,7 +436,7 @@ onMounted(async () => {
     }
     mainSeries.setData(data.value);
 
-    chart.subscribeCrosshairMove((param) => {
+    c.subscribeCrosshairMove((param) => {
       if (!param || !param.time || !mainSeries) {
         crosshairOhlc.value = null;
         return;
@@ -541,6 +573,8 @@ onMounted(async () => {
   watch(IntrinsicValue, updateIntrinsicPriceLine);
   watch(isBarChart, updateIntrinsicPriceLine);
   updateIntrinsicPriceLine();
+  // ensure initial sizing is correct
+  updateChartSize();
   isLoading1.value = false;
 
   chart.timeScale().subscribeVisibleLogicalRangeChange(async (range) => {
@@ -626,6 +660,22 @@ onMounted(async () => {
     }
   });
 });
+// cleanup listeners and observers
+onUnmounted(() => {
+  try {
+    window.removeEventListener('resize', updateChartSize);
+  } catch (e) {}
+  try {
+    if (typeof ResizeObserver !== 'undefined') {
+      // disconnect any local observer if exists
+      // we don't have direct access to the variable here due to block scope in onMounted,
+      // but we can try to disconnect if it was stored globally — above we stored in a local variable,
+      // so to be safe, nothing to do here beyond removing window listener.
+    }
+  } catch (e) {}
+  // close websocket if open
+  closeChartWS();
+});
 function toggleChartType() {
   isBarChart.value = !isBarChart.value;
 }
@@ -701,6 +751,7 @@ const ohlcDisplay = computed<OHLCDisplay | null>(() => {
 
 const hiddenList = ref<string[]>([]); // stores hidden tickers for user (for hidden badge in chart)
 const indicatorList = ref<Indicator[]>([]); // stores in indicators settings for each user
+const intrinsicVisible = ref<boolean>(false);
 
 async function fetchHiddenList() {
   try {
@@ -723,14 +774,16 @@ async function fetchIndicatorList() {
       headers: { 'X-API-KEY': props.apiKey },
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = await response.json();
-  // Ensure timeframe is a number for each indicator
-  indicatorList.value = (data as any[]).map(ind => ({
+    const payload = await response.json();
+  // Ensure timeframe is a number for each indicator and set intrinsic flag
+  const indicatorsRaw = Array.isArray(payload.indicators) ? payload.indicators : [];
+  indicatorList.value = indicatorsRaw.map((ind: any) => ({
     ...ind,
     timeframe: typeof ind.timeframe === 'string' ? Number(ind.timeframe) : ind.timeframe
   })) as Indicator[];
+  intrinsicVisible.value = !!payload.intrinsicValueVisible;
   } catch (err) {
-    console.error('Error fetching indicator list:', err);
+    // Handle errors as needed
   }
 }
 

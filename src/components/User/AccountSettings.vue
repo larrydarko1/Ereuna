@@ -9,11 +9,12 @@
               </svg>
               Change Username
             </h2>
-            <div style="display: flex; justify-content: center;">
-              <input class="userinput" type="text" maxlength="25" placeholder="Type New Username" v-model="newUsername"
-                :class="{ 'error-input': usernameError }" aria-label="New Username" />
-            </div>
-            <!-- Popup notifications only, no inline error/success text -->
+              <div style="display: flex; justify-content: center;">
+                <div class="solo-wrapper">
+                  <input class="userinput solo-input" type="text" maxlength="25" placeholder="Type New Username" v-model="newUsername"
+                    :class="{ 'error-input': usernameError }" aria-label="New Username" />
+                </div>
+              </div>
             <br>
             <button class="userbtn" @click="changeUsername()" :disabled="loading.username" aria-label="Change Username">
               <span class="btn-content-row">
@@ -159,7 +160,6 @@
                 </div>
               </div>
             </div>
-            <!-- Popup notifications only, no inline error/success text -->
             <br>
             <button class="userbtn" @click="changePassword()" :disabled="loading.password" aria-label="Change Password">
               <span class="btn-content-row">
@@ -200,8 +200,8 @@
             </h2>
             <div style="position: relative;">
               <p>To generate a new recovery key, type your password</p>
-              <div style="position: relative;">
-                <input class="userinput" :type="showPswauth ? 'text' : 'password'" v-model="Pswauth" aria-label="Password for Recovery Key"/>
+              <div class="solo-wrapper" style="position: relative;">
+                <input class="userinput solo-input" :type="showPswauth ? 'text' : 'password'" v-model="Pswauth" aria-label="Password for Recovery Key"/>
                 <button @click="showPswauth = !showPswauth" type="button" class="password-toggle3">
                   <svg v-if="showPswauth" class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"
                     fill="currentColor">
@@ -233,7 +233,6 @@
                 </button>
               </div>
             </div>
-            <!-- Popup notifications only, no inline error/success text -->
             <br>
             <div>
               <button class="userbtn" @click="GenerateNewKey()" :disabled="loading.key" aria-label="Generate New Recovery Key">
@@ -272,8 +271,8 @@
               Delete Account
             </h2>
             <p>To delete your account, type your Password</p>
-            <div style="position: relative;">
-              <input class="userinput" :type="showPswDelete ? 'text' : 'password'" v-model="PswDelete" aria-label="Password for Account Deletion"/>
+            <div class="solo-wrapper" style="position: relative;">
+              <input class="userinput solo-input" :type="showPswDelete ? 'text' : 'password'" v-model="PswDelete" aria-label="Password for Account Deletion"/>
               <button @click="showPswDelete = !showPswDelete" type="button" class="password-toggle3">
                 <svg v-if="showPswDelete" class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"
                   fill="currentColor">
@@ -304,16 +303,17 @@
                 </svg>
               </button>
             </div>
-            <p>By proceeding with the deletion of your account, you acknowledge and understand that this action is
-              irreversible. Once your account is deleted, you will permanently lose access to your account and all
-              associated data, including but not limited to personal information, settings, and any content you have
-              created or stored.
+            <div class="disclaimer">
+              <p><strong>Warning — this action is irreversible.</strong> Deleting your account will permanently remove your access and all associated data, including personal information, settings, and any content you have created or stored. This data cannot be recovered or restored.</p>
 
-              Please be aware that we will not be able to recover any data or restore your account after it has been
-              deleted. If you have any doubts or wish to retain your data, we strongly encourage you to reconsider
-              before proceeding with the deletion.
+              <p><strong>Before you proceed, we strongly recommend:</strong></p>
+              <ul>
+                <li>Download any important documents (for example, receipts or invoices).</li>
+                <li>Request refunds for eligible purchases — refunds may be difficult or impossible to process after deletion.</li>
+              </ul>
 
-              Thank you for your understanding.</p>
+              <p>Please review the above carefully. If you are unsure or wish to retain your data, do not proceed with deletion.</p>
+            </div>
             <br>
             <button class="userbtn" @click="deleteAccount()" :disabled="loading.delete" aria-label="Delete Account">
               <span class="btn-content-row">
@@ -623,8 +623,6 @@ async function GenerateNewKey() {
 </script>
 
 <style scoped>
-
-/* Loader spinner styles (copied from SignUpA.vue) */
 .btn-content-row {
   display: flex;
   flex-direction: row;
@@ -691,12 +689,14 @@ async function GenerateNewKey() {
   background-color: var(--accent2);
 }
 
-/* inputs for settings */
 .userinput {
   border-radius: 5px;
-  padding: 10px 10px 10px 15px;
+  padding: 10px max(36px, 8%) 10px 15px;
   margin: 7px;
-  width: 160px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 120px;
+  max-width: 100%;
   outline: none;
   color: var(--text2);
   transition: border-color 0.3s, box-shadow 0.3s;
@@ -711,7 +711,7 @@ async function GenerateNewKey() {
 
 .password-toggle {
   position: absolute;
-  right: 5%;
+  right: max(6px, 3%);
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -719,12 +719,13 @@ async function GenerateNewKey() {
   cursor: pointer;
   font-size: 10px;
   color: var(--text1);
-  opacity: 0.60;
+  opacity: 0.75;
+  padding: 4px;
 }
 
 .password-toggle2 {
   position: absolute;
-  right: 42%;
+  right: max(6px, 3%);
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -732,12 +733,13 @@ async function GenerateNewKey() {
   cursor: pointer;
   font-size: 10px;
   color: var(--text1);
-  opacity: 0.60;
+  opacity: 0.75;
+  padding: 4px;
 }
 
 .password-toggle3 {
   position: absolute;
-  left: 56%;
+  right: max(6px, 3%);
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -745,16 +747,20 @@ async function GenerateNewKey() {
   cursor: pointer;
   font-size: 10px;
   color: var(--text1);
-  opacity: 0.60;
+  opacity: 0.75;
+  padding: 4px;
 }
 
 .userdiv {
   background-color: var(--base2);
-  width: 100%;
+  width: 99%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 15px;
   margin: 0 auto;
   margin-bottom: 5px;
   margin-left: 5px;
+  overflow-x: hidden;
 }
 
 .toggle-icon {
@@ -765,6 +771,50 @@ async function GenerateNewKey() {
 .changepassword {
   display: flex;
   justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.changepassword > div {
+  box-sizing: border-box;
+  flex: 1 1 30%;
+  max-width: 33%;
+  padding: 0 3px;
+}
+
+.changepassword > div > div {
+  position: relative;
+  width: 100%;
+}
+
+.changepassword .userinput {
+  width: 100%;
+  margin: 7px 0;
+  padding-right: max(40px, 10%);
+}
+
+.password-toggle .toggle-icon,
+.password-toggle2 .toggle-icon,
+.password-toggle3 .toggle-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.solo-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.disclaimer {
+  font-size: 1.2rem;
+  color: var(--text2);
+}
+
+@media (min-width: 1151px) {
+  .solo-wrapper { max-width: 420px; }
 }
 
 @media (max-width: 1150px) {
@@ -774,13 +824,20 @@ async function GenerateNewKey() {
     gap: 8px;
   }
 
+  .changepassword > div {
+    flex: 0 0 100%;
+    width: 500px;
+    max-width: 100%;
+    padding: 0;
+  }
+
   .userdiv {
-  background-color: var(--base2);
-  width: 90%;
-  padding: 15px;
-  margin: 0 auto;
-  margin-bottom: 5px;
-  margin-left: 5px;
-}
+    background-color: var(--base2);
+    width: 97%;
+    padding: 15px;
+    margin: 0 auto;
+    margin-bottom: 5px;
+    margin-left: 5px;
+  }
 }
 </style>

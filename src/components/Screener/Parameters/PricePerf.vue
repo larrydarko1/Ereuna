@@ -168,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showPricePerf']);
 
@@ -187,6 +187,7 @@ const props = defineProps<{
   selectedScreener: string;
   isScreenerError: boolean;
   showPricePerf: boolean;
+  initialSettings?: Record<string, any>;
 }>();
 
 // Computed getter/setter for v-model
@@ -307,6 +308,34 @@ function toggleAllTimeLow() {
   allTimeLow.value = !allTimeLow.value;
 }
 
+// apply initial settings when parent loads a screener
+watch(() => props.initialSettings, (val) => {
+  if (!val) return;
+  try {
+    allTimeHigh.value = !!val.NewHigh;
+    allTimeLow.value = !!val.NewLow;
+    changepercSelect.value = val.changePerc?.[2] ?? changepercSelect.value;
+    ma200Select.value = val.MA200?.[2] ?? ma200Select.value;
+    ma50Select.value = val.MA50?.[2] ?? ma50Select.value;
+    ma20Select.value = val.MA20?.[2] ?? ma20Select.value;
+    ma10Select.value = val.MA10?.[2] ?? ma10Select.value;
+    priceSelect.value = val.CurrentPrice?.[2] ?? priceSelect.value;
+    // set numeric inputs if provided
+    const setVal = (id: string, v: any) => {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (el) el.value = v ?? '';
+    };
+    setVal('changeperc1', val.changePerc?.[0] ?? '');
+    setVal('changeperc2', val.changePerc?.[1] ?? '');
+    setVal('weekhigh1', val.PercOffWeekHigh?.[0] ?? '');
+    setVal('weekhigh2', val.PercOffWeekHigh?.[1] ?? '');
+    setVal('weeklow1', val.PercOffWeekLow?.[0] ?? '');
+    setVal('weeklow2', val.PercOffWeekLow?.[1] ?? '');
+  } catch (e) {
+    // ignore
+  }
+}, { immediate: true });
+
 // updates screener value with price performance parameters 
 async function SetPricePerformance() {
   try {
@@ -348,6 +377,18 @@ async function SetPricePerformance() {
         transform: (v: string) => v.trim() === '' ? null : parseFloat(v)
       }
     ];
+    // Consider dropdowns and checkboxes as valid inputs as well (compute early so we can relax numeric validation)
+    const dropdownOrCheckboxHasValue = (
+      changepercSelect.value !== '-' ||
+      ma200Select.value !== '-' ||
+      ma50Select.value !== '-' ||
+      ma20Select.value !== '-' ||
+      ma10Select.value !== '-' ||
+      priceSelect.value !== '-' ||
+      allTimeHigh.value ||
+      allTimeLow.value
+    );
+
     let hasAnyValue = false;
     for (const pair of pairs) {
       const minVal = pair.transform(pair.min);
@@ -368,25 +409,37 @@ async function SetPricePerformance() {
       if ((minVal !== null && !isNaN(minVal)) || (maxVal !== null && !isNaN(maxVal))) {
         hasAnyValue = true;
       } else {
-        // If both are present but both invalid, error for this pair
-        emit('notify', { message: `Please enter at least one valid number for ${pair.label}`, type: 'error' });
-        emit('fetchScreeners', props.selectedScreener);
-        return;
+        // If both are present but both invalid:
+        // - If a dropdown/checkbox has a value, we allow it (don't fail here)
+        // - Otherwise, treat as an error
+        if (!dropdownOrCheckboxHasValue) {
+          emit('notify', { message: `Please enter at least one valid number for ${pair.label}`, type: 'error' });
+          emit('fetchScreeners', props.selectedScreener);
+          return;
+        }
       }
     }
-    // If no value in any pair, error
-    if (!hasAnyValue) {
-      emit('notify', { message: 'Please enter at least one valid value in any field.', type: 'error' });
+    // If at least one numeric pair or any dropdown/checkbox has a value, ok
+    if (!hasAnyValue && !dropdownOrCheckboxHasValue) {
+      emit('notify', { message: 'Please enter at least one valid value in any field (numbers, dropdowns, or checkboxes).', type: 'error' });
       emit('fetchScreeners', props.selectedScreener);
       return;
     }
     // Prepare values for request
-    const changeperc1 = pairs[0].transform(pairs[0].min);
-    const changeperc2 = pairs[0].transform(pairs[0].max);
-    const weekhigh1 = pairs[1].transform(pairs[1].min);
-    const weekhigh2 = pairs[1].transform(pairs[1].max);
-    const weeklow1 = pairs[2].transform(pairs[2].min);
-    const weeklow2 = pairs[2].transform(pairs[2].max);
+  // normalize numeric values: transform may return NaN for invalid inputs — convert those to null
+  const raw_changeperc1 = pairs[0].transform(pairs[0].min);
+  const raw_changeperc2 = pairs[0].transform(pairs[0].max);
+  const raw_weekhigh1 = pairs[1].transform(pairs[1].min);
+  const raw_weekhigh2 = pairs[1].transform(pairs[1].max);
+  const raw_weeklow1 = pairs[2].transform(pairs[2].min);
+  const raw_weeklow2 = pairs[2].transform(pairs[2].max);
+
+  const changeperc1 = typeof raw_changeperc1 === 'number' && !isNaN(raw_changeperc1) ? raw_changeperc1 : null;
+  const changeperc2 = typeof raw_changeperc2 === 'number' && !isNaN(raw_changeperc2) ? raw_changeperc2 : null;
+  const weekhigh1 = typeof raw_weekhigh1 === 'number' && !isNaN(raw_weekhigh1) ? raw_weekhigh1 : null;
+  const weekhigh2 = typeof raw_weekhigh2 === 'number' && !isNaN(raw_weekhigh2) ? raw_weekhigh2 : null;
+  const weeklow1 = typeof raw_weeklow1 === 'number' && !isNaN(raw_weeklow1) ? raw_weeklow1 : null;
+  const weeklow2 = typeof raw_weeklow2 === 'number' && !isNaN(raw_weeklow2) ? raw_weeklow2 : null;
     const changepercselect = changepercSelect.value;
     const alltimehigh = allTimeHigh.value ? 'yes' : 'no';
     const alltimelow = allTimeLow.value ? 'yes' : 'no';

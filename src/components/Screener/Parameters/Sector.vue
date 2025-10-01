@@ -69,9 +69,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:ShowSector']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -86,10 +86,17 @@ const props = defineProps({
   apiKey: { type: String, required: true },
   notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
+  isScreenerError: { type: Boolean, required: true },
+  ShowSector: { type: Boolean, required: true },
+  // optional array of initially selected sector names from parent screener settings
+  initialSelected: { type: Array as () => string[], required: false, default: () => [] }
 });
 
-let ShowSector = ref(false);
+// v-model support for ShowSector
+const ShowSector = computed({
+  get: () => props.ShowSector,
+  set: (val: boolean) => emit('update:ShowSector', val)
+});
 const Sectors = ref<string[]>([]); // hosts all available sectors
 const selectedSectors = ref<boolean[]>([]);
 
@@ -107,6 +114,10 @@ async function GetSectors() {
     const data: string[] = await response.json();
     Sectors.value = data;
     selectedSectors.value = new Array(data.length).fill(false);
+    // apply initial selections when available
+    if (props.initialSelected && props.initialSelected.length > 0) {
+      selectedSectors.value = Sectors.value.map(s => props.initialSelected.includes(s));
+    }
   } catch (error: unknown) {
     let message = 'Unknown error';
     if (typeof error === 'object' && error !== null && 'message' in error) {
@@ -118,6 +129,12 @@ async function GetSectors() {
   }
 }
 GetSectors();
+
+// react to parent-provided initialSelected changes (when screener is loaded)
+watch(() => props.initialSelected, (val: string[] | undefined) => {
+  if (!val || !Array.isArray(val) || Sectors.value.length === 0) return;
+  selectedSectors.value = Sectors.value.map(s => val.includes(s));
+});
 
 const toggleSector = (index: number) => {
   selectedSectors.value[index] = !selectedSectors.value[index]; // Toggle the selected state

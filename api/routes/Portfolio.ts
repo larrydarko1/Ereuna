@@ -1218,6 +1218,7 @@ export default function (app: any, deps: any) {
 
             const summary = {
                 ...portfolioDoc,
+                ...stats, // computed stats overwrite portfolioDoc fields
                 totalPortfolioValue,
                 totalPortfolioValue2,
                 activePositions: activePositionsValue,
@@ -1226,9 +1227,9 @@ export default function (app: any, deps: any) {
                     data: pieChartData
                 },
                 positionsCount: portfolioArr.length,
-                totalPL: totalPLFormatted,
+                totalPL: Number(totalPLFormatted),
                 totalPLPercent,
-                unrealizedPL: unrealizedPLFormatted,
+                unrealizedPL: Number(unrealizedPLFormatted),
                 unrealizedPLPercent: unrealizedPLPercentFormatted,
                 portfolioValueHistory: stats.portfolioValueHistory,
                 tradeReturnsChart: stats.tradeReturnsChart
