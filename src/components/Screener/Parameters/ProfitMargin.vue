@@ -1,11 +1,11 @@
 <template>
-    <div :class="[showProfitMargin ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showProfitMarginModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Profit Margin</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                aria-label="Profit Margin Info" @mouseover="handleMouseOver($event, 'profit-margin')" @mouseout="handleMouseOut">
+                aria-label="Profit Margin Info" @mouseover="handleMouseOver($event, 'profit-margin')" @mouseout="handleMouseOut($event)">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,11 +20,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="profit-margin-check" v-model="showProfitMargin" style="border: none;">
+              <input type="checkbox" id="profit-margin-check" v-model="showProfitMarginModel" style="border: none;">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showProfitMargin">
+          <div style="border: none;" v-if="showProfitMarginModel">
             <div class="row">
               <input class="left input" id="left-pm" type="text" placeholder="min" aria-label="Profit Margin Min">
               <input class="right input" id="right-pm" type="text" placeholder="max" aria-label="Profit Margin Max">
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showProfitMargin = false" aria-label="Reset Profit Margin">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showProfitMargin', false)" aria-label="Reset Profit Margin">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -60,12 +60,13 @@
             </div>
           </div>
         </div>
+
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showProfitMargin']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -75,46 +76,69 @@ function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
-const props = defineProps<{
-  user: string;
-  apiKey: string;
-  notification: { message?: string; type?: string };
-  selectedScreener: string;
-  isScreenerError: boolean;
-}>();
+const props = defineProps({
+  user: { type: String, required: true },
+  apiKey: { type: String, required: true },
+  selectedScreener: { type: String, required: true },
+  isScreenerError: { type: Boolean, required: true },
+  showProfitMargin: { type: Boolean, required: true }
+});
 
-let showProfitMargin = ref(false);
+const error = ref('');
+const isLoading = ref(false);
 
+function showNotification(msg: string) {
+  emit('notify', msg);
+}
+
+// Computed getter/setter for v-model
+const showProfitMarginModel = computed({
+  get: () => props.showProfitMargin,
+  set: (val: boolean) => emit('update:showProfitMargin', val)
+});
+
+// add and or modifies profit margin value and sends it
 async function SetProfitMargin() {
+  error.value = '';
+  if (!props.selectedScreener) {
+    emit('reset');
+    error.value = 'Please select a screener';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftInput = document.getElementById('left-pm') as HTMLInputElement | null;
+  const rightInput = document.getElementById('right-pm') as HTMLInputElement | null;
+  if (!leftInput || !rightInput) {
+    error.value = 'Input elements not found';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftMargin = leftValue === '' ? null : parseFloat(leftValue) / 100;
+  const rightMargin = rightValue === '' ? null : parseFloat(rightValue) / 100;
+  // If both missing or both invalid, error
+  if ((leftMargin === null && rightMargin === null) ||
+      (leftMargin !== null && isNaN(leftMargin) && rightMargin !== null && isNaN(rightMargin))) {
+    error.value = 'Please enter at least one valid number';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftMargin !== null && !isNaN(leftMargin) && rightMargin !== null && !isNaN(rightMargin)) {
+    if (leftMargin >= rightMargin) {
+      error.value = 'Min profit margin cannot be higher than or equal to max profit margin';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
+  }
+  isLoading.value = true;
   try {
-    if (!props.selectedScreener) {
-      emit('notify', { message: 'Please select a screener', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-
-    const leftInput = document.getElementById('left-pm') as HTMLInputElement | null;
-    const rightInput = document.getElementById('right-pm') as HTMLInputElement | null;
-    if (!leftInput || !rightInput) {
-      emit('notify', { message: 'Input elements not found', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-    const leftProfitMargin = parseFloat(leftInput.value) / 100;
-    const rightProfitMargin = parseFloat(rightInput.value) / 100;
-
-    if (isNaN(leftProfitMargin) || isNaN(rightProfitMargin)) {
-      emit('notify', { message: 'Please enter valid numbers', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-
-    if (leftProfitMargin >= rightProfitMargin) {
-      emit('notify', { message: 'Min cannot be higher than or equal to max', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-
     const response = await fetch('/api/screener/profit-margin', {
       method: 'PATCH',
       headers: {
@@ -122,27 +146,23 @@ async function SetProfitMargin() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        minPrice: leftProfitMargin,
-        maxPrice: rightProfitMargin,
+        minPrice: leftMargin,
+        maxPrice: rightMargin,
         screenerName: props.selectedScreener,
         user: props.user
       })
     });
-
-    if (response.status === 200) {
-      emit('fetchScreeners', props.selectedScreener);
-    } else {
+    if (response.status !== 200) {
       const data = await response.json();
-      emit('notify', { message: data?.message || `Error: ${response.status} ${response.statusText}`, type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
+      throw new Error(data.message || `Error: ${response.status} ${response.statusText}`);
     }
-  } catch (error: unknown) {
-    let message = 'Unknown error';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    emit('notify', { message, type: 'error' });
     emit('fetchScreeners', props.selectedScreener);
+  } catch (err) {
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+  } finally {
+    isLoading.value = false;
   }
 }
 

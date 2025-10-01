@@ -4342,30 +4342,33 @@ export default function (app: any, deps: any) {
                     const db = client.db('EreunaDB');
                     const collection = db.collection('Screeners');
                     const filter = {
-                        UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
-                        Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+                        UsernameID: Username,
+                        Name: screenerName
                     };
                     const updateDoc = { $set: { AssetTypes: sanitizedAssetTypes } };
                     const options = { returnOriginal: false };
                     const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-                    if (!result.value) {
-                        const errObj = handleError(new Error('Screener not found'), 'PATCH /screener/asset-types', {
-                            username: Username,
-                            screenerName
-                        }, 404);
-                        logger.warn({
-                            msg: 'Screener not found',
+                    // Check for update success using result itself
+                    if (!result) {
+                        logger.error({
+                            msg: 'Screener not found after update attempt',
                             filter,
-                            username: Username,
-                            screenerName,
+                            result,
                             context: 'PATCH /screener/asset-types',
                             statusCode: 404
                         });
+                        const errObj = handleError(new Error('Screener not found'), 'PATCH /screener/asset-types', {
+                            username: Username,
+                            screenerName,
+                            filter,
+                            result
+                        }, 404);
                         return res.status(errObj.statusCode || 404).json(errObj);
                     }
                     res.json({
                         message: 'Asset types updated successfully',
-                        assetTypes: sanitizedAssetTypes
+                        assetTypes: sanitizedAssetTypes,
+                        updated: true
                     });
                 } catch (dbError) {
                     const errObj = handleError(dbError, 'PATCH /screener/asset-types', {
@@ -4533,15 +4536,19 @@ export default function (app: any, deps: any) {
                     const updateDoc = { $set: { Sectors: sanitizedSectors } };
                     const options = { returnOriginal: false };
                     const result = await collection.findOneAndUpdate(filter, updateDoc, options);
-                    if (!result.value) {
+                    if (!result) {
                         const errObj = handleError(new Error('Screener not found'), 'PATCH /screener/sectors', {
                             username: Username,
-                            screenerName
+                            screenerName,
+                            filter,
+                            result
                         }, 404);
                         logger.warn({
                             msg: 'Screener not found',
                             username: Username,
                             screenerName,
+                            filter,
+                            result,
                             context: 'PATCH /screener/sectors',
                             statusCode: 404
                         });
@@ -6621,6 +6628,133 @@ export default function (app: any, deps: any) {
         }
     });
 
+    app.patch('/screener/roe', validate([
+        validationSchemas.user(),
+        validationSchemas.screenerNameBody(),
+        validationSchemas.minPrice(),
+        validationSchemas.maxPrice()
+    ]),
+        async (req: Request, res: Response) => {
+            let client: any;
+            try {
+                const apiKey = req.header('x-api-key');
+                const sanitizedKey = sanitizeInput(apiKey);
+
+                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                    logger.warn({
+                        msg: 'Invalid API key',
+                        providedApiKey: !!sanitizedKey,
+                        context: 'PATCH /screener/roe',
+                        statusCode: 401
+                    });
+                    return res.status(401).json({ message: 'Unauthorized API Access' });
+                }
+
+                // Sanitize inputs
+                let minROE = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+                let maxROE = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+                const screenerName = sanitizeInput(req.body.screenerName || '');
+                const Username = sanitizeInput(req.body.user || '');
+
+                // Validate inputs
+                if (!screenerName) {
+                    return res.status(400).json({ message: 'Screener name is required' });
+                }
+                if (!Username) {
+                    return res.status(400).json({ message: 'Username is required' });
+                }
+                if (isNaN(minROE) && isNaN(maxROE)) {
+                    return res.status(400).json({ message: 'Both min ROE and max ROE cannot be empty' });
+                }
+
+                client = new MongoClient(uri);
+                await client.connect();
+                const db = client.db('EreunaDB');
+                const collection = db.collection('Screeners');
+                const assetInfoCollection = db.collection('AssetInfo');
+
+                // Set default minROE to minimum ROE if it is not provided
+                if (isNaN(minROE) && !isNaN(maxROE)) {
+                    const minROEDoc = await assetInfoCollection.aggregate([
+                        { $project: { roe: { $ifNull: [{ $first: "$quarterlyFinancials.roe" }, null] } } },
+                        { $match: { roe: { $ne: null } } },
+                        { $group: { _id: null, minROE: { $min: "$roe" } } }
+                    ]).toArray();
+                    if (minROEDoc.length > 0) {
+                        minROE = minROEDoc[0].minROE;
+                    } else {
+                        return res.status(404).json({ message: 'No assets found to determine minimum ROE' });
+                    }
+                }
+
+                // If maxROE is empty, find the highest ROE excluding 'None'
+                if (isNaN(maxROE) && !isNaN(minROE)) {
+                    const maxROEDoc = await assetInfoCollection.aggregate([
+                        { $project: { roe: { $ifNull: [{ $first: "$quarterlyFinancials.roe" }, null] } } },
+                        { $match: { roe: { $ne: null } } },
+                        { $group: { _id: null, maxROE: { $max: "$roe" } } }
+                    ]).toArray();
+                    if (maxROEDoc.length > 0) {
+                        maxROE = maxROEDoc[0].maxROE;
+                    } else {
+                        return res.status(404).json({ message: 'No assets found to determine maximum ROE' });
+                    }
+                }
+
+                // Ensure minROE is less than maxROE
+                if (minROE >= maxROE) {
+                    return res.status(400).json({ message: 'Min ROE cannot be higher than or equal to max ROE' });
+                }
+
+                const filter = {
+                    UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+                    Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+                };
+
+                const existingScreener = await collection.findOne(filter);
+                if (!existingScreener) {
+                    return res.status(404).json({
+                        message: 'Screener not found',
+                        details: 'No matching screener exists for the given user and name'
+                    });
+                }
+
+                const updateDoc = { $set: { ROE: [minROE, maxROE] } };
+                const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+                if (!result) {
+                    return res.status(404).json({
+                        message: 'Screener not found',
+                        details: 'Unable to update screener'
+                    });
+                }
+
+                res.json({
+                    message: 'ROE range updated successfully',
+                    updatedScreener: result.value
+                });
+
+            } catch (error: any) {
+                const errObj = handleError(error, 'PATCH /screener/roe', {
+                    username: req.body.user,
+                    screenerName: req.body.screenerName
+                }, 500);
+                return res.status(errObj.statusCode || 500).json(errObj);
+            } finally {
+                if (client) {
+                    try {
+                        await client.close();
+                    } catch (closeError: any) {
+                        logger.warn({
+                            msg: 'Error closing database connection',
+                            error: closeError.message,
+                            context: 'PATCH /screener/roe'
+                        });
+                    }
+                }
+            }
+        });
+
     app.patch('/screener/roa', validate([
         validationSchemas.user(),
         validationSchemas.screenerNameBody(),
@@ -7517,8 +7651,14 @@ export default function (app: any, deps: any) {
             }
 
             // Sanitize inputs
-            minCurrentRatio = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
-            maxCurrentRatio = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+            const minRaw = req.body.minPrice;
+            const maxRaw = req.body.maxPrice;
+            minCurrentRatio = (minRaw !== undefined && minRaw !== null && minRaw !== '' && !isNaN(Number(minRaw)))
+                ? parseFloat(sanitizeInput(minRaw.toString()))
+                : 0.01; // hardcoded minimum value
+            maxCurrentRatio = (maxRaw !== undefined && maxRaw !== null && maxRaw !== '' && !isNaN(Number(maxRaw)))
+                ? parseFloat(sanitizeInput(maxRaw.toString()))
+                : NaN;
             screenerName = sanitizeInput(req.body.screenerName || '');
             Username = sanitizeInput(req.body.user || '');
 

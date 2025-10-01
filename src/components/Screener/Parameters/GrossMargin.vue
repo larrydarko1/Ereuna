@@ -1,11 +1,11 @@
 <template>
-   <div :class="[showGrossMargin ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showGrossMarginModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Gross Margin</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'gross-margin')" @mouseout="handleMouseOut" aria-label="Show info for Gross Margin parameter">
+                @mouseover="handleMouseOver($event, 'gross-margin')" @mouseout="handleMouseOut($event)" aria-label="Show info for Gross Margin parameter">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,11 +20,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="gross-margin-check" v-model="showGrossMargin" style="border: none;" aria-label="Toggle Gross Margin filter">
+              <input type="checkbox" id="gross-margin-check" v-model="showGrossMarginModel" style="border: none;" aria-label="Toggle Gross Margin filter">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showGrossMargin">
+          <div style="border: none;" v-if="showGrossMarginModel">
             <div class="row">
               <input class="left input" id="left-gm" type="text" placeholder="min" aria-label="Gross Margin minimum">
               <input class="right input" id="right-gm" type="text" placeholder="max" aria-label="Gross Margin maximum">
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showGrossMargin = false" aria-label="Reset Gross Margin filter">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showGrossMargin', false)" aria-label="Reset Gross Margin filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -60,12 +60,14 @@
             </div>
           </div>
         </div>
+
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showGrossMargin']);
+
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -78,10 +80,10 @@ const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
   selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
-})
+  isScreenerError: { type: Boolean, required: true },
+  showGrossMargin: { type: Boolean, required: true }
+});
 
-let showGrossMargin = ref(false);
 const error = ref('');
 const isLoading = ref(false);
 
@@ -89,6 +91,13 @@ function showNotification(msg: string) {
   emit('notify', msg);
 }
 
+// Computed getter/setter for v-model
+const showGrossMarginModel = computed({
+  get: () => props.showGrossMargin,
+  set: (val: boolean) => emit('update:showGrossMargin', val)
+});
+
+// add and or modifies gross margin value and sends it
 async function SetGrossMargin() {
   error.value = '';
   if (!props.selectedScreener) {
@@ -106,19 +115,27 @@ async function SetGrossMargin() {
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  const leftGrossMargin = parseFloat(leftInput.value) / 100;
-  const rightGrossMargin = parseFloat(rightInput.value) / 100;
-  if (isNaN(leftGrossMargin) || isNaN(rightGrossMargin)) {
-    error.value = 'Please enter valid numbers';
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftMargin = leftValue === '' ? null : parseFloat(leftValue) / 100;
+  const rightMargin = rightValue === '' ? null : parseFloat(rightValue) / 100;
+  // If both missing or both invalid, error
+  if ((leftMargin === null && rightMargin === null) ||
+      (leftMargin !== null && isNaN(leftMargin) && rightMargin !== null && isNaN(rightMargin))) {
+    error.value = 'Please enter at least one valid number';
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  if (leftGrossMargin >= rightGrossMargin) {
-    error.value = 'Min cannot be higher than or equal to max';
-    showNotification(error.value);
-    emit('fetchScreeners', props.selectedScreener);
-    return;
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftMargin !== null && !isNaN(leftMargin) && rightMargin !== null && !isNaN(rightMargin)) {
+    if (leftMargin >= rightMargin) {
+      error.value = 'Min gross margin cannot be higher than or equal to max gross margin';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
   }
   isLoading.value = true;
   try {
@@ -129,8 +146,8 @@ async function SetGrossMargin() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        minPrice: leftGrossMargin,
-        maxPrice: rightGrossMargin,
+        minPrice: leftMargin,
+        maxPrice: rightMargin,
         screenerName: props.selectedScreener,
         user: props.user
       })

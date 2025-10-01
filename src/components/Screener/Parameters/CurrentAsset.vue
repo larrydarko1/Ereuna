@@ -1,11 +1,11 @@
 <template>
-    <div :class="[showCurrentAssets ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showCurrentAssetsModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Current Assets (1000s)</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'current-assets')" @mouseout="handleMouseOut"
+                @mouseover="handleMouseOver($event, 'current-assets')" @mouseout="handleMouseOut($event)"
                 aria-label="Show info for Current Assets parameter">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -21,11 +21,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showCurrentAssets" aria-label="Toggle Current Assets filter">
+              <input type="checkbox" v-model="showCurrentAssetsModel" aria-label="Toggle Current Assets filter">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showCurrentAssets">
+          <div style="border: none;" v-if="showCurrentAssetsModel">
             <div class="row">
               <input class="left input" id="left-ca" type="text" placeholder="min" aria-label="Current Assets minimum">
               <input class="right input" id="right-ca" type="text" placeholder="max" aria-label="Current Assets maximum">
@@ -46,7 +46,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showCurrentAssets = false" aria-label="Reset Current Assets filter">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showCurrentAssets', false)" aria-label="Reset Current Assets filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -61,13 +61,13 @@
             </div>
           </div>
         </div>
+
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
-
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showCurrentAssets']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -80,22 +80,31 @@ const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
   selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
+  isScreenerError: { type: Boolean, required: true },
+  showCurrentAssets: { type: Boolean, required: true }
 });
 
-let showCurrentAssets = ref(false);
-const isLoading = ref(false);
 const error = ref('');
+const isLoading = ref(false);
 
 function showNotification(msg: string) {
   emit('notify', msg);
 }
 
+// Computed getter/setter for v-model
+const showCurrentAssetsModel = computed({
+  get: () => props.showCurrentAssets,
+  set: (val: boolean) => emit('update:showCurrentAssets', val)
+});
+
+// add and or modifies current assets value and sends it
 async function SetCurrentAssets() {
   error.value = '';
   if (!props.selectedScreener) {
+    emit('reset');
     error.value = 'Please select a screener';
     showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
     return;
   }
   const leftInput = document.getElementById('left-ca') as HTMLInputElement | null;
@@ -103,19 +112,30 @@ async function SetCurrentAssets() {
   if (!leftInput || !rightInput) {
     error.value = 'Input elements not found';
     showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  const leftCurrentAssets = parseFloat(leftInput.value);
-  const rightCurrentAssets = parseFloat(rightInput.value);
-  if (isNaN(leftCurrentAssets) || isNaN(rightCurrentAssets)) {
-    error.value = 'Please enter valid numbers';
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftAssets = leftValue === '' ? null : parseFloat(leftValue);
+  const rightAssets = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftAssets === null && rightAssets === null) ||
+      (leftAssets !== null && isNaN(leftAssets) && rightAssets !== null && isNaN(rightAssets))) {
+    error.value = 'Please enter at least one valid number';
     showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  if (leftCurrentAssets >= rightCurrentAssets) {
-    error.value = 'Min cannot be higher than or equal to max';
-    showNotification(error.value);
-    return;
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftAssets !== null && !isNaN(leftAssets) && rightAssets !== null && !isNaN(rightAssets)) {
+    if (leftAssets >= rightAssets) {
+      error.value = 'Min current assets cannot be higher than or equal to max current assets';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
   }
   isLoading.value = true;
   try {
@@ -126,8 +146,8 @@ async function SetCurrentAssets() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        minPrice: leftCurrentAssets,
-        maxPrice: rightCurrentAssets,
+        minPrice: leftAssets,
+        maxPrice: rightAssets,
         screenerName: props.selectedScreener,
         user: props.user
       })

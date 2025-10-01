@@ -1,5 +1,5 @@
 <template>
- <div :class="[showFundYoYQoQ ? 'param-s1-expanded' : 'param-s1']">
+ <div :class="[showFundYoYQoQModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -21,11 +21,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showFundYoYQoQ" style="border: none;" aria-label="Toggle Revenue / Earnings / EPS Growth inputs">
+              <input type="checkbox" id="price-check" v-model="showFundYoYQoQModel" style="border: none;" aria-label="Toggle Revenue / Earnings / EPS Growth inputs">
               <span class="slider round" aria-label="Toggle switch"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showFundYoYQoQ">
+          <div style="border: none;" v-if="showFundYoYQoQModel">
             <div class="DataInputs">
               <p>Revenue Growth (YoY)</p>
               <input id="left-RevYoY" class="input" type="text" placeholder="min" aria-label="Revenue Growth YoY min">
@@ -62,7 +62,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showFundYoYQoQ = false" aria-label="Reset Revenue / Earnings / EPS Growth">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showFundYoYQoQ', false)" aria-label="Reset Revenue / Earnings / EPS Growth">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -80,9 +80,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showFundYoYQoQ']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -92,42 +92,98 @@ function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
-const props = defineProps({
-  user: { type: String, required: true },
-  apiKey: { type: String, required: true },
-  notification: { type: Object, required: true },
-  selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
-});
+const props = defineProps<{
+  user: string;
+  apiKey: string;
+  notification: object;
+  selectedScreener: string;
+  isScreenerError: boolean;
+  showFundYoYQoQ: boolean;
+}>();
 
-let showFundYoYQoQ = ref(false);
+function showNotification(msg: string) {
+  emit('notify', msg);
+}
 
-// adds and modifies YoY and/or Qoq value for screener
+// Validate a min/max pair: allow at least one, check order only if both present and valid
+function validatePair(min: string, max: string, label: string): string | null {
+  const minVal = min.trim() === '' ? null : parseFloat(min);
+  const maxVal = max.trim() === '' ? null : parseFloat(max);
+  if ((minVal === null && maxVal === null) ||
+      (minVal !== null && isNaN(minVal) && maxVal !== null && isNaN(maxVal))) {
+    return `Please enter at least one valid number for ${label}`;
+  }
+  if (minVal !== null && !isNaN(minVal) && maxVal !== null && !isNaN(maxVal)) {
+    if (minVal >= maxVal) {
+      return `Min cannot be higher than or equal to max for ${label}`;
+    }
+  }
+  return null;
+}
+
+// adds and modifies YoY and/or QoQ value for screener
 async function SetFundamentalGrowth() {
   try {
     if (!props.selectedScreener) {
-      emit('notify', 'Please select a screener');
-      throw new Error('Please select a screener');
+      showNotification('Please select a screener');
+      return;
     }
 
-    function getInputValue(id: string): number {
+    function getInput(id: string) {
       const el = document.getElementById(id) as HTMLInputElement | null;
-      if (!el) return NaN;
-      return parseFloat(el.value);
+      return el ? el.value : '';
     }
 
-    const leftRevYoY = getInputValue('left-RevYoY');
-    const rightRevYoY = getInputValue('right-RevYoY');
-    const leftRevQoQ = getInputValue('left-RevQoQ');
-    const rightRevQoQ = getInputValue('right-RevQoQ');
-    const leftEarningsYoY = getInputValue('left-EarningsYoY');
-    const rightEarningsYoY = getInputValue('right-EarningsYoY');
-    const leftEarningsQoQ = getInputValue('left-EarningsQoQ');
-    const rightEarningsQoQ = getInputValue('right-EarningsQoQ');
-    const leftEPSYoY = getInputValue('left-EPSYoY');
-    const rightEPSYoY = getInputValue('right-EPSYoY');
-    const leftEPSQoQ = getInputValue('left-EPSQoQ');
-    const rightEPSQoQ = getInputValue('right-EPSQoQ');
+    // Validate each pair
+    const pairs = [
+      { min: getInput('left-RevYoY'), max: getInput('right-RevYoY'), label: 'Revenue Growth (YoY)', minKey: 'minRevYoY', maxKey: 'maxRevYoY' },
+      { min: getInput('left-RevQoQ'), max: getInput('right-RevQoQ'), label: 'Revenue Growth (QoQ)', minKey: 'minRevQoQ', maxKey: 'maxRevQoQ' },
+      { min: getInput('left-EarningsYoY'), max: getInput('right-EarningsYoY'), label: 'Earnings Growth (YoY)', minKey: 'minEarningsYoY', maxKey: 'maxEarningsYoY' },
+      { min: getInput('left-EarningsQoQ'), max: getInput('right-EarningsQoQ'), label: 'Earnings Growth (QoQ)', minKey: 'minEarningsQoQ', maxKey: 'maxEarningsQoQ' },
+      { min: getInput('left-EPSYoY'), max: getInput('right-EPSYoY'), label: 'EPS Growth (YoY)', minKey: 'minEPSYoY', maxKey: 'maxEPSYoY' },
+      { min: getInput('left-EPSQoQ'), max: getInput('right-EPSQoQ'), label: 'EPS Growth (QoQ)', minKey: 'minEPSQoQ', maxKey: 'maxEPSQoQ' },
+    ];
+
+    let hasAnyValue = false;
+    for (const pair of pairs) {
+      const minVal = pair.min.trim() === '' ? null : parseFloat(pair.min);
+      const maxVal = pair.max.trim() === '' ? null : parseFloat(pair.max);
+      // If both missing, skip this pair
+      if (minVal === null && maxVal === null) {
+        continue;
+      }
+      // If both present and valid, check order
+      if (minVal !== null && !isNaN(minVal) && maxVal !== null && !isNaN(maxVal)) {
+        if (minVal >= maxVal) {
+          showNotification(`Min cannot be higher than or equal to max for ${pair.label}`);
+          return;
+        }
+      }
+      // If at least one value is valid, mark as having a value
+      if ((minVal !== null && !isNaN(minVal)) || (maxVal !== null && !isNaN(maxVal))) {
+        hasAnyValue = true;
+      } else {
+        // If both are present but both invalid, error for this pair
+        showNotification(`Please enter at least one valid number for ${pair.label}`);
+        return;
+      }
+    }
+    // If no value in any pair, error
+    if (!hasAnyValue) {
+      showNotification('Please enter at least one valid value in any field.');
+      return;
+    }
+
+    // Prepare payload
+    const payload: Record<string, number | string | null> = {};
+    for (const pair of pairs) {
+      const minVal = pair.min.trim() === '' ? null : parseFloat(pair.min);
+      const maxVal = pair.max.trim() === '' ? null : parseFloat(pair.max);
+      payload[pair.minKey] = minVal;
+      payload[pair.maxKey] = maxVal;
+    }
+    payload.screenerName = props.selectedScreener;
+    payload.user = props.user;
 
     const response = await fetch('/api/screener/fundamental-growth', {
       method: 'PATCH',
@@ -135,22 +191,7 @@ async function SetFundamentalGrowth() {
         'Content-Type': 'application/json',
         'X-API-KEY': props.apiKey,
       },
-      body: JSON.stringify({
-        minRevYoY: leftRevYoY,
-        maxRevYoY: rightRevYoY,
-        minRevQoQ: leftRevQoQ,
-        maxRevQoQ: rightRevQoQ,
-        minEarningsYoY: leftEarningsYoY,
-        maxEarningsYoY: rightEarningsYoY,
-        minEarningsQoQ: leftEarningsQoQ,
-        maxEarningsQoQ: rightEarningsQoQ,
-        minEPSYoY: leftEPSYoY,
-        maxEPSYoY: rightEPSYoY,
-        minEPSQoQ: leftEPSQoQ,
-        maxEPSQoQ: rightEPSQoQ,
-        screenerName: props.selectedScreener,
-        user: props.user
-      })
+      body: JSON.stringify(payload)
     });
     if (response.status !== 200) {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
@@ -177,10 +218,16 @@ async function SetFundamentalGrowth() {
     } else if (typeof error === 'string') {
       message = error;
     }
-    emit('notify', message);
+    showNotification(message);
     emit('fetchScreeners', props.selectedScreener);
   }
 }
+
+// Computed getter/setter for v-model
+const showFundYoYQoQModel = computed({
+  get: () => props.showFundYoYQoQ,
+  set: (val: boolean) => emit('update:showFundYoYQoQ', val)
+});
 
 </script>
 

@@ -1,5 +1,5 @@
 <template>
-  <div :class="[showPBInputs ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showPBInputsModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -20,11 +20,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPBInputs" style="border: none;" aria-label="Toggle PB Ratio filter">
+              <input type="checkbox" id="price-check" v-model="showPBInputsModel" style="border: none;" aria-label="Toggle PB Ratio filter">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showPBInputs">
+          <div style="border: none;" v-if="showPBInputsModel">
             <div class="row">
               <input class="left input" id="left-pb" type="text" placeholder="min" aria-label="PB Ratio minimum">
               <input class="right input" id="right-pb" type="text" placeholder="max" aria-label="PB Ratio maximum">
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showPBInputs = false" aria-label="Reset PB Ratio filter">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showPBInputs', false)" aria-label="Reset PB Ratio filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -63,9 +63,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showPBInputs']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -74,14 +74,14 @@ function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
-const props = defineProps({
-  user: { type: String, required: true },
-  apiKey: { type: String, required: true },
-  selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
-})
+const props = defineProps<{
+  user: string;
+  apiKey: string;
+  selectedScreener: string;
+  isScreenerError: boolean;
+  showPBInputs: boolean;
+}>();
 
-let showPBInputs = ref(false);
 const error = ref('');
 const isLoading = ref(false);
 
@@ -90,6 +90,7 @@ function showNotification(msg: string) {
 }
 
 // adds and modifies PB Ratio value for screener 
+
 async function SetPBRatio() {
   error.value = '';
   if (!props.selectedScreener) {
@@ -107,19 +108,27 @@ async function SetPBRatio() {
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  const leftPrice = parseFloat(leftInput.value);
-  const rightPrice = parseFloat(rightInput.value);
-  if (isNaN(leftPrice) || isNaN(rightPrice)) {
-    error.value = 'Please enter valid numbers';
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftPB = leftValue === '' ? null : parseFloat(leftValue);
+  const rightPB = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftPB === null && rightPB === null) ||
+      (leftPB !== null && isNaN(leftPB) && rightPB !== null && isNaN(rightPB))) {
+    error.value = 'Please enter at least one valid number';
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  if (leftPrice >= rightPrice) {
-    error.value = 'Min cannot be higher than or equal to max';
-    showNotification(error.value);
-    emit('fetchScreeners', props.selectedScreener);
-    return;
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftPB !== null && !isNaN(leftPB) && rightPB !== null && !isNaN(rightPB)) {
+    if (leftPB >= rightPB) {
+      error.value = 'Min PB cannot be higher than or equal to max PB';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
   }
   isLoading.value = true;
   try {
@@ -130,8 +139,8 @@ async function SetPBRatio() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
+        minPrice: leftPB,
+        maxPrice: rightPB,
         screenerName: props.selectedScreener,
         user: props.user
       })
@@ -149,6 +158,12 @@ async function SetPBRatio() {
     isLoading.value = false;
   }
 }
+
+// Computed getter/setter for v-model
+const showPBInputsModel = computed({
+  get: () => props.showPBInputs,
+  set: (val: boolean) => emit('update:showPBInputs', val)
+});
 
 </script>
 

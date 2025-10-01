@@ -5,32 +5,48 @@
     :class="{ 'screener-error-border': isScreenerError }"
     @mouseenter="openDropdown"
     @mouseleave="closeDropdown"
+    role="combobox"
+    :aria-expanded="showDropdown && ScreenersName && ScreenersName.length > 0 ? 'true' : 'false'"
+    aria-haspopup="listbox"
+    aria-label="Screener selector"
+    tabindex="0"
   >
-    <svg class="screener-dropdown-icon" viewBox="0 0 24 24" v-if="!showDropdown">
+    <svg class="screener-dropdown-icon" viewBox="0 0 24 24" v-if="ScreenersName && ScreenersName.length > 0 && !showDropdown" aria-hidden="true">
       <path fill-rule="evenodd" clip-rule="evenodd"
         d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z"
         fill="var(--text1)" />
     </svg>
-    <svg class="screener-dropdown-icon" viewBox="0 0 24 24" v-else style="transform: rotate(180deg);">
+  <svg class="screener-dropdown-icon" viewBox="0 0 24 24" v-else-if="ScreenersName && ScreenersName.length > 0" style="transform: rotate(180deg);" aria-hidden="true">
       <path fill-rule="evenodd" clip-rule="evenodd"
         d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z"
         fill="var(--text1)" />
     </svg>
     <p
       class="screener-selected-value"
+      :class="{ 'screener-no-screeners': !(ScreenersName && ScreenersName.length > 0) }"
       @click.stop="toggleDropdown"
+      role="button"
+      aria-label="Selected screener: {{ selectedScreener ? selectedScreener : (ScreenersName && ScreenersName.length > 0 ? 'Choose a Screener...' : 'No screeners available.') }}"
+      tabindex="0"
     >
-  {{ selectedScreener ? selectedScreener : (ScreenersName && ScreenersName.length > 0 ? 'Choose a Screener...' : 'No screeners available.') }}
+      {{ selectedScreener ? selectedScreener : (ScreenersName && ScreenersName.length > 0 ? 'Choose a Screener...' : 'No screeners available.') }}
     </p>
     <div
       class="screener-dropdown-container"
-  v-if="ScreenersName && ScreenersName.length > 0 && showDropdown"
+      v-if="ScreenersName && ScreenersName.length > 0 && showDropdown"
       @mousedown.stop
       @click.stop
+      role="listbox"
+      aria-label="Screener options"
     >
       <div class="screener-wrapper">
         <div v-for="(screener, index) in ScreenersName" :key="index"
-          :class="{ 'screener-selected': selectedScreener === screener.Name }" @click="$emit('selectScreener', screener.Name)">
+          :class="{ 'screener-selected': selectedScreener === screener.Name }"
+          @click="$emit('selectScreener', screener.Name)"
+          role="option"
+          :aria-selected="selectedScreener === screener.Name ? 'true' : 'false'"
+          :aria-label="'Screener: ' + screener.Name"
+        >
           <button class="screener-icondlt2">
             <span class="screener-img3" v-html="getScreenerImage(screener)" @click.stop="$emit('excludeScreener', screener.Name)"
               v-b-tooltip.hover title="Toggle This Screener's Inclusion" alt="toggle screener"></span>
@@ -125,6 +141,7 @@ function toggleDropdown() {
   backdrop-filter: blur(8px) saturate(1.2);
   -webkit-backdrop-filter: blur(8px) saturate(1.2);
   overflow: visible;
+  margin-bottom: 3px;
 }
 
 .screener-dropdown-icon {
@@ -152,6 +169,14 @@ function toggleDropdown() {
   cursor: pointer;
   transition: color 0.22s, background 0.22s, box-shadow 0.22s;
   outline: none;
+}
+
+.screener-no-screeners {
+  margin-right: 0 !important;
+  margin-left: 10px;
+  text-align: center;
+  justify-content: center;
+  display: flex;
 }
 
 .screener-icondlt {

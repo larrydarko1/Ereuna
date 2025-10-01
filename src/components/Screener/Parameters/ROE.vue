@@ -1,5 +1,5 @@
 <template>
-   <div :class="[showROE ? 'param-s1-expanded' : 'param-s1']">
+   <div :class="[showROEModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -20,11 +20,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showROE" style="border: none;">
+              <input type="checkbox" id="price-check" v-model="showROEModel" style="border: none;">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showROE">
+          <div style="border: none;" v-if="showROEModel">
             <div class="row">
               <input class="left input" id="left-roe" type="text" placeholder="min" aria-label="ROE Min">
               <input class="right input" id="right-roe" type="text" placeholder="max" aria-label="ROE Max">
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showROE = false" aria-label="Reset ROE">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showROE', false)" aria-label="Reset ROE">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -63,9 +63,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showROE']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -81,40 +81,59 @@ const props = defineProps<{
   notification: { message?: string; type?: string };
   selectedScreener: string;
   isScreenerError: boolean;
+  showROE: boolean;
 }>();
 
-let showROE = ref(false);
+const error = ref('');
+const isLoading = ref(false);
 
+const showROEModel = computed({
+  get: () => props.showROE,
+  set: (val: boolean) => emit('update:showROE', val)
+});
+
+function showNotification(msg: string) {
+  emit('notify', msg);
+}
+
+// adds and modifies ROE value for screener
 async function SetROE() {
-  try {
-    if (!props.selectedScreener) {
-      emit('notify', { message: 'Please select a screener', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-
-    const leftInput = document.getElementById('left-roe') as HTMLInputElement | null;
-    const rightInput = document.getElementById('right-roe') as HTMLInputElement | null;
-    if (!leftInput || !rightInput) {
-      emit('notify', { message: 'Input elements not found', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-    const leftROE = parseFloat(leftInput.value);
-    const rightROE = parseFloat(rightInput.value);
-
-    if (isNaN(leftROE) || isNaN(rightROE)) {
-      emit('notify', { message: 'Please enter valid numbers', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-
+  error.value = '';
+  if (!props.selectedScreener) {
+    emit('reset');
+    error.value = 'Please select a screener';
+    showNotification(error.value);
+    return;
+  }
+  const leftInput = document.getElementById('left-roe') as HTMLInputElement | null;
+  const rightInput = document.getElementById('right-roe') as HTMLInputElement | null;
+  if (!leftInput || !rightInput) {
+    error.value = 'Input elements not found';
+    showNotification(error.value);
+    return;
+  }
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftROE = leftValue === '' ? null : parseFloat(leftValue);
+  const rightROE = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftROE === null && rightROE === null) ||
+      (leftROE !== null && isNaN(leftROE) && rightROE !== null && isNaN(rightROE))) {
+    error.value = 'Please enter at least one valid number';
+    showNotification(error.value);
+    return;
+  }
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftROE !== null && !isNaN(leftROE) && rightROE !== null && !isNaN(rightROE)) {
     if (leftROE >= rightROE) {
-      emit('notify', { message: 'Min cannot be higher than or equal to max', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
+      error.value = 'Min ROE cannot be higher than or equal to max ROE';
+      showNotification(error.value);
       return;
     }
-
+  }
+  isLoading.value = true;
+  try {
     const response = await fetch('/api/screener/roe', {
       method: 'PATCH',
       headers: {
@@ -128,21 +147,16 @@ async function SetROE() {
         user: props.user
       })
     });
-
-    if (response.status === 200) {
-      emit('fetchScreeners', props.selectedScreener);
-    } else {
+    if (response.status !== 200) {
       const data = await response.json();
-      emit('notify', { message: data?.message || `Error: ${response.status} ${response.statusText}`, type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
+      throw new Error(data.message || `Error: ${response.status} ${response.statusText}`);
     }
-  } catch (error: unknown) {
-    let message = 'Unknown error';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    emit('notify', { message, type: 'error' });
     emit('fetchScreeners', props.selectedScreener);
+  } catch (err) {
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error';
+    showNotification(error.value);
+  } finally {
+    isLoading.value = false;
   }
 }
 

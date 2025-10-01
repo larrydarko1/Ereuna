@@ -1,5 +1,5 @@
 <template>
- <div :class="[showIPOInputs ? 'param-s1-expanded' : 'param-s1']">
+ <div :class="[showIPOInputsModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -20,11 +20,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showIPOInputs" aria-label="Toggle IPO Date filter">
+              <input type="checkbox" v-model="showIPOInputsModel" aria-label="Toggle IPO Date filter">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showIPOInputs">
+          <div style="border: none;" v-if="showIPOInputsModel">
             <div class="row">
               <input class="left input" id="left-ipo" type="date" placeholder="min" aria-label="IPO Date minimum">
               <input class="right input" id="right-ipo" type="date" placeholder="max" aria-label="IPO Date maximum">
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showIPOInputs = false" aria-label="Reset IPO Date filter">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showIPOInputs', false)" aria-label="Reset IPO Date filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -63,9 +63,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showIPOInputs']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -78,10 +78,10 @@ const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
   selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
-})
+  isScreenerError: { type: Boolean, required: true },
+  showIPOInputs: { type: Boolean, required: true }
+});
 
-let showIPOInputs = ref(false);
 const error = ref('');
 const isLoading = ref(false);
 
@@ -89,7 +89,13 @@ function showNotification(msg: string) {
   emit('notify', msg);
 }
 
-// add and or modifies market cap value and sends it
+// Computed getter/setter for v-model
+const showIPOInputsModel = computed({
+  get: () => props.showIPOInputs,
+  set: (val: boolean) => emit('update:showIPOInputs', val)
+});
+
+// add and or modifies IPO date value and sends it
 async function SetIpoDate() {
   error.value = '';
   if (!props.selectedScreener) {
@@ -107,8 +113,34 @@ async function SetIpoDate() {
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  const leftPrice = leftInput.value;
-  const rightPrice = rightInput.value;
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftDate = leftValue === '' ? null : leftValue;
+  const rightDate = rightValue === '' ? null : rightValue;
+  // If both missing, error
+  if (leftDate === null && rightDate === null) {
+    error.value = 'Please enter at least one date';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  // If both are present, validate order
+  if (leftDate !== null && rightDate !== null) {
+    const leftTime = new Date(leftDate).getTime();
+    const rightTime = new Date(rightDate).getTime();
+    if (isNaN(leftTime) || isNaN(rightTime)) {
+      error.value = 'Please enter valid dates';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
+    if (leftTime >= rightTime) {
+      error.value = 'Min IPO date cannot be later than or equal to max IPO date';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
+  }
   isLoading.value = true;
   try {
     const response = await fetch('/api/screener/ipo-date', {
@@ -118,8 +150,8 @@ async function SetIpoDate() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
+        minPrice: leftDate,
+        maxPrice: rightDate,
         screenerName: props.selectedScreener,
         user: props.user
       })

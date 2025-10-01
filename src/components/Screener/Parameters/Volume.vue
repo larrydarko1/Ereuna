@@ -1,5 +1,5 @@
 <template>
-    <div :class="[showVolume ? 'param-s1-expanded' : 'param-s1']">
+    <div :class="[showVolumeModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -21,11 +21,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showVolume" style="border: none;" aria-label="Toggle Volume inputs">
+              <input type="checkbox" id="price-check" v-model="showVolumeModel" style="border: none;" aria-label="Toggle Volume inputs">
               <span class="slider round" aria-label="Toggle switch"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showVolume">
+          <div style="border: none;" v-if="showVolumeModel">
             <div class="DataInputs">
               <p>Relative Volume</p>
               <div style="display: flex; align-items: center;">
@@ -76,7 +76,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showVolume = false" aria-label="Reset Volume">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showVolume', false)" aria-label="Reset Volume">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -94,9 +94,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showVolume']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -111,10 +111,15 @@ const props = defineProps({
   apiKey: { type: String, required: true },
   notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
+  isScreenerError: { type: Boolean, required: true },
+  showVolume: { type: Boolean, required: true }
 });
 
-let showVolume = ref(false);
+// Computed getter/setter for v-model
+const showVolumeModel = computed({
+  get: () => props.showVolume,
+  set: (val: boolean) => emit('update:showVolume', val)
+});
 
 const relVolOptions = ref<string[]>([
   '-',

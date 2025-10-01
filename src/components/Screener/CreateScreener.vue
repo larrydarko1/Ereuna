@@ -46,7 +46,7 @@ const props = defineProps({
   notification: { type: Object, required: true },
   GetScreeners: { type: Function, required: true },
   GetCompoundedResults: { type: Function, required: true },
-  showCreateScreener: { type: Object, required: true }, 
+  showCreateScreener: { type: Boolean, required: true },
   error: { type: Object, required: false }
 })
 

@@ -1,11 +1,11 @@
 <template>
-   <div :class="[showPEInputs ? 'param-s1-expanded' : 'param-s1']">
+   <div :class="[showPEInputsModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>PE Ratio</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'pe')" @mouseout="handleMouseOut" aria-label="Show info for PE Ratio parameter">
+                @mouseover="handleMouseOver($event, 'pe')" @mouseout="handleMouseOut($event)" aria-label="Show info for PE Ratio parameter">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,16 +20,16 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPEInputs" style="border: none;" aria-label="Toggle PE Ratio filter">
+              <input type="checkbox" id="price-check" :checked="showPEInputsModel" @change="emit('update:showPEInputs', ($event.target as HTMLInputElement)?.checked)" style="border: none;" aria-label="Toggle PE Ratio filter">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showPEInputs">
+          <div style="border: none;" v-if="showPEInputsModel">
             <div class="row">
               <input class="left input" id="left-pe" type="text" placeholder="min" aria-label="PE Ratio minimum">
               <input class="right input" id="right-pe" type="text" placeholder="max" aria-label="PE Ratio maximum">
             </div>
-            <div class="row">
+            <div class="row" style="flex-direction: row;">
               <button class="btns" style="float:right" @click="SetPE()" aria-label="Set PE Ratio filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
                   style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showPEInputs = false" aria-label="Reset PE Ratio filter">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showPEInputs', false)" aria-label="Reset PE Ratio filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -63,9 +63,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showPEInputs']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -74,14 +74,14 @@ function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
-const props = defineProps({
-  user: { type: String, required: true },
-  apiKey: { type: String, required: true },
-  selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
-})
+const props = defineProps<{
+  user: string;
+  apiKey: string;
+  selectedScreener: string;
+  isScreenerError: boolean;
+  showPEInputs: boolean;
+}>();
 
-let showPEInputs = ref(false);
 const error = ref('');
 const isLoading = ref(false);
 
@@ -107,19 +107,27 @@ async function SetPE() {
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  const leftPrice = parseFloat(leftInput.value);
-  const rightPrice = parseFloat(rightInput.value);
-  if (isNaN(leftPrice) || isNaN(rightPrice)) {
-    error.value = 'Please enter valid numbers';
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftPE = leftValue === '' ? null : parseFloat(leftValue);
+  const rightPE = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftPE === null && rightPE === null) ||
+      (leftPE !== null && isNaN(leftPE) && rightPE !== null && isNaN(rightPE))) {
+    error.value = 'Please enter at least one valid number';
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  if (leftPrice >= rightPrice) {
-    error.value = 'Min cannot be higher than or equal to max';
-    showNotification(error.value);
-    emit('fetchScreeners', props.selectedScreener);
-    return;
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftPE !== null && !isNaN(leftPE) && rightPE !== null && !isNaN(rightPE)) {
+    if (leftPE >= rightPE) {
+      error.value = 'Min PE cannot be higher than or equal to max PE';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
   }
   isLoading.value = true;
   try {
@@ -130,8 +138,8 @@ async function SetPE() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
+        minPrice: leftPE,
+        maxPrice: rightPE,
         screenerName: props.selectedScreener,
         user: props.user
       })
@@ -149,6 +157,12 @@ async function SetPE() {
     isLoading.value = false;
   }
 }
+
+// Computed getter/setter for v-model
+const showPEInputsModel = computed({
+  get: () => props.showPEInputs,
+  set: (val: boolean) => emit('update:showPEInputs', val)
+});
 
 </script>
 

@@ -1,5 +1,5 @@
 <template>
-  <div :class="[showDivYieldInputs ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showDivYieldInputsModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -21,11 +21,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showDivYieldInputs" style="border: none;">
+              <input type="checkbox" id="price-check" v-model="showDivYieldInputsModel" style="border: none;">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showDivYieldInputs">
+          <div style="border: none;" v-if="showDivYieldInputsModel">
             <div class="row">
               <input class="left input" id="left-divyield" type="text" placeholder="min" aria-label="Minimum Dividend Yield">
               <input class="right input" id="right-divyield" type="text" placeholder="max" aria-label="Maximum Dividend Yield">
@@ -46,7 +46,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showDivYieldInputs = false" aria-label="Reset Dividend Yield filter">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showDivYieldInputs', false)" aria-label="Reset Dividend Yield filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -64,9 +64,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showDivYieldInputs']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -75,14 +75,14 @@ function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
-const props = defineProps({
-  user: { type: String, required: true },
-  apiKey: { type: String, required: true },
-  selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
-});
+const props = defineProps<{
+  user: string;
+  apiKey: string;
+  selectedScreener: string;
+  isScreenerError: boolean;
+  showDivYieldInputs: boolean;
+}>();
 
-let showDivYieldInputs = ref(false);
 const isLoading = ref(false);
 const error = ref('');
 
@@ -105,17 +105,25 @@ async function SetDivYield() {
     showNotification(error.value);
     return;
   }
-  const leftPrice = parseFloat(leftInput.value);
-  const rightPrice = parseFloat(rightInput.value);
-  if (isNaN(leftPrice) || isNaN(rightPrice)) {
-    error.value = 'Please enter valid numbers';
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftDiv = leftValue === '' ? null : parseFloat(leftValue);
+  const rightDiv = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftDiv === null && rightDiv === null) ||
+      (leftDiv !== null && isNaN(leftDiv) && rightDiv !== null && isNaN(rightDiv))) {
+    error.value = 'Please enter at least one valid number';
     showNotification(error.value);
     return;
   }
-  if (leftPrice >= rightPrice) {
-    error.value = 'Min cannot be higher than or equal to max';
-    showNotification(error.value);
-    return;
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftDiv !== null && !isNaN(leftDiv) && rightDiv !== null && !isNaN(rightDiv)) {
+    if (leftDiv >= rightDiv) {
+      error.value = 'Min cannot be higher than or equal to max';
+      showNotification(error.value);
+      return;
+    }
   }
   isLoading.value = true;
   try {
@@ -126,8 +134,8 @@ async function SetDivYield() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
+        minPrice: leftDiv,
+        maxPrice: rightDiv,
         screenerName: props.selectedScreener,
         user: props.user
       })
@@ -145,6 +153,12 @@ async function SetDivYield() {
     isLoading.value = false;
   }
 }
+
+// Computed getter/setter for v-model
+const showDivYieldInputsModel = computed({
+  get: () => props.showDivYieldInputs,
+  set: (val: boolean) => emit('update:showDivYieldInputs', val)
+});
 
 </script>
 
