@@ -1,5 +1,5 @@
 <template>
-   <div :class="[showPEGInputs ? 'param-s1-expanded' : 'param-s1']">
+   <div :class="[showPEGInputsModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -20,11 +20,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPEGInputs" style="border: none;" aria-label="Toggle PEG Ratio filter">
+              <input type="checkbox" id="price-check" v-model="showPEGInputsModel" style="border: none;" aria-label="Toggle PEG Ratio filter">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showPEGInputs">
+          <div style="border: none;" v-if="showPEGInputsModel">
             <div class="row">
               <input class="left input" id="left-peg" type="text" placeholder="min" aria-label="PEG Ratio minimum">
               <input class="right input" id="right-peg" type="text" placeholder="max" aria-label="PEG Ratio maximum">
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showPEGInputs = false" aria-label="Reset PEG Ratio filter">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showPEGInputs', false)" aria-label="Reset PEG Ratio filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -63,9 +63,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showPEGInputs']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -80,9 +80,9 @@ const props = defineProps<{
   apiKey: string;
   selectedScreener: string;
   isScreenerError: boolean;
+  showPEGInputs: boolean;
 }>();
 
-let showPEGInputs = ref(false);
 const error = ref('');
 const isLoading = ref(false);
 
@@ -91,6 +91,7 @@ function showNotification(msg: string) {
 }
 
 // adds and modifies PEG Ratio value for screener 
+
 async function SetPEG() {
   error.value = '';
   if (!props.selectedScreener) {
@@ -108,19 +109,27 @@ async function SetPEG() {
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  const leftPrice = parseFloat(leftInput.value);
-  const rightPrice = parseFloat(rightInput.value);
-  if (isNaN(leftPrice) || isNaN(rightPrice)) {
-    error.value = 'Please enter valid numbers';
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftPEG = leftValue === '' ? null : parseFloat(leftValue);
+  const rightPEG = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftPEG === null && rightPEG === null) ||
+      (leftPEG !== null && isNaN(leftPEG) && rightPEG !== null && isNaN(rightPEG))) {
+    error.value = 'Please enter at least one valid number';
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  if (leftPrice >= rightPrice) {
-    error.value = 'Min cannot be higher than or equal to max';
-    showNotification(error.value);
-    emit('fetchScreeners', props.selectedScreener);
-    return;
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftPEG !== null && !isNaN(leftPEG) && rightPEG !== null && !isNaN(rightPEG)) {
+    if (leftPEG >= rightPEG) {
+      error.value = 'Min PEG cannot be higher than or equal to max PEG';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
   }
   isLoading.value = true;
   try {
@@ -131,8 +140,8 @@ async function SetPEG() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
+        minPrice: leftPEG,
+        maxPrice: rightPEG,
         screenerName: props.selectedScreener,
         user: props.user
       })
@@ -150,6 +159,12 @@ async function SetPEG() {
     isLoading.value = false;
   }
 }
+
+// Computed getter/setter for v-model
+const showPEGInputsModel = computed({
+  get: () => props.showPEGInputs,
+  set: (val: boolean) => emit('update:showPEGInputs', val)
+});
 
 </script>
 

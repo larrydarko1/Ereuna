@@ -1,5 +1,5 @@
 <template>
-  <div :class="[showRSscore ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showRSscoreModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -21,11 +21,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showRSscore" style="border: none;" aria-label="Toggle Technical Score inputs">
+              <input type="checkbox" id="price-check" v-model="showRSscoreModel" style="border: none;" aria-label="Toggle Technical Score inputs">
               <span class="slider round" aria-label="Toggle switch"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showRSscore">
+          <div style="border: none;" v-if="showRSscoreModel">
             <div class="DataInputs">
               <p>Technical Score (1W)</p>
               <input class="input" type="number" placeholder="min (1)" id="RSscore1Winput1" name="input5" min="1"
@@ -59,7 +59,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showRSscore = false" aria-label="Reset Technical Score">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showRSscore', false)" aria-label="Reset Technical Score">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -77,9 +77,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showRSscore']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -94,10 +94,15 @@ const props = defineProps({
   apiKey: { type: String, required: true },
   notification: { type: Object, required: true },
   selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
+  isScreenerError: { type: Boolean, required: true },
+  showRSscore: { type: Boolean, required: true }
 });
 
-let showRSscore = ref(false);
+// Computed getter/setter for v-model
+const showRSscoreModel = computed({
+  get: () => props.showRSscore,
+  set: (val: boolean) => emit('update:showRSscore', val)
+});
 
 // updates screener value with RS Score parameters
 async function SetRSscore() {

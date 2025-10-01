@@ -10,7 +10,6 @@
 </template>
 
 <script setup lang="ts">
-
 import Loader from '@/components/loader.vue';
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { createChart, ColorType } from 'lightweight-charts';
@@ -138,7 +137,6 @@ async function fetchChartDataREST(symbolParam: string | null, before: string | n
       allDataLoaded = true;
     }
   } catch (error) {
-    console.error(error);
     allDataLoaded = true;
   } finally {
     if (!append) isChartLoading1.value = false;

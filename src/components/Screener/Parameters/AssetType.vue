@@ -1,5 +1,5 @@
 <template>
-     <div :class="[ShowAssetType ? 'param-s1-expanded' : 'param-s1']">
+     <div :class="[ShowAssetTypeModel ? 'param-s1-expanded' : 'param-s1']">
   <div class="row">
     <div
       style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -21,11 +21,11 @@
       </svg>
     </div>
     <label style="float:right" class="switch">
-      <input type="checkbox" v-model="ShowAssetType" aria-label="Toggle Asset Type filter">
+      <input type="checkbox" v-model="ShowAssetTypeModel" aria-label="Toggle Asset Type filter">
       <span class="slider round"></span>
     </label>
   </div>
-  <div style="border: none" v-if="ShowAssetType">
+  <div style="border: none" v-if="ShowAssetTypeModel">
     <div class="row2">
       <div class="check" v-for="(asset, index) in AssetTypes" :key="index">
         <div :id="`asset-type-${index}`" class="custom-checkbox" :class="{ checked: selectedAssetTypes[index] }"
@@ -55,7 +55,7 @@
           </g>
         </svg>
       </button>
-  <button class="btnsr" style="float:right" @click="emit('reset'), ShowAssetType = false" aria-label="Reset Asset Type filter">
+  <button class="btnsr" style="float:right" @click="emit('reset'), ShowAssetTypeModel = false" aria-label="Reset Asset Type filter">
         <!-- Same SVG as before -->
         <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
           transform="rotate(90)">
@@ -74,9 +74,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:ShowAssetType']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -90,10 +90,15 @@ const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
   selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
+  isScreenerError: { type: Boolean, required: true },
+  ShowAssetType: { type: Boolean, required: true }
 });
 
-let ShowAssetType = ref(false);
+const ShowAssetTypeModel = computed({
+  get: () => props.ShowAssetType,
+  set: (val: boolean) => emit('update:ShowAssetType', val)
+});
+
 const AssetTypes = (['Stock', 'ETF']); 
 const selectedAssetTypes = ref<boolean[]>([]);
 
@@ -132,7 +137,6 @@ async function SetAssetType() {
     emit('fetchScreeners', props.selectedScreener);
   }
 }
-
 </script>
 
 <style scoped>

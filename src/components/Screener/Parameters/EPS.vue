@@ -1,5 +1,5 @@
 <template>
-   <div :class="[showEPSInputs ? 'param-s1-expanded' : 'param-s1']">
+   <div :class="[showEPSInputsModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div>
               <div
@@ -22,12 +22,12 @@
                 </svg>
               </div>
               <label style="float:right" class="switch">
-                <input type="checkbox" id="price-check" v-model="showEPSInputs" style="border: none;">
+                <input type="checkbox" id="price-check" v-model="showEPSInputsModel" style="border: none;">
                 <span class="slider round"></span>
               </label>
             </div>
           </div>
-          <div style="border: none;" v-if="showEPSInputs">
+          <div style="border: none;" v-if="showEPSInputsModel">
             <div class="row">
               <input class="left input" id="left-eps" type="text" placeholder="min" aria-label="Minimum EPS">
               <input class="right input" id="right-eps" type="text" placeholder="max" aria-label="Maximum EPS">
@@ -48,7 +48,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showEPSInputs = false" aria-label="Reset EPS filter">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showEPSInputs', false)" aria-label="Reset EPS filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -66,9 +66,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showEPSInputs']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -77,14 +77,14 @@ function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
-const props = defineProps({
-  user: { type: String, required: true },
-  apiKey: { type: String, required: true },
-  selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
-});
+const props = defineProps<{
+  user: string;
+  apiKey: string;
+  selectedScreener: string;
+  isScreenerError: boolean;
+  showEPSInputs: boolean;
+}>();
 
-let showEPSInputs = ref(false);
 const isLoading = ref(false);
 const error = ref('');
 
@@ -93,6 +93,7 @@ function showNotification(msg: string) {
 }
 
 // adds and modifies EPS value for screener 
+
 async function SetEPS() {
   error.value = '';
   if (!props.selectedScreener) {
@@ -107,17 +108,25 @@ async function SetEPS() {
     showNotification(error.value);
     return;
   }
-  const leftPrice = parseFloat(leftInput.value);
-  const rightPrice = parseFloat(rightInput.value);
-  if (isNaN(leftPrice) || isNaN(rightPrice)) {
-    error.value = 'Please enter valid numbers';
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftEPS = leftValue === '' ? null : parseFloat(leftValue);
+  const rightEPS = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftEPS === null && rightEPS === null) ||
+      (leftEPS !== null && isNaN(leftEPS) && rightEPS !== null && isNaN(rightEPS))) {
+    error.value = 'Please enter at least one valid number';
     showNotification(error.value);
     return;
   }
-  if (leftPrice >= rightPrice) {
-    error.value = 'Min cannot be higher than or equal to max';
-    showNotification(error.value);
-    return;
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftEPS !== null && !isNaN(leftEPS) && rightEPS !== null && !isNaN(rightEPS)) {
+    if (leftEPS >= rightEPS) {
+      error.value = 'Min EPS cannot be higher than or equal to max EPS';
+      showNotification(error.value);
+      return;
+    }
   }
   isLoading.value = true;
   try {
@@ -128,8 +137,8 @@ async function SetEPS() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
+        minPrice: leftEPS,
+        maxPrice: rightEPS,
         screenerName: props.selectedScreener,
         user: props.user
       })
@@ -147,6 +156,12 @@ async function SetEPS() {
     isLoading.value = false;
   }
 }
+
+// Computed getter/setter for v-model
+const showEPSInputsModel = computed({
+  get: () => props.showEPSInputs,
+  set: (val: boolean) => emit('update:showEPSInputs', val)
+});
 
 </script>
 

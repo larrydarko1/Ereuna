@@ -1,11 +1,11 @@
 <template>
-   <div :class="[showRSI ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showRSIModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>RSI (Relative Strength Index)</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                aria-label="RSI Info" @mouseover="handleMouseOver($event, 'rsi')" @mouseout="handleMouseOut">
+                aria-label="RSI Info" @mouseover="handleMouseOver($event, 'rsi')" @mouseout="handleMouseOut($event)">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                 <g id="SVGRepo_iconCarrier">
@@ -20,11 +20,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="rsi-check" v-model="showRSI" style="border: none;">
+              <input type="checkbox" id="rsi-check" v-model="showRSIModel" style="border: none;">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showRSI">
+          <div style="border: none;" v-if="showRSIModel">
             <div class="row">
               <input class="left input" id="left-rsi" type="number" placeholder="min" min="1" max="100" aria-label="RSI Min">
               <input class="right input" id="right-rsi" type="number" placeholder="max" min="1" max="100" aria-label="RSI Max">
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showRSI = false" aria-label="Reset RSI">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showRSI', false)" aria-label="Reset RSI">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -60,12 +60,13 @@
             </div>
           </div>
         </div>
+
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showRSI']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -75,46 +76,69 @@ function handleMouseOut(event: MouseEvent) {
   emit('handleMouseOut', event);
 }
 
-const props = defineProps<{
-  user: string;
-  apiKey: string;
-  notification: { message?: string; type?: string };
-  selectedScreener: string;
-  isScreenerError: boolean;
-}>();
+const props = defineProps({
+  user: { type: String, required: true },
+  apiKey: { type: String, required: true },
+  selectedScreener: { type: String, required: true },
+  isScreenerError: { type: Boolean, required: true },
+  showRSI: { type: Boolean, required: true }
+});
 
-let showRSI = ref(false);
+const error = ref('');
+const isLoading = ref(false);
 
+function showNotification(msg: string) {
+  emit('notify', msg);
+}
+
+// Computed getter/setter for v-model
+const showRSIModel = computed({
+  get: () => props.showRSI,
+  set: (val: boolean) => emit('update:showRSI', val)
+});
+
+// add and or modifies RSI value and sends it
 async function SetRSI() {
-  try {
-    if (!props.selectedScreener) {
-      emit('notify', { message: 'Please select a screener', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-
-    const leftInput = document.getElementById('left-rsi') as HTMLInputElement | null;
-    const rightInput = document.getElementById('right-rsi') as HTMLInputElement | null;
-    if (!leftInput || !rightInput) {
-      emit('notify', { message: 'Input elements not found', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-    const leftRSI = parseFloat(leftInput.value);
-    const rightRSI = parseFloat(rightInput.value);
-
-    if (isNaN(leftRSI) || isNaN(rightRSI)) {
-      emit('notify', { message: 'Please enter valid numbers', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-
+  error.value = '';
+  if (!props.selectedScreener) {
+    emit('reset');
+    error.value = 'Please select a screener';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftInput = document.getElementById('left-rsi') as HTMLInputElement | null;
+  const rightInput = document.getElementById('right-rsi') as HTMLInputElement | null;
+  if (!leftInput || !rightInput) {
+    error.value = 'Input elements not found';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftRSI = leftValue === '' ? null : parseFloat(leftValue);
+  const rightRSI = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftRSI === null && rightRSI === null) ||
+      (leftRSI !== null && isNaN(leftRSI) && rightRSI !== null && isNaN(rightRSI))) {
+    error.value = 'Please enter at least one valid number';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftRSI !== null && !isNaN(leftRSI) && rightRSI !== null && !isNaN(rightRSI)) {
     if (leftRSI >= rightRSI) {
-      emit('notify', { message: 'Min cannot be higher than or equal to max', type: 'error' });
+      error.value = 'Min RSI cannot be higher than or equal to max RSI';
+      showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;
     }
-
+  }
+  isLoading.value = true;
+  try {
     const response = await fetch('/api/screener/rsi', {
       method: 'PATCH',
       headers: {
@@ -128,21 +152,17 @@ async function SetRSI() {
         user: props.user
       })
     });
-
-    if (response.status === 200) {
-      emit('fetchScreeners', props.selectedScreener);
-    } else {
+    if (response.status !== 200) {
       const data = await response.json();
-      emit('notify', { message: data?.message || `Error: ${response.status} ${response.statusText}`, type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
+      throw new Error(data.message || `Error: ${response.status} ${response.statusText}`);
     }
-  } catch (error: unknown) {
-    let message = 'Unknown error';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    emit('notify', { message, type: 'error' });
     emit('fetchScreeners', props.selectedScreener);
+  } catch (err) {
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+  } finally {
+    isLoading.value = false;
   }
 }
 

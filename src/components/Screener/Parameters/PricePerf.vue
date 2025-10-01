@@ -1,5 +1,5 @@
 <template>
-  <div :class="[showPricePerf ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showPricePerfModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -20,11 +20,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPricePerf" style="border: none;" aria-label="Toggle Price Performance">
+              <input type="checkbox" id="price-check" v-model="showPricePerfModel" style="border: none;" aria-label="Toggle Price Performance">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showPricePerf">
+          <div style="border: none;" v-if="showPricePerfModel">
             <div class="DataInputs11">
               <p style="text-align: center;">Change %</p>
               <div style="display: flex; justify-content: center; align-items: center; border: none;">
@@ -150,7 +150,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showPricePerf = false" aria-label="Reset Price Performance">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showPricePerf', false)" aria-label="Reset Price Performance">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -168,9 +168,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', "notify"]);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showPricePerf']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -186,9 +186,14 @@ const props = defineProps<{
   notification: { message?: string; type?: string };
   selectedScreener: string;
   isScreenerError: boolean;
+  showPricePerf: boolean;
 }>();
 
-let showPricePerf = ref(false);
+// Computed getter/setter for v-model
+const showPricePerfModel = computed({
+  get: () => props.showPricePerf,
+  set: (val: boolean) => emit('update:showPricePerf', val)
+});
 const changepercOptions = ref([
   '-',
   '1D',
@@ -322,13 +327,67 @@ async function SetPricePerformance() {
       emit('fetchScreeners', props.selectedScreener);
       return;
     }
-    const changeperc1 = parseFloat(changeperc1Input.value) / 100;
-    const changeperc2 = parseFloat(changeperc2Input.value) / 100;
+    // Validate min/max pairs: change %, 52w high, 52w low
+    const pairs = [
+      {
+        min: changeperc1Input.value,
+        max: changeperc2Input.value,
+        label: 'Change %',
+        transform: (v: string) => v.trim() === '' ? null : parseFloat(v) / 100
+      },
+      {
+        min: weekhigh1Input.value,
+        max: weekhigh2Input.value,
+        label: '% off 52weekhigh',
+        transform: (v: string) => v.trim() === '' ? null : parseFloat(v)
+      },
+      {
+        min: weeklow1Input.value,
+        max: weeklow2Input.value,
+        label: '% off 52weeklow',
+        transform: (v: string) => v.trim() === '' ? null : parseFloat(v)
+      }
+    ];
+    let hasAnyValue = false;
+    for (const pair of pairs) {
+      const minVal = pair.transform(pair.min);
+      const maxVal = pair.transform(pair.max);
+      // If both missing, skip this pair
+      if (minVal === null && maxVal === null) {
+        continue;
+      }
+      // If both present and valid, check order
+      if (minVal !== null && !isNaN(minVal) && maxVal !== null && !isNaN(maxVal)) {
+        if (minVal >= maxVal) {
+          emit('notify', { message: `Min cannot be higher than or equal to max for ${pair.label}`, type: 'error' });
+          emit('fetchScreeners', props.selectedScreener);
+          return;
+        }
+      }
+      // If at least one value is valid, mark as having a value
+      if ((minVal !== null && !isNaN(minVal)) || (maxVal !== null && !isNaN(maxVal))) {
+        hasAnyValue = true;
+      } else {
+        // If both are present but both invalid, error for this pair
+        emit('notify', { message: `Please enter at least one valid number for ${pair.label}`, type: 'error' });
+        emit('fetchScreeners', props.selectedScreener);
+        return;
+      }
+    }
+    // If no value in any pair, error
+    if (!hasAnyValue) {
+      emit('notify', { message: 'Please enter at least one valid value in any field.', type: 'error' });
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
+    // Prepare values for request
+    const changeperc1 = pairs[0].transform(pairs[0].min);
+    const changeperc2 = pairs[0].transform(pairs[0].max);
+    const weekhigh1 = pairs[1].transform(pairs[1].min);
+    const weekhigh2 = pairs[1].transform(pairs[1].max);
+    const weeklow1 = pairs[2].transform(pairs[2].min);
+    const weeklow2 = pairs[2].transform(pairs[2].max);
     const changepercselect = changepercSelect.value;
-    const weekhigh1 = parseFloat(weekhigh1Input.value);
-    const weekhigh2 = parseFloat(weekhigh2Input.value);
-    const weeklow1 = parseFloat(weeklow1Input.value);
-    const weeklow2 = parseFloat(weeklow2Input.value);
     const alltimehigh = allTimeHigh.value ? 'yes' : 'no';
     const alltimelow = allTimeLow.value ? 'yes' : 'no';
     const ma200 = ma200Select.value;

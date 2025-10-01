@@ -108,19 +108,27 @@ async function SetPrice() {
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  const leftPrice = parseFloat(leftInput.value);
-  const rightPrice = parseFloat(rightInput.value);
-  if (isNaN(leftPrice) || isNaN(rightPrice)) {
-    error.value = 'Please enter valid numbers';
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftPrice = leftValue === '' ? null : parseFloat(leftValue);
+  const rightPrice = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftPrice === null && rightPrice === null) ||
+      (leftPrice !== null && isNaN(leftPrice) && rightPrice !== null && isNaN(rightPrice))) {
+    error.value = 'Please enter at least one valid number';
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  if (leftPrice >= rightPrice) {
-    error.value = 'Min price cannot be higher than or equal to max price';
-    showNotification(error.value);
-    emit('fetchScreeners', props.selectedScreener);
-    return;
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftPrice !== null && !isNaN(leftPrice) && rightPrice !== null && !isNaN(rightPrice)) {
+    if (leftPrice >= rightPrice) {
+      error.value = 'Min price cannot be higher than or equal to max price';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
   }
   isLoading.value = true;
   try {

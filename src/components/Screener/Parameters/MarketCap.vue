@@ -1,5 +1,5 @@
 <template>
-   <div :class="[showMarketCapInputs ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showMarketCapInputsModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -20,11 +20,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showMarketCapInputs" aria-label="Toggle Market Cap filter">
+              <input type="checkbox" v-model="showMarketCapInputsModel" aria-label="Toggle Market Cap filter">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showMarketCapInputs">
+          <div style="border: none;" v-if="showMarketCapInputsModel">
             <div class="row">
               <input class="left input" id="left-mc" type="text" placeholder="min" aria-label="Market Cap minimum">
               <input class="right input" id="right-mc" type="text" placeholder="max" aria-label="Market Cap maximum">
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showMarketCapInputs = false" aria-label="Reset Market Cap filter">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showMarketCapInputs', false)" aria-label="Reset Market Cap filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -63,9 +63,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showMarketCapInputs']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -78,16 +78,22 @@ const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
   selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
-})
+  isScreenerError: { type: Boolean, required: true },
+  showMarketCapInputs: { type: Boolean, required: true }
+});
 
-let showMarketCapInputs = ref(false);
 const error = ref('');
 const isLoading = ref(false);
 
 function showNotification(msg: string) {
   emit('notify', msg);
 }
+
+// Computed getter/setter for v-model
+const showMarketCapInputsModel = computed({
+  get: () => props.showMarketCapInputs,
+  set: (val: boolean) => emit('update:showMarketCapInputs', val)
+});
 
 // add and or modifies market cap value and sends it
 async function SetMarketCap() {
@@ -107,19 +113,27 @@ async function SetMarketCap() {
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  const leftPrice = parseFloat(leftInput.value);
-  const rightPrice = parseFloat(rightInput.value);
-  if (isNaN(leftPrice) || isNaN(rightPrice)) {
-    error.value = 'Please enter valid numbers';
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftPrice = leftValue === '' ? null : parseFloat(leftValue);
+  const rightPrice = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftPrice === null && rightPrice === null) ||
+      (leftPrice !== null && isNaN(leftPrice) && rightPrice !== null && isNaN(rightPrice))) {
+    error.value = 'Please enter at least one valid number';
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  if (leftPrice >= rightPrice) {
-    error.value = 'Min price cannot be higher than or equal to max price';
-    showNotification(error.value);
-    emit('fetchScreeners', props.selectedScreener);
-    return;
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftPrice !== null && !isNaN(leftPrice) && rightPrice !== null && !isNaN(rightPrice)) {
+    if (leftPrice >= rightPrice) {
+      error.value = 'Min market cap cannot be higher than or equal to max market cap';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
   }
   isLoading.value = true;
   try {

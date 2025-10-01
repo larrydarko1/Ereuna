@@ -1,7 +1,7 @@
 <template>
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
-      <button class="close-x" @click="close" aria-label="Close">&times;</button>
+  <button class="close-x" @click="close" aria-label="Close Edit Columns Modal">&times;</button>
       <h2>Edit Columns</h2>
       <div class="attribute-section">
         <div class="available-attributes">
@@ -11,8 +11,9 @@
               v-for="attr in attributes"
               :key="attr.value"
               class="chip"
-          :class="{ selected: localSelected.includes(attr.value) }"
-          @click="addAttribute(attr.value)"
+              :class="{ selected: localSelected.includes(attr.value) }"
+              @click="addAttribute(attr.value)"
+              :aria-label="`Add ${attr.label} column`"
             >
               {{ attr.label }}
             </div>
@@ -28,17 +29,17 @@
               class="selected-chip"
             >
               <span>{{ getLabel(attrValue) }}</span>
-              <button class="move-btn" @click="moveUp(idx)" :disabled="idx === 0" title="Move Up">▲</button>
-              <button class="move-btn" @click="moveDown(idx)" :disabled="idx === localSelected.length - 1" title="Move Down">▼</button>
-              <button class="remove-btn" @click="removeAttribute(attrValue)" title="Remove">✕</button>
+              <button class="move-btn" @click="moveUp(idx)" :disabled="idx === 0" title="Move Up" :aria-label="`Move ${getLabel(attrValue)} up`">▲</button>
+              <button class="move-btn" @click="moveDown(idx)" :disabled="idx === localSelected.length - 1" title="Move Down" :aria-label="`Move ${getLabel(attrValue)} down`">▼</button>
+              <button class="remove-btn" @click="removeAttribute(attrValue)" title="Remove" :aria-label="`Remove ${getLabel(attrValue)} column`">✕</button>
             </div>
           </div>
         </div>
       </div>
       <div class="modal-actions">
-        <button type="button" class="trade-btn" @click="submitEditColumn">Save</button>
-        <button type="button" class="reset-btn" @click="resetColumns">Reset</button>
-        <button type="button" class="cancel-btn" @click="close">Cancel</button>
+  <button type="button" class="trade-btn" @click="submitEditColumn" aria-label="Save selected columns">Save</button>
+  <button type="button" class="reset-btn" @click="resetColumns" aria-label="Reset selected columns">Reset</button>
+  <button type="button" class="cancel-btn" @click="close" aria-label="Cancel editing columns">Cancel</button>
       </div>
     </div>
   </div>
@@ -47,9 +48,13 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 
+// Use popup notification pattern
+function notify(message: string) {
+  emit('notify', message);
+}
+
 // Define component props
 const props = defineProps({
-  notification: { type: Object, required: true },
   showEditColumn: { type: Object, required: true },
   error: { type: Object, required: false },
   user: { type: String, required: true },
@@ -57,8 +62,8 @@ const props = defineProps({
   selectedAttributes: { type: Array, required: true },
 })
 
-// Emit events for closing the modal, updating columns, and reloading data
-const emit = defineEmits(['close', 'insert', 'update-columns', 'reload-columns'])
+// Emit events for closing the modal, updating columns, reloading data, and showing notifications
+const emit = defineEmits(['close', 'insert', 'update-columns', 'reload-columns', 'notify'])
 
 // Define available attributes for the screener
 const attributes = [
@@ -156,7 +161,7 @@ function getLabel(attrValue: string): string {
 // Submit the selected columns to the server
 async function submitEditColumn() {
   if (localSelected.value.length === 0) {
-    props.notification.value.show('Please select at least one column');
+    notify('Please select at least one column');
     return;
   }
   // Send PATCH request to update columns
@@ -183,7 +188,7 @@ async function submitEditColumn() {
       emit('reload-columns');
       emit('close');
     } else {
-      props.notification.value.show(responseData.message || 'Failed to update columns');
+      notify(responseData.message || 'Failed to update columns');
     }
   } catch (err) {
     let errorMsg = 'Unknown error';
@@ -192,15 +197,14 @@ async function submitEditColumn() {
     } else if (typeof err === 'string') {
       errorMsg = err;
     }
-    if (props.error) props.error.value = errorMsg;
-    props.notification.value.show(errorMsg);
+  if (props.error) props.error.value = errorMsg;
+  notify(errorMsg);
   }
 }
 
 // Reset selected columns and persist to backend
 async function resetColumns() {
   localSelected.value = [];
-  // Optionally, call submitEditColumn() here if you want to auto-save
 }
 </script>
 

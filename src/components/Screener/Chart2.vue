@@ -10,7 +10,6 @@
 </template>
 
 <script setup lang="ts">
-
 import Loader from '@/components/loader.vue';
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { createChart, ColorType } from 'lightweight-charts';

@@ -1,11 +1,11 @@
 <template>
-    <div :class="[showCurrentDebt ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showCurrentDebtModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Current Debt (1000s)</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'current-debt')" @mouseout="handleMouseOut"
+                @mouseover="handleMouseOver($event, 'current-debt')" @mouseout="handleMouseOut($event)"
                 aria-label="Info: Current Debt parameter">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -21,11 +21,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showCurrentDebt" aria-label="Toggle Current Debt filter">
+              <input type="checkbox" v-model="showCurrentDebtModel" aria-label="Toggle Current Debt filter">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showCurrentDebt">
+          <div style="border: none;" v-if="showCurrentDebtModel">
             <div class="row">
               <input class="left input" id="left-cd" type="text" placeholder="min" aria-label="Minimum Current Debt">
               <input class="right input" id="right-cd" type="text" placeholder="max" aria-label="Maximum Current Debt">
@@ -46,7 +46,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showCurrentDebt = false" aria-label="Reset Current Debt filter">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showCurrentDebt', false)" aria-label="Reset Current Debt filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -61,13 +61,13 @@
             </div>
           </div>
         </div>
+
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
-
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showCurrentDebt']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -80,23 +80,31 @@ const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
   selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
+  isScreenerError: { type: Boolean, required: true },
+  showCurrentDebt: { type: Boolean, required: true }
 });
 
-let showCurrentDebt = ref(false);
-const isLoading = ref(false);
 const error = ref('');
+const isLoading = ref(false);
 
 function showNotification(msg: string) {
   emit('notify', msg);
 }
 
-// updates screener value with Current Debt parameters
+// Computed getter/setter for v-model
+const showCurrentDebtModel = computed({
+  get: () => props.showCurrentDebt,
+  set: (val: boolean) => emit('update:showCurrentDebt', val)
+});
+
+// add and or modifies current debt value and sends it
 async function SetCurrentDebt() {
   error.value = '';
   if (!props.selectedScreener) {
+    emit('reset');
     error.value = 'Please select a screener';
     showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
     return;
   }
   const leftInput = document.getElementById('left-cd') as HTMLInputElement | null;
@@ -104,19 +112,30 @@ async function SetCurrentDebt() {
   if (!leftInput || !rightInput) {
     error.value = 'Input elements not found';
     showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  const leftCurrentDebt = parseFloat(leftInput.value);
-  const rightCurrentDebt = parseFloat(rightInput.value);
-  if (isNaN(leftCurrentDebt) || isNaN(rightCurrentDebt)) {
-    error.value = 'Please enter valid numbers';
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftDebt = leftValue === '' ? null : parseFloat(leftValue);
+  const rightDebt = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftDebt === null && rightDebt === null) ||
+      (leftDebt !== null && isNaN(leftDebt) && rightDebt !== null && isNaN(rightDebt))) {
+    error.value = 'Please enter at least one valid number';
     showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  if (leftCurrentDebt >= rightCurrentDebt) {
-    error.value = 'Min cannot be higher than or equal to max';
-    showNotification(error.value);
-    return;
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftDebt !== null && !isNaN(leftDebt) && rightDebt !== null && !isNaN(rightDebt)) {
+    if (leftDebt >= rightDebt) {
+      error.value = 'Min current debt cannot be higher than or equal to max current debt';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
   }
   isLoading.value = true;
   try {
@@ -127,8 +146,8 @@ async function SetCurrentDebt() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        minPrice: leftCurrentDebt,
-        maxPrice: rightCurrentDebt,
+        minPrice: leftDebt,
+        maxPrice: rightDebt,
         screenerName: props.selectedScreener,
         user: props.user
       })

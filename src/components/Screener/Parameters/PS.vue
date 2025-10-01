@@ -1,5 +1,5 @@
 <template>
-  <div :class="[showPSInputs ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showPSInputsModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -20,11 +20,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPSInputs" style="border: none;">
+              <input type="checkbox" id="price-check" v-model="showPSInputsModel" style="border: none;">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showPSInputs">
+          <div style="border: none;" v-if="showPSInputsModel">
             <div class="row">
               <input class="left input" id="left-ps" type="text" placeholder="min" aria-label="PS Ratio Min">
               <input class="right input" id="right-ps" type="text" placeholder="max" aria-label="PS Ratio Max">
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showPSInputs = false" aria-label="Reset PS Ratio">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showPSInputs', false)" aria-label="Reset PS Ratio">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -63,9 +63,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showPSInputs']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -81,41 +81,59 @@ const props = defineProps<{
   notification: { message?: string; type?: string };
   selectedScreener: string;
   isScreenerError: boolean;
+  showPSInputs: boolean;
 }>();
 
-let showPSInputs = ref(false);
+const error = ref('');
+const isLoading = ref(false);
+
+function showNotification(msg: string) {
+  emit('notify', { message: msg, type: 'error' });
+}
 
 // adds and modifies PS Ratio value for screener 
+
 async function SetPSRatio() {
+  error.value = '';
+  if (!props.selectedScreener) {
+    emit('reset');
+    error.value = 'Please select a screener';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftInput = document.getElementById('left-ps') as HTMLInputElement | null;
+  const rightInput = document.getElementById('right-ps') as HTMLInputElement | null;
+  if (!leftInput || !rightInput) {
+    error.value = 'Input elements not found';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftPS = leftValue === '' ? null : parseFloat(leftValue);
+  const rightPS = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftPS === null && rightPS === null) ||
+      (leftPS !== null && isNaN(leftPS) && rightPS !== null && isNaN(rightPS))) {
+    error.value = 'Please enter at least one valid number';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+    return;
+  }
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftPS !== null && !isNaN(leftPS) && rightPS !== null && !isNaN(rightPS)) {
+    if (leftPS >= rightPS) {
+      error.value = 'Min PS cannot be higher than or equal to max PS';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
+  }
+  isLoading.value = true;
   try {
-    if (!props.selectedScreener) {
-      emit('notify', { message: 'Please select a screener', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-
-    const leftInput = document.getElementById('left-ps') as HTMLInputElement | null;
-    const rightInput = document.getElementById('right-ps') as HTMLInputElement | null;
-    if (!leftInput || !rightInput) {
-      emit('notify', { message: 'Input elements not found', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-    const leftPrice = parseFloat(leftInput.value);
-    const rightPrice = parseFloat(rightInput.value);
-
-    if (isNaN(leftPrice) || isNaN(rightPrice)) {
-      emit('notify', { message: 'Please enter valid numbers', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-
-    if (leftPrice >= rightPrice) {
-      emit('notify', { message: 'Min cannot be higher than or equal to max', type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
-      return;
-    }
-
     const response = await fetch('/api/screener/ps-ratio', {
       method: 'PATCH',
       headers: {
@@ -123,29 +141,31 @@ async function SetPSRatio() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        minPrice: leftPrice,
-        maxPrice: rightPrice,
+        minPrice: leftPS,
+        maxPrice: rightPS,
         screenerName: props.selectedScreener,
         user: props.user
       })
     });
-
-    if (response.status === 200) {
-      emit('fetchScreeners', props.selectedScreener);
-    } else {
+    if (response.status !== 200) {
       const data = await response.json();
-      emit('notify', { message: data?.message || `Error: ${response.status} ${response.statusText}`, type: 'error' });
-      emit('fetchScreeners', props.selectedScreener);
+      throw new Error(data.message || `Error: ${response.status} ${response.statusText}`);
     }
-  } catch (error: unknown) {
-    let message = 'Unknown error';
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    emit('notify', { message, type: 'error' });
     emit('fetchScreeners', props.selectedScreener);
+  } catch (err) {
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error';
+    showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
+  } finally {
+    isLoading.value = false;
   }
 }
+
+// Computed getter/setter for v-model
+const showPSInputsModel = computed({
+  get: () => props.showPSInputs,
+  set: (val: boolean) => emit('update:showPSInputs', val)
+});
 
 </script>
 

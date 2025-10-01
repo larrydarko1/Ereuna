@@ -1,5 +1,5 @@
 <template>
-    <div :class="[showIntrinsicValue ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showIntrinsicValueModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
@@ -20,11 +20,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" v-model="showIntrinsicValue" aria-label="Toggle Intrinsic Value filter">
+              <input type="checkbox" v-model="showIntrinsicValueModel" aria-label="Toggle Intrinsic Value filter">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showIntrinsicValue">
+          <div style="border: none;" v-if="showIntrinsicValueModel">
             <div class="row">
               <input class="left input" id="left-iv" type="text" placeholder="min" aria-label="Intrinsic Value minimum">
               <input class="right input" id="right-iv" type="text" placeholder="max" aria-label="Intrinsic Value maximum">
@@ -45,7 +45,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showIntrinsicValue = false" aria-label="Reset Intrinsic Value filter">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showIntrinsicValue', false)" aria-label="Reset Intrinsic Value filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -63,9 +63,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showIntrinsicValue']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -78,11 +78,15 @@ const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
   selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
-})
+  isScreenerError: { type: Boolean, required: true },
+  showIntrinsicValue: { type: Boolean, required: true }
+});
 
-
-let showIntrinsicValue = ref(false);
+// Computed getter/setter for v-model
+const showIntrinsicValueModel = computed({
+  get: () => props.showIntrinsicValue,
+  set: (val: boolean) => emit('update:showIntrinsicValue', val)
+});
 const error = ref('');
 const isLoading = ref(false);
 
@@ -90,6 +94,7 @@ function showNotification(msg: string) {
   emit('notify', msg);
 }
 
+// add and or modifies intrinsic value and sends it
 async function SetIntrinsicValue() {
   error.value = '';
   if (!props.selectedScreener) {
@@ -107,19 +112,27 @@ async function SetIntrinsicValue() {
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  const leftIntrinsicValue = parseFloat(leftInput.value);
-  const rightIntrinsicValue = parseFloat(rightInput.value);
-  if (isNaN(leftIntrinsicValue) || isNaN(rightIntrinsicValue)) {
-    error.value = 'Please enter valid numbers';
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftIntrinsicValue = leftValue === '' ? null : parseFloat(leftValue);
+  const rightIntrinsicValue = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftIntrinsicValue === null && rightIntrinsicValue === null) ||
+      (leftIntrinsicValue !== null && isNaN(leftIntrinsicValue) && rightIntrinsicValue !== null && isNaN(rightIntrinsicValue))) {
+    error.value = 'Please enter at least one valid number';
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  if (leftIntrinsicValue >= rightIntrinsicValue) {
-    error.value = 'Min cannot be higher than or equal to max';
-    showNotification(error.value);
-    emit('fetchScreeners', props.selectedScreener);
-    return;
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftIntrinsicValue !== null && !isNaN(leftIntrinsicValue) && rightIntrinsicValue !== null && !isNaN(rightIntrinsicValue)) {
+    if (leftIntrinsicValue >= rightIntrinsicValue) {
+      error.value = 'Min value cannot be higher than or equal to max value';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
   }
   isLoading.value = true;
   try {

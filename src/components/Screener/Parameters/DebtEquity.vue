@@ -1,11 +1,11 @@
 <template>
-   <div :class="[showDebtToEquityRatio ? 'param-s1-expanded' : 'param-s1']">
+  <div :class="[showDebtToEquityRatioModel ? 'param-s1-expanded' : 'param-s1']">
           <div class="row">
             <div
               style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
               <p>Debt to Equity Ratio</p>
               <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'debt-equity')" @mouseout="handleMouseOut"
+                @mouseover="handleMouseOver($event, 'debt-equity')" @mouseout="handleMouseOut($event)"
                 aria-label="Info: Debt to Equity Ratio parameter">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -21,11 +21,11 @@
               </svg>
             </div>
             <label style="float:right" class="switch">
-              <input type="checkbox" id="debt-to-equity-check" v-model="showDebtToEquityRatio" style="border: none;">
+              <input type="checkbox" id="debt-to-equity-check" v-model="showDebtToEquityRatioModel" style="border: none;">
               <span class="slider round"></span>
             </label>
           </div>
-          <div style="border: none;" v-if="showDebtToEquityRatio">
+          <div style="border: none;" v-if="showDebtToEquityRatioModel">
             <div class="row">
               <input class="left input" id="left-der" type="text" placeholder="min" aria-label="Minimum Debt to Equity Ratio">
               <input class="right input" id="right-der" type="text" placeholder="max" aria-label="Maximum Debt to Equity Ratio">
@@ -46,7 +46,7 @@
                   </g>
                 </svg>
               </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), showDebtToEquityRatio = false" aria-label="Reset Debt to Equity Ratio filter">
+              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showDebtToEquityRatio', false)" aria-label="Reset Debt to Equity Ratio filter">
                 <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
                   transform="rotate(90)">
                   <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -61,12 +61,14 @@
             </div>
           </div>
         </div>
+
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
-const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify']);
+const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showDebtToEquityRatio']);
+
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
 }
@@ -79,23 +81,31 @@ const props = defineProps({
   user: { type: String, required: true },
   apiKey: { type: String, required: true },
   selectedScreener: { type: String, required: true },
-  isScreenerError: { type: Boolean, required: true }
+  isScreenerError: { type: Boolean, required: true },
+  showDebtToEquityRatio: { type: Boolean, required: true }
 });
 
-let showDebtToEquityRatio = ref(false);
-const isLoading = ref(false);
 const error = ref('');
+const isLoading = ref(false);
 
 function showNotification(msg: string) {
   emit('notify', msg);
 }
 
+// Computed getter/setter for v-model
+const showDebtToEquityRatioModel = computed({
+  get: () => props.showDebtToEquityRatio,
+  set: (val: boolean) => emit('update:showDebtToEquityRatio', val)
+});
+
 // updates screener value with Debt to Equity Ratio parameters
 async function SetDebtToEquityRatio() {
   error.value = '';
   if (!props.selectedScreener) {
+    emit('reset');
     error.value = 'Please select a screener';
     showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
     return;
   }
   const leftInput = document.getElementById('left-der') as HTMLInputElement | null;
@@ -103,19 +113,30 @@ async function SetDebtToEquityRatio() {
   if (!leftInput || !rightInput) {
     error.value = 'Input elements not found';
     showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  const leftDebtToEquityRatio = parseFloat(leftInput.value);
-  const rightDebtToEquityRatio = parseFloat(rightInput.value);
-  if (isNaN(leftDebtToEquityRatio) || isNaN(rightDebtToEquityRatio)) {
-    error.value = 'Please enter valid numbers';
+  const leftValue = leftInput.value.trim();
+  const rightValue = rightInput.value.trim();
+  const leftRatio = leftValue === '' ? null : parseFloat(leftValue);
+  const rightRatio = rightValue === '' ? null : parseFloat(rightValue);
+  // If both missing or both invalid, error
+  if ((leftRatio === null && rightRatio === null) ||
+      (leftRatio !== null && isNaN(leftRatio) && rightRatio !== null && isNaN(rightRatio))) {
+    error.value = 'Please enter at least one valid number';
     showNotification(error.value);
+    emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  if (leftDebtToEquityRatio >= rightDebtToEquityRatio) {
-    error.value = 'Min cannot be higher than or equal to max';
-    showNotification(error.value);
-    return;
+  // If only one is present, allow it (backend will fill missing)
+  // If both are present, validate order
+  if (leftRatio !== null && !isNaN(leftRatio) && rightRatio !== null && !isNaN(rightRatio)) {
+    if (leftRatio >= rightRatio) {
+      error.value = 'Min debt to equity ratio cannot be higher than or equal to max debt to equity ratio';
+      showNotification(error.value);
+      emit('fetchScreeners', props.selectedScreener);
+      return;
+    }
   }
   isLoading.value = true;
   try {
@@ -126,8 +147,8 @@ async function SetDebtToEquityRatio() {
         'X-API-KEY': props.apiKey,
       },
       body: JSON.stringify({
-        minPrice: leftDebtToEquityRatio,
-        maxPrice: rightDebtToEquityRatio,
+        minPrice: leftRatio,
+        maxPrice: rightRatio,
         screenerName: props.selectedScreener,
         user: props.user
       })

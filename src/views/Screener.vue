@@ -67,7 +67,7 @@
     <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
   </div>
 </div>
-          <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning === true }"
+          <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning }"
             @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Results" aria-label="Autoplay results">
             <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
   <path fill="var(--text1)" fill-rule="evenodd"
@@ -90,17 +90,25 @@
 </svg>
             <label class=btnlabel>Multi-Screener</label>
           </button>
-          <button @click="DownloadResults" class="snavbtn" v-b-tooltip.hover
-            title="Download Results" aria-label="Download results">
-           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path
-    d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15"
-    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path
-    d="M12 3V16M12 16L16 11.625M12 16L8 11.625"
-    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-            <label class=btnlabel>Download Results</label></button>
+         <button @click="DownloadResults" class="snavbtn" v-b-tooltip.hover
+  title="Download Results" aria-label="Download results"
+  :disabled="downloadLoading">
+  <label class="btn-content-row">
+    <label v-if="downloadLoading" class="loader4">
+      <svg class="spinner" viewBox="0 0 50 50">
+        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
+      </svg>
+    </label>
+    <label v-if="!downloadLoading">
+      <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 3V16M12 16L16 11.625M12 16L8 11.625" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <label class=btnlabel>Download Results</label>
+    </label>
+    <label class=btnlabel v-else style="margin-left: 8px;">Downloading...</label>
+  </label>
+</button>
         </div>
    </div>
     <div id="main2">
@@ -550,6 +558,7 @@
           :isScreenerError="isScreenerError"
           @reset="Reset('IV')"
           @notify="showNotification($event)"
+          v-model:showIntrinsicValue="showIntrinsicValue"
         />
         <div class="results"></div>
       </div>
@@ -561,8 +570,8 @@
   :notification="notification"
   :GetScreeners="GetScreeners"
   :GetCompoundedResults="GetCompoundedResults"
-  :showCreateScreener="{ value: showCreateScreener }"
-  @close="handleCreateScreenerClose"
+  :showCreateScreener="showCreateScreener"
+  @close=" GetScreeners(); GetCompoundedResults(true); showCreateScreener = false;"
   @notify="showNotification($event)"
 />
       <RenameScreener
@@ -572,7 +581,7 @@
   :notification="notification"
   :currentName="selectedScreener"
   :GetScreeners="GetScreeners"
-  @close="handleRenameScreenerClose"
+  @close="selectedScreener = screenerName; GetScreeners(); GetCompoundedResults(true); showRenameScreener = false;"
   @notify="showNotification($event)"
 />
 <EditColumn
@@ -620,7 +629,7 @@
     <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
   </div>
 </div>
-          <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning === true }"
+          <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning }"
             @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Results">
             <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
   <path fill="var(--text1)" fill-rule="evenodd"
@@ -836,7 +845,7 @@ const showBookValue = ref(false);
 const showEV = ref(false);
 const showRSI = ref(false);
 const showGap = ref(false);
-const selectedItem = ref<string | null>(null);
+const showIntrinsicValue = ref(false);
 
 // for popup notifications
 const notification = ref<Record<string, any>>({});
@@ -1101,7 +1110,26 @@ const handleScroll4 = (event: Event): void => {
 };
 
 // related to retrieving user default symbol and updating it 
-let defaultSymbol = localStorage.getItem('defaultSymbol');
+let defaultSymbol = ref(localStorage.getItem('defaultSymbol') || '');
+const selectedItem = ref(defaultSymbol.value);
+
+async function fetchUserDefaultSymbol() {
+  try {
+    if (!user.value?.Username) {
+      return null;
+    }
+    const response = await fetch(`/api/${user.value.Username}/default-symbol`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      },
+    });
+    if (!response.ok) throw new Error('Failed to fetch default symbol');
+    const data = await response.json();
+    return data.defaultSymbol;
+  } catch (error) {
+    return null;
+  }
+}
 
 async function updateUserDefaultSymbol(symbol: string): Promise<void> {
   try {
@@ -1127,8 +1155,27 @@ async function updateUserDefaultSymbol(symbol: string): Promise<void> {
 }
 
 onMounted(async () => {
-  selectedSymbol.value = defaultSymbol ?? '';
-  selectedItem.value = defaultSymbol ?? null;
+  // Try to load user if not present
+  if (!user.value || !user.value.Username) {
+    if (userStore.loadUserFromToken) {
+      userStore.loadUserFromToken();
+    }
+  }
+  // Wait for user to be loaded
+  await nextTick();
+  if (!user.value || !user.value.Username) {
+    return;
+  }
+  // Remove and fetch default symbol
+  localStorage.removeItem('defaultSymbol');
+  const symbol = await fetchUserDefaultSymbol();
+  if (symbol) {
+    defaultSymbol.value = symbol;
+    selectedItem.value = symbol;
+    localStorage.setItem('defaultSymbol', symbol);
+  }
+  selectedSymbol.value = defaultSymbol.value || '';
+  selectedItem.value = defaultSymbol.value || '';
   getWatchlists();
 });
 
@@ -1141,9 +1188,10 @@ const listMode = ref('main');
 
 //selected item a displays charts 
 async function setCharts(symbol: string): Promise<void> {
-  defaultSymbol = symbol;
+  defaultSymbol.value = symbol;
   selectedSymbol.value = symbol ?? '';
-  selectedItem.value = symbol ?? null;
+  selectedItem.value = symbol ?? '';
+  localStorage.setItem('defaultSymbol', symbol);
   await updateUserDefaultSymbol(symbol);
 }
 
@@ -1346,6 +1394,9 @@ async function hideStock(asset: any) {
     if (listMode.value === 'filter') {
       await fetchScreenerResults(selectedScreener.value);
       await showFilterResults();
+        // Remove hidden asset from filterResults immediately for reactivity
+        filterResults.value = filterResults.value.filter(s => !s.hidden && s.Symbol !== asset.Symbol);
+        currentList.value = [...filterResults.value];
     } else if (listMode.value === 'combined') {
       await show1CombinedResults();
       showCombinedResults()
@@ -1451,7 +1502,7 @@ async function ShowStock(asset: Record<string, any>): Promise<void> {
     }
   } finally {
     await GetScreenerResultsAll(true);
-  await fetchScreenerResults("true");
+    await fetchScreenerResults(selectedScreener.value);
     await GetCompoundedResults(true);
     await GetHiddenResults(true);
     await show1HiddenResults(); // important that it stays last!!! updates the counter dynamically
@@ -1741,7 +1792,6 @@ async function CurrentScreener(): Promise<void> {
 // function that resets screener values (all of them)
 async function ResetScreener(): Promise<void> {
   const Name = selectedScreener.value;
-
   try {
     const response = await fetch(`/api/screener/reset/${user.value?.Username ?? ''}/${Name}`, {
       method: 'PATCH',
@@ -1754,19 +1804,24 @@ async function ResetScreener(): Promise<void> {
         Name
       })
     });
-
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const jsonData = await response.json();
-    await fetchScreenerResults(selectedScreener.value);
+    await response.json();
+    // Immediately update the UI to show the selected screener, blank/reset
+  await CurrentScreener(); // update all UI fields for the selected screener
+  await fetchScreenerResults(selectedScreener.value); // update results for the selected screener
+  await showMainResults(); // ensure we stay on the main list for the selected screener
+  await handleFetchScreeners(selectedScreener.value); // always refresh the filter list too
   } catch (error) {
     if (error instanceof Error) {
       errorMessage.value = error.message;
     } else {
       errorMessage.value = String(error);
     }
+    await CurrentScreener();
     await fetchScreenerResults(selectedScreener.value);
+    await showMainResults();
   }
 }
 
@@ -1836,7 +1891,8 @@ async function Reset(value: string): Promise<void> {
       throw new Error(`Error: ${response.status} ${response.statusText}`);
 
     }
-    await fetchScreenerResults(selectedScreener.value);
+  await fetchScreenerResults(selectedScreener.value);
+  await handleFetchScreeners(selectedScreener.value); // always refresh the filter list too
   } catch (error) {
     if (error instanceof Error) {
       errorMessage.value = error.message;
@@ -1987,6 +2043,7 @@ async function getWatchlists(): Promise<void> {
 }
 
 type CheckboxEvent = { target: { checked: boolean } };
+
 async function addtoWatchlist(ticker: string, symbol: string, $event: Event | CheckboxEvent): Promise<void> {
   const isChecked = ($event as CheckboxEvent).target.checked;
   const isAdding = isChecked;
@@ -2324,56 +2381,80 @@ function arrayToCSV(data: Record<string, any>[]) {
   return csvRows.join('\n');
 }
 
-function DownloadResults() {
+const downloadLoading = ref(false);
+
+async function DownloadResults() {
+  downloadLoading.value = true;
   let data = [];
   let filename = 'results.csv';
+  let endpoint = '';
+  const pageLimit = 500;
+  const username = user.value?.Username ?? '';
+  let totalPages = 1;
+  let page = 1;
 
-  switch (listMode.value) {
-    case 'main':
-      data = screenerResults.value;
-      filename = 'main_results.csv';
-      break;
-    case 'filter':
-      data = filterResults.value;
-      filename = 'filter_results.csv';
-      break;
-    case 'hidden':
-      data = HiddenResults.value;
-      filename = 'hidden_results.csv';
-      break;
-    case 'combined':
-      data = compoundedResults.value;
-      filename = 'combined_results.csv';
-      break;
-      return;
+  try {
+    let allResults: Record<string, any>[] = [];
+    switch (listMode.value) {
+      case 'main':
+        endpoint = `/api/${username}/screener/results/all`;
+        filename = 'main_results.csv';
+        break;
+      case 'filter': {
+        const screenerName = selectedScreener.value;
+        if (!screenerName) throw new Error('No screener selected for filter download');
+        endpoint = `/api/screener/${username}/results/filtered/${screenerName}`;
+        filename = 'filter_results.csv';
+        break;
+      }
+      case 'hidden':
+        endpoint = `/api/${username}/screener/results/hidden`;
+        filename = 'hidden_results.csv';
+        break;
+      case 'combined':
+        endpoint = `/api/screener/${username}/all`;
+        filename = 'combined_results.csv';
+        break;
+      default:
+        downloadLoading.value = false;
+        return;
+    }
+
+    do {
+      const params = { page: String(page), limit: String(pageLimit) };
+      const url = endpoint + '?' + new URLSearchParams(params).toString();
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': apiKey,
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch full results');
+      const result = await response.json();
+      const pageResults = Array.isArray(result) ? result : result.data ?? [];
+      allResults = allResults.concat(pageResults);
+      totalPages = result.totalPages || (pageResults.length < pageLimit ? page : page + 1);
+      page++;
+    } while (page <= totalPages);
+    data = allResults;
+  } catch (error) {
+    notification.value.show('Download failed: ' + (typeof error === 'object' && error !== null && 'message' in error ? error.message : String(error)));
+    downloadLoading.value = false;
+    return;
   }
 
   const csv = arrayToCSV(data);
-
-  // Create a blob and trigger download
   const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-
+  const downloadUrl = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
+  a.href = downloadUrl;
   a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-async function handleCreateScreenerClose() {
-  await GetScreeners();
-  await GetCompoundedResults(true);
-  showCreateScreener.value = false;
-}
-
-async function handleRenameScreenerClose() {
-  selectedScreener.value = screenerName.value;
-      await GetScreeners();
-      await GetCompoundedResults(true);
-      showRenameScreener.value = false;
+  URL.revokeObjectURL(downloadUrl);
+  downloadLoading.value = false;
 }
 
 const showResetDialog = ref(false);
@@ -2426,7 +2507,14 @@ onMounted(() => {
 });
 
 async function handleFetchScreeners(val: string) {
+  // Clear previous results
+  filterResults.value = [];
+  filterPage.value = 1;
+  filterTotalPages.value = 1;
+  filterTotalCount.value = 0;
+  lastLoadedScreener.value = val;
   await fetchScreenerResults(val);
+  await showFilterResults();
 }
 
 // Show Selector only when not on mobile charts
@@ -2719,9 +2807,7 @@ p {
   width: 160px;
   outline: none;
   color: var(--base3);
-  /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s;
-  /* Smooth transition for focus effects */
   border: solid 1px var(--base4);
   background-color: var(--base4);
 }
@@ -2729,17 +2815,13 @@ p {
 .RenameScreener input:focus,
 .CreateScreener input:focus {
   border-color: var(--accent1);
-  /* Change border color on focus */
   box-shadow: 0 0 5px rgba(var(--accent3), 0.5);
-  /* Subtle shadow effect */
   outline: none;
-  /* Remove default outline */
 }
 
 .CreateScreener input.input-error,
 .RenameScreener input.input-error {
   border: solid 1px red !important;
-  /* Use !important to ensure it takes precedence */
 }
 
 .inner {
@@ -2763,6 +2845,47 @@ p {
   margin: 2px;
   border: none;
   opacity: 0.60;
+}
+
+.loader4 {
+  display: inline-block;
+  vertical-align: middle;
+  width: 15px;
+  height: 15px;
+  margin-right: 8px;
+}
+
+.spinner {
+  animation: rotate 1s linear infinite;
+  width: 15px;
+  height: 15px;
+}
+
+.path {
+  stroke: var(--text1, #333);
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
 }
 
 .inner button:hover {
@@ -3003,34 +3126,26 @@ p {
 
 .custom-checkbox.checked {
   color: var(--text1);
-  /* Change text color when checked */
   opacity: 1;
 }
 
 .checkmark {
   width: 8px;
-  /* Smaller width */
   height: 8px;
-  /* Smaller height */
   background-color: var(--text1);
   border-radius: 50%;
-  /* Make it circular */
   margin-right: 5px;
   display: inline-block;
   transition: background-color 0.3s, border-color 0.3s;
-  /* Add transition for border color */
 }
 
 .custom-checkbox.checked .checkmark {
   background-color: var(--accent1);
-  /* Change to your desired color */
   border-color: var(--accent1);
-  /* Change to your desired border color */
 }
 
 .custom-checkbox.checked {
   color: var(--text1);
-  /* Change text color when checked */
 }
 
 .select-container__no-screeners {
@@ -3046,18 +3161,14 @@ p {
   width: 160px;
   outline: none;
   color: var(--text1);
-  /* Dark text color */
   transition: border-color 0.3s, box-shadow 0.3s;
-  /* Smooth transition for focus effects */
   border: solid 1px var(--base4);
   background-color: var(--base4);
 }
 
 .input:focus {
   border-color: var(--accent1);
-  /* Change border color on focus */
   outline: none;
-  /* Remove default outline */
 }
 
 .select-container {
@@ -3148,11 +3259,12 @@ input[type="date"] {
 
 .reset-modal .trade-btn {
   background: var(--accent1);
-  color: var(--text1);
+  color: var(--text3);
+  cursor: pointer;
 }
 .reset-modal .trade-btn:hover {
   background: var(--accent2);
-  color: #fff;
+  color: var(--text3);
 }
 
 .wlist-container {
@@ -3185,7 +3297,7 @@ input[type="date"] {
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  z-index: 10000;
   width: 200px;
 }
 
