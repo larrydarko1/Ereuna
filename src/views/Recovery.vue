@@ -45,7 +45,7 @@
         <input
           id="newPasswordInput"
           required
-          type="password"
+          :type="showNewPassword ? 'text' : 'password'"
           :class="newPasswordError ? 'error' : ''"
           v-model="newPassword"
           autocomplete="off"
@@ -56,13 +56,22 @@
           aria-describedby="newPasswordError ? 'newPasswordErrorMsg' : null"
         />
         <label :for="'newPasswordInput'" :class="newPasswordError ? 'error' : ''" class="password-label">New Password</label>
+        <button
+          type="button"
+          class="toggle-password"
+          @click="showNewPassword = !showNewPassword"
+          :aria-pressed="showNewPassword ? 'true' : 'false'"
+          aria-label="Toggle new password visibility"
+        >
+          <img :src="showNewPassword ? hideIcon : showIcon" alt="Toggle Password Visibility" class="toggle-icon" />
+        </button>
         <span v-if="newPasswordError" id="newPasswordErrorMsg" class="sr-only">Invalid password</span>
       </div>
       <div class="input-group">
         <input
           id="confirmPasswordInput"
           required
-          type="password"
+          :type="showConfirmPassword ? 'text' : 'password'"
           :class="confirmPasswordError ? 'error' : ''"
           v-model="confirmPassword"
           autocomplete="off"
@@ -73,6 +82,15 @@
           aria-describedby="confirmPasswordError ? 'confirmPasswordErrorMsg' : null"
         />
         <label :for="'confirmPasswordInput'" :class="confirmPasswordError ? 'error' : ''" class="password-label">Confirm Password</label>
+        <button
+          type="button"
+          class="toggle-password"
+          @click="showConfirmPassword = !showConfirmPassword"
+          :aria-pressed="showConfirmPassword ? 'true' : 'false'"
+          aria-label="Toggle confirm password visibility"
+        >
+          <img :src="showConfirmPassword ? hideIcon : showIcon" alt="Toggle Password Visibility" class="toggle-icon" />
+        </button>
         <span v-if="confirmPasswordError" id="confirmPasswordErrorMsg" class="sr-only">Passwords do not match</span>
       </div>
       <button class="userbtn" @click="changePassword" :disabled="loading">
@@ -105,6 +123,8 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import NotificationPopup from '@/components/NotificationPopup.vue';
+import hideIcon from '@/assets/icons/hide.png';
+import showIcon from '@/assets/icons/show.png';
 
 const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
 const recoveryKey = ref<string>('');
@@ -117,6 +137,10 @@ const confirmPasswordError = ref<boolean>(false);
 const loading = ref<boolean>(false);
 const router = useRouter();
 const apiKey: string = import.meta.env.VITE_EREUNA_KEY;
+
+// Password visibility toggles
+const showNewPassword = ref<boolean>(false);
+const showConfirmPassword = ref<boolean>(false);
 
 function validateRecoveryKeyFormat(key: string): string | null {
   const trimmed = key.trim();
@@ -289,7 +313,7 @@ const changePassword = async (): Promise<void> => {
   transform: translateY(-50%) scale(0.8);
   background-color: $base2;
   padding: 0 0.4em;
-  color: #8c8dfe;
+  color: $accent1;
 }
 
 .input:valid + .recovery-label,
@@ -297,7 +321,7 @@ const changePassword = async (): Promise<void> => {
   transform: translateY(-50%) scale(0.8);
   background-color: $base2;
   padding: 0 0.4em;
-  color: #8c8dfe;
+  color: $accent1;
 }
 
 .userbtn {
@@ -318,7 +342,6 @@ const changePassword = async (): Promise<void> => {
   width: 400px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 16px;
   font-weight: bold;
 }
 
@@ -336,6 +359,23 @@ const changePassword = async (): Promise<void> => {
   justify-content: center;
   width: 300px;
   margin: 10px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toggle-icon {
+  width: 28px;
+  height: auto;
+  opacity: 0.7;
 }
 
 .sr-only {

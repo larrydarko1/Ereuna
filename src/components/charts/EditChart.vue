@@ -100,6 +100,7 @@ const props = defineProps<{
   apiKey: string;
   user: string;
   indicatorList: Indicator[];
+  intrinsicVisible?: boolean;
 }>()
 
 const indicators = ref<Indicator[]>(
@@ -114,7 +115,13 @@ function toggleIndicatorVisibility(idx: number) {
   indicators.value[idx].visible = !indicators.value[idx].visible
 }
 
-const showIntrinsicValue = ref<boolean>(true)
+// Initialize intrinsic visibility from the incoming prop so the checkbox
+// visually matches the current chart setting (keeps CSS reactive)
+const showIntrinsicValue = ref<boolean>(props.intrinsicVisible ?? true)
+// Keep local ref in sync if parent updates the prop
+watch(() => props.intrinsicVisible, (v) => {
+  showIntrinsicValue.value = v ?? false
+}, { immediate: true })
 const dropdownOpen = ref<number | null>(null)
 
 function toggleDropdown(idx: number) {

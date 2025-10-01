@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:ShowAssetType']);
 
@@ -91,7 +91,8 @@ const props = defineProps({
   apiKey: { type: String, required: true },
   selectedScreener: { type: String, required: true },
   isScreenerError: { type: Boolean, required: true },
-  ShowAssetType: { type: Boolean, required: true }
+  ShowAssetType: { type: Boolean, required: true },
+  initialSelected: { type: Array as () => string[], required: false, default: () => [] }
 });
 
 const ShowAssetTypeModel = computed({
@@ -101,6 +102,19 @@ const ShowAssetTypeModel = computed({
 
 const AssetTypes = (['Stock', 'ETF']); 
 const selectedAssetTypes = ref<boolean[]>([]);
+// ensure array has the same length as AssetTypes so index access is defined
+selectedAssetTypes.value = new Array(AssetTypes.length).fill(false);
+
+// apply initial selected asset types from parent screener (also react to changes)
+watch(() => props.initialSelected, (val: string[] | undefined) => {
+  if (!val || !Array.isArray(val) || val.length === 0) {
+    // keep default false array
+    return;
+  }
+  // Normalize values to handle case/format differences between saved screener and component list
+  const normalizedIncoming = val.map(v => (v ?? '').toString().trim().toLowerCase());
+  selectedAssetTypes.value = AssetTypes.map(a => normalizedIncoming.includes(a.toString().trim().toLowerCase()));
+}, { immediate: true });
 
 const toggleAssetType = (index: number) => {
   selectedAssetTypes.value[index] = !selectedAssetTypes.value[index]; 

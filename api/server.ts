@@ -12,7 +12,7 @@ import path from 'path';
 import rateLimit from 'express-rate-limit';
 import logger, { handleError } from './utils/logger.js';
 import https from 'https';
-import { validate, validationSchemas, validationSets, body, sanitizeInput, query } from './utils/validationUtils.js';
+import { validate, validationSchemas, validationSets, body, sanitizeInput, query, sanitizeUsername, sanitizeUsernameCanonical } from './utils/validationUtils.js';
 
 dotenv.config();
 
@@ -137,7 +137,7 @@ import Maintenance from './routes/Maintenance.js';
 import Portfolio from './routes/Portfolio.js';
 import Dashboard from './routes/Dashboard.js';
 
-Users(app, { validate, validationSchemas, sanitizeInput, logger, crypto, MongoClient, uri, argon2, jwt, config });
+Users(app, { validate, validationSchemas, sanitizeInput, sanitizeUsername, sanitizeUsernameCanonical, logger, crypto, MongoClient, uri, argon2, jwt, config });
 Notes(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri });
 Charts(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri });
 Watchlists(app, { validate, validationSchemas, validationSets, body, sanitizeInput, logger, MongoClient, uri });

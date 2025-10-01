@@ -681,6 +681,31 @@ const sanitizeInput = (input: string): string => {
     return validator.trim(validator.escape(input));
 };
 
+// Targeted sanitizers
+// Username sanitizer: trims and removes disallowed characters (keeps letters, numbers, underscore)
+const sanitizeUsername = (input: string): string => {
+    if (typeof input !== 'string') return '';
+    const trimmed = validator.trim(input);
+    return trimmed.replace(/[^a-zA-Z0-9_]/g, '');
+};
+
+// Canonical username: lowercase version for DB lookups/uniqueness
+const sanitizeUsernameCanonical = (input: string): string => {
+    return sanitizeUsername(input).toLowerCase();
+};
+
+// Symbol sanitizer (tickers): trim, uppercase, remove invalid chars (allow dot)
+const sanitizeSymbol = (input: string): string => {
+    if (typeof input !== 'string') return '';
+    return validator.trim(input).toUpperCase().replace(/[^A-Z0-9.]/g, '');
+};
+
+// Text without HTML-escaping (store raw, escape on output if needed)
+const sanitizeTextNoEscape = (input: string): string => {
+    if (typeof input !== 'string') return '';
+    return validator.trim(input);
+};
+
 // Validation for /signup-paywall endpoint (A/B paywall signup)
 const signupPaywall = [
     validationSchemas.username(),
@@ -798,6 +823,10 @@ export {
     validationResult,
     validator,
     sanitizeInput,
+    sanitizeUsername,
+    sanitizeUsernameCanonical,
+    sanitizeSymbol,
+    sanitizeTextNoEscape,
     param,
     query
 };

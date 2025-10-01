@@ -68,7 +68,7 @@
                 <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="ml-watchlist-item">
                   <label :for="'watchlist-' + index" class="ml-checkbox-label">
                     <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
-                      <div v-html="getWatchlistIcon(ticker, asset.Symbol)"></div>
+                      <div v-html="getWatchlistIcon(ticker.Name ?? ticker, asset.Symbol)"></div>
                     </div>
                     <span></span>
                     {{ ticker.Name }}
@@ -131,7 +131,8 @@ function hideStock(asset: Asset) {
 }
 
 function toggleWatchlist(ticker: any, symbol: string) {
-  emit('toggle-watchlist', { ticker, symbol });
+  const name = typeof ticker === 'string' ? ticker : ticker?.Name ?? String(ticker);
+  emit('toggle-watchlist', { tickerName: name, symbol });
 }
 
 const attributes = [

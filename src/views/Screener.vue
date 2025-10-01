@@ -169,6 +169,7 @@
   @reset="Reset('AssetType')"
   @notify="showNotification($event)"
   v-model:ShowAssetType="ShowAssetType"
+  :initialSelected="initialAssetTypes"
        />
        <Sector 
   :user="user?.Username ?? ''"
@@ -182,6 +183,7 @@
   @reset="Reset('Sector')"
   @notify="showNotification($event)"
   v-model:ShowSector="ShowSector"
+    :initialSelected="initialSectors"
        />
        <Exchange
   :user="user?.Username ?? ''"
@@ -195,6 +197,7 @@
   @reset="Reset('Exchange')"
   @notify="showNotification($event)"
   v-model:ShowExchange="ShowExchange"
+    :initialSelected="initialExchanges"
        />
        <Country
   :user="user?.Username ?? ''"
@@ -208,6 +211,7 @@
   @reset="Reset('Country')"
   @notify="showNotification($event)"
   v-model:ShowCountry="ShowCountry"
+    :initialSelected="initialCountries"
        />
        <PE
   :user="user?.Username ?? ''"
@@ -312,6 +316,7 @@
   @reset="Reset('PricePerformance')"
   @notify="showNotification($event)"
   v-model:showPricePerf="showPricePerf"
+    :initialSettings="initialPricePerfSettings"
        />
        <RSscore
   :user="user?.Username ?? ''"
@@ -661,7 +666,7 @@
   @keydown="handleKeydown"
   @select-row="selectRow"
   @hide-stock="hideStock"
-  @toggle-watchlist="({ ticker, symbol }) => toggleWatchlist(ticker, symbol)"
+  @toggle-watchlist="({ tickerName, symbol }) => toggleWatchlist(tickerName, symbol)"
 />
               </div>
               <div v-else-if="listMode === 'filter'">
@@ -675,7 +680,7 @@
     @keydown="handleKeydown"
     @select-row="selectRow"
     @hide-stock="hideStock"
-    @toggle-watchlist="({ ticker, symbol }) => toggleWatchlist(ticker, symbol)"
+    @toggle-watchlist="({ tickerName, symbol }) => toggleWatchlist(tickerName, symbol)"
   />
                     </div>
                     <div v-else-if="listMode === 'hidden'">
@@ -689,7 +694,7 @@
                         @keydown="handleKeydown"
                         @select-row="selectRow"
                         @show-stock="ShowStock"
-                        @toggle-watchlist="({ ticker, symbol }) => toggleWatchlist(ticker, symbol)"
+                        @toggle-watchlist="({ tickerName, symbol }) => toggleWatchlist(tickerName, symbol)"
                       />
                           </div>
                           <div v-else-if="listMode === 'combined'">
@@ -703,7 +708,7 @@
                               @keydown="handleKeydown"
                               @select-row="selectRow"
                               @hide-stock="hideStock"
-                              @toggle-watchlist="({ ticker, symbol }) => toggleWatchlist(ticker, symbol)"
+                              @toggle-watchlist="({ tickerName, symbol }) => toggleWatchlist(tickerName, symbol)"
                             />
                           </div>
                               </div>
@@ -815,6 +820,12 @@ const showMarketCapInputs = ref(false);
 const showIPOInputs = ref(false);
 const ShowSector = ref(false);
 const ShowAssetType = ref(false);
+// initial selections coming from loaded screener
+const initialAssetTypes = ref<string[]>([]);
+const initialSectors = ref<string[]>([]);
+const initialExchanges = ref<string[]>([]);
+const initialCountries = ref<string[]>([]);
+const initialPricePerfSettings = ref<Record<string, any> | undefined>(undefined);
 const ShowExchange = ref(false);
 const ShowCountry = ref(false);
 const showPEInputs = ref(false);
@@ -861,22 +872,23 @@ function getScreenerImage(screenerName: string) {
   return `/images/screeners/${encodeURIComponent(screenerName)}.png`;
 }
 
-function getWatchlistIcon(ticker: string, item: any) {
-  return isAssetInWatchlist(ticker, item)
+function getWatchlistIcon(ticker: any, item: any): string {
+  const watchlistName = typeof ticker === 'string' ? ticker : ticker?.Name ?? String(ticker);
+  return isAssetInWatchlist(watchlistName, item)
     ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><g id="Interface / Checkbox_Check"><path id="Vector" d="M8 12L11 15L16 9M4 16.8002V7.2002C4 6.08009 4 5.51962 4.21799 5.0918C4.40973 4.71547 4.71547 4.40973 5.0918 4.21799C5.51962 4 6.08009 4 7.2002 4H16.8002C17.9203 4 18.4796 4 18.9074 4.21799C19.2837 4.40973 19.5905 4.71547 19.7822 5.0918C20 5.5192 20 6.07899 20 7.19691V16.8036C20 17.9215 20 18.4805 19.7822 18.9079C19.5905 19.2842 19.2837 19.5905 18.9074 19.7822C18.48 20 17.921 20 16.8031 20H7.19691C6.07899 20 5.5192 20 5.0918 19.7822C4.71547 19.5905 4.40973 19.2842 4.21799 18.9079C4 18.4801 4 17.9203 4 16.8002Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></g></g></svg>'
     : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><g id="Interface / Checkbox_Unchecked"><path id="Vector" d="M4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2842 19.7822 18.9079C20 18.4805 20 17.9215 20 16.8036V7.19691C20 6.07899 20 5.5192 19.7822 5.0918C19.5905 4.71547 19.2837 4.40973 18.9074 4.21799C18.4796 4 17.9203 4 16.8002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002Z" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></g></g></svg>';
 }
 
 // for handling dropdown menu
-const toggleWatchlist = async (ticker: string, symbol: string) => {
-  const isCurrentlyInWatchlist = isAssetInWatchlist(ticker, symbol);
+type WatchlistType = string | { Name: string };
+
+const toggleWatchlist = async (ticker: WatchlistType, symbol: string) => {
+  const watchlistName = typeof ticker === 'string' ? ticker : ticker?.Name ?? String(ticker);
+  const isCurrentlyInWatchlist = isAssetInWatchlist(watchlistName, symbol);
   // Simulate a checkbox event with a custom type
   const simulatedEvent: CheckboxEvent = { target: { checked: !isCurrentlyInWatchlist } };
-  await addtoWatchlist(ticker, symbol, simulatedEvent);
-  updateCheckbox(ticker, symbol, simulatedEvent);
-  if (user.value && user.value.Username) {
-    await getFullWatchlists(user.value.Username);
-  }
+  // Use the unified updateCheckbox which will call addtoWatchlist and refresh the lists.
+  await updateCheckbox(ticker, symbol, simulatedEvent);
 };
 
 
@@ -1769,17 +1781,13 @@ async function CurrentScreener(): Promise<void> {
   setInputValue('right-rsi', RSI?.[1] ?? '');
   setInputValue('left-gap', Gap?.[0] ?? '');
   setInputValue('right-gap', Gap?.[1] ?? '');
-  const sectorCheckboxes: NodeListOf<HTMLInputElement> = document.querySelectorAll('.check input[type="checkbox"]');
-  sectorCheckboxes.forEach((checkbox: HTMLInputElement) => {
-    checkbox.checked = false;
-  });
-
-  sectorCheckboxes.forEach((checkbox: HTMLInputElement) => {
-    const value: string = checkbox.value;
-    if (sectorsList.includes(value) || exchangesList.includes(value) || AssetTypesList.includes(value) || countriesList.includes(value)) {
-      checkbox.checked = true;
-    }
-  });
+  // provide the child components with the lists of initially selected values so they update reactively
+  initialSectors.value = Array.isArray(sectorsList) ? sectorsList : [];
+  initialExchanges.value = Array.isArray(exchangesList) ? exchangesList : [];
+  initialAssetTypes.value = Array.isArray(AssetTypesList) ? AssetTypesList : [];
+  initialCountries.value = Array.isArray(countriesList) ? countriesList : [];
+  // Price performance settings object passed to PricePerf to set its internal inputs and toggles
+  initialPricePerfSettings.value = screenerSettings;
   } catch (error) {
     if (error instanceof Error) {
       errorMessage.value = error.message;
@@ -2044,9 +2052,11 @@ async function getWatchlists(): Promise<void> {
 
 type CheckboxEvent = { target: { checked: boolean } };
 
-async function addtoWatchlist(ticker: string, symbol: string, $event: Event | CheckboxEvent): Promise<void> {
+async function addtoWatchlist(ticker: any, symbol: string, $event: Event | CheckboxEvent): Promise<void> {
   const isChecked = ($event as CheckboxEvent).target.checked;
   const isAdding = isChecked;
+  // Accept ticker as object or string
+  const watchlistName = typeof ticker === 'string' ? ticker : ticker?.Name ?? String(ticker);
 
   try {
     const response = await fetch(`/api/watchlist/addticker/${isAdding ? 'true' : 'false'}`, {
@@ -2056,11 +2066,11 @@ async function addtoWatchlist(ticker: string, symbol: string, $event: Event | Ch
         'X-API-KEY': apiKey,
       },
       body: JSON.stringify({
-        watchlistName: ticker,
+        watchlistName: watchlistName,
         symbol: symbol,
         user: user.value?.Username ?? ''
       }),
-    })
+    });
 
     if (response.status === 400) {
       const errorResponse = await response.json();
@@ -2069,10 +2079,11 @@ async function addtoWatchlist(ticker: string, symbol: string, $event: Event | Ch
     }
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const result = await response.json()
+    // We don't strictly need the response body here, but await for completeness
+    await response.json();
 
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -2087,36 +2098,54 @@ const checkedWatchlists = ref<Record<string, string[]>>({});
 
 watch(() => watchlist.tickers, (newTickers: Array<{ Name: string }>) => {
   newTickers.forEach((ticker) => {
-    checkedWatchlists.value[ticker.Name] = [];
+    const name = typeof ticker === 'string' ? ticker : ticker?.Name ?? String(ticker);
+    checkedWatchlists.value[name] = [];
   });
 });
 
-const updateCheckbox = (ticker: any, symbol: string, $event: Event | CheckboxEvent): void => {
+const updateCheckbox = async (ticker: any, symbol: string, $event: Event | CheckboxEvent): Promise<void> => {
   const isChecked = ($event as CheckboxEvent).target.checked;
+  const name = typeof ticker === 'string' ? ticker : ticker?.Name ?? String(ticker);
+  if (!checkedWatchlists.value[name]) checkedWatchlists.value[name] = [];
   if (isChecked) {
-    checkedWatchlists.value[ticker.Name].push(symbol);
+    if (!checkedWatchlists.value[name].includes(symbol)) {
+      checkedWatchlists.value[name].push(symbol);
+    }
   } else {
-    checkedWatchlists.value[ticker.Name] = checkedWatchlists.value[ticker.Name].filter((s: string) => s !== symbol);
+    checkedWatchlists.value[name] = checkedWatchlists.value[name].filter((s: string) => s !== symbol);
   }
-  addtoWatchlist(ticker, symbol, $event);
-    if (user.value && user.value.Username) {
-          getFullWatchlists(user.value.Username);
-        }
-  isAssetInWatchlist(ticker, symbol);
+  await addtoWatchlist(ticker, symbol, $event as CheckboxEvent);
+  if (user.value && user.value.Username) {
+    await getFullWatchlists(user.value.Username);
+  }
 };
 
 const FullWatchlists = ref([]);
 
-async function getFullWatchlists(user: any): Promise<void> {
-  const response = await fetch(`/api/${user.value?.Username ?? ''}/full-watchlists`, {
-    headers: {
-      'X-API-KEY': apiKey,
+// Fetch full watchlists for a username (username is string)
+async function getFullWatchlists(username: string): Promise<void> {
+  try {
+    if (!username) return;
+    const response = await fetch(`/api/${username}/full-watchlists`, {
+      headers: {
+        'X-API-KEY': apiKey,
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  })
-  FullWatchlists.value = await response.json()
+    FullWatchlists.value = await response.json();
+  } catch (err) {
+    // Keep existing error handling strategy
+    if (err instanceof Error) {
+      errorMessage.value = err.message;
+    } else {
+      errorMessage.value = String(err);
+    }
+  }
 };
- if (user.value && user.value.Username) {
-getFullWatchlists(user.value.Username);
+if (user.value && user.value.Username) {
+  getFullWatchlists(user.value.Username);
 };
 
 const isAssetInWatchlist = (ticker: string, symbol: string): boolean => {
@@ -2126,11 +2155,15 @@ const isAssetInWatchlist = (ticker: string, symbol: string): boolean => {
     typeof watchlist === 'object' &&
     watchlist !== null &&
     'List' in watchlist &&
-    Array.isArray((watchlist as { List?: string[] }).List)
+    Array.isArray((watchlist as any).List)
   ) {
-    return (watchlist as { List: string[] }).List.includes(symbol);
+    // Support both legacy (array of strings) and new (array of objects with `ticker` prop) shapes
+    return (watchlist as any).List.some((item: any) => {
+      if (typeof item === 'string') return item === symbol;
+      if (item && typeof item === 'object') return item.ticker === symbol || item.ticker === symbol.toUpperCase();
+      return false;
+    });
   }
-
   return false;
 };
 

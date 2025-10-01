@@ -50,22 +50,32 @@
     <p class="receipt-amount" style="flex:1; text-align: center;">{{ (receipt.Amount) / 100 }}€</p>
     <p class="receipt-method" style="flex:1; text-align: center;">{{ formatMethod(receipt.Method) }}</p>
     <p class="receipt-plan" style="flex:1; text-align: center;">{{ formatShortSubscription(receipt.Subscription) }}</p>
-    <div class="download-cell receipt-download"><button class="downloadbtn">
-              <svg class="icon3" viewBox="0 0 24.00 24.00" fill="var(--text3)" xmlns="http://www.w3.org/2000/svg"
-                stroke="var(--text3)" stroke-width="0.696">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12.5535 16.5061C12.4114 16.6615 12.2106 16.75 12 16.75C11.7894 16.75 11.5886 16.6615 11.4465 16.5061L7.44648 12.1311C7.16698 11.8254 7.18822 11.351 7.49392 11.0715C7.79963 10.792 8.27402 10.8132 8.55352 11.1189L11.25 14.0682V3C11.25 2.58579 11.5858 2.25 12 2.25C12.4142 2.25 12.75 2.58579 12.75 3V14.0682L15.4465 11.1189C15.726 10.8132 16.2004 10.792 16.5061 11.0715C16.8118 11.351 16.833 11.8254 16.5535 12.1311L12.5535 16.5061Z"
-                    fill="var(--text3)"></path>
-                  <path
-                    d="M3.75 15C3.75 14.5858 3.41422 14.25 3 14.25C2.58579 14.25 2.25 14.5858 2.25 15V15.0549C2.24998 16.4225 2.24996 17.5248 2.36652 18.3918C2.48754 19.2919 2.74643 20.0497 3.34835 20.6516C3.95027 21.2536 4.70814 21.5125 5.60825 21.6335C6.47522 21.75 7.57754 21.75 8.94513 21.75H15.0549C16.4225 21.75 17.5248 21.75 18.3918 21.6335C19.2919 21.5125 20.0497 21.2536 20.6517 20.6516C21.2536 20.0497 21.5125 19.2919 21.6335 18.3918C21.75 17.5248 21.75 16.4225 21.75 15.0549V15C21.75 14.5858 21.4142 14.25 21 14.25C20.5858 14.25 20.25 14.5858 20.25 15C20.25 16.4354 20.2484 17.4365 20.1469 18.1919C20.0482 18.9257 19.8678 19.3142 19.591 19.591C19.3142 19.8678 18.9257 20.0482 18.1919 20.1469C17.4365 20.2484 16.4354 20.25 15 20.25H9C7.56459 20.25 6.56347 20.2484 5.80812 20.1469C5.07435 20.0482 4.68577 19.8678 4.40901 19.591C4.13225 19.3142 3.9518 18.9257 3.85315 18.1919C3.75159 17.4365 3.75 16.4354 3.75 15Z"
-                    fill="var(--text3)"></path>
-                </g>
-              </svg>
-            </button>
-          </div>
+  <div class="download-cell receipt-download">
+    <button
+      class="downloadbtn"
+      @click="downloadReceipt(receipt)"
+      :aria-label="`Download receipt ${receipt._id}`"
+      :disabled="!!downloading[(receipt as Receipt)._id]"
+    >
+      <template v-if="downloading[(receipt as Receipt)._id]">
+        <span class="loader4" aria-hidden="true">
+          <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
+          </svg>
+        </span>
+      </template>
+      <template v-else>
+        <svg class="icon3" viewBox="0 0 24.00 24.00" fill="var(--text3)" xmlns="http://www.w3.org/2000/svg" stroke="var(--text3)" stroke-width="0.696">
+          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+          <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+          <g id="SVGRepo_iconCarrier">
+            <path d="M12.5535 16.5061C12.4114 16.6615 12.2106 16.75 12 16.75C11.7894 16.75 11.5886 16.6615 11.4465 16.5061L7.44648 12.1311C7.16698 11.8254 7.18822 11.351 7.49392 11.0715C7.79963 10.792 8.27402 10.8132 8.55352 11.1189L11.25 14.0682V3C11.25 2.58579 11.5858 2.25 12 2.25C12.4142 2.25 12.75 2.58579 12.75 3V14.0682L15.4465 11.1189C15.726 10.8132 16.2004 10.792 16.5061 11.0715C16.8118 11.351 16.833 11.8254 16.5535 12.1311L12.5535 16.5061Z" fill="var(--text3)"/>
+            <path d="M3.75 15C3.75 14.5858 3.41422 14.25 3 14.25C2.58579 14.25 2.25 14.5858 2.25 15V15.0549C2.24998 16.4225 2.24996 17.5248 2.36652 18.3918C2.48754 19.2919 2.74643 20.0497 3.34835 20.6516C3.95027 21.2536 4.70814 21.5125 5.60825 21.6335C6.47522 21.75 7.57754 21.75 8.94513 21.75H15.0549C16.4225 21.75 17.5248 21.75 18.3918 21.6335C19.2919 21.5125 20.0497 21.2536 20.6517 20.6516C21.2536 20.0497 21.5125 19.2919 21.6335 18.3918C21.75 17.5248 21.75 16.4225 21.75 15.0549V15C21.75 14.5858 21.4142 14.25 21 14.25C20.5858 14.25 20.25 14.5858 20.25 15C20.25 16.4354 20.2484 17.4365 20.1469 18.1919C20.0482 18.9257 19.8678 19.3142 19.591 19.591C19.3142 19.8678 18.9257 20.0482 18.1919 20.1469C17.4365 20.2484 16.4354 20.25 15 20.25H9C7.56459 20.25 6.56347 20.2484 5.80812 20.1469C5.07435 20.0482 4.68577 19.8678 4.40901 19.591C4.13225 19.3142 3.9518 18.9257 3.85315 18.1919C3.75159 17.4365 3.75 16.4354 3.75 15Z" fill="var(--text3)"/>
+          </g>
+        </svg>
+      </template>
+    </button>
+  </div>
         </div>
       </div>
        <div class="mobile-download-info">
@@ -77,6 +87,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import ereunaLogo from '@/assets/icons/ereuna2.png';
 import RenewPopup from './Renew.vue';
 import RefundPopup from './Refund.vue';
 import NotificationPopup from '@/components/NotificationPopup.vue';
@@ -101,6 +113,8 @@ const error = ref<string | null>(null);
 const showRenew = ref(false);
 const showRefund = ref(false);
 const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
+// Track per-receipt download/loading state to prevent double-clicks
+const downloading = ref<Record<string, boolean>>({});
 
 const props = defineProps({
   user: {
@@ -114,6 +128,12 @@ const props = defineProps({
   formatDate: {
     type: Function,
     required: true
+  }
+  ,
+  // Optional prop to allow callers to set logo width; height will scale
+  logoWidth: {
+    type: Number,
+    required: false
   }
 });
 
@@ -270,6 +290,235 @@ function handleRefundClick() {
     return;
   }
   showRefund.value = true;
+}
+
+// Generate a simple receipt PDF client-side and trigger download
+async function downloadReceipt(receipt: Receipt) {
+  try {
+    // A4 portrait in points (approx 595 x 842)
+    const pageWidth = 595;
+    const pageHeight = 842;
+
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([pageWidth, pageHeight]);
+
+  // Colors (print-friendly: white background, dark text)
+  const accent = rgb(0.2, 0.25, 0.9);
+  const text = rgb(0.07, 0.07, 0.08);
+  const muted = rgb(0.38, 0.42, 0.5);
+  const background = rgb(1, 1, 1);
+
+  // White background for easy printing
+  page.drawRectangle({ x: 0, y: 0, width: pageWidth, height: pageHeight, color: background });
+
+    // Fonts
+      const rAny: any = receipt as any;
+      const id = typeof rAny._id === 'string' ? rAny._id : (rAny._id && (rAny._id.$oid || String(rAny._id))) || String(rAny._id);
+      if (downloading.value[id]) return; // already generating
+      // mark as downloading
+      downloading.value = { ...downloading.value, [id]: true };
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+    // Try to add logo (non-fatal). Compute height from intrinsic image size so
+    // the image keeps its aspect ratio when we specify a target width.
+    try {
+      const logoBuf = await fetch(ereunaLogo).then(r => r.arrayBuffer());
+      const logoImg: any = await pdfDoc.embedPng(logoBuf);
+  // Allow manual width via prop; fallback to 140 if not provided
+  const logoWidth = Number(props.logoWidth ?? 140);
+      // pdf-lib image objects expose width/height; fallback safely if not present
+      const origW = (logoImg && (logoImg.width || (logoImg.scale ? logoImg.scale(1).width : undefined))) as number | undefined;
+      const origH = (logoImg && (logoImg.height || (logoImg.scale ? logoImg.scale(1).height : undefined))) as number | undefined;
+      let logoHeight = 50; // sensible default if we can't read intrinsic size
+      if (origW && origH) {
+        logoHeight = Math.round(origH * (logoWidth / origW));
+      }
+      // Preserve the visual top alignment from the original code. Original used
+      // y: pageHeight - 110 with height 50, so the top was at pageHeight - 60.
+      const logoTop = pageHeight - 60;
+      const logoY = logoTop - logoHeight;
+      page.drawImage(logoImg, { x: 20, y: logoY, width: logoWidth, height: logoHeight });
+    } catch (e) {
+      // ignore image embedding errors (non-fatal)
+    }
+
+    // Seller info (left) and receipt title (right)
+  const sellerName = 'Ereuna';
+  const sellerContact = 'contact@ereuna.io';
+    const sellerAddress = 'Online Service';
+    const sellerVAT = 'N/A';
+
+  // Defensive extraction for IDs: server may return BSON-like objects ({ $oid }) or plain strings
+  const r: any = receipt as any;
+  const receiptId = typeof r._id === 'string' ? r._id : (r._id && (r._id.$oid || String(r._id))) || String(r._id);
+  const userId = r.UserID ? (typeof r.UserID === 'string' ? r.UserID : (r.UserID.$oid || String(r.UserID))) : '';
+
+    // Title block
+    page.drawText(sellerName, { x: 40, y: pageHeight - 140, size: 12, font: fontBold, color: text });
+    page.drawText(sellerContact, { x: 40, y: pageHeight - 156, size: 9, font, color: muted });
+    page.drawText(sellerAddress, { x: 40, y: pageHeight - 170, size: 9, font, color: muted });
+    page.drawText(`VAT: ${sellerVAT}`, { x: 40, y: pageHeight - 184, size: 9, font, color: muted });
+
+    // Right column: Receipt title & meta
+    const d = new Date(receipt.Date);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const dateStr = `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+    // meta-area drawing moved below where tableX/descMaxWidth and wrapText are declared
+
+  // Draw a section separator
+  page.drawLine({ start: { x: 36, y: pageHeight - 196 }, end: { x: pageWidth - 36, y: pageHeight - 196 }, thickness: 0.5, color: muted });
+
+    // Itemised table header
+    const tableX = 40;
+    let tableY = pageHeight - 220;
+    page.drawText('Description', { x: tableX, y: tableY, size: 11, font: fontBold, color: text });
+    page.drawText('Qty', { x: tableX + 300, y: tableY, size: 11, font: fontBold, color: text });
+    page.drawText('Unit Price', { x: tableX + 340, y: tableY, size: 11, font: fontBold, color: text });
+    page.drawText('Total', { x: tableX + 460, y: tableY, size: 11, font: fontBold, color: text });
+
+    tableY -= 18;
+
+    // Utility to convert subscription numeric values to human-friendly labels
+    function subscriptionFullLabel(value: number) {
+      return value === 1 ? '1 Month'
+        : value === 4 ? '4 Months'
+        : value === 6 ? '6 Months'
+        : value === 12 ? '1 Year'
+        : String(value);
+    }
+
+    // Text wrapping helper
+    function wrapText(line: string, fontRef: any, fontSize: number, maxWidth: number) {
+      const words = line.split(' ');
+      const lines: string[] = [];
+      let current = '';
+      for (let i = 0; i < words.length; i++) {
+        const test = current ? current + ' ' + words[i] : words[i];
+        const w = fontRef.widthOfTextAtSize(test, fontSize);
+        if (w > maxWidth && current) {
+          lines.push(current);
+          current = words[i];
+        } else {
+          current = test;
+        }
+      }
+      if (current) lines.push(current);
+      return lines;
+    }
+
+    // Single line item for subscription
+    const description = `Subscription - ${subscriptionFullLabel(Number(receipt.Subscription))}`;
+    const qty = 1;
+    const gross = (Number(receipt.Amount) || 0) / 100; // assume cents
+    const vatRate = (typeof receipt.VAT === 'number') ? receipt.VAT : (typeof receipt.VAT === 'string' ? Number(receipt.VAT) : 0);
+
+    // Assume Amount is gross (paid total). Compute VAT portion and net (safe default)
+    const vatPortion = vatRate > 0 ? (gross * vatRate) / (1 + vatRate) : 0;
+    const net = gross - vatPortion;
+
+    // Wrap description to available width (unit column starts at 300)
+    const descMaxWidth = 300; // space before qty column
+    const descLines = wrapText(description, font, 11, descMaxWidth);
+    let lineY = tableY;
+    for (const ln of descLines) {
+      page.drawText(ln, { x: tableX, y: lineY, size: 11, font, color: muted });
+      lineY -= 14;
+    }
+    // Draw qty/unit/total aligned with first description line
+    page.drawText(String(qty), { x: tableX + 300, y: tableY, size: 11, font, color: muted });
+    page.drawText(`${net.toFixed(2)} €`, { x: tableX + 340, y: tableY, size: 11, font, color: muted });
+    page.drawText(`${gross.toFixed(2)} €`, { x: tableX + 460, y: tableY, size: 11, font, color: muted });
+
+    // Move totals down by number of wrapped lines
+    const wrappedLineCount = Math.max(1, descLines.length);
+
+    // Totals block
+  let totalsY = tableY - 40 - (wrappedLineCount - 1) * 14;
+    page.drawText('Subtotal:', { x: tableX + 340, y: totalsY, size: 11, font, color: muted });
+    page.drawText(`${net.toFixed(2)} €`, { x: tableX + 460, y: totalsY, size: 11, font, color: muted });
+    totalsY -= 16;
+    page.drawText(`VAT (${(vatRate * 100).toFixed(0)}%):`, { x: tableX + 340, y: totalsY, size: 11, font, color: muted });
+    page.drawText(`${vatPortion.toFixed(2)} €`, { x: tableX + 460, y: totalsY, size: 11, font, color: muted });
+    totalsY -= 18;
+    page.drawText('Total Paid:', { x: tableX + 340, y: totalsY, size: 13, font: fontBold, color: text });
+    page.drawText(`${gross.toFixed(2)} €`, { x: tableX + 460, y: totalsY, size: 13, font: fontBold, color: text });
+
+    // Payment details
+    let detailY = totalsY - 40;
+    page.drawText(`Payment method: ${formatMethod(receipt.Method)}`, { x: tableX, y: detailY, size: 10, font, color: muted });
+    detailY -= 14;
+    page.drawText(`Payment intent: ${receipt.PaymentIntentId || '-'}`, { x: tableX, y: detailY, size: 10, font, color: muted });
+    detailY -= 14;
+    page.drawText(`Country: ${receipt.Country || '-'}`, { x: tableX, y: detailY, size: 10, font, color: muted });
+
+    // Compute layout bounds so long IDs don't overflow the page. We'll place metadata in the
+    // central/right area and wrap lines if necessary instead of truncating.
+    const leftColumnEnd = tableX + descMaxWidth; // align with descMaxWidth used above
+    const pageRightMargin = 36;
+    const metaAreaX = leftColumnEnd + 20;
+    const metaAreaWidth = Math.max(120, pageWidth - metaAreaX - pageRightMargin);
+
+    const metaFontSize = 9;
+
+    // Helper to draw wrapped metadata lines in the meta area
+    function drawMetaWrapped(textLine: string, startY: number) {
+      const wrapped = wrapText(textLine, font, metaFontSize, metaAreaWidth);
+      let y = startY;
+      for (const wln of wrapped) {
+        page.drawText(wln, { x: metaAreaX, y, size: metaFontSize, font, color: muted });
+        y -= metaFontSize + 2;
+      }
+      return y; // return last y position (bottom of block)
+    }
+
+  // Draw payment date and long IDs in meta area so they don't overflow the page width
+  page.drawText(`Payment Date: ${dateStr}`, { x: metaAreaX, y: pageHeight - 140, size: metaFontSize, font, color: muted });
+    let metaY = pageHeight - 156;
+    metaY = drawMetaWrapped(`Receipt #: ${receiptId}`, metaY);
+    if (userId) {
+      metaY = drawMetaWrapped(`User ID: ${userId}`, metaY - 6);
+    }
+
+    // Refund instructions and footer (use wrapped lines)
+    const footerY = 80;
+    const footerLines = [
+      'Automatic refunds available within 14 days of purchase. For manual refund requests, provide the Receipt # and Payment Intent ID to support.',
+      'This receipt is proof of payment. For support send an email to contact@ereuna.io. Ereuna is not a financial institution and does not provide financial advice.'
+    ];
+    let fy = footerY + 10;
+    // draw from bottom up to keep spacing consistent
+    for (let i = footerLines.length - 1; i >= 0; i--) {
+      const wrapped = wrapText(footerLines[i], font, 9, pageWidth - 80);
+      for (let j = wrapped.length - 1; j >= 0; j--) {
+        page.drawText(wrapped[j], { x: tableX, y: fy, size: 9, font, color: muted });
+        fy += 12; // increase downward since we're starting low
+      }
+      fy += 6;
+    }
+
+      // clear downloading
+      downloading.value = { ...downloading.value, [id]: false };
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
+    const link = document.createElement('a');
+      try {
+        const rAny: any = receipt as any;
+        const id = typeof rAny._id === 'string' ? rAny._id : (rAny._id && (rAny._id.$oid || String(rAny._id))) || String(rAny._id);
+        downloading.value = { ...downloading.value, [id]: false };
+      } catch (e) {
+        // ignore
+      }
+    link.href = URL.createObjectURL(blob);
+    const safeDate = new Date(receipt.Date).toISOString().slice(0,10);
+    link.download = `receipt_${props.user ?? 'user'}_${safeDate}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (err) {
+    if (notification.value) notification.value.show('Failed to generate receipt PDF');
+  }
 }
 </script>
 
@@ -431,6 +680,43 @@ h1 {
 .icon3 {
   width: 15px;
   height: 15px;
+}
+
+/* Compact loader (based on Renew.vue) sized to fit inside the download button */
+.loader4 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  margin: 0; /* don't increase button size */
+}
+.downloadbtn .spinner {
+  animation: rotate 1.2s linear infinite;
+  width: 14px;
+  height: 14px;
+}
+.downloadbtn .path {
+  stroke: var(--text3);
+  stroke-linecap: round;
+  animation: dash 1.1s ease-in-out infinite;
+  stroke-width: 2;
+}
+@keyframes rotate {
+  100% { transform: rotate(360deg); }
+}
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
 }
 
 .mobile-download-info {
