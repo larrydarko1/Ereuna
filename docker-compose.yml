@@ -5,24 +5,29 @@ services:
       dockerfile: Dockerfile.frontend
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - backend1
       - backend2
       - backend3
+      - websocket
     networks:
-      - ereuna-network-internal
       - ereuna-network
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
 
   backend1:
     build:
       context: .
-      dockerfile: Dockerfile.backend
+      dockerfile: Dockerfile.api
     ports:
       - "5500:5500"
     depends_on:
       - mongodb
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
+    volumes:
+      - ./certs:/app/certs:ro
     networks:
       - ereuna-network-internal
       - ereuna-network
@@ -31,13 +36,15 @@ services:
   backend2:
     build:
       context: .
-      dockerfile: Dockerfile.backend
+      dockerfile: Dockerfile.api
     ports:
       - "5501:5500"
     depends_on:
       - mongodb
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
+    volumes:
+      - ./certs:/app/certs:ro
     networks:
       - ereuna-network-internal
       - ereuna-network
@@ -46,28 +53,33 @@ services:
   backend3:
     build:
       context: .
-      dockerfile: Dockerfile.backend
+      dockerfile: Dockerfile.api
     ports:
       - "5502:5500"
     depends_on:
       - mongodb
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
+    volumes:
+      - ./certs:/app/certs:ro
     networks:
       - ereuna-network-internal
       - ereuna-network
     restart: unless-stopped
 
-  scraper:
+  websocket:
     build:
       context: .
-      dockerfile: Dockerfile.scraper
+      dockerfile: Dockerfile.websocket
     ports:
-      - "600:600"
+      - "8000:8000"
     depends_on:
       - mongodb
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
+      - MONGO_URI=mongodb://mongodb:27017/EreunaDB
+      - VITE_EREUNA_KEY=${VITE_EREUNA_KEY}
+    volumes:
+      - ./certs:/certs:ro
     networks:
       - ereuna-network-internal
       - ereuna-network

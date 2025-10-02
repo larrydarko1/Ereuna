@@ -2,3 +2,12 @@ node_modules
 .git
 .gitignore
 server/.venv
+dist
+build
+*.log
+.env
+certs
+mongodb-init
+node_modules
+/.vscode
+/.idea

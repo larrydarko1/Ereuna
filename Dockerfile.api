@@ -1,0 +1,29 @@
+FROM node:20 AS deps
+
+WORKDIR /app
+
+# Copy package files and install dependencies first for caching
+COPY package.json package-lock.json* tsconfig.json ./
+RUN npm install --production=false
+
+FROM node:20 AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Build TypeScript backend (server is in api/ and uses esm ts-node in dev)
+RUN npm run build || true
+
+FROM node:20-slim
+WORKDIR /app
+COPY --from=build /app/api ./api
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./package.json
+
+ENV NODE_ENV=production
+
+# Expose backend port
+EXPOSE 5500
+
+# Use node to run the compiled JS (if you compile to dist/api) or run ts-node
+CMD ["node", "./api/server.js"]

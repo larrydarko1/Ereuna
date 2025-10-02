@@ -189,12 +189,9 @@ const data5 = ref<MAData[]>([]);
 const data6 = ref<MAData[]>([]);
 const IntrinsicValue = ref<number | null>(null);
 
-
 function isIntraday(timeframe: string): boolean {
   return ['intraday1m', 'intraday5m', 'intraday15m', 'intraday30m', 'intraday1hr'].includes(timeframe);
 }
-
-
 
 let ws: WebSocket | null = null;
 let wsReconnectTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -344,7 +341,6 @@ function updateChartSize(): void {
     chart.applyOptions({ width: newWidth, height: newHeight });
   } catch (e) {
     // ignore applyOptions errors
-    console.warn('applyOptions resize failed', e);
   }
 }
 const isBarChart = ref(false);
