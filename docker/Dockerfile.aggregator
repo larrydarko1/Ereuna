@@ -1,0 +1,27 @@
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    libatlas-base-dev \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# copy requirements
+COPY server/requirements.txt /app/requirements.txt
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -r /app/requirements.txt
+
+# copy repo
+COPY . /app
+
+ENV REDIS_URL=redis://redis:6379/0
+ENV MONGO_URI=mongodb://mongodb:27017/EreunaDB
+
+CMD ["python", "-m", "server.aggregator.entrypoint"]

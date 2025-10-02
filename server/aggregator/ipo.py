@@ -5,7 +5,7 @@ import datetime as dt
 import pandas as pd
 import motor.motor_asyncio
 from dotenv import load_dotenv
-from organizer import getHistoricalPrice2
+from server.aggregator.organizer import getHistoricalPrice2
 
 load_dotenv()
 mongo_uri = os.getenv('MONGODB_URI')

@@ -67,6 +67,59 @@ services:
       - ereuna-network
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    command: [ "redis-server", "--save", "900", "1" ]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - redis_data:/data
+    networks:
+      - ereuna-network-internal
+    restart: unless-stopped
+
+  ingestor:
+    build:
+      context: .
+      dockerfile: Dockerfile.injestor
+    ports:
+      - "8001:8000"
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/EreunaDB
+      - REDIS_URL=redis://redis:6379/0
+      - VITE_EREUNA_KEY=${VITE_EREUNA_KEY}
+    env_file:
+      - ./.env
+    volumes:
+      - ./certs:/certs:ro
+    networks:
+      - ereuna-network-internal
+      - ereuna-network
+    restart: unless-stopped
+
+  aggregator:
+    build:
+      context: .
+      dockerfile: Dockerfile.aggregator
+    depends_on:
+      - redis
+      - mongodb
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MONGO_URI=mongodb://mongodb:27017/EreunaDB
+    networks:
+      - ereuna-network-internal
+    restart: unless-stopped
+
   websocket:
     build:
       context: .
@@ -75,9 +128,13 @@ services:
       - "8000:8000"
     depends_on:
       - mongodb
+      - ingestor
     environment:
       - MONGO_URI=mongodb://mongodb:27017/EreunaDB
       - VITE_EREUNA_KEY=${VITE_EREUNA_KEY}
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - ./.env
     volumes:
       - ./certs:/certs:ro
     networks:
@@ -107,3 +164,4 @@ networks:
 
 volumes:
   mongodb_data:
+  redis_data:

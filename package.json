@@ -10,9 +10,14 @@
     "backend": "nodemon --exec \"node --import 'data:text/javascript,import { register } from \\\"node:module\\\"; import { pathToFileURL } from \\\"node:url\\\"; register(\\\"ts-node/esm\\\", pathToFileURL(\\\"./\\\"));'\" api/server.ts",
     "dbstart": "brew services start mongodb-community@7.0",
     "dbstop": "brew services stop mongodb-community@7.0",
-    "docker": "docker-compose up --build",
+    "redisstart": "brew services start redis",
+    "redisstop": "brew services stop redis",
+    "redis": "redis-server",
+    "docker": "docker compose -f docker/docker-compose.yml up --build",
     "dbup": "mongodump --db=EreunaDB --out=mongodb-init/dump",
-    "websocket": "cd server && uvicorn main:app --host 0.0.0.0 --port 8000 --ssl-keyfile=../certs/localhost-key.pem --ssl-certfile=../certs/localhost-cert.pem"
+    "websocket": "uvicorn server.websocket.websocket:app --host 0.0.0.0 --port 8000 --ssl-keyfile=certs/localhost-key.pem --ssl-certfile=certs/localhost-cert.pem",
+    "ingestor": "uvicorn server.ingestor.ingestor:app --host 0.0.0.0 --port 8001 --ssl-keyfile=certs/localhost-key.pem --ssl-certfile=certs/localhost-cert.pem",
+    "aggregator": "uvicorn server.aggregator.app:app --host 0.0.0.0 --port 8002 --ssl-keyfile=certs/localhost-key.pem --ssl-certfile=certs/localhost-cert.pem"
   },
   "dependencies": {
     "@stripe/stripe-js": "^5.0.0",

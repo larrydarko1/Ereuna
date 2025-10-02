@@ -3,6 +3,9 @@ import json
 from datetime import datetime, timedelta, timezone, time as dt_time
 import logging
 from collections import defaultdict
+import os
+import redis.asyncio as aioredis
+import typing
 
 def get_bucket(ts, minutes):
     if isinstance(ts, (int, float)):
@@ -22,6 +25,49 @@ pubsub_channels = defaultdict(list)
 async def publish_candle(symbol, timeframe, candle):
     for queue in pubsub_channels[(symbol, timeframe)]:
         await queue.put(candle)
+    # Also publish to Redis so other processes (websocket) can receive in-progress/final candles
+    try:
+        # schedule fire-and-forget
+        asyncio.create_task(publish_candle_to_redis(symbol, timeframe, candle))
+    except Exception:
+        pass
+
+# Optional Redis publisher (set by entrypoint):
+redis_pub: typing.Optional[aioredis.Redis] = None
+
+def _serialize_for_redis(obj):
+    """Return JSON-serializable representation for common types (datetimes)."""
+    if hasattr(obj, 'isoformat'):
+        try:
+            return obj.isoformat()
+        except Exception:
+            return str(obj)
+    return obj
+
+    
+    
+async def publish_candle_to_redis(symbol, timeframe, candle):
+    """Publish candle to Redis pub/sub channel 'aggr:{timeframe}'.
+    This is fire-and-forget and never required for correctness (DB writes still happen).
+    """
+    global redis_pub
+    if redis_pub is None:
+        return
+    try:
+        payload = {'tickerID': symbol, 'timeframe': timeframe}
+        # shallow-copy and convert non-serializable values
+        for k, v in candle.items():
+            if v is None:
+                payload[k] = None
+            else:
+                payload[k] = _serialize_for_redis(v)
+        # safe json dump
+        msg = json.dumps(payload, default=_serialize_for_redis)
+        # publish to pattern channel so subscribers can psubscribe to aggr:*
+        await redis_pub.publish(f"aggr:{timeframe}", msg)
+    except Exception as e:
+        logger = logging.getLogger('aggregator')
+        logger.debug(f"Failed to publish aggregated candle to Redis: {e}")
 
 logger = logging.getLogger("aggregator")
 logger.setLevel(logging.INFO)
@@ -456,4 +502,68 @@ async def main_aggregator_and_flush(message_queue, mongo_client):
     aggregator_task = asyncio.create_task(start_aggregator(message_queue, mongo_client))
     flush_task = asyncio.create_task(flush_daily_weekly_candles_at_market_close(daily_collection, weekly_collection))
     await asyncio.gather(aggregator_task, flush_task)
+    
+
+async def redis_stream_adapter(queue: asyncio.Queue, redis_client: aioredis.Redis, stream='tiingo:stream', group='aggregator', consumer=None, block=5000, count=100):
+    """
+    Read messages from a Redis Stream using XREADGROUP and put the raw message data into the provided asyncio.Queue.
+    Messages are expected as a field 'data' containing the raw JSON string.
+    """
+    if consumer is None:
+        consumer = f"consumer-{os.getpid()}"
+    # Create group if not exists
+    try:
+        await redis_client.xgroup_create(stream, group, id='0', mkstream=True)
+    except Exception:
+        # group probably exists
+        pass
+
+    logger.info(f"Redis stream adapter started (stream={stream}, group={group}, consumer={consumer})")
+    try:
+        while True:
+            try:
+                resp = await redis_client.xreadgroup(groupname=group, consumername=consumer, streams={stream: '>'}, count=count, block=block)
+                if not resp:
+                    await asyncio.sleep(0.1)
+                    continue
+                # resp is list like [(stream, [(id, {b'data': b'...'}), ...])]
+                for _stream_name, messages in resp:
+                    for msg_id, fields in messages:
+                        data = None
+                        if b'data' in fields:
+                            raw = fields[b'data']
+                            if isinstance(raw, bytes):
+                                try:
+                                    data = raw.decode('utf-8')
+                                except Exception:
+                                    data = str(raw)
+                            else:
+                                data = str(raw)
+                        elif 'data' in fields:
+                            data = fields['data']
+                        else:
+                            logger.warning(f"Redis stream message without 'data' field: {fields}")
+                            # Acknowledge and continue
+                            try:
+                                await redis_client.xack(stream, group, msg_id)
+                            except Exception:
+                                pass
+                            continue
+
+                        # Put into queue for aggregator to process
+                        try:
+                            await queue.put(data)
+                        except Exception as e:
+                            logger.error(f"Failed to put redis message into queue: {e}")
+                        # Acknowledge the message
+                        try:
+                            await redis_client.xack(stream, group, msg_id)
+                        except Exception as e:
+                            logger.warning(f"Failed to XACK message {msg_id}: {e}")
+            except Exception as e:
+                logger.error(f"Error reading from Redis stream: {e}")
+                await asyncio.sleep(1)
+    except asyncio.CancelledError:
+        logger.info("Redis stream adapter cancelled; exiting")
+        return
     
