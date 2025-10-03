@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY server /app/server
 ENV PYTHONPATH=/app
 
-# Websocket FastAPI server default port 8002
-EXPOSE 8002
+# Ingestor runs a FastAPI app; expose 8001 by default
+EXPOSE 8001
 
-CMD ["uvicorn", "server.websocket.websocket:app", "--host", "0.0.0.0", "--port", "8002"]
+CMD ["uvicorn", "server.ingestor.ingestor:app", "--host", "0.0.0.0", "--port", "8001"]
