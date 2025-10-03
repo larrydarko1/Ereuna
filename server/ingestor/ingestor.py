@@ -185,11 +185,13 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                                     try:
                                         if redis_client is not None:
                                             try:
-                                                await redis_client.publish('tiingo:raw', msg)
+                                                pub_result = await redis_client.publish('tiingo:raw', msg)
+                                                logger.debug(f"Published raw tiingo message to channel 'tiingo:raw' (subscribers={pub_result}) for symbol {symbol}")
                                             except Exception as pub_e:
                                                 logger.warning(f"Redis publish failed: {pub_e}")
                                             try:
-                                                await redis_client.xadd('tiingo:stream', {'data': msg}, maxlen=10000, approximate=True)
+                                                xadd_id = await redis_client.xadd('tiingo:stream', {'data': msg}, maxlen=10000, approximate=True)
+                                                logger.debug(f"Appended raw tiingo message to Redis stream 'tiingo:stream' (id={xadd_id}) for symbol {symbol}")
                                             except Exception as xadd_e:
                                                 logger.warning(f"Redis XADD failed: {xadd_e}")
                                         else:

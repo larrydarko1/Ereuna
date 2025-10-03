@@ -93,7 +93,7 @@ async def _redis_aggregated_listener():
         pub = redis_client.pubsub()
         # Subscribe to aggregated channels for all timeframes
         await pub.psubscribe('aggr:*')
-        logger.info('Subscribed to Redis aggregated channels (aggr:*)')
+        logger.debug('Subscribed to Redis aggregated channels (aggr:*)')
         while True:
             msg = await pub.get_message(ignore_subscribe_messages=True, timeout=1.0)
             if msg is None:
@@ -109,6 +109,23 @@ async def _redis_aggregated_listener():
                 if not ticker or not tf:
                     continue
                 key = (ticker.upper(), tf)
+                # Normalize and convert timestamp/start fields to datetime objects so
+                # websocket handlers can safely call .isoformat() and compare timestamps.
+                try:
+                    # prefer 'timestamp' key, fallback to 'start'
+                    if 'timestamp' in payload and payload['timestamp'] is not None:
+                        try:
+                            payload['timestamp'] = isoparse(payload['timestamp']) if isinstance(payload['timestamp'], str) else payload['timestamp']
+                        except Exception:
+                            pass
+                    if 'start' in payload and payload['start'] is not None:
+                        try:
+                            payload['start'] = isoparse(payload['start']) if isinstance(payload['start'], str) else payload['start']
+                        except Exception:
+                            pass
+                except Exception:
+                    # best-effort conversion; continue even if parsing fails
+                    pass
                 # update latest cache
                 latest_cache[key] = payload
                 # forward to local pubsub queues
@@ -145,12 +162,50 @@ app.add_middleware(
 async def websocket_startup():
     global redis_client, redis_listener_task
     REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+    MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
+    logger.debug(f"websocket startup: MONGO_URI={MONGO_URI}, REDIS_URL={REDIS_URL}")
     try:
+        logger.debug(f"Connecting to Redis at {REDIS_URL}")
         redis_client = aioredis.from_url(REDIS_URL)
-        # start listener task
+        try:
+            pong = await redis_client.ping()
+            logger.info(f"Redis ping successful: {pong}")
+        except Exception as e:
+            logger.warning(f"Redis ping failed during websocket startup: {e}")
+            # If configured host is 'redis' (docker), try localhost fallback for local dev
+            try:
+                if 'redis://redis' in REDIS_URL:
+                    alt = REDIS_URL.replace('redis://redis', 'redis://localhost')
+                    logger.debug(f"Attempting Redis fallback to {alt}")
+                    redis_client = aioredis.from_url(alt)
+                    pong2 = await redis_client.ping()
+                    logger.debug(f"Redis fallback ping successful: {pong2}")
+            except Exception as e2:
+                logger.warning(f"Redis fallback also failed: {e2}")
+        # start listener task (listener will early-return if redis_client is None)
         redis_listener_task = asyncio.create_task(_redis_aggregated_listener())
     except Exception as e:
         logger.exception(f'Failed to start Redis aggregated listener: {e}')
+
+    # Ensure mongo_client can connect (local dev fallback)
+    try:
+        try:
+            await mongo_client.admin.command('ping')
+            logger.info('Mongo ping successful')
+        except Exception as me:
+            logger.warning(f"Mongo ping failed in websocket startup: {me}")
+            if 'mongodb://mongodb' in MONGO_URI:
+                try:
+                    alt_m = MONGO_URI.replace('mongodb://mongodb', 'mongodb://localhost')
+                    logger.info(f"Attempting MongoDB fallback to {alt_m}")
+                    mongo_client = motor.motor_asyncio.AsyncIOMotorClient(alt_m)
+                    db = mongo_client.get_database('EreunaDB')
+                    await mongo_client.admin.command('ping')
+                    logger.info('Mongo fallback ping successful')
+                except Exception as me2:
+                    logger.warning(f"Mongo fallback also failed: {me2}")
+    except Exception:
+        logger.exception('Error during websocket mongo fallback check')
 
 
 @app.on_event('shutdown')

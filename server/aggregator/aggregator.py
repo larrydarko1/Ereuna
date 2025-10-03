@@ -64,7 +64,16 @@ async def publish_candle_to_redis(symbol, timeframe, candle):
         # safe json dump
         msg = json.dumps(payload, default=_serialize_for_redis)
         # publish to pattern channel so subscribers can psubscribe to aggr:*
-        await redis_pub.publish(f"aggr:{timeframe}", msg)
+        try:
+            pub_count = await redis_pub.publish(f"aggr:{timeframe}", msg)
+            logging.getLogger('aggregator').debug(f"Published aggregated candle to Redis channel 'aggr:{timeframe}' (subscribers={pub_count}) for {symbol}")
+            # store the last published aggregated message in Redis for diagnostics
+            try:
+                await redis_pub.set(f"aggr:last:{symbol}:{timeframe}", msg)
+            except Exception as set_e:
+                logging.getLogger('aggregator').warning(f"Failed to set aggr:last key for {symbol} {timeframe}: {set_e}")
+        except Exception as e:
+            logging.getLogger('aggregator').warning(f"Failed to publish aggregated candle to Redis channel 'aggr:{timeframe}': {e}")
     except Exception as e:
         logger = logging.getLogger('aggregator')
         logger.debug(f"Failed to publish aggregated candle to Redis: {e}")
