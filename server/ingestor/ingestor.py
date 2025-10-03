@@ -24,7 +24,7 @@ import re
 load_dotenv()
 
 # --- Logging setup ---
-LOG_FILE = 'websocket.log'
+LOG_FILE = 'logs/websocket.log'
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)s %(name)s %(message)s',

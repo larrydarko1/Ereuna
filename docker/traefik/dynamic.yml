@@ -1,0 +1,20 @@
+http:
+  middlewares:
+    grafana-auth:
+      basicAuth:
+        usersFile: /etc/traefik/auth/.htpasswd
+    grafana-secure-headers:
+      headers:
+        frameDeny: true
+        browserXssFilter: true
+        stsSeconds: 63072000
+        stsIncludeSubdomains: true
+        sslRedirect: true
+    api-rate-limit:
+      rateLimit:
+        average: 20
+        burst: 40
+
+tls:
+  stores:
+    default: {}
