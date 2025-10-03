@@ -17,7 +17,9 @@ services:
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./certs:/certs
+      - ../certs:/certs
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - ./auth:/etc/traefik/auth:ro
     networks:
       - ereuna-network
       - ereuna-network-internal
@@ -29,14 +31,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-    # Frontend will be routed through Traefik (no host ports published here)
     depends_on:
       - backend
     networks:
       - ereuna-network-internal
       - ereuna-network
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt
     logging:
       driver: json-file
     labels:
@@ -45,7 +44,7 @@ services:
       traefik.http.routers.frontend.rule: "Host(`ereuna.io`,`www.ereuna.io`)"
       traefik.http.routers.frontend.entrypoints: "websecure"
       traefik.http.routers.frontend.tls.certresolver: "le"
-      traefik.http.services.frontend.loadbalancer.server.port: "443"
+      traefik.http.services.frontend.loadbalancer.server.port: "80"
 
   backend:
     build:
@@ -56,8 +55,6 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
       - CORS_ORIGIN=https://ereuna.io,https://www.ereuna.io
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt
     networks:
       - ereuna-network-internal
       - ereuna-network
@@ -67,7 +64,6 @@ services:
     labels:
       job: backend
       traefik.enable: "true"
-      # Single Traefik router/service; scale this service to create multiple containers
       traefik.http.services.ereuna-api.loadbalancer.server.port: "5500"
       traefik.http.routers.ereuna-api.rule: "Host(`api.ereuna.io`)"
       traefik.http.routers.ereuna-api.entrypoints: "websecure"
@@ -78,8 +74,6 @@ services:
     volumes:
       - ./mongodb-init:/docker-entrypoint-initdb.d
       - mongodb_data:/data/db
-      - ./certbot/conf:/etc/letsencrypt
-      - ./mongod.conf:/etc/mongod.conf #should enable TLS
       - /home/ereunavps/mongodb:/home/ereunavps/mongodb # Mapping for backups
     environment:
       - MONGO_INITDB_DATABASE=EreunaDB
@@ -105,22 +99,25 @@ services:
     networks:
       - ereuna-network-internal
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
   grafana:
     image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
     depends_on:
       - prometheus
       - loki
-    env_file:
-      - .env
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+      - GF_SECURITY_ADMIN_PASSWORD_FILE=/run/secrets/grafana_admin_password
       - GF_SERVER_HTTP_PORT=3000
       - GF_SERVER_PROTOCOL=https
       - GF_SERVER_DOMAIN=grafana.ereuna.io
+    secrets:
+      - grafana_admin_password
     volumes:
       - ./datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml # Mount datasources.yml
       - ./dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml # Mount dashboards.yml
@@ -128,6 +125,13 @@ services:
       - ereuna-network-internal
       - ereuna-network
     restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.grafana.rule: "Host(`grafana.ereuna.io`)"
+      traefik.http.routers.grafana.entrypoints: "websecure"
+      traefik.http.routers.grafana.tls.certresolver: "le"
+      traefik.http.routers.grafana.middlewares: "grafana-auth@file,grafana-secure-headers@file"
+      traefik.http.services.grafana.loadbalancer.server.port: "3000"
 
   loki:
     image: grafana/loki:latest
@@ -155,8 +159,6 @@ services:
     restart: unless-stopped
     expose:
       - "6379"
-    ports:
-      - "6379:6379" # optional: bind for local development
     networks:
       - ereuna-network-internal
 
@@ -164,7 +166,7 @@ services:
   aggregator:
     build:
       context: ..
-      dockerfile: Dockerfile.aggregator
+      dockerfile: docker/Dockerfile.aggregator
     depends_on:
       - redis
       - mongodb
@@ -174,36 +176,55 @@ services:
     networks:
       - ereuna-network-internal
     expose:
-      - "8000"
-    ports:
-      - "8000:8000" # optional: expose for local testing
+      - "8002"
+    # In production this service is internal; Traefik will route traffic when necessary.
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8002/ready');\" || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
 
   # Ingestor service (connects to Tiingo, publishes into Redis)
   ingestor:
     build:
       context: ..
-      dockerfile: Dockerfile.ingestor
+      dockerfile: docker/Dockerfile.ingestor
     depends_on:
       - redis
       - mongodb
     environment:
       - REDIS_URL=redis://redis:6379/0
       - MONGO_URI=mongodb://mongodb:27017/
-      - TIINGO_KEY=${TIINGO_KEY}
+    secrets:
+      - tiingo_key
     networks:
       - ereuna-network-internal
     expose:
       - "8001"
-    ports:
-      - "8001:8001"
+    # keep internal; if you need public webhook endpoints, route via Traefik and protect them
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8001/ready');\" || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
 
   # Websocket service (serves realtime websockets to clients)
   websocket:
     build:
       context: ..
-      dockerfile: Dockerfile.websocket
+      dockerfile: docker/Dockerfile.websocket
     depends_on:
       - redis
       - mongodb
@@ -214,10 +235,25 @@ services:
     networks:
       - ereuna-network-internal
     expose:
-      - "8002"
-    ports:
-      - "8002:8002"
+      - "8000"
+    # Expose only via Traefik
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/ready');\" || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.websocket.rule: "Host(`ws.ereuna.io`) && PathPrefix(`/ws`)"
+      traefik.http.routers.websocket.entrypoints: "websecure"
+      traefik.http.routers.websocket.tls: "true"
+      traefik.http.services.websocket.loadbalancer.server.port: "8000"
 
 networks:
   ereuna-network-internal:
@@ -228,3 +264,12 @@ networks:
 
 volumes:
   mongodb_data:
+
+
+secrets:
+  grafana_admin_password:
+    file: ./secrets/grafana_admin_password.txt
+  tiingo_key:
+    file: ./secrets/tiingo_key.txt
+  stripe_key:
+    file: ./secrets/stripe_key.txt
