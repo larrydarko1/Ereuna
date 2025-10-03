@@ -4,6 +4,7 @@ import logging
 from fastapi import FastAPI
 from redis.asyncio import from_url as redis_from_url
 import motor.motor_asyncio
+from urllib.parse import urlparse, urlunparse
 
 from server.aggregator import aggregator as aggregator_mod
 from server.aggregator.aggregator import (
@@ -23,13 +24,61 @@ app = FastAPI(title='Ereuna Aggregator')
 
 @app.on_event('startup')
 async def startup():
-    logger.info('Aggregator server starting up')
+    logger.debug('Aggregator server starting up')
     REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-    MONGO_URI = os.getenv('MONGO_URI', 'mongodb://mongodb:27017/')
+    MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
+    logger.debug(f"startup env: REDIS_URL={REDIS_URL}, MONGO_URI={MONGO_URI}")
 
     # create clients
-    app.state.redis_client = redis_from_url(REDIS_URL)
-    app.state.mongo_client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URI)
+    try:
+        app.state.redis_client = redis_from_url(REDIS_URL)
+        logger.debug(f"Connecting to Redis at {REDIS_URL}")
+        try:
+            pong = await app.state.redis_client.ping()
+            logger.debug(f"Redis ping successful: {pong}")
+        except Exception as e:
+            logger.warning(f"Redis ping failed: {e}")
+            # Try localhost fallback for local dev if configured as 'redis'
+            try:
+                if 'redis://redis' in REDIS_URL:
+                    alt = REDIS_URL.replace('redis://redis', 'redis://localhost')
+                    logger.debug(f"Attempting Redis fallback to {alt}")
+                    app.state.redis_client = redis_from_url(alt)
+                    pong2 = await app.state.redis_client.ping()
+                    logger.debug(f"Redis fallback ping successful: {pong2}")
+            except Exception as e2:
+                logger.warning(f"Redis fallback also failed: {e2}")
+    except Exception:
+        logger.exception('Failed to create redis client')
+
+    # create motor client and verify connectivity; if configured for Docker hostnames
+    # and the host is unreachable in local dev, attempt a localhost fallback.
+    try:
+        app.state.mongo_client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URI)
+        try:
+            await app.state.mongo_client.admin.command('ping')
+            logger.debug('Mongo ping successful')
+        except Exception as me:
+            logger.warning(f"Mongo ping failed: {me}")
+            # Attempt a localhost fallback by replacing hostname with 'localhost', preserving port
+            try:
+                p = urlparse(MONGO_URI)
+                host = p.hostname
+                port = p.port
+                if host and host != 'localhost':
+                    new_netloc = 'localhost' + (f":{port}" if port else '')
+                    alt = urlunparse((p.scheme, new_netloc, p.path or '', p.params or '', p.query or '', p.fragment or ''))
+                    logger.debug(f"Attempting Mongo fallback to {alt}")
+                    app.state.mongo_client = motor.motor_asyncio.AsyncIOMotorClient(alt)
+                    await app.state.mongo_client.admin.command('ping')
+                    logger.debug('Mongo fallback ping successful')
+                    MONGO_URI = alt
+                else:
+                    logger.debug('Mongo URI host is localhost or undefined; no fallback attempted')
+            except Exception as me2:
+                logger.warning(f"Mongo fallback also failed: {me2}")
+    except Exception:
+        logger.exception('Failed to create mongo client')
 
     # expose redis to aggregator module
     try:
@@ -75,6 +124,9 @@ async def startup():
                 logger.exception('Error running Daily()')
 
     app.state.organizer_task = asyncio.create_task(schedule_organizer_daily())
+
+
+# NOTE: debug endpoint removed — use /ready and logs for health info
 
 
 @app.on_event('shutdown')
