@@ -2,24 +2,28 @@ services:
 
   # Traefik reverse proxy for routing and TLS termination
   traefik:
-    image: traefik:v2.10
+    image: traefik:latest
     command:
       - --api.dashboard=true
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --entryPoints.web.address=:80
       - --entryPoints.websecure.address=:443
-      - --certificatesResolvers.le.acme.email=admin@ereuna.io
-      - --certificatesResolvers.le.acme.storage=/certs/acme.json
-      - --certificatesResolvers.le.acme.tlsChallenge=true
+      - --certificatesResolvers.cloudflare.acme.email=l.mazzola@ereuna.io
+      - --certificatesResolvers.cloudflare.acme.storage=/acme.json
+      - --certificatesResolvers.cloudflare.acme.dnsChallenge.provider=cloudflare
+      - --certificatesResolvers.cloudflare.acme.dnsChallenge.delayBeforeCheck=30
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ../certs:/certs
+      - ./acme.json:/acme.json
       - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
       - ./auth:/etc/traefik/auth:ro
+    environment:
+      - CF_API_EMAIL=${CF_API_EMAIL}
+      - CF_API_KEY=${CF_API_KEY}
     networks:
       - ereuna-network
       - ereuna-network-internal
@@ -29,8 +33,10 @@ services:
 
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    env_file:
+      - .env
     depends_on:
       - backend
     networks:
@@ -43,31 +49,35 @@ services:
       traefik.enable: "true"
       traefik.http.routers.frontend.rule: "Host(`ereuna.io`,`www.ereuna.io`)"
       traefik.http.routers.frontend.entrypoints: "websecure"
-      traefik.http.routers.frontend.tls.certresolver: "le"
-      traefik.http.services.frontend.loadbalancer.server.port: "80"
+      traefik.http.routers.frontend.tls.certresolver: "cloudflare"
+      traefik.http.services.frontend.loadbalancer.server.port: "3500"
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
 
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    env_file:
+      - .env
     depends_on:
       - mongodb
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
       - CORS_ORIGIN=https://ereuna.io,https://www.ereuna.io
+    command: [ "sh", "-c", "node api/server.js" ]
     networks:
       - ereuna-network-internal
       - ereuna-network
     restart: unless-stopped
     logging:
       driver: json-file
-    labels:
-      job: backend
-      traefik.enable: "true"
-      traefik.http.services.ereuna-api.loadbalancer.server.port: "5500"
-      traefik.http.routers.ereuna-api.rule: "Host(`api.ereuna.io`)"
-      traefik.http.routers.ereuna-api.entrypoints: "websecure"
-      traefik.http.routers.ereuna-api.tls.certresolver: "le"
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
 
   mongodb:
     image: mongo:latest
@@ -86,6 +96,7 @@ services:
       driver: json-file
     labels:
       job: mongodb
+      traefik.enable: "false"
 
   prometheus:
     image: prom/prometheus:latest
@@ -99,11 +110,8 @@ services:
     networks:
       - ereuna-network-internal
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
+    labels:
+      traefik.enable: "false"
 
   grafana:
     image: grafana/grafana:latest
@@ -112,24 +120,15 @@ services:
       - loki
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD_FILE=/run/secrets/grafana_admin_password
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_SERVER_HTTP_PORT=3000
       - GF_SERVER_PROTOCOL=https
       - GF_SERVER_DOMAIN=grafana.ereuna.io
-    secrets:
-      - grafana_admin_password
-    volumes:
-      - ./datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml # Mount datasources.yml
-      - ./dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml # Mount dashboards.yml
-    networks:
-      - ereuna-network-internal
-      - ereuna-network
-    restart: unless-stopped
     labels:
       traefik.enable: "true"
       traefik.http.routers.grafana.rule: "Host(`grafana.ereuna.io`)"
       traefik.http.routers.grafana.entrypoints: "websecure"
-      traefik.http.routers.grafana.tls.certresolver: "le"
+      traefik.http.routers.grafana.tls.certresolver: "cloudflare"
       traefik.http.routers.grafana.middlewares: "grafana-auth@file,grafana-secure-headers@file"
       traefik.http.services.grafana.loadbalancer.server.port: "3000"
 
@@ -143,6 +142,8 @@ services:
     networks:
       - ereuna-network-internal
     restart: unless-stopped
+    labels:
+      traefik.enable: "false"
 
   promtail:
     image: grafana/promtail:2.4.1
@@ -152,6 +153,8 @@ services:
       - /home/ereunavps/logs/:/home/ereunavps/logs/
     networks:
       - ereuna-network-internal
+    labels:
+      traefik.enable: "false"
 
   # Redis used by aggregator/ingestor/websocket for pubsub/streams
   redis:
@@ -161,12 +164,16 @@ services:
       - "6379"
     networks:
       - ereuna-network-internal
+    labels:
+      traefik.enable: "false"
 
   # Aggregator service (FastAPI + background worker)
   aggregator:
     build:
       context: ..
       dockerfile: docker/Dockerfile.aggregator
+    env_file:
+      - .env
     depends_on:
       - redis
       - mongodb
@@ -177,12 +184,6 @@ services:
       - ereuna-network-internal
     expose:
       - "8002"
-    # In production this service is internal; Traefik will route traffic when necessary.
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1024M
     healthcheck:
       test: [ "CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8002/ready');\" || exit 1" ]
       interval: 30s
@@ -195,24 +196,20 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.ingestor
+    env_file:
+      - .env
     depends_on:
       - redis
       - mongodb
     environment:
       - REDIS_URL=redis://redis:6379/0
       - MONGO_URI=mongodb://mongodb:27017/
-    secrets:
-      - tiingo_key
+    command: [ "sh", "-c", "uvicorn server.ingestor.ingestor:app --host 0.0.0.0 --port 8001" ]
     networks:
       - ereuna-network-internal
+      - ereuna-network
     expose:
       - "8001"
-    # keep internal; if you need public webhook endpoints, route via Traefik and protect them
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
     healthcheck:
       test: [ "CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8001/ready');\" || exit 1" ]
       interval: 30s
@@ -225,6 +222,8 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.websocket
+    env_file:
+      - .env
     depends_on:
       - redis
       - mongodb
@@ -236,40 +235,25 @@ services:
       - ereuna-network-internal
     expose:
       - "8000"
-    # Expose only via Traefik
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1024M
     healthcheck:
       test: [ "CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/ready');\" || exit 1" ]
       interval: 30s
       timeout: 5s
       retries: 3
     restart: unless-stopped
-    labels:
-      traefik.enable: "true"
-      traefik.http.routers.websocket.rule: "Host(`ws.ereuna.io`) && PathPrefix(`/ws`)"
-      traefik.http.routers.websocket.entrypoints: "websecure"
-      traefik.http.routers.websocket.tls: "true"
-      traefik.http.services.websocket.loadbalancer.server.port: "8000"
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
 
 networks:
   ereuna-network-internal:
     driver: bridge
     internal: true
+    labels:
+      traefik.enable: "false"
   ereuna-network:
     driver: bridge
 
 volumes:
   mongodb_data:
-
-
-secrets:
-  grafana_admin_password:
-    file: ./secrets/grafana_admin_password.txt
-  tiingo_key:
-    file: ./secrets/tiingo_key.txt
-  stripe_key:
-    file: ./secrets/stripe_key.txt

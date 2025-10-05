@@ -1,5 +1,4 @@
 import express, { Request, Response } from 'express';
-import fs from 'fs';
 import cors from 'cors';
 import { MongoClient } from 'mongodb';
 import argon2 from 'argon2';
@@ -8,10 +7,9 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
 import helmet from 'helmet';
-import path from 'path';
 import rateLimit from 'express-rate-limit';
 import logger, { handleError } from './utils/logger.js';
-import https from 'https';
+// TLS is handled by Traefik at the edge. Run the API as plain HTTP and let Traefik terminate TLS.
 import { validate, validationSchemas, validationSets, body, sanitizeInput, query, sanitizeUsername, sanitizeUsernameCanonical } from './utils/validationUtils.js';
 
 dotenv.config();
@@ -19,9 +17,8 @@ dotenv.config();
 // CORS and Rate Limiting
 const allowedOrigins = [
   'http://localhost',
-  'http://frontend:80',
   'https://localhost',
-  'https://frontend:443',
+  'https://frontend:3500',
   'https://ereuna.co',
   'https://www.ereuna.co'
 ];
@@ -104,26 +101,10 @@ const bruteForceProtection = rateLimit({
 // Apply CORS and Brute Force Protection (max 10 requests per minute)
 app.use(/^\/(login|signup-paywall|verify|recover|generate-key|download-key|retrieve-key|password-change|change-password2|change-username|account-delete|verify-mfa|twofa)(\/.*)?$/, cors(corsOptions), bruteForceProtection);
 
-// SSL/TLS Certificate options
-let options;
-try {
-  options = {
-    key: fs.readFileSync(path.join(process.cwd(), 'certs', 'localhost-key.pem')),
-    cert: fs.readFileSync(path.join(process.cwd(), 'certs', 'localhost-cert.pem'))
-  };
-
-  // Use HTTPS server
-  https.createServer(options, app).listen(port, () => {
-    console.log(`HTTPS Server running on https://localhost:${port}`);
-  });
-} catch (error) {
-  const errResponse = handleError(error, 'SSL Certificate Load', { file: 'server.ts' });
-  // Fallback to HTTP if certificates can't be loaded
-  app.listen(port, () => {
-    console.log(`HTTP Server running on http://localhost:${port}`);
-    console.error(errResponse.message);
-  });
-}
+// Start HTTP server. Traefik will terminate TLS and forward requests to this service over the internal network.
+app.listen(port, () => {
+  console.log(`HTTP Server running on http://localhost:${port}`);
+});
 
 export default app;
 

@@ -30,4 +30,24 @@
     <changefreq>yearly</changefreq>
     <priority>0.9</priority>
   </url>
+   <url>
+    <loc>https://ereuna.io/documentation</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+   <url>
+    <loc>https://ereuna.io/portfolio</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+     <url>
+    <loc>https://ereuna.io/account</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+    <url>
+    <loc>https://ereuna.io/careers</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
 </urlset>
