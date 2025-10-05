@@ -1,0 +1,10 @@
+User -agent: *
+Allow: /
+Disallow: /login
+Disallow: /signup
+Disallow: /recovery
+Disallow: /renew-subscription
+Disallow: /upload
+Disallow: /*
+Disallow: grafana.ereuna.io/
+Sitemap: https://ereuna.io/sitemap.xml

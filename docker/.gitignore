@@ -1,0 +1,8 @@
+# Ignore secret files and auth material
+secrets/*.txt
+auth/.htpasswd
+../certs/acme.json
+traefik/acme.json
+
+# Ignore generated certs
+certs/internal/

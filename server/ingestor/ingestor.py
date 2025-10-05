@@ -63,7 +63,7 @@ latest_quotes = {}  # {symbol: tiingo_data_dict}
 # Only stocks/ETFs: get tickers from DB at startup in production
 API_KEY = os.getenv("VITE_EREUNA_KEY")
 stock_symbols = []
-ssl_ctx = ssl._create_unverified_context()
+ssl_ctx = ssl.create_default_context()
 
 def stock_filter(msg):
     return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) >= 3

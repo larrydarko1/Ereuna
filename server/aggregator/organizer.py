@@ -1,5 +1,4 @@
 #from ipo import IPO, updateSummarySingle, getSummary2Single, getSplitsSingle, getDividendsSingle, getFinancialsSingle
-from server.aggregator.delist import Delist, scanDelisted, prune_intraday_collections
 import os
 import time
 import requests
@@ -16,19 +15,43 @@ import logging
 logger = logging.getLogger("organizer")
 logger.setLevel(logging.INFO)
 
-from server.aggregator.helper import (
-    maintenanceMode,
-    getMonday,
-    remove_documents_with_timestamp,
-    ArrangeIcons,
-    RemoveIsActiveAttribute,
-    RemoveDuplicateDocuments,
-    MissingISIN,
-    rename_volatility_fields,
-    updateAssetInfoAttributeNames,
-    clone_user_documents,
-    update_asset_type_to_stock
-)
+try:
+    from server.aggregator.delist import Delist, scanDelisted, prune_intraday_collections
+    from server.aggregator.helper import (
+        maintenanceMode,
+        getMonday,
+        remove_documents_with_timestamp,
+        ArrangeIcons,
+        RemoveIsActiveAttribute,
+        RemoveDuplicateDocuments,
+        MissingISIN,
+        rename_volatility_fields,
+        updateAssetInfoAttributeNames,
+        clone_user_documents,
+        update_asset_type_to_stock
+    )
+except Exception:
+    import sys
+    import pathlib
+    # organizer.py is at <workspace>/server/aggregator/organizer.py
+    # we need to add <workspace> to sys.path so `import server...` works
+    workspace_root = pathlib.Path(__file__).resolve().parents[2]
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+    from server.aggregator.delist import Delist, scanDelisted, prune_intraday_collections
+    from server.aggregator.helper import (
+        maintenanceMode,
+        getMonday,
+        remove_documents_with_timestamp,
+        ArrangeIcons,
+        RemoveIsActiveAttribute,
+        RemoveDuplicateDocuments,
+        MissingISIN,
+        rename_volatility_fields,
+        updateAssetInfoAttributeNames,
+        clone_user_documents,
+        update_asset_type_to_stock
+    )
 
 load_dotenv()
 mongo_uri = os.getenv('MONGODB_URI')

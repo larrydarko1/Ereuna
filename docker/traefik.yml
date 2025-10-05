@@ -1,0 +1,22 @@
+certificatesResolvers:
+  cloudflare:
+    acme:
+      email: l.mazzola@ereuna.io  # Replace with your real email
+      storage: /acme.json
+      dnsChallenge:
+        provider: cloudflare
+        delayBeforeCheck: 30
+
+http:
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+  routers:
+    redirect-http:
+      rule: "HostRegexp(`{host:.+}`)"
+      entryPoints:
+        - ereuna-network
+      middlewares:
+        - redirect-to-https
+      service: noop

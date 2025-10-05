@@ -4,7 +4,6 @@ WORKDIR /app
 
 # Rest of your existing Dockerfile
 COPY api ./api
-COPY .env ./.env
 COPY package.json ./package.json
 
 RUN npm install
