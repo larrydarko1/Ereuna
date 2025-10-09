@@ -1,0 +1,117 @@
+# GitHub Actions CI/CD Pipeline for EREUNA Project, not ready yet
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build frontend
+      run: npm run build
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install Python dependencies
+      run: |
+        cd server
+        pip install -r requirements.txt
+
+    - name: Check Python syntax
+      run: |
+        python -m py_compile server/aggregator/aggregator.py
+        python -m py_compile server/ingestor/ingestor.py
+        python -m py_compile server/websocket/websocket.py
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push frontend
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/Dockerfile.frontend
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/ereuna-frontend:latest
+
+    - name: Build and push backend
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/Dockerfile.backend
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/ereuna-backend:latest
+
+    - name: Build and push aggregator
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/Dockerfile.aggregator
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/ereuna-aggregator:latest
+
+    - name: Build and push websocket
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./docker/Dockerfile.websocket
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/ereuna-websocket:latest
+
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        script: |
+          cd /path/to/your/project
+          docker-compose -f docker/docker-compose.yml pull
+          # Slowly replace containers: stop and start each service with delay
+          docker-compose -f docker/docker-compose.yml stop frontend
+          sleep 10
+          docker-compose -f docker/docker-compose.yml up -d frontend
+          sleep 10
+          docker-compose -f docker/docker-compose.yml stop backend
+          sleep 10
+          docker-compose -f docker/docker-compose.yml up -d backend
+          sleep 10
+          docker-compose -f docker/docker-compose.yml stop aggregator
+          sleep 10
+          docker-compose -f docker/docker-compose.yml up -d aggregator
+          sleep 10
+          docker-compose -f docker/docker-compose.yml stop websocket
+          sleep 10
+          docker-compose -f docker/docker-compose.yml up -d websocket
