@@ -16,8 +16,8 @@ dotenv.config();
 
 // CORS and Rate Limiting
 const allowedOrigins = [
-  'http://localhost',
-  'https://localhost',
+  'http://localhost:3500',
+  'https://localhost:3500',
   'https://frontend:3500',
   'https://ereuna.co',
   'https://www.ereuna.co'

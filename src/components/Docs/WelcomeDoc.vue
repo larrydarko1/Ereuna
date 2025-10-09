@@ -1,6 +1,5 @@
 <template>
    <div class="center-container">
-    <img src="@/assets/images/cat.gif" alt="" class="welcome-gif" />
     <h1>Welcome to the Ereuna Screener Documentation!</h1>
     <p>Use this documentation to learn how to navigate the application.</p>
 </div>

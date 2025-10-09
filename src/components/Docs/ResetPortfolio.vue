@@ -1,12 +1,10 @@
 <template>
 <div class="center-container">
-  <h1>Themes</h1>
-  <p>Ereuna offers 40+ custom themes to personalize your app experience, with more themes planned for future updates.</p>
-  <p>To change your theme, follow these steps:</p>
-  <p>1. Log in to your account and navigate to the Account section at <a href="https://ereuna.io/account" target="_blank">https://ereuna.io/account</a>. Open the Themes subsection.</p>
-  <p>2. Browse the available themes and click on the one you prefer.</p>
-  <img class="img" src="@/assets/images/docs/themes.gif" alt="Theme Selection Animation" />
-  <p>3. The app will immediately apply your selected theme.</p>
+  <h1>Resetting a Portfolio</h1>
+  <img src="@/assets/images/docs/portfolio-reset.gif" alt="Portfolio Reset Process" class="reset-gif" />
+  <p>Resetting a portfolio is straightforward. In the header section of the Portfolio view, locate the "Reset" button.</p>
+  <p>Click the "Reset" button. A confirmation popup will appear.</p>
+  <p>Click to confirm the reset, and the selected portfolio will be cleared of all positions, transactions, and reset to its base value.</p>
 </div>
 </template>
 
@@ -48,8 +46,10 @@
     overflow-wrap: anywhere;
 }
 
-.img {
-    width: 100%;
-    margin-bottom: 1rem;
+.reset-gif {
+    display: block;
+    margin: 0 auto 2rem;
+    max-width: 100%;
+    height: auto;
 }
 </style>

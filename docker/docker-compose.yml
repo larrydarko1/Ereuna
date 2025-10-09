@@ -1,6 +1,6 @@
 services:
 
-  # Traefik reverse proxy for routing and TLS termination
+  # Traefik reverse proxy for routing
   traefik:
     image: traefik:latest
     command:
@@ -8,22 +8,12 @@ services:
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --entryPoints.web.address=:80
-      - --entryPoints.websecure.address=:443
-      - --certificatesResolvers.cloudflare.acme.email=l.mazzola@ereuna.io
-      - --certificatesResolvers.cloudflare.acme.storage=/acme.json
-      - --certificatesResolvers.cloudflare.acme.dnsChallenge.provider=cloudflare
-      - --certificatesResolvers.cloudflare.acme.dnsChallenge.delayBeforeCheck=30
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/etc/traefik/dynamic.yml:ro
       - ./acme.json:/acme.json
-      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
-      - ./auth:/etc/traefik/auth:ro
-    environment:
-      - CF_API_EMAIL=${CF_API_EMAIL}
-      - CF_API_KEY=${CF_API_KEY}
     networks:
       - ereuna-network
       - ereuna-network-internal
@@ -36,7 +26,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.frontend
     env_file:
-      - .env
+      - ../.env
     depends_on:
       - backend
     networks:
@@ -47,9 +37,8 @@ services:
     labels:
       job: frontend
       traefik.enable: "true"
-      traefik.http.routers.frontend.rule: "Host(`ereuna.io`,`www.ereuna.io`)"
-      traefik.http.routers.frontend.entrypoints: "websecure"
-      traefik.http.routers.frontend.tls.certresolver: "cloudflare"
+      traefik.http.routers.frontend.rule: "Host(`localhost`)"
+      traefik.http.routers.frontend.entrypoints: "web"
       traefik.http.services.frontend.loadbalancer.server.port: "3500"
     deploy:
       replicas: 3
@@ -61,12 +50,12 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.backend
     env_file:
-      - .env
+      - ../.env
     depends_on:
       - mongodb
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
-      - CORS_ORIGIN=https://ereuna.io,https://www.ereuna.io
+      - CORS_ORIGIN=http://localhost
     command: [ "sh", "-c", "node api/server.js" ]
     networks:
       - ereuna-network-internal
@@ -82,9 +71,8 @@ services:
   mongodb:
     image: mongo:latest
     volumes:
-      - ./mongodb-init:/docker-entrypoint-initdb.d
+      - ../db/mongodb-init:/docker-entrypoint-initdb.d
       - mongodb_data:/data/db
-      - /home/ereunavps/mongodb:/home/ereunavps/mongodb # Mapping for backups
     environment:
       - MONGO_INITDB_DATABASE=EreunaDB
     networks:
@@ -101,7 +89,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../prometheus.yml:/etc/prometheus/prometheus.yml
     expose:
       - "9090"
     depends_on:
@@ -118,17 +106,18 @@ services:
     depends_on:
       - prometheus
       - loki
+    env_file:
+      - ../.env
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_SERVER_HTTP_PORT=3000
-      - GF_SERVER_PROTOCOL=https
-      - GF_SERVER_DOMAIN=grafana.ereuna.io
+      - GF_SERVER_PROTOCOL=http
+      - GF_SERVER_DOMAIN=grafana.localhost
     labels:
       traefik.enable: "true"
-      traefik.http.routers.grafana.rule: "Host(`grafana.ereuna.io`)"
-      traefik.http.routers.grafana.entrypoints: "websecure"
-      traefik.http.routers.grafana.tls.certresolver: "cloudflare"
+      traefik.http.routers.grafana.rule: "Host(`grafana.localhost`)"
+      traefik.http.routers.grafana.entrypoints: "web"
       traefik.http.routers.grafana.middlewares: "grafana-auth@file,grafana-secure-headers@file"
       traefik.http.services.grafana.loadbalancer.server.port: "3000"
 
@@ -138,7 +127,7 @@ services:
       - "3100"
     volumes:
       - ./loki.yml:/etc/loki/loki.yml
-      - /home/ereunavps/logs/:/var/lib/loki/db #try to understand this , it should write logs on it
+      - logs_volume:/var/lib/loki/db
     networks:
       - ereuna-network-internal
     restart: unless-stopped
@@ -150,7 +139,7 @@ services:
     volumes:
       - ./promtail-config.yaml:/etc/promtail/config.yml
       - /var/lib/docker/containers:/var/lib/docker/containers # For accessing container logs directly via json-file driver.
-      - /home/ereunavps/logs/:/home/ereunavps/logs/
+      - logs_volume:/home/ereunavps/logs/
     networks:
       - ereuna-network-internal
     labels:
@@ -173,7 +162,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.aggregator
     env_file:
-      - .env
+      - ../.env
     depends_on:
       - redis
       - mongodb
@@ -182,6 +171,7 @@ services:
       - MONGO_URI=mongodb://mongodb:27017/
     networks:
       - ereuna-network-internal
+      - ereuna-network
     expose:
       - "8002"
     healthcheck:
@@ -191,31 +181,31 @@ services:
       retries: 3
     restart: unless-stopped
 
-  # Ingestor service (connects to Tiingo, publishes into Redis)
-  ingestor:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.ingestor
-    env_file:
-      - .env
-    depends_on:
-      - redis
-      - mongodb
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - MONGO_URI=mongodb://mongodb:27017/
-    command: [ "sh", "-c", "uvicorn server.ingestor.ingestor:app --host 0.0.0.0 --port 8001" ]
-    networks:
-      - ereuna-network-internal
-      - ereuna-network
-    expose:
-      - "8001"
-    healthcheck:
-      test: [ "CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8001/ready');\" || exit 1" ]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-    restart: unless-stopped
+  # # Ingestor service (connects to Tiingo, publishes into Redis)
+  # ingestor:
+  #   build:
+  #     context: ..
+  #     dockerfile: docker/Dockerfile.ingestor
+  #   env_file:
+  #     - ../.env
+  #   depends_on:
+  #     - redis
+  #     - mongodb
+  #   environment:
+  #     - REDIS_URL=redis://redis:6379/0
+  #     - MONGO_URI=mongodb://mongodb:27017/
+  #   command: [ "sh", "-c", "uvicorn server.ingestor.ingestor:app --host 0.0.0.0 --port 8001" ]
+  #   networks:
+  #     - ereuna-network-internal
+  #     - ereuna-network
+  #   expose:
+  #     - "8001"
+  #   healthcheck:
+  #     test: [ "CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8001/ready');\" || exit 1" ]
+  #     interval: 30s
+  #     timeout: 5s
+  #     retries: 3
+  #   restart: unless-stopped
 
   # Websocket service (serves realtime websockets to clients)
   websocket:
@@ -223,7 +213,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.websocket
     env_file:
-      - .env
+      - ../.env
     depends_on:
       - redis
       - mongodb
@@ -257,3 +247,4 @@ networks:
 
 volumes:
   mongodb_data:
+  logs_volume:

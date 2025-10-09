@@ -1,14 +1,14 @@
 <template>
 <div class="center-container">
-  <h1>Change Password</h1>
-  <p>To change your password on Ereuna, follow these steps:</p>
-  <p>1. Log in to your account and navigate to the Account section at <a href="https://ereuna.io/account" target="_blank">https://ereuna.io/account</a>. The Account subsection should be the default view.</p>
-  <p>2. Locate the 'Change Password' subsection.</p>
-    <img class="img" src="@/assets/images/docs/change-password.png" alt="Account Section Screenshot" />
-  <p>3. Enter your old password in the first input field, your new password in the second, and confirm the new password in the third. Then click the 'Change Password' button.</p>
-  <p>4. Your password has been successfully changed.</p>
+  <h1>Request Refund</h1>
+  <p>To request a refund for your Ereuna subscription, follow these steps:</p>
+   <img src="@/assets/images/docs/refund.gif" alt="Refund Request Process" class="refund-gif" />
+  <p>1. In the Subscriptions subsection, click the "Ask for Refund" button.</p>
+  <p>2. A popup will appear showing a summary of the amount eligible for automatic refund.</p>
+  <p>3. Review the details and click the button to confirm your refund request.</p>
+  <p>The refund will be processed within 5 business days to your original payment method.</p>
   <div class="disclaimer-box">
-    <p><strong>Disclaimer:</strong> Ensure your new password is strong and secure. Password changes are immediate and cannot be undone. If you forget your password, the only easy way to recover your account is to generate and use the recovery key, which you can download in this Account Section.</p>
+    <p><strong>Disclaimer:</strong> VAT is not refundable. Automatic refunds are processed to your original payment method within 5 business days. If you encounter any issues, please contact support at contact@ereuna.io and provide your account name and receipt ID.</p>
   </div>
 </div>
 </template>
@@ -51,6 +51,14 @@
     overflow-wrap: anywhere;
 }
 
+.refund-gif {
+    display: block;
+    margin: 0 auto 2rem;
+    max-width: 100%;
+    height: auto;
+}
+
+
 .disclaimer-box {
     background: $base2;
     border-radius: 5px;
@@ -63,7 +71,7 @@
     font-size: 1.6rem;
     color: $accent1;
     margin-bottom: 1rem;
-    margin-top: 0;
+    margin-top: 0px;
     font-weight: bold;
     overflow-wrap: anywhere;
 }
@@ -72,11 +80,7 @@
     font-size: 1.4rem;
     color: $text2;
     margin: 0;
+    line-height: 1.6;
     overflow-wrap: anywhere;
-}
-
-.img {
-    width: 100%;
-    margin-bottom: 1rem;
 }
 </style>

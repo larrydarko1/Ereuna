@@ -1,20 +1,20 @@
 <template>
-   <div class="center-container">
-    <h1>Subscriptions</h1>
-      <div class="disclaimer-box">
-      <p><strong>Important Note:</strong> Ereuna uses a recharge-based subscription model. We do not store payment methods on our platform, and there are no automatic charges. Once your subscription expires, no automatic renewals will occur. To extend your subscription, you must manually make a payment through the renewal option. There is no need for a "cancel subscription" button, as subscriptions do not auto-renew.</p>
-    </div>
-    <img src="@/assets/images/docs/subscription.png" alt="Subscriptions Overview" class="subscription-img" />
-    <p>The Subscriptions subsection allows you to manage your account's subscription details. Here, you can:</p>
-    <ul>
-      <li>View your username and account information.</li>
-      <li>See how many days you have left on your current subscription.</li>
-      <li>Check the amount eligible for automatic refund, if applicable.</li>
-      <li>Renew or add more time to your subscription.</li>
-      <li>Request an automatic refund.</li>
-      <li>View and download all your receipts in PDF format.</li>
-    </ul>
-    <p>This section provides full control over your subscription lifecycle and billing history.</p>
+<div class="center-container">
+  <h1>Selling a Position</h1>
+  <img src="@/assets/images/docs/sell-position.gif" alt="Sell Position Process" class="sell-position-gif" />
+  <p>To sell an existing position in your portfolio, navigate to the Positions section.</p>
+  <p>Each active position will have a "Sell" button attached to it. Click the "Sell" button for the position you want to sell.</p>
+  <p>A popup will appear where you can enter the sell details:</p>
+  <ul>
+    <li>Select the date of the sale.</li>
+    <li>Specify the number of shares to sell.</li>
+    <li>Enter the sell price per share.</li>
+    <li>Optionally, add a commission fee.</li>
+  </ul>
+  <p>Review the details and click the "Sell" button to confirm and execute the sell trade.</p>
+  <div class="disclaimer-box">
+    <p><strong>Disclaimer:</strong> Currently, only long positions are supported (selling assets you own). Short selling (selling assets you don't own) and fractional shares support will be available in future updates. You can set custom prices and dates for each symbol to simulate various scenarios.</p>
+  </div>
 </div>
 </template>
 
@@ -69,12 +69,13 @@
     overflow-wrap: anywhere;
 }
 
-.subscription-img {
+.sell-position-gif {
     display: block;
     margin: 0 auto 2rem;
     max-width: 100%;
     height: auto;
 }
+
 .disclaimer-box {
     background: $base2;
     border-radius: 5px;
@@ -87,7 +88,7 @@
     font-size: 1.6rem;
     color: $accent1;
     margin-bottom: 1rem;
-    margin-top: 0px;
+    margin-top: 0;
     font-weight: bold;
     overflow-wrap: anywhere;
 }
@@ -99,5 +100,4 @@
     line-height: 1.6;
     overflow-wrap: anywhere;
 }
-
 </style>

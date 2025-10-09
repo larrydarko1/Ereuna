@@ -1,14 +1,16 @@
 <template>
 <div class="center-container">
-  <h1>Change Password</h1>
-  <p>To change your password on Ereuna, follow these steps:</p>
-  <p>1. Log in to your account and navigate to the Account section at <a href="https://ereuna.io/account" target="_blank">https://ereuna.io/account</a>. The Account subsection should be the default view.</p>
-  <p>2. Locate the 'Change Password' subsection.</p>
-    <img class="img" src="@/assets/images/docs/change-password.png" alt="Account Section Screenshot" />
-  <p>3. Enter your old password in the first input field, your new password in the second, and confirm the new password in the third. Then click the 'Change Password' button.</p>
-  <p>4. Your password has been successfully changed.</p>
+  <h1>Adding Cash to Portfolio</h1>
+  <img src="@/assets/images/docs/add-cash.gif" alt="Add Cash Process" class="add-cash-gif" />
+  <p>Adding cash is typically the first step when starting a new portfolio, as it provides the liquidity needed for trades. In the header section of the Portfolio view, locate the "Add Cash" button.</p>
+  <p>Click the "Add Cash" button. A popup will appear where you can enter:</p>
+  <ul>
+    <li>The date of the cash addition.</li>
+    <li>The amount of cash to add to the account.</li>
+  </ul>
+  <p>If no base value has been set for the portfolio yet, adding cash will automatically set the base value to the same amount. The base value can also be manually adjusted separately.</p>
   <div class="disclaimer-box">
-    <p><strong>Disclaimer:</strong> Ensure your new password is strong and secure. Password changes are immediate and cannot be undone. If you forget your password, the only easy way to recover your account is to generate and use the recovery key, which you can download in this Account Section.</p>
+    <p><strong>Disclaimer:</strong> The ability to withdraw cash from the portfolio will be available in future updates.</p>
   </div>
 </div>
 </template>
@@ -44,11 +46,31 @@
     overflow-wrap: anywhere;
 }
 
+.center-container ul {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.center-container li {
+    font-size: 1.4rem;
+    color: $text2;
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
 .center-container a {
     color: $accent2;
     text-decoration: underline;
     font-size: 1.4rem;
     overflow-wrap: anywhere;
+}
+
+.add-cash-gif {
+    display: block;
+    margin: 0 auto 2rem;
+    max-width: 100%;
+    height: auto;
 }
 
 .disclaimer-box {
@@ -72,11 +94,7 @@
     font-size: 1.4rem;
     color: $text2;
     margin: 0;
+    line-height: 1.6;
     overflow-wrap: anywhere;
-}
-
-.img {
-    width: 100%;
-    margin-bottom: 1rem;
 }
 </style>

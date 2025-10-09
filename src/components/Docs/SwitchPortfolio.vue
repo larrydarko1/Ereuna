@@ -1,12 +1,9 @@
 <template>
 <div class="center-container">
-  <h1>Themes</h1>
-  <p>Ereuna offers 40+ custom themes to personalize your app experience, with more themes planned for future updates.</p>
-  <p>To change your theme, follow these steps:</p>
-  <p>1. Log in to your account and navigate to the Account section at <a href="https://ereuna.io/account" target="_blank">https://ereuna.io/account</a>. Open the Themes subsection.</p>
-  <p>2. Browse the available themes and click on the one you prefer.</p>
-  <img class="img" src="@/assets/images/docs/themes.gif" alt="Theme Selection Animation" />
-  <p>3. The app will immediately apply your selected theme.</p>
+  <h1>Switching Portfolios</h1>
+  <p>To switch between different portfolios in the Portfolio section, use the header section which contains buttons numbered 1 to 10. Each button represents a separate portfolio.</p>
+  <img src="@/assets/images/docs/portfolio-switch.png" alt="Portfolio Header" class="portfolio-img" />
+  <p>Simply click on the button corresponding to the portfolio you want to view or manage. The interface will instantly switch to display the selected portfolio's data.</p>
 </div>
 </template>
 
@@ -48,8 +45,10 @@
     overflow-wrap: anywhere;
 }
 
-.img {
-    width: 100%;
-    margin-bottom: 1rem;
+.portfolio-img {
+    display: block;
+    margin: 0 auto 2rem;
+    max-width: 100%;
+    height: auto;
 }
 </style>

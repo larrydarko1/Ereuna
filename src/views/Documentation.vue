@@ -10,7 +10,7 @@
       >
         {{ item }}
       </p>
-      <span class="version">Ereuna v1.0.5</span>
+      <span class="version">Ereuna v3.8.9</span>
     </div>
   <div class="side2">
   <p
@@ -20,7 +20,7 @@
       { active: selectedSide2 === item },
       { bold: [
           'One-Click Multi-Screener',
-          'Hide Stock Feature'
+          'Hide Feature'
         ].includes(item)
       }
     ]"
@@ -44,6 +44,10 @@ const router = useRouter()
 import WelcomeDoc from '@/components/Docs/WelcomeDoc.vue'
 import CreateAccountDoc from '@/components/Docs/createAccount.vue'
 import RecoverPasswordDoc from '@/components/Docs/RecoverPassword.vue'
+import ArchieDoc from '@/components/Docs/archie.vue'
+import DashboardDoc from '@/components/Docs/dashboard.vue'
+import Renew from '@/components/Docs/Renew.vue'
+import Refund from '@/components/Docs/Refund.vue'
 import ChangeUsernameDoc from '@/components/Docs/ChangeUsername.vue'
 import ChangePasswordDoc from '@/components/Docs/ChangePassword.vue'
 import RecoveryKeyDoc from '@/components/Docs/RecoveryKey.vue'
@@ -51,52 +55,61 @@ import DeleteAccountDoc from '@/components/Docs/DeleteAccount.vue'
 import SubscriptionDoc from '@/components/Docs/Subscriptions.vue'
 import ThemesDoc from '@/components/Docs/Themes.vue'
 import Security from '@/components/Docs/Security.vue'
+import PortfolioOverview from '@/components/Docs/PortfolioOverview.vue'
+import SwitchPortfolio from '@/components/Docs/SwitchPortfolio.vue'
+import ResetPortfolio from '@/components/Docs/ResetPortfolio.vue'
+import AddPosition from '@/components/Docs/AddPosition.vue'
+import SellPosition from '@/components/Docs/SellPosition.vue'
+import AddCash from '@/components/Docs/AddCash.vue'
+import BaseValue from '@/components/Docs/BaseValue.vue'
+import ExportPortfolio from '@/components/Docs/ExportPortfolio.vue'
+import ImportPortfolio from '@/components/Docs/ImportPortfolio.vue'
 import EditPanel from '@/components/Docs/EditPanel.vue'
 import SummaryTable from '@/components/Docs/SummaryTable.vue'
 import GrowthTables from '@/components/Docs/GrowthTables.vue'
 import SplitDivTable from '@/components/Docs/SplitDivTable.vue'
 import FinancialsTable from '@/components/Docs/FinancialsTable.vue'
 import Notes from '@/components/Docs/Notes.vue'
-import Benchmarks from '@/components/Docs/Benchmarks.vue'
-import Legends from '@/components/Docs/Legends.vue'
-import Indicators from '@/components/Docs/Indicators.vue'
-import CreateWatchlist from '@/components/Docs/CreateWatchlist.vue'
-import RenameWatchlist from '@/components/Docs/RenameWatchlist.vue'
-import AddSymbol from '@/components/Docs/AddSymbol.vue'
-import RemoveSymbol from '@/components/Docs/RemoveSymbol.vue'
-import OrderSymbols from '@/components/Docs/OrderSymbols.vue'
-import SortSymbols from '@/components/Docs/SortSymbols.vue'
-import CreateNote from '@/components/Docs/CreateNote.vue'
+import News from '@/components/Docs/News.vue'
+import Watchpanel from '@/components/Docs/Watchpanel.vue'
+import MainChart from '@/components/Docs/MainChart.vue'
+import Watchlist from '@/components/Docs/Watchlist.vue'
+import ManageSymbols from '@/components/Docs/ManageSymbols.vue'
 import AutoplayWatchlist from '@/components/Docs/AutoplayWatchlist.vue'
-import CreateScreener from '@/components/Docs/CreateScreener.vue'
-import SelectScreener from '@/components/Docs/SelectScreener.vue'
-import RenameScreener from '@/components/Docs/RenameScreener.vue'
-import DeleteScreener from '@/components/Docs/DeleteScreener.vue'
-import SaveScreener from '@/components/Docs/SaveScreener.vue'
-import ResetScreener from '@/components/Docs/ResetScreener.vue'
+import ManageScreener from '@/components/Docs/ManageScreener.vue'
+import EditTable from '@/components/Docs/EditTable.vue'
 import MultiScreener from '@/components/Docs/MultiScreener.vue'
 import AutoplayScreener from '@/components/Docs/AutoPlayScreener.vue'
 import HideStock from '@/components/Docs/HideStock.vue'
+import DownloadResults from '@/components/Docs/DownloadResults.vue'
 import MiniCharts from '@/components/Docs/MiniCharts.vue'
 
-const side1Items = ['Introduction', 'Account', 'Charts', 'Screener']
+const side1Items = ['Introduction', 'Dashboard', 'Account', 'Portfolio', 'Charts', 'Screener']
 const side2Items: Record<string, string[]> = {
   Introduction: ['Welcome', 'Create Account', 'Recover Password'],
-  Account: ['Change Username', 'Change Password', 'Generate Recovery Key','Delete Account', 'Subscription', 'Themes', 'Security / 2FA'],
-  Charts: ['Edit Panel', 'Summary Table', 'EPS / Sales / Earning Tables', 'Dividends / Splits Tables', 'Financial Statements',
-    'Notes', 'Benchmarks section', 'Legends / Buttons', 'Chart Indicators', 'Create a Watchlist', 'Rename a Watchlist', 'Add a Symbol',
-    'Remove a Symbol', 'Reorder Symbols', 'Sort Watchlist Elements', 'Create a Note', 'Autoplay Watchlist'
+  Dashboard: ['Archie AI (In Development)', 'Dashboard Overview'],
+  Account: ['Change Username', 'Change Password', 'Generate Recovery Key','Delete Account', 'Subscription', 'Renew Subscription', 'Ask For Refund', 'Themes', 'Security / 2FA'],
+  Portfolio: [
+  'Portfolio Overview',
+  'Switching Portfolios',
+  'Resetting Portfolio',
+  'Add a Position',
+  'Selling Positions',
+  'Adding Cash',
+  'Setting Base Value',
+  'Exporting Portfolio',
+  'Importing Portfolio',
+],
+  Charts: ['Watchpanel','Edit Left Panel', 'Summary Table', 'EPS / Sales / Earning Tables', 'Dividends / Splits Tables', 'Financial Statements',
+    'Notes', 'News', 'Main Chart', 'Managing Watchlists', 'Managing Symbols', 'Autoplay'
   ],
   Screener: [
-    'Create a Screener',
-    'Select a Screener',
-    'Rename a Screener',
-    'Delete a Screener',
-    'Save / Update a Screener',
-    'Reset a Screener',
+    'Managing Screeners',
+    'Edit Table Columns',
+    'Hide Feature',
     'One-Click Multi-Screener',
     'Autoplay Results',
-    'Hide Stock Feature',
+    'Downloading Screener Results',
     'Mini-Charts / Screener Summary',
   ]
 };
@@ -108,41 +121,45 @@ const componentMap: Record<string, any> = {
   'Welcome': WelcomeDoc,
   'Create Account': CreateAccountDoc,
   'Recover Password': RecoverPasswordDoc,
+  'Archie AI (In Development)': ArchieDoc,
+  'Dashboard Overview': DashboardDoc,
   'Change Username': ChangeUsernameDoc,
   'Change Password': ChangePasswordDoc,
   'Generate Recovery Key': RecoveryKeyDoc,
   'Delete Account': DeleteAccountDoc,
   'Subscription': SubscriptionDoc,
+  'Renew Subscription': Renew,
+  'Ask For Refund': Refund,
   'Themes': ThemesDoc,
   'Security / 2FA': Security,
-  'Edit Panel': EditPanel,
+  'Portfolio Overview': PortfolioOverview,
+  'Switching Portfolios': SwitchPortfolio,
+  'Resetting Portfolio': ResetPortfolio,
+  'Add a Position': AddPosition,
+  'Selling Positions': SellPosition,
+  'Adding Cash': AddCash,
+  'Setting Base Value': BaseValue,
+  'Exporting Portfolio': ExportPortfolio,
+  'Importing Portfolio': ImportPortfolio,
+  'Watchpanel': Watchpanel,
+  'Edit Left Panel': EditPanel,
+  'Main Chart': MainChart,
   'Summary Table': SummaryTable,
   'EPS / Sales / Earning Tables': GrowthTables,
   'Dividends / Splits Tables': SplitDivTable,
   'Financial Statements': FinancialsTable,
   'Notes': Notes,
-  'Benchmarks section': Benchmarks,
-  'Legends / Buttons': Legends,
-  'Chart Indicators': Indicators,
-  'Create a Watchlist': CreateWatchlist,
-  'Rename a Watchlist': RenameWatchlist,
-  'Add a Symbol': AddSymbol,
-  'Remove a Symbol': RemoveSymbol,
-  'Reorder Symbols': OrderSymbols,
-  'Sort Watchlist Elements': SortSymbols,
-  'Create a Note': CreateNote,
-  'Autoplay Watchlist': AutoplayWatchlist,
-  'Create a Screener': CreateScreener,
-  'Select a Screener': SelectScreener,
-  'Rename a Screener': RenameScreener,
-  'Delete a Screener': DeleteScreener,
-  'Save / Update a Screener': SaveScreener,
-  'Reset a Screener': ResetScreener,
+  'News': News,
+  'Managing Watchlists': Watchlist,
+  'Managing Symbols': ManageSymbols,
+  'Autoplay': AutoplayWatchlist,
+  'Managing Screeners': ManageScreener,
+  'Edit Table Columns': EditTable,
   'One-Click Multi-Screener': MultiScreener,
   'Autoplay Results': AutoplayScreener,
-  'Hide Stock Feature': HideStock,
+  'Hide Feature': HideStock,
+  'Downloading Screener Results': DownloadResults,
   'Mini-Charts / Screener Summary': MiniCharts,
-  // ...add all other mappings here
 }
 
 function getComponentName(item: string) {
@@ -166,6 +183,7 @@ function getComponentName(item: string) {
   height: 100vh;
   position: relative;
   z-index: 5000;
+  flex: 0 0 15%;
 }
 
 .side1 p {
@@ -202,13 +220,14 @@ function getComponentName(item: string) {
 }
 
 .side2 {
-  background: $base4;
+  background: $base1;
   flex-direction: column;
   height: 100vh;
   min-width: 300px;
   position: relative;
   overflow-y: scroll;
   z-index: 1000;
+  flex: 0 0 25%;
 }
 
 .side2 p {
@@ -235,7 +254,7 @@ function getComponentName(item: string) {
 
 .side2 p.active {
   color: $text1;
-  background-color: $base1;
+  background-color: $base2;
 }
 
 .documentation {
@@ -254,7 +273,8 @@ function getComponentName(item: string) {
 .main {
   padding: 3rem;
   overflow-y: scroll;
-  max-width: 700px;
+  flex: 0 0 60%;
+  background: $base4;
 }
 
 //mobile version

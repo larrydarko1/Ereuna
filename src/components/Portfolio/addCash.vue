@@ -16,6 +16,7 @@
             aria-label="Cash Date"
           />
         </div>
+        <br>
         <div class="input-row">
           <label for="amount">Amount</label>
           <input
@@ -30,6 +31,7 @@
             aria-label="Cash Amount"
           />
         </div>
+        <br>
         <div class="modal-actions">
           <button type="submit" class="trade-btn" :disabled="isLoading" aria-label="Add Cash">
             <span class="btn-content-row">

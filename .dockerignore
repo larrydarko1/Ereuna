@@ -17,5 +17,3 @@ server/.cache
 *.sqlite
 /.vscode
 /.DS_Store
-docker/*
-docker/**
