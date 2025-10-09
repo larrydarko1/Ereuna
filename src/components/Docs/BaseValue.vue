@@ -1,12 +1,10 @@
 <template>
 <div class="center-container">
-  <h1>Themes</h1>
-  <p>Ereuna offers 40+ custom themes to personalize your app experience, with more themes planned for future updates.</p>
-  <p>To change your theme, follow these steps:</p>
-  <p>1. Log in to your account and navigate to the Account section at <a href="https://ereuna.io/account" target="_blank">https://ereuna.io/account</a>. Open the Themes subsection.</p>
-  <p>2. Browse the available themes and click on the one you prefer.</p>
-  <img class="img" src="@/assets/images/docs/themes.gif" alt="Theme Selection Animation" />
-  <p>3. The app will immediately apply your selected theme.</p>
+  <h1>Setting Base Value</h1>
+  <img src="@/assets/images/docs/set-base-value.gif" alt="Set Base Value Process" class="set-base-value-gif" />
+  <p>The base value represents the initial capital of your portfolio and is used in performance calculations. In the header section of the Portfolio view, locate the "Set Base Value" button.</p>
+  <p>Click the "Set Base Value" button. A popup will appear where you can enter the desired base value for the selected portfolio.</p>
+  <p>Enter the amount and confirm to set the base value. This can be adjusted at any time to reflect changes in your portfolio's starting point.</p>
 </div>
 </template>
 
@@ -48,8 +46,10 @@
     overflow-wrap: anywhere;
 }
 
-.img {
-    width: 100%;
-    margin-bottom: 1rem;
+.set-base-value-gif {
+    display: block;
+    margin: 0 auto 2rem;
+    max-width: 100%;
+    height: auto;
 }
 </style>

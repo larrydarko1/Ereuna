@@ -1,9 +1,10 @@
 <template>
 <div class="center-container">
+  <h1>Dividend and Split Tables</h1>
   <p>
     In the <b>Charts</b> section, the left side panel also includes tables dedicated to <b>Dividends</b> and <b>Splits</b> for each company or asset.
   </p>
-  <img class="img" src="@/assets/images/docs/image19.png" alt="">
+  <img class="img" src="@/assets/images/docs/divsplit-table.png" alt="">
   <p>
     The <b>Dividend Table</b> lists all dividend payment dates along with the corresponding dividend amounts, allowing you to quickly see how much the asset has paid out over time.
   </p>
@@ -28,22 +29,33 @@
     text-align: left;
 }
 
-.center-container h2 {
-    font-size: 1.7rem;
+.center-container h1 {
+    text-align: center;
+    font-size: 2rem;
+    color: $text1;
+    margin-bottom: 2rem;
+}
+
+.center-container p {
     color: $text2;
+    font-size: 1.4rem;
     margin-bottom: 1rem;
     overflow-wrap: anywhere;
 }
 
-.center-container p,
+.center-container p strong,
 .center-container b {
-    font-size: 1.4rem;
+    font-size: inherit;
     color: $text2;
-    margin-bottom: 1rem;
-    overflow-wrap: anywhere;
+}
+
+.center-container a {
+    color: $accent2;
+    font-size: inherit;
 }
 
 .img {
     width: 100%;
+    margin-bottom: 1rem;
 }
 </style>

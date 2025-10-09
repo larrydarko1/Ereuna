@@ -1,9 +1,10 @@
 <template>
 <div class="center-container">
+  <h1>The Summary Table</h1>
   <p>
     The <b>Summary Table</b> is the first default element of the left panel in the <b>Charts</b> section. It provides a brief but complete overview of the company or financial asset you are viewing.
   </p>
-  <img class="img" src="@/assets/images/docs/image16.png" alt="">
+  <img class="img" src="@/assets/images/docs/summary-table.png" alt="">
   <p>
     As of today, you can view and edit the following information:
   </p>
@@ -40,6 +41,9 @@
   <p>
     You can customize which of these elements are visible in your Summary Table by using the panel editing features.
   </p>
+  <div class="disclaimer-box">
+    <p>Note: More attributes will be added in the future as we support additional financial asset types.</p>
+  </div>
 </div>
 </template>
 
@@ -55,9 +59,16 @@
     text-align: left;
 }
 
-.center-container h3 {
-    font-size: 1.7rem;
+.center-container h1 {
+    text-align: center;
+    font-size: 2rem;
+    color: $text1;
+    margin-bottom: 2rem;
+}
+
+.center-container p {
     color: $text2;
+    font-size: 1.4rem;
     margin-bottom: 1rem;
     overflow-wrap: anywhere;
 }
@@ -66,14 +77,6 @@
 .center-container b {
     font-size: inherit;
     color: $text2;
-    margin-bottom: 1rem;
-    overflow-wrap: anywhere;
-}
-
-.center-container p {
-    color: $text2;
-    overflow-wrap: anywhere;
-    font-size: 1.4rem;
 }
 
 .center-container ul {
@@ -90,11 +93,37 @@
 
 .center-container a {
     color: $accent2;
-    overflow-wrap: anywhere;
     font-size: inherit;
 }
 
+.disclaimer-box {
+    background: $base2;
+    border-radius: 5px;
+    padding: 1.5rem;
+    margin: 0 0 2rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.disclaimer-box h4 {
+    font-size: 1.6rem;
+    color: $accent1;
+    margin-bottom: 1rem;
+    margin-top: 0px;
+    font-weight: bold;
+    overflow-wrap: anywhere;
+}
+
+.disclaimer-box p {
+    font-size: 1.4rem;
+    color: $text2;
+    margin: 0;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+
 .img {
     width: 100%;
+    margin-bottom: 1rem;
 }
 </style>

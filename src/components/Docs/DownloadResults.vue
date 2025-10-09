@@ -1,8 +1,8 @@
 <template>
  <div class="center-container">
-    <h1>Autoplay Screener Results</h1>
-    <p>You can autoplay any results list. In the middle menu, click on the <b>'Autoplay'</b> button. While autoplay is active, each result in the list will be automatically selected every 5 seconds. To disable autoplay, simply click the <b>'Autoplay'</b> button again.</p>
-    <img class="import-img" src="@/assets/images/docs/autoplay2.gif" alt="">
+    <h1>Downloading Screener Results</h1>
+    <img src="@/assets/images/docs/download-list.gif" alt="">
+    <p>To download the results from your screener, locate the "Download Results" button in the menu and click on it. This will download a CSV table containing all the results from the current list.</p>
  </div>
 </template>
 
@@ -42,10 +42,5 @@
     text-decoration: underline;
     font-size: 1.4rem;
     overflow-wrap: anywhere;
-}
-
-.import-img {
-    width: 100%;
-    margin-bottom: 1rem;
 }
 </style>

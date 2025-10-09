@@ -1,18 +1,16 @@
 <template>
 <div class="center-container">
-  <h1>Notes</h1>
+  <h1>Watch Panel</h1>
   <p>
-   Notes created for specific symbols are displayed in a table within the left panel of the <b>Charts</b> section.
+    The Watch Panel is a Wall Street-style quotation area in the <b>Charts</b> section where you can add symbols to monitor closely.
   </p>
-    <img class="img" src="@/assets/images/docs/note.gif" alt="">
+  <img class="img" src="@/assets/images/docs/edit-watchpanel.png" alt="">
   <p>
-    To create a note, navigate to the dropdown menu in the top right corner of the Charts section and select the 'Create Note' option. A popup will appear where you can enter your note. After submitting, the new note will be visible in the left panel.
+    On the right side of the panel, there is an edit button. Clicking it opens a popup where you can add or remove symbols as desired, with a limit of 20 symbols.
   </p>
-  <p>To delete a note, click the X button in the top right corner of the note you wish to remove.</p>
+  <img class="img" src="@/assets/images/docs/watchpanel-popup.png" alt="">
 </div>
-</template>
-
-<script setup lang="ts">
+</template><script setup lang="ts">
 </script>
 
 <style scoped lang="scss">
