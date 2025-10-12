@@ -117,7 +117,7 @@ async function fetchWatchPanelWS() {
   wsReceived = false;
   let user = encodeURIComponent(props.user);
   let wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  let wsUrl = `${wsProto}://localhost:8000/ws/watchpanel?user=${user}`;
+  let wsUrl = `${wsProto}://${window.location.host}/ws/watchpanel?user=${user}`;
   let triedRest = false;
   ws = new WebSocket(wsUrl, props.apiKey); // API key as protocol
   ws.onopen = () => {

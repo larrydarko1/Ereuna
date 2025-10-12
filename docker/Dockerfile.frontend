@@ -5,6 +5,9 @@ WORKDIR /app
 # Copy the entire project
 COPY . .
 
+# Copy .env file from docker directory to root for Vue build
+COPY docker/.env ./.env
+
 # Install dependencies
 RUN npm install
 

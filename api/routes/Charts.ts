@@ -979,9 +979,13 @@ export default function (app: any, deps: any) {
         if (!user) {
             return res.status(400).json({ message: 'Missing user parameter' });
         }
-        const { watchlistName, symbols } = req.body;
-        // Watchlist name validation: 3-25 chars, letters, numbers, underscores only
-        const validNameRegex = /^[a-zA-Z0-9_]{3,25}$/;
+        let { watchlistName, symbols } = req.body;
+        // Normalize and trim incoming watchlist name so names like 'MAIN WATCHLIST' are accepted
+        if (typeof watchlistName === 'string') {
+            watchlistName = String(watchlistName).trim();
+        }
+        // Watchlist name validation: allow letters, numbers, spaces, underscores and hyphens, 1-50 chars
+        const validNameRegex = /^[a-zA-Z0-9 _-]{1,50}$/;
         if (!watchlistName || typeof watchlistName !== 'string' || !validNameRegex.test(watchlistName)) {
             return res.status(400).json({ message: 'Invalid watchlist name' });
         }

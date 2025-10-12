@@ -24,3 +24,4 @@ mongodb-init
 *.sw?
 __pycache__/
 __pycache__
+db/dump/
