@@ -773,8 +773,7 @@ async function fetchQuotes() {
     wsConnected = false;
   const wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
   // Use port 8000 for local development
-  const wsPort = 8000;
-  const wsUrl = `${wsProto}://${window.location.hostname}:${wsPort}/ws/quotes?symbols=${symbols}`;
+  const wsUrl = `${wsProto}://${window.location.host}/ws/quotes?symbols=${symbols}`;
     ws = new WebSocket(wsUrl, apiKey);
     ws.onopen = () => {
       wsConnected = true;

@@ -170,4 +170,49 @@ export default function (app: any, deps: any) {
         }
     );
 
+    // endpoint to get documentation features
+    app.get('/docs-features',
+        async (req: Request, res: Response) => {
+            const requestId = crypto.randomBytes(16).toString('hex');
+            let client: typeof MongoClient | undefined;
+            try {
+                const apiKey = req.header('x-api-key');
+                const sanitizedKey = sanitizeInput(apiKey);
+                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                    logger.warn({
+                        msg: 'Invalid API key',
+                        providedApiKey: !!sanitizedKey,
+                        context: 'GET /docs-features',
+                        statusCode: 401,
+                        requestId,
+                    });
+                    return res.status(401).json({ message: 'Unauthorized API Access', requestId });
+                }
+                client = new MongoClient(uri);
+                await client.connect();
+                const db = client.db('EreunaDB');
+                const docsCollection = db.collection('Docs');
+                const features = await docsCollection.find({}).sort({ _id: -1 }).toArray();
+                return res.status(200).json({ features, requestId });
+            } catch (error: any) {
+                const errObj = handleError(error, 'GET /docs-features', { requestId }, 500);
+                return res.status(errObj.statusCode || 500).json({ ...errObj, requestId });
+            } finally {
+                if (client) {
+                    try {
+                        await client.close();
+                    } catch (closeError) {
+                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
+                        logger.error({
+                            msg: 'Error closing database connection',
+                            error: closeErr.message,
+                            context: 'GET /docs-features',
+                            requestId,
+                        });
+                    }
+                }
+            }
+        }
+    );
+
 };

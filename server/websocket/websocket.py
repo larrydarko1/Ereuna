@@ -237,6 +237,15 @@ def is_market_hours():
     close_time = now.replace(hour=MARKET_CLOSE_HOUR, minute=MARKET_CLOSE_MINUTE, second=0, microsecond=0)
     return open_time <= now <= close_time
 
+# --- Health check endpoints ---
+@app.get("/ready")
+async def ready():
+    return {"status": "ready"}
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}
+
 # --- WebSocket endpoint for chart data, matching REST API logic ---
 @app.websocket('/ws/chartdata')
 async def websocket_chartdata(
@@ -1127,4 +1136,3 @@ async def websocket_chartdata_dl(
             await websocket.close()
         except Exception:
             pass
-        

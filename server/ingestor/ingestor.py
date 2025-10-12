@@ -23,12 +23,11 @@ import re
 
 load_dotenv()
 
-# --- Logging setup ---
-LOG_FILE = 'logs/websocket.log'
+# --- Logging setup (stdout-only for Docker/promtail) ---
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)s %(name)s %(message)s',
-    handlers=[logging.FileHandler(LOG_FILE), logging.StreamHandler()]
+    handlers=[logging.StreamHandler()]
 )
 logger = logging.getLogger("websocket")
 TIINGO_API_KEY = os.getenv('TIINGO_KEY')
@@ -269,7 +268,7 @@ async def market_hours_manager():
                     break
                 if not subscribed:
                     # hardcoded tickers for testing
-                    stock_symbols = ['TSLA', 'RRDT']
+                    stock_symbols = ['TSLA', 'RDDT']
                     tickers_to_subscribe = stock_symbols
                     logger.info(f"[MarketHours] Subscribing to {len(stock_symbols)} stock/ETF tickers: {stock_symbols}")
                     stock_subscribe_msg = {

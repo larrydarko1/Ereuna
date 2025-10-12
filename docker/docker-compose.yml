@@ -5,11 +5,14 @@ services:
     image: traefik:latest
     command:
       - --api.dashboard=true
+      - --api.insecure=true
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --entryPoints.web.address=:80
+      - --entryPoints.traefik.address=:8080
     ports:
       - "80:80"
+      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik.yml:/etc/traefik/dynamic.yml:ro
@@ -56,7 +59,7 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
       - CORS_ORIGIN=http://localhost
-    command: [ "sh", "-c", "node api/server.js" ]
+    command: [ "sh", "-c", "node --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' api/server.ts" ]
     networks:
       - ereuna-network-internal
       - ereuna-network
@@ -71,10 +74,8 @@ services:
   mongodb:
     image: mongo:latest
     volumes:
-      - ../db/mongodb-init:/docker-entrypoint-initdb.d
+      - ../db:/docker-entrypoint-initdb.d
       - mongodb_data:/data/db
-    environment:
-      - MONGO_INITDB_DATABASE=EreunaDB
     networks:
       - ereuna-network-internal
     restart: unless-stopped
@@ -89,7 +90,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - ../prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     expose:
       - "9090"
     depends_on:
@@ -118,7 +119,6 @@ services:
       traefik.enable: "true"
       traefik.http.routers.grafana.rule: "Host(`grafana.localhost`)"
       traefik.http.routers.grafana.entrypoints: "web"
-      traefik.http.routers.grafana.middlewares: "grafana-auth@file,grafana-secure-headers@file"
       traefik.http.services.grafana.loadbalancer.server.port: "3000"
 
   loki:
@@ -181,31 +181,31 @@ services:
       retries: 3
     restart: unless-stopped
 
-  # # Ingestor service (connects to Tiingo, publishes into Redis)
-  # ingestor:
-  #   build:
-  #     context: ..
-  #     dockerfile: docker/Dockerfile.ingestor
-  #   env_file:
-  #     - ../.env
-  #   depends_on:
-  #     - redis
-  #     - mongodb
-  #   environment:
-  #     - REDIS_URL=redis://redis:6379/0
-  #     - MONGO_URI=mongodb://mongodb:27017/
-  #   command: [ "sh", "-c", "uvicorn server.ingestor.ingestor:app --host 0.0.0.0 --port 8001" ]
-  #   networks:
-  #     - ereuna-network-internal
-  #     - ereuna-network
-  #   expose:
-  #     - "8001"
-  #   healthcheck:
-  #     test: [ "CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8001/ready');\" || exit 1" ]
-  #     interval: 30s
-  #     timeout: 5s
-  #     retries: 3
-  #   restart: unless-stopped
+  # Ingestor service (connects to Tiingo, publishes into Redis)
+  ingestor:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.ingestor
+    env_file:
+      - ../.env
+    depends_on:
+      - redis
+      - mongodb
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MONGO_URI=mongodb://mongodb:27017/
+    command: [ "sh", "-c", "uvicorn server.ingestor.ingestor:app --host 0.0.0.0 --port 8001" ]
+    networks:
+      - ereuna-network-internal
+      - ereuna-network
+    expose:
+      - "8001"
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8001/ready');\" || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: "no"
 
   # Websocket service (serves realtime websockets to clients)
   websocket:

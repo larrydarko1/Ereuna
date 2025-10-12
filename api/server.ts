@@ -18,6 +18,8 @@ dotenv.config();
 const allowedOrigins = [
   'http://localhost:3500',
   'https://localhost:3500',
+  'http://localhost',
+  'https://localhost',
   'https://frontend:3500',
   'https://ereuna.co',
   'https://www.ereuna.co'
@@ -35,6 +37,7 @@ const limiter = rateLimit({
 });
 
 const app = express();
+app.set('trust proxy', 1); // Trust the proxy (Traefik)
 const port = process.env.PORT || 5500;
 const uri = process.env.MONGODB_URI;
 
@@ -65,7 +68,8 @@ const corsOptions = {
       callback(null, true);
     } else {
       // Use logger.error for unauthorized CORS requests
-      logger.error('Unauthorized CORS request', {
+      logger.error({
+        msg: 'Unauthorized CORS request',
         origin: origin,
         timestamp: new Date().toISOString()
       });

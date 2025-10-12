@@ -14,7 +14,8 @@
     "redisstop": "brew services stop redis",
     "redis": "redis-server",
     "docker": "docker compose -f docker/docker-compose.yml up --build -d",
-    "dbup": "mongodump --db=EreunaDB --out=mongodb-init/dump",
+    "dockerstop": "docker compose -f docker/docker-compose.yml down --remove-orphans --volumes --rmi all && docker system prune -f",
+    "dbup": "mongodump --db=EreunaDB --out=db/dump",
     "websocket": "uvicorn server.websocket.websocket:app --host 0.0.0.0 --port 8000",
     "ingestor": "uvicorn server.ingestor.ingestor:app --host 0.0.0.0 --port 8001",
     "aggregator": "uvicorn server.aggregator.app:app --host 0.0.0.0 --port 8002"

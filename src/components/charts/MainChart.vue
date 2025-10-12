@@ -215,7 +215,7 @@ async function fetchChartData(symbolParam?: string, timeframeParam?: string): Pr
   const timeframe = timeframeParam || selectedDataType.value || 'daily';
   const user = encodeURIComponent(props.user);
   const wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  const wsUrl = `${wsProto}://localhost:8000/ws/chartdata?ticker=${symbol}&timeframe=${timeframe}&user=${user}`;
+  const wsUrl = `${wsProto}://${window.location.host}/ws/chartdata?ticker=${symbol}&timeframe=${timeframe}&user=${user}`;
   const restUrl = `/api/${symbol}/chartdata?timeframe=${timeframe}&user=${user}`;
   let triedRest = false;
   function handleChartData(result: ChartDataResult): void {

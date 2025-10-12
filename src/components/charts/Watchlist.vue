@@ -1077,7 +1077,7 @@ async function fetchDataWS(items: string[]): Promise<void> {
   const validItems = items.filter(Boolean);
   const tickersParam = validItems.map(encodeURIComponent).join(',');
   const wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  const wsUrl = `${wsProto}://localhost:8000/ws/data-values?tickers=${tickersParam}`;
+  const wsUrl = `${wsProto}://${window.location.host}/ws/data-values?tickers=${tickersParam}`;
   let triedRest = false;
   ws = new WebSocket(wsUrl, props.apiKey); // API key as protocol
   ws.onopen = () => {};

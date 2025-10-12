@@ -159,7 +159,7 @@ async function fetchChartDataWS(symbolParam: string | null): Promise<void> {
   chartWSReceived = false;
   let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol || props.selectedItem).toUpperCase();
   let wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  let wsUrl = `${wsProto}://localhost:8000/ws/chartdata-dl?ticker=${encodeURIComponent(symbol)}&timeframe=daily`;
+  let wsUrl = `${wsProto}://${window.location.host}/ws/chartdata-dl?ticker=${encodeURIComponent(symbol)}&timeframe=daily`;
   chartWS = new WebSocket(wsUrl, props.apiKey);
   let triedRest = false;
   chartWS.onopen = () => {};

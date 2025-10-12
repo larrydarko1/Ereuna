@@ -448,10 +448,25 @@ type ImagePathType = { symbol: string; exchange: string };
 
 // Flexible helper function to get static image path for any symbol/exchange
 function getImagePath(symbol: string, exchange: string): string {
-  if (symbol && exchange) {
-    return `/src/assets/images/${exchange}/${symbol}.svg`;
+  const globKey = `${exchange}/${symbol}.svg`;
+  if (!(getImagePath as any)._map) {
+    const modules = import.meta.glob('/src/assets/images/**/**.svg', { eager: true, as: 'url' }) as Record<string, string>;
+    const map: Record<string, string> = {};
+    Object.keys(modules).forEach((fullPath) => {
+      // fullPath examples: '/src/assets/images/NYSE/AAPL.svg'
+      const parts = fullPath.split('/src/assets/images/');
+      if (parts.length === 2) {
+        const key = parts[1]; // e.g. 'NYSE/AAPL.svg'
+        map[key] = (modules as any)[fullPath];
+      }
+    });
+    (getImagePath as any)._map = map;
   }
-  return `/src/assets/images/default.svg`;
+
+  const map = (getImagePath as any)._map as Record<string, string>;
+  if (map[globKey]) return map[globKey];
+  const publicPath = `/assets/images/${exchange}/${symbol}.svg`;
+  return publicPath;
 }
 
 const selected = ref('info')
