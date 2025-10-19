@@ -160,12 +160,14 @@ app.add_middleware(
 
 @app.on_event('startup')
 async def websocket_startup():
-    global redis_client, redis_listener_task
+    global redis_client, redis_listener_task, mongo_client, db
     REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
     MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
-    logger.debug(f"websocket startup: MONGO_URI={MONGO_URI}, REDIS_URL={REDIS_URL}")
+    logger.info(f"websocket startup: MONGO_URI={MONGO_URI}, REDIS_URL={REDIS_URL}")
+    
+    # Test Redis connection
     try:
-        logger.debug(f"Connecting to Redis at {REDIS_URL}")
+        logger.info(f"Connecting to Redis at {REDIS_URL}")
         redis_client = aioredis.from_url(REDIS_URL)
         try:
             pong = await redis_client.ping()
@@ -176,10 +178,10 @@ async def websocket_startup():
             try:
                 if 'redis://redis' in REDIS_URL:
                     alt = REDIS_URL.replace('redis://redis', 'redis://localhost')
-                    logger.debug(f"Attempting Redis fallback to {alt}")
+                    logger.info(f"Attempting Redis fallback to {alt}")
                     redis_client = aioredis.from_url(alt)
                     pong2 = await redis_client.ping()
-                    logger.debug(f"Redis fallback ping successful: {pong2}")
+                    logger.info(f"Redis fallback ping successful: {pong2}")
             except Exception as e2:
                 logger.warning(f"Redis fallback also failed: {e2}")
         # start listener task (listener will early-return if redis_client is None)
@@ -187,16 +189,18 @@ async def websocket_startup():
     except Exception as e:
         logger.exception(f'Failed to start Redis aggregated listener: {e}')
 
-    # Ensure mongo_client can connect (local dev fallback)
+    # Test MongoDB connection
     try:
         try:
             await mongo_client.admin.command('ping')
             logger.info('Mongo ping successful')
         except Exception as me:
             logger.warning(f"Mongo ping failed in websocket startup: {me}")
-            if 'mongodb://mongodb' in MONGO_URI:
+            # If we're in Docker (mongodb host), don't try localhost fallback
+            # If we're in local dev (localhost), try the mongodb service name
+            if 'localhost' in MONGO_URI:
                 try:
-                    alt_m = MONGO_URI.replace('mongodb://mongodb', 'mongodb://localhost')
+                    alt_m = MONGO_URI.replace('mongodb://localhost', 'mongodb://mongodb')
                     logger.info(f"Attempting MongoDB fallback to {alt_m}")
                     mongo_client = motor.motor_asyncio.AsyncIOMotorClient(alt_m)
                     db = mongo_client.get_database('EreunaDB')
@@ -245,6 +249,11 @@ async def ready():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+@app.get("/metrics")
+async def metrics():
+    """Prometheus metrics endpoint - basic implementation"""
+    return {"status": "ok", "service": "websocket"}
 
 # --- WebSocket endpoint for chart data, matching REST API logic ---
 @app.websocket('/ws/chartdata')
@@ -540,21 +549,50 @@ async def websocket_quotes(
 
     await websocket.accept(subprotocol=api_key)
     symbol_list = [sanitize_input(s) for s in symbols.split(',') if s.strip()]
+
+    async def fetch_best_close(sym: str):
+        try:
+            if is_market_hours():
+                # prefer in-progress cached candle (if exists) for more real-time accuracy
+                cached = get_in_progress_cached(sym, '1m')
+                if cached and 'close' in cached:
+                    return float(cached['close'])
+                # fall back to DB latest 1m
+                doc = await db['OHCLVData1m'].find({'tickerID': sym}).sort('timestamp', -1).limit(1).to_list(length=1)
+                if doc and len(doc) > 0 and 'close' in doc[0]:
+                    return float(doc[0]['close'])
+                return None
+            else:
+                # outside market hours prefer daily close (more precise final close)
+                doc = await db['OHCLVData'].find({'tickerID': sym}).sort('timestamp', -1).limit(1).to_list(length=1)
+                if doc and len(doc) > 0 and 'close' in doc[0]:
+                    return float(doc[0]['close'])
+                # fallback to cached in-progress daily if available
+                cached_daily = get_in_progress_cached(sym, '1d')
+                if cached_daily and 'close' in cached_daily:
+                    return float(cached_daily['close'])
+                # finally fallback to latest 1m if nothing else
+                doc1m = await db['OHCLVData1m'].find({'tickerID': sym}).sort('timestamp', -1).limit(1).to_list(length=1)
+                if doc1m and len(doc1m) > 0 and 'close' in doc1m[0]:
+                    return float(doc1m[0]['close'])
+                return None
+        except Exception as e:
+            logger.exception(f"Error fetching best close for {sym}: {e}")
+            return None
+
     try:
         while True:
             result = {}
             for sym in symbol_list:
-                doc = await db['OHCLVData1m'].find({'tickerID': sym}).sort('timestamp', -1).limit(1).to_list(length=1)
-                if doc and len(doc) > 0 and 'close' in doc[0]:
-                    result[sym] = float(doc[0]['close'])
-                else:
-                    result[sym] = None
+                val = await fetch_best_close(sym)
+                result[sym] = val
             try:
                 await websocket.send_text(json.dumps(result))
             except WebSocketDisconnect:
                 logger.info("Client disconnected during send_text in /ws/quotes.")
                 break
-            await asyncio.sleep(2)
+            # send updates more frequently during market hours
+            await asyncio.sleep(1 if is_market_hours() else 5)
     except WebSocketDisconnect:
         logger.info("Client disconnected from /ws/quotes.")
     except Exception as e:

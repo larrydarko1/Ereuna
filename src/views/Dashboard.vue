@@ -91,7 +91,25 @@
         </table>
       </section>
       <section class="sma-distribution card" aria-label="SMA Distribution">
-        <h2 id="sma-distribution-heading">SMA Distribution</h2>
+        <div class="sma-header">
+          <h2 id="sma-distribution-heading">SMA Distribution</h2>
+          <div class="asset-type-dropdown" @click="toggleAssetDropdown">
+            <div class="dropdown-selected">
+              {{ assetTypeOptions.find(o => o.value === selectedAssetType)?.label }}
+              <span class="dropdown-arrow" :class="{ open: assetDropdownOpen }">&#9662;</span>
+            </div>
+            <div class="dropdown-list" v-if="assetDropdownOpen">
+              <div
+                v-for="opt in assetTypeOptions"
+                :key="opt.value"
+                class="dropdown-item"
+                @click.stop="selectAssetType(opt.value)"
+              >
+                {{ opt.label }}
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="sma-bars" aria-labelledby="sma-distribution-heading">
           <div class="sma-bar" v-for="sma in smaData" :key="sma.period" :aria-label="`${sma.period} SMA distribution`">
             <div class="sma-label">{{ sma.period }} SMA</div>
@@ -179,11 +197,79 @@
         </div>
       </section>
     </div>
+
+    <!-- Third Row: Valuation Analysis -->
+    <div class="dashboard-row-valuation">
+      <section class="valuation-section card" aria-label="Stock Valuation Analysis">
+        <h2 id="valuation-heading">
+          Stock Valuation Analysis
+          <span class="valuation-subtitle">Based on DCF Intrinsic Value</span>
+        </h2>
+        <div class="valuation-content" aria-labelledby="valuation-heading">
+          <div class="valuation-column undervalued">
+            <h3>
+              <span class="badge-undervalued">Top 10 Undervalued</span>
+            </h3>
+            <div class="valuation-list">
+              <div v-if="statsLoading" class="loading-state">Loading...</div>
+              <div v-else-if="statsError" class="error-state">{{ statsError }}</div>
+              <div v-else-if="!topUndervalued.length" class="empty-state">No data available</div>
+              <div v-else v-for="stock in topUndervalued" :key="stock.symbol" class="valuation-item">
+                <div class="stock-header">
+                  <span class="stock-symbol">{{ stock.symbol }}</span>
+                  <span class="upside-badge">+{{ stock.upside }}%</span>
+                </div>
+                <div class="stock-prices">
+                  <div class="price-row">
+                    <span class="price-label">Current:</span>
+                    <span class="price-value">${{ stock.currentPrice }}</span>
+                  </div>
+                  <div class="price-row">
+                    <span class="price-label">Intrinsic:</span>
+                    <span class="price-value intrinsic">${{ stock.intrinsicValue }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="valuation-column overvalued">
+            <h3>
+              <span class="badge-overvalued">Top 10 Overvalued</span>
+            </h3>
+            <div class="valuation-list">
+              <div v-if="statsLoading" class="loading-state">Loading...</div>
+              <div v-else-if="statsError" class="error-state">{{ statsError }}</div>
+              <div v-else-if="!topOvervalued.length" class="empty-state">No data available</div>
+              <div v-else v-for="stock in topOvervalued" :key="stock.symbol" class="valuation-item">
+                <div class="stock-header">
+                  <span class="stock-symbol">{{ stock.symbol }}</span>
+                  <span class="downside-badge">-{{ stock.downside }}%</span>
+                </div>
+                <div class="stock-prices">
+                  <div class="price-row">
+                    <span class="price-label">Current:</span>
+                    <span class="price-value">${{ stock.currentPrice }}</span>
+                  </div>
+                  <div class="price-row">
+                    <span class="price-label">Intrinsic:</span>
+                    <span class="price-value intrinsic">${{ stock.intrinsicValue }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="valuation-disclaimer">
+          <strong>Note:</strong> Intrinsic values are calculated using Discounted Cash Flow (DCF) analysis. 
+          These are estimates and should not be considered as investment advice.
+        </div>
+      </section>
+    </div>
 </main>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import Header from '../components/Header.vue';
 
 // --- TypeScript interfaces for API data ---
@@ -214,9 +300,18 @@ interface IndexData {
   ytd: string;
 }
 
+interface ValuationStock {
+  symbol: string;
+  current_price: number;
+  intrinsic_value: number;
+  valuation_ratio: number;
+}
+
 interface MarketStats {
   top10DailyGainers: Array<{ symbol: string; daily_return: number }>;
   top10DailyLosers: Array<{ symbol: string; daily_return: number }>;
+  top10Undervalued: Array<ValuationStock>;
+  top10Overvalued: Array<ValuationStock>;
   sectorTierList: Array<{ sector: string; average_return: number; count: number }>;
   industryTierList: Array<{ industry: string; average_return: number; count: number }>;
   indexPerformance: Record<string, IndexPerformance>;
@@ -252,6 +347,47 @@ const topLosers = computed(() => {
 
 // Expose to template
 defineExpose({ topGainers, topLosers, getPerfClass });
+
+// --- Asset type selector for SMA distribution ---
+const selectedAssetType = ref<'ALL' | 'Stock' | 'ETF' | 'Mutual Fund' | 'OTC'>('ALL');
+const assetDropdownOpen = ref(false);
+const assetTypeOptions = [
+  { value: 'ALL' as const, label: 'All Assets' },
+  { value: 'Stock' as const, label: 'Stocks (NYSE/NASDAQ)' },
+  { value: 'ETF' as const, label: 'ETFs Only' },
+  { value: 'Mutual Fund' as const, label: 'Mutual Funds Only' },
+  { value: 'OTC' as const, label: 'OTC Stocks' }
+];
+
+function toggleAssetDropdown() {
+  assetDropdownOpen.value = !assetDropdownOpen.value;
+}
+
+function selectAssetType(value: 'ALL' | 'Stock' | 'ETF' | 'Mutual Fund' | 'OTC') {
+  selectedAssetType.value = value;
+  assetDropdownOpen.value = false;
+}
+
+// --- Valuation stocks computeds ---
+const topUndervalued = computed(() => {
+  if (!marketStats.value?.top10Undervalued) return [];
+  return marketStats.value.top10Undervalued.map((s: ValuationStock) => ({
+    symbol: s.symbol,
+    currentPrice: s.current_price.toFixed(2),
+    intrinsicValue: s.intrinsic_value.toFixed(2),
+    upside: s.valuation_ratio.toFixed(2)
+  }));
+});
+
+const topOvervalued = computed(() => {
+  if (!marketStats.value?.top10Overvalued) return [];
+  return marketStats.value.top10Overvalued.map((s: ValuationStock) => ({
+    symbol: s.symbol,
+    currentPrice: s.current_price.toFixed(2),
+    intrinsicValue: s.intrinsic_value.toFixed(2),
+    downside: Math.abs(s.valuation_ratio).toFixed(2)
+  }));
+});
 
 const topSectors = computed(() => {
   if (!marketStats.value?.sectorTierList) return [];
@@ -422,12 +558,13 @@ const smaData = ref<SmaData[]>([]);
 
 function updateSmaData() {
   if (!marketStats.value) return;
+  const assetType = selectedAssetType.value;
   smaData.value = smaPeriods.map(period => {
     const key = 'SMA' + period;
     const obj = marketStats.value ? marketStats.value[key] : null;
-    if (!obj) return { period, above: 0, below: 0, abovePercent: 0, belowPercent: 0 };
-    const above = obj.up;
-    const below = obj.down;
+    if (!obj || !obj[assetType]) return { period, above: 0, below: 0, abovePercent: 0, belowPercent: 0 };
+    const above = obj[assetType].up;
+    const below = obj[assetType].down;
     const abovePercent = Math.round(above * 100);
     const belowPercent = Math.round(below * 100);
     return {
@@ -459,6 +596,11 @@ function updateIndexData() {
     };
   });
 }
+
+// Watch for asset type changes and update SMA data
+watch(selectedAssetType, () => {
+  updateSmaData();
+});
 
 onMounted(() => {
   updateDateTime();
@@ -730,6 +872,238 @@ onMounted(() => {
   color: var(--negative) !important;
 }
 
+/* SMA Header with Dropdown */
+.sma-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.asset-type-dropdown {
+  position: relative;
+  width: 180px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.asset-type-dropdown .dropdown-selected {
+  background: var(--base3);
+  color: var(--text1);
+  border-radius: 7px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--base3);
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.18s;
+}
+
+.asset-type-dropdown .dropdown-arrow {
+  margin-left: 6px;
+  font-size: 0.9em;
+  transition: transform 0.2s;
+}
+
+.asset-type-dropdown .dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.asset-type-dropdown .dropdown-list {
+  position: absolute;
+  top: 105%;
+  right: 0;
+  width: 100%;
+  background: var(--base2);
+  border: 1.5px solid var(--base3);
+  border-radius: 7px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.asset-type-dropdown .dropdown-item {
+  padding: 10px 12px;
+  color: var(--text1);
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: background 0.18s, color 0.18s;
+}
+
+.asset-type-dropdown .dropdown-item:hover {
+  background: var(--accent1);
+  color: var(--text3);
+}
+
+/* Valuation Section */
+.dashboard-row-valuation {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.valuation-section {
+  width: 100%;
+}
+
+.valuation-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  color: var(--text1);
+}
+
+.valuation-subtitle {
+  font-size: 0.95rem;
+  color: var(--text2);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.valuation-content {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.valuation-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.valuation-column h3 {
+  margin-bottom: 16px;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text1);
+}
+
+.badge-undervalued,
+.badge-overvalued {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.badge-undervalued {
+  background: var(--positive);
+  color: var(--base1);
+}
+
+.badge-overvalued {
+  background: var(--negative);
+  color: var(--base1);
+}
+
+.valuation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.valuation-item {
+  background: var(--base4);
+  padding: 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--base3);
+}
+
+.stock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.stock-symbol {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text1);
+  letter-spacing: 0.5px;
+}
+
+.upside-badge,
+.downside-badge {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.upside-badge {
+  background: var(--positive);
+  color: var(--base1);
+}
+
+.downside-badge {
+  background: var(--negative);
+  color: var(--base1);
+}
+
+.stock-prices {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.98rem;
+}
+
+.price-label {
+  color: var(--text1);
+  font-weight: 600;
+}
+
+.price-value {
+  color: var(--text1);
+  font-weight: 700;
+}
+
+.price-value.intrinsic {
+  color: var(--text1);
+  font-weight: 700;
+}
+
+.loading-state,
+.error-state,
+.empty-state {
+  text-align: center;
+  padding: 32px;
+  color: var(--text2);
+  font-style: italic;
+}
+
+.valuation-disclaimer {
+  background: var(--base4);
+  border-left: 4px solid var(--accent1);
+  padding: 12px 16px;
+  border-radius: 6px;
+  color: var(--text1);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.valuation-disclaimer strong {
+  color: var(--text1);
+  font-weight: 700;
+}
+
 h2 {
   margin: 0;
   font-size: 1.5rem;
@@ -930,12 +1304,22 @@ h2 {
     min-width: 0;
     max-width: 100vw;
   }
+  .dashboard-row-valuation {
+    flex-direction: column !important;
+    margin-bottom: 0;
+    gap: 0;
+    width: 100vw;
+    min-width: 0;
+    max-width: 100vw;
+  }
   .dashboard-row > .card:not(:last-child),
-  .dashboard-row2 > .card:not(:last-child) {
+  .dashboard-row2 > .card:not(:last-child),
+  .dashboard-row-valuation > .card:not(:last-child) {
     margin-bottom: 5px !important;
   }
   .dashboard-row > .card,
-  .dashboard-row2 > .card {
+  .dashboard-row2 > .card,
+  .dashboard-row-valuation > .card {
     min-width: 0 !important;
     max-width: 100vw !important;
     width: 100vw !important;
@@ -944,12 +1328,29 @@ h2 {
     box-sizing: border-box;
   }
   .dashboard-row > .card,
-  .dashboard-row2 > .card {
+  .dashboard-row2 > .card,
+  .dashboard-row-valuation > .card {
     min-width: 0 !important;
     max-width: 100vw !important;
     width: 100vw !important;
     margin: 0 !important;
     box-sizing: border-box;
+  }
+  .valuation-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .sma-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .asset-type-dropdown {
+    width: 100%;
+  }
+  .valuation-subtitle {
+    margin-left: 0;
+    font-size: 0.85rem;
   }
   .dashboard-row3-content {
     min-width: 0;

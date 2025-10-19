@@ -12,6 +12,9 @@
   </label>
 
   <div class="nav-links">
+    <div class="navbtn">
+      <router-link class="navbtn" to="/about" style="opacity: 1; text-decoration: none;">About</router-link>
+    </div>
     <div class="navbtn" @click="scrollToSection('features')">Features</div>
     <div class="navbtn" @click="scrollToSection('pricing')">Pricing</div>
    <div class="navbtn">
@@ -25,6 +28,9 @@
         <div class="navbtn2" @click="$router.push('/login')"> Login</div>
       </router-link>
     
+       <div class="navbtn-mobile" @click="$router.push('/about')">
+  <router-link to="/about" style="color: whitesmoke; text-decoration: none; font-size: 14px;">About</router-link>
+</div>
     <div class="navbtn-mobile" @click="scrollToSection('features')">Features</div>
     <div class="navbtn-mobile" @click="scrollToSection('pricing')">Pricing</div>
      <div class="navbtn-mobile" @click="$router.push('/documentation')">
@@ -134,7 +140,7 @@
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      Coverage of 8000+ Financial Assets (US Stocks / ETFs)
+      Coverage of 35.000+ Financial Assets (US Stocks, ETFs and Mutual Funds)
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
@@ -189,6 +195,7 @@
       <div style="display: flex; flex-direction: column; gap: 5px">
          <a href="#" @click.prevent="showPolicy = true">Terms of Service & Privacy Policy</a>
         <router-link to="/documentation">Documentation</router-link>
+         <router-link to="/communications">Communications</router-link>
         <router-link to="/careers">Careers</router-link>
       </div>
     </div>
@@ -318,7 +325,7 @@ const departmentFeatures: Record<string, Array<{ title: string; desc: string }>>
     ],
 };
 
-const selectedDepartment = ref<string | null>('Dashboard');
+const selectedDepartment = ref<string | null>('Screener');
 function selectDepartment(dept: string) {
   selectedDepartment.value = dept;
 }

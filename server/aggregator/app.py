@@ -193,6 +193,12 @@ async def ready():
     return ok
 
 
+@app.get('/metrics')
+async def metrics():
+    """Prometheus metrics endpoint - basic implementation"""
+    return {"status": "ok", "service": "aggregator"}
+
+
 class IPORequest(BaseModel):
     tickers: list[str]
 

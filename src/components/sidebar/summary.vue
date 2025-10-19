@@ -6,13 +6,6 @@
       :is="sidebarComponentMap[item.tag]"
       v-show="!item.hidden"
       v-bind="getSidebarProps(item.tag)"
-      @show-popup="showPopup = true"
-      @toggle-eps="showAllEPS = !showAllEPS"
-      @toggle-earnings="showAllEarnings = !showAllEarnings"
-      @toggle-sales="showAllSales = !showAllSales"
-      @toggle-dividends="showAllDividends = !showAllDividends"
-      @toggle-splits="showAllSplits = !showAllSplits"
-      @remove-note="removeNote"
     />
   </div>
 </template>
@@ -62,6 +55,9 @@ import AV2 from '@/components/sidebar/summary/AV2.vue';
 import AV3 from '@/components/sidebar/summary/AV3.vue';
 import AV4 from '@/components/sidebar/summary/AV4.vue';
 import Description from '@/components/sidebar/summary/description.vue';
+import FundCategory from '@/components/sidebar/summary/fundcategory.vue';
+import FundFamily from '@/components/sidebar/summary/fundfamily.vue';
+import NetExpenseRatio from '@/components/sidebar/summary/netexpenseratio.vue';
 
 // access user from store 
 const userStore = useUserStore();
@@ -72,7 +68,7 @@ const props = defineProps(['assetInfo', 'formatDate', 'showAllDescription', 'ref
 const emit = defineEmits();
 
 // Define the mapping of tags to components
-const sidebarComponentMap = {
+const sidebarComponentMap: Record<string, any> = {
   Symbol,
   CompanyName: Name,
   AssetType,
@@ -115,6 +111,9 @@ const sidebarComponentMap = {
   AverageVolume6M: AV3,
   AverageVolume1Y: AV4,
   Description,
+  FundCategory,
+  FundFamily,
+  NetExpenseRatio,
 };
 interface Field {
   order: number;
@@ -169,7 +168,10 @@ const initialFields = [
   { order: 39, tag: 'AverageVolume1M', name: 'Average Volume 1M', hidden: false },
   { order: 40, tag: 'AverageVolume6M', name: 'Average Volume 6M', hidden: false },
   { order: 41, tag: 'AverageVolume1Y', name: 'Average Volume 1Y', hidden: false },
-  { order: 42, tag: 'Description', name: 'Description', hidden: false },
+  { order: 42, tag: 'FundCategory', name: 'Fund Category', hidden: false },
+  { order: 43, tag: 'FundFamily', name: 'Fund Family', hidden: false },
+  { order: 44, tag: 'NetExpenseRatio', name: 'Net Expense Ratio', hidden: false },
+  { order: 45, tag: 'Description', name: 'Description', hidden: false },
 ];
 
 async function fetchPanel2() {

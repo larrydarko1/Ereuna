@@ -1115,22 +1115,19 @@ export default function (app: any, deps: any) {
                 client = new MongoClient(uri);
                 await client.connect();
                 const db = client.db('EreunaDB');
-                const collection = db.collection('OHCLVData');
-                const query = {};
-                const options = {
-                    sort: { timestamp: -1 },
-                    limit: 1
-                };
-                const result = await collection.findOne(query, options);
-                if (!result) {
+                // Read the lightweight Stats document containing the last market update
+                const statsCollection = db.collection('Stats');
+                const statsDoc = await statsCollection.findOne({ _id: 'marketStats' }, { projection: { _id: 1, updatedAt: 1 } });
+                const date: Date | undefined = statsDoc && statsDoc.updatedAt ? statsDoc.updatedAt : undefined;
+                if (!date) {
                     logger.warn({
-                        msg: 'No documents found',
+                        msg: 'No timestamp available',
                         context: 'GET /getlastupdate',
                         statusCode: 404
                     });
-                    return res.status(404).json({ message: 'No documents found' });
+                    return res.status(404).json({ message: 'No timestamp available' });
                 }
-                const date = result.timestamp;
+
                 const formattedDate = date.toLocaleDateString('en-GB', {
                     day: '2-digit',
                     month: '2-digit',

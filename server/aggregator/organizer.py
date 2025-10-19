@@ -780,7 +780,11 @@ async def getHistoricalPrice2(tickerID):
 async def checkAndUpdateFinancialUpdates():
     start_time = time.time()
     collection = db['AssetInfo']
-    tickers = [doc['Symbol'] async for doc in collection.find({})]
+    # Only get symbols that are stocks and not delisted
+    tickers = [doc['Symbol'] async for doc in collection.find({
+        'AssetType': 'Stock',
+        'Delisted': False
+    })]
     print('checking for financial statements updates')
     new_tickers_data = {}
 
@@ -882,7 +886,7 @@ async def checkAndUpdateFinancialUpdates():
         else:
             print(f"Error fetching data for {ticker}: {response.status_code}")
 
-    maintenanceMode(True)
+    #maintenanceMode(True)
     # Update the quarterly and annual earnings and financial data in the MongoDB database (async)
     for ticker, data in new_tickers_data.items():
         print(f'processing {ticker}')
@@ -902,7 +906,7 @@ async def checkAndUpdateFinancialUpdates():
         await calculate_YoY_changes()
     else:
         calculate_YoY_changes()
-    maintenanceMode(False)
+    #maintenanceMode(False)
     end_time = time.time()
     execution_time_in_seconds = end_time - start_time
     execution_time_in_minutes = execution_time_in_seconds / 60
@@ -1733,15 +1737,20 @@ async def update_market_stats():
     ohlcv_col = db["OHCLVData"]
     stats_col = db["Stats"]
 
-    # Get all assets with Symbol, Sector, Industry
+    # Get all assets with Symbol, Sector, Industry, AssetType, Exchange
     assets = []
-    async for doc in asset_info_col.find({}, {"Symbol": 1, "Sector": 1, "Industry": 1, "MarketCapitalization": 1, "_id": 0}):
+    async for doc in asset_info_col.find({}, {"Symbol": 1, "Sector": 1, "Industry": 1, "MarketCapitalization": 1, "AssetType": 1, "Exchange": 1, "_id": 0}):
         assets.append(doc)
     symbol_map = {a["Symbol"]: a for a in assets}
 
-    # --- Calculate top 10 daily gainers/losers ---
+    # --- Calculate top 10 daily gainers/losers (NYSE/NASDAQ only) ---
     daily_returns = []
     for symbol, info in symbol_map.items():
+        # Only include stocks from major exchanges (NYSE, NASDAQ)
+        exchange = info.get("Exchange", "")
+        if exchange not in ["NYSE", "NASDAQ"]:
+            continue
+            
         cursor = ohlcv_col.find(
             {"tickerID": symbol},
             {"close": 1, "timestamp": 1, "_id": 0}
@@ -1765,6 +1774,50 @@ async def update_market_stats():
         obj["daily_return"] = round(obj["daily_return"] * 100, 2)
     for obj in top_10_losers:
         obj["daily_return"] = round(obj["daily_return"] * 100, 2)
+
+    # --- Calculate top 10 undervalued/overvalued stocks based on IntrinsicValue (NYSE/NASDAQ only) ---
+    valuation_ratios = []
+    async for doc in asset_info_col.find(
+        {
+            "AssetType": "Stock", 
+            "IntrinsicValue": {"$exists": True, "$ne": None},
+            "Exchange": {"$in": ["NYSE", "NASDAQ"]}
+        }, 
+        {"Symbol": 1, "IntrinsicValue": 1, "TimeSeries": 1, "_id": 0}
+    ):
+        symbol = doc.get("Symbol")
+        intrinsic_value = doc.get("IntrinsicValue")
+        time_series = doc.get("TimeSeries", {})
+        
+        if not time_series or intrinsic_value is None or intrinsic_value <= 0:
+            continue
+        
+        # Get current price from most recent TimeSeries entry
+        try:
+            most_recent_date = max(time_series.keys())
+            current_price = time_series[most_recent_date].get("4. close")
+            
+            if current_price and current_price > 0:
+                # Calculate valuation ratio: positive = undervalued, negative = overvalued
+                valuation_ratio = (intrinsic_value - current_price) / current_price
+                valuation_ratios.append({
+                    "symbol": symbol,
+                    "current_price": round(current_price, 2),
+                    "intrinsic_value": round(intrinsic_value, 2),
+                    "valuation_ratio": valuation_ratio
+                })
+        except (ValueError, KeyError, TypeError):
+            continue
+    
+    # Sort and get top 10 undervalued (highest positive ratio) and overvalued (most negative ratio)
+    top_10_undervalued = sorted(valuation_ratios, key=lambda x: x["valuation_ratio"], reverse=True)[:10]
+    top_10_overvalued = sorted(valuation_ratios, key=lambda x: x["valuation_ratio"])[:10]
+    
+    # Format ratios as percentages
+    for obj in top_10_undervalued:
+        obj["valuation_ratio"] = round(obj["valuation_ratio"] * 100, 2)
+    for obj in top_10_overvalued:
+        obj["valuation_ratio"] = round(obj["valuation_ratio"] * 100, 2)
 
     # --- Restore old logic for sector/industry tier calculation ---
     now = datetime.now(timezone.utc)
@@ -1832,28 +1885,61 @@ async def update_market_stats():
         industry_tier_list.append({"industry": industry, "average_return": median_return, "count": stock_count})
     industry_tier_list = sorted(industry_tier_list, key=lambda x: x["average_return"], reverse=True)
 
+    # Calculate SMA stats for ALL assets and by AssetType (including OTC)
     sma_periods = [5, 10, 20, 50, 100, 150, 200]
     sma_stats = {}
+    asset_types_for_sma = ["ALL", "Stock", "ETF", "Mutual Fund", "OTC"]
+    
     for period in sma_periods:
-        up = 0
-        down = 0
-        for symbol in symbol_map:
-            cursor = ohlcv_col.find(
-                {"tickerID": symbol},
-                {"close": 1, "_id": 0}
-            ).sort("timestamp", -1).limit(period)
-            closes = [doc["close"] for doc in await cursor.to_list(length=period) if "close" in doc]
-            if len(closes) < period:
-                continue
-            closes = closes[::-1]  # oldest to newest
-            sma = float(np.mean(closes))
-            last_close = closes[-1]
-            if last_close > sma:
-                up += 1
-            else:
-                down += 1
-        total = up + down if (up + down) > 0 else 1
-        sma_stats[f"SMA{period}"] = {"up": up / total, "down": down / total}
+        sma_stats[f"SMA{period}"] = {}
+        
+        for asset_type in asset_types_for_sma:
+            up = 0
+            down = 0
+            
+            for symbol, info in symbol_map.items():
+                # Filter by asset type and exchange
+                if asset_type == "OTC":
+                    # Only include OTC stocks (not NYSE or NASDAQ)
+                    symbol_exchange = info.get("Exchange", "")
+                    if symbol_exchange in ["NYSE", "NASDAQ"]:
+                        continue
+                    # Only process stocks for OTC category
+                    symbol_asset_type = info.get("AssetType", "")
+                    if symbol_asset_type != "Stock":
+                        continue
+                elif asset_type == "Stock":
+                    # For "Stock" category, exclude OTC (only NYSE/NASDAQ)
+                    symbol_asset_type = info.get("AssetType", "")
+                    if symbol_asset_type != "Stock":
+                        continue
+                    symbol_exchange = info.get("Exchange", "")
+                    if symbol_exchange not in ["NYSE", "NASDAQ"]:
+                        continue
+                elif asset_type != "ALL":
+                    # For ETF and Mutual Fund, filter normally
+                    symbol_asset_type = info.get("AssetType", "")
+                    if symbol_asset_type != asset_type:
+                        continue
+                # If asset_type == "ALL", include everything (no filter)
+                
+                cursor = ohlcv_col.find(
+                    {"tickerID": symbol},
+                    {"close": 1, "_id": 0}
+                ).sort("timestamp", -1).limit(period)
+                closes = [doc["close"] for doc in await cursor.to_list(length=period) if "close" in doc]
+                if len(closes) < period:
+                    continue
+                closes = closes[::-1]  # oldest to newest
+                sma = float(np.mean(closes))
+                last_close = closes[-1]
+                if last_close > sma:
+                    up += 1
+                else:
+                    down += 1
+            
+            total = up + down if (up + down) > 0 else 1
+            sma_stats[f"SMA{period}"][asset_type] = {"up": up / total, "down": down / total}
 
     # Performance for SPY, QQQ, DIA, IWM, EFA, EEM
     index_tickers = ["SPY", "QQQ", "DIA", "IWM", "EFA", "EEM"]
@@ -1902,6 +1988,8 @@ async def update_market_stats():
         "indexPerformance": index_performance,
         "top10DailyGainers": top_10_gainers,
         "top10DailyLosers": top_10_losers,
+        "top10Undervalued": top_10_undervalued,
+        "top10Overvalued": top_10_overvalued,
         "updatedAt": datetime.now(timezone.utc)
     }
     await stats_col.update_one(

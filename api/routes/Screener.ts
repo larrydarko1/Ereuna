@@ -324,7 +324,10 @@ export default function (app: any, deps: any) {
         ev: 'EV',
         rsi: 'RSI',
         intrinsic_value: 'IntrinsicValue',
-        isin: 'ISIN'
+        isin: 'ISIN',
+        fund_family: 'fundFamily',
+        fund_category: 'FundCategory',
+        net_expense_ratio: 'netExpenseRatio'
     };
 
     // endpoint that sends filtered database data into screener results (minus hidden list for user)
@@ -851,6 +854,9 @@ export default function (app: any, deps: any) {
                     RSI?: [number, number];
                     Gap?: [number, number];
                     IV?: [number, number];
+                    FundFamilies?: string[];
+                    FundCategories?: string[];
+                    NetExpenseRatio?: [number, number];
                 } | null;
                 if (!screenerData) {
                     logger.warn({
@@ -1117,6 +1123,19 @@ export default function (app: any, deps: any) {
 
                 if (screenerData.IV && screenerData.IV[0] !== 0 && screenerData.IV[1] !== 0) {
                     screenerFilters.IV = screenerData.IV;
+                }
+
+                // Fund-specific filters
+                if (screenerData.FundFamilies && screenerData.FundFamilies.length > 0) {
+                    screenerFilters.FundFamilies = screenerData.FundFamilies;
+                }
+
+                if (screenerData.FundCategories && screenerData.FundCategories.length > 0) {
+                    screenerFilters.FundCategories = screenerData.FundCategories;
+                }
+
+                if (screenerData.NetExpenseRatio && screenerData.NetExpenseRatio[0] !== 0 && screenerData.NetExpenseRatio[1] !== 0) {
+                    screenerFilters.NetExpenseRatio = screenerData.NetExpenseRatio;
                 }
 
                 // Filter the AssetInfo collection 
@@ -1859,6 +1878,18 @@ export default function (app: any, deps: any) {
                                 $lt: screenerFilters.IV[1]
                             };
                             break;
+                        case 'FundFamilies':
+                            query.fundFamily = { $in: screenerFilters.FundFamilies };
+                            break;
+                        case 'FundCategories':
+                            query.FundCategory = { $in: screenerFilters.FundCategories };
+                            break;
+                        case 'NetExpenseRatio':
+                            query.netExpenseRatio = {
+                                $gt: screenerFilters.NetExpenseRatio[0],
+                                $lt: screenerFilters.NetExpenseRatio[1]
+                            };
+                            break;
                         default:
                             break;
                     }
@@ -2323,6 +2354,19 @@ export default function (app: any, deps: any) {
 
                         if (screenerData.IV && screenerData.IV[0] !== 0 && screenerData.IV[1] !== 0) {
                             screenerFilters.IV = screenerData.IV;
+                        }
+
+                        // Fund-specific filters
+                        if (screenerData.FundFamilies && screenerData.FundFamilies.length > 0) {
+                            screenerFilters.FundFamilies = screenerData.FundFamilies;
+                        }
+
+                        if (screenerData.FundCategories && screenerData.FundCategories.length > 0) {
+                            screenerFilters.FundCategories = screenerData.FundCategories;
+                        }
+
+                        if (screenerData.NetExpenseRatio && screenerData.NetExpenseRatio[0] !== 0 && screenerData.NetExpenseRatio[1] !== 0) {
+                            screenerFilters.NetExpenseRatio = screenerData.NetExpenseRatio;
                         }
 
                         Object.keys(screenerFilters).forEach((key) => {
@@ -3060,6 +3104,18 @@ export default function (app: any, deps: any) {
                                     query.IntrinsicValue = {
                                         $gt: screenerFilters.IV[0],
                                         $lt: screenerFilters.IV[1]
+                                    };
+                                    break;
+                                case 'FundFamilies':
+                                    query.fundFamily = { $in: screenerFilters.FundFamilies };
+                                    break;
+                                case 'FundCategories':
+                                    query.FundCategory = { $in: screenerFilters.FundCategories };
+                                    break;
+                                case 'NetExpenseRatio':
+                                    query.netExpenseRatio = {
+                                        $gt: screenerFilters.NetExpenseRatio[0],
+                                        $lt: screenerFilters.NetExpenseRatio[1]
                                     };
                                     break;
                                 default:
@@ -5891,6 +5947,372 @@ export default function (app: any, deps: any) {
             }
         });
 
+    // endpoint that updates screener document with fund family params 
+    app.patch('/screener/fund-family',
+        validate([
+            validationSchemas.user(),
+            validationSchemas.screenerNameBody(),
+            body('fundFamilies')
+                .isArray().withMessage('Fund families must be an array')
+                .custom((value) => {
+                    if (!value.every((family: string) =>
+                        typeof family === 'string' &&
+                        family.trim().length > 0 &&
+                        family.trim().length <= 100
+                    )) {
+                        throw new Error('Each fund family must be a non-empty string with max 100 characters');
+                    }
+                    return true;
+                })
+        ]),
+        async (req: Request, res: Response) => {
+            let client;
+            try {
+                const apiKey = req.header('x-api-key');
+                const sanitizedKey = sanitizeInput(apiKey);
+                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                    logger.warn({
+                        msg: 'Invalid API key',
+                        providedApiKey: !!sanitizedKey,
+                        context: 'PATCH /screener/fund-family',
+                        statusCode: 401
+                    });
+                    return res.status(401).json({ message: 'Unauthorized API Access' });
+                }
+                const fundFamilies = req.body.fundFamilies;
+                const Username = req.body.user;
+                const screenerName = req.body.screenerName;
+                // Sanitize fund families (trim and remove duplicates)
+                const sanitizedFundFamilies = [...new Set(
+                    fundFamilies.map((family: string) => sanitizeInput(family))
+                )];
+                try {
+                    client = new MongoClient(uri);
+                    await client.connect();
+                    const db = client.db('EreunaDB');
+                    const collection = db.collection('Screeners');
+                    const filter = {
+                        UsernameID: Username,
+                        Name: screenerName
+                    };
+                    const updateResult = await collection.updateOne(filter, {
+                        $set: { FundFamilies: sanitizedFundFamilies }
+                    });
+                    if (updateResult.matchedCount === 0) {
+                        return res.status(404).json({
+                            message: 'Screener not found'
+                        });
+                    }
+                    res.json({
+                        message: 'Fund families updated successfully',
+                        fundFamilies: sanitizedFundFamilies
+                    });
+                } catch (dbError) {
+                    const errObj = handleError(dbError, 'PATCH /screener/fund-family', {
+                        username: Username,
+                        screenerName
+                    }, 500);
+                    logger.error({
+                        msg: 'Database Operation Error',
+                        error: errObj.message,
+                        username: Username,
+                        screenerName,
+                        context: 'PATCH /screener/fund-family',
+                        statusCode: 500
+                    });
+                    return res.status(errObj.statusCode || 500).json(errObj);
+                } finally {
+                    if (client) {
+                        try {
+                            await client.close();
+                        } catch (closeError) {
+                            logger.warn({ closeError }, 'Error closing database connection');
+                        }
+                    }
+                }
+            } catch (error) {
+                const errObj = handleError(error, 'PATCH /screener/fund-family', {}, 500);
+                logger.error({
+                    msg: 'Fund Families Update Error',
+                    error: errObj.message,
+                    username: req.body.user,
+                    context: 'PATCH /screener/fund-family',
+                    statusCode: 500
+                });
+                return res.status(errObj.statusCode || 500).json(errObj);
+            }
+        }
+    );
+
+
+    // endpoint that updates screener document with fund category params 
+    app.patch('/screener/fund-category',
+        validate([
+            validationSchemas.user(),
+            validationSchemas.screenerNameBody(),
+            body('fundCategories')
+                .isArray().withMessage('Fund categories must be an array')
+                .custom((value) => {
+                    if (!value.every((category: string) =>
+                        typeof category === 'string' &&
+                        category.trim().length > 0 &&
+                        category.trim().length <= 100
+                    )) {
+                        throw new Error('Each fund category must be a non-empty string with max 100 characters');
+                    }
+                    return true;
+                })
+        ]),
+        async (req: Request, res: Response) => {
+            let client;
+            try {
+                const apiKey = req.header('x-api-key');
+                const sanitizedKey = sanitizeInput(apiKey);
+                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                    logger.warn({
+                        msg: 'Invalid API key',
+                        providedApiKey: !!sanitizedKey,
+                        context: 'PATCH /screener/fund-category',
+                        statusCode: 401
+                    });
+                    return res.status(401).json({ message: 'Unauthorized API Access' });
+                }
+                const fundCategories = req.body.fundCategories;
+                const Username = req.body.user;
+                const screenerName = req.body.screenerName;
+                // Sanitize fund categories (trim and remove duplicates)
+                const sanitizedFundCategories = [...new Set(
+                    fundCategories.map((category: string) => sanitizeInput(category))
+                )];
+                try {
+                    client = new MongoClient(uri);
+                    await client.connect();
+                    const db = client.db('EreunaDB');
+                    const collection = db.collection('Screeners');
+                    const filter = {
+                        UsernameID: Username,
+                        Name: screenerName
+                    };
+                    const updateResult = await collection.updateOne(filter, {
+                        $set: { FundCategories: sanitizedFundCategories }
+                    });
+                    if (updateResult.matchedCount === 0) {
+                        return res.status(404).json({
+                            message: 'Screener not found'
+                        });
+                    }
+                    res.json({
+                        message: 'Fund categories updated successfully',
+                        fundCategories: sanitizedFundCategories
+                    });
+                } catch (dbError) {
+                    const errObj = handleError(dbError, 'PATCH /screener/fund-category', {
+                        username: Username,
+                        screenerName
+                    }, 500);
+                    logger.error({
+                        msg: 'Database Operation Error',
+                        error: errObj.message,
+                        username: Username,
+                        screenerName,
+                        context: 'PATCH /screener/fund-category',
+                        statusCode: 500
+                    });
+                    return res.status(errObj.statusCode || 500).json(errObj);
+                } finally {
+                    if (client) {
+                        try {
+                            await client.close();
+                        } catch (closeError) {
+                            logger.warn({ closeError }, 'Error closing database connection');
+                        }
+                    }
+                }
+            } catch (error) {
+                const errObj = handleError(error, 'PATCH /screener/fund-category', {}, 500);
+                logger.error({
+                    msg: 'Fund Categories Update Error',
+                    error: errObj.message,
+                    username: req.body.user,
+                    context: 'PATCH /screener/fund-category',
+                    statusCode: 500
+                });
+                return res.status(errObj.statusCode || 500).json(errObj);
+            }
+        }
+    );
+
+    // endpoint that updates screener document with net expense ratio range
+    app.patch('/screener/net-expense-ratio', validate([
+        validationSchemas.user(),
+        validationSchemas.screenerNameBody(),
+        validationSchemas.minPrice(),
+        validationSchemas.maxPrice()
+    ]),
+        async (req: Request, res: Response) => {
+            let client: any;
+            try {
+                const apiKey = req.header('x-api-key');
+                const sanitizedKey = sanitizeInput(apiKey);
+                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                    logger.warn({
+                        msg: 'Invalid API key',
+                        providedApiKey: !!sanitizedKey,
+                        context: 'PATCH /screener/net-expense-ratio',
+                        statusCode: 401
+                    });
+                    return res.status(401).json({ message: 'Unauthorized API Access' });
+                }
+                let minRatio = req.body.minPrice ? parseFloat(sanitizeInput(req.body.minPrice.toString())) : NaN;
+                let maxRatio = req.body.maxPrice ? parseFloat(sanitizeInput(req.body.maxPrice.toString())) : NaN;
+                const screenerName = sanitizeInput(req.body.screenerName || '');
+                const Username = sanitizeInput(req.body.user || '');
+                if (!screenerName) {
+                    logger.warn({
+                        msg: 'Screener name is required',
+                        context: 'PATCH /screener/net-expense-ratio',
+                        statusCode: 400
+                    });
+                    return res.status(400).json({ message: 'Screener name is required' });
+                }
+                if (!Username) {
+                    logger.warn({
+                        msg: 'Username is required',
+                        context: 'PATCH /screener/net-expense-ratio',
+                        statusCode: 400
+                    });
+                    return res.status(400).json({ message: 'Username is required' });
+                }
+                if (isNaN(minRatio) && isNaN(maxRatio)) {
+                    logger.warn({
+                        msg: 'Both min and max Net Expense Ratio cannot be empty',
+                        context: 'PATCH /screener/net-expense-ratio',
+                        statusCode: 400
+                    });
+                    return res.status(400).json({ message: 'Both min and max Net Expense Ratio cannot be empty' });
+                }
+                client = new MongoClient(uri);
+                await client.connect();
+                const db = client.db('EreunaDB');
+                const collection = db.collection('Screeners');
+                const assetInfoCollection = db.collection('AssetInfo');
+                let effectiveMinRatio = isNaN(minRatio) ? 0 : minRatio;
+                let effectiveMaxRatio = maxRatio;
+                if (isNaN(maxRatio)) {
+                    const highestNetExpenseRatioDoc = await assetInfoCollection.find({
+                        netExpenseRatio: {
+                            $nin: ['None', '-', null],
+                            $exists: true,
+                            $type: 'number'
+                        }
+                    })
+                        .sort({ netExpenseRatio: -1 })
+                        .limit(1)
+                        .project({ netExpenseRatio: 1 })
+                        .toArray();
+                    if (highestNetExpenseRatioDoc.length > 0) {
+                        effectiveMaxRatio = highestNetExpenseRatioDoc[0].netExpenseRatio;
+                    } else {
+                        logger.warn({
+                            msg: 'No assets found to determine maximum Net Expense Ratio',
+                            context: 'PATCH /screener/net-expense-ratio',
+                            statusCode: 404
+                        });
+                        return res.status(404).json({ message: 'No assets found to determine maximum Net Expense Ratio' });
+                    }
+                }
+                if (effectiveMinRatio >= effectiveMaxRatio) {
+                    logger.warn({
+                        msg: 'Minimum Net Expense Ratio cannot be higher than or equal to maximum Net Expense Ratio',
+                        details: {
+                            minRatio: effectiveMinRatio,
+                            maxRatio: effectiveMaxRatio
+                        },
+                        context: 'PATCH /screener/net-expense-ratio',
+                        statusCode: 400
+                    });
+                    return res.status(400).json({
+                        message: 'Minimum Net Expense Ratio cannot be higher than or equal to maximum Net Expense Ratio',
+                        details: {
+                            minRatio: effectiveMinRatio,
+                            maxRatio: effectiveMaxRatio
+                        }
+                    });
+                }
+                const filter = {
+                    UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+                    Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+                };
+                const existingScreener = await collection.findOne(filter);
+                if (!existingScreener) {
+                    logger.warn({
+                        msg: 'Screener not found',
+                        details: 'No matching screener exists for the given user and name',
+                        context: 'PATCH /screener/net-expense-ratio',
+                        statusCode: 404
+                    });
+                    return res.status(404).json({
+                        message: 'Screener not found',
+                        details: 'No matching screener exists for the given user and name'
+                    });
+                }
+                const updateDoc = { $set: { NetExpenseRatio: [effectiveMinRatio, effectiveMaxRatio] } };
+                const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+                if (!result) {
+                    logger.warn({
+                        msg: 'Screener not found',
+                        details: 'Unable to update screener',
+                        context: 'PATCH /screener/net-expense-ratio',
+                        statusCode: 404
+                    });
+                    return res.status(404).json({
+                        message: 'Screener not found',
+                        details: 'Unable to update screener'
+                    });
+                }
+                res.json({
+                    message: 'Net Expense Ratio range updated successfully',
+                    updatedScreener: result.value,
+                    details: {
+                        minRatio: effectiveMinRatio + '%',
+                        maxRatio: effectiveMaxRatio + '%'
+                    }
+                });
+            } catch (error) {
+                let errObj;
+                if (typeof error === 'object' && error !== null && 'message' in error) {
+                    errObj = handleError(error as Error, 'PATCH /screener/net-expense-ratio', {}, 500);
+                } else {
+                    errObj = handleError(new Error(String(error)), 'PATCH /screener/net-expense-ratio', {}, 500);
+                }
+                logger.error({
+                    msg: 'Net Expense Ratio Update Error',
+                    error: errObj.message,
+                    context: 'PATCH /screener/net-expense-ratio',
+                    statusCode: 500
+                });
+                return res.status(errObj.statusCode || 500).json(errObj);
+            } finally {
+                if (client) {
+                    try {
+                        await client.close();
+                    } catch (closeError) {
+                        let closeErr: Error;
+                        if (typeof closeError === 'object' && closeError !== null && 'message' in closeError) {
+                            closeErr = closeError as Error;
+                        } else {
+                            closeErr = new Error(String(closeError));
+                        }
+                        logger.error({
+                            msg: 'Error closing database connection',
+                            error: closeErr.message,
+                            context: 'PATCH /screener/net-expense-ratio'
+                        });
+                    }
+                }
+            }
+        });
+
     //endpoint is supposed to update document with growth % 
     app.patch('/screener/fundamental-growth', validate([
         validationSchemas.user(),
@@ -7106,7 +7528,7 @@ export default function (app: any, deps: any) {
                     'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta',
                     'DivYield', 'FundGrowth', 'PricePerformance', 'RSscore', 'Volume', 'ADV', 'ROE', 'ROA', 'CurrentRatio', 'CurrentAssets',
                     'CurrentLiabilities', 'CurrentDebt', 'CashEquivalents', 'FCF', 'ProfitMargin', 'GrossMargin',
-                    'DebtEquity', 'BookValue', 'EV', 'RSI', 'Gap', 'AssetType', 'IV'
+                    'DebtEquity', 'BookValue', 'EV', 'RSI', 'Gap', 'AssetType', 'IV', 'FundFamily', 'FundCategory', 'NetExpenseRatio'
                 ])
                 .withMessage('Invalid parameter to reset')
         ]),
@@ -7219,6 +7641,9 @@ export default function (app: any, deps: any) {
                     case 'RSI': updateDoc.$unset.RSI = ''; break;
                     case 'Gap': updateDoc.$unset.Gap = ''; break;
                     case 'IV': updateDoc.$unset.IV = ''; break;
+                    case 'FundFamily': updateDoc.$unset.FundFamilies = ''; break;
+                    case 'FundCategory': updateDoc.$unset.FundCategories = ''; break;
+                    case 'NetExpenseRatio': updateDoc.$unset.NetExpenseRatio = ''; break;
                     default:
                         logger.warn({
                             msg: 'Attempted to reset with unknown parameter',
@@ -7312,6 +7737,7 @@ export default function (app: any, deps: any) {
                     PercOffWeekLow: 1, changePerc: 1, IPO: 1, ADV1W: 1, ADV1M: 1, ADV4M: 1, ADV1Y: 1, ROE: 1, ROA: 1, currentRatio: 1,
                     assetsCurrent: 1, liabilitiesCurrent: 1, debtCurrent: 1, cashAndEq: 1, freeCashFlow: 1, profitMargin: 1, grossMargin: 1,
                     debtEquity: 1, bookVal: 1, EV: 1, RSI: 1, Gap: 1, AssetTypes: 1, IV: 1,
+                    FundFamilies: 1, FundCategories: 1, NetExpenseRatio: 1,
                 };
 
                 const cursor = screenersCollection.find(query, { projection });
@@ -7397,6 +7823,9 @@ export default function (app: any, deps: any) {
                     RSI: document.RSI,
                     Gap: document.Gap,
                     IV: document.IV,
+                    FundFamilies: document.FundFamilies,
+                    FundCategories: document.FundCategories,
+                    NetExpenseRatio: document.NetExpenseRatio,
                 };
                 res.status(200).json(response);
             } catch (error: any) {
@@ -7487,7 +7916,7 @@ export default function (app: any, deps: any) {
                     'AvgVolume1M', 'RelVolume1M', 'AvgVolume6M', 'RelVolume6M', 'AvgVolume1Y', 'RelVolume1Y', '1mchange', '1ychange', '4mchange',
                     '6mchange', 'todaychange', 'weekchange', 'ytdchange', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio',
                     'assetsCurrent', 'liabilitiesCurrent', 'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin', 'debtEquity', 'bookVal', 'EV',
-                    'RSI', 'Gap', 'AssetTypes', 'IV'
+                    'RSI', 'Gap', 'AssetTypes', 'IV', 'FundFamilies', 'FundCategories', 'NetExpenseRatio'
                 ];
 
                 const filteredData: Record<string, any> = {};

@@ -10,6 +10,9 @@
         <span></span>
       </label>
       <div class="nav-links">
+         <div class="navbtn">
+      <router-link class="navbtn" to="/about" style="opacity: 1; text-decoration: none;">About</router-link>
+    </div>
         <div class="navbtn" @click="scrollToSection('features')">Features</div>
         <div class="navbtn">
           <router-link class="navbtn" to="/documentation" style="opacity: 1; text-decoration: none;">Documentation</router-link>
@@ -240,7 +243,7 @@ const departmentFeatures: Record<string, Array<{ title: string; desc: string }>>
     ],
 };
 
-const selectedDepartment = ref<string | null>('Dashboard');
+const selectedDepartment = ref<string | null>('Screener');
 function selectDepartment(dept: string) {
   selectedDepartment.value = dept;
 }

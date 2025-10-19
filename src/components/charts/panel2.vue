@@ -109,7 +109,10 @@ const initialFields: SummaryField[] = [
   { order: 39, tag: 'AverageVolume1M', name: 'Average Volume 1M', hidden: false },
   { order: 40, tag: 'AverageVolume6M', name: 'Average Volume 6M', hidden: false },
   { order: 41, tag: 'AverageVolume1Y', name: 'Average Volume 1Y', hidden: false },
-  { order: 42, tag: 'Description', name: 'Description', hidden: false },
+  { order: 42, tag: 'FundCategory', name: 'Fund Category', hidden: false },
+  { order: 43, tag: 'FundFamily', name: 'Fund Family', hidden: false },
+  { order: 44, tag: 'NetExpenseRatio', name: 'Net Expense Ratio', hidden: false },
+  { order: 45, tag: 'Description', name: 'Description', hidden: false },
 ];
 
 
