@@ -97,7 +97,7 @@
   </div>
   <div class="ml-btsymbol">{{ asset.Symbol }}</div>
   <div v-for="col in selectedAttributes" :key="col" :style="getColumnStyle(col)"
-    :class="getColumnClass(asset, col)">
+    :class="[getColumnClass(asset, col), { 'ml-align-left': col === 'name' }]">
     {{ getColumnValue(asset, col) }}
   </div>
 </div>
@@ -225,6 +225,9 @@ const attributes: Attribute[] = [
   { label: 'EV', value: 'ev', backend: 'EV' },
   { label: 'RSI', value: 'rsi', backend: 'RSI' },
   { label: 'Intrinsic Value', value: 'intrinsic_value', backend: 'IntrinsicValue' },
+  { label: 'Fund Family', value: 'fund_family', backend: 'fundFamily' },
+  { label: 'Fund Category', value: 'fund_category', backend: 'FundCategory' },
+  { label: 'Net Expense Ratio', value: 'net_expense_ratio', backend: 'netExpenseRatio' },
 ];
 
 function getColumnLabel(col: string): string {
@@ -275,6 +278,7 @@ function getColumnValue(asset: Asset, col: string): string {
       return date.toISOString().slice(0, 10);
     },
     Currency: (v: any) => (typeof v === 'string' ? v.toUpperCase() : (v ?? '-')),
+    netExpenseRatio: (v: number) => (typeof v === 'number' && v >= 0 ? v.toFixed(2) + '%' : '-'),
   };
   const formatter = formatRules[attr.backend];
   if (formatter) return formatter(value);
@@ -302,7 +306,7 @@ const styleMap: { [key: string]: number } = {
   roa: 100,
   peg: 70,
   eps: 70,
-  name: 300,
+  name: 350,
   pb_ratio: 70,
   dividend_yield: 100,
   currency: 70,
@@ -326,6 +330,9 @@ const styleMap: { [key: string]: number } = {
   adv1y: 100,
   rsi: 70,
   intrinsic_value: 150,
+  fund_family: 250,
+  fund_category: 250,
+  net_expense_ratio: 120,
 };
 
 function getColumnStyle(col: string): string {
@@ -503,4 +510,5 @@ const columnsMinWidth = computed(() => {
   display: flex;
   justify-content: center;
 }
+
 </style>

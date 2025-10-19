@@ -565,6 +565,47 @@
           @notify="showNotification($event)"
           v-model:showIntrinsicValue="showIntrinsicValue"
         />
+               <FundFamily
+  :user="user?.Username ?? ''"
+  :apiKey="apiKey"
+  :notification="notification"
+  :selectedScreener="selectedScreener"
+  @fetchScreeners="handleFetchScreeners"
+  @handleMouseOver="handleMouseOver"
+  @handleMouseOut="handleMouseOut"
+  :isScreenerError="isScreenerError"
+  @reset="Reset('FundFamily')"
+  @notify="showNotification($event)"
+  v-model:ShowFundFamily="ShowFundFamily"
+    :initialSelected="initialFundFamilies"
+       />
+       <FundCategory
+  :user="user?.Username ?? ''"
+  :apiKey="apiKey"
+  :notification="notification"
+  :selectedScreener="selectedScreener"
+  @fetchScreeners="handleFetchScreeners"
+  @handleMouseOver="handleMouseOver"
+  @handleMouseOut="handleMouseOut"
+  :isScreenerError="isScreenerError"
+  @reset="Reset('FundCategory')"
+  @notify="showNotification($event)"
+  v-model:ShowFundCategory="ShowFundCategory"
+    :initialSelected="initialFundCategories"
+       />
+       <NetExpenseRatio
+  :user="user?.Username ?? ''"
+  :apiKey="apiKey"
+  :notification="notification"
+  :selectedScreener="selectedScreener"
+  @fetchScreeners="handleFetchScreeners"
+  @handleMouseOver="handleMouseOver"
+  @handleMouseOut="handleMouseOut"
+  :isScreenerError="isScreenerError"
+  @reset="Reset('NetExpenseRatio')"
+  @notify="showNotification($event)"
+  v-model:showNetExpenseRatioInputs="showNetExpenseRatioInputs"
+        />
         <div class="results"></div>
       </div>
       <div id="resultsDiv" :class="{ 'hidden-mobile': selected !== 'list' }">
@@ -656,61 +697,69 @@
           </button>
         </div>
         <div v-if="listMode === 'main'">
-<MainList
-  :currentResults="currentResults"
-  :selectedItem="selectedItem ?? ''"
-  :watchlist="watchlist"
-  :getWatchlistIcon="getWatchlistIcon"
-  :selectedAttributes="selectedAttributes"
-  @scroll="handleScroll1"
-  @keydown="handleKeydown"
-  @select-row="selectRow"
-  @hide-stock="hideStock"
-  @toggle-watchlist="({ tickerName, symbol }) => toggleWatchlist(tickerName, symbol)"
-/>
-              </div>
-              <div v-else-if="listMode === 'filter'">
-                  <FilterList
-    :currentResults="currentResults"
-    :selectedItem="selectedItem ?? ''"
-    :watchlist="watchlist"
-    :getWatchlistIcon="getWatchlistIcon"
-    :selectedAttributes="selectedAttributes"
-    @scroll="handleScroll2"
-    @keydown="handleKeydown"
-    @select-row="selectRow"
-    @hide-stock="hideStock"
-    @toggle-watchlist="({ tickerName, symbol }) => toggleWatchlist(tickerName, symbol)"
-  />
-                    </div>
-                    <div v-else-if="listMode === 'hidden'">
-                      <HiddenList
-                        :currentResults="currentResults"
-                        :selectedItem="selectedItem ?? ''"
-                        :watchlist="watchlist"
-                        :getWatchlistIcon="getWatchlistIcon"
-                        :selectedAttributes="selectedAttributes"
-                        @scroll="handleScroll3"
-                        @keydown="handleKeydown"
-                        @select-row="selectRow"
-                        @show-stock="ShowStock"
-                        @toggle-watchlist="({ tickerName, symbol }) => toggleWatchlist(tickerName, symbol)"
-                      />
-                          </div>
-                          <div v-else-if="listMode === 'combined'">
-                            <CombinedList
-                              :currentResults="currentResults"
-                              :selectedItem="selectedItem ?? ''"
-                              :watchlist="watchlist"
-                              :getWatchlistIcon="getWatchlistIcon"
-                              :selectedAttributes="selectedAttributes"
-                              @scroll="handleScroll4"
-                              @keydown="handleKeydown"
-                              @select-row="selectRow"
-                              @hide-stock="hideStock"
-                              @toggle-watchlist="({ tickerName, symbol }) => toggleWatchlist(tickerName, symbol)"
-                            />
-                          </div>
+          <div v-if="initialLoading" class="simple-loader" aria-live="polite"><span class="simple-spinner" aria-hidden="true"></span>Fetching List</div>
+          <MainList
+            v-else
+            :currentResults="currentResults"
+            :selectedItem="selectedItem ?? ''"
+            :watchlist="watchlist"
+            :getWatchlistIcon="getWatchlistIcon"
+            :selectedAttributes="selectedAttributes"
+            @scroll="handleScroll1"
+            @keydown="handleKeydown"
+            @select-row="selectRow"
+            @hide-stock="hideStock"
+            @toggle-watchlist="({ tickerName, symbol }) => toggleWatchlist(tickerName, symbol)"
+          />
+        </div>
+        <div v-else-if="listMode === 'filter'">
+          <div v-if="filterInitialLoading" class="simple-loader" aria-live="polite"><span class="simple-spinner" aria-hidden="true"></span>Fetching List</div>
+          <FilterList
+            v-else
+            :currentResults="currentResults"
+            :selectedItem="selectedItem ?? ''"
+            :watchlist="watchlist"
+            :getWatchlistIcon="getWatchlistIcon"
+            :selectedAttributes="selectedAttributes"
+            @scroll="handleScroll2"
+            @keydown="handleKeydown"
+            @select-row="selectRow"
+            @hide-stock="hideStock"
+            @toggle-watchlist="({ tickerName, symbol }) => toggleWatchlist(tickerName, symbol)"
+          />
+        </div>
+        <div v-else-if="listMode === 'hidden'">
+          <div v-if="hiddenInitialLoading" class="simple-loader" aria-live="polite"><span class="simple-spinner" aria-hidden="true"></span>Fetching List</div>
+          <HiddenList
+            v-else
+            :currentResults="currentResults"
+            :selectedItem="selectedItem ?? ''"
+            :watchlist="watchlist"
+            :getWatchlistIcon="getWatchlistIcon"
+            :selectedAttributes="selectedAttributes"
+            @scroll="handleScroll3"
+            @keydown="handleKeydown"
+            @select-row="selectRow"
+            @show-stock="ShowStock"
+            @toggle-watchlist="({ tickerName, symbol }) => toggleWatchlist(tickerName, symbol)"
+          />
+        </div>
+        <div v-else-if="listMode === 'combined'">
+          <div v-if="compoundedInitialLoading" class="simple-loader" aria-live="polite"><span class="simple-spinner" aria-hidden="true"></span>Fetching List</div>
+          <CombinedList
+            v-else
+            :currentResults="currentResults"
+            :selectedItem="selectedItem ?? ''"
+            :watchlist="watchlist"
+            :getWatchlistIcon="getWatchlistIcon"
+            :selectedAttributes="selectedAttributes"
+            @scroll="handleScroll4"
+            @keydown="handleKeydown"
+            @select-row="selectRow"
+            @hide-stock="hideStock"
+            @toggle-watchlist="({ tickerName, symbol }) => toggleWatchlist(tickerName, symbol)"
+          />
+        </div>
                               </div>
                               <div id="sidebar-r" :class="{ 'hidden-mobile': selected !== 'charts' }">
                             <Chart1
@@ -788,6 +837,9 @@ import PEG from '@/components/Screener/Parameters/PEG.vue';
 import EPS from '@/components/Screener/Parameters/EPS.vue';
 import PB from '@/components/Screener/Parameters/PB.vue';
 import DivYield from '@/components/Screener/Parameters/DivYield.vue';
+import FundFamily from '@/components/Screener/Parameters/FundFamily.vue';
+import FundCategory from '@/components/Screener/Parameters/FundCategory.vue';
+import NetExpenseRatio from '@/components/Screener/Parameters/NetExpenseRatio.vue';
 import ShowFundYoYQoQ from '@/components/Screener/Parameters/ShowFundYoYQoQ.vue';
 import PricePerf from '@/components/Screener/Parameters/PricePerf.vue';
 import RSscore from '@/components/Screener/Parameters/RSscore.vue';
@@ -825,9 +877,13 @@ const initialAssetTypes = ref<string[]>([]);
 const initialSectors = ref<string[]>([]);
 const initialExchanges = ref<string[]>([]);
 const initialCountries = ref<string[]>([]);
+const initialFundFamilies = ref<string[]>([]);
+const initialFundCategories = ref<string[]>([]);
 const initialPricePerfSettings = ref<Record<string, any> | undefined>(undefined);
 const ShowExchange = ref(false);
 const ShowCountry = ref(false);
+const ShowFundFamily = ref(false);
+const ShowFundCategory = ref(false);
 const showPEInputs = ref(false);
 const showPEForwInputs = ref(false);
 const showPEGInputs = ref(false);
@@ -836,6 +892,7 @@ const showPSInputs = ref(false);
 const showPBInputs = ref(false);
 const showBetaInputs = ref(false);
 const showDivYieldInputs = ref(false);
+const showNetExpenseRatioInputs = ref(false);
 const showFundYoYQoQ = ref(false);
 const showVolume = ref(false);
 const showRSscore = ref(false);
@@ -900,6 +957,7 @@ const page = ref(1)
 const totalPages = ref(1)
 const screenerTotalCount = ref(0);
 const loading = ref(false)
+const initialLoading = ref(true)
 
 //pair to handling infinite scrolling in main list 
 const paginatedResults1 = computed(() => screenerResults.value);
@@ -910,6 +968,7 @@ async function GetScreenerResultsAll(reset: boolean = false): Promise<void> {
     totalPages.value = 1;
     screenerTotalCount.value = 0;
     screenerResults.value = [];
+    initialLoading.value = true;
   }
   if (loading.value || page.value > totalPages.value) return;
   loading.value = true;
@@ -935,6 +994,7 @@ async function GetScreenerResultsAll(reset: boolean = false): Promise<void> {
     }
   } finally {
     loading.value = false;
+    initialLoading.value = false;
   }
 }
 GetScreenerResultsAll();
@@ -953,6 +1013,7 @@ const filterPage = ref(1);
 const filterTotalPages = ref(1);
 const filterTotalCount = ref(0);
 const filterLoading = ref(false);
+const filterInitialLoading = ref(false);
 
 async function fetchScreenerResults(screenerName: string): Promise<void> {
   // Reset only if screener changed
@@ -962,6 +1023,7 @@ async function fetchScreenerResults(screenerName: string): Promise<void> {
     filterTotalCount.value = 0;
     filterResults.value = [];
     lastLoadedScreener.value = screenerName;
+    filterInitialLoading.value = true;
   }
   if (filterLoading.value || filterPage.value > filterTotalPages.value) return;
   filterLoading.value = true;
@@ -993,6 +1055,7 @@ async function fetchScreenerResults(screenerName: string): Promise<void> {
     }
   } finally {
     filterLoading.value = false;
+    filterInitialLoading.value = false;
   }
 }
 
@@ -1012,6 +1075,7 @@ const hiddenPage = ref(1);
 const hiddenTotalPages = ref(1);
 const hiddenTotalCount = ref(0);
 const hiddenLoading = ref(false);
+const hiddenInitialLoading = ref(true);
 
 const paginatedResults3 = computed(() => HiddenResults.value);
 
@@ -1021,6 +1085,7 @@ async function GetHiddenResults(reset: boolean = false): Promise<void> {
     hiddenTotalPages.value = 1;
     hiddenTotalCount.value = 0;
     HiddenResults.value = [];
+    hiddenInitialLoading.value = true;
   }
   if (hiddenLoading.value || hiddenPage.value > hiddenTotalPages.value) return;
   hiddenLoading.value = true;
@@ -1050,6 +1115,7 @@ async function GetHiddenResults(reset: boolean = false): Promise<void> {
     }
   } finally {
     hiddenLoading.value = false;
+    hiddenInitialLoading.value = false;
   }
 }
 GetHiddenResults();
@@ -1068,6 +1134,7 @@ const compoundedPage = ref(1);
 const compoundedTotalPages = ref(1);
 const compoundedTotalCount = ref(0);
 const compoundedLoading = ref(false);
+const compoundedInitialLoading = ref(true);
 
 // fetches data for cumulative screener results with pagination
 async function GetCompoundedResults(reset: boolean = false): Promise<void> {
@@ -1076,6 +1143,7 @@ async function GetCompoundedResults(reset: boolean = false): Promise<void> {
     compoundedTotalPages.value = 1;
     compoundedTotalCount.value = 0;
     compoundedResults.value = [];
+    compoundedInitialLoading.value = true;
   }
   if (compoundedLoading.value || compoundedPage.value > compoundedTotalPages.value) return;
   compoundedLoading.value = true;
@@ -1105,6 +1173,7 @@ async function GetCompoundedResults(reset: boolean = false): Promise<void> {
     }
   } finally {
     compoundedLoading.value = false;
+    compoundedInitialLoading.value = false;
   }
 }
 GetCompoundedResults();
@@ -1566,6 +1635,9 @@ async function CurrentScreener(): Promise<void> {
     let AssetTypesList = screenerSettings.AssetTypes;
     let exchangesList = screenerSettings.Exchanges;
     let countriesList = screenerSettings.Countries;
+    let FundFamilies = screenerSettings.FundFamilies;
+    let FundCategories = screenerSettings.FundCategories;
+    let NetExpenseRatio = screenerSettings.NetExpenseRatio;
     let PEList = screenerSettings.PE;
     let FPEList = screenerSettings.ForwardPE;
     let PEGList = screenerSettings.PEG;
@@ -1630,6 +1702,8 @@ async function CurrentScreener(): Promise<void> {
   ShowAssetType.value = screenerSettings?.AssetTypes?.length > 0;
   ShowExchange.value = screenerSettings?.Exchanges?.length > 0;
   ShowCountry.value = screenerSettings?.Countries?.length > 0;
+  ShowFundFamily.value = screenerSettings?.FundFamilies?.length > 0;
+  ShowFundCategory.value = screenerSettings?.FundCategories?.length > 0;
   showPEInputs.value = screenerSettings?.PE?.length > 0;
   showPEForwInputs.value = screenerSettings?.ForwardPE?.length > 0;
   showPEGInputs.value = screenerSettings?.PEG?.length > 0;
@@ -1639,6 +1713,7 @@ async function CurrentScreener(): Promise<void> {
   // Removed duplicate ref declarations. Use top-level refs only.
     showBetaInputs.value = screenerSettings?.Beta?.length > 0;
     showDivYieldInputs.value = screenerSettings?.DivYield?.length > 0;
+    showNetExpenseRatioInputs.value = screenerSettings?.NetExpenseRatio?.length > 0;
     showFundYoYQoQ.value =
       screenerSettings?.EPSQoQ?.length > 0 ||
       screenerSettings?.EPSYoY?.length > 0 ||
@@ -1725,6 +1800,8 @@ async function CurrentScreener(): Promise<void> {
   setInputValue('right-beta', BetaList?.[1] ?? '');
   setInputValue('left-divyield', DivYieldList?.[0] ?? '');
   setInputValue('right-divyield', DivYieldList?.[1] ?? '');
+  setInputValue('left-net-expense-ratio', NetExpenseRatio?.[0] ?? '');
+  setInputValue('right-net-expense-ratio', NetExpenseRatio?.[1] ?? '');
   setInputValue('left-RevYoY', RevYoY?.[0] ?? '');
   setInputValue('right-RevYoY', RevYoY?.[1] ?? '');
   setInputValue('left-RevQoQ', RevQoQ?.[0] ?? '');
@@ -1786,6 +1863,8 @@ async function CurrentScreener(): Promise<void> {
   initialExchanges.value = Array.isArray(exchangesList) ? exchangesList : [];
   initialAssetTypes.value = Array.isArray(AssetTypesList) ? AssetTypesList : [];
   initialCountries.value = Array.isArray(countriesList) ? countriesList : [];
+  initialFundFamilies.value = Array.isArray(FundFamilies) ? FundFamilies : [];
+  initialFundCategories.value = Array.isArray(FundCategories) ? FundCategories : [];
   // Price performance settings object passed to PricePerf to set its internal inputs and toggles
   initialPricePerfSettings.value = screenerSettings;
   } catch (error) {
@@ -1846,6 +1925,9 @@ const valueMap: { [key: string]: string } = {
   'PB': 'PB',
   'Beta': 'Beta',
   'DivYield': 'DivYield',
+  'FundFamily': 'FundFamily',
+  'FundCategory': 'FundCategory',
+  'NetExpenseRatio': 'NetExpenseRatio',
   'FundGrowth': 'FundGrowth',
   'PricePerformance': 'PricePerformance',
   'RSscore': 'RSscore',
@@ -1929,7 +2011,7 @@ async function SummaryScreener(): Promise<void> {
       'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W', 'RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'CurrentPrice', 'NewHigh',
       'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio',
       'assetsCurrent', 'liabilitiesCurrent', 'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin', 'debtEquity', 'bookVal', 'EV',
-      'RSI', 'Gap', 'AssetTypes', 'IV'
+      'RSI', 'Gap', 'AssetTypes', 'IV', 'FundFamilies', 'FundCategories', 'NetExpenseRatio'
     ];
 
   const attributeMapping: { [key: string]: string } = {
@@ -1981,7 +2063,10 @@ async function SummaryScreener(): Promise<void> {
       'RSI': 'RSI',
       'Gap': 'Gap %',
       'AssetTypes': 'Asset Types',
-      'IV': 'Intrinsic Value'
+      'IV': 'Intrinsic Value',
+      'FundFamilies': 'Fund Families',
+      'FundCategories': 'Fund Categories',
+      'NetExpenseRatio': 'Net Expense Ratio %'
     };
 
   const valueMapping: { [key: string]: string } = {
@@ -2239,6 +2324,12 @@ function getTooltipText(id: string): string {
       return 'The price-to-book (P/B) ratio is a valuation metric that compares a company\'s current stock price to its book value per share. This can help investors evaluate whether a company\'s stock is overvalued or undervalued.';
     case 'div':
       return 'Dividend Yield TTM (Trailing Twelve Months) is the ratio of the annual dividend payment per share to the stock\'s current price, expressed as a percentage. It represents the return on investment from dividend payments over the past 12 months.';
+    case 'fundFamily':
+      return 'Fund Family refers to the investment company or financial institution that manages and sponsors the mutual fund or ETF. Examples include Vanguard, Fidelity, BlackRock, etc. Filtering by fund family helps investors find funds managed by specific providers.';
+    case 'fundCategory':
+      return 'Fund Category classifies the mutual fund or ETF based on its investment strategy and asset allocation. Categories include equity funds, bond funds, balanced funds, sector-specific funds, etc. This helps investors identify funds that match their investment objectives and risk tolerance.';
+    case 'netExpenseRatio':
+      return 'Net Expense Ratio is the annual fee that a mutual fund or ETF charges its shareholders, expressed as a percentage of the fund\'s average net assets. It represents the total cost of owning the fund, including management fees, administrative costs, and other operational expenses, after any fee waivers or reimbursements. Lower expense ratios generally mean more of your investment returns stay in your pocket.';
     case 'perf':
       return 'Filter stocks by price performance, including: Change %, % off 52-week high/low, New all-time high/low, MA crossovers; Identify trending stocks and potential breakouts.';
     case 'rs':
@@ -2518,7 +2609,7 @@ async function loadColumns() {
     const data = await response.json();
     // Accept only valid values (should match MainList/EditColumn attributes)
     const validValues = [
-      'price','market_cap','volume','ipo','assettype','sector','exchange','country','pe_ratio','ps_ratio','fcf','cash','current_debt','current_assets','current_liabilities','current_ratio','roe','roa','peg','eps','pb_ratio','dividend_yield','name','currency','industry','book_value','shares','rs_score1w','rs_score1m','rs_score4m','all_time_high','all_time_low','high_52w','low_52w','perc_change','isin','gap','ev','adv1w','adv1m','adv4m','adv1y','rsi','intrinsic_value'
+      'price','market_cap','volume','ipo','assettype','sector','exchange','country','pe_ratio','ps_ratio','fcf','cash','current_debt','current_assets','current_liabilities','current_ratio','roe','roa','peg','eps','pb_ratio','dividend_yield','name','currency','industry','book_value','shares','rs_score1w','rs_score1m','rs_score4m','all_time_high','all_time_low','high_52w','low_52w','perc_change','isin','gap','ev','adv1w','adv1m','adv4m','adv1y','rsi','intrinsic_value','fund_family','fund_category','net_expense_ratio'
     ];
     selectedAttributes.value = (Array.isArray(data.columns) ? data.columns : []).filter((v: string) => validValues.includes(v));
   } catch (err) {
@@ -2583,6 +2674,30 @@ const showSelector = computed(() => {
   overflow-x: scroll;
   overflow-y: hidden;
   max-height: 850px;
+}
+
+.simple-loader {
+  padding: 12px 16px;
+  text-align: center;
+  color: var(--text1);
+  background: transparent;
+  font-weight: 600;
+}
+
+.simple-loader .simple-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 1.5px;
+  margin-right: 10px;
+  background: var(--text1);
+  vertical-align: middle;
+  transform-origin: center;
+  animation: simple-rotate 0.8s linear infinite;
+}
+
+@keyframes simple-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 #sidebar-r {

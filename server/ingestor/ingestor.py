@@ -344,6 +344,22 @@ async def start_market_hours_manager():
     # Note: daily/weekly flush and organizer scheduling moved to aggregator service
 
 # IPO management moved to aggregator service
+
+# --- Health check endpoints ---
+@app.get("/ready")
+async def ready():
+    """Health check endpoint for container readiness probes"""
+    return {"status": "ready"}
+
+@app.get("/health")
+async def health():
+    """Health check endpoint for container liveness probes"""
+    return {"status": "healthy"}
+
+@app.get("/metrics")
+async def metrics():
+    """Prometheus metrics endpoint - basic implementation"""
+    return {"status": "ok", "service": "ingestor"}
     
 # --- Admin endpoint to manually unsubscribe all tickers ---
 @app.post("/admin/unsubscribe_all")

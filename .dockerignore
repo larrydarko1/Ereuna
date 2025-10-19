@@ -10,7 +10,6 @@ __pycache__
 logs
 *.log
 *.pyc
-/.env
 db/mongodb-init/dump
 db/mongodb-init/dump/**
 server/.cache

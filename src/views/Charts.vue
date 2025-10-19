@@ -372,6 +372,9 @@ const assetInfo = reactive({
   AvgVolume1M: '-',
   AvgVolume1W: '-',
   Currency: '-',
+  FundCategory: '-',
+  fundFamily: '-',
+  netExpenseRatio: null as number | null,
 });
 
 //takes date strings inside database and converts them into actual date, in italian format
@@ -434,6 +437,11 @@ async function showTicker() {
       assetInfo.RSScore1M = data.RSScore1M;
       assetInfo.RSScore4M = data.RSScore4M;
       assetInfo.IPO = data.IPO;
+      assetInfo.FundCategory = data.FundCategory || '-';
+      assetInfo.fundFamily = data.fundFamily || '-';
+      assetInfo.netExpenseRatio = (data.netExpenseRatio != null && data.netExpenseRatio !== '' && data.netExpenseRatio !== '-') 
+        ? (typeof data.netExpenseRatio === 'number' ? data.netExpenseRatio : parseFloat(data.netExpenseRatio)) 
+        : null;
     }
   } catch (err) {
     if (err instanceof Error) {

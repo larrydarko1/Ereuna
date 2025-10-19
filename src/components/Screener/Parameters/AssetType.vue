@@ -100,7 +100,7 @@ const ShowAssetTypeModel = computed({
   set: (val: boolean) => emit('update:ShowAssetType', val)
 });
 
-const AssetTypes = (['Stock', 'ETF']); 
+const AssetTypes = (['Stock', 'ETF', 'Mutual Fund']); 
 const selectedAssetTypes = ref<boolean[]>([]);
 // ensure array has the same length as AssetTypes so index access is defined
 selectedAssetTypes.value = new Array(AssetTypes.length).fill(false);

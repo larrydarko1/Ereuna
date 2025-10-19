@@ -96,10 +96,22 @@ async function fetchDividendsDate(all = false) {
 }
 
 const displayedDividendsItems = computed(() => {
-  return DividendsDate.value || [];
+  const dividends = DividendsDate.value || [];
+  if (dividends.length === 0) return [];
+  return dividends;
 });
 
 const showDividendsButton = computed(() => {
+  // Show button if we have exactly 4 items and haven't shown all yet
+  // (backend limits to 4, so if we have 4 there might be more)
+  if (!showAllDividends.value && DividendsDate.value && DividendsDate.value.length === 4) {
+    return true;
+  }
+  // Hide button if we've shown all and still have 4 or less
+  if (showAllDividends.value && DividendsDate.value && DividendsDate.value.length <= 4) {
+    return false;
+  }
+  // Show button if we have more than 4 (when showing all)
   return DividendsDate.value && DividendsDate.value.length > 4;
 });
 

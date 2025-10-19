@@ -33,13 +33,15 @@ services:
     depends_on:
       - backend
     networks:
-      - ereuna-network-internal
       - ereuna-network
+      - ereuna-network-internal
+    restart: unless-stopped
     logging:
       driver: json-file
     labels:
       job: frontend
       traefik.enable: "true"
+      traefik.docker.network: "ereuna-network"
       traefik.http.routers.frontend.rule: "Host(`localhost`)"
       traefik.http.routers.frontend.entrypoints: "web"
       traefik.http.services.frontend.loadbalancer.server.port: "3500"
@@ -55,17 +57,23 @@ services:
     env_file:
       - ../.env
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
       - CORS_ORIGIN=http://localhost
-    command: [ "sh", "-c", "node --import 'data:text/javascript,import { register } from \"node:module\"; import { pathToFileURL } from \"node:url\"; register(\"ts-node/esm\", pathToFileURL(\"./\"));' api/server.ts" ]
+      - PORT=5500
     networks:
       - ereuna-network-internal
       - ereuna-network
+    expose:
+      - "5500"
     restart: unless-stopped
     logging:
       driver: json-file
+    labels:
+      job: backend
+      traefik.enable: "false"
     deploy:
       replicas: 3
       restart_policy:
@@ -81,6 +89,12 @@ services:
     restart: unless-stopped
     expose:
       - "27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     logging:
       driver: json-file
     labels:
@@ -99,7 +113,10 @@ services:
     networks:
       - ereuna-network-internal
     restart: unless-stopped
+    logging:
+      driver: json-file
     labels:
+      job: prometheus
       traefik.enable: "false"
 
   grafana:
@@ -115,8 +132,16 @@ services:
       - GF_SERVER_HTTP_PORT=3000
       - GF_SERVER_PROTOCOL=http
       - GF_SERVER_DOMAIN=grafana.localhost
+    networks:
+      - ereuna-network
+      - ereuna-network-internal
+    restart: unless-stopped
+    logging:
+      driver: json-file
     labels:
+      job: grafana
       traefik.enable: "true"
+      traefik.docker.network: "ereuna-network"
       traefik.http.routers.grafana.rule: "Host(`grafana.localhost`)"
       traefik.http.routers.grafana.entrypoints: "web"
       traefik.http.services.grafana.loadbalancer.server.port: "3000"
@@ -131,7 +156,10 @@ services:
     networks:
       - ereuna-network-internal
     restart: unless-stopped
+    logging:
+      driver: json-file
     labels:
+      job: loki
       traefik.enable: "false"
 
   promtail:
@@ -142,7 +170,11 @@ services:
       - logs_volume:/home/ereunavps/logs/
     networks:
       - ereuna-network-internal
+    restart: unless-stopped
+    logging:
+      driver: json-file
     labels:
+      job: promtail
       traefik.enable: "false"
 
   # Redis used by aggregator/ingestor/websocket for pubsub/streams
@@ -153,7 +185,10 @@ services:
       - "6379"
     networks:
       - ereuna-network-internal
+    logging:
+      driver: json-file
     labels:
+      job: redis
       traefik.enable: "false"
 
   # Aggregator service (FastAPI + background worker)
@@ -171,7 +206,6 @@ services:
       - MONGO_URI=mongodb://mongodb:27017/
     networks:
       - ereuna-network-internal
-      - ereuna-network
     expose:
       - "8002"
     healthcheck:
@@ -180,6 +214,11 @@ services:
       timeout: 5s
       retries: 3
     restart: unless-stopped
+    logging:
+      driver: json-file
+    labels:
+      job: aggregator
+      traefik.enable: "false"
 
   # Ingestor service (connects to Tiingo, publishes into Redis)
   ingestor:
@@ -196,8 +235,8 @@ services:
       - MONGO_URI=mongodb://mongodb:27017/
     command: [ "sh", "-c", "uvicorn server.ingestor.ingestor:app --host 0.0.0.0 --port 8001" ]
     networks:
-      - ereuna-network-internal
       - ereuna-network
+      - ereuna-network-internal
     expose:
       - "8001"
     healthcheck:
@@ -206,6 +245,11 @@ services:
       timeout: 5s
       retries: 3
     restart: "no"
+    logging:
+      driver: json-file
+    labels:
+      job: ingestor
+      traefik.enable: "false"
 
   # Websocket service (serves realtime websockets to clients)
   websocket:
@@ -231,6 +275,11 @@ services:
       timeout: 5s
       retries: 3
     restart: unless-stopped
+    logging:
+      driver: json-file
+    labels:
+      job: websocket
+      traefik.enable: "false"
     deploy:
       replicas: 3
       restart_policy:

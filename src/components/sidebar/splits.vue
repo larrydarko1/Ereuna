@@ -103,13 +103,20 @@ async function fetchSplitsDate(all = false) {
 
 const displayedSplitsItems = computed(() => {
   if (!SplitsDate.value) return [];
-  if (!showAllSplits.value) {
-    return SplitsDate.value.slice(0, 4);
-  }
   return SplitsDate.value;
 });
 
 const showSplitsButton = computed(() => {
+  // Show button if we have exactly 4 items and haven't shown all yet
+  // (backend limits to 4, so if we have 4 there might be more)
+  if (!showAllSplits.value && SplitsDate.value && SplitsDate.value.length === 4) {
+    return true;
+  }
+  // Hide button if we've shown all and still have 4 or less
+  if (showAllSplits.value && SplitsDate.value && SplitsDate.value.length <= 4) {
+    return false;
+  }
+  // Show button if we have more than 4 (when showing all)
   return SplitsDate.value && SplitsDate.value.length > 4;
 });
 
