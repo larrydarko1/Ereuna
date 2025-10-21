@@ -90,6 +90,28 @@ def get_in_progress_cached(ticker: str, timeframe: str):
     except Exception:
         return None
 
+async def get_in_progress_from_redis(ticker: str, timeframe: str):
+    """Fetch the latest in-progress candle directly from Redis if not in local cache."""
+    global redis_client
+    if redis_client is None:
+        return None
+    try:
+        key = f"aggr:last:{ticker.upper()}:{timeframe}"
+        val = await redis_client.get(key)
+        if val:
+            if isinstance(val, bytes):
+                val = val.decode('utf-8')
+            data = json.loads(val)
+            # Parse timestamp fields to datetime
+            if 'timestamp' in data and isinstance(data['timestamp'], str):
+                data['timestamp'] = isoparse(data['timestamp'])
+            if 'start' in data and isinstance(data['start'], str):
+                data['start'] = isoparse(data['start'])
+            return data
+    except Exception as e:
+        logger.debug(f"Failed to fetch from Redis aggr:last: {e}")
+    return None
+
 async def _redis_aggregated_listener():
     """Listen to aggregator Redis pubsub (aggr:*) and forward messages into local pubsub_channels
     so websocket clients get real-time updates across processes.
@@ -308,7 +330,10 @@ async def websocket_chartdata(
         'intraday30m': '30m',
         'intraday1hr': '1hr',
     }[timeframe]
-    cached_candle = get_latest_in_progress_candle(ticker, pubsub_tf)
+    # Try multiple sources for cached candle: Redis direct lookup, then local cache
+    cached_candle = await get_in_progress_from_redis(ticker, pubsub_tf)
+    if not cached_candle:
+        cached_candle = get_in_progress_cached(ticker, pubsub_tf)
     ohlc_arr = arr.copy()
     if cached_candle:
         def to_naive_utc(dt):
@@ -433,17 +458,30 @@ async def websocket_chartdata(
         logger.info(f"Subscribed to pubsub for {ticker} ({pubsub_tf}) [market hours]")
         try:
             in_progress_candle = None
+            last_in_progress_timestamp = None
             while True:
                 try:
                     cndl = await q.get()
                     is_final = cndl.get('final', False)
                     if is_final:
                         arr.append(cndl)
-                        if len(arr) > length:
+                        if length is not None and len(arr) > length:
                             arr = arr[-length:]
                         in_progress_candle = None
+                        last_in_progress_timestamp = None
                     else:
+                        # Check if we moved to a new candle timestamp (new bucket started)
+                        current_timestamp = cndl.get('timestamp')
+                        if last_in_progress_timestamp is not None and current_timestamp != last_in_progress_timestamp:
+                            # New candle started but old one never finalized via pubsub
+                            # Query DB for any missing candles
+                            fresh_arr = await coll.find({'tickerID': ticker}).sort('timestamp', -1).to_list(length=length)
+                            fresh_arr = list(reversed(fresh_arr))
+                            if fresh_arr and len(fresh_arr) > len(arr):
+                                arr = fresh_arr
+                        
                         in_progress_candle = cndl
+                        last_in_progress_timestamp = current_timestamp
                     ohlc_arr = arr.copy()
                     if in_progress_candle:
                         if not ohlc_arr or ohlc_arr[-1]['timestamp'] != in_progress_candle['timestamp']:
@@ -562,7 +600,10 @@ async def websocket_quotes(
         try:
             if is_market_hours():
                 # prefer in-progress cached candle (if exists) for more real-time accuracy
-                cached = get_in_progress_cached(sym, '1m')
+                # Try Redis first, then local cache
+                cached = await get_in_progress_from_redis(sym, '1m')
+                if not cached:
+                    cached = get_in_progress_cached(sym, '1m')
                 if cached and 'close' in cached:
                     return float(cached['close'])
                 # fall back to DB latest 1m
@@ -576,7 +617,10 @@ async def websocket_quotes(
                 if doc and len(doc) > 0 and 'close' in doc[0]:
                     return float(doc[0]['close'])
                 # fallback to cached in-progress daily if available
-                cached_daily = get_in_progress_cached(sym, '1d')
+                # Try Redis first, then local cache
+                cached_daily = await get_in_progress_from_redis(sym, '1d')
+                if not cached_daily:
+                    cached_daily = get_in_progress_cached(sym, '1d')
                 if cached_daily and 'close' in cached_daily:
                     return float(cached_daily['close'])
                 # finally fallback to latest 1m if nothing else
@@ -644,7 +688,10 @@ async def websocket_watchpanel(
     watch_panel_data = []
     for ticker in tickers:
         docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
-        cached_candle = get_latest_in_progress_candle(ticker, '1d')
+        # Try Redis first, then local cache
+        cached_candle = await get_in_progress_from_redis(ticker, '1d')
+        if not cached_candle:
+            cached_candle = get_in_progress_cached(ticker, '1d')
         def get_ts(doc):
             return doc.get('timestamp', doc.get('start'))
         if cached_candle and docs:
@@ -762,7 +809,10 @@ async def websocket_data_values(
     last_two_closes = {}
     results = {}
     for ticker in ticker_list:
-        cached_candle = get_latest_in_progress_candle(ticker, '1d')
+        # Try Redis first, then local cache
+        cached_candle = await get_in_progress_from_redis(ticker, '1d')
+        if not cached_candle:
+            cached_candle = get_in_progress_cached(ticker, '1d')
         docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
         def get_ts(doc):
             return doc.get('timestamp', doc.get('start'))
@@ -908,7 +958,10 @@ async def websocket_chartdata(
     weeklyData = list(reversed(weeklyData))
 
     # Use cached candle for latest if available
-    cached_candle = get_latest_in_progress_candle(ticker, '1w')
+    # Try Redis first, then local cache
+    cached_candle = await get_in_progress_from_redis(ticker, '1w')
+    if not cached_candle:
+        cached_candle = get_in_progress_cached(ticker, '1w')
     if cached_candle:
         def get_ts(doc):
             return doc.get('timestamp', doc.get('start'))
@@ -1062,7 +1115,10 @@ async def websocket_chartdata_dl(
     dailyData = list(reversed(dailyData))
 
     # Use cached candle for latest if available
-    cached_candle = get_latest_in_progress_candle(ticker, '1d')
+    # Try Redis first, then local cache
+    cached_candle = await get_in_progress_from_redis(ticker, '1d')
+    if not cached_candle:
+        cached_candle = get_in_progress_cached(ticker, '1d')
     if cached_candle:
         def get_ts(doc):
             return doc.get('timestamp', doc.get('start'))

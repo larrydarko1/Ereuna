@@ -212,6 +212,7 @@ async def start_aggregator(message_queue, mongo_client):
                         "high": price,
                         "low": price,
                         "close": price,
+                        "volume": 0
                     }
                 else:
                     candle["high"] = max(candle["high"], price)
@@ -226,6 +227,7 @@ async def start_aggregator(message_queue, mongo_client):
                     "close": candles[key]["close"],
                     "high": candles[key]["high"],
                     "low": candles[key]["low"],
+                    "volume": candles[key].get("volume", 0),
                     "final": False
                 })
 
@@ -241,7 +243,8 @@ async def start_aggregator(message_queue, mongo_client):
                             "open": cndl["open"],
                             "close": cndl["close"],
                             "high": cndl["high"],
-                            "low": cndl["low"]
+                            "low": cndl["low"],
+                            "volume": cndl.get("volume", 0)
                         })
                         finished.append((sym, bkt))
                 if docs:

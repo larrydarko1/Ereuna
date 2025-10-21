@@ -312,7 +312,7 @@
                   <div style="flex: 1; text-align: center;">{{ quotes[item.ticker] }}</div>
                   <div style="flex: 1; text-align: center;" :class="changes[item.ticker] > 0 ? 'positive' : 'negative'">{{
                     changes[item.ticker] }}</div>
-                  <div style="flex: 1; text-align: center;" :class="perc[item.ticker] > 0 ? 'positive' : 'negative'">{{
+                  <div style="flex: 1; text-align: center;" :class="parseFloat(perc[item.ticker]) > 0 ? 'positive' : 'negative'">{{
                     perc[item.ticker] }}%</div>
                   <div class="delete-cell" style="position: relative;">
                     <button class="dbtn" @click="deleteTicker(item.ticker)" style="position: absolute; right: 0;" @click.stop :aria-label="`Delete ticker ${item.ticker} from watchlist`">
@@ -365,7 +365,7 @@ interface ChangesMap {
 }
 
 interface PercMap {
-  [symbol: string]: number;
+  [symbol: string]: string;
 }
 
 interface CheckedWatchlistsMap {
@@ -1060,7 +1060,7 @@ async function fetchDataREST(items: string[] | string): Promise<void> {
       if (data[item]) {
         quotes[item] = parseFloat(data[item].close).toFixed(2);
         changes[item] = parseFloat(data[item].closeDiff);
-        perc[item] = parseFloat(data[item].percentChange);
+        perc[item] = parseFloat(data[item].percentChange).toFixed(2);
       }
     }
     wsReceived = true;
@@ -1093,14 +1093,14 @@ async function fetchDataWS(items: string[]): Promise<void> {
       for (const item in msg.data) {
         quotes[item] = parseFloat(msg.data[item].close).toFixed(2);
         changes[item] = parseFloat(msg.data[item].closeDiff);
-        perc[item] = parseFloat(msg.data[item].percentChange);
+        perc[item] = parseFloat(msg.data[item].percentChange).toFixed(2);
       }
       wsReceived = true;
     } else if (msg.type === 'update') {
       for (const item in msg.data) {
         quotes[item] = parseFloat(msg.data[item].close).toFixed(2);
         changes[item] = parseFloat(msg.data[item].closeDiff);
-        perc[item] = parseFloat(msg.data[item].percentChange);
+        perc[item] = parseFloat(msg.data[item].percentChange).toFixed(2);
       }
       wsReceived = true;
     } else if (msg.error) {
