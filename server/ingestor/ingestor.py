@@ -30,6 +30,15 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()]
 )
 logger = logging.getLogger("websocket")
+
+# Filter out health check/metrics logs from uvicorn access logger
+class HealthCheckFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        return not any(endpoint in message for endpoint in ['/metrics', '/ready', '/health'])
+
+logging.getLogger("uvicorn.access").addFilter(HealthCheckFilter())
+
 TIINGO_API_KEY = os.getenv('TIINGO_KEY')
 
 app = FastAPI()
@@ -268,7 +277,7 @@ async def market_hours_manager():
                     break
                 if not subscribed:
                     # hardcoded tickers for testing
-                    stock_symbols = ['TSLA', 'RDDT']
+                    stock_symbols = ['TSLA', 'RDDT', 'NVDA']
                     tickers_to_subscribe = stock_symbols
                     logger.info(f"[MarketHours] Subscribing to {len(stock_symbols)} stock/ETF tickers: {stock_symbols}")
                     stock_subscribe_msg = {

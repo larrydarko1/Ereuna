@@ -5,14 +5,13 @@ services:
     image: traefik:latest
     command:
       - --api.dashboard=true
-      - --api.insecure=true
+      - --api.insecure=false # Secure the dashboard
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --entryPoints.web.address=:80
-      - --entryPoints.traefik.address=:8080
+      - --log.level=ERROR # Reduce Traefik verbosity
     ports:
       - "80:80"
-      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik.yml:/etc/traefik/dynamic.yml:ro
@@ -23,6 +22,21 @@ services:
     restart: unless-stopped
     logging:
       driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "job,environment"
+    labels:
+      job: traefik
+      environment: production
+      # Expose Traefik dashboard with authentication on port 80
+      traefik.enable: "true"
+      traefik.http.routers.dashboard.rule: "Host(`traefik.localhost`)"
+      traefik.http.routers.dashboard.entrypoints: "web"
+      traefik.http.routers.dashboard.service: "api@internal"
+      # Basic auth middleware (username: admin, password: REDACTED_PASSWORD)
+      traefik.http.routers.dashboard.middlewares: "dashboard-auth"
+      traefik.http.middlewares.dashboard-auth.basicauth.users: "admin:$$apr1$$8kD7rHQr$$qVqH8E6vZWzK3mXZqKJYb/"
 
   frontend:
     build:
@@ -38,8 +52,13 @@ services:
     restart: unless-stopped
     logging:
       driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "job,environment"
     labels:
       job: frontend
+      environment: production
       traefik.enable: "true"
       traefik.docker.network: "ereuna-network"
       traefik.http.routers.frontend.rule: "Host(`localhost`)"
@@ -63,6 +82,7 @@ services:
       - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
       - CORS_ORIGIN=http://localhost
       - PORT=5500
+      - LOG_LEVEL=info # Control backend log verbosity
     networks:
       - ereuna-network-internal
       - ereuna-network
@@ -71,8 +91,13 @@ services:
     restart: unless-stopped
     logging:
       driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "job,environment"
     labels:
       job: backend
+      environment: production
       traefik.enable: "false"
     deploy:
       replicas: 3
@@ -81,6 +106,7 @@ services:
 
   mongodb:
     image: mongo:latest
+    command: [ "mongod", "--quiet", "--logpath", "/dev/null" ] # Suppress verbose logs
     volumes:
       - ../db:/docker-entrypoint-initdb.d
       - mongodb_data:/data/db
@@ -97,16 +123,29 @@ services:
       start_period: 40s
     logging:
       driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+        labels: "job,environment"
     labels:
       job: mongodb
+      environment: production
       traefik.enable: "false"
 
   prometheus:
     image: prom/prometheus:latest
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
     expose:
       - "9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=90d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--log.level=warn' # Reduce Prometheus verbosity
     depends_on:
       - backend
       - mongodb
@@ -115,8 +154,13 @@ services:
     restart: unless-stopped
     logging:
       driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+        labels: "job,environment"
     labels:
       job: prometheus
+      environment: production
       traefik.enable: "false"
 
   grafana:
@@ -132,14 +176,24 @@ services:
       - GF_SERVER_HTTP_PORT=3000
       - GF_SERVER_PROTOCOL=http
       - GF_SERVER_DOMAIN=grafana.localhost
+      - GF_LOG_LEVEL=warn # Reduce Grafana log verbosity
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
     networks:
       - ereuna-network
       - ereuna-network-internal
     restart: unless-stopped
     logging:
       driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+        labels: "job,environment"
     labels:
       job: grafana
+      environment: production
       traefik.enable: "true"
       traefik.docker.network: "ereuna-network"
       traefik.http.routers.grafana.rule: "Host(`grafana.localhost`)"
@@ -152,34 +206,47 @@ services:
       - "3100"
     volumes:
       - ./loki.yml:/etc/loki/loki.yml
-      - logs_volume:/var/lib/loki/db
+      - logs_volume:/loki # All logs stored here permanently
     networks:
       - ereuna-network-internal
     restart: unless-stopped
     logging:
       driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
     labels:
       job: loki
+      environment: production
       traefik.enable: "false"
 
+  # Promtail auto-discovers and ships Docker container logs to Loki
   promtail:
-    image: grafana/promtail:2.4.1
+    image: grafana/promtail:latest
     volumes:
       - ./promtail-config.yaml:/etc/promtail/config.yml
-      - /var/lib/docker/containers:/var/lib/docker/containers # For accessing container logs directly via json-file driver.
-      - logs_volume:/home/ereunavps/logs/
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml
     networks:
       - ereuna-network-internal
+    depends_on:
+      - loki
     restart: unless-stopped
     logging:
       driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
     labels:
       job: promtail
+      environment: production
       traefik.enable: "false"
 
   # Redis used by aggregator/ingestor/websocket for pubsub/streams
   redis:
     image: redis:7-alpine
+    command: [ "redis-server", "--loglevel", "warning" ] # Reduce Redis verbosity
     restart: unless-stopped
     expose:
       - "6379"
@@ -187,8 +254,13 @@ services:
       - ereuna-network-internal
     logging:
       driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+        labels: "job,environment"
     labels:
       job: redis
+      environment: production
       traefik.enable: "false"
 
   # Aggregator service (FastAPI + background worker)
@@ -204,8 +276,10 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379/0
       - MONGO_URI=mongodb://mongodb:27017/
+      - LOG_LEVEL=info
     networks:
       - ereuna-network-internal
+      - ereuna-network
     expose:
       - "8002"
     healthcheck:
@@ -216,8 +290,13 @@ services:
     restart: unless-stopped
     logging:
       driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "job,environment"
     labels:
       job: aggregator
+      environment: production
       traefik.enable: "false"
 
   # Ingestor service (connects to Tiingo, publishes into Redis)
@@ -233,7 +312,8 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379/0
       - MONGO_URI=mongodb://mongodb:27017/
-    command: [ "sh", "-c", "uvicorn server.ingestor.ingestor:app --host 0.0.0.0 --port 8001" ]
+      - LOG_LEVEL=info
+    command: [ "sh", "-c", "uvicorn server.ingestor.ingestor:app --host 0.0.0.0 --port 8001 --log-level info" ]
     networks:
       - ereuna-network
       - ereuna-network-internal
@@ -247,8 +327,13 @@ services:
     restart: "no"
     logging:
       driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "job,environment"
     labels:
       job: ingestor
+      environment: production
       traefik.enable: "false"
 
   # Websocket service (serves realtime websockets to clients)
@@ -265,6 +350,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - MONGO_URI=mongodb://mongodb:27017/
       - VITE_EREUNA_KEY=${VITE_EREUNA_KEY}
+      - LOG_LEVEL=info
     networks:
       - ereuna-network-internal
     expose:
@@ -277,13 +363,67 @@ services:
     restart: unless-stopped
     logging:
       driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "job,environment"
     labels:
       job: websocket
+      environment: production
       traefik.enable: "false"
     deploy:
       replicas: 3
       restart_policy:
         condition: on-failure
+
+  # MongoDB Exporter for Prometheus metrics (lightweight)
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.40
+    command:
+      - '--mongodb.uri=mongodb://mongodb:27017'
+      - '--collect-all'
+      - '--compatible-mode'
+    networks:
+      - ereuna-network-internal
+    expose:
+      - "9216"
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+        labels: "job,environment"
+    labels:
+      job: mongodb-exporter
+      environment: production
+      traefik.enable: "false"
+
+  # Redis Exporter for Prometheus metrics (lightweight)
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.55.0-alpine
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+      - REDIS_EXPORTER_LOG_FORMAT=txt
+    networks:
+      - ereuna-network-internal
+    expose:
+      - "9121"
+    depends_on:
+      - redis
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+        labels: "job,environment"
+    labels:
+      job: redis-exporter
+      environment: production
+      traefik.enable: "false"
 
 networks:
   ereuna-network-internal:
@@ -297,3 +437,5 @@ networks:
 volumes:
   mongodb_data:
   logs_volume:
+  prometheus_data:
+  grafana_data:
