@@ -277,7 +277,7 @@ async def market_hours_manager():
                     break
                 if not subscribed:
                     # hardcoded tickers for testing
-                    stock_symbols = ['TSLA', 'RDDT', 'NVDA']
+                    stock_symbols = ['TSLA', 'RDDT']
                     tickers_to_subscribe = stock_symbols
                     logger.info(f"[MarketHours] Subscribing to {len(stock_symbols)} stock/ETF tickers: {stock_symbols}")
                     stock_subscribe_msg = {
