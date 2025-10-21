@@ -35,6 +35,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger("websocket")
 
+# Filter out health check/metrics logs from uvicorn access logger
+class HealthCheckFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        return not any(endpoint in message for endpoint in ['/metrics', '/ready', '/health'])
+
+logging.getLogger("uvicorn.access").addFilter(HealthCheckFilter())
+
 # Config / DB
 API_KEY = os.getenv('VITE_EREUNA_KEY')
 MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')

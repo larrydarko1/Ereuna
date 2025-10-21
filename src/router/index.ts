@@ -4,7 +4,7 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: () => import('../views/Home.vue')
+    component: () => import('../views/HomeB.vue')
   },
   {
     path: '/careers',
@@ -54,7 +54,7 @@ const routes = [
   {
     path: '/signup',
     name: 'SignUp',
-    component: () => import('../views/SignUpA.vue')
+    component: () => import('../views/SignUpC.vue')
   },
   {
     path: '/maintenance',

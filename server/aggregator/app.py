@@ -19,6 +19,14 @@ import re
 
 logger = logging.getLogger('aggregator_server')
 
+# Filter out health check/metrics logs from uvicorn access logger
+class HealthCheckFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        return not any(endpoint in message for endpoint in ['/metrics', '/ready', '/health'])
+
+logging.getLogger("uvicorn.access").addFilter(HealthCheckFilter())
+
 app = FastAPI(title='Ereuna Aggregator')
 
 
