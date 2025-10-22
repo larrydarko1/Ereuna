@@ -9,44 +9,44 @@ alerting:
         - alert-manager:9093
 
 scrape_configs:
+  # Backend API service
   - job_name: 'backend'
-    scrape_interval: 10s
+    scrape_interval: 30s
     metrics_path: /metrics
     static_configs:
       - targets: ['backend:5500']
 
-  - job_name: 'frontend'
-    scrape_interval: 10s
-    metrics_path: /metrics
-    static_configs:
-      - targets: ['frontend:3500']  # If frontend exposes metrics
-
+  # MongoDB metrics via exporter
   - job_name: 'mongodb'
-    scrape_interval: 30s  # Less frequent scraping
+    scrape_interval: 30s  
     metrics_path: /metrics
     static_configs:
       - targets: ['mongodb-exporter:9216']
 
-  - job_name: 'websocket'
-    scrape_interval: 10s
+  # Redis metrics via exporter
+  - job_name: 'redis'
+    scrape_interval: 30s 
     metrics_path: /metrics
     static_configs:
-      - targets: ['websocket:8000']
+      - targets: ['redis-exporter:9121']
 
+  # Aggregator service (FastAPI)
   - job_name: 'aggregator'
-    scrape_interval: 10s
+    scrape_interval: 30s
     metrics_path: /metrics
     static_configs:
       - targets: ['aggregator:8002']
 
+  # Ingestor service
   - job_name: 'ingestor'
-    scrape_interval: 10s
+    scrape_interval: 30s
     metrics_path: /metrics
     static_configs:
       - targets: ['ingestor:8001']
 
-  - job_name: 'redis'
-    scrape_interval: 30s  # Less frequent scraping
+  # Websocket service
+  - job_name: 'websocket'
+    scrape_interval: 30s
     metrics_path: /metrics
     static_configs:
-      - targets: ['redis-exporter:9121']
+      - targets: ['websocket:8000']

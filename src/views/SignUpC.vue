@@ -47,10 +47,12 @@
 // No script needed for this static announcement
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@use '../style.scss' as *;
+
 .beta-announcement {
   height: 100vh;
-  background: linear-gradient(135deg, var(--base1) 0%, var(--base2) 100%);
+  background: linear-gradient(135deg, $base1 0%, $base2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -59,7 +61,7 @@
 
 .content {
   text-align: center;
-  color: var(--text1);
+  color: $text1;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   border-radius: 20px;
@@ -85,10 +87,10 @@ h2 {
   font-size: 2.5rem;
   font-weight: 600;
   margin-bottom: 1.5rem;
-  color: var(--text1);
+  color: $text1;
   line-height: 1.2;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background: linear-gradient(135deg, var(--text1) 0%, rgba(255, 255, 255, 0.8) 100%);
+  background: linear-gradient(135deg, $accent1 0%, $accent2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -98,7 +100,7 @@ h2 {
   font-size: 1.2rem;
   line-height: 1.6;
   margin-bottom: 3rem;
-  color: var(--text2);
+  color: $text2;
   opacity: 0.9;
 }
 
@@ -113,7 +115,7 @@ h2 {
 .nav-link {
   font-size: 1.2rem;
   font-weight: 500;
-  color: var(--text1);
+  color: $text1;
   transition: all 0.3s ease;
   cursor: pointer;
   display: flex;

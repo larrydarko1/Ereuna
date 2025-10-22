@@ -1857,33 +1857,24 @@ async def update_market_stats():
         return
 
     gain_df = pd.DataFrame(gain_data)
-    gain_df = gain_df[gain_df["sector"] != ""]
-    gain_df = gain_df[gain_df["industry"] != ""]
-    gain_df = gain_df[gain_df["market_cap"] > 0]
+    # Filter out empty sectors/industries and zero market caps in one step
+    gain_df = gain_df[(gain_df["sector"] != "") & (gain_df["industry"] != "") & (gain_df["market_cap"] > 0)]
 
-    # Save gain_df to CSV for debugging
-    import os
-    csv_path = os.path.join(os.path.dirname(__file__), "sector_industry_gains.csv")
-    gain_df.to_csv(csv_path, index=False)
-
-    # Market-cap-weighted average returns for sector, with stock count
+    # Market-cap-weighted average returns for sector, with stock count (optimized)
     sector_tier_list = []
     for sector, group in gain_df.groupby("sector"):
         total_cap = group["market_cap"].sum()
         if total_cap == 0:
             continue
         weighted_return = (group["gain"] * group["market_cap"]).sum() / total_cap
-        stock_count = len(group)
-        sector_tier_list.append({"sector": sector, "average_return": weighted_return, "count": stock_count})
-    sector_tier_list = sorted(sector_tier_list, key=lambda x: x["average_return"], reverse=True)
+        sector_tier_list.append({"sector": sector, "average_return": weighted_return, "count": len(group)})
+    sector_tier_list.sort(key=lambda x: x["average_return"], reverse=True)
 
-    # Median returns for industry, with stock count, but keep attribute name 'average_return'
+    # Median returns for industry, with stock count (optimized)
     industry_tier_list = []
     for industry, group in gain_df.groupby("industry"):
-        median_return = group["gain"].median()
-        stock_count = len(group)
-        industry_tier_list.append({"industry": industry, "average_return": median_return, "count": stock_count})
-    industry_tier_list = sorted(industry_tier_list, key=lambda x: x["average_return"], reverse=True)
+        industry_tier_list.append({"industry": industry, "average_return": group["gain"].median(), "count": len(group)})
+    industry_tier_list.sort(key=lambda x: x["average_return"], reverse=True)
 
     # Calculate SMA stats for ALL assets and by AssetType (including OTC)
     sma_periods = [5, 10, 20, 50, 100, 150, 200]

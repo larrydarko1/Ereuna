@@ -105,7 +105,7 @@ async def startup():
     weekly_collection = db.get_collection('OHCLVData2')
     app.state.flush_task = asyncio.create_task(flush_daily_weekly_candles_at_market_close(daily_collection, weekly_collection))
 
-    # organizer task to run Daily() once per market close
+    # organizer task to run Daily() 3 hours after market close (23:00 UTC / 7:00 PM ET)
     async def schedule_organizer_daily():
         from datetime import datetime, timedelta, timezone
 
@@ -114,7 +114,8 @@ async def startup():
 
         while True:
             now = datetime.utcnow().replace(tzinfo=timezone.utc)
-            next_run = now.replace(hour=20, minute=0, second=0, microsecond=0)
+            # Next run at 23:00 UTC (3 hours after market close at 20:00 UTC)
+            next_run = now.replace(hour=23, minute=0, second=0, microsecond=0)
             if now >= next_run or not is_trading_day(now):
                 days = 1
                 while True:
