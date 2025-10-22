@@ -139,6 +139,7 @@
             <div class="footer-links" style="display: flex; gap: 24px; align-items: center;">
               <a href="/documentation" style="text-decoration: none;">Docs</a>
               <a href="mailto:contact@ereuna.io" style=" text-decoration: none;">Contact</a>
+              <a href="/communications" style=" text-decoration: none;">Communications</a>
               <a href="#faq" style="text-decoration: none;">FAQ</a>
             </div>
           </div>

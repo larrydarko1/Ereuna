@@ -15,15 +15,21 @@ import { validate, validationSchemas, validationSets, body, sanitizeInput, query
 dotenv.config();
 
 // CORS and Rate Limiting
-const allowedOrigins = [
-  'http://localhost:3500',
-  'https://localhost:3500',
-  'http://localhost',
-  'https://localhost',
-  'https://frontend:3500',
-  'https://ereuna.co',
-  'https://www.ereuna.co'
-];
+// In production, requests come through nginx proxy so they appear same-origin
+// In development, frontend runs on :3500 and backend on :5500 (different ports = CORS needed)
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? [
+    'https://ereuna.io',
+    'https://www.ereuna.io',
+    // For internal container-to-container communication if needed
+    'http://frontend:3500'
+  ]
+  : [
+    'http://localhost:3500',
+    'https://localhost:3500',
+    'http://localhost',
+    'https://localhost'
+  ];
 
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute

@@ -6,11 +6,13 @@ const routes = [
     name: 'Home',
     component: () => import('../views/HomeB.vue')
   },
+  /*
   {
     path: '/careers',
     name: 'Careers',
     component: () => import('../views/Careers.vue')
   },
+  */
   {
     path: '/communications',
     name: 'Communications',
@@ -19,7 +21,7 @@ const routes = [
   {
     path: '/about',
     name: 'About',
-    component: () => import('../views/About.vue')
+    component: () => import('../views/AboutB.vue')
   },
   {
     path: '/charts',
