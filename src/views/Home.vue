@@ -34,7 +34,7 @@
     <div class="navbtn-mobile" @click="scrollToSection('features')">Features</div>
     <div class="navbtn-mobile" @click="scrollToSection('pricing')">Pricing</div>
      <div class="navbtn-mobile" @click="$router.push('/documentation')">
-  <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 14px;">Docs</router-link>
+  <router-link to="/documentation" style="color: whitesmoke; text-decoration: none; font-size: 14px;">Docs</router-link>
 </div>
     <div class="navbtn-mobile" @click="$router.push('/signup')">
   <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 14px;">Sign Up</router-link>

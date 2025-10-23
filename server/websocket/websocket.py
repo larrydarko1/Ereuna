@@ -4,7 +4,7 @@ from server.aggregator.organizer import Daily
 import datetime as dt
 import os
 import json
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Request, status, Body
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Request, status, Body, Response
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import websockets
@@ -23,6 +23,7 @@ from starlette.websockets import WebSocketDisconnect
 from server.aggregator.ipo import IPO
 from pydantic import BaseModel, validator
 import re
+from prometheus_client import Counter, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 load_dotenv()
 
@@ -34,6 +35,11 @@ logging.basicConfig(
     handlers=[logging.FileHandler(LOG_FILE), logging.StreamHandler()]
 )
 logger = logging.getLogger("websocket")
+
+# Prometheus metrics
+websocket_requests = Counter('websocket_requests_total', 'Total requests to websocket service')
+websocket_health = Gauge('websocket_health_status', 'Health status of websocket (1=healthy, 0=unhealthy)')
+websocket_connections = Gauge('websocket_active_connections', 'Active WebSocket connections')
 
 # Filter out health check/metrics logs from uvicorn access logger
 class HealthCheckFilter(logging.Filter):
@@ -282,8 +288,14 @@ async def health():
 
 @app.get("/metrics")
 async def metrics():
-    """Prometheus metrics endpoint - basic implementation"""
-    return {"status": "ok", "service": "websocket"}
+    """Prometheus metrics endpoint"""
+    websocket_requests.inc()
+    # Update health gauge based on service status
+    try:
+        websocket_health.set(1)
+    except Exception:
+        websocket_health.set(0)
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 # --- WebSocket endpoint for chart data, matching REST API logic ---
 @app.websocket('/ws/chartdata')
@@ -723,6 +735,7 @@ async def websocket_watchpanel(
     # --- Per-client queue and pubsub subscription ---
     client_queue = make_bounded_queue()
     pubsub_refs = []
+    listener_tasks = []  # Track tasks for cleanup
     for ticker in tickers:
         async def pubsub_listener(q, t):
             while True:
@@ -731,7 +744,8 @@ async def websocket_watchpanel(
         q = make_bounded_queue()
         pubsub_channels[(ticker, '1d')].append(q)
         pubsub_refs.append((ticker, q))
-        asyncio.create_task(pubsub_listener(q, ticker))
+        task = asyncio.create_task(pubsub_listener(q, ticker))
+        listener_tasks.append(task)
 
     try:
         while True:
@@ -768,6 +782,18 @@ async def websocket_watchpanel(
         except Exception:
             pass
     finally:
+        # Cancel all listener tasks
+        for task in listener_tasks:
+            if not task.done():
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+                except Exception as e:
+                    logger.debug(f"Error awaiting cancelled listener task: {e}")
+        
+        # Remove from pubsub channels
         for ticker, q in pubsub_refs:
             try:
                 pubsub_channels[(ticker, '1d')].remove(q)
@@ -856,6 +882,7 @@ async def websocket_data_values(
     client_queue = make_bounded_queue()
     # Register a pubsub listener for each ticker that puts updates into the client queue
     pubsub_refs = []
+    listener_tasks = []  # Track tasks for cleanup
     for ticker in ticker_list:
         async def pubsub_listener(q, t):
             while True:
@@ -864,8 +891,9 @@ async def websocket_data_values(
         q = make_bounded_queue()
         pubsub_channels[(ticker, '1d')].append(q)
         pubsub_refs.append((ticker, q))
-        # Start a background task for each ticker's pubsub queue
-        asyncio.create_task(pubsub_listener(q, ticker))
+        # Start a background task for each ticker's pubsub queue and track it
+        task = asyncio.create_task(pubsub_listener(q, ticker))
+        listener_tasks.append(task)
 
     try:
         while True:
@@ -915,6 +943,18 @@ async def websocket_data_values(
         except Exception:
             pass
     finally:
+        # Cancel all listener tasks
+        for task in listener_tasks:
+            if not task.done():
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+                except Exception as e:
+                    logger.debug(f"Error awaiting cancelled listener task: {e}")
+        
+        # Remove from pubsub channels
         for ticker, q in pubsub_refs:
             try:
                 pubsub_channels[(ticker, '1d')].remove(q)

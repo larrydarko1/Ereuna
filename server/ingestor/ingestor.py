@@ -3,7 +3,7 @@ sys.path.append('.')
 import datetime as dt
 import os
 import json
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Request, status, Body
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Request, status, Body, Response
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import websockets
@@ -20,6 +20,7 @@ import datetime
 from starlette.websockets import WebSocketDisconnect
 from pydantic import BaseModel, validator
 import re
+from prometheus_client import Counter, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 load_dotenv()
 
@@ -30,6 +31,11 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()]
 )
 logger = logging.getLogger("websocket")
+
+# Prometheus metrics
+ingestor_requests = Counter('ingestor_requests_total', 'Total requests to ingestor')
+ingestor_health = Gauge('ingestor_health_status', 'Health status of ingestor (1=healthy, 0=unhealthy)')
+ingestor_connections = Gauge('ingestor_websocket_connections', 'Active WebSocket connections')
 
 # Filter out health check/metrics logs from uvicorn access logger
 class HealthCheckFilter(logging.Filter):
@@ -208,27 +214,46 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                                         logger.error(f"Unexpected Redis error while publishing raw message: {red_e}")
                 except Exception as inner_e:
                     logger.error(f"relay_tiingo inner exception: {inner_e}")
-                    try:
-                        unsubscribe_msg = {
-                            "eventName": "unsubscribe",
-                            "authorization": subscribe_msg.get("authorization"),
-                            "eventData": {
-                                "subscriptionId": current_subscription_id,
-                                "tickers": current_tickers
-                            }
-                        }
-                        logger.info(f"[relay_tiingo] Triggering unsubscribe: {unsubscribe_msg}")
-                        await tiingo_ws.send(json.dumps(unsubscribe_msg))
-                        logger.info("[relay_tiingo] Sent unsubscribe (with subscriptionId)")
+                    # Properly unsubscribe before closing to avoid dangling subscriptions
+                    if current_subscription_id and current_tickers:
                         try:
-                            response = await asyncio.wait_for(tiingo_ws.recv(), timeout=2)
-                            logger.info(f"[relay_tiingo] Tiingo response after unsubscribe: {response}")
-                        except asyncio.TimeoutError:
-                            logger.warning("[relay_tiingo] No response from Tiingo after unsubscribe (timeout)")
-                        except Exception as resp_e:
-                            logger.error(f"[relay_tiingo] Error receiving Tiingo response after unsubscribe: {resp_e}")
-                    except Exception as unsub_e:
-                        logger.error(f"Error sending unsubscribe: {unsub_e}")
+                            unsubscribe_msg = {
+                                "eventName": "unsubscribe",
+                                "authorization": subscribe_msg.get("authorization"),
+                                "eventData": {
+                                    "subscriptionId": current_subscription_id,
+                                    "tickers": current_tickers
+                                }
+                            }
+                            logger.info(f"[relay_tiingo] Sending unsubscribe: {unsubscribe_msg}")
+                            await tiingo_ws.send(json.dumps(unsubscribe_msg))
+                            
+                            # Tiingo sends a success response, THEN closes the connection
+                            try:
+                                response = await asyncio.wait_for(tiingo_ws.recv(), timeout=5)
+                                logger.info(f"[relay_tiingo] Unsubscribe response: {response}")
+                                
+                                # After the response, Tiingo closes the connection
+                                try:
+                                    # Wait briefly for the close
+                                    await asyncio.wait_for(tiingo_ws.recv(), timeout=2)
+                                except websockets.exceptions.ConnectionClosed as close_e:
+                                    logger.info(f"[relay_tiingo] Tiingo closed connection after unsubscribe (code: {close_e.code})")
+                                    
+                            except websockets.exceptions.ConnectionClosed as close_e:
+                                # Connection closed before/during response
+                                logger.info(f"[relay_tiingo] Tiingo closed connection (code: {close_e.code}, reason: {close_e.reason or 'none'})")
+                            except asyncio.TimeoutError:
+                                logger.warning("[relay_tiingo] Timeout waiting for unsubscribe response")
+                            except Exception as recv_e:
+                                # Other unexpected errors
+                                if "no close frame" not in str(recv_e) and "1005" not in str(recv_e):
+                                    logger.warning(f"[relay_tiingo] Unexpected error after unsubscribe: {recv_e}")
+                        except Exception as unsub_e:
+                            # Suppress common websocket close errors during cleanup
+                            if "no close frame" not in str(unsub_e) and "1005" not in str(unsub_e):
+                                logger.error(f"[relay_tiingo] Failed to send unsubscribe: {unsub_e}")
+                    
                     current_subscription_id = None
                     current_tickers = []
                     current_subscribe_msg = None
@@ -238,7 +263,9 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                         break
                     raise inner_e
         except Exception as e:
-            logger.error(f"Exception in relay_tiingo: {e}")
+            # Suppress common websocket close errors
+            if "no close frame" not in str(e) and "1005" not in str(e):
+                logger.error(f"Exception in relay_tiingo: {e}")
             print_total_bandwidth()
             if manual_override_active:
                 logger.info("[relay_tiingo] Manual override active after outer exception, exiting relay loop.")
@@ -295,34 +322,48 @@ async def market_hours_manager():
                 if subscribed:
                     print("[MarketHours] Market closed. Unsubscribing from Tiingo and cancelling tasks.")
                     # Send unsubscribe message before closing connection
-                    try:
-                        unsubscribe_msg = {
-                            "eventName": "unsubscribe",
-                            "authorization": TIINGO_API_KEY,
-                            "eventData": {
-                                "subscriptionId": current_subscription_id,
-                                "tickers": current_tickers
+                    if current_subscription_id and current_tickers:
+                        try:
+                            unsubscribe_msg = {
+                                "eventName": "unsubscribe",
+                                "authorization": TIINGO_API_KEY,
+                                "eventData": {
+                                    "subscriptionId": current_subscription_id,
+                                    "tickers": current_tickers
+                                }
                             }
-                        }
-                        logger.info(f"[MarketHours] Sending unsubscribe message to Tiingo: {unsubscribe_msg}")
-                        if current_tiingo_ws:
-                            try:
-                                await current_tiingo_ws.send(json.dumps(unsubscribe_msg))
+                            logger.info(f"[MarketHours] Sending unsubscribe to Tiingo: {unsubscribe_msg}")
+                            if current_tiingo_ws:
                                 try:
-                                    response = await asyncio.wait_for(current_tiingo_ws.recv(), timeout=2)
-                                    logger.info(f"[MarketHours] Tiingo response after unsubscribe: {response}")
-                                except asyncio.TimeoutError:
-                                    logger.warning("[MarketHours] No response from Tiingo after unsubscribe (timeout)")
-                                except Exception as resp_e:
-                                    logger.error(f"[MarketHours] Error receiving Tiingo response after unsubscribe: {resp_e}")
-                                try:
-                                    await current_tiingo_ws.close()
-                                except Exception:
-                                    pass
-                            except Exception as e:
-                                logger.error(f"[MarketHours] Error sending unsubscribe via current_tiingo_ws: {e}")
-                    except Exception as unsub_e:
-                        logger.error(f"[MarketHours] Error sending unsubscribe: {unsub_e}")
+                                    await current_tiingo_ws.send(json.dumps(unsubscribe_msg))
+                                    # Tiingo sends a success response, THEN closes the connection
+                                    try:
+                                        response = await asyncio.wait_for(current_tiingo_ws.recv(), timeout=5)
+                                        logger.info(f"[MarketHours] Unsubscribe response: {response}")
+                                        
+                                        # After the response, Tiingo closes the connection
+                                        try:
+                                            await asyncio.wait_for(current_tiingo_ws.recv(), timeout=2)
+                                        except websockets.exceptions.ConnectionClosed as close_e:
+                                            logger.info(f"[MarketHours] Tiingo closed connection after unsubscribe (code: {close_e.code})")
+                                            
+                                    except websockets.exceptions.ConnectionClosed as close_e:
+                                        # Connection closed before/during response
+                                        logger.info(f"[MarketHours] Tiingo closed connection (code: {close_e.code}, reason: {close_e.reason or 'none'})")
+                                    except asyncio.TimeoutError:
+                                        logger.warning("[MarketHours] Timeout waiting for unsubscribe response")
+                                    except Exception as recv_e:
+                                        if "no close frame" not in str(recv_e) and "1005" not in str(recv_e) and "recv" not in str(recv_e).lower():
+                                            logger.warning(f"[MarketHours] Unexpected error after unsubscribe: {recv_e}")
+                                    
+                                except Exception as e:
+                                    # Suppress common websocket close errors
+                                    if "no close frame" not in str(e) and "1005" not in str(e):
+                                        logger.error(f"[MarketHours] Error during unsubscribe: {e}")
+                        except Exception as unsub_e:
+                            # Suppress common websocket close errors during cleanup
+                            if "no close frame" not in str(unsub_e) and "1005" not in str(unsub_e):
+                                logger.error(f"[MarketHours] Failed to unsubscribe: {unsub_e}")
                     # Cancel relay and aggregator tasks
                     for t in [tiingo_task, aggregator_task, higher_tf_task]:
                         if t:
@@ -367,8 +408,14 @@ async def health():
 
 @app.get("/metrics")
 async def metrics():
-    """Prometheus metrics endpoint - basic implementation"""
-    return {"status": "ok", "service": "ingestor"}
+    """Prometheus metrics endpoint"""
+    ingestor_requests.inc()
+    # Update health gauge based on service status
+    try:
+        ingestor_health.set(1)
+    except Exception:
+        ingestor_health.set(0)
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
     
 # --- Admin endpoint to manually unsubscribe all tickers ---
 @app.post("/admin/unsubscribe_all")

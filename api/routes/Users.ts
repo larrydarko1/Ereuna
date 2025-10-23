@@ -2534,11 +2534,9 @@ export default function (app: any, deps: any) {
     );
 
     // endpoint to update the current theme
-    app.post('/theme', validate([
-        validationSchemas.theme(),
-        validationSchemas.username()
-    ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;;
+    // Note: This endpoint handles empty usernames gracefully (no-op) to avoid validation errors when user is not logged in
+    app.post('/theme', async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2551,28 +2549,39 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
+
             const { theme, username } = req.body;
+
+            // If username is empty or invalid (user not logged in), silently succeed without updating
+            if (!username || typeof username !== 'string' || username.trim().length < 3) {
+                return res.status(200).json({ message: 'Theme updated' });
+            }
+
+            // Validate theme if provided
+            if (!theme || typeof theme !== 'string') {
+                return res.status(400).json({ message: 'Invalid theme' });
+            }
+
             // normalize input using canonical sanitizer for lookups and preserve display-safe username
             const sanitizedUser = sanitizeUsernameCanonical(username);
             const displayUser = sanitizeUsername(username);
+
             client = new MongoClient(uri);
             await client.connect();
             const db = client.db('EreunaDB');
             const usersCollection = db.collection('Users');
+
             // Use case-insensitive lookup via collation to match login behaviour and avoid regex injection
             const userDocument = await usersCollection.findOne(
                 { Username: sanitizedUser },
                 { collation: { locale: 'en', strength: 2 } }
             );
+
             if (!userDocument) {
-                logger.warn({
-                    msg: 'User not found',
-                    username: displayUser.substring(0, 3) + '...',
-                    context: 'POST /theme',
-                    statusCode: 404
-                });
-                return res.status(404).json({ message: 'User not found' });
+                // Silently succeed for non-existent users (graceful fallback)
+                return res.status(200).json({ message: 'Theme updated' });
             }
+
             // Update using the actual stored Username to preserve original casing
             await usersCollection.updateOne({ Username: userDocument.Username }, { $set: { theme } });
             return res.status(200).json({ message: 'Theme updated' });
@@ -2592,11 +2601,10 @@ export default function (app: any, deps: any) {
         }
     });
 
-    // endpoint to load current them for user 
-    app.post('/load-theme', validate([
-        validationSchemas.username()
-    ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;;
+    // endpoint to load current theme for user 
+    // Note: This endpoint handles empty usernames gracefully (returns empty response) to avoid validation errors when user is not logged in
+    app.post('/load-theme', async (req: Request, res: Response) => {
+        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2609,29 +2617,35 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
+
             const { username } = req.body;
+
+            // If username is empty or invalid (user not logged in), return empty object so frontend uses localStorage
+            if (!username || typeof username !== 'string' || username.trim().length < 3) {
+                return res.status(200).json({});
+            }
+
             // normalize input using canonical sanitizer for lookups and preserve display-safe username
             const sanitizedUser = sanitizeUsernameCanonical(username);
             const displayUser = sanitizeUsername(username);
+
             client = new MongoClient(uri);
             await client.connect();
             const db = client.db('EreunaDB');
             const usersCollection = db.collection('Users');
+
             // Case-insensitive lookup via collation to match login behaviour and avoid regex injection
             const userDocument = await usersCollection.findOne(
                 { Username: sanitizedUser },
                 { collation: { locale: 'en', strength: 2 } }
             );
+
             if (!userDocument) {
-                logger.warn({
-                    msg: 'User not found',
-                    username: displayUser.substring(0, 3) + '...',
-                    context: 'POST /load-theme',
-                    statusCode: 404
-                });
-                return res.status(404).json({ message: 'User not found' });
+                // Return empty object instead of default for non-existent users (lets frontend use localStorage)
+                return res.status(200).json({});
             }
-            const theme = userDocument.theme;
+
+            const theme = userDocument.theme || 'default';
             return res.status(200).json({ theme });
         } catch (error) {
             const errObj = handleError(error, 'POST /load-theme', {
@@ -2643,7 +2657,8 @@ export default function (app: any, deps: any) {
                 context: 'POST /load-theme',
                 statusCode: errObj.statusCode || 500
             });
-            return res.status(errObj.statusCode || 500).json({ message: 'An error occurred while loading theme' });
+            // Return empty object on error so frontend uses localStorage
+            return res.status(200).json({});
         } finally {
             if (client) await client.close();
         }
