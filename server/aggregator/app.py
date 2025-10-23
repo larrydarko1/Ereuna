@@ -1,10 +1,11 @@
 import os
 import asyncio
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from redis.asyncio import from_url as redis_from_url
 import motor.motor_asyncio
 from urllib.parse import urlparse, urlunparse
+from prometheus_client import Counter, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 from server.aggregator import aggregator as aggregator_mod
 from server.aggregator.aggregator import (
@@ -18,6 +19,10 @@ from server.aggregator.ipo import IPO
 import re
 
 logger = logging.getLogger('aggregator_server')
+
+# Prometheus metrics
+aggregator_requests = Counter('aggregator_requests_total', 'Total requests to aggregator')
+aggregator_health = Gauge('aggregator_health_status', 'Health status of aggregator (1=healthy, 0=unhealthy)')
 
 # Filter out health check/metrics logs from uvicorn access logger
 class HealthCheckFilter(logging.Filter):
@@ -204,8 +209,15 @@ async def ready():
 
 @app.get('/metrics')
 async def metrics():
-    """Prometheus metrics endpoint - basic implementation"""
-    return {"status": "ok", "service": "aggregator"}
+    """Prometheus metrics endpoint"""
+    aggregator_requests.inc()
+    # Update health gauge based on service status
+    try:
+        # Simple health check - if we can respond, we're healthy
+        aggregator_health.set(1)
+    except Exception:
+        aggregator_health.set(0)
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 class IPORequest(BaseModel):

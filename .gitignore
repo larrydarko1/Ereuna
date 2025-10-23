@@ -25,3 +25,4 @@ mongodb-init
 __pycache__/
 __pycache__
 db/dump/
+Instuctions.md

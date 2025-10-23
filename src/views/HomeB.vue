@@ -23,9 +23,12 @@
         <router-link class="navbtn" to="/login" style=" opacity: 1;text-decoration: none; background-color: transparent;">
           <div class="navbtn2" @click="$router.push('/login')"> Login</div>
         </router-link>
+        <div class="navbtn-mobile" @click="$router.push('/about')">
+          <router-link to="/about" style="color: whitesmoke; text-decoration: none; font-size: 14px;">About</router-link>
+        </div>
         <div class="navbtn-mobile" @click="scrollToSection('features')">Features</div>
         <div class="navbtn-mobile" @click="$router.push('/documentation')">
-          <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 14px;">Docs</router-link>
+          <router-link to="/documentation" style="color: whitesmoke; text-decoration: none; font-size: 14px;">Docs</router-link>
         </div>
         <div class="navbtn-mobile" @click="$router.push('/signup')">
           <router-link to="/signup" style="color: whitesmoke; text-decoration: none; font-size: 14px;">Sign Up</router-link>

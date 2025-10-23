@@ -73,14 +73,13 @@
 .logo .icon {
   height: 80px;
   opacity: 0.7;
-  margin-bottom: 2rem;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
   transition: all 0.3s ease;
 }
 
 .logo{
-  opacity: 0.9;
-  transform: scale(1.05);
+  opacity: 1;
+  transform: scale(1.20);
 }
 
 h2 {
@@ -284,7 +283,7 @@ h2 {
   }
 
   .nav-menu {
-    flex-direction: column;
+    flex-direction: row;
     gap: 1rem;
   }
 

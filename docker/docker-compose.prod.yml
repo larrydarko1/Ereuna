@@ -84,7 +84,7 @@ services:
       traefik.http.middlewares.security-headers.headers.stsSeconds: "31536000"
       traefik.http.middlewares.security-headers.headers.stsIncludeSubdomains: "true"
       traefik.http.middlewares.security-headers.headers.stsPreload: "true"
-      traefik.http.middlewares.security-headers.headers.contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.stripe.com https://api.tiingo.com wss://api.tiingo.com; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+      traefik.http.middlewares.security-headers.headers.contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.stripe.com https://api.tiingo.com wss://api.tiingo.com https://ereuna.io wss://ereuna.io; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
 
       # Compression Middleware
       traefik.http.middlewares.compression.compress: "true"
@@ -211,11 +211,7 @@ services:
       - ereuna-network-internal
     restart: unless-stopped
     logging:
-      driver: json-file
-      options:
-        max-size: "5m"
-        max-file: "2"
-        labels: "job,environment"
+      driver: none
     labels:
       job: grafana
       environment: production
@@ -252,7 +248,7 @@ services:
       - ./promtail-config.yaml:/etc/promtail/config.yml
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-    command: -config.file=/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml -log.level=warn
     networks:
       - ereuna-network-internal
     depends_on:
@@ -299,6 +295,7 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379/0
       - MONGO_URI=mongodb://mongodb:27017/
+      - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
       - LOG_LEVEL=info
     networks:
       - ereuna-network-internal
