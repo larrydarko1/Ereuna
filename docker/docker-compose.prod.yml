@@ -16,7 +16,6 @@ services:
       - --certificatesresolvers.cloudflare.acme.storage=/acme.json
       - --entrypoints.web.http.redirections.entryPoint.to=websecure
       - --entrypoints.web.http.redirections.entryPoint.scheme=https
-      - --log.level=ERROR
     ports:
       - "80:80"
       - "443:443"

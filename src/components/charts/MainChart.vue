@@ -345,6 +345,49 @@ function updateChartSize(): void {
 }
 const isBarChart = ref(false);
 
+// Chart series and update logic at top-level scope
+let mainSeries: ReturnType<IChartApi['addBarSeries']> | ReturnType<IChartApi['addCandlestickSeries']> | null = null;
+function updateMainSeries(): void {
+  if (!chart) return;
+  const c = chart as IChartApi;
+  if (mainSeries) {
+    c.removeSeries(mainSeries);
+  }
+  if (isBarChart.value) {
+    mainSeries = c.addBarSeries({
+      downColor: theme.negative,
+      upColor: theme.positive,
+      lastValueVisible: true,
+      priceLineVisible: true,
+    });
+  } else {
+    mainSeries = c.addCandlestickSeries({
+      downColor: theme.negative,
+      upColor: theme.positive,
+      borderDownColor: theme.negative,
+      borderUpColor: theme.positive,
+      wickDownColor: theme.negative,
+      wickUpColor: theme.positive,
+      lastValueVisible: true,
+      priceLineVisible: true,
+    });
+  }
+  mainSeries.setData(data.value);
+
+  c.subscribeCrosshairMove((param) => {
+    if (!param || !param.time || !mainSeries) {
+      crosshairOhlc.value = null;
+      return;
+    }
+    const idx = data.value.findIndex((d: OHLCData) => d.time === param.time);
+    if (idx !== -1) {
+      crosshairOhlc.value = { ...data.value[idx], index: idx };
+    } else {
+      crosshairOhlc.value = null;
+    }
+  });
+}
+
 // mounts chart (candlestick or bar) and volume
 onMounted(async () => {
   const chartDiv = wkchart.value as HTMLElement | null;
@@ -405,46 +448,7 @@ onMounted(async () => {
     // ignore if ResizeObserver is not available
   }
   window.addEventListener('resize', updateChartSize);
-  const c = chart as IChartApi;
-  let mainSeries: ReturnType<IChartApi['addBarSeries']> | ReturnType<IChartApi['addCandlestickSeries']> | null = null;
-  function updateMainSeries(): void {
-    if (mainSeries) {
-      c.removeSeries(mainSeries);
-    }
-    if (isBarChart.value) {
-      mainSeries = c.addBarSeries({
-        downColor: theme.negative,
-        upColor: theme.positive,
-        lastValueVisible: true,
-        priceLineVisible: true,
-      });
-    } else {
-      mainSeries = c.addCandlestickSeries({
-        downColor: theme.negative,
-        upColor: theme.positive,
-        borderDownColor: theme.negative,
-        borderUpColor: theme.positive,
-        wickDownColor: theme.negative,
-        wickUpColor: theme.positive,
-        lastValueVisible: true,
-        priceLineVisible: true,
-      });
-    }
-    mainSeries.setData(data.value);
-
-    c.subscribeCrosshairMove((param) => {
-      if (!param || !param.time || !mainSeries) {
-        crosshairOhlc.value = null;
-        return;
-      }
-      const idx = data.value.findIndex((d: OHLCData) => d.time === param.time);
-      if (idx !== -1) {
-        crosshairOhlc.value = { ...data.value[idx], index: idx };
-      } else {
-        crosshairOhlc.value = null;
-      }
-    });
-  }
+  // No initial fetch here; handled by watcher below
 
   watch(isBarChart, () => {
     updateMainSeries();
@@ -542,9 +546,19 @@ onMounted(async () => {
     return sum / (end - start);
   }
 
-  // Initial fetch
-  await fetchChartData();
-  updateMainSeries();
+
+// Watch for symbol changes and fetch chart data when a valid symbol is available
+watch(
+  [() => props.selectedSymbol, () => props.defaultSymbol],
+  ([newSelected, newDefault]) => {
+    const symbol = newSelected || newDefault;
+    if (symbol && typeof symbol === 'string' && symbol.trim() !== '') {
+      fetchChartData(symbol, selectedDataType.value);
+      updateMainSeries();
+    }
+  },
+  { immediate: true }
+);
 
   let intrinsicPriceLine: IPriceLine | null = null;
   function updateIntrinsicPriceLine(): void {
