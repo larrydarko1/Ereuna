@@ -1997,7 +1997,6 @@ async def Daily():
     task_funcs = [
         updateWeekly,
         scanDelisted,
-        prune_intraday_collections,
         updateDailyRatios,
         updateTimeSeries,
         getDividendYieldTTM,

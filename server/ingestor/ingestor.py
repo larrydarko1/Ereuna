@@ -158,19 +158,22 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                     continue
                 logger.info(f"Sending subscribe message: {subscribe_msg}")
                 await tiingo_ws.send(json.dumps(subscribe_msg))
+                logger.info("[relay_tiingo] Subscribe message sent, waiting for response...")
                 current_subscribe_msg = subscribe_msg
                 try:
                     subscribe_response = await asyncio.wait_for(tiingo_ws.recv(), timeout=5)
-                    logger.info(f"[relay_tiingo] Initial subscribe response: {subscribe_response}")
+                    logger.info(f"[relay_tiingo] ✓ Tiingo subscribe response received: {subscribe_response}")
                     try:
                         resp_obj = json.loads(subscribe_response)
                         current_subscription_id = resp_obj.get('data', {}).get('subscriptionId')
-                        logger.info(f"[relay_tiingo] Extracted subscriptionId: {current_subscription_id}")
+                        logger.info(f"[relay_tiingo] ✓ Extracted subscriptionId: {current_subscription_id}")
                         current_tickers = subscribe_msg.get("eventData", {}).get("tickers", [])
+                        logger.info(f"[relay_tiingo] ✓ Successfully subscribed to {len(current_tickers)} tickers")
                     except Exception as e:
-                        logger.error(f"[relay_tiingo] Error parsing subscriptionId: {e}")
+                        logger.error(f"[relay_tiingo] ✗ Error parsing subscriptionId from response: {e}")
+                        logger.error(f"[relay_tiingo] Raw response was: {subscribe_response}")
                 except Exception as e:
-                    logger.error(f"[relay_tiingo] Error receiving initial subscribe response: {e}")
+                    logger.error(f"[relay_tiingo] ✗ Error receiving initial subscribe response: {e}")
                 try:
                     while True:
                         if manual_override_active:
@@ -227,28 +230,31 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                             }
                             logger.info(f"[relay_tiingo] Sending unsubscribe: {unsubscribe_msg}")
                             await tiingo_ws.send(json.dumps(unsubscribe_msg))
+                            logger.info("[relay_tiingo] Unsubscribe message sent, waiting for Tiingo response...")
                             
                             # Tiingo sends a success response, THEN closes the connection
                             try:
                                 response = await asyncio.wait_for(tiingo_ws.recv(), timeout=5)
-                                logger.info(f"[relay_tiingo] Unsubscribe response: {response}")
+                                logger.info(f"[relay_tiingo] ✓ Tiingo unsubscribe response received: {response}")
                                 
                                 # After the response, Tiingo closes the connection
                                 try:
                                     # Wait briefly for the close
+                                    logger.info("[relay_tiingo] Waiting for Tiingo to close connection...")
                                     await asyncio.wait_for(tiingo_ws.recv(), timeout=2)
+                                    logger.warning("[relay_tiingo] Received unexpected message after unsubscribe")
                                 except websockets.exceptions.ConnectionClosed as close_e:
-                                    logger.info(f"[relay_tiingo] Tiingo closed connection after unsubscribe (code: {close_e.code})")
+                                    logger.info(f"[relay_tiingo] ✓ Tiingo closed connection gracefully (code: {close_e.code}, reason: {close_e.reason or 'normal closure'})")
                                     
                             except websockets.exceptions.ConnectionClosed as close_e:
                                 # Connection closed before/during response
-                                logger.info(f"[relay_tiingo] Tiingo closed connection (code: {close_e.code}, reason: {close_e.reason or 'none'})")
+                                logger.info(f"[relay_tiingo] ✓ Tiingo closed connection (code: {close_e.code}, reason: {close_e.reason or 'none'})")
                             except asyncio.TimeoutError:
-                                logger.warning("[relay_tiingo] Timeout waiting for unsubscribe response")
+                                logger.warning("[relay_tiingo] ⚠ Timeout waiting for unsubscribe response from Tiingo")
                             except Exception as recv_e:
                                 # Other unexpected errors
                                 if "no close frame" not in str(recv_e) and "1005" not in str(recv_e):
-                                    logger.warning(f"[relay_tiingo] Unexpected error after unsubscribe: {recv_e}")
+                                    logger.warning(f"[relay_tiingo] ⚠ Unexpected error after unsubscribe: {recv_e}")
                         except Exception as unsub_e:
                             # Suppress common websocket close errors during cleanup
                             if "no close frame" not in str(unsub_e) and "1005" not in str(unsub_e):
@@ -336,30 +342,33 @@ async def market_hours_manager():
                             if current_tiingo_ws:
                                 try:
                                     await current_tiingo_ws.send(json.dumps(unsubscribe_msg))
+                                    logger.info("[MarketHours] Unsubscribe message sent, waiting for Tiingo response...")
                                     # Tiingo sends a success response, THEN closes the connection
                                     try:
                                         response = await asyncio.wait_for(current_tiingo_ws.recv(), timeout=5)
-                                        logger.info(f"[MarketHours] Unsubscribe response: {response}")
+                                        logger.info(f"[MarketHours] ✓ Tiingo unsubscribe response received: {response}")
                                         
                                         # After the response, Tiingo closes the connection
                                         try:
+                                            logger.info("[MarketHours] Waiting for Tiingo to close connection...")
                                             await asyncio.wait_for(current_tiingo_ws.recv(), timeout=2)
+                                            logger.warning("[MarketHours] Received unexpected message after unsubscribe")
                                         except websockets.exceptions.ConnectionClosed as close_e:
-                                            logger.info(f"[MarketHours] Tiingo closed connection after unsubscribe (code: {close_e.code})")
+                                            logger.info(f"[MarketHours] ✓ Tiingo closed connection gracefully (code: {close_e.code}, reason: {close_e.reason or 'normal closure'})")
                                             
                                     except websockets.exceptions.ConnectionClosed as close_e:
                                         # Connection closed before/during response
-                                        logger.info(f"[MarketHours] Tiingo closed connection (code: {close_e.code}, reason: {close_e.reason or 'none'})")
+                                        logger.info(f"[MarketHours] ✓ Tiingo closed connection (code: {close_e.code}, reason: {close_e.reason or 'none'})")
                                     except asyncio.TimeoutError:
-                                        logger.warning("[MarketHours] Timeout waiting for unsubscribe response")
+                                        logger.warning("[MarketHours] ⚠ Timeout waiting for unsubscribe response from Tiingo")
                                     except Exception as recv_e:
                                         if "no close frame" not in str(recv_e) and "1005" not in str(recv_e) and "recv" not in str(recv_e).lower():
-                                            logger.warning(f"[MarketHours] Unexpected error after unsubscribe: {recv_e}")
+                                            logger.warning(f"[MarketHours] ⚠ Unexpected error after unsubscribe: {recv_e}")
                                     
                                 except Exception as e:
                                     # Suppress common websocket close errors
                                     if "no close frame" not in str(e) and "1005" not in str(e):
-                                        logger.error(f"[MarketHours] Error during unsubscribe: {e}")
+                                        logger.error(f"[MarketHours] ✗ Error during unsubscribe: {e}")
                         except Exception as unsub_e:
                             # Suppress common websocket close errors during cleanup
                             if "no close frame" not in str(unsub_e) and "1005" not in str(unsub_e):
@@ -441,10 +450,20 @@ async def admin_unsubscribe_all(request: Request):
         if current_tiingo_ws:
             try:
                 await current_tiingo_ws.send(json.dumps(unsubscribe_msg))
-                logger.info("[Admin] Unsubscribe message sent via active websocket.")
-                return {"status": "unsubscribed", "message": "Unsubscribe message sent via active websocket."}
+                logger.info("[Admin] Unsubscribe message sent via active websocket, waiting for response...")
+                # Wait for Tiingo's response
+                try:
+                    response = await asyncio.wait_for(current_tiingo_ws.recv(), timeout=5)
+                    logger.info(f"[Admin] ✓ Tiingo unsubscribe response received: {response}")
+                    return {"status": "unsubscribed", "message": "Unsubscribe successful", "tiingo_response": response}
+                except asyncio.TimeoutError:
+                    logger.warning("[Admin] ⚠ Timeout waiting for Tiingo unsubscribe response")
+                    return {"status": "unsubscribed", "message": "Unsubscribe message sent but no response received (timeout)"}
+                except websockets.exceptions.ConnectionClosed as close_e:
+                    logger.info(f"[Admin] ✓ Tiingo closed connection (code: {close_e.code}, reason: {close_e.reason or 'none'})")
+                    return {"status": "unsubscribed", "message": f"Tiingo closed connection (code: {close_e.code})"}
             except Exception as e:
-                logger.error(f"[Admin] Error sending unsubscribe via active websocket: {e}")
+                logger.error(f"[Admin] ✗ Error sending unsubscribe via active websocket: {e}")
                 return {"status": "error", "message": str(e)}
         else:
             logger.info("[Admin] No active Tiingo websocket; nothing to unsubscribe.")
@@ -528,8 +547,17 @@ async def shutdown_handler():
                 logger.info("[Shutdown] Sending unsubscribe to Tiingo before close")
                 try:
                     await current_tiingo_ws.send(json.dumps(unsubscribe_msg))
-                except Exception:
-                    pass
+                    logger.info("[Shutdown] Unsubscribe message sent, waiting for response...")
+                    # Try to receive response
+                    try:
+                        response = await asyncio.wait_for(current_tiingo_ws.recv(), timeout=3)
+                        logger.info(f"[Shutdown] ✓ Tiingo unsubscribe response: {response}")
+                    except asyncio.TimeoutError:
+                        logger.warning("[Shutdown] ⚠ Timeout waiting for Tiingo response")
+                    except websockets.exceptions.ConnectionClosed as close_e:
+                        logger.info(f"[Shutdown] ✓ Tiingo closed connection (code: {close_e.code})")
+                except Exception as send_e:
+                    logger.debug(f"[Shutdown] Error sending unsubscribe: {send_e}")
                 try:
                     await current_tiingo_ws.close()
                 except Exception:

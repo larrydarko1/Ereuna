@@ -2421,7 +2421,8 @@ export default function (app: any, deps: any) {
                     return res.status(404).json({ message: 'User not found' });
                 }
                 if (result.modifiedCount === 0) {
-                    return res.status(400).json({ message: 'No changes made' });
+                    // No changes made, but treat as success for idempotency
+                    return res.status(200).json({ message: 'No changes made' });
                 }
                 res.json({ message: 'Default symbol updated successfully' });
             } catch (error) {

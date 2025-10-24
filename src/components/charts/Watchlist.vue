@@ -1133,12 +1133,12 @@ async function getData(items: string[] | string): Promise<void> {
   }, 2000);
 }
 
-// Usage example (mirrors your onMounted logic)
-onMounted(() => {
-  if (props.user) {
-    // Only use non-empty ticker names
-    const tickers = watchlist.tickers.map(t => t.Name).filter(Boolean);
-    fetchDataWS(tickers);
+
+// Only fetch data after tickers are loaded and non-empty
+watch(() => watchlist2.tickers, async (newTickers) => {
+  const tickers = newTickers.map(item => item.ticker).filter(Boolean);
+  if (tickers.length > 0) {
+    await fetchDataWS(tickers);
     setTimeout(() => {
       if (!wsReceived) {
         fetchDataREST(tickers);
