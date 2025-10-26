@@ -63,7 +63,7 @@ db = mongo_client['EreunaDB']
 async def getSummary():
     start_time = time.time()
     collection = db['AssetInfo']
-    tickers = [doc['Symbol'] async for doc in collection.find({})]
+    tickers = [doc['Symbol'] async for doc in collection.find({'Delisted': False})]
     print('checking for summary updates')
 
     # Fetch meta data for all tickers
@@ -148,7 +148,7 @@ async def getFullSplits():
     asset_info_collection = db['AssetInfo']
     updates = []
 
-    async for asset_info in asset_info_collection.find({}):
+    async for asset_info in asset_info_collection.find({'Delisted': False}):
         ticker = asset_info['Symbol']
         try:
             pipeline = [
@@ -195,7 +195,7 @@ async def getFullDividends():
     asset_info_collection = db['AssetInfo']
     updates = []
 
-    async for asset_info in asset_info_collection.find({}):
+    async for asset_info in asset_info_collection.find({'Delisted': False}):
         ticker = asset_info['Symbol']
         try:
             pipeline = [
@@ -241,7 +241,7 @@ async def getFinancials():
     maintenanceMode(True)
     collection = db['AssetInfo']
 
-    tickers2 = [doc['Symbol'] async for doc in collection.find({})]
+    tickers2 = [doc['Symbol'] async for doc in collection.find({'Delisted': False})]
 
     for ticker in tickers2:
         print(f'processing {ticker}')
@@ -333,7 +333,7 @@ async def getHistoricalPrice():
     daily_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
 
-    async for asset_info in asset_info_collection.find({}):
+    async for asset_info in asset_info_collection.find({'Delisted': False}):
         ticker = asset_info['Symbol']
         now = datetime.now()
         url = f'https://api.tiingo.com/tiingo/daily/{ticker}/prices?token={api_key}&startDate=1960-01-01&endDate={now.strftime("%Y-%m-%d")}'
@@ -398,8 +398,8 @@ async def getPrice():
     if response.status_code == 200:
         data = response.json()
 
-        # Get symbols from AssetInfo collection (async)
-        symbols = [doc['Symbol'] async for doc in asset_info_collection.find({})]
+        # Get symbols from AssetInfo collection (async), exclude delisted stocks
+        symbols = [doc['Symbol'] async for doc in asset_info_collection.find({'Delisted': False})]
 
         # Filter data based on ticker
         filtered_data = [doc for doc in data if doc['ticker'].lower() in [symbol.lower() for symbol in symbols]]
@@ -506,7 +506,7 @@ async def updateDailyRatios():
     asset_info_collection = db['AssetInfo']
     updates = []
 
-    async for asset_info_doc in asset_info_collection.find({}):
+    async for asset_info_doc in asset_info_collection.find({'Delisted': False}):
         ticker = asset_info_doc['Symbol']
         try:
             # Get the most recent OHCLV document
@@ -628,6 +628,46 @@ async def updateDailyRatios():
         except Exception as e:
             print(f"Error updating documents: {e}")
             
+
+# Adjust OHLCV for split or reverse split
+def adjust_ohlcv_for_split(doc, splitFactor):
+    if splitFactor > 1:
+        # Forward split
+        doc['open'] = doc['open'] / splitFactor
+        doc['high'] = doc['high'] / splitFactor
+        doc['low'] = doc['low'] / splitFactor
+        doc['close'] = doc['close'] / splitFactor
+        doc['volume'] = doc['volume'] * splitFactor
+    elif 0 < splitFactor < 1:
+        # Reverse split
+        factor = 1 / splitFactor
+        doc['open'] = doc['open'] * factor
+        doc['high'] = doc['high'] * factor
+        doc['low'] = doc['low'] * factor
+        doc['close'] = doc['close'] * factor
+        doc['volume'] = doc['volume'] / factor
+    # else: splitFactor == 1, no adjustment
+    return doc
+
+# Adjust intraday OHCLV data for split/reverse split
+async def adjust_intraday_for_split(tickerID, splitFactor):
+    intraday_collections = [
+        "OHCLVData1m", "OHCLVData5m", "OHCLVData15m", "OHCLVData30m", "OHCLVData1hr"
+    ]
+    for collection_name in intraday_collections:
+        collection = db[collection_name]
+        docs = [doc async for doc in collection.find({'tickerID': tickerID})]
+        if not docs:
+            continue
+        adjusted_docs = []
+        for doc in docs:
+            adjusted_doc = adjust_ohlcv_for_split(doc, splitFactor)
+            adjusted_docs.append(adjusted_doc)
+        await collection.delete_many({'tickerID': tickerID})
+        if adjusted_docs:
+            await collection.insert_many(adjusted_docs)
+        print(f"Adjusted intraday data for {tickerID} in {collection_name}")
+
 #updates splits when triggered 
 async def Split(tickerID, timestamp, splitFactor):
     asset_info_collection = db['AssetInfo']
@@ -648,8 +688,8 @@ async def Split(tickerID, timestamp, splitFactor):
 
         if splitFactor > 0:
             updated_shares = shares_outstanding * splitFactor
-        elif splitFactor < 0:
-            updated_shares = shares_outstanding / abs(splitFactor)
+        elif 0 < splitFactor < 1:
+            updated_shares = shares_outstanding / (1 / splitFactor)
         else:
             print("Invalid split factor. It should be a non-zero number.")
             return
@@ -660,8 +700,10 @@ async def Split(tickerID, timestamp, splitFactor):
         )
 
         print(f"Split factor triggered for {tickerID} on {timestamp} with split factor {splitFactor}")
+        # Adjust intraday data for split/reverse split
+        await adjust_intraday_for_split(tickerID, splitFactor)
         # If getHistoricalPrice2 is refactored to async, await it here
-        getHistoricalPrice2(tickerID)
+        await getHistoricalPrice2(tickerID)
     else:
         print(f"No document found in AssetInfo for {tickerID}")
 
@@ -699,7 +741,7 @@ async def getHistoricalPrice2(tickerID):
     await weekly_collection.delete_many({'tickerID': tickerID})
 
     now = dt.datetime.now()
-    url = f'https://api.tiingo.com/tiingo/daily/{tickerID}/prices?token={api_key}&startDate=1990-01-01&endDate={now.strftime("%Y-%m-%d")}'
+    url = f'https://api.tiingo.com/tiingo/daily/{tickerID}/prices?token={api_key}&startDate=1960-01-01&endDate={now.strftime("%Y-%m-%d")}'
     response = requests.get(url)
 
     if response.status_code == 200:
@@ -918,7 +960,7 @@ async def updateTimeSeries():
     asset_info_collection = db['AssetInfo']
     updates = []
     i = 0
-    async for asset_info in asset_info_collection.find({}):
+    async for asset_info in asset_info_collection.find({'Delisted': False}):
         ticker = asset_info['Symbol']
         try:
             recent_doc = await ohclv_collection.find_one(
@@ -956,7 +998,7 @@ async def updateTimeSeries():
 async def getDividendYieldTTM():
     collection = db['AssetInfo']
 
-    async for document in collection.find({}):
+    async for document in collection.find({'Delisted': False}):
         ticker = document['Symbol']
         dividends = document.get('dividends', [])
         time_series = document.get('TimeSeries', {})
@@ -1006,7 +1048,7 @@ async def calculateVolumes():
     asset_info_collection = db["AssetInfo"]
     updates = []
     i = 0
-    async for asset_info in asset_info_collection.find({}):
+    async for asset_info in asset_info_collection.find({'Delisted': False}):
         ticker = asset_info['Symbol']
         try:
             pipeline = [
@@ -1057,7 +1099,7 @@ async def calculateSMAs():
     asset_info_collection = db["AssetInfo"]
     updates = []
     i = 0
-    async for asset_info in asset_info_collection.find({}):
+    async for asset_info in asset_info_collection.find({'Delisted': False}):
         ticker = asset_info['Symbol']
         try:
             pipeline = [
@@ -1102,7 +1144,7 @@ async def calculateTechnicalScores():
     asset_info_collection = db["AssetInfo"]
     updates = []
     i = 0
-    async for asset_info in asset_info_collection.find({}):
+    async for asset_info in asset_info_collection.find({'Delisted': False}):
         ticker = asset_info['Symbol']
         try:
             pipeline = [
@@ -1205,7 +1247,7 @@ async def calculateTechnicalScores():
             print(f"Error updating documents: {e}")
 
     updates = []
-    async for asset_info in asset_info_collection.find({}):
+    async for asset_info in asset_info_collection.find({'Delisted': False}):
         ticker = asset_info['Symbol']
         updates.append(
             UpdateOne(
@@ -1230,7 +1272,7 @@ async def calculateAlltimehighlowandperc52wk():
     asset_info_collection = db['AssetInfo']
     updates = []
     i = 0
-    async for asset_info in asset_info_collection.find({}):
+    async for asset_info in asset_info_collection.find({'Delisted': False}):
         ticker = asset_info['Symbol']
         try:
             pipeline = [
@@ -1307,7 +1349,7 @@ async def calculatePerc():
     asset_info_collection = db['AssetInfo']
     updates = []
     i = 0
-    async for asset_info in asset_info_collection.find({}):
+    async for asset_info in asset_info_collection.find({'Delisted': False}):
         ticker = asset_info['Symbol']
         try:
             pipeline = [
@@ -1375,7 +1417,7 @@ async def calculateADV():
     asset_info_collection = db["AssetInfo"]
     updates = []
     i = 0
-    async for asset_info in asset_info_collection.find({}):
+    async for asset_info in asset_info_collection.find({'Delisted': False}):
         ticker = asset_info['Symbol']
         try:
             pipeline = [
@@ -1428,7 +1470,7 @@ Qaurterly Section
 #calculares QoQ changes        
 async def calculate_qoq_changes():
     collection = db['AssetInfo']
-    async for doc in collection.find({}):
+    async for doc in collection.find({'Delisted': False}):
         ticker = doc['Symbol']
         quarterly_income = doc.get('quarterlyFinancials', [])
         quarterly_earnings = doc.get('quarterlyEarnings', [])
@@ -1471,7 +1513,7 @@ async def calculate_qoq_changes():
 #calculares YoY changes 
 async def calculate_YoY_changes():
     collection = db['AssetInfo']
-    async for doc in collection.find({}):
+    async for doc in collection.find({'Delisted': False}):
         ticker = doc['Symbol']
         quarterly_income = doc.get('quarterlyFinancials', [])
         quarterly_earnings = doc.get('quarterlyEarnings', [])
@@ -1515,7 +1557,7 @@ async def calculate_YoY_changes():
 async def update_eps_shares_dividend_date():
     collection = db['AssetInfo']
     try:
-        async for document in collection.find({}):
+        async for document in collection.find({'Delisted': False}):
             ticker = document['Symbol']
 
             # Check if the quarterlyEarnings array is not empty
@@ -1561,7 +1603,7 @@ async def ExMachina():
 async def fetchNews():
     news_collection = db["News"]
     asset_info_collection = db["AssetInfo"]
-    symbols = [doc['Symbol'] async for doc in asset_info_collection.find({})]
+    symbols = [doc['Symbol'] async for doc in asset_info_collection.find({'Delisted': False})]
     total_inserted = 0
     MAX_NEWS_PER_SYMBOL = 5
 
@@ -1721,7 +1763,7 @@ def calculate_intrinsic_value(stock_doc):
 async def update_intrinsic_values():
     asset_info_collection = db['AssetInfo']
     count = 0
-    async for doc in asset_info_collection.find({}):
+    async for doc in asset_info_collection.find({'Delisted': False}):
         result = calculate_intrinsic_value(doc)
         intrinsic_value = result.get('intrinsic_value')
         if intrinsic_value is not None:
@@ -1739,7 +1781,7 @@ async def update_market_stats():
 
     # Get all assets with Symbol, Sector, Industry, AssetType, Exchange
     assets = []
-    async for doc in asset_info_col.find({}, {"Symbol": 1, "Sector": 1, "Industry": 1, "MarketCapitalization": 1, "AssetType": 1, "Exchange": 1, "_id": 0}):
+    async for doc in asset_info_col.find({'Delisted': False}, {"Symbol": 1, "Sector": 1, "Industry": 1, "MarketCapitalization": 1, "AssetType": 1, "Exchange": 1, "_id": 0}):
         assets.append(doc)
     symbol_map = {a["Symbol"]: a for a in assets}
 
