@@ -1,21 +1,22 @@
 services:
 
-  # Traefik reverse proxy for routing
   traefik:
     image: traefik:latest
     command:
       - --api.dashboard=true
-      - --api.insecure=false # Secure the dashboard
+      - --api.insecure=false
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --entryPoints.web.address=:80
-      - --log.level=ERROR # Reduce Traefik verbosity
+      - --entryPoints.websecure.address=:443
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik.yml:/etc/traefik/dynamic.yml:ro
-      - ./acme.json:/acme.json
+      - ./certs:/certs
     networks:
       - ereuna-network
       - ereuna-network-internal
@@ -29,14 +30,13 @@ services:
     labels:
       job: traefik
       environment: production
-      # Expose Traefik dashboard with authentication on port 80
       traefik.enable: "true"
       traefik.http.routers.dashboard.rule: "Host(`traefik.localhost`)"
-      traefik.http.routers.dashboard.entrypoints: "web"
+      traefik.http.routers.dashboard.entrypoints: "websecure"
+      traefik.http.routers.dashboard.tls.certresolver: ""
       traefik.http.routers.dashboard.service: "api@internal"
-      # Basic auth middleware (username: admin, password: REDACTED_PASSWORD)
-      traefik.http.routers.dashboard.middlewares: "dashboard-auth"
-      traefik.http.middlewares.dashboard-auth.basicauth.users: "admin:$$apr1$$8kD7rHQr$$qVqH8E6vZWzK3mXZqKJYb/"
+      traefik.tls.certificates[0].certFile: "/certs/localhost-cert.pem"
+      traefik.tls.certificates[0].keyFile: "/certs/localhost-key.pem"
 
   frontend:
     build:
@@ -62,8 +62,24 @@ services:
       traefik.enable: "true"
       traefik.docker.network: "ereuna-network"
       traefik.http.routers.frontend.rule: "Host(`localhost`)"
-      traefik.http.routers.frontend.entrypoints: "web"
+      traefik.http.routers.frontend.entrypoints: "websecure"
+      traefik.http.routers.frontend.tls.certresolver: ""
+      traefik.http.routers.frontend.middlewares: "security-headers,compression"
       traefik.http.services.frontend.loadbalancer.server.port: "3500"
+
+      # Security Headers Middleware
+      traefik.http.middlewares.security-headers.headers.customResponseHeaders.X-Frame-Options: "SAMEORIGIN"
+      traefik.http.middlewares.security-headers.headers.customResponseHeaders.X-Content-Type-Options: "nosniff"
+      traefik.http.middlewares.security-headers.headers.customResponseHeaders.X-XSS-Protection: "1; mode=block"
+      traefik.http.middlewares.security-headers.headers.customResponseHeaders.Referrer-Policy: "strict-origin-when-cross-origin"
+      traefik.http.middlewares.security-headers.headers.customResponseHeaders.Permissions-Policy: "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+      traefik.http.middlewares.security-headers.headers.stsSeconds: "31536000"
+      traefik.http.middlewares.security-headers.headers.stsIncludeSubdomains: "true"
+      traefik.http.middlewares.security-headers.headers.stsPreload: "true"
+      traefik.http.middlewares.security-headers.headers.contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.stripe.com https://api.tiingo.com wss://api.tiingo.com https://localhost wss://localhost; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
+
+      # Compression Middleware
+      traefik.http.middlewares.compression.compress: "true"
     deploy:
       replicas: 2
       restart_policy:
@@ -80,9 +96,9 @@ services:
         condition: service_healthy
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
-      - CORS_ORIGIN=http://localhost
+      - CORS_ORIGIN=https://localhost
       - PORT=5500
-      - LOG_LEVEL=info # Control backend log verbosity
+      - LOG_LEVEL=info
     networks:
       - ereuna-network-internal
       - ereuna-network
@@ -106,7 +122,7 @@ services:
 
   mongodb:
     image: mongo:latest
-    command: [ "mongod", "--quiet", "--logpath", "/dev/null" ] # Suppress verbose logs
+    command: [ "mongod", "--quiet", "--logpath", "/dev/null" ]
     volumes:
       - ../db:/docker-entrypoint-initdb.d
       - mongodb_data:/data/db
@@ -145,7 +161,7 @@ services:
       - '--storage.tsdb.retention.time=90d'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
-      - '--log.level=warn' # Reduce Prometheus verbosity
+      - '--log.level=warn'
     depends_on:
       - backend
       - mongodb
@@ -175,8 +191,8 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=REDACTED_PASSWORD
       - GF_SERVER_HTTP_PORT=3000
       - GF_SERVER_PROTOCOL=http
-      - GF_SERVER_DOMAIN=grafana.localhost
-      - GF_LOG_LEVEL=warn # Reduce Grafana log verbosity
+      - GF_SERVER_DOMAIN=localhost
+      - GF_LOG_LEVEL=warn
     volumes:
       - grafana_data:/var/lib/grafana
       - ./datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
@@ -186,18 +202,15 @@ services:
       - ereuna-network-internal
     restart: unless-stopped
     logging:
-      driver: json-file
-      options:
-        max-size: "5m"
-        max-file: "2"
-        labels: "job,environment"
+      driver: none
     labels:
       job: grafana
       environment: production
       traefik.enable: "true"
       traefik.docker.network: "ereuna-network"
       traefik.http.routers.grafana.rule: "Host(`grafana.localhost`)"
-      traefik.http.routers.grafana.entrypoints: "web"
+      traefik.http.routers.grafana.entrypoints: "websecure"
+      traefik.http.routers.grafana.tls.certresolver: ""
       traefik.http.services.grafana.loadbalancer.server.port: "3000"
 
   loki:
@@ -206,7 +219,7 @@ services:
       - "3100"
     volumes:
       - ./loki.yml:/etc/loki/loki.yml
-      - logs_volume:/loki # All logs stored here permanently
+      - logs_volume:/loki
     networks:
       - ereuna-network-internal
     restart: unless-stopped
@@ -220,14 +233,13 @@ services:
       environment: production
       traefik.enable: "false"
 
-  # Promtail auto-discovers and ships Docker container logs to Loki
   promtail:
     image: grafana/promtail:latest
     volumes:
       - ./promtail-config.yaml:/etc/promtail/config.yml
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
-    command: -config.file=/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml -log.level=warn
     networks:
       - ereuna-network-internal
     depends_on:
@@ -243,10 +255,9 @@ services:
       environment: production
       traefik.enable: "false"
 
-  # Redis used by aggregator/ingestor/websocket for pubsub/streams
   redis:
     image: redis:7-alpine
-    command: [ "redis-server", "--loglevel", "warning" ] # Reduce Redis verbosity
+    command: [ "redis-server", "--loglevel", "warning" ]
     restart: unless-stopped
     expose:
       - "6379"
@@ -263,7 +274,6 @@ services:
       environment: production
       traefik.enable: "false"
 
-  # Aggregator service (FastAPI + background worker)
   aggregator:
     build:
       context: ..
@@ -276,6 +286,7 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379/0
       - MONGO_URI=mongodb://mongodb:27017/
+      - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
       - LOG_LEVEL=info
     networks:
       - ereuna-network-internal
@@ -299,7 +310,6 @@ services:
       environment: production
       traefik.enable: "false"
 
-  # Ingestor service (connects to Tiingo, publishes into Redis)
   ingestor:
     build:
       context: ..
@@ -336,7 +346,6 @@ services:
       environment: production
       traefik.enable: "false"
 
-  # Websocket service (serves realtime websockets to clients)
   websocket:
     build:
       context: ..
@@ -353,6 +362,7 @@ services:
       - LOG_LEVEL=info
     networks:
       - ereuna-network-internal
+      - ereuna-network
     expose:
       - "8000"
     healthcheck:
@@ -370,13 +380,17 @@ services:
     labels:
       job: websocket
       environment: production
-      traefik.enable: "false"
+      traefik.enable: "true"
+      traefik.docker.network: "ereuna-network"
+      traefik.http.routers.websocket.rule: "Host(`localhost`) && PathPrefix(`/ws`)"
+      traefik.http.routers.websocket.entrypoints: "websecure"
+      traefik.http.routers.websocket.tls.certresolver: ""
+      traefik.http.services.websocket.loadbalancer.server.port: "8000"
     deploy:
       replicas: 2
       restart_policy:
         condition: on-failure
 
-  # MongoDB Exporter for Prometheus metrics (lightweight)
   mongodb-exporter:
     image: percona/mongodb_exporter:0.40
     command:
@@ -401,7 +415,6 @@ services:
       environment: production
       traefik.enable: "false"
 
-  # Redis Exporter for Prometheus metrics (lightweight)
   redis-exporter:
     image: oliver006/redis_exporter:v1.55.0-alpine
     environment:

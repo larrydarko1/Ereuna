@@ -370,6 +370,7 @@ services:
       - LOG_LEVEL=info
     networks:
       - ereuna-network-internal
+      - ereuna-network
     expose:
       - "8000"
     healthcheck:
@@ -387,7 +388,12 @@ services:
     labels:
       job: websocket
       environment: production
-      traefik.enable: "false"
+      traefik.enable: "true"
+      traefik.docker.network: "ereuna-network"
+      traefik.http.routers.websocket.rule: "Host(`ereuna.io`) && PathPrefix(`/ws`)"
+      traefik.http.routers.websocket.entrypoints: "websecure"
+      traefik.http.routers.websocket.tls.certresolver: "cloudflare"
+      traefik.http.services.websocket.loadbalancer.server.port: "8000"
     deploy:
       replicas: 2
       restart_policy:

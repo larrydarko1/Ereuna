@@ -47,8 +47,7 @@
         </p>
         <div class="archie-disclaimer">
           <strong>Disclaimer:</strong> Archie is an experimental AI agent. All suggestions are for informational
-          purposes only and do not constitute legal financial advice. Use of Archie is optional and available to all
-          subscription tiers; Ereuna assumes no responsibility for trading outcomes.
+          purposes only and do not constitute legal financial advice. Use of Archie is optional; Ereuna assumes no responsibility for trading outcomes.
         </div>
       </div>
     </div>
@@ -214,8 +213,9 @@
               <div v-if="statsLoading" class="loading-state">Loading...</div>
               <div v-else-if="statsError" class="error-state">{{ statsError }}</div>
               <div v-else-if="!topUndervalued.length" class="empty-state">No data available</div>
-              <div v-else v-for="stock in topUndervalued" :key="stock.symbol" class="valuation-item">
+              <div v-else v-for="(stock, index) in topUndervalued" :key="stock.symbol" class="valuation-item">
                 <div class="stock-header">
+                  <span class="ranking-number">#{{ index + 1 }}</span>
                   <span class="stock-symbol">{{ stock.symbol }}</span>
                   <span class="upside-badge">+{{ stock.upside }}%</span>
                 </div>
@@ -240,8 +240,9 @@
               <div v-if="statsLoading" class="loading-state">Loading...</div>
               <div v-else-if="statsError" class="error-state">{{ statsError }}</div>
               <div v-else-if="!topOvervalued.length" class="empty-state">No data available</div>
-              <div v-else v-for="stock in topOvervalued" :key="stock.symbol" class="valuation-item">
+              <div v-else v-for="(stock, index) in topOvervalued" :key="stock.symbol" class="valuation-item">
                 <div class="stock-header">
+                  <span class="ranking-number">#{{ index + 1 }}</span>
                   <span class="stock-symbol">{{ stock.symbol }}</span>
                   <span class="downside-badge">-{{ stock.downside }}%</span>
                 </div>
@@ -955,22 +956,27 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
   color: var(--text1);
 }
 
 .valuation-subtitle {
-  font-size: 0.95rem;
-  color: var(--text2);
-  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text1);
+  font-weight: 700;
   margin-left: auto;
+  background: var(--base2);
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--base3);
+  letter-spacing: 0.2px;
 }
 
 .valuation-content {
   display: flex;
-  gap: 24px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 12px;
 }
 
 .valuation-column {
@@ -979,8 +985,8 @@ onMounted(() => {
 }
 
 .valuation-column h3 {
-  margin-bottom: 16px;
-  font-size: 1.3rem;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -990,9 +996,9 @@ onMounted(() => {
 .badge-undervalued,
 .badge-overvalued {
   display: inline-block;
-  padding: 8px 16px;
+  padding: 6px 12px;
   border-radius: 6px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0.3px;
 }
@@ -1008,37 +1014,50 @@ onMounted(() => {
 }
 
 .valuation-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .valuation-item {
   background: var(--base4);
-  padding: 14px;
-  border-radius: 10px;
+  padding: 10px;
+  border-radius: 8px;
   border: 1.5px solid var(--base3);
 }
 
 .stock-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
+  gap: 8px;
+}
+
+.ranking-number {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text1);
+  background: var(--base2);
+  padding: 2px 6px;
+  border-radius: 5px;
+  margin-right: 8px;
+  min-width: 24px;
+  text-align: center;
 }
 
 .stock-symbol {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text1);
   letter-spacing: 0.5px;
+  flex: 1;
 }
 
 .upside-badge,
 .downside-badge {
-  padding: 5px 10px;
+  padding: 4px 8px;
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 700;
 }
 
@@ -1055,14 +1074,14 @@ onMounted(() => {
 .stock-prices {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .price-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.98rem;
+  font-size: 0.9rem;
 }
 
 .price-label {
@@ -1084,7 +1103,7 @@ onMounted(() => {
 .error-state,
 .empty-state {
   text-align: center;
-  padding: 32px;
+  padding: 24px;
   color: var(--text2);
   font-style: italic;
 }
@@ -1092,11 +1111,11 @@ onMounted(() => {
 .valuation-disclaimer {
   background: var(--base4);
   border-left: 4px solid var(--accent1);
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-radius: 6px;
   color: var(--text1);
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
 .valuation-disclaimer strong {

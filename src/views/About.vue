@@ -32,16 +32,12 @@
           </p>
           <div class="mission-stats">
             <div class="stat-item">
-              <div class="stat-number">150Mil +</div>
+              <div class="stat-number">235 Mil +</div>
               <div class="stat-label">Documents</div>
             </div>
             <div class="stat-item">
               <div class="stat-number">35.000+</div>
               <div class="stat-label">Financial Assets Covered</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number">24/7</div>
-              <div class="stat-label">Market Monitoring</div>
             </div>
           </div>
         </div>
