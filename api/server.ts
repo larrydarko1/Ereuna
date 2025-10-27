@@ -20,7 +20,6 @@ dotenv.config();
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? [
     'https://ereuna.io',
-    'https://www.ereuna.io',
     // For internal container-to-container communication if needed
     'http://frontend:3500'
   ]

@@ -68,7 +68,7 @@ services:
       environment: production
       traefik.enable: "true"
       traefik.docker.network: "ereuna-network"
-      traefik.http.routers.frontend.rule: "Host(`ereuna.io`) || Host(`www.ereuna.io`)"
+      traefik.http.routers.frontend.rule: "Host(`ereuna.io`)"
       traefik.http.routers.frontend.entrypoints: "websecure"
       traefik.http.routers.frontend.tls.certresolver: "cloudflare"
       traefik.http.routers.frontend.middlewares: "security-headers,compression"
