@@ -540,6 +540,7 @@ async function downloadReceipt(receipt: Receipt) {
   align-items: flex-start;
   margin-bottom: 5px;
   margin-left: 5px;
+  color: var(--text1);
 }
 .meter-labels {
   display: flex;
@@ -573,6 +574,7 @@ async function downloadReceipt(receipt: Receipt) {
   flex-direction: column;
   flex: 1 1 0;
   height: 100vh;
+  color: var(--text1);
 }
 
 h1 {

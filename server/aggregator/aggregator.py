@@ -182,6 +182,7 @@ async def start_aggregator(message_queue, mongo_client):
     try:
         processed_count = 0
         anomaly_count = 0
+        last_log_time = datetime.utcnow()
         while True:
             msg = await message_queue.get()
             try:
@@ -197,9 +198,20 @@ async def start_aggregator(message_queue, mongo_client):
                     symbol = d[1].upper()
                     price = float(d[2])
                     ts = d[0]
+                    processed_count += 1
+                    
+                    # Log every 10 messages
+                    if processed_count % 10 == 0:
+                        logger.info(f"[Aggregator] Processed {processed_count} messages so far")
                 else:
                     logger.warning(f"Unknown service or data format: {data}")
                     continue
+
+                # Log summary every minute
+                now_log = datetime.utcnow()
+                if (now_log - last_log_time).total_seconds() >= 60:
+                    logger.info(f"[Aggregator] Status - Processed: {processed_count} msgs, Active 1m candles: {len(candles)}, Pending higher TF: {len(pending_candles)}, Daily: {len(pending_daily_candles)}, Weekly: {len(pending_weekly_candles)}")
+                    last_log_time = now_log
 
                 bucket = get_1min_bucket(ts)
                 key = (symbol, bucket)
@@ -214,10 +226,12 @@ async def start_aggregator(message_queue, mongo_client):
                         "close": price,
                         "volume": 0
                     }
+                    logger.info(f"[Aggregator] Created new 1m candle for {symbol} at {bucket}")
                 else:
                     candle["high"] = max(candle["high"], price)
                     candle["low"] = min(candle["low"], price)
                     candle["close"] = price
+                    logger.debug(f"[Aggregator] Updated 1m candle for {symbol} at {bucket} - price: {price}")
 
                 # --- Publish the current state of the in-progress 1m candle (with final: False) ---
                 await publish_candle(symbol, "1m", {
@@ -250,6 +264,7 @@ async def start_aggregator(message_queue, mongo_client):
                 if docs:
                     try:
                         await collection.insert_many(docs)
+                        logger.info(f"[Aggregator] Finalized and inserted {len(docs)} 1m candles into MongoDB")
                         processed_count += len(docs)
                         # Publish each finalized 1m candle to pubsub (with final=True)
                         for cndl in docs:
@@ -465,6 +480,33 @@ async def flush_daily_weekly_candles_at_market_close(daily_collection, weekly_co
         wait_seconds = (next_close - now).total_seconds()
         await asyncio.sleep(wait_seconds)
 
+        # Get database reference for intraday timeframes
+        db = daily_collection.database
+
+        # Flush intraday candles (5m, 15m, 30m, 1hr)
+        for (symbol, tf), tf_candle in list(pending_candles.items()):
+            if not tf_candle.get('final', False):
+                tf_candle['final'] = True
+                tf_coll_name = f'OHCLVData{tf}' if tf != '1hr' else 'OHCLVData1hr'
+                tf_coll = db.get_collection(tf_coll_name)
+                doc = {
+                    'tickerID': symbol,
+                    'timestamp': tf_candle['start'],
+                    'open': tf_candle['open'],
+                    'high': tf_candle['high'],
+                    'low': tf_candle['low'],
+                    'close': tf_candle['close'],
+                    'volume': tf_candle['volume']
+                }
+                try:
+                    await tf_coll.insert_one(doc)
+                    # Publish finalized candle
+                    await publish_candle(symbol, tf, {**doc, 'final': True})
+                    logger.debug(f"Flushed {tf} candle for {symbol} at market close")
+                except Exception as e:
+                    logger.error(f"Error inserting {tf} candle (flush): {e}")
+                del pending_candles[(symbol, tf)]
+
         # Flush daily candles
         for symbol, daily_candle in list(pending_daily_candles.items()):
             if not daily_candle.get('final', False):
@@ -480,6 +522,8 @@ async def flush_daily_weekly_candles_at_market_close(daily_collection, weekly_co
                 }
                 try:
                     await daily_collection.insert_one(doc)
+                    # Publish finalized candle
+                    await publish_candle(symbol, '1d', {**doc, 'final': True})
                 except Exception as e:
                     logger.error(f"Error inserting daily candle (flush): {e}")
                 del pending_daily_candles[symbol]
@@ -499,11 +543,13 @@ async def flush_daily_weekly_candles_at_market_close(daily_collection, weekly_co
                 }
                 try:
                     await weekly_collection.insert_one(doc)
+                    # Publish finalized candle
+                    await publish_candle(symbol, '1w', {**doc, 'final': True})
                 except Exception as e:
                     logger.error(f"Error inserting weekly candle (flush): {e}")
                 del pending_weekly_candles[symbol]
 
-        logger.info("Flushed daily and weekly candles at market close.")
+        logger.info("Flushed intraday, daily, and weekly candles at market close.")
 
 # To run both tasks together:
 async def main_aggregator_and_flush(message_queue, mongo_client):
@@ -531,6 +577,8 @@ async def redis_stream_adapter(queue: asyncio.Queue, redis_client: aioredis.Redi
         pass
 
     logger.info(f"Redis stream adapter started (stream={stream}, group={group}, consumer={consumer})")
+    message_count = 0
+    last_report_time = datetime.utcnow()
     try:
         while True:
             try:
@@ -540,6 +588,9 @@ async def redis_stream_adapter(queue: asyncio.Queue, redis_client: aioredis.Redi
                     continue
                 # resp is list like [(stream, [(id, {b'data': b'...'}), ...])]
                 for _stream_name, messages in resp:
+                    batch_size = len(messages)
+                    message_count += batch_size
+                    logger.info(f"[RedisAdapter] Read {batch_size} messages from Redis stream (total: {message_count})")
                     for msg_id, fields in messages:
                         data = None
                         if b'data' in fields:
@@ -565,6 +616,7 @@ async def redis_stream_adapter(queue: asyncio.Queue, redis_client: aioredis.Redi
                         # Put into queue for aggregator to process
                         try:
                             await queue.put(data)
+                            logger.debug(f"[RedisAdapter] Queued message {msg_id} for aggregator")
                         except Exception as e:
                             logger.error(f"Failed to put redis message into queue: {e}")
                         # Acknowledge the message
@@ -572,6 +624,12 @@ async def redis_stream_adapter(queue: asyncio.Queue, redis_client: aioredis.Redi
                             await redis_client.xack(stream, group, msg_id)
                         except Exception as e:
                             logger.warning(f"Failed to XACK message {msg_id}: {e}")
+                
+                # Report every minute
+                now = datetime.utcnow()
+                if (now - last_report_time).total_seconds() >= 60:
+                    logger.info(f"[RedisAdapter] Total messages read from stream: {message_count}")
+                    last_report_time = now
             except Exception as e:
                 logger.error(f"Error reading from Redis stream: {e}")
                 await asyncio.sleep(1)

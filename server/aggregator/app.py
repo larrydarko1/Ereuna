@@ -1,6 +1,7 @@
 import os
 import asyncio
 import logging
+import json
 from fastapi import FastAPI, Response
 from redis.asyncio import from_url as redis_from_url
 import motor.motor_asyncio
@@ -180,6 +181,63 @@ async def shutdown():
 @app.get('/health')
 async def health():
     return {'status': 'ok'}
+
+
+@app.get('/debug/redis_stream')
+async def debug_redis_stream():
+    """Check Redis stream status and pending messages"""
+    try:
+        redis = app.state.redis_client
+        stream_name = 'tiingo:stream'
+        
+        # Get stream info
+        try:
+            stream_info = await redis.xinfo_stream(stream_name)
+            stream_length = stream_info.get('length', 0)
+        except Exception as e:
+            stream_info = {'error': str(e)}
+            stream_length = -1
+        
+        # Get consumer group info
+        try:
+            groups_info = await redis.xinfo_groups(stream_name)
+        except Exception as e:
+            groups_info = [{'error': str(e)}]
+        
+        # Get last few messages from stream (without consuming)
+        try:
+            last_messages = await redis.xrevrange(stream_name, count=5)
+            last_msg_data = []
+            for msg_id, fields in last_messages:
+                if b'data' in fields:
+                    try:
+                        data = json.loads(fields[b'data'].decode('utf-8'))
+                        last_msg_data.append({'id': msg_id.decode('utf-8'), 'data': data})
+                    except Exception:
+                        last_msg_data.append({'id': msg_id.decode('utf-8'), 'raw': str(fields)})
+        except Exception as e:
+            last_msg_data = [{'error': str(e)}]
+        
+        # Get aggregator state
+        from . import aggregator as agg_mod
+        agg_state = {
+            'active_1m_candles': len(agg_mod.candles),
+            'pending_higher_tf': len(agg_mod.pending_candles),
+            'pending_daily': len(agg_mod.pending_daily_candles),
+            'pending_weekly': len(agg_mod.pending_weekly_candles),
+        }
+        
+        return {
+            'stream_length': stream_length,
+            'stream_info': stream_info,
+            'groups': groups_info,
+            'last_messages': last_msg_data,
+            'aggregator_state': agg_state,
+            'queue_size': app.state.queue.qsize() if hasattr(app.state, 'queue') else 'N/A'
+        }
+    except Exception as e:
+        logger.exception('Error in debug endpoint')
+        return {'error': str(e)}
 
 
 @app.get('/ready')

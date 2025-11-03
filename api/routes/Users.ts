@@ -2357,7 +2357,7 @@ export default function (app: any, deps: any) {
                 .trim()
                 .notEmpty().withMessage('Default symbol is required')
                 .isLength({ min: 1, max: 10 }).withMessage('Symbol must be between 1 and 10 characters')
-                .matches(/^[A-Za-z0-9.]+$/).withMessage('Symbol can only contain letters, numbers, and periods')
+                .matches(/^[A-Za-z0-9.-]+$/).withMessage('Symbol can only contain letters, numbers, periods, and hyphens')
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');

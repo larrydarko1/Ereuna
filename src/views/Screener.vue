@@ -30,7 +30,14 @@
        />
      </div>
          <div class="navmenu" style="margin-left: 2px;">
-          <h1 class="results-count" :key="resultListLength">RESULTS: {{ resultListLength }}</h1>
+          <h1 class="results-count" :key="resultListLength">
+            RESULTS: {{ resultListLength }}
+            <span v-if="isLoadingResults" class="results-loader">
+              <svg class="results-spinner" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
+              </svg>
+            </span>
+          </h1>
       <button class="edit-watch-panel-btn" :class="{ 'edit-watch-panel-btn2': showEditColumn }"
         @click="showEditColumn = !showEditColumn" aria-label="Edit table columns">Edit Table</button>
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
@@ -565,6 +572,19 @@
           @notify="showNotification($event)"
           v-model:showIntrinsicValue="showIntrinsicValue"
         />
+        <CAGR
+          :user="user?.Username ?? ''"
+          :apiKey="apiKey"
+          :notification="notification"
+          :selectedScreener="selectedScreener"
+          @fetchScreeners="handleFetchScreeners"
+          @handleMouseOver="handleMouseOver"
+          @handleMouseOut="handleMouseOut"
+          :isScreenerError="isScreenerError"
+          @reset="Reset('CAGR')"
+          @notify="showNotification($event)"
+          v-model:showCAGR="showCAGRModel"
+        />
                <FundFamily
   :user="user?.Username ?? ''"
   :apiKey="apiKey"
@@ -861,6 +881,7 @@ import EV from '@/components/Screener/Parameters/EV.vue';
 import RSI from '@/components/Screener/Parameters/RSI.vue';
 import Gap from '@/components/Screener/Parameters/Gap.vue';
 import IntrinsicValue from '@/components/Screener/Parameters/IntrinsicValue.vue';
+import CAGR from '@/components/Screener/Parameters/CAGR.vue';
 
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 const userStore = useUserStore();
@@ -914,6 +935,7 @@ const showEV = ref(false);
 const showRSI = ref(false);
 const showGap = ref(false);
 const showIntrinsicValue = ref(false);
+const showCAGRModel = ref(false);
 
 // for popup notifications
 const notification = ref<Record<string, any>>({});
@@ -1293,6 +1315,22 @@ const currentResults = computed(() => {
       return paginatedResults4.value;
     default:
       return [];
+  }
+});
+
+// Compute if initial loading is happening for current list mode
+const isLoadingResults = computed(() => {
+  switch (listMode.value) {
+    case 'main':
+      return initialLoading.value;
+    case 'filter':
+      return filterInitialLoading.value;
+    case 'hidden':
+      return hiddenInitialLoading.value;
+    case 'combined':
+      return compoundedInitialLoading.value;
+    default:
+      return false;
   }
 });
 
@@ -1680,6 +1718,7 @@ async function CurrentScreener(): Promise<void> {
     let ADV1Y = screenerSettings.ADV1Y
     let ROE = screenerSettings.ROE
     let ROA = screenerSettings.ROA
+    let CAGR = screenerSettings.CAGR
     let currentRatio = screenerSettings.currentRatio
     let assetsCurrent = screenerSettings.assetsCurrent
     let liabilitiesCurrent = screenerSettings.liabilitiesCurrent
@@ -1752,6 +1791,7 @@ async function CurrentScreener(): Promise<void> {
       screenerSettings?.changePerc?.length > 0;
     showROE.value = screenerSettings?.ROE?.length > 0;
     showROA.value = screenerSettings?.ROA?.length > 0;
+    showCAGRModel.value = screenerSettings?.CAGR?.length > 0;
     showCurrentRatio.value = screenerSettings?.currentRatio?.length > 0;
     showCurrentAssets.value = screenerSettings?.assetsCurrent?.length > 0;
     showCurrentLiabilities.value = screenerSettings?.liabilitiesCurrent?.length > 0;
@@ -1832,6 +1872,8 @@ async function CurrentScreener(): Promise<void> {
   setInputValue('right-roe', ROE?.[1] ?? '');
   setInputValue('left-roa', ROA?.[0] ?? '');
   setInputValue('right-roa', ROA?.[1] ?? '');
+  setInputValue('left-cagr', CAGR?.[0] ?? '');
+  setInputValue('right-cagr', CAGR?.[1] ?? '');
   setInputValue('left-current-ratio', currentRatio?.[0] ?? '');
   setInputValue('right-current-ratio', currentRatio?.[1] ?? '');
   setInputValue('left-ca', assetsCurrent?.[0] ?? '');
@@ -1952,6 +1994,7 @@ const valueMap: { [key: string]: string } = {
   'Gap': 'Gap',
   'AssetType': 'AssetType',
   'IV': 'IV',
+  'CAGR': 'CAGR',
 };
 
 // function that resets indivudal values for screeners 
@@ -2011,7 +2054,7 @@ async function SummaryScreener(): Promise<void> {
       'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W', 'RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'CurrentPrice', 'NewHigh',
       'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio',
       'assetsCurrent', 'liabilitiesCurrent', 'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin', 'debtEquity', 'bookVal', 'EV',
-      'RSI', 'Gap', 'AssetTypes', 'IV', 'FundFamilies', 'FundCategories', 'NetExpenseRatio'
+      'RSI', 'Gap', 'AssetTypes', 'IV', 'FundFamilies', 'FundCategories', 'NetExpenseRatio', 'CAGR'
     ];
 
   const attributeMapping: { [key: string]: string } = {
@@ -2066,7 +2109,8 @@ async function SummaryScreener(): Promise<void> {
       'IV': 'Intrinsic Value',
       'FundFamilies': 'Fund Families',
       'FundCategories': 'Fund Categories',
-      'NetExpenseRatio': 'Net Expense Ratio %'
+      'NetExpenseRatio': 'Net Expense Ratio %',
+      'CAGR': 'CAGR %'
     };
 
   const valueMapping: { [key: string]: string } = {
@@ -2342,6 +2386,8 @@ function getTooltipText(id: string): string {
       return 'Return on equity (ROE) is a measure of a company\'s profitability, calculated by dividing its net income by its total shareholder equity.';
     case 'roa':
       return 'Return on assets (ROA) is a measure of a company\'s profitability, calculated by dividing its net income by its total assets.';
+    case 'cagr':
+      return 'Compound Annual Growth Rate (CAGR) represents the annualized rate of return from the stock\'s first available trading price to its current price. It smooths out volatility to show the average yearly growth, making it easy to compare stocks with different IPO dates. For example, a CAGR of 28% means the stock has grown an average of 28% per year since its IPO.';
     case 'current-ratio':
       return 'The current ratio is a liquidity metric that compares a company\'s current assets to its current liabilities.';
     case 'current-assets':
@@ -2609,7 +2655,7 @@ async function loadColumns() {
     const data = await response.json();
     // Accept only valid values (should match MainList/EditColumn attributes)
     const validValues = [
-      'price','market_cap','volume','ipo','assettype','sector','exchange','country','pe_ratio','ps_ratio','fcf','cash','current_debt','current_assets','current_liabilities','current_ratio','roe','roa','peg','eps','pb_ratio','dividend_yield','name','currency','industry','book_value','shares','rs_score1w','rs_score1m','rs_score4m','all_time_high','all_time_low','high_52w','low_52w','perc_change','isin','gap','ev','adv1w','adv1m','adv4m','adv1y','rsi','intrinsic_value','fund_family','fund_category','net_expense_ratio'
+      'price','market_cap','volume','ipo','assettype','sector','exchange','country','pe_ratio','ps_ratio','fcf','cash','current_debt','current_assets','current_liabilities','current_ratio','roe','roa','peg','eps','pb_ratio','dividend_yield','name','currency','industry','book_value','shares','rs_score1w','rs_score1m','rs_score4m','all_time_high','all_time_low','high_52w','low_52w','perc_change','isin','gap','ev','adv1w','adv1m','adv4m','adv1y','rsi','intrinsic_value','fund_family','fund_category','net_expense_ratio','cagr'
     ];
     selectedAttributes.value = (Array.isArray(data.columns) ? data.columns : []).filter((v: string) => validValues.includes(v));
   } catch (err) {
@@ -2883,6 +2929,27 @@ p {
   appearance: none;
   -webkit-appearance: none;
   min-width: 80px;
+}
+
+.results-loader {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  width: 16px;
+  height: 16px;
+}
+
+.results-spinner {
+  animation: rotate 1s linear infinite;
+  width: 16px;
+  height: 16px;
+}
+
+.results-spinner .path {
+  stroke: var(--text1, #333);
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
 }
 
 .snavbtn span {

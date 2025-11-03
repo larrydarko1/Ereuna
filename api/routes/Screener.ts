@@ -325,6 +325,7 @@ export default function (app: any, deps: any) {
         rsi: 'RSI',
         intrinsic_value: 'IntrinsicValue',
         isin: 'ISIN',
+        cagr: 'CAGR',
         fund_family: 'fundFamily',
         fund_category: 'FundCategory',
         net_expense_ratio: 'netExpenseRatio'
@@ -406,11 +407,12 @@ export default function (app: any, deps: any) {
                         }
                     });
                 }
-                // Filter the AssetInfo collection using the 'Hidden' array
+                // Filter the AssetInfo collection using the 'Hidden' array and Delisted = false
                 const assetInfoCollection = db.collection('AssetInfo');
-                const totalCount = await assetInfoCollection.countDocuments({ Symbol: { $nin: hiddenSymbols } });
+                const query = { Symbol: { $nin: hiddenSymbols }, Delisted: false };
+                const totalCount = await assetInfoCollection.countDocuments(query);
                 const filteredAssets = await assetInfoCollection.find(
-                    { Symbol: { $nin: hiddenSymbols } },
+                    query,
                     { projection }
                 )
                     .skip(skip)
@@ -618,9 +620,10 @@ export default function (app: any, deps: any) {
                     });
                 }
                 const assetInfoCollection = db.collection('AssetInfo');
-                const totalCount = await assetInfoCollection.countDocuments({ Symbol: { $in: hiddenSymbols } });
+                const query = { Symbol: { $in: hiddenSymbols }, Delisted: false };
+                const totalCount = await assetInfoCollection.countDocuments(query);
                 const filteredAssets = await assetInfoCollection.find(
-                    { Symbol: { $in: hiddenSymbols } },
+                    query,
                     { projection }
                 )
                     .skip(skip)
@@ -854,6 +857,7 @@ export default function (app: any, deps: any) {
                     RSI?: [number, number];
                     Gap?: [number, number];
                     IV?: [number, number];
+                    CAGR?: [number, number];
                     FundFamilies?: string[];
                     FundCategories?: string[];
                     NetExpenseRatio?: [number, number];
@@ -1069,6 +1073,10 @@ export default function (app: any, deps: any) {
                     screenerFilters.ROA = screenerData.ROA;
                 }
 
+                if (screenerData.CAGR && screenerData.CAGR[0] !== 0 && screenerData.CAGR[1] !== 0) {
+                    screenerFilters.CAGR = screenerData.CAGR;
+                }
+
                 if (screenerData.currentRatio && screenerData.currentRatio[0] !== 0 && screenerData.currentRatio[1] !== 0) {
                     screenerFilters.currentRatio = screenerData.currentRatio;
                 }
@@ -1138,8 +1146,8 @@ export default function (app: any, deps: any) {
                     screenerFilters.NetExpenseRatio = screenerData.NetExpenseRatio;
                 }
 
-                // Filter the AssetInfo collection 
-                const query: any = { Symbol: { $nin: hiddenSymbols } };
+                // Filter the AssetInfo collection to only include non-delisted assets
+                const query: any = { Symbol: { $nin: hiddenSymbols }, Delisted: false };
 
                 Object.keys(screenerFilters).forEach((key) => {
                     switch (key) {
@@ -1794,6 +1802,12 @@ export default function (app: any, deps: any) {
                                 $lt: screenerFilters.ROA[1]
                             };
                             break;
+                        case 'CAGR':
+                            query.CAGR = {
+                                $gte: screenerFilters.CAGR[0],
+                                $lte: screenerFilters.CAGR[1]
+                            };
+                            break;
                         case 'currentRatio':
                             query['quarterlyFinancials.0.currentRatio'] = {
                                 $gt: screenerFilters.currentRatio[0],
@@ -2091,7 +2105,7 @@ export default function (app: any, deps: any) {
                 for (const screenerName of screenerNames) {
                     try {
                         const assetInfoCollection = db.collection('AssetInfo');
-                        const query: { [key: string]: any } = { Symbol: { $nin: userDoc.Hidden } };
+                        const query: { [key: string]: any } = { Symbol: { $nin: userDoc.Hidden }, Delisted: false };
                         const aggregation = [];
                         const screenerData = await screenersCollection.findOne({ UsernameID: usernameId, Name: screenerName, Include: true });
                         if (!screenerData) {
@@ -2298,6 +2312,10 @@ export default function (app: any, deps: any) {
 
                         if (screenerData.ROA && screenerData.ROA[0] !== 0 && screenerData.ROA[1] !== 0) {
                             screenerFilters.ROA = screenerData.ROA;
+                        }
+
+                        if (screenerData.CAGR && screenerData.CAGR[0] !== 0 && screenerData.CAGR[1] !== 0) {
+                            screenerFilters.CAGR = screenerData.CAGR;
                         }
 
                         if (screenerData.currentRatio && screenerData.currentRatio[0] !== 0 && screenerData.currentRatio[1] !== 0) {
@@ -3022,6 +3040,12 @@ export default function (app: any, deps: any) {
                                         $lt: screenerFilters.ROA[1]
                                     };
                                     break;
+                                case 'CAGR':
+                                    query.CAGR = {
+                                        $gte: screenerFilters.CAGR[0],
+                                        $lte: screenerFilters.CAGR[1]
+                                    };
+                                    break;
                                 case 'currentRatio':
                                     query['quarterlyFinancials.0.currentRatio'] = {
                                         $gt: screenerFilters.currentRatio[0],
@@ -3173,6 +3197,7 @@ export default function (app: any, deps: any) {
                             ev: 'EV',
                             rsi: 'RSI',
                             intrinsic_value: 'IntrinsicValue',
+                            cagr: 'CAGR',
                         };
                         const qfMap: Record<string, string> = {
                             fcf: 'freeCashFlow',
@@ -7304,6 +7329,131 @@ export default function (app: any, deps: any) {
             }
         });
 
+    app.patch('/screener/cagr', validate([
+        validationSchemas.user(),
+        validationSchemas.screenerNameBody(),
+        validationSchemas.minPrice(),
+        validationSchemas.maxPrice()
+    ]),
+        async (req: Request, res: Response) => {
+            let client: any;
+            try {
+                const apiKey = req.header('x-api-key');
+                const sanitizedKey = sanitizeInput(apiKey);
+
+                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                    logger.warn({
+                        msg: 'Invalid API key',
+                        providedApiKey: !!sanitizedKey,
+                        context: 'PATCH /screener/cagr',
+                        statusCode: 401
+                    });
+                    return res.status(401).json({ message: 'Unauthorized API Access' });
+                }
+
+                // Sanitize inputs
+                let minCAGR = req.body.minCAGR ? parseFloat(sanitizeInput(req.body.minCAGR.toString())) : NaN;
+                let maxCAGR = req.body.maxCAGR ? parseFloat(sanitizeInput(req.body.maxCAGR.toString())) : NaN;
+                const screenerName = sanitizeInput(req.body.screenerName || '');
+                const Username = sanitizeInput(req.body.user || '');
+
+                // Validate inputs
+                if (!screenerName) {
+                    return res.status(400).json({ message: 'Screener name is required' });
+                }
+                if (!Username) {
+                    return res.status(400).json({ message: 'Username is required' });
+                }
+                if (isNaN(minCAGR) && isNaN(maxCAGR)) {
+                    return res.status(400).json({ message: 'Both min CAGR and max CAGR cannot be empty' });
+                }
+
+                client = new MongoClient(uri);
+                await client.connect();
+                const db = client.db('EreunaDB');
+                const collection = db.collection('Screeners');
+                const assetInfoCollection = db.collection('AssetInfo');
+
+                // Set default minCAGR to minimum CAGR if it is not provided
+                if (isNaN(minCAGR) && !isNaN(maxCAGR)) {
+                    const minCAGRDoc = await assetInfoCollection.aggregate([
+                        { $match: { CAGR: { $ne: null, $exists: true } } },
+                        { $group: { _id: null, minCAGR: { $min: "$CAGR" } } }
+                    ]).toArray();
+                    if (minCAGRDoc.length > 0) {
+                        minCAGR = minCAGRDoc[0].minCAGR;
+                    } else {
+                        return res.status(404).json({ message: 'No assets found to determine minimum CAGR' });
+                    }
+                }
+
+                // If maxCAGR is empty, find the highest CAGR
+                if (isNaN(maxCAGR) && !isNaN(minCAGR)) {
+                    const maxCAGRDoc = await assetInfoCollection.aggregate([
+                        { $match: { CAGR: { $ne: null, $exists: true } } },
+                        { $group: { _id: null, maxCAGR: { $max: "$CAGR" } } }
+                    ]).toArray();
+                    if (maxCAGRDoc.length > 0) {
+                        maxCAGR = maxCAGRDoc[0].maxCAGR;
+                    } else {
+                        return res.status(404).json({ message: 'No assets found to determine maximum CAGR' });
+                    }
+                }
+
+                // Ensure minCAGR is less than maxCAGR
+                if (minCAGR >= maxCAGR) {
+                    return res.status(400).json({ message: 'Min CAGR cannot be higher than or equal to max CAGR' });
+                }
+
+                const filter = {
+                    UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
+                    Name: { $regex: new RegExp(`^${screenerName}$`, 'i') }
+                };
+
+                const existingScreener = await collection.findOne(filter);
+                if (!existingScreener) {
+                    return res.status(404).json({
+                        message: 'Screener not found',
+                        details: 'No matching screener exists for the given user and name'
+                    });
+                }
+
+                const updateDoc = { $set: { CAGR: [minCAGR, maxCAGR] } };
+                const result = await collection.findOneAndUpdate(filter, updateDoc, { returnOriginal: false });
+
+                if (!result) {
+                    return res.status(404).json({
+                        message: 'Screener not found',
+                        details: 'Unable to update screener'
+                    });
+                }
+
+                res.json({
+                    message: 'CAGR range updated successfully',
+                    updatedScreener: result.value
+                });
+
+            } catch (error: any) {
+                const errObj = handleError(error, 'PATCH /screener/cagr', {
+                    username: req.body.user,
+                    screenerName: req.body.screenerName
+                }, 500);
+                return res.status(errObj.statusCode || 500).json(errObj);
+            } finally {
+                if (client) {
+                    try {
+                        await client.close();
+                    } catch (closeError: any) {
+                        logger.warn({
+                            msg: 'Error closing database connection',
+                            error: closeError.message,
+                            context: 'PATCH /screener/cagr'
+                        });
+                    }
+                }
+            }
+        });
+
     // endpoint that toggles value for screener, to include or exclude from combined list
     app.patch('/:user/toggle/screener/:list',
         validate([
@@ -7470,7 +7620,7 @@ export default function (app: any, deps: any) {
                 }
 
                 Object.keys(fields).forEach(field => {
-                    if (field !== 'UsernameID' && field !== 'Name') {
+                    if (field !== 'UsernameID' && field !== 'Name' && field !== 'Include') {
                         updateDoc.$unset[field] = '';
                     }
                 });
@@ -7528,7 +7678,7 @@ export default function (app: any, deps: any) {
                     'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta',
                     'DivYield', 'FundGrowth', 'PricePerformance', 'RSscore', 'Volume', 'ADV', 'ROE', 'ROA', 'CurrentRatio', 'CurrentAssets',
                     'CurrentLiabilities', 'CurrentDebt', 'CashEquivalents', 'FCF', 'ProfitMargin', 'GrossMargin',
-                    'DebtEquity', 'BookValue', 'EV', 'RSI', 'Gap', 'AssetType', 'IV', 'FundFamily', 'FundCategory', 'NetExpenseRatio'
+                    'DebtEquity', 'BookValue', 'EV', 'RSI', 'Gap', 'AssetType', 'IV', 'FundFamily', 'FundCategory', 'NetExpenseRatio', 'CAGR'
                 ])
                 .withMessage('Invalid parameter to reset')
         ]),
@@ -7627,6 +7777,7 @@ export default function (app: any, deps: any) {
                         break;
                     case 'ROE': updateDoc.$unset.ROE = ''; break;
                     case 'ROA': updateDoc.$unset.ROA = ''; break;
+                    case 'CAGR': updateDoc.$unset.CAGR = ''; break;
                     case 'CurrentRatio': updateDoc.$unset.currentRatio = ''; break;
                     case 'CurrentAssets': updateDoc.$unset.assetsCurrent = ''; break;
                     case 'CurrentLiabilities': updateDoc.$unset.liabilitiesCurrent = ''; break;
@@ -7737,7 +7888,7 @@ export default function (app: any, deps: any) {
                     PercOffWeekLow: 1, changePerc: 1, IPO: 1, ADV1W: 1, ADV1M: 1, ADV4M: 1, ADV1Y: 1, ROE: 1, ROA: 1, currentRatio: 1,
                     assetsCurrent: 1, liabilitiesCurrent: 1, debtCurrent: 1, cashAndEq: 1, freeCashFlow: 1, profitMargin: 1, grossMargin: 1,
                     debtEquity: 1, bookVal: 1, EV: 1, RSI: 1, Gap: 1, AssetTypes: 1, IV: 1,
-                    FundFamilies: 1, FundCategories: 1, NetExpenseRatio: 1,
+                    FundFamilies: 1, FundCategories: 1, NetExpenseRatio: 1, CAGR: 1
                 };
 
                 const cursor = screenersCollection.find(query, { projection });
@@ -7826,6 +7977,7 @@ export default function (app: any, deps: any) {
                     FundFamilies: document.FundFamilies,
                     FundCategories: document.FundCategories,
                     NetExpenseRatio: document.NetExpenseRatio,
+                    CAGR: document.CAGR
                 };
                 res.status(200).json(response);
             } catch (error: any) {
@@ -7916,7 +8068,7 @@ export default function (app: any, deps: any) {
                     'AvgVolume1M', 'RelVolume1M', 'AvgVolume6M', 'RelVolume6M', 'AvgVolume1Y', 'RelVolume1Y', '1mchange', '1ychange', '4mchange',
                     '6mchange', 'todaychange', 'weekchange', 'ytdchange', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio',
                     'assetsCurrent', 'liabilitiesCurrent', 'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin', 'debtEquity', 'bookVal', 'EV',
-                    'RSI', 'Gap', 'AssetTypes', 'IV', 'FundFamilies', 'FundCategories', 'NetExpenseRatio'
+                    'RSI', 'Gap', 'AssetTypes', 'IV', 'FundFamilies', 'FundCategories', 'NetExpenseRatio', 'CAGR'
                 ];
 
                 const filteredData: Record<string, any> = {};

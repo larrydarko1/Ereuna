@@ -26,11 +26,17 @@
                                           N/A
                                         </div>
                                       </div>
-  <p class="ticker">{{ assetInfo?.Symbol }} </p>
-  <p class="name"> - {{ assetInfo?.Name }}</p>
-  <div v-if="isInHiddenList(assetInfo?.Symbol)" class="hidden-message">
-              <p>HIDDEN LIST</p>
-            </div>
+  <div class="title-inline">
+    <p class="ticker">{{ assetInfo?.Symbol }}</p>
+    <span class="dash"> - </span>
+    <p class="name" ref="nameContainer" @mouseenter="handleNameMouseEnter" @mouseleave="handleNameMouseLeave"><span ref="nameSpan">{{ assetInfo?.Name }}</span></p>
+  </div>
+  <div v-if="!assetInfo?.Delisted && isInHiddenList(assetInfo?.Symbol)" class="badge-message">
+    <p>HIDDEN LIST</p>
+  </div>
+  <div v-if="assetInfo?.Delisted === true" class="badge-message">
+    <p>DELISTED</p>
+  </div>
                                   </div>
 <div id="legend2">
   <div style="display: flex; gap: 5px; margin-bottom: 5px;">
@@ -112,9 +118,8 @@
 </template>
 
 <script setup lang="ts">
-
 import Loader from '@/components/loader.vue';
-import { onMounted, ref, watch, computed, onUnmounted } from 'vue';
+import { onMounted, ref, watch, computed, onUnmounted, nextTick } from 'vue';
 import {
   createChart,
   ColorType,
@@ -763,6 +768,43 @@ const hiddenList = ref<string[]>([]); // stores hidden tickers for user (for hid
 const indicatorList = ref<Indicator[]>([]); // stores in indicators settings for each user
 const intrinsicVisible = ref<boolean>(false);
 
+// Refs used to measure & animate the Name text when truncated
+const nameContainer = ref<HTMLElement | null>(null);
+const nameSpan = ref<HTMLElement | null>(null);
+
+function handleNameMouseEnter(): void {
+  nextTick(() => {
+    if (!nameContainer.value || !nameSpan.value) return;
+    const containerWidth = nameContainer.value.clientWidth;
+    const contentWidth = nameSpan.value.scrollWidth;
+    // If content fits, do nothing
+    if (contentWidth <= containerWidth) return;
+    const distance = containerWidth - contentWidth; // negative value
+    // Duration scales with distance but kept in reasonable bounds
+    const duration = Math.min(10, Math.max(2, Math.abs(distance) / 30));
+    nameSpan.value.style.transition = `transform ${duration}s linear`;
+    nameSpan.value.style.willChange = 'transform';
+    // Slight small delay to make the movement feel natural
+    requestAnimationFrame(() => {
+      nameSpan.value && (nameSpan.value.style.transform = `translateX(${distance}px)`);
+    });
+  });
+}
+
+function handleNameMouseLeave(): void {
+  if (!nameSpan.value) return;
+  nameSpan.value.style.transition = 'transform 0.45s ease-out';
+  nameSpan.value.style.transform = 'translateX(0)';
+}
+
+// Reset transforms when the asset name changes
+watch(() => props.assetInfo?.Name, () => {
+  if (nameSpan.value) {
+    nameSpan.value.style.transition = '';
+    nameSpan.value.style.transform = '';
+  }
+});
+
 async function fetchHiddenList() {
   try {
     const response = await fetch(`/api/${props.user}/hidden`, {
@@ -911,6 +953,31 @@ h1 {
   font-size: 15px;
   font-weight: bold;
   opacity: 1;
+  max-width: 250px;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.name span {
+  display: inline-block;
+  white-space: nowrap;
+  width: max-content;
+  /* prepare for transform-based scrolling */
+  transition: transform 0.45s ease-out;
+  will-change: transform;
+  padding-right: 12px; /* extra space so last letters are visible when scrolled */
+}
+
+.title-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dash {
+  color: var(--text1);
+  font-weight: bold;
 }
 
 #legend {
@@ -976,7 +1043,7 @@ h1 {
   gap: 2px;
 }
 
-.hidden-message {
+.badge-message {
   display: inline-block;
   background-color: var(--text2);
   color: var(--base2);
@@ -990,7 +1057,7 @@ h1 {
   line-height: 0.5;
 }
 
-.hidden-message p{
+.badge-message p{
 font-size: 8px;
 font-weight: bold;
 }

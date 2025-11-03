@@ -247,6 +247,7 @@ async function confirmTwoFa() {
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
+  color: var(--text1);
 }
 
 .twofa-instruction {

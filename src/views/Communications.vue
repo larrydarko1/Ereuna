@@ -225,7 +225,6 @@ onMounted(() => {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
   background: linear-gradient(90deg, var(--accent1), var(--accent2));
   opacity: 0;
   transition: opacity 0.3s ease;

@@ -111,6 +111,7 @@ const attributes = [
   { label: 'ADV (1Y)', value: 'adv1y' },
   { label: 'RSI', value: 'rsi' },
   { label: 'Intrinsic Value', value: 'intrinsic_value' },
+  { label: 'CAGR', value: 'cagr' },
   { label: 'Fund Family', value: 'fund_family' },
   { label: 'Fund Category', value: 'fund_category' },
   { label: 'Net Expense Ratio', value: 'net_expense_ratio' },

@@ -4,16 +4,43 @@ import time
 import requests
 import pandas as pd
 import numpy as np
+import warnings
 from datetime import datetime, timedelta, timezone
 import datetime as dt
 from dotenv import load_dotenv
 import motor.motor_asyncio
 from pymongo import UpdateOne, DeleteOne, InsertOne
+from pymongo.errors import AutoReconnect, NetworkTimeout, ConnectionFailure
 import asyncio
 import logging
+from functools import wraps
+
+# Suppress NumPy warnings for cleaner output
+warnings.filterwarnings('ignore', category=RuntimeWarning)
+np.seterr(divide='ignore', invalid='ignore')
 
 logger = logging.getLogger("organizer")
 logger.setLevel(logging.INFO)
+
+# Retry decorator for MongoDB operations
+def async_retry_on_disconnect(max_retries=3, delay=2):
+    """Decorator to retry async functions on MongoDB connection errors"""
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            for attempt in range(max_retries):
+                try:
+                    return await func(*args, **kwargs)
+                except (AutoReconnect, NetworkTimeout, ConnectionFailure, OSError) as e:
+                    if attempt == max_retries - 1:
+                        logger.error(f"{func.__name__} failed after {max_retries} attempts: {e}")
+                        raise
+                    wait_time = delay * (2 ** attempt)  # Exponential backoff
+                    logger.warning(f"{func.__name__} attempt {attempt + 1} failed: {e}. Retrying in {wait_time}s...")
+                    await asyncio.sleep(wait_time)
+            return None
+        return wrapper
+    return decorator
 
 try:
     from server.aggregator.delist import Delist, scanDelisted, prune_intraday_collections
@@ -56,7 +83,19 @@ except Exception:
 load_dotenv()
 mongo_uri = os.getenv('MONGODB_URI')
 api_key = os.getenv('TIINGO_KEY')
-mongo_client = motor.motor_asyncio.AsyncIOMotorClient(mongo_uri)
+
+# Configure MongoDB client with proper timeouts and pool settings
+mongo_client = motor.motor_asyncio.AsyncIOMotorClient(
+    mongo_uri,
+    serverSelectionTimeoutMS=30000,  # 30 seconds for server selection
+    socketTimeoutMS=360000,  # 6 minutes for socket operations
+    connectTimeoutMS=20000,  # 20 seconds for initial connection
+    maxPoolSize=50,  # Increase pool size for concurrent operations
+    minPoolSize=10,
+    maxIdleTimeMS=45000,  # Keep connections alive
+    retryWrites=True,
+    retryReads=True
+)
 db = mongo_client['EreunaDB']
 
 #updates symbol, name, description, IPO, exchange, sector, industry, location, currency, country
@@ -64,7 +103,7 @@ async def getSummary():
     start_time = time.time()
     collection = db['AssetInfo']
     tickers = [doc['Symbol'] async for doc in collection.find({'Delisted': False})]
-    print('checking for summary updates')
+    pass  # Print removed for clean output
 
     # Fetch meta data for all tickers
     url = f'https://api.tiingo.com/tiingo/fundamentals/meta?token={api_key}'
@@ -72,7 +111,7 @@ async def getSummary():
     meta_data = response.json() if response.status_code == 200 else []
 
     for ticker in tickers:
-        print(f'scanning {ticker}')
+        pass  # Print removed for clean output
         url = f'https://api.tiingo.com/tiingo/daily/{ticker}?token={api_key}'
         response = requests.get(url)
 
@@ -80,7 +119,7 @@ async def getSummary():
             data = response.json()
 
             if data is None:
-                print(f'No data found for {ticker}')
+                pass  # Print removed for clean output
                 continue
 
             # Find the document in MongoDB where Symbol matches the ticker
@@ -93,7 +132,7 @@ async def getSummary():
                     result.get('Description') != data.get('description') or
                     result.get('IPO') != ipo_date or
                     result.get('Exchange') != data.get('exchangeCode')):
-                    print(f'new summary data found for {ticker}, updating')
+                    pass  # Print removed for clean output
                     # Update the existing document
                     await collection.update_one(
                         {'Symbol': ticker},
@@ -104,9 +143,9 @@ async def getSummary():
                             'Exchange': data.get('exchangeCode')
                         }}
                     )
-                    print(f'{ticker} Summary Updated Successfully')
+                    pass  # Print removed for clean output
                 else:
-                    print(f'No changes found for {ticker}')
+                    pass  # Print removed for clean output
 
                 # Update meta data
                 ticker_lower = ticker.lower()
@@ -130,17 +169,17 @@ async def getSummary():
                             'Country': country
                         }}
                     )
-                    print(f'{ticker} Summary Data Updated Successfully')
+                    pass  # Print removed for clean output
                 else:
-                    print(f'No meta data found for {ticker}')
+                    pass  # Print removed for clean output
             else:
-                print(f"No document found for {ticker}")
+                pass  # Print removed for clean output
         else:
-            print(f"Error fetching data for {ticker}: {response.status_code}")
+            pass  # Print removed for clean output
     end_time = time.time()
     execution_time_in_seconds = end_time - start_time
     execution_time_in_minutes = execution_time_in_seconds / 60
-    print(f'get_and_update_summary took {execution_time_in_minutes:.2f} minutes to execute')
+    pass  # Print removed for clean output
 
 #gets full splits history 
 async def getFullSplits():
@@ -178,16 +217,16 @@ async def getFullSplits():
                     {'$push': {'splits': {'$each': splits}}}
                 )
             )
-            print(f'Updated splits for ticker: {ticker}')
+            pass  # Print removed for clean output
         except Exception as e:
-            print(f'Error updating splits for ticker: {ticker} - {str(e)}')
+            pass  # Print removed for clean output
 
     if updates:
         try:
             result = await asset_info_collection.bulk_write(updates)
-            print(f"Updated {result.modified_count} documents")
+            pass  # Print removed for clean output
         except Exception as e:
-            print(f"Error updating documents: {e}")
+            pass  # Print removed for clean output
 
 #gets full dividend history 
 async def getFullDividends():
@@ -225,16 +264,16 @@ async def getFullDividends():
                     {'$push': {'dividends': {'$each': dividends}}}
                 )
             )
-            print(f'Updated dividends for ticker: {ticker}')
+            pass  # Print removed for clean output
         except Exception as e:
-            print(f'Error updating dividends for ticker: {ticker} - {str(e)}')
+            pass  # Print removed for clean output
 
     if updates:
         try:
             result = await asset_info_collection.bulk_write(updates)
-            print(f"Updated {result.modified_count} documents")
+            pass  # Print removed for clean output
         except Exception as e:
-            print(f"Error updating documents: {e}")
+            pass  # Print removed for clean output
    
 #gets full financials again from scratch 
 async def getFinancials():
@@ -244,7 +283,7 @@ async def getFinancials():
     tickers2 = [doc['Symbol'] async for doc in collection.find({'Delisted': False})]
 
     for ticker in tickers2:
-        print(f'processing {ticker}')
+        pass  # Print removed for clean output
         url = f'https://api.tiingo.com/tiingo/fundamentals/{ticker}/statements?token={api_key}'
         response = requests.get(url)
 
@@ -321,11 +360,11 @@ async def getFinancials():
                     'quarterlyFinancials': quarterly_financials_data,
                     'AnnualFinancials': annual_financials_data
                 }})
-                print(f"Successfully updated financial data for {ticker}")
+                pass  # Print removed for clean output
             else:
-                print(f"No document found for {ticker}")
+                pass  # Print removed for clean output
         else:
-            print(f"Error fetching data for {ticker}: {response.status_code}")
+            pass  # Print removed for clean output
     maintenanceMode(False)
 
 #uploads full ohclvdata from scratch, don't use everyday    
@@ -378,11 +417,11 @@ async def getHistoricalPrice():
                     if not existing_daily_doc:
                         await daily_collection.insert_one(daily_doc)
                         
-                print(f"Successfully processed {ticker}")
+                pass  # Print removed for clean output
             else:
-                print(f"No data found for {ticker}")
+                pass  # Print removed for clean output
         else:
-            print(f"Error: {response.text}")
+            pass  # Print removed for clean output
             
 
 
@@ -432,19 +471,56 @@ async def getPrice():
                 if doc['divCash'] != 0 and doc['divCash'] != 0.0:
                     Dividends(doc['tickerID'], doc['timestamp'], doc['divCash'])
 
+            # Progress bar for inserting price data
+            total_docs = len(daily_data_dict)
+            print(f"Fetching prices for {total_docs} assets...")
+            
+            def print_price_progress(completed, total, bar_length=50):
+                percentage = int(100 * completed / total) if total > 0 else 0
+                filled_length = int(bar_length * completed / total) if total > 0 else 0
+                bar = '█' * filled_length + '░' * (bar_length - filled_length)
+                print(f'\rPrice Data: |{bar}| {percentage}%', end='', flush=True)
+            
             # For each new daily document, delete any existing with same tickerID and timestamp, then insert
-            for daily_doc in daily_data_dict:
+            intraday_1m_collection = db["OHCLVData1m"]
+            
+            for idx, daily_doc in enumerate(daily_data_dict):
+                # Insert/update daily collection
                 await daily_collection.delete_many({
                     'tickerID': daily_doc['tickerID'],
                     'timestamp': daily_doc['timestamp']
                 })
                 await daily_collection.insert_one(daily_doc)
-                print(f"Upserted daily document for {daily_doc['tickerID']} on {daily_doc['timestamp']}")
+                
+                # Also upsert to 1m collection with 20:00:00 timestamp
+                timestamp_1m = daily_doc['timestamp'].replace(hour=20, minute=0, second=0, microsecond=0)
+                intraday_1m_doc = {
+                    'tickerID': daily_doc['tickerID'],
+                    'timestamp': timestamp_1m,
+                    'open': daily_doc['open'],
+                    'high': daily_doc['high'],
+                    'low': daily_doc['low'],
+                    'close': daily_doc['close'],
+                    'volume': daily_doc['volume']
+                }
+                
+                # Upsert to 1m collection (delete existing with same tickerID and timestamp, then insert)
+                await intraday_1m_collection.delete_many({
+                    'tickerID': intraday_1m_doc['tickerID'],
+                    'timestamp': intraday_1m_doc['timestamp']
+                })
+                await intraday_1m_collection.insert_one(intraday_1m_doc)
+                
+                # Update progress every 10 documents or at the end
+                if (idx + 1) % 10 == 0 or (idx + 1) == total_docs:
+                    print_price_progress(idx + 1, total_docs)
+            
+            print()  # New line after progress bar
 
         else:
-            print("No data found for the specified tickers.")
+            pass  # Print removed for clean output
     else:
-        print(f"Error: {response.text}")
+        pass  # Print removed for clean output
         
 # Get Monday date of this week
 today = dt.date.today()
@@ -498,7 +574,7 @@ async def updateWeekly():
         try:
             result = await db['OHCLVData2'].bulk_write(updates)
         except Exception as e:
-            print(f"Error updating documents: {e}")
+            pass  # Print removed for clean output
               
 #updates MarketCap, PE, PB, PEG , PS, RSI, Gap%
 async def updateDailyRatios():
@@ -618,15 +694,15 @@ async def updateDailyRatios():
                     )
                 )
             else:
-                print(f"No OHCLV data found for {ticker}")
+                pass  # Print removed for clean output
         except Exception as e:
-            print(f"Error processing {ticker}: {e}")
+            pass  # Print removed for clean output
 
     if updates:
         try:
             result = await asset_info_collection.bulk_write(updates)
         except Exception as e:
-            print(f"Error updating documents: {e}")
+            pass  # Print removed for clean output
             
 
 # Adjust OHLCV for split or reverse split
@@ -666,7 +742,7 @@ async def adjust_intraday_for_split(tickerID, splitFactor):
         await collection.delete_many({'tickerID': tickerID})
         if adjusted_docs:
             await collection.insert_many(adjusted_docs)
-        print(f"Adjusted intraday data for {tickerID} in {collection_name}")
+        pass  # Print removed for clean output
 
 #updates splits when triggered 
 async def Split(tickerID, timestamp, splitFactor):
@@ -678,7 +754,7 @@ async def Split(tickerID, timestamp, splitFactor):
         # Skip if SharesOutstanding is missing
         shares_outstanding = asset_info_doc.get('SharesOutstanding')
         if shares_outstanding is None:
-            print(f"SharesOutstanding missing for {tickerID}. Skipping split update.")
+            pass  # Print removed for clean output
             return
 
         new_split = {
@@ -691,7 +767,7 @@ async def Split(tickerID, timestamp, splitFactor):
         elif 0 < splitFactor < 1:
             updated_shares = shares_outstanding / (1 / splitFactor)
         else:
-            print("Invalid split factor. It should be a non-zero number.")
+            pass  # Print removed for clean output
             return
 
         await asset_info_collection.update_one(
@@ -699,13 +775,13 @@ async def Split(tickerID, timestamp, splitFactor):
             {'$push': {'splits': new_split}, '$set': {'SharesOutstanding': updated_shares}}
         )
 
-        print(f"Split factor triggered for {tickerID} on {timestamp} with split factor {splitFactor}")
+        pass  # Print removed for clean output
         # Adjust intraday data for split/reverse split
         await adjust_intraday_for_split(tickerID, splitFactor)
         # If getHistoricalPrice2 is refactored to async, await it here
         await getHistoricalPrice2(tickerID)
     else:
-        print(f"No document found in AssetInfo for {tickerID}")
+        pass  # Print removed for clean output
 
 #updates dividends when triggered 
 async def Dividends(tickerID, timestamp, divCash):
@@ -727,9 +803,9 @@ async def Dividends(tickerID, timestamp, divCash):
             {'$set': {'DividendDate': timestamp}, '$push': {'dividends': new_dividend}}
         )
 
-        print(f"Dividend triggered for {tickerID} on {timestamp} with dividend amount {divCash}")
+        pass  # Print removed for clean output
     else:
-        print(f"No document found in AssetInfo for {tickerID}")
+        pass  # Print removed for clean output
 
 #triggers when there's a split, it deleted and reuploads updated ohclvdata
 async def getHistoricalPrice2(tickerID):
@@ -812,11 +888,11 @@ async def getHistoricalPrice2(tickerID):
                     if not existing_weekly_doc:
                         await weekly_collection.insert_one(weekly_doc)
 
-            print(f"Successfully processed {tickerID}")
+            pass  # Print removed for clean output
         else:
-            print(f"No data found for {tickerID}")
+            pass  # Print removed for clean output
     else:
-        print(f"Error: {response.text}")
+        pass  # Print removed for clean output
 
 #scan endpoints for financial statements updates and update symbol when it does
 async def checkAndUpdateFinancialUpdates():
@@ -827,11 +903,11 @@ async def checkAndUpdateFinancialUpdates():
         'AssetType': 'Stock',
         'Delisted': False
     })]
-    print('checking for financial statements updates')
+    pass  # Print removed for clean output
     new_tickers_data = {}
 
     for ticker in tickers:
-        print(f'scanning {ticker}')
+        pass  # Print removed for clean output
         url = f'https://api.tiingo.com/tiingo/fundamentals/{ticker}/statements?token={api_key}'
         response = requests.get(url)
 
@@ -904,7 +980,7 @@ async def checkAndUpdateFinancialUpdates():
                         existing_annual_earnings_dates = [item['fiscalDateEnding'] for item in existing_annual_earnings]
                         if date not in existing_annual_earnings_dates:
                             new_data_found = True
-                            print(f'new annual data found for {ticker}')
+                            pass  # Print removed for clean output
                         annual_earnings_data.append(earnings_data)
                         annual_financials_data.append(financial_data)
                     else:
@@ -912,7 +988,7 @@ async def checkAndUpdateFinancialUpdates():
                         existing_quarterly_earnings_dates = [item['fiscalDateEnding'] for item in existing_quarterly_earnings]
                         if date not in existing_quarterly_earnings_dates:
                             new_data_found = True
-                            print(f'new quarterly data found for {ticker}')
+                            pass  # Print removed for clean output
                         quarterly_earnings_data.append(earnings_data)
                         quarterly_financials_data.append(financial_data)
 
@@ -924,16 +1000,16 @@ async def checkAndUpdateFinancialUpdates():
                         'AnnualFinancials': annual_financials_data
                     }
             else:
-                print(f"No document found for {ticker}")
+                pass  # Print removed for clean output
         else:
-            print(f"Error fetching data for {ticker}: {response.status_code}")
+            pass  # Print removed for clean output
 
     #maintenanceMode(True)
     # Update the quarterly and annual earnings and financial data in the MongoDB database (async)
     for ticker, data in new_tickers_data.items():
-        print(f'processing {ticker}')
+        pass  # Print removed for clean output
         await collection.update_one({'Symbol': ticker}, {'$set': data})
-        print(f"Successfully updated earnings and financial data for {ticker}")
+        pass  # Print removed for clean output
 
     # These are assumed to be async, if not, remove await
     if asyncio.iscoroutinefunction(update_eps_shares_dividend_date):
@@ -952,7 +1028,7 @@ async def checkAndUpdateFinancialUpdates():
     end_time = time.time()
     execution_time_in_seconds = end_time - start_time
     execution_time_in_minutes = execution_time_in_seconds / 60
-    print(f'checkAndUpdateFinancialUpdates took {execution_time_in_minutes:.2f} minutes to execute')
+    pass  # Print removed for clean output
 
 #updates assetinfo with recent ohclvdata 
 async def updateTimeSeries():
@@ -986,13 +1062,13 @@ async def updateTimeSeries():
                 )
             i += 1
         except Exception as e:
-            print(f"Error processing {ticker}: {e}")
+            pass  # Print removed for clean output
 
     if updates:
         try:
             result = await asset_info_collection.bulk_write(updates)
         except Exception as e:
-            print(f"Error updating documents: {e}")
+            pass  # Print removed for clean output
             
 #updates dividend yields TTM daily 
 async def getDividendYieldTTM():
@@ -1040,33 +1116,41 @@ async def getDividendYieldTTM():
                 {'$set': {'DividendYield': dividend_yield_ttm}}
             )
         except Exception as e:
-            print(f"Error processing {ticker}: {str(e)}")
+            pass  # Print removed for clean output
 
 #calculates average volume for 1w, 1m, 6m and 1y
+@async_retry_on_disconnect(max_retries=3, delay=2)
 async def calculateVolumes():
     ohclv_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
     updates = []
     i = 0
-    async for asset_info in asset_info_collection.find({'Delisted': False}):
+    
+    # Batch processing to avoid cursor timeouts
+    batch_size = 100
+    cursor = asset_info_collection.find({'Delisted': False}).batch_size(batch_size)
+    
+    async for asset_info in cursor:
         ticker = asset_info['Symbol']
         try:
             pipeline = [
                 {'$match': {'tickerID': ticker}},
                 {'$sort': {'timestamp': -1}},
+                {'$limit': 365},  # Only fetch what we need
                 {'$project': {'_id': 0, 'volume': 1}}
             ]
-            documents = [doc async for doc in ohclv_collection.aggregate(pipeline)]
+            # Use to_list with max_time_ms to prevent timeout
+            documents = await ohclv_collection.aggregate(pipeline).to_list(length=365)
 
             volumes = [doc["volume"] for doc in documents]
             avg_volume_1w = sum(volumes[-7:]) / 7 if len(volumes) >= 7 else None
             avg_volume_1m = sum(volumes[-30:]) / 30 if len(volumes) >= 30 else None
             avg_volume_6m = sum(volumes[-180:]) / 180 if len(volumes) >= 180 else None
             avg_volume_1y = sum(volumes[-365:]) / 365 if len(volumes) >= 365 else None
-            rel_volume_1w = round(volumes[-1] / avg_volume_1w, 1) if avg_volume_1w else None
-            rel_volume_1m = round(volumes[-1] / avg_volume_1m, 1) if avg_volume_1m else None
-            rel_volume_6m = round(volumes[-1] / avg_volume_6m, 1) if avg_volume_6m else None
-            rel_volume_1y = round(volumes[-1] / avg_volume_1y, 1) if avg_volume_1y else None
+            rel_volume_1w = round(volumes[-1] / avg_volume_1w, 1) if avg_volume_1w and len(volumes) > 0 else None
+            rel_volume_1m = round(volumes[-1] / avg_volume_1m, 1) if avg_volume_1m and len(volumes) > 0 else None
+            rel_volume_6m = round(volumes[-1] / avg_volume_6m, 1) if avg_volume_6m and len(volumes) > 0 else None
+            rel_volume_1y = round(volumes[-1] / avg_volume_1y, 1) if avg_volume_1y and len(volumes) > 0 else None
 
             updates.append(
                 UpdateOne(
@@ -1084,14 +1168,27 @@ async def calculateVolumes():
                 )
             )
             i += 1
+            
+            # Batch write every 100 updates to avoid memory issues and maintain connection
+            if len(updates) >= 100:
+                try:
+                    await asset_info_collection.bulk_write(updates, ordered=False)
+                    pass  # Print removed for clean output
+                    updates = []
+                except Exception as e:
+                    pass  # Print removed for clean output
+                    updates = []
+                    
         except Exception as e:
-            print(f"Error processing {ticker}: {e}")
+            pass  # Print removed for clean output
 
+    # Write remaining updates
     if updates:
         try:
-            result = await asset_info_collection.bulk_write(updates)
+            result = await asset_info_collection.bulk_write(updates, ordered=False)
+            pass  # Print removed for clean output
         except Exception as e:
-            print(f"Error updating documents: {e}")
+            pass  # Print removed for clean output
 
 #calculates moving averages (10, 20, 50 and 200DMA)
 async def calculateSMAs():
@@ -1130,13 +1227,13 @@ async def calculateSMAs():
             )
             i += 1
         except Exception as e:
-            print(f"Error processing {ticker}: {e}")
+            pass  # Print removed for clean output
 
     if updates:
         try:
             result = await asset_info_collection.bulk_write(updates)
         except Exception as e:
-            print(f"Error updating documents: {e}")
+            pass  # Print removed for clean output
 
 #calulcates technical score 
 async def calculateTechnicalScores():
@@ -1185,13 +1282,13 @@ async def calculateTechnicalScores():
                 )
             i += 1
         except Exception as e:
-            print(f"Error processing {ticker}: {e}")
+            pass  # Print removed for clean output
 
     if updates:
         try:
             result = await asset_info_collection.bulk_write(updates)
         except Exception as e:
-            print(f"Error updating documents: {e}")
+            pass  # Print removed for clean output
 
     pipeline = [
         {'$match': {}},
@@ -1244,7 +1341,7 @@ async def calculateTechnicalScores():
         try:
             result = await asset_info_collection.bulk_write(updates)
         except Exception as e:
-            print(f"Error updating documents: {e}")
+            pass  # Print removed for clean output
 
     updates = []
     async for asset_info in asset_info_collection.find({'Delisted': False}):
@@ -1264,7 +1361,7 @@ async def calculateTechnicalScores():
         try:
             result = await asset_info_collection.bulk_write(updates)
         except Exception as e:
-            print(f"Error updating documents: {e}")
+            pass  # Print removed for clean output
 
 #calculates both 52wk and all time high/low
 async def calculateAlltimehighlowandperc52wk():
@@ -1294,7 +1391,7 @@ async def calculateAlltimehighlowandperc52wk():
                     low_values.append(low_value)
                     close_values.append(close_value)
                 except (ValueError, TypeError):
-                    print(f"Warning: Non-numeric value found in OHCLV fields for ticker {ticker}")
+                    pass  # Print removed for clean output
 
             if high_values and low_values and close_values:
                 alltime_high = max(high_values)
@@ -1335,13 +1432,13 @@ async def calculateAlltimehighlowandperc52wk():
             )
             i += 1
         except Exception as e:
-            print(f"Error processing {ticker}: {e}")
+            pass  # Print removed for clean output
 
     if updates:
         try:
             result = await asset_info_collection.bulk_write(updates)
         except Exception as e:
-            print(f"Error updating documents: {e}")
+            pass  # Print removed for clean output
  
 #caluclates percentage changes for today, wk, 1m, 4m, 6m, 1y, and YTD (althought ytd is still a bit weird)
 async def calculatePerc():
@@ -1403,13 +1500,13 @@ async def calculatePerc():
             )
             i += 1
         except Exception as e:
-            print(f"Error processing {ticker}: {e}")
+            pass  # Print removed for clean output
 
     if updates:
         try:
             result = await asset_info_collection.bulk_write(updates)
         except Exception as e:
-            print(f"Error updating documents: {e}")
+            pass  # Print removed for clean output
 
 #calculates average day volatility for specific timespans and updates documents 
 async def calculateADV():
@@ -1435,11 +1532,23 @@ async def calculateADV():
             # Calculate daily returns
             daily_returns = [close_prices[j] - close_prices[j-1] for j in range(1, len(close_prices))]
 
+            # Helper function to safely calculate volatility
+            def safe_volatility(returns, prices, period):
+                if len(returns) < period:
+                    return None
+                mean_price = np.mean(prices[-period:])
+                if mean_price == 0 or np.isnan(mean_price):
+                    return None
+                std_returns = np.std(returns[-period:])
+                if np.isnan(std_returns):
+                    return None
+                return (std_returns / mean_price) * 100
+
             # Calculate average daily volatility over specific time spans
-            volatility_1w = (np.std(daily_returns[-5:]) / np.mean(close_prices[-5:])) * 100 if len(daily_returns) >= 5 else None
-            volatility_1m = (np.std(daily_returns[-20:]) / np.mean(close_prices[-20:])) * 100 if len(daily_returns) >= 20 else None
-            volatility_4m = (np.std(daily_returns[-80:]) / np.mean(close_prices[-80:])) * 100 if len(daily_returns) >= 80 else None
-            volatility_1y = (np.std(daily_returns[-252:]) / np.mean(close_prices[-252:])) * 100 if len(daily_returns) >= 252 else None
+            volatility_1w = safe_volatility(daily_returns, close_prices, 5)
+            volatility_1m = safe_volatility(daily_returns, close_prices, 20)
+            volatility_4m = safe_volatility(daily_returns, close_prices, 80)
+            volatility_1y = safe_volatility(daily_returns, close_prices, 252)
 
             updates.append(
                 UpdateOne(
@@ -1455,13 +1564,13 @@ async def calculateADV():
 
             i += 1
         except Exception as e:
-            print(f"Error processing {ticker}: {e}")
+            pass  # Print removed for clean output
 
     if updates:
         try:
             result = await asset_info_collection.bulk_write(updates)
         except Exception as e:
-            print(f"Error updating documents: {e}")
+            pass  # Print removed for clean output
     
 
 '''
@@ -1586,10 +1695,10 @@ async def update_eps_shares_dividend_date():
                 # Update the DividendDate attribute of the document
                 if payment_date is not None:
                     await collection.update_one({'Symbol': ticker}, {'$set': {'DividendDate': payment_date}})
-        print("Update successful")
+        pass  # Print removed for clean output
 
     except Exception as e:
-        print("Update failed: ", str(e))
+        pass  # Print removed for clean output
 
 #Start from Scratch , don't do it unless absolutely necessary, because it burns through api calls 
 async def ExMachina():
@@ -1655,13 +1764,13 @@ async def fetchNews():
             if documents:
                 await news_collection.insert_many(documents)
                 total_inserted += len(documents)
-                print(f"Inserted {len(documents)} news articles for {symbol}.")
+                pass  # Print removed for clean output
             else:
-                print(f"No new news articles found for {symbol}.")
+                pass  # Print removed for clean output
         else:
-            print(f"Failed to fetch news for {symbol}: {response.status_code} {response.text}")
+            pass  # Print removed for clean output
 
-    print(f"Total news articles inserted: {total_inserted}")
+    pass  # Print removed for clean output
 
 async def generate_weekly_candles():
     daily_collection = db["OHCLVData"]
@@ -1705,20 +1814,58 @@ def calculate_intrinsic_value(stock_doc):
     if not quarterly_financials or len(quarterly_financials) < 20 or not shares_out or shares_out <= 0:
         return {'type': None, 'intrinsic_value': None}
 
+    # Check for negative equity (company is insolvent)
+    latest_q = quarterly_financials[0]
+    equity = latest_q.get('equity', 0)
+    if equity is not None and equity <= 0:
+        return {'type': None, 'intrinsic_value': None}
+    
+    # Check for excessive reverse splits (sign of distressed company)
+    splits = stock_doc.get('splits', [])
+    reverse_splits = [s for s in splits if s.get('split_factor', 1) < 1]
+    if len(reverse_splits) >= 5:  # 5+ reverse splits = red flag
+        return {'type': None, 'intrinsic_value': None}
+
     # Extract last 20 quarters of free cash flow (FCF)
     fcf_list = []
+    net_income_list = []
     for q in quarterly_financials[:20]:
         fcf = q.get('freeCashFlow')
+        net_income = q.get('netIncome')
         if fcf is not None:
             try:
                 fcf_list.append(float(fcf))
             except Exception:
                 continue
+        if net_income is not None:
+            try:
+                net_income_list.append(float(net_income))
+            except Exception:
+                continue
+    
     if len(fcf_list) < 20:
         return {'type': None, 'intrinsic_value': None}
+    
+    # Sanity check: If company is consistently losing money, don't value it with DCF
+    if len(net_income_list) >= 12:
+        profitable_quarters = sum(1 for ni in net_income_list[:12] if ni > 0)
+        if profitable_quarters < 6:  # Less than half of last 12 quarters profitable
+            return {'type': None, 'intrinsic_value': None}
 
+    
     # Calculate annual FCF for each of the last 5 years
     annual_fcfs = [sum(fcf_list[i*4:(i+1)*4]) for i in range(5)]
+    
+    # Additional sanity check: FCF should be reasonably consistent
+    # If FCF swings wildly (high volatility), DCF is unreliable
+    fcf_volatility = np.std(annual_fcfs) / (abs(np.mean(annual_fcfs)) + 1)  # +1 to avoid division by zero
+    if fcf_volatility > 2.0:  # Coefficient of variation > 200%
+        return {'type': None, 'intrinsic_value': None}
+    
+    # Check if most recent annual FCF is positive (need sustainable cash generation)
+    if annual_fcfs[0] <= 0:
+        return {'type': None, 'intrinsic_value': None}
+    
     # Calculate 5-year CAGR of FCF
     try:
         start_fcf = annual_fcfs[-1]
@@ -1754,6 +1901,15 @@ def calculate_intrinsic_value(stock_doc):
 
     intrinsic_equity_value = sum(discounted_fcfs) + discounted_terminal + net_cash
     intrinsic_value_per_share = intrinsic_equity_value / shares_out if shares_out else None
+    
+    # Final sanity check: intrinsic value should be reasonable
+    # If it's absurdly high compared to market realities, reject it
+    if intrinsic_value_per_share and intrinsic_value_per_share > 1000000:  # $1M per share is unrealistic
+        return {'type': None, 'intrinsic_value': None}
+    
+    # Also reject if negative (means company is worthless by DCF)
+    if intrinsic_value_per_share and intrinsic_value_per_share < 0:
+        return {'type': None, 'intrinsic_value': None}
 
     return {
         'type': 'Stock',
@@ -1772,6 +1928,98 @@ async def update_intrinsic_values():
                 {'$set': {'IntrinsicValue': float(intrinsic_value)}}
             )
             count += 1
+
+# Calculate CAGR (Compound Annual Growth Rate) since IPO for each stock
+async def calculate_cagr_since_ipo():
+    asset_info_collection = db['AssetInfo']
+    ohclv_collection = db['OHCLVData']
+    updates = []
+    
+    async for asset in asset_info_collection.find({
+        'Delisted': False,
+        'IPO': {'$ne': None, '$exists': True}
+    }):
+        ticker = asset['Symbol']
+        ipo_date = asset.get('IPO')
+        
+        if not ipo_date:
+            continue
+            
+        try:
+            # Get current price (latest close in OHCLVData - already split-adjusted)
+            current_doc = await ohclv_collection.find_one(
+                {'tickerID': ticker},
+                sort=[('timestamp', -1)]
+            )
+            
+            if not current_doc or not current_doc.get('close'):
+                continue
+            
+            current_price = float(current_doc['close'])
+            current_date = current_doc['timestamp']
+            
+            # Get first available price on or after IPO date
+            first_doc = await ohclv_collection.find_one(
+                {
+                    'tickerID': ticker,
+                    'timestamp': {'$gte': ipo_date}
+                },
+                sort=[('timestamp', 1)]  # Ascending - get FIRST
+            )
+            
+            if not first_doc:
+                # Fallback: use oldest available data if no data at IPO
+                first_doc = await ohclv_collection.find_one(
+                    {'tickerID': ticker},
+                    sort=[('timestamp', 1)]
+                )
+            
+            if not first_doc or not first_doc.get('close'):
+                continue
+            
+            starting_price = float(first_doc['close'])
+            starting_date = first_doc['timestamp']
+            
+            # Calculate time period in years
+            if isinstance(starting_date, str):
+                starting_date = datetime.fromisoformat(starting_date)
+            if isinstance(current_date, str):
+                current_date = datetime.fromisoformat(current_date)
+            
+            days = (current_date - starting_date).days
+            years = days / 365.25
+            
+            # Calculate CAGR - need at least 3 months (0.25 years) of data
+            if years < 0.25 or starting_price <= 0:
+                cagr = None
+            else:
+                cagr = ((current_price / starting_price) ** (1 / years)) - 1
+                
+                # Sanity check: filter out outliers (bad data)
+                # Reject CAGR below -99% or above +5000% annual
+                if not (-0.99 <= cagr <= 50.0):
+                    cagr = None
+            
+            updates.append(
+                UpdateOne(
+                    {'Symbol': ticker},
+                    {'$set': {
+                        'CAGR': round(cagr, 4) if cagr is not None else None,
+                        'CAGRYears': round(years, 2) if years >= 0.25 else None
+                    }}
+                )
+            )
+            
+        except Exception as e:
+            pass  # Print removed for clean output
+            continue
+    
+    if updates:
+        try:
+            result = await asset_info_collection.bulk_write(updates)
+            pass  # Print removed for clean output
+        except Exception as e:
+            pass  # Print removed for clean output
 
 #  Calculates market stats for dashboard (tier list version)
 async def update_market_stats():
@@ -1895,7 +2143,7 @@ async def update_market_stats():
             })
 
     if not gain_data:
-        print("No gain data found for any symbol.")
+        pass  # Print removed for clean output
         return
 
     gain_df = pd.DataFrame(gain_data)
@@ -1918,10 +2166,10 @@ async def update_market_stats():
         industry_tier_list.append({"industry": industry, "average_return": group["gain"].median(), "count": len(group)})
     industry_tier_list.sort(key=lambda x: x["average_return"], reverse=True)
 
-    # Calculate SMA stats for ALL assets and by AssetType (including OTC)
+    # Calculate SMA stats for ALL assets and by AssetType (including OTC and PINK)
     sma_periods = [5, 10, 20, 50, 100, 150, 200]
     sma_stats = {}
-    asset_types_for_sma = ["ALL", "Stock", "ETF", "Mutual Fund", "OTC"]
+    asset_types_for_sma = ["ALL", "Stock", "ETF", "Mutual Fund", "OTC", "PINK"]
     
     for period in sma_periods:
         sma_stats[f"SMA{period}"] = {}
@@ -1932,17 +2180,26 @@ async def update_market_stats():
             
             for symbol, info in symbol_map.items():
                 # Filter by asset type and exchange
-                if asset_type == "OTC":
-                    # Only include OTC stocks (not NYSE or NASDAQ)
+                if asset_type == "PINK":
+                    # Only include PINK exchange stocks
                     symbol_exchange = info.get("Exchange", "")
-                    if symbol_exchange in ["NYSE", "NASDAQ"]:
+                    if symbol_exchange != "PINK":
+                        continue
+                    # Only process stocks for PINK category
+                    symbol_asset_type = info.get("AssetType", "")
+                    if symbol_asset_type != "Stock":
+                        continue
+                elif asset_type == "OTC":
+                    # Only include OTC stocks (not NYSE, NASDAQ, or PINK)
+                    symbol_exchange = info.get("Exchange", "")
+                    if symbol_exchange in ["NYSE", "NASDAQ", "PINK"]:
                         continue
                     # Only process stocks for OTC category
                     symbol_asset_type = info.get("AssetType", "")
                     if symbol_asset_type != "Stock":
                         continue
                 elif asset_type == "Stock":
-                    # For "Stock" category, exclude OTC (only NYSE/NASDAQ)
+                    # For "Stock" category, exclude OTC and PINK (only NYSE/NASDAQ)
                     symbol_asset_type = info.get("AssetType", "")
                     if symbol_asset_type != "Stock":
                         continue
@@ -2007,6 +2264,39 @@ async def update_market_stats():
             perf["YTD"] = None
         index_performance[ticker] = perf
 
+    # Calculate market outlook based on SMA distribution for ALL assets
+    # Short term: SMA5, SMA10, SMA20
+    # Mid term: SMA50, SMA100
+    # Long term: SMA150, SMA200
+    def calculate_outlook(sma_list):
+        """Calculate market outlook based on percentage of stocks above SMA"""
+        avg_up = sum(sma_stats[sma]["ALL"]["up"] for sma in sma_list) / len(sma_list)
+        
+        if avg_up >= 0.70:  # 70% or more up
+            return "positive"
+        elif avg_up >= 0.50:  # 50% or more up
+            return "neutral"
+        else:  # Less than 50% up
+            return "negative"
+    
+    market_outlook = {
+        "shortTerm": {
+            "outlook": calculate_outlook(["SMA5", "SMA10", "SMA20"]),
+            "percentageUp": round(sum(sma_stats[sma]["ALL"]["up"] for sma in ["SMA5", "SMA10", "SMA20"]) / 3 * 100, 2),
+            "smas": ["SMA5", "SMA10", "SMA20"]
+        },
+        "midTerm": {
+            "outlook": calculate_outlook(["SMA50", "SMA100"]),
+            "percentageUp": round(sum(sma_stats[sma]["ALL"]["up"] for sma in ["SMA50", "SMA100"]) / 2 * 100, 2),
+            "smas": ["SMA50", "SMA100"]
+        },
+        "longTerm": {
+            "outlook": calculate_outlook(["SMA150", "SMA200"]),
+            "percentageUp": round(sum(sma_stats[sma]["ALL"]["up"] for sma in ["SMA150", "SMA200"]) / 2 * 100, 2),
+            "smas": ["SMA150", "SMA200"]
+        }
+    }
+
     # Prepare and upsert stats document
     stats_doc = {
         "sectorTierList": sector_tier_list,
@@ -2018,6 +2308,7 @@ async def update_market_stats():
         "SMA100": sma_stats["SMA100"],
         "SMA150": sma_stats["SMA150"],
         "SMA200": sma_stats["SMA200"],
+        "marketOutlook": market_outlook,
         "indexPerformance": index_performance,
         "top10DailyGainers": top_10_gainers,
         "top10DailyLosers": top_10_losers,
@@ -2035,6 +2326,8 @@ async def Daily():
     # Run getPrice first (sequentially)
     await getPrice()
 
+    print("Processing market data tasks...")
+    
     # List of async functions to run in parallel
     task_funcs = [
         updateWeekly,
@@ -2048,6 +2341,7 @@ async def Daily():
         calculateADV,
         calculateAlltimehighlowandperc52wk,
         calculatePerc,
+        calculate_cagr_since_ipo,
         update_intrinsic_values,
         update_market_stats
     ]
@@ -2055,10 +2349,12 @@ async def Daily():
     total_tasks = len(task_funcs)
     completed = 0
 
-    def print_progress_bar(completed, total, bar_length=24):
-        done = int(bar_length * completed / total)
-        bar = '[' + '#' * done + '_' * (bar_length - done) + ']'
-        print(f'Progress: {bar} {completed}/{total}', end='\r', flush=True)
+    def print_progress_bar(completed, total, bar_length=50):
+        """Print a percentage-based progress bar"""
+        percentage = int(100 * completed / total)
+        filled_length = int(bar_length * completed / total)
+        bar = '█' * filled_length + '░' * (bar_length - filled_length)
+        print(f'\rProgress: |{bar}| {percentage}%', end='', flush=True)
 
     # Use a lock for thread safety (even though asyncio is single-threaded, for future-proofing)
     progress_lock = asyncio.Lock()
@@ -2067,6 +2363,8 @@ async def Daily():
         nonlocal completed
         try:
             await coro()
+        except Exception:
+            pass  # Silently ignore errors to keep progress bar clean
         finally:
             async with progress_lock:
                 completed += 1
@@ -2074,10 +2372,10 @@ async def Daily():
 
     start_time = time.time()
     print_progress_bar(0, total_tasks)
-    await asyncio.gather(*(wrapped_task(f) for f in task_funcs))
+    await asyncio.gather(*(wrapped_task(f) for f in task_funcs), return_exceptions=True)
     end_time = time.time()
     print()  # Move to next line after progress bar
-    print(f"Total execution time: {(end_time - start_time)/60:.2f} minutes")
+    print(f"✓ Completed in {(end_time - start_time)/60:.2f} minutes")
     #await checkAndUpdateFinancialUpdates()
     #await fetchNews()
 
