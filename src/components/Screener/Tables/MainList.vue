@@ -225,6 +225,7 @@ const attributes: Attribute[] = [
   { label: 'EV', value: 'ev', backend: 'EV' },
   { label: 'RSI', value: 'rsi', backend: 'RSI' },
   { label: 'Intrinsic Value', value: 'intrinsic_value', backend: 'IntrinsicValue' },
+  { label: 'CAGR', value: 'cagr', backend: 'CAGR' },
   { label: 'Fund Family', value: 'fund_family', backend: 'fundFamily' },
   { label: 'Fund Category', value: 'fund_category', backend: 'FundCategory' },
   { label: 'Net Expense Ratio', value: 'net_expense_ratio', backend: 'netExpenseRatio' },
@@ -243,6 +244,7 @@ function getColumnValue(asset: Asset, col: string): string {
   const formatRules: { [key: string]: (v: any) => string } = {
     DividendYield: (v: number) => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
     EPS: (v: number) => (typeof v === 'number' ? v.toFixed(2) : '-'),
+    Close: (v: any) => { if (typeof v === 'number') return v.toFixed(2); if (v != null && !isNaN(Number(v))) return Number(v).toFixed(2); return '-';},
     todaychange: (v: number) => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
     ADV1W: (v: number) => (typeof v === 'number' ? v.toFixed(2) : '-'),
     ADV1M: (v: number) => (typeof v === 'number' ? v.toFixed(2) : '-'),
@@ -279,6 +281,7 @@ function getColumnValue(asset: Asset, col: string): string {
     },
     Currency: (v: any) => (typeof v === 'string' ? v.toUpperCase() : (v ?? '-')),
     netExpenseRatio: (v: number) => (typeof v === 'number' && v >= 0 ? v.toFixed(2) + '%' : '-'),
+    CAGR: (v: number) => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
   };
   const formatter = formatRules[attr.backend];
   if (formatter) return formatter(value);
@@ -330,6 +333,7 @@ const styleMap: { [key: string]: number } = {
   adv1y: 100,
   rsi: 70,
   intrinsic_value: 150,
+  cagr: 100,
   fund_family: 250,
   fund_category: 250,
   net_expense_ratio: 120,

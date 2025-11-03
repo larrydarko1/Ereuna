@@ -27,7 +27,7 @@
       </div>
       <div class="nav-title">
         <h1>Docs</h1>
-        <span class="nav-version">v3.9.0</span>
+        <span class="nav-version">v3.9.1</span>
       </div>
     </div>
 
@@ -45,7 +45,7 @@
       >
         {{ item }}
       </p>
-      <span class="version">Ereuna v3.9.0</span>
+      <span class="version">Ereuna v3.9.1</span>
     </div>
     
     <div class="side2" :class="{ hidden: isMobile && mobileView !== 'submenu' }">
@@ -99,6 +99,7 @@ onUnmounted(() => {
 
 // Import all documentation components
 import WelcomeDoc from '@/components/Docs/WelcomeDoc.vue'
+import SupportedAssetsDoc from '@/components/Docs/supportedAssets.vue'
 import CreateAccountDoc from '@/components/Docs/createAccount.vue'
 import RecoverPasswordDoc from '@/components/Docs/RecoverPassword.vue'
 import ArchieDoc from '@/components/Docs/archie.vue'
@@ -143,7 +144,7 @@ import MiniCharts from '@/components/Docs/MiniCharts.vue'
 
 const side1Items = ['Introduction', 'Dashboard', 'Account', 'Portfolio', 'Charts', 'Screener']
 const side2Items: Record<string, string[]> = {
-  Introduction: ['Welcome', 'Create Account', 'Recover Password'],
+  Introduction: ['Welcome', 'Supported Tickers', 'Create Account', 'Recover Password'],
   Dashboard: ['Archie AI (In Development)', 'Dashboard Overview'],
   Account: ['Change Username', 'Change Password', 'Generate Recovery Key','Delete Account', 'Subscription', 'Renew Subscription', 'Ask For Refund', 'Themes', 'Security / 2FA'],
   Portfolio: [
@@ -177,6 +178,7 @@ const selectedSide2 = ref<string>(side2Items[selectedSide1.value][0]);
 const componentMap: Record<string, any> = {
   'Welcome': WelcomeDoc,
   'Create Account': CreateAccountDoc,
+  'Supported Tickers': SupportedAssetsDoc,
   'Recover Password': RecoverPasswordDoc,
   'Archie AI (In Development)': ArchieDoc,
   'Dashboard Overview': DashboardDoc,

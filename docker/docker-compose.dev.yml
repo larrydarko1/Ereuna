@@ -1,0 +1,458 @@
+services:
+
+  traefik:
+    image: traefik:latest
+    command:
+      - --api.dashboard=true
+      - --api.insecure=false
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entryPoints.web.address=:80
+      - --entryPoints.websecure.address=:443
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --log.level=DEBUG
+      - --log.format=json
+      - --accessLog=true
+      - --accessLog.filePath=/dev/stdout
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/certs
+    networks:
+      - ereuna-network
+      - ereuna-network-internal
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "job,environment"
+    labels:
+      job: traefik
+      environment: production
+      traefik.enable: "true"
+      traefik.http.routers.dashboard.rule: "Host(`traefik.localhost`)"
+      traefik.http.routers.dashboard.entrypoints: "websecure"
+      traefik.http.routers.dashboard.tls.certresolver: ""
+      traefik.http.routers.dashboard.service: "api@internal"
+      traefik.tls.certificates[0].certFile: "/certs/localhost-cert.pem"
+      traefik.tls.certificates[0].keyFile: "/certs/localhost-key.pem"
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    env_file:
+      - ../.env
+    depends_on:
+      - backend
+    networks:
+      - ereuna-network
+      - ereuna-network-internal
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "job,environment"
+    labels:
+      job: frontend
+      environment: production
+      traefik.enable: "true"
+      traefik.docker.network: "ereuna-network"
+      traefik.http.routers.frontend.rule: "Host(`localhost`)"
+      traefik.http.routers.frontend.entrypoints: "websecure"
+      traefik.http.routers.frontend.tls.certresolver: ""
+      traefik.http.routers.frontend.middlewares: "security-headers,compression"
+      traefik.http.services.frontend.loadbalancer.server.port: "3500"
+
+      # Security Headers Middleware
+      traefik.http.middlewares.security-headers.headers.customResponseHeaders.X-Frame-Options: "SAMEORIGIN"
+      traefik.http.middlewares.security-headers.headers.customResponseHeaders.X-Content-Type-Options: "nosniff"
+      traefik.http.middlewares.security-headers.headers.customResponseHeaders.X-XSS-Protection: "1; mode=block"
+      traefik.http.middlewares.security-headers.headers.customResponseHeaders.Referrer-Policy: "strict-origin-when-cross-origin"
+      traefik.http.middlewares.security-headers.headers.customResponseHeaders.Permissions-Policy: "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+      traefik.http.middlewares.security-headers.headers.stsSeconds: "31536000"
+      traefik.http.middlewares.security-headers.headers.stsIncludeSubdomains: "true"
+      traefik.http.middlewares.security-headers.headers.stsPreload: "true"
+      traefik.http.middlewares.security-headers.headers.contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.stripe.com https://api.tiingo.com wss://api.tiingo.com https://localhost wss://localhost; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
+
+      # Compression Middleware
+      traefik.http.middlewares.compression.compress: "true"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    env_file:
+      - ../.env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
+      - CORS_ORIGIN=https://localhost
+      - PORT=5500
+      - LOG_LEVEL=info
+    networks:
+      - ereuna-network-internal
+      - ereuna-network
+    expose:
+      - "5500"
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "job,environment"
+    labels:
+      job: backend
+      environment: production
+      traefik.enable: "false"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  mongodb:
+    image: mongo:latest
+    command: [ "mongod", "--quiet", "--logpath", "/dev/null" ]
+    volumes:
+      - ../db:/docker-entrypoint-initdb.d
+      - mongodb_data:/data/db
+    networks:
+      - ereuna-network-internal
+    restart: unless-stopped
+    expose:
+      - "27017"
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+        labels: "job,environment"
+    labels:
+      job: mongodb
+      environment: production
+      traefik.enable: "false"
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    expose:
+      - "9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=90d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--log.level=warn'
+    depends_on:
+      - backend
+      - mongodb
+    networks:
+      - ereuna-network-internal
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+        labels: "job,environment"
+    labels:
+      job: prometheus
+      environment: production
+      traefik.enable: "false"
+
+  grafana:
+    image: grafana/grafana:latest
+    depends_on:
+      - prometheus
+      - loki
+    env_file:
+      - ../.env
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=REDACTED_PASSWORD
+      - GF_SERVER_HTTP_PORT=3000
+      - GF_SERVER_PROTOCOL=http
+      - GF_SERVER_DOMAIN=localhost
+      - GF_LOG_LEVEL=warn
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+    networks:
+      - ereuna-network
+      - ereuna-network-internal
+    restart: unless-stopped
+    logging:
+      driver: none
+    labels:
+      job: grafana
+      environment: production
+      traefik.enable: "true"
+      traefik.docker.network: "ereuna-network"
+      traefik.http.routers.grafana.rule: "Host(`grafana.localhost`)"
+      traefik.http.routers.grafana.entrypoints: "websecure"
+      traefik.http.routers.grafana.tls.certresolver: ""
+      traefik.http.services.grafana.loadbalancer.server.port: "3000"
+
+  loki:
+    image: grafana/loki:latest
+    expose:
+      - "3100"
+    volumes:
+      - ./loki.yml:/etc/loki/loki.yml
+      - logs_volume:/loki
+    networks:
+      - ereuna-network-internal
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+    labels:
+      job: loki
+      environment: production
+      traefik.enable: "false"
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml -log.level=warn
+    networks:
+      - ereuna-network-internal
+    depends_on:
+      - loki
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+    labels:
+      job: promtail
+      environment: production
+      traefik.enable: "false"
+
+  redis:
+    image: redis:7-alpine
+    command: [ "redis-server", "--loglevel", "warning" ]
+    restart: unless-stopped
+    expose:
+      - "6379"
+    networks:
+      - ereuna-network-internal
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+        labels: "job,environment"
+    labels:
+      job: redis
+      environment: production
+      traefik.enable: "false"
+
+  aggregator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.aggregator
+    env_file:
+      - ../.env
+    depends_on:
+      - redis
+      - mongodb
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MONGO_URI=mongodb://mongodb:27017/
+      - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
+      - LOG_LEVEL=info
+    networks:
+      - ereuna-network-internal
+      - ereuna-network
+    expose:
+      - "8002"
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8002/ready');\" || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "job,environment"
+    labels:
+      job: aggregator
+      environment: production
+      traefik.enable: "false"
+
+  ingestor:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.ingestor
+    env_file:
+      - ../.env
+    depends_on:
+      - redis
+      - mongodb
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MONGO_URI=mongodb://mongodb:27017/
+      - LOG_LEVEL=info
+    command: [ "sh", "-c", "uvicorn server.ingestor.ingestor:app --host 0.0.0.0 --port 8001 --log-level info" ]
+    networks:
+      - ereuna-network
+      - ereuna-network-internal
+    expose:
+      - "8001"
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8001/ready');\" || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: "no"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "job,environment"
+    labels:
+      job: ingestor
+      environment: production
+      traefik.enable: "false"
+
+  websocket:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.websocket
+    env_file:
+      - ../.env
+    depends_on:
+      - redis
+      - mongodb
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MONGO_URI=mongodb://mongodb:27017/
+      - VITE_EREUNA_KEY=${VITE_EREUNA_KEY}
+      - LOG_LEVEL=info
+    networks:
+      - ereuna-network-internal
+      - ereuna-network
+    expose:
+      - "8000"
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/ready');\" || exit 1" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "job,environment"
+    labels:
+      job: websocket
+      environment: production
+      traefik.enable: "true"
+      traefik.docker.network: "ereuna-network"
+      traefik.http.routers.websocket.rule: "Host(`localhost`) && PathPrefix(`/ws`)"
+      traefik.http.routers.websocket.entrypoints: "websecure"
+      traefik.http.routers.websocket.tls.certresolver: ""
+      traefik.http.services.websocket.loadbalancer.server.port: "8000"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.40
+    command:
+      - '--mongodb.uri=mongodb://mongodb:27017'
+      - '--collect-all'
+      - '--compatible-mode'
+    networks:
+      - ereuna-network-internal
+    expose:
+      - "9216"
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+        labels: "job,environment"
+    labels:
+      job: mongodb-exporter
+      environment: production
+      traefik.enable: "false"
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.55.0-alpine
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+      - REDIS_EXPORTER_LOG_FORMAT=txt
+    networks:
+      - ereuna-network-internal
+    expose:
+      - "9121"
+    depends_on:
+      - redis
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+        labels: "job,environment"
+    labels:
+      job: redis-exporter
+      environment: production
+      traefik.enable: "false"
+
+networks:
+  ereuna-network-internal:
+    driver: bridge
+    internal: true
+    labels:
+      traefik.enable: "false"
+  ereuna-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  logs_volume:
+  prometheus_data:
+  grafana_data:

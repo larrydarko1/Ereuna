@@ -37,11 +37,11 @@
  *
  * Symbol (symbol, symbolParam):
  *   - Required, trimmed, 1-12 characters
- *   - Only uppercase letters and numbers (^[A-Z0-9]+$)
+ *   - Only uppercase letters, numbers, and hyphens (^[A-Z0-9-]+$) 
  *
  * Identifier (identifier):
  *   - Required, trimmed, 1-12 characters
- *   - Only uppercase letters and numbers (^[A-Z0-9]+$)
+ *   - Only uppercase letters, numbers, and hyphens (^[A-Z0-9-]+$) 
  *
  * Note ID (noteId):
  *   - Required, valid MongoDB ObjectId
@@ -144,7 +144,7 @@ const validationSchemas = {
         .trim()
         .notEmpty().withMessage('Identifier is required')
         .isLength({ min: 1, max: 12 }).withMessage('Identifier must be between 1 and 12 characters')
-        .matches(/^[A-Z0-9]+$/).withMessage('Identifier must be uppercase alphanumeric'),
+        .matches(/^[A-Z0-9\-:]+$/).withMessage('Identifier must be uppercase alphanumeric with hyphens and colons'),
 
     apiKeyParam: () => param('apiKey')
         .trim()
@@ -156,7 +156,7 @@ const validationSchemas = {
         .trim()
         .notEmpty().withMessage('Symbol is required')
         .isLength({ min: 1, max: 12 }).withMessage('Symbol must be between 1 and 12 characters')
-        .matches(/^[A-Z0-9]+$/).withMessage('Symbol must be uppercase alphanumeric'),
+        .matches(/^[A-Z0-9\-:]+$/).withMessage('Symbol must be uppercase alphanumeric with hyphens and colons'),
 
     // Note Validation
     note: () => body('note')
@@ -184,7 +184,7 @@ const validationSchemas = {
         .trim()
         .notEmpty().withMessage('Ticker symbol is required')
         .isLength({ min: 1, max: 12 }).withMessage('Ticker symbol must be between 1 and 12 characters')
-        .matches(/^[A-Z0-9]+$/).withMessage('Ticker symbol must be uppercase alphanumeric'),
+        .matches(/^[A-Z0-9-:]+$/).withMessage('Ticker symbol must be uppercase alphanumeric with hyphens and colons'),
 
     // Email Validation
     email: () => body('email')
@@ -214,7 +214,7 @@ const validationSchemas = {
         .trim()
         .notEmpty().withMessage('Symbol is required')
         .isLength({ min: 1, max: 12 }).withMessage('Symbol must be between 1 and 12 characters')
-        .matches(/^[A-Z0-9]+$/).withMessage('Symbol must be uppercase alphanumeric'),
+        .matches(/^[A-Z0-9-:]+$/).withMessage('Symbol must be uppercase alphanumeric with hyphens and colons'),
 
     userParam: (fieldName = 'user') => param(fieldName)
         .trim()
@@ -282,8 +282,8 @@ const validationSchemas = {
             .trim()
             .isLength({ min: 1, max: 20 })
             .withMessage('Screener name must be between 1 and 20 characters')
-            .matches(/^[a-zA-Z0-9\s_-]+$/)
-            .withMessage('Screener name can only contain letters, numbers, spaces, underscores, and hyphens'),
+            .matches(/^[a-zA-Z0-9\s_\-+()]+$/)
+            .withMessage('Screener name can only contain letters, numbers, spaces, underscores, hyphens, plus signs, and parentheses'),
 
     user: () => body('user')
         .trim()
@@ -410,7 +410,7 @@ const validationSchemas = {
         body('symbols')
             .isArray({ min: 0, max: 20 }).withMessage('Symbols must be an array with up to 20 elements')
             .custom((arr: string[]) => arr.every((s: string) => typeof s === 'string')).withMessage('Each symbol must be a string')
-            .custom((arr: string[]) => arr.every((s: string) => /^[A-Z0-9]+$/.test(s))).withMessage('Symbols must be uppercase alphanumeric'),
+            .custom((arr: string[]) => arr.every((s: string) => /^[A-Z0-9-]+$/i.test(s))).withMessage('Symbols must be uppercase alphanumeric with hyphens'),
 
     rsScore: () => [
         body('value1')
@@ -694,10 +694,10 @@ const sanitizeUsernameCanonical = (input: string): string => {
     return sanitizeUsername(input).toLowerCase();
 };
 
-// Symbol sanitizer (tickers): trim, uppercase, remove invalid chars (allow dot)
+// Symbol sanitizer (tickers): trim, uppercase, remove invalid chars (allow dot and hyphen)
 const sanitizeSymbol = (input: string): string => {
     if (typeof input !== 'string') return '';
-    return validator.trim(input).toUpperCase().replace(/[^A-Z0-9.]/g, '');
+    return validator.trim(input).toUpperCase().replace(/[^A-Z0-9.-]/g, '');
 };
 
 // Text without HTML-escaping (store raw, escape on output if needed)

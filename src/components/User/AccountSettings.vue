@@ -761,6 +761,7 @@ async function GenerateNewKey() {
   margin-bottom: 5px;
   margin-left: 5px;
   overflow-x: hidden;
+  color: var(--text1);
 }
 
 .toggle-icon {

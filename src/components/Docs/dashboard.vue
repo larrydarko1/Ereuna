@@ -4,6 +4,9 @@
     <img src="@/assets/images/docs/dashboard.gif" alt="Dashboard Overview" class="dashboard-gif" />
     <p>The Dashboard is your central hub for market insights and portfolio monitoring. Currently, users cannot customize the dashboard layout, but as Ereuna continues active development, customizable dashboards are planned for future updates.</p>
     
+    <h3>Market Outlook</h3>
+    <p>This section provides market outlook assessments across three different timeframes: short-term, mid-term, and long-term. Currently, we evaluate market outlook using Simple Moving Average (SMA) distributions to gauge overall market sentiment and momentum. In the future, more sophisticated analytical methods will be incorporated to provide deeper insights.</p>
+    
     <h3>Archie AI Placeholder</h3>
     <p>A section reserved for Archie, the AI trading agent currently in development. Once available, this will integrate AI-powered insights directly into your dashboard.</p>
     
@@ -26,6 +29,7 @@
     <li><strong>ETFs Only:</strong> Shows distribution for Exchange-Traded Funds, which tend to be more stable.</li>
     <li><strong>Mutual Funds Only:</strong> Displays distribution for mutual funds, typically long-term oriented.</li>
     <li><strong>OTC Stocks:</strong> Shows only over-the-counter stocks (excluding NYSE/NASDAQ). These are typically smaller, more volatile securities.</li>
+    <li><strong>PINK Stocks:</strong> Shows only Pink Sheet stocks, a subset of OTC stocks with limited regulatory requirements and higher risk profiles.</li>
   </ul>
   <p>This breakdown helps you understand market conditions for specific asset classes. By separating OTC stocks from major exchanges, you get a cleaner picture of institutional market health.</p>
 
@@ -47,6 +51,9 @@
     <h4>Important Disclaimer</h4>
     <p>Intrinsic value calculations are estimates based on historical financial data and assumptions about future performance. They should not be considered as investment advice or guarantees of future returns. Always conduct thorough research and consider multiple factors before making investment decisions. Market prices may differ from intrinsic values for valid reasons, including growth expectations, market sentiment, and company-specific factors.</p>
   </div>
+  
+  <h3>News</h3>
+  <p>This section features recent articles and news related to major market indexes, providing context and insights into current market events and trends.</p>
   </div>
 </template>
 

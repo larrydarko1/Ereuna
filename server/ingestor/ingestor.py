@@ -3,23 +3,20 @@ sys.path.append('.')
 import datetime as dt
 import os
 import json
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Request, status, Body, Response
+from fastapi import FastAPI, WebSocket, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import websockets
 import ssl
 import asyncio
 import motor.motor_asyncio
-import traceback
 import logging
-from server.aggregator.aggregator import pubsub_channels, get_latest_in_progress_candle
 import redis.asyncio as aioredis
-from bson import ObjectId
-from dateutil.parser import isoparse
 import datetime
 from starlette.websockets import WebSocketDisconnect
-from pydantic import BaseModel, validator
-import re
+import time
+import signal
+import sys
 from prometheus_client import Counter, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 load_dotenv()
@@ -82,10 +79,6 @@ ssl_ctx = ssl.create_default_context()
 def stock_filter(msg):
     return msg.get("messageType") == "A" and isinstance(msg.get("data"), list) and len(msg["data"]) >= 3
 
-import time
-import signal
-import sys
-
 # Bandwidth tracking for stocks only
 stock_bandwidth_stats = {}  # {symbol: {'bytes': int, 'messages': int}}
 stock_bandwidth_history = {}  # {symbol: [(timestamp, bytes)]}
@@ -133,6 +126,44 @@ current_tiingo_ws = None       # Stores active websocket
 # Background task handles (set on startup)
 market_task = None
 daily_scheduler_task = None
+
+async def send_emergency_unsubscribe(subscription_id, tickers, ws_url, ssl_ctx):
+    """
+    Opens a fresh websocket connection to send an unsubscribe message.
+    Used when the main connection is dead but we need to clean up a subscription.
+    """
+    if not subscription_id or not tickers:
+        logger.warning("[EmergencyUnsub] Missing subscription_id or tickers, cannot send emergency unsubscribe")
+        return False
+    
+    try:
+        logger.info(f"[EmergencyUnsub] Opening new connection to send unsubscribe for subscription {subscription_id}")
+        async with websockets.connect(ws_url, ssl=ssl_ctx) as emergency_ws:
+            unsubscribe_msg = {
+                "eventName": "unsubscribe",
+                "authorization": TIINGO_API_KEY,
+                "eventData": {
+                    "subscriptionId": subscription_id,
+                    "tickers": tickers
+                }
+            }
+            logger.info(f"[EmergencyUnsub] Sending emergency unsubscribe: {unsubscribe_msg}")
+            await asyncio.wait_for(emergency_ws.send(json.dumps(unsubscribe_msg)), timeout=5)
+            logger.info("[EmergencyUnsub] Emergency unsubscribe sent, waiting for response...")
+            
+            try:
+                response = await asyncio.wait_for(emergency_ws.recv(), timeout=5)
+                logger.info(f"[EmergencyUnsub] ✓ Tiingo response: {response}")
+                return True
+            except asyncio.TimeoutError:
+                logger.warning("[EmergencyUnsub] ⚠ Timeout waiting for response")
+                return False
+            except Exception as recv_e:
+                logger.warning(f"[EmergencyUnsub] ⚠ Error receiving response: {recv_e}")
+                return False
+    except Exception as e:
+        logger.error(f"[EmergencyUnsub] ✗ Failed to send emergency unsubscribe: {e}")
+        return False
 
 async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
     global current_subscription_id, current_tickers, current_subscribe_msg, current_tiingo_ws
@@ -208,7 +239,10 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                                                 logger.warning(f"Redis publish failed: {pub_e}")
                                             try:
                                                 xadd_id = await redis_client.xadd('tiingo:stream', {'data': msg}, maxlen=10000, approximate=True)
-                                                logger.debug(f"Appended raw tiingo message to Redis stream 'tiingo:stream' (id={xadd_id}) for symbol {symbol}")
+                                                if stats['messages'] % 10 == 0:  # Log every 10th message per symbol
+                                                    logger.info(f"[Ingestor] Appended {stats['messages']} messages for {symbol} to Redis stream (last id={xadd_id})")
+                                                else:
+                                                    logger.debug(f"Appended raw tiingo message to Redis stream 'tiingo:stream' (id={xadd_id}) for symbol {symbol}")
                                             except Exception as xadd_e:
                                                 logger.warning(f"Redis XADD failed: {xadd_e}")
                                         else:
@@ -269,6 +303,11 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
                         break
                     raise inner_e
         except Exception as e:
+            # Clear global state on any exception exit to ensure clean slate
+            current_subscription_id = None
+            current_tickers = []
+            current_subscribe_msg = None
+            current_tiingo_ws = None
             # Suppress common websocket close errors
             if "no close frame" not in str(e) and "1005" not in str(e):
                 logger.error(f"Exception in relay_tiingo: {e}")
@@ -280,7 +319,7 @@ async def relay_tiingo(ws_url, subscribe_msg, ssl_ctx, filter_fn):
 
 # --- Market hours background manager ---
 async def market_hours_manager():
-    global stock_symbols, tiingo_ws
+    global stock_symbols, tiingo_ws, current_tickers
     global current_tiingo_ws
     tiingo_task = None
     aggregator_task = None
@@ -308,25 +347,105 @@ async def market_hours_manager():
                 if manual_override_active:
                     print("[MarketHours] Manual override active: stopping subscription attempts.")
                     break
+                # Check if relay task is still running; if not, attempt cleanup and reset
+                if tiingo_task and tiingo_task.done():
+                    logger.warning("[MarketHours] Relay task died unexpectedly; attempting cleanup before reset.")
+                    # Try to send unsubscribe if we have subscription info
+                    cleanup_success = False
+                    if current_subscription_id and current_tickers:
+                        # First try using the existing websocket if still available
+                        if current_tiingo_ws:
+                            try:
+                                unsubscribe_msg = {
+                                    "eventName": "unsubscribe",
+                                    "authorization": TIINGO_API_KEY,
+                                    "eventData": {
+                                        "subscriptionId": current_subscription_id,
+                                        "tickers": current_tickers
+                                    }
+                                }
+                                logger.info(f"[MarketHours] Attempting cleanup unsubscribe via existing websocket")
+                                await asyncio.wait_for(current_tiingo_ws.send(json.dumps(unsubscribe_msg)), timeout=3)
+                                response = await asyncio.wait_for(current_tiingo_ws.recv(), timeout=3)
+                                logger.info(f"[MarketHours] ✓ Cleanup unsubscribe response: {response}")
+                                cleanup_success = True
+                            except Exception as ws_e:
+                                logger.warning(f"[MarketHours] Existing websocket unavailable: {ws_e}")
+                        
+                        # If existing websocket failed, open a fresh connection for emergency unsubscribe
+                        if not cleanup_success:
+                            logger.info("[MarketHours] Attempting emergency unsubscribe via fresh connection...")
+                            cleanup_success = await send_emergency_unsubscribe(
+                                current_subscription_id, 
+                                current_tickers, 
+                                "wss://api.tiingo.com/iex",
+                                ssl_ctx
+                            )
+                            if cleanup_success:
+                                logger.info("[MarketHours] ✓ Emergency unsubscribe successful")
+                            else:
+                                logger.error("[MarketHours] ✗ Emergency unsubscribe failed - may have dangling subscription on Tiingo!")
+                    else:
+                        logger.warning(f"[MarketHours] Cannot send cleanup unsubscribe - missing data (subId={current_subscription_id is not None}, tickers={len(current_tickers) if current_tickers else 0})")
+                    
+                    # Reset state after cleanup attempt
+                    subscribed = False
+                    tiingo_task = None
+                    current_tiingo_ws = None
+                    current_subscription_id = None
+                    current_tickers = []
+                    logger.info("[MarketHours] Subscription state reset after task failure.")
                 if not subscribed:
-                    # hardcoded tickers for testing
-                    stock_symbols = ['TSLA', 'RDDT']
-                    tickers_to_subscribe = stock_symbols
-                    logger.info(f"[MarketHours] Subscribing to {len(stock_symbols)} stock/ETF tickers: {stock_symbols}")
-                    stock_subscribe_msg = {
-                        "eventName": "subscribe",
-                        "authorization": TIINGO_API_KEY,
-                        "eventData": {
-                            "thresholdLevel": 6,
-                            "tickers": tickers_to_subscribe
+                    logger.info("[MarketHours] Market is open and not subscribed; attempting subscription.")
+                    # In production: load tickers from MongoDB AssetInfo collection
+                    # Select group: AssetType = "Stock", Exchange = "NYSE"
+                    try:
+                        # TEST: subscribe to specific tickers for testing
+                        # Later: change query to subscribe to all stocks/mutual funds
+                        query = {
+                            "Symbol": {"$in": ["TSLA", "RDDT"]},
+                            "Delisted": False
                         }
-                    }
-                    # Start relay task; relay_tiingo will open the websocket and send subscribe (only during market hours)
-                    tiingo_task = asyncio.create_task(relay_tiingo(ws_url, stock_subscribe_msg, ssl_ctx, stock_filter))
-                    subscribed = True
+                        docs = await db.AssetInfo.find(query, {"Symbol": 1, "_id": 0}).to_list(length=None)
+                        stock_symbols = []
+                        for d in docs:
+                            sym = d.get("Symbol")
+                            if sym:
+                                stock_symbols.append(sym.upper())
+                        # dedupe while preserving order
+                        stock_symbols = list(dict.fromkeys(stock_symbols))
+                        tickers_to_subscribe = stock_symbols
+                        logger.info(f"[MarketHours] Subscribing to {len(stock_symbols)} tickers.")
+                    except Exception as e:
+                        logger.error(f"[MarketHours] Failed to load tickers from DB: {e}")
+                        stock_symbols = []
+                        tickers_to_subscribe = []
+
+                    if tickers_to_subscribe:
+                        stock_subscribe_msg = {
+                            "eventName": "subscribe",
+                            "authorization": TIINGO_API_KEY,
+                            "eventData": {
+                                "thresholdLevel": 6,
+                                "tickers": tickers_to_subscribe
+                            }
+                        }
+                        # Set global current_tickers immediately so admin/unsubscribe handlers
+                        # reference the intended list even before Tiingo acknowledges the subscribe.
+                        current_tickers = tickers_to_subscribe
+                        # Start relay task; relay_tiingo will open the websocket and send subscribe (only during market hours)
+                        tiingo_task = asyncio.create_task(relay_tiingo(ws_url, stock_subscribe_msg, ssl_ctx, stock_filter))
+                        subscribed = True
+                        logger.info(f"[MarketHours] Subscription initiated for {len(tickers_to_subscribe)} tickers.")
+                    else:
+                        logger.warning("[MarketHours] No tickers found to subscribe; will retry on next check")
+                else:
+                    # Already subscribed, just log periodically
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug(f"[MarketHours] Already subscribed during market hours (subscribed={subscribed})")
             else:
                 if subscribed:
-                    print("[MarketHours] Market closed. Unsubscribing from Tiingo and cancelling tasks.")
+                    logger.info("[MarketHours] Market closed. Unsubscribing from Tiingo and cancelling tasks.")
                     # Send unsubscribe message before closing connection
                     if current_subscription_id and current_tickers:
                         try:
@@ -386,6 +505,11 @@ async def market_hours_manager():
                     higher_tf_task = None
                     tiingo_ws = None
                     subscribed = False
+                    logger.info("[MarketHours] Unsubscribe complete; subscription state reset.")
+                else:
+                    # Market closed but not subscribed, just log periodically
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.debug("[MarketHours] Market closed, no active subscription.")
             await asyncio.sleep(10)  # Check every 10 seconds
         except Exception as e:
             logger.error(f"[MarketHours] Exception in market_hours_manager: {e}")
@@ -398,8 +522,15 @@ async def market_hours_manager():
 @app.on_event("startup")
 async def start_market_hours_manager():
     logger.info("Starting market_hours_manager task on startup.")
-    global market_task, flush_task
+    global market_task, flush_task, bandwidth_task
     market_task = asyncio.create_task(market_hours_manager())
+    # Print bandwidth every hour, but only during market hours
+    async def print_bandwidth_if_market_hours():
+        while True:
+            await asyncio.sleep(3600)  # 1 hour
+            if is_market_hours():
+                print_total_bandwidth()
+    bandwidth_task = asyncio.create_task(print_bandwidth_if_market_hours())
     # Note: daily/weekly flush and organizer scheduling moved to aggregator service
 
 # IPO management moved to aggregator service

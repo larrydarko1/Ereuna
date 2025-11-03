@@ -35,56 +35,22 @@ async def scanDelisted():
 
 #removes delisted tickers from the database
 async def Delist(delisted):
+
     asset_info_collection = db['AssetInfo']
-    ohclv_data_collection = db['OHCLVData']
-    ohclv_data_collection2 = db['OHCLVData2']
-    notes_collection = db['Notes']
-    users_collection = db['Users']
-    watchlists_collection = db['Watchlists']
-    news_collection = db['News']
-    portfolios_collection = db['Portfolios']
-    print("Deleting documents from collections...")
     for i, asset in enumerate(delisted):
         try:
-            # Remove from AssetInfo, OHCLV, Notes, Watchlists, Users.Hidden
-            await asset_info_collection.delete_one({'Symbol': asset})
-            await ohclv_data_collection.delete_many({'tickerID': asset})
-            await ohclv_data_collection2.delete_many({'tickerID': asset})
-            await notes_collection.delete_many({'Symbol': asset})
-            await users_collection.update_many({}, {'$pull': {'Hidden': asset}})
-            await watchlists_collection.update_many({}, {'$pull': {'List': asset}})
-            await users_collection.update_many({}, {'$pull': {'WatchPanel': asset}})
-
-            # Remove from News.tickers, delete doc if only ticker
-            async for news_doc in news_collection.find({'tickers': asset}):
-                tickers = news_doc.get('tickers', [])
-                if isinstance(tickers, list) and asset in tickers:
-                    if len(tickers) == 1:
-                        await news_collection.delete_one({'_id': news_doc['_id']})
-                    else:
-                        await news_collection.update_one({'_id': news_doc['_id']}, {'$pull': {'tickers': asset}})
-
-            # Remove from Portfolios.portfolio and trades
-            async for portfolio_doc in portfolios_collection.find({
-                '$or': [
-                    {'portfolio.Symbol': asset},
-                    {'trades.Symbol': asset}
-                ]
-            }):
-                # Remove from portfolio list
-                await portfolios_collection.update_one(
-                    {'_id': portfolio_doc['_id']},
-                    {'$pull': {'portfolio': {'Symbol': asset}}}
-                )
-                # Remove from trades list
-                await portfolios_collection.update_one(
-                    {'_id': portfolio_doc['_id']},
-                    {'$pull': {'trades': {'Symbol': asset}}}
-                )
-
-            print(f"Processed {i+1} out of {len(delisted)} assets")
+            # Set Delisted to True and wipe RSScore1W, RSScore1M, RSScore4M
+            await asset_info_collection.update_one(
+                {'Symbol': asset},
+                {'$set': {
+                    'Delisted': True,
+                    'RSScore1W': None,
+                    'RSScore1M': None,
+                    'RSScore4M': None
+                }}
+            )
         except Exception as e:
-            print(f"Error processing {asset}: {e}")
+            pass
             
 async def prune_intraday_collections():
     current_date = dt.datetime.now()

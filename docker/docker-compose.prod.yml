@@ -130,7 +130,10 @@ services:
 
   mongodb:
     image: mongo:latest
-    command: [ "mongod", "--quiet", "--logpath", "/dev/null" ]
+    # Log to stdout so Docker captures logs and they are available via `docker logs`.
+    # Avoid sending logs to /dev/null which discards them.
+    # Also bind to all interfaces so the container is reachable via the Docker network.
+    command: [ "mongod", "--bind_ip_all" ]
     volumes:
       - ../db:/docker-entrypoint-initdb.d
       - mongodb_data:/data/db

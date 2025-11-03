@@ -163,6 +163,7 @@ async function setTheme(newTheme: string) {
   margin-bottom: 5px;
   margin-left: 5px;
   background-color: var(--base2);
+  color: var(--text2);
 }
 
 .theme-buttons button.active {

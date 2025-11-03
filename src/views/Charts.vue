@@ -375,6 +375,7 @@ const assetInfo = reactive({
   FundCategory: '-',
   fundFamily: '-',
   netExpenseRatio: null as number | null,
+  Delisted: false,
 });
 
 //takes date strings inside database and converts them into actual date, in italian format

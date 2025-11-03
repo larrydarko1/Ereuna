@@ -25,6 +25,37 @@
         </span>
       </div>
     </section>
+         <!-- Market Outlook Section -->
+    <div class="dashboard-row-outlook">
+      <section class="market-outlook-section card" aria-label="Market Outlook">
+        <h2 id="market-outlook-heading">Market Outlook</h2>
+        <div class="outlook-grid" aria-labelledby="market-outlook-heading">
+          <div v-if="statsLoading" class="loading-state">Loading...</div>
+          <div v-else-if="statsError" class="error-state">{{ statsError }}</div>
+          <template v-else>
+            <div class="outlook-item">
+              <div class="outlook-label">Short Term</div>
+              <div class="outlook-badge" :class="getOutlookClass(marketOutlook.shortTerm)">
+                {{ formatOutlook(marketOutlook.shortTerm) }}
+              </div>
+            </div>
+            <div class="outlook-item">
+              <div class="outlook-label">Mid Term</div>
+              <div class="outlook-badge" :class="getOutlookClass(marketOutlook.midTerm)">
+                {{ formatOutlook(marketOutlook.midTerm) }}
+              </div>
+            </div>
+            <div class="outlook-item">
+              <div class="outlook-label">Long Term</div>
+              <div class="outlook-badge" :class="getOutlookClass(marketOutlook.longTerm)">
+                {{ formatOutlook(marketOutlook.longTerm) }}
+              </div>
+            </div>
+          </template>
+        </div>
+      </section>
+    </div>
+
          <!-- Third Row: Placeholder for future widgets -->
   <div class="dashboard-row3">
     <section style="width: 100%; margin-bottom: 5px;">
@@ -266,6 +297,44 @@
         </div>
       </section>
     </div>
+           <!-- Market News Section -->
+    <div class="dashboard-row-news">
+      <section class="market-news-section card" aria-label="Market Index News">
+        <h2 id="market-news-heading">Latest Market News</h2>
+        <div v-if="newsLoading" class="loading-state">Loading news...</div>
+        <div v-else-if="newsError" class="error-state">{{ newsError }}</div>
+        <div v-else class="news-ticker-container">
+          <button class="nav-arrow nav-arrow-left" @click="scrollNews('left')" aria-label="Previous news">
+            &#9664;
+          </button>
+          <div class="news-carousel" ref="newsCarousel">
+            <a
+              v-for="(article, idx) in sortedNews"
+              :key="idx"
+              :href="article.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="news-article"
+            >
+              <div class="article-header">
+                <span class="article-source">{{ article.source }}</span>
+                <span class="article-date">{{ formatNewsDate(article.publishedDate) }}</span>
+              </div>
+              <div class="article-title">{{ article.title }}</div>
+              <div class="article-description">{{ truncateText(article.description, 120) }}</div>
+              <div class="article-tickers">
+                <span v-for="ticker in article.tickers.slice(0, 3)" :key="ticker" class="ticker-badge">
+                  {{ ticker }}
+                </span>
+              </div>
+            </a>
+          </div>
+          <button class="nav-arrow nav-arrow-right" @click="scrollNews('right')" aria-label="Next news">
+            &#9654;
+          </button>
+        </div>
+      </section>
+    </div>
 </main>
 </template>
 
@@ -319,6 +388,15 @@ interface MarketStats {
   [key: string]: any;
 }
 
+interface NewsArticle {
+  publishedDate: string;
+  title: string;
+  url: string;
+  description: string;
+  source: string;
+  tickers: string[];
+}
+
 // Helper for index performance class
 function getPerfClass(val: string) {
   if (!val || val === '-') return '';
@@ -346,25 +424,23 @@ const topLosers = computed(() => {
   }));
 });
 
-// Expose to template
-defineExpose({ topGainers, topLosers, getPerfClass });
-
 // --- Asset type selector for SMA distribution ---
-const selectedAssetType = ref<'ALL' | 'Stock' | 'ETF' | 'Mutual Fund' | 'OTC'>('ALL');
+const selectedAssetType = ref<'ALL' | 'Stock' | 'ETF' | 'Mutual Fund' | 'OTC' | 'PINK'>('ALL');
 const assetDropdownOpen = ref(false);
 const assetTypeOptions = [
   { value: 'ALL' as const, label: 'All Assets' },
   { value: 'Stock' as const, label: 'Stocks (NYSE/NASDAQ)' },
   { value: 'ETF' as const, label: 'ETFs Only' },
   { value: 'Mutual Fund' as const, label: 'Mutual Funds Only' },
-  { value: 'OTC' as const, label: 'OTC Stocks' }
+  { value: 'OTC' as const, label: 'OTC Stocks' },
+  { value: 'PINK' as const, label: 'PINK Stocks' }
 ];
 
 function toggleAssetDropdown() {
   assetDropdownOpen.value = !assetDropdownOpen.value;
 }
 
-function selectAssetType(value: 'ALL' | 'Stock' | 'ETF' | 'Mutual Fund' | 'OTC') {
+function selectAssetType(value: 'ALL' | 'Stock' | 'ETF' | 'Mutual Fund' | 'OTC' | 'PINK') {
   selectedAssetType.value = value;
   assetDropdownOpen.value = false;
 }
@@ -438,10 +514,91 @@ const bottomIndustries = computed(() => {
     }));
 });
 
+// --- Sorted news for display ---
+const sortedNews = computed(() => {
+  if (!indexNews.value) return [];
+  
+  // Flatten all news from all tickers into a single array
+  const allNews: NewsArticle[] = [];
+  Object.values(indexNews.value).forEach(newsArray => {
+    allNews.push(...newsArray);
+  });
+  
+  // Remove duplicates based on URL
+  const uniqueNews = allNews.filter((article, index, self) =>
+    index === self.findIndex(a => a.url === article.url)
+  );
+  
+  // Sort by published date (most recent first)
+  return uniqueNews.sort((a, b) => {
+    const dateA = new Date(a.publishedDate).getTime();
+    const dateB = new Date(b.publishedDate).getTime();
+    return dateB - dateA;
+  });
+});
+
+// --- Market Outlook ---
+const marketOutlook = computed(() => {
+  if (!marketStats.value?.marketOutlook) {
+    return {
+      shortTerm: 'neutral',
+      midTerm: 'neutral',
+      longTerm: 'neutral',
+      shortTermPercent: '0.00',
+      midTermPercent: '0.00',
+      longTermPercent: '0.00'
+    };
+  }
+  const outlook = marketStats.value.marketOutlook;
+  return {
+    shortTerm: outlook.shortTerm?.outlook || 'neutral',
+    midTerm: outlook.midTerm?.outlook || 'neutral',
+    longTerm: outlook.longTerm?.outlook || 'neutral',
+    shortTermPercent: outlook.shortTerm?.percentageUp?.toFixed(2) || '0.00',
+    midTermPercent: outlook.midTerm?.percentageUp?.toFixed(2) || '0.00',
+    longTermPercent: outlook.longTerm?.percentageUp?.toFixed(2) || '0.00'
+  };
+});
+
+function getOutlookClass(outlook: string) {
+  if (outlook === 'positive') return 'outlook-positive';
+  if (outlook === 'negative') return 'outlook-negative';
+  return 'outlook-neutral';
+}
+
+function formatOutlook(outlook: string) {
+  return outlook.charAt(0).toUpperCase() + outlook.slice(1);
+}
+
 // --- Market stats state ---
 const marketStats = ref<MarketStats | null>(null);
 const statsLoading = ref(true);
 const statsError = ref('');
+
+// --- News state ---
+const indexNews = ref<Record<string, NewsArticle[]>>({});
+const newsLoading = ref(true);
+const newsError = ref('');
+const newsCarousel = ref<HTMLElement | null>(null);
+let autoScrollInterval: NodeJS.Timeout | null = null;
+let userInteractionTimeout: NodeJS.Timeout | null = null;
+
+// Expose to template
+defineExpose({ 
+  topGainers, 
+  topLosers, 
+  getPerfClass, 
+  marketOutlook, 
+  getOutlookClass, 
+  formatOutlook,
+  indexNews,
+  newsLoading,
+  newsError,
+  scrollNews,
+  formatNewsDate,
+  truncateText,
+  sortedNews
+});
 
 // --- Last update logic ---
 const lastUpdateString = ref('');
@@ -481,6 +638,94 @@ async function fetchMarketStats() {
   } finally {
     statsLoading.value = false;
   }
+}
+
+// --- Fetch index news ---
+async function fetchIndexNews() {
+  newsLoading.value = true;
+  newsError.value = '';
+  try {
+    const tickers = indexList.join(',');
+    const res = await fetch(`/api/index-news?tickers=${tickers}`, {
+      headers: {
+        'x-api-key': import.meta.env.VITE_EREUNA_KEY || ''
+      }
+    });
+    if (!res.ok) throw new Error('Failed to fetch index news');
+    indexNews.value = await res.json();
+  } catch (e: any) {
+    newsError.value = e?.message || 'Error fetching news';
+    indexNews.value = {};
+  } finally {
+    newsLoading.value = false;
+  }
+}
+
+// --- News carousel functions ---
+function scrollNews(direction: 'left' | 'right') {
+  if (!newsCarousel.value) return;
+  
+  const scrollAmount = newsCarousel.value.offsetWidth * 0.8;
+  const newScrollLeft = direction === 'left' 
+    ? newsCarousel.value.scrollLeft - scrollAmount 
+    : newsCarousel.value.scrollLeft + scrollAmount;
+  
+  newsCarousel.value.scrollTo({
+    left: newScrollLeft,
+    behavior: 'smooth'
+  });
+
+  // Reset auto-scroll timer
+  resetAutoScroll();
+}
+
+function startAutoScroll() {
+  if (autoScrollInterval) clearInterval(autoScrollInterval);
+  
+  autoScrollInterval = setInterval(() => {
+    if (!newsCarousel.value) return;
+    
+    const maxScroll = newsCarousel.value.scrollWidth - newsCarousel.value.offsetWidth;
+    const currentScroll = newsCarousel.value.scrollLeft;
+    
+    if (currentScroll >= maxScroll) {
+      // Reset to beginning
+      newsCarousel.value.scrollTo({ left: 0, behavior: 'smooth' });
+    } else {
+      // Scroll right
+      scrollNews('right');
+    }
+  }, 5000); // Auto-scroll every 5 seconds
+}
+
+function resetAutoScroll() {
+  if (userInteractionTimeout) clearTimeout(userInteractionTimeout);
+  if (autoScrollInterval) clearInterval(autoScrollInterval);
+  
+  // Restart auto-scroll after 5 seconds of inactivity
+  userInteractionTimeout = setTimeout(() => {
+    startAutoScroll();
+  }, 5000);
+}
+
+function formatNewsDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function truncateText(text: string, maxLength: number): string {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
 }
 
 // Date & Time logic
@@ -610,8 +855,20 @@ onMounted(() => {
     updateSmaData();
     updateIndexData();
   });
+  fetchIndexNews().then(() => {
+    // Start auto-scroll after news is loaded
+    setTimeout(() => startAutoScroll(), 5000);
+  });
   // Update last update string every minute in case time zone changes
   setInterval(updateLastUpdateString, 60000);
+  
+  // Add mouse enter/leave listeners to pause auto-scroll on hover
+  if (newsCarousel.value) {
+    newsCarousel.value.addEventListener('mouseenter', () => {
+      if (autoScrollInterval) clearInterval(autoScrollInterval);
+    });
+    newsCarousel.value.addEventListener('mouseleave', resetAutoScroll);
+  }
 });
 </script>
 
@@ -939,6 +1196,234 @@ onMounted(() => {
 .asset-type-dropdown .dropdown-item:hover {
   background: var(--accent1);
   color: var(--text3);
+}
+
+/* Market Outlook Section */
+.dashboard-row-outlook {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.market-outlook-section {
+  width: 100%;
+}
+
+.market-outlook-section h2 {
+  margin-bottom: 20px;
+}
+
+.outlook-grid {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.outlook-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--base4);
+  border-radius: 8px;
+  border: 1.5px solid var(--base3);
+  text-align: center;
+}
+
+.outlook-label {
+  color: var(--text2);
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.outlook-badge {
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.outlook-badge.outlook-positive {
+  background: var(--positive);
+  color: var(--base1);
+}
+
+.outlook-badge.outlook-neutral {
+  background: var(--accent1);
+  color: var(--base1);
+}
+
+.outlook-badge.outlook-negative {
+  background: var(--negative);
+  color: var(--base1);
+}
+
+.outlook-percentage {
+  color: var(--text1);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.outlook-smas {
+  color: var(--text2);
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* Market News Section */
+.dashboard-row-news {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 5px;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.market-news-section {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.market-news-section h2 {
+  margin-bottom: 20px;
+}
+
+.news-ticker-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.nav-arrow {
+  background: var(--base3);
+  border: 1.5px solid var(--base3);
+  color: var(--text1);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.nav-arrow:hover {
+  background: var(--accent1);
+  color: var(--base1);
+  transform: scale(1.1);
+}
+
+.nav-arrow:active {
+  transform: scale(0.95);
+}
+
+.news-carousel {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  flex: 1;
+  padding: 8px 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.news-carousel::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.news-article {
+  min-width: 320px;
+  max-width: 320px;
+  flex-shrink: 0;
+  background: var(--base4);
+  border-radius: 8px;
+  padding: 14px;
+  border: 1.5px solid var(--base3);
+  text-decoration: none;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.news-article:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.article-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.article-source {
+  color: var(--accent2);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.article-date {
+  color: var(--text2);
+  font-style: italic;
+}
+
+.article-title {
+  color: var(--text1);
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.article-description {
+  color: var(--text2);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.article-tickers {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.ticker-badge {
+  background: var(--accent1);
+  color: var(--base1);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
 /* Valuation Section */
@@ -1284,7 +1769,7 @@ h2 {
 
 .archie-disclaimer {
   color: var(--text2);
-  background: rgba(40, 42, 60, 0.85);
+  background: var(--base2);
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 0.93rem;
@@ -1297,6 +1782,25 @@ h2 {
 @media (max-width: 1150px) {
   .dashboard-row > .sma-distribution.card {
     margin-bottom: 5px !important;
+  }
+  .dashboard-row-outlook {
+    margin-bottom: 5px !important;
+  }
+  .dashboard-row-news {
+    margin-bottom: 5px !important;
+  }
+  .outlook-grid {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .news-article {
+    min-width: 280px;
+    max-width: 280px;
+  }
+  .nav-arrow {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
   }
   .dashboard {
     width: 100vw;
@@ -1331,14 +1835,34 @@ h2 {
     min-width: 0;
     max-width: 100vw;
   }
+  .dashboard-row-outlook {
+    flex-direction: column !important;
+    margin-bottom: 5px;
+    gap: 0;
+    width: 100vw;
+    min-width: 0;
+    max-width: 100vw;
+  }
+  .dashboard-row-news {
+    flex-direction: column !important;
+    margin-bottom: 5px;
+    gap: 0;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
   .dashboard-row > .card:not(:last-child),
   .dashboard-row2 > .card:not(:last-child),
-  .dashboard-row-valuation > .card:not(:last-child) {
+  .dashboard-row-valuation > .card:not(:last-child),
+  .dashboard-row-outlook > .card:not(:last-child),
+  .dashboard-row-news > .card:not(:last-child) {
     margin-bottom: 5px !important;
   }
   .dashboard-row > .card,
   .dashboard-row2 > .card,
-  .dashboard-row-valuation > .card {
+  .dashboard-row-valuation > .card,
+  .dashboard-row-outlook > .card,
+  .dashboard-row-news > .card {
     min-width: 0 !important;
     max-width: 100vw !important;
     width: 100vw !important;
@@ -1348,7 +1872,9 @@ h2 {
   }
   .dashboard-row > .card,
   .dashboard-row2 > .card,
-  .dashboard-row-valuation > .card {
+  .dashboard-row-valuation > .card,
+  .dashboard-row-outlook > .card,
+  .dashboard-row-news > .card {
     min-width: 0 !important;
     max-width: 100vw !important;
     width: 100vw !important;
@@ -1414,6 +1940,43 @@ h2 {
   .market-status {
     font-size: 1rem;
     padding: 6px 10px;
+  }
+}
+
+/* Additional responsive styles for market news to prevent overflow */
+@media (max-width: 768px) {
+  .news-article {
+    min-width: 250px;
+    max-width: 250px;
+  }
+  .nav-arrow {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
+  }
+  .news-ticker-container {
+    gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .news-article {
+    min-width: 200px;
+    max-width: 200px;
+  }
+  .nav-arrow {
+    width: 25px;
+    height: 25px;
+    font-size: 0.8rem;
+  }
+  .news-ticker-container {
+    gap: 4px;
+  }
+  .article-title {
+    font-size: 0.9rem;
+  }
+  .article-description {
+    font-size: 0.8rem;
   }
 }
 
