@@ -6,6 +6,7 @@ from collections import defaultdict
 import os
 import redis.asyncio as aioredis
 import typing
+import pytz
 
 def get_bucket(ts, minutes):
     if isinstance(ts, (int, float)):
@@ -143,6 +144,15 @@ def get_week_start(dt):
     monday = dt - timedelta(days=dt.weekday())
     return monday.replace(hour=0, minute=0, second=0, microsecond=0)
 
+# Market hours with automatic DST handling
+def get_market_close_hour_utc():
+    """Calculate market close hour in UTC (4:00 PM ET), automatically accounting for DST"""
+    et = pytz.timezone('US/Eastern')
+    now_et = datetime.now(et)
+    close_et = now_et.replace(hour=16, minute=0, second=0, microsecond=0)
+    close_utc = close_et.astimezone(pytz.UTC)
+    return close_utc.hour
+
 async def start_aggregator(message_queue, mongo_client):
     # Ensure mongo_client is a Motor client
     if not hasattr(mongo_client, 'get_database'):
@@ -154,7 +164,8 @@ async def start_aggregator(message_queue, mongo_client):
     collection = db.get_collection('OHCLVData1m')
     daily_collection = db.get_collection('OHCLVData')
     weekly_collection = db.get_collection('OHCLVData2')
-    MARKET_CLOSE_UTC_HOUR = 20  # 20:00 UTC is 16:00 US/Eastern
+    MARKET_CLOSE_UTC_HOUR = get_market_close_hour_utc()  # Automatically handles DST
+    logger.info(f"Aggregator market close hour: {MARKET_CLOSE_UTC_HOUR}:00 UTC (4:00 PM ET)")
 
     # --- Weekly candle cache initialization ---
     now_utc = datetime.utcnow().replace(tzinfo=timezone.utc)
@@ -199,10 +210,6 @@ async def start_aggregator(message_queue, mongo_client):
                     price = float(d[2])
                     ts = d[0]
                     processed_count += 1
-                    
-                    # Log every 10 messages
-                    if processed_count % 10 == 0:
-                        logger.info(f"[Aggregator] Processed {processed_count} messages so far")
                 else:
                     logger.warning(f"Unknown service or data format: {data}")
                     continue
@@ -210,7 +217,7 @@ async def start_aggregator(message_queue, mongo_client):
                 # Log summary every minute
                 now_log = datetime.utcnow()
                 if (now_log - last_log_time).total_seconds() >= 60:
-                    logger.info(f"[Aggregator] Status - Processed: {processed_count} msgs, Active 1m candles: {len(candles)}, Pending higher TF: {len(pending_candles)}, Daily: {len(pending_daily_candles)}, Weekly: {len(pending_weekly_candles)}")
+                    logger.info(f"[Aggregator] Status - Active 1m candles: {len(candles)}, Pending higher TF: {len(pending_candles)}, Daily: {len(pending_daily_candles)}, Weekly: {len(pending_weekly_candles)}")
                     last_log_time = now_log
 
                 bucket = get_1min_bucket(ts)
@@ -470,86 +477,214 @@ async def start_aggregator(message_queue, mongo_client):
             except Exception as e:
                 logger.error(f"MongoDB insert error on shutdown: {e}")
 
-async def flush_daily_weekly_candles_at_market_close(daily_collection, weekly_collection, market_close_utc_hour=20):
+async def flush_daily_weekly_candles_at_market_close(daily_collection, weekly_collection, market_close_utc_hour=None):
+    """
+    Flush ALL candles at market close. If market_close_utc_hour is None, calculate dynamically with DST.
+    This ensures all pending candles (intraday, daily, weekly) are:
+    1. Marked as final
+    2. Uploaded to MongoDB
+    3. Published to Redis
+    4. Removed from memory
+    """
     while True:
+        # Recalculate market close hour on each iteration to handle DST changes
+        if market_close_utc_hour is None:
+            close_hour = get_market_close_hour_utc()
+        else:
+            close_hour = market_close_utc_hour
+        
         now = datetime.utcnow().replace(tzinfo=timezone.utc)
-        # Wait until the next market close (20:00 UTC)
-        next_close = now.replace(hour=market_close_utc_hour, minute=0, second=0, microsecond=0)
+        # Wait until the next market close (automatically accounts for DST)
+        next_close = now.replace(hour=close_hour, minute=0, second=0, microsecond=0)
         if now >= next_close:
             next_close += timedelta(days=1)
         wait_seconds = (next_close - now).total_seconds()
+        logger.info(f"[MarketClose] Waiting {wait_seconds/3600:.2f} hours until next market close at {next_close}")
         await asyncio.sleep(wait_seconds)
+
+        logger.info("=" * 60)
+        logger.info("[MarketClose] MARKET CLOSED - Starting candle finalization process")
+        logger.info("=" * 60)
 
         # Get database reference for intraday timeframes
         db = daily_collection.database
+        
+        total_flushed = 0
 
-        # Flush intraday candles (5m, 15m, 30m, 1hr)
+        # Step 1: Flush ALL 1-minute candles that are still pending
+        one_min_flushed = 0
+        collection_1m = db.get_collection('OHCLVData1m')
+        docs_1m = []
+        for (sym, bkt), cndl in list(candles.items()):
+            docs_1m.append({
+                "timestamp": cndl["timestamp"],
+                "tickerID": cndl["tickerID"],
+                "open": cndl["open"],
+                "close": cndl["close"],
+                "high": cndl["high"],
+                "low": cndl["low"],
+                "volume": cndl.get("volume", 0)
+            })
+        if docs_1m:
+            try:
+                await collection_1m.insert_many(docs_1m)
+                logger.info(f"[MarketClose] ✓ Flushed {len(docs_1m)} pending 1m candles to MongoDB")
+                # Publish each finalized 1m candle
+                for cndl in docs_1m:
+                    await publish_candle(cndl["tickerID"], "1m", {**cndl, "final": True})
+                one_min_flushed = len(docs_1m)
+                # Clear from memory
+                candles.clear()
+            except Exception as e:
+                logger.error(f"[MarketClose] ✗ Error inserting 1m candles: {e}")
+        
+        total_flushed += one_min_flushed
+
+        # Build a map of the last 1m close price for each symbol to ensure consistency
+        last_1m_close = {}
+        for doc in docs_1m:
+            sym = doc['tickerID']
+            # Keep the most recent close price (docs_1m should be in chronological order)
+            last_1m_close[sym] = doc['close']
+        
+        logger.info(f"[MarketClose] Captured last 1m close prices for {len(last_1m_close)} symbols")
+
+        # Step 2: Flush ALL intraday candles (5m, 15m, 30m, 1hr) with synchronized close prices
+        intraday_flushed = 0
+        intraday_synced = 0
         for (symbol, tf), tf_candle in list(pending_candles.items()):
-            if not tf_candle.get('final', False):
-                tf_candle['final'] = True
-                tf_coll_name = f'OHCLVData{tf}' if tf != '1hr' else 'OHCLVData1hr'
-                tf_coll = db.get_collection(tf_coll_name)
-                doc = {
-                    'tickerID': symbol,
-                    'timestamp': tf_candle['start'],
-                    'open': tf_candle['open'],
-                    'high': tf_candle['high'],
-                    'low': tf_candle['low'],
-                    'close': tf_candle['close'],
-                    'volume': tf_candle['volume']
-                }
-                try:
-                    await tf_coll.insert_one(doc)
-                    # Publish finalized candle
-                    await publish_candle(symbol, tf, {**doc, 'final': True})
-                    logger.debug(f"Flushed {tf} candle for {symbol} at market close")
-                except Exception as e:
-                    logger.error(f"Error inserting {tf} candle (flush): {e}")
-                del pending_candles[(symbol, tf)]
+            # Mark as final regardless of current state
+            tf_candle['final'] = True
+            
+            # Synchronize close price with last 1m candle if available
+            original_close = tf_candle['close']
+            if symbol in last_1m_close:
+                tf_candle['close'] = last_1m_close[symbol]
+                if original_close != tf_candle['close']:
+                    intraday_synced += 1
+                    logger.debug(f"[MarketClose] Synced {tf} close for {symbol}: {original_close:.2f} -> {tf_candle['close']:.2f}")
+            
+            tf_coll_name = f'OHCLVData{tf}' if tf != '1hr' else 'OHCLVData1hr'
+            tf_coll = db.get_collection(tf_coll_name)
+            doc = {
+                'tickerID': symbol,
+                'timestamp': tf_candle['start'],
+                'open': tf_candle['open'],
+                'high': tf_candle['high'],
+                'low': tf_candle['low'],
+                'close': tf_candle['close'],
+                'volume': tf_candle['volume']
+            }
+            try:
+                await tf_coll.insert_one(doc)
+                # Publish finalized candle
+                await publish_candle(symbol, tf, {**doc, 'final': True})
+                intraday_flushed += 1
+                logger.debug(f"[MarketClose] ✓ Flushed {tf} candle for {symbol}")
+            except Exception as e:
+                logger.error(f"[MarketClose] ✗ Error inserting {tf} candle for {symbol}: {e}")
+            # Remove from memory
+            del pending_candles[(symbol, tf)]
+        
+        if intraday_flushed > 0:
+            logger.info(f"[MarketClose] ✓ Flushed {intraday_flushed} intraday candles (5m, 15m, 30m, 1hr)")
+            if intraday_synced > 0:
+                logger.info(f"[MarketClose] ✓ Synchronized {intraday_synced} intraday candles to match 1m close")
+        total_flushed += intraday_flushed
 
-        # Flush daily candles
+        # Step 3: Flush ALL daily candles with synchronized close prices
+        daily_flushed = 0
+        daily_synced = 0
         for symbol, daily_candle in list(pending_daily_candles.items()):
-            if not daily_candle.get('final', False):
-                daily_candle['final'] = True
-                doc = {
-                    'tickerID': symbol,
-                    'timestamp': daily_candle['start'],
-                    'open': daily_candle['open'],
-                    'high': daily_candle['high'],
-                    'low': daily_candle['low'],
-                    'close': daily_candle['close'],
-                    'volume': daily_candle['volume']
-                }
-                try:
-                    await daily_collection.insert_one(doc)
-                    # Publish finalized candle
-                    await publish_candle(symbol, '1d', {**doc, 'final': True})
-                except Exception as e:
-                    logger.error(f"Error inserting daily candle (flush): {e}")
-                del pending_daily_candles[symbol]
+            # Mark as final regardless of current state
+            daily_candle['final'] = True
+            
+            # Synchronize close price with last 1m candle if available
+            original_close = daily_candle['close']
+            if symbol in last_1m_close:
+                daily_candle['close'] = last_1m_close[symbol]
+                if original_close != daily_candle['close']:
+                    daily_synced += 1
+                    logger.debug(f"[MarketClose] Synced daily close for {symbol}: {original_close:.2f} -> {daily_candle['close']:.2f}")
+            
+            doc = {
+                'tickerID': symbol,
+                'timestamp': daily_candle['start'],
+                'open': daily_candle['open'],
+                'high': daily_candle['high'],
+                'low': daily_candle['low'],
+                'close': daily_candle['close'],
+                'volume': daily_candle['volume']
+            }
+            try:
+                await daily_collection.insert_one(doc)
+                # Publish finalized candle
+                await publish_candle(symbol, '1d', {**doc, 'final': True})
+                daily_flushed += 1
+                logger.debug(f"[MarketClose] ✓ Flushed daily candle for {symbol}")
+            except Exception as e:
+                logger.error(f"[MarketClose] ✗ Error inserting daily candle for {symbol}: {e}")
+            # Remove from memory
+            del pending_daily_candles[symbol]
+        
+        if daily_flushed > 0:
+            logger.info(f"[MarketClose] ✓ Flushed {daily_flushed} daily candles")
+            if daily_synced > 0:
+                logger.info(f"[MarketClose] ✓ Synchronized {daily_synced} daily candles to match 1m close")
+        total_flushed += daily_flushed
 
-        # Flush weekly candles
+        # Step 4: Flush ALL weekly candles with synchronized close prices
+        weekly_flushed = 0
+        weekly_synced = 0
         for symbol, weekly_candle in list(pending_weekly_candles.items()):
-            if not weekly_candle.get('final', False):
-                weekly_candle['final'] = True
-                doc = {
-                    'tickerID': symbol,
-                    'timestamp': weekly_candle['start'],
-                    'open': weekly_candle['open'],
-                    'high': weekly_candle['high'],
-                    'low': weekly_candle['low'],
-                    'close': weekly_candle['close'],
-                    'volume': weekly_candle['volume']
-                }
-                try:
-                    await weekly_collection.insert_one(doc)
-                    # Publish finalized candle
-                    await publish_candle(symbol, '1w', {**doc, 'final': True})
-                except Exception as e:
-                    logger.error(f"Error inserting weekly candle (flush): {e}")
-                del pending_weekly_candles[symbol]
+            # Mark as final regardless of current state
+            weekly_candle['final'] = True
+            
+            # Synchronize close price with last 1m candle if available
+            original_close = weekly_candle['close']
+            if symbol in last_1m_close:
+                weekly_candle['close'] = last_1m_close[symbol]
+                if original_close != weekly_candle['close']:
+                    weekly_synced += 1
+                    logger.debug(f"[MarketClose] Synced weekly close for {symbol}: {original_close:.2f} -> {weekly_candle['close']:.2f}")
+            
+            doc = {
+                'tickerID': symbol,
+                'timestamp': weekly_candle['start'],
+                'open': weekly_candle['open'],
+                'high': weekly_candle['high'],
+                'low': weekly_candle['low'],
+                'close': weekly_candle['close'],
+                'volume': weekly_candle['volume']
+            }
+            try:
+                await weekly_collection.insert_one(doc)
+                # Publish finalized candle
+                await publish_candle(symbol, '1w', {**doc, 'final': True})
+                weekly_flushed += 1
+                logger.debug(f"[MarketClose] ✓ Flushed weekly candle for {symbol}")
+            except Exception as e:
+                logger.error(f"[MarketClose] ✗ Error inserting weekly candle for {symbol}: {e}")
+            # Remove from memory
+            del pending_weekly_candles[symbol]
+        
+        if weekly_flushed > 0:
+            logger.info(f"[MarketClose] ✓ Flushed {weekly_flushed} weekly candles")
+            if weekly_synced > 0:
+                logger.info(f"[MarketClose] ✓ Synchronized {weekly_synced} weekly candles to match 1m close")
+        total_flushed += weekly_flushed
 
-        logger.info("Flushed intraday, daily, and weekly candles at market close.")
+        # Final summary
+        total_synced = intraday_synced + daily_synced + weekly_synced
+        logger.info("=" * 60)
+        logger.info(f"[MarketClose] FINALIZATION COMPLETE - Total candles flushed: {total_flushed}")
+        logger.info(f"[MarketClose]   - 1m candles: {one_min_flushed}")
+        logger.info(f"[MarketClose]   - Intraday candles: {intraday_flushed} (synced: {intraday_synced})")
+        logger.info(f"[MarketClose]   - Daily candles: {daily_flushed} (synced: {daily_synced})")
+        logger.info(f"[MarketClose]   - Weekly candles: {weekly_flushed} (synced: {weekly_synced})")
+        logger.info(f"[MarketClose] Total close prices synchronized: {total_synced}")
+        logger.info(f"[MarketClose] All pending candles marked final, uploaded, and flushed from memory")
+        logger.info("=" * 60)
 
 # To run both tasks together:
 async def main_aggregator_and_flush(message_queue, mongo_client):
@@ -590,7 +725,6 @@ async def redis_stream_adapter(queue: asyncio.Queue, redis_client: aioredis.Redi
                 for _stream_name, messages in resp:
                     batch_size = len(messages)
                     message_count += batch_size
-                    logger.info(f"[RedisAdapter] Read {batch_size} messages from Redis stream (total: {message_count})")
                     for msg_id, fields in messages:
                         data = None
                         if b'data' in fields:
@@ -616,7 +750,6 @@ async def redis_stream_adapter(queue: asyncio.Queue, redis_client: aioredis.Redi
                         # Put into queue for aggregator to process
                         try:
                             await queue.put(data)
-                            logger.debug(f"[RedisAdapter] Queued message {msg_id} for aggregator")
                         except Exception as e:
                             logger.error(f"Failed to put redis message into queue: {e}")
                         # Acknowledge the message
@@ -624,12 +757,6 @@ async def redis_stream_adapter(queue: asyncio.Queue, redis_client: aioredis.Redi
                             await redis_client.xack(stream, group, msg_id)
                         except Exception as e:
                             logger.warning(f"Failed to XACK message {msg_id}: {e}")
-                
-                # Report every minute
-                now = datetime.utcnow()
-                if (now - last_report_time).total_seconds() >= 60:
-                    logger.info(f"[RedisAdapter] Total messages read from stream: {message_count}")
-                    last_report_time = now
             except Exception as e:
                 logger.error(f"Error reading from Redis stream: {e}")
                 await asyncio.sleep(1)

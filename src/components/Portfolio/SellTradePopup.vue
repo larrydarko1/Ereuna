@@ -2,7 +2,7 @@
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
       <button class="close-x" @click="close" aria-label="Close">&times;</button>
-      <h2>Sell {{ symbol }}</h2>
+      <h2>{{ isShort ? 'Buy' : 'Sell' }} {{ symbol }}</h2>
       <form @submit.prevent="submitSell">
         <div class="input-row">
           <label for="date">Date</label>
@@ -25,11 +25,12 @@
             type="number"
             v-model.number="sellShares"
             :max="maxShares"
-            min="1"
+            min="0.01"
+            step="0.01"
             required
             :placeholder="`Max: ${maxShares}`"
           />
-          <small class="hint">You own {{ maxShares }} shares</small>
+          <small class="hint">You own {{ maxShares }} shares (fractional supported)</small>
         </div>
         <div class="input-row input-row-flex">
           <div class="input-flex-vertical">
@@ -56,7 +57,7 @@
           </div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn">Sell</button>
+          <button type="submit" class="trade-btn">Submit</button>
           <button type="button" class="cancel-btn" @click="close">Cancel</button>
         </div>
       </form>
@@ -76,7 +77,11 @@ const props = defineProps({
   portfolio: {
   type: Number,
   required: true
-}
+},
+  isShort: {
+    type: Boolean,
+    default: false
+  }
 })
 const emit = defineEmits(['close', 'sell', 'notify'])
 
@@ -90,7 +95,7 @@ const sellTotal = computed(() => Number((sellShares.value * sellPrice.value + (s
 // Clamp sellShares to maxShares
 watch(sellShares, (val) => {
   if (props.maxShares !== undefined && val > props.maxShares) sellShares.value = props.maxShares
-  if (val < 1) sellShares.value = 1
+  if (val < 0.01) sellShares.value = 0.01
 })
 
 // Always update sellPrice if currentPrice changes
@@ -111,8 +116,8 @@ function validateInputs() {
     errorMsg.value = 'Date is required.'
     return false
   }
-  if (isNaN(sellShares.value) || sellShares.value < 1 || (props.maxShares !== undefined && sellShares.value > props.maxShares)) {
-    errorMsg.value = `Shares must be between 1 and ${props.maxShares}`
+  if (isNaN(sellShares.value) || sellShares.value < 0.01 || (props.maxShares !== undefined && sellShares.value > props.maxShares)) {
+    errorMsg.value = `Shares must be between 0.01 and ${props.maxShares}`
     return false
   }
   if (isNaN(sellPrice.value) || sellPrice.value <= 0) {
@@ -133,10 +138,17 @@ async function submitSell() {
     return
   }
   loading.value = true
+  
+  // For short positions, we're buying back (closing), so action should be "Buy"
+  // For long positions, we're selling, so action is "Sell"
+  const action = props.isShort ? "Buy" : "Sell";
+  
+  console.log('SellTradePopup - isShort:', props.isShort, 'action:', action);  // Debug log
+  
   const trade = {
     Symbol: props.symbol,
     Shares: sellShares.value,
-    Action: "Sell",
+    Action: action,
     Price: sellPrice.value,
     Date: sellDate.value, 
     Total: sellTotal.value,
@@ -156,13 +168,13 @@ async function submitSell() {
       })
     })
     if (!response.ok) {
-      emit('notify', 'Failed to add trade')
-      throw new Error('Failed to add trade')
+      emit('notify', 'Failed to sell position')
+      throw new Error('Failed to sell position')
     }
     emit('sell', trade)
     emit('notify', 'Trade added successfully!')
   } catch (error) {
-    emit('notify', 'Error adding trade')
+    emit('notify', 'Error selling position')
   } finally {
     loading.value = false
     close()

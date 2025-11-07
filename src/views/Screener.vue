@@ -97,24 +97,19 @@
 </svg>
             <label class=btnlabel>Multi-Screener</label>
           </button>
-         <button @click="DownloadResults" class="snavbtn" v-b-tooltip.hover
+         <button @click="DownloadResults" class="snavbtn" style="cursor: pointer;" v-b-tooltip.hover
   title="Download Results" aria-label="Download results"
   :disabled="downloadLoading">
-  <label class="btn-content-row">
-    <label v-if="downloadLoading" class="loader4">
-      <svg class="spinner" viewBox="0 0 50 50">
-        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
-      </svg>
-    </label>
-    <label v-if="!downloadLoading">
-      <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M12 3V16M12 16L16 11.625M12 16L8 11.625" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <label class=btnlabel>Download Results</label>
-    </label>
-    <label class=btnlabel v-else style="margin-left: 8px;">Downloading...</label>
+  <label v-if="downloadLoading" class="loader4">
+    <svg class="spinner" viewBox="0 0 50 50">
+      <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
+    </svg>
   </label>
+  <svg v-else class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M12 3V16M12 16L16 11.625M12 16L8 11.625" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <label class=btnlabel>{{ downloadLoading ? 'Downloading...' : 'Download Results' }}</label>
 </button>
         </div>
    </div>

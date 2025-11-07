@@ -18,6 +18,29 @@
           <label for="symbol">Symbol</label>
           <input id="symbol" v-model="symbol" required autocomplete="off" placeholder="e.g. AAPL" />
         </div>
+        <div class="input-row input-row-flex">
+          <div class="input-flex-vertical">
+            <label>Position Type</label>
+            <div style="display: flex; gap: 8px;">
+              <button
+                type="button"
+                :class="['position-type-btn', !isShort ? 'active' : '']"
+                @click="isShort = false"
+                aria-label="Buy/Long Position"
+              >
+                Buy (Long)
+              </button>
+              <button
+                type="button"
+                :class="['position-type-btn', isShort ? 'active' : '']"
+                @click="isShort = true"
+                aria-label="Short Position"
+              >
+                Short
+              </button>
+            </div>
+          </div>
+        </div>
         <div class="input-row">
           <label for="shares">Shares</label>
           <input
@@ -29,6 +52,7 @@
             required
             placeholder="e.g. 10.25"
           />
+          <small class="hint">Fractional shares supported</small>
         </div>
         <div class="input-row input-row-flex">
           <div class="input-flex-vertical">
@@ -40,17 +64,33 @@
             <input id="commission" type="number" v-model.number="commission" min="0" step="0.01" placeholder="e.g. 1.50" />
           </div>
         </div>
+        <div class="input-row input-row-flex">
+          <div class="input-flex-vertical">
+            <label for="leverage">Leverage <span style="font-weight:400; color:var(--text2); font-size:0.97em;">(optional)</span></label>
+            <input id="leverage" type="number" v-model.number="leverage" min="1" max="10" step="0.5" placeholder="1x (none)" />
+            <small class="hint">Leverage multiplier (1x = no leverage, max 10x)</small>
+          </div>
+        </div>
         <div class="input-row" style="margin-top: 8px;">
           <div>
-            <strong>Total:</strong> ${{ total.toFixed(2) }}
+            <strong>{{ isShort ? 'Short Value:' : 'Total Cost:' }}</strong> ${{ effectiveTotal.toFixed(2) }}
             <span v-if="commission"> (incl. ${{ commission.toFixed(2) }} commission)</span>
+            <span v-if="leverage > 1" style="color: var(--accent2); margin-left: 8px;">
+              ({{ leverage }}x leverage applied)
+            </span>
+          </div>
+          <div>
+            <strong>Cash Required:</strong> ${{ cashRequired.toFixed(2) }}
+            <span v-if="leverage > 1" style="font-size: 0.9em; color: var(--text2);">
+              ({{ (100 / leverage).toFixed(1) }}% margin)
+            </span>
           </div>
           <div>
             <strong>Your Cash:</strong> ${{ props.cash?.toFixed(2) }}
           </div>
         </div>
         <div v-if="insufficientCash" style="color: var(--negative); margin-top: 8px;">
-          Insufficient cash: You need ${{ total.toFixed(2) }}, but you only have ${{ props.cash?.toFixed(2) ?? '0.00' }}.
+          Insufficient cash: You need ${{ cashRequired.toFixed(2) }}, but you only have ${{ props.cash?.toFixed(2) ?? '0.00' }}.
           <br>
           <span style="font-size: 0.98em;">The trade will not be executed.</span>
         </div>
@@ -91,13 +131,30 @@ const symbol = ref('')
 const shares = ref(1)
 const price = ref(0)
 const commission = ref(0)
+const leverage = ref(1)
+const isShort = ref(false)
 const today = new Date().toISOString().slice(0, 10)
 const tradeDate = ref(today)
 const error = ref('')
 const isLoading = ref(false)
 
-const total = computed(() => Number((shares.value * price.value + (commission.value || 0)).toFixed(2)))
-const insufficientCash = computed(() => props.cash !== undefined && total.value > props.cash)
+// Calculate total position value (shares * price + commission)
+const effectiveTotal = computed(() => Number((shares.value * price.value + (commission.value || 0)).toFixed(2)))
+
+// Calculate cash required based on leverage
+// For long: cash required = total / leverage
+// For short: cash required = total (margin requirement)
+const cashRequired = computed(() => {
+  if (isShort.value) {
+    // Short positions require full margin
+    return effectiveTotal.value
+  } else {
+    // Long positions with leverage require partial cash
+    return Number((effectiveTotal.value / leverage.value).toFixed(2))
+  }
+})
+
+const insufficientCash = computed(() => props.cash !== undefined && cashRequired.value > props.cash)
 
 const showNotification = (msg: string) => {
   emit('notify', msg)
@@ -106,7 +163,7 @@ const showNotification = (msg: string) => {
 async function submitTrade() {
   error.value = ''
   if (insufficientCash.value) {
-    error.value = 'Insufficient cash: You need $' + total.value.toFixed(2) + ', but you only have $' + (props.cash?.toFixed(2) ?? '0.00') + '.'
+    error.value = 'Insufficient cash: You need $' + cashRequired.value.toFixed(2) + ', but you only have $' + (props.cash?.toFixed(2) ?? '0.00') + '.'
     showNotification(error.value)
     return
   }
@@ -119,11 +176,13 @@ async function submitTrade() {
   const trade = {
     Symbol: symbol.value,
     Shares: shares.value,
-    Action: "Buy",
+    Action: isShort.value ? "Sell" : "Buy",
     Price: price.value,
     Date: tradeDate.value,
-    Total: total.value,
-    Commission: commission.value || 0
+    Total: effectiveTotal.value,
+    Commission: commission.value || 0,
+    Leverage: leverage.value || 1,
+    IsShort: isShort.value
   }
 
   try {
@@ -342,5 +401,35 @@ input:focus {
 .cancel-btn:hover {
   border-color: var(--accent1);
   color: var(--accent1);
+}
+
+.position-type-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 7px;
+  border: 1.5px solid var(--base3);
+  background: var(--base1);
+  color: var(--text2);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.position-type-btn:hover {
+  border-color: var(--accent1);
+  color: var(--accent1);
+}
+
+.position-type-btn.active {
+  background: var(--accent1);
+  color: var(--text3);
+  border-color: var(--accent1);
+}
+
+.hint {
+  font-size: 0.88em;
+  color: var(--text2);
+  margin-top: 4px;
 }
 </style>

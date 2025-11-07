@@ -1,8 +1,8 @@
 <template>
  <div>
           <div class="userdiv">
-            <h2 style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20" height="20"
+            <h2 class="section-title">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="24" height="24"
                 aria-hidden="true" focusable="false">
                 <path
                   d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
@@ -38,8 +38,8 @@
         </div>
         <div>
           <div class="userdiv">
-            <h2 style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-              <svg width='15px' height='15px' version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+            <h2 class="section-title">
+              <svg width='24px' height='24px' version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
                 xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64 64" enable-background="new 0 0 64 64"
                 xml:space="preserve" fill="currentColor">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -183,8 +183,8 @@
         </div>
         <div>
           <div class="userdiv">
-            <h2 style="display: flex; align-items: center; justify-content: center; gap: 3px;">
-              <svg viewBox="0 0 1024.00 1024.00" height="20" width="20" version="1.1" xmlns="http://www.w3.org/2000/svg"
+            <h2 class="section-title">
+              <svg viewBox="0 0 1024.00 1024.00" height="24" width="24" version="1.1" xmlns="http://www.w3.org/2000/svg"
                 fill="currentColor" stroke="currentColor" stroke-width="17.408"
                 transform="matrix(1, 0, 0, 1, 0, 0)rotate(45)">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -257,8 +257,8 @@
 
           </div>
           <div class="userdiv">
-            <h2 style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-              <svg width="20" height="20" fill="currentColor" viewBox="-1.7 0 20.4 20.4"
+            <h2 class="section-title">
+              <svg width="24" height="24" fill="currentColor" viewBox="-1.7 0 20.4 20.4"
                 xmlns="http://www.w3.org/2000/svg" class="cf-icon-svg" transform="rotate(0)">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -669,29 +669,35 @@ async function GenerateNewKey() {
 .userbtn {
   background-color: var(--accent1);
   color: var(--text3);
-  border-radius: 5px;
+  border-radius: 8px;
   border: none;
-  font-weight: bold;
+  font-weight: 600;
   outline: none;
-  padding: 10px;
-  margin: 5px;
-  width: 150px;
+  padding: 12px 16px;
+  margin: 10px 5px;
+  width: auto;
+  min-width: 150px;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 1rem;
 }
 
 .userbtn:disabled , .userbtn:disabled:hover {
   cursor: not-allowed;
   background-color: var(--base3);
+  box-shadow: none;
 }
 
-.userbtn:hover {
+.userbtn:hover:not(:disabled) {
   background-color: var(--accent2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
 }
 
 .userinput {
-  border-radius: 5px;
-  padding: 10px max(36px, 8%) 10px 15px;
+  border-radius: 8px;
+  padding: 12px max(36px, 8%) 12px 15px;
   margin: 7px;
   box-sizing: border-box;
   width: 100%;
@@ -699,14 +705,18 @@ async function GenerateNewKey() {
   max-width: 100%;
   outline: none;
   color: var(--text2);
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
   border: solid 1px var(--base4);
-  background-color: var(--base4);
+  background-color: var(--base1);
+  font-size: 1rem;
+  font-family: inherit;
 }
 
 .userinput:focus {
   border-color: var(--accent1);
   outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--accent1-rgb), 0.1);
+  background-color: var(--base2);
 }
 
 .password-toggle {
@@ -809,9 +819,32 @@ async function GenerateNewKey() {
   margin: 0 auto;
 }
 
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--text1);
+  padding: 10px 15px;
+  background: var(--base1);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .disclaimer {
   font-size: 1.2rem;
   color: var(--text2);
+}
+
+p {
+  font-size: 1rem;
+  color: var(--text2);
+  line-height: 1.5;
+  margin-bottom: 15px;
+  font-weight: 400;
 }
 
 @media (min-width: 1151px) {

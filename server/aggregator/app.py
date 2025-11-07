@@ -7,6 +7,7 @@ from redis.asyncio import from_url as redis_from_url
 import motor.motor_asyncio
 from urllib.parse import urlparse, urlunparse
 from prometheus_client import Counter, Gauge, generate_latest, CONTENT_TYPE_LATEST
+import pytz
 
 from server.aggregator import aggregator as aggregator_mod
 from server.aggregator.aggregator import (
@@ -111,25 +112,34 @@ async def startup():
     weekly_collection = db.get_collection('OHCLVData2')
     app.state.flush_task = asyncio.create_task(flush_daily_weekly_candles_at_market_close(daily_collection, weekly_collection))
 
-    # organizer task to run Daily() 3 hours after market close (23:00 UTC / 7:00 PM ET)
+    # organizer task to run Daily() 3 hours after market close (automatically handles DST)
     async def schedule_organizer_daily():
         from datetime import datetime, timedelta, timezone
 
         def is_trading_day(dt):
             return dt.weekday() < 5
+        
+        def get_organizer_hour_utc():
+            """Calculate organizer run time: 3 hours after market close (4 PM ET + 3hrs = 7 PM ET)"""
+            et = pytz.timezone('US/Eastern')
+            now_et = datetime.now(et)
+            # 3 hours after market close (4 PM ET) = 7 PM ET
+            organizer_et = now_et.replace(hour=19, minute=0, second=0, microsecond=0)
+            organizer_utc = organizer_et.astimezone(pytz.UTC)
+            return organizer_utc.hour
 
         while True:
             now = datetime.utcnow().replace(tzinfo=timezone.utc)
-            # Next run at 23:00 UTC (3 hours after market close at 20:00 UTC)
-            next_run = now.replace(hour=23, minute=0, second=0, microsecond=0)
-            if now >= next_run or not is_trading_day(now):
-                days = 1
-                while True:
-                    candidate = now + timedelta(days=days)
-                    if is_trading_day(candidate):
-                        next_run = candidate.replace(hour=20, minute=0, second=0, microsecond=0)
-                        break
-                    days += 1
+            # Get the current organizer hour (accounts for DST)
+            organizer_hour = get_organizer_hour_utc()
+            # Next run at organizer_hour UTC
+            next_run = now.replace(hour=organizer_hour, minute=0, second=0, microsecond=0)
+            # If we've already passed organizer time today, schedule for tomorrow
+            if now >= next_run:
+                next_run += timedelta(days=1)
+            # Skip to next trading day if next_run falls on weekend
+            while not is_trading_day(next_run):
+                next_run += timedelta(days=1)
             wait = (next_run - now).total_seconds()
             if wait > 0:
                 await asyncio.sleep(wait)

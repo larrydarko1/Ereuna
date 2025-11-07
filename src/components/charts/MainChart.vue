@@ -950,7 +950,6 @@ h1 {
 
 .name {
   color: var(--text1);
-  font-size: 15px;
   font-weight: bold;
   opacity: 1;
   max-width: 250px;
@@ -961,6 +960,7 @@ h1 {
 
 .name span {
   display: inline-block;
+  font-size: 15px;
   white-space: nowrap;
   width: max-content;
   /* prepare for transform-based scrolling */

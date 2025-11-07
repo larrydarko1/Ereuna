@@ -58,6 +58,9 @@ import Description from '@/components/sidebar/summary/description.vue';
 import FundCategory from '@/components/sidebar/summary/fundcategory.vue';
 import FundFamily from '@/components/sidebar/summary/fundfamily.vue';
 import NetExpenseRatio from '@/components/sidebar/summary/netexpenseratio.vue';
+import IntrinsicValue from '@/components/sidebar/summary/intrinsicvalue.vue';
+import CAGR from '@/components/sidebar/summary/cagr.vue';
+import CAGRYears from '@/components/sidebar/summary/cagryears.vue';
 
 // access user from store 
 const userStore = useUserStore();
@@ -114,6 +117,9 @@ const sidebarComponentMap: Record<string, any> = {
   FundCategory,
   FundFamily,
   NetExpenseRatio,
+  IntrinsicValue,
+  CAGR,
+  CAGRYears,
 };
 interface Field {
   order: number;
@@ -171,7 +177,10 @@ const initialFields = [
   { order: 42, tag: 'FundCategory', name: 'Fund Category', hidden: false },
   { order: 43, tag: 'FundFamily', name: 'Fund Family', hidden: false },
   { order: 44, tag: 'NetExpenseRatio', name: 'Net Expense Ratio', hidden: false },
-  { order: 45, tag: 'Description', name: 'Description', hidden: false },
+  { order: 45, tag: 'IntrinsicValue', name: 'Intrinsic Value', hidden: false },
+  { order: 46, tag: 'CAGR', name: 'CAGR', hidden: false },
+  { order: 47, tag: 'CAGRYears', name: 'CAGR Years', hidden: false },
+  { order: 48, tag: 'Description', name: 'Description', hidden: false },
 ];
 
 async function fetchPanel2() {

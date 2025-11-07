@@ -112,7 +112,10 @@ const initialFields: SummaryField[] = [
   { order: 42, tag: 'FundCategory', name: 'Fund Category', hidden: false },
   { order: 43, tag: 'FundFamily', name: 'Fund Family', hidden: false },
   { order: 44, tag: 'NetExpenseRatio', name: 'Net Expense Ratio', hidden: false },
-  { order: 45, tag: 'Description', name: 'Description', hidden: false },
+  { order: 45, tag: 'IntrinsicValue', name: 'Intrinsic Value', hidden: false },
+  { order: 46, tag: 'CAGR', name: 'CAGR', hidden: false },
+  { order: 47, tag: 'CAGRYears', name: 'CAGR Years', hidden: false },
+  { order: 48, tag: 'Description', name: 'Description', hidden: false },
 ];
 
 
@@ -157,6 +160,11 @@ const errorMsg = ref('');
 
 async function updatePanel2() {
   try {
+    if (!user.value?.Username || user.value.Username.trim().length === 0) {
+      errorMsg.value = 'User not logged in. Please log in to save changes.';
+      return;
+    }
+
     summaryFields.value.sort((a, b) => a.order - b.order);
 
     const newListOrder = summaryFields.value.map((section, index) => ({
@@ -166,7 +174,7 @@ async function updatePanel2() {
       hidden: section.hidden,
     }));
     const requestBody = {
-      username: user.value?.Username,
+      username: user.value.Username,
       newListOrder,
     };
 
@@ -192,25 +200,27 @@ async function updatePanel2() {
 
 async function fetchPanel2() {
   try {
+    if (!user.value?.Username || user.value.Username.trim().length === 0) {
+      summaryFields.value = initialFields.map(field => ({ ...field }));
+      return;
+    }
+
     const headers = { 'X-API-KEY': apiKey };
-    const response = await fetch(`/api/panel2?username=${user.value?.Username || ''}`, { headers });
+    const response = await fetch(`/api/panel2?username=${user.value.Username}`, { headers });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const newPanel = await response.json();
 
     // Merge backend fields with initialFields for robust UI
     if (newPanel.panel2 && Array.isArray(newPanel.panel2) && newPanel.panel2.length) {
-      // Create a map for quick lookup
+      // Create a map for quick lookup of user-saved fields
       const userMap = new Map(newPanel.panel2.map((f: any) => [f.tag, f]));
-      // Merge: use user order/hidden if present, else default
-      const merged = initialFields.map((field, idx) => {
-        const userField = userMap.get(field.tag) as Partial<SummaryField> | undefined;
-        return userField
-          ? {
-              ...field,
-              order: typeof userField.order === 'number' ? userField.order : idx + 1,
-              hidden: typeof userField.hidden === 'boolean' ? userField.hidden : field.hidden
-            }
-          : { ...field };
+      // Start with user-saved fields
+      const merged = [...newPanel.panel2];
+      // Add any new fields from initialFields that aren't in user-saved data
+      initialFields.forEach((field) => {
+        if (!userMap.has(field.tag)) {
+          merged.push({ ...field });
+        }
       });
       // Sort by order (user order if present, else default)
       merged.sort((a, b) => a.order - b.order);
