@@ -7,6 +7,14 @@
     <h3>Market Outlook</h3>
     <p>This section provides market outlook assessments across three different timeframes: short-term, mid-term, and long-term. Currently, we evaluate market outlook using Simple Moving Average (SMA) distributions to gauge overall market sentiment and momentum. In the future, more sophisticated analytical methods will be incorporated to provide deeper insights.</p>
     
+    <h3>Market Breadth</h3>
+    <p>This subsection measures market breadth through two key indicators:</p>
+    <ul>
+      <li><strong>Advance/Decline:</strong> Shows the percentage of stocks that advanced (closed higher), declined (closed lower), or remained unchanged for the trading day. This provides insight into the overall market participation and direction.</li>
+      <li><strong>New Highs/Lows:</strong> Displays the percentage of stocks that made new highs (today's close higher than yesterday's high), new lows (today's close lower than yesterday's low), or were neutral. This helps assess market strength and momentum by identifying how many stocks are breaking through previous price levels.</li>
+    </ul>
+    <p>These metrics are visualized as horizontal bar charts, with green representing positive indicators, red for negative, and gray for neutral. The percentages are calculated based on all tracked stocks in our database.</p>
+    
     <h3>Archie AI Placeholder</h3>
     <p>A section reserved for Archie, the AI trading agent currently in development. Once available, this will integrate AI-powered insights directly into your dashboard.</p>
     

@@ -123,7 +123,47 @@
         </div>
     <!-- Pricing Section -->
      <div class="division"></div>
-    <div class="content-section" id="pricing" style="cursor: default;">
+        <!-- New Sales Funnel Sections -->
+        <div class="sales-section1">
+          <div class="sales-content">
+            <div class="sales-left">
+              <h1 class="sales-big-text">Up to <span class="counter" data-target="88">0</span><span class="counter-accent">%+</span> cheaper than the competition</h1>
+              <p class="sales-subtext">Save thousands on premium research tools with Ereuna's all-inclusive platform that delivers professional-grade features at a fraction of the cost.</p>
+            </div>
+            <div class="sales-right">
+              <div class="price-histogram">
+                <div class="histogram-bar ereuna-bar" data-tooltip="Ereuna: 14.99€ / month" style="height: 20px;"></div>
+                <div class="histogram-bar" data-tooltip="TradingView (Essential): 17.99€ / month" style="height: 25px;"></div>
+                <div class="histogram-bar" data-tooltip="Finviz: 19.99€ / month" style="height: 30px;"></div>
+                <div class="histogram-bar" data-tooltip="IBD Digital: 44.99€ / month" style="height: 55px;"></div>
+                <div class="histogram-bar" data-tooltip="DeepVue: 49.99€ / month" style="height: 60px;"></div>
+                 <div class="histogram-bar" data-tooltip="Trendspider: 89.99€ / month" style="height: 90px;"></div>
+                 <div class="histogram-bar" data-tooltip="MarketSurge: 149.99€ / month" style="height: 180px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sales-section2">
+          <div class="sales-content">
+            <div class="sales-left">
+              <div class="stats-container">
+                <div class="stat-item">
+                  <span class="stat-number"><span class="counter" data-target="58000">0</span>+</span>
+                  <span class="stat-label"> Financial assets covered</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-number"><span class="counter" data-target="300000000">0</span>+</span>
+                  <span class="stat-label"> Documents</span>
+                </div>
+              </div>
+            </div>
+            <div class="sales-right">
+              <h1 class="sales-big-text">Comprehensive Market Coverage</h1>
+              <p class="sales-subtext">With plans to add more financial instruments and expand our document database in the future.</p>
+            </div>
+          </div>
+        </div>
+    <div class="content-section" id="pricing" style="cursor: default; margin-top: 50px;">
        <div class="pricing-cards">
       <div class="pricing-card">
 <div class="pricing-header">
@@ -140,11 +180,11 @@
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      Coverage of 35.000+ Financial Assets (US Stocks, ETFs and Mutual Funds)
+      Coverage of 58.000+ Financial Assets (US Stocks, ETFs and Mutual Funds)
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      65+ years of price data (Daily and Weekly, Intraday is held for 2 weeks only), 30+ years of financial statements
+      65+ years of price data and financial statements
     </div>
     <div class="feature-item">
       <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="10" fill="#8c8dfe"/><path d="M6 10.5l2.5 2.5 5-5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
@@ -392,6 +432,7 @@ onMounted(() => {
   // Wait for DOM to be ready
   setTimeout(() => {
     setupCardAnimations();
+    setupCounterAnimations();
   }, 100);
 });
 
@@ -411,6 +452,63 @@ function setupCardAnimations() {
   cards.forEach(card => {
     observer.observe(card);
   });
+}
+
+function setupCounterAnimations() {
+  const statItems = document.querySelectorAll('.stat-item');
+  const counters = document.querySelectorAll('.counter');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Animate the stat item
+        entry.target.classList.add('animate-in');
+        
+        // If this is a counter element, animate it
+        if (entry.target.classList.contains('counter')) {
+          animateCounter(entry.target);
+        }
+        
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+  
+  // Observe stat items for entrance animation
+  statItems.forEach(item => {
+    observer.observe(item);
+  });
+  
+  // Observe counters for number animation
+  counters.forEach(counter => {
+    observer.observe(counter);
+  });
+}
+
+function animateCounter(counter: Element) {
+  const target = parseInt(counter.getAttribute('data-target') || '0');
+  const duration = 2000; // 2 seconds
+  const step = target / (duration / 16); // ~60fps
+  let current = 0;
+  
+  const timer = setInterval(() => {
+    current += step;
+    if (current >= target) {
+      current = target;
+      clearInterval(timer);
+    }
+    
+    let displayValue: string;
+    if (current >= 1000000) {
+      displayValue = (Math.floor(current / 1000000)).toString() + 'M';
+    } else if (current >= 1000) {
+      displayValue = Math.floor(current).toLocaleString();
+    } else {
+      displayValue = Math.floor(current).toString();
+    }
+    
+    counter.textContent = displayValue;
+  }, 16);
 }
 
 </script>
@@ -961,10 +1059,10 @@ a:hover{
   color: var(--text1);
   font-size: 2rem;
   border-radius: 4px;
-  transition: background-color 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 .feature-card-modern:hover {
-  transform: translateY(-4px) scale(1.02);
+  transform: translateY(-6px) scale(1.03);
 }
 
 .feature-title-modern {
@@ -1254,6 +1352,169 @@ a.social {
 #nav-toggle:checked + .nav-toggle-label span:nth-child(2) {
   transform: rotate(-45deg);
 }
+
+/* New Sales Funnel Sections */
+.sales-section1, .sales-section2 {
+  background-color: $base1;
+  width: 100%;
+  padding: 100px 5%;
+  position: relative;
+  z-index: 2;
+  overflow-x: hidden;
+}
+
+.sales-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sales-left, .sales-right {
+  flex: 1;
+  padding:  0 20px;
+}
+
+.sales-section1 .sales-left {
+  text-align: left;
+}
+
+.sales-section2 .sales-right {
+  text-align: left;
+}
+
+.sales-section2  {
+  padding-bottom: 200px;
+}
+
+.sales-big-text {
+  font-size: 4rem;
+  font-weight: bold;
+  color: $text1;
+  margin-bottom: 20px;
+  line-height: 1;
+}
+
+.sales-subtext {
+  font-size: 1.4rem;
+  color: $text2;
+  line-height: 1.6;
+  max-width: 500px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.price-histogram {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  height: 150px;
+}
+
+.histogram-bar {
+  width: 45px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px 4px 0 0;
+  transition: background 0.3s;
+  cursor: pointer;
+  position: relative;
+}
+
+.histogram-bar:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.histogram-bar:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: $base2;
+  color: $text1;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 10;
+  margin-bottom: 5px;
+}
+
+.ereuna-bar {
+  background: linear-gradient(135deg, $accent1 0%, $accent2 100%);
+}
+
+.ereuna-bar:hover {
+  background: linear-gradient(135deg, $accent2 0%, $accent1 100%);
+}
+
+.counter {
+  display: inline-block;
+  font-size: 4rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, $accent1 0%, $accent2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.counter-accent {
+  display: inline-block;
+  font-size: 4rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, $accent1 0%, $accent2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stats-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 15px;
+  border: 1px solid rgba(140, 141, 254, 0.1);
+  max-width: 350px;
+}
+
+.stat-item.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stat-number {
+  font-weight: bold;
+  font-size: 2rem;
+  background: linear-gradient(135deg, $accent1 0%, $accent2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stat-label {
+  font-size: 2rem;
+  color: $text2;
+  line-height: 1.6;
+  text-align: left;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.stat-item .counter {
+  font-size: 2rem;
+}
+
+.stat-item .counter-accent {
+  font-size: 2rem;
+}
+
 //hide second set of button from desktop
   @media (min-width: 950px) {
   .navbtn-mobile{
@@ -1262,6 +1523,9 @@ a.social {
 
 /* Mobile version */
 @media (max-width: 950px) {
+  * {
+    box-sizing: border-box;
+  }
 
   .navbar {
   display: flex;
@@ -1314,7 +1578,7 @@ a.social {
 
   .navbtn {
     padding: 10px 0px;
-    margin: 0px 50px;
+    margin: 0px 20px;
     opacity: 1;
     font-size: 14px;
     border-radius: 10px;
@@ -1330,7 +1594,7 @@ a.social {
 
   .navbtn-mobile{
     padding: 10px 0px;
-    margin: 0px 50px;
+    margin: 0px 20px;
     opacity: 1;
     font-size: 14px;
     border-radius: 10px;
@@ -1478,8 +1742,8 @@ a.social {
 
 .feature-cards {
   display: grid;
-  grid-template-columns: repeat(1, minmax(300px, 1fr));
-  gap: 30px;
+  grid-template-columns: repeat(1, minmax(280px, 1fr));
+  gap: 20px;
   margin-top: 20px;
   justify-content: center;
 }
@@ -1553,6 +1817,99 @@ a.social {
 .footer-links {
   margin-left: 0;
   display: flex;
+}
+
+  .sales-content {
+    flex-direction: column;
+    text-align: center;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .sales-section1 .sales-left {
+    order: 2;
+  }
+
+  .sales-section1 .sales-right {
+    order: 1;
+  }
+
+  .sales-section2 .sales-left {
+    order: 2;
+  }
+
+  .sales-section2 .sales-right {
+    order: 1;
+  }
+
+  .sales-left, .sales-right {
+    padding: 15px 5px;
+  }
+
+  .price-histogram {
+    gap: 8px;
+    height: 120px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 25px;
+  }
+
+  .histogram-bar {
+    width: 35px;
+    min-width: 35px;
+  }
+
+  .stats-container {
+    max-width: none;
+    padding: 15px;
+  }
+
+  .sales-big-text {
+    font-size: 2.5rem;
+  }
+
+  .sales-subtext {
+    font-size: 1.1rem;
+    max-width: none;
+  }
+
+  .counter, .counter-accent {
+    font-size: 2.5rem;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 1.2rem;
+  }
+
+  .stat-item .counter, .stat-item .counter-accent {
+    font-size: 1.5rem;
+  }
+
+  .sales-section1, .sales-section2 {
+    padding: 50px 5%;
+    box-sizing: border-box;
+    max-width: 100vw;
+  }
+
+  .histogram-bar {
+  width: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px 4px 0 0;
+  transition: background 0.3s;
+  cursor: pointer;
+  position: relative;
+}
+
+.ereuna-bar {
+  background: linear-gradient(135deg, $accent1 0%, $accent2 100%);
+}
+
+.ereuna-bar:hover {
+  background: linear-gradient(135deg, $accent2 0%, $accent1 100%);
 }
 
 }

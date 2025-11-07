@@ -54,6 +54,41 @@
           </template>
         </div>
       </section>
+      <section class="market-breadth card" aria-label="Market Breadth">
+        <h2 id="market-breadth-heading">Market Breadth</h2>
+        <div class="breadth-container" aria-labelledby="market-breadth-heading">
+          <div class="breadth-section">
+            <h3>Advance/Decline</h3>
+            <div class="breadth-meter">
+              <div class="meter-container">
+                <div class="meter-segment bar-positive" :style="{ width: (advanceDecline.advancing * 100) + '%' }"></div>
+                <div class="meter-segment bar-negative" :style="{ width: (advanceDecline.declining * 100) + '%' }"></div>
+                <div class="meter-segment bar-neutral" :style="{ width: (advanceDecline.unchanged * 100) + '%' }"></div>
+              </div>
+              <div class="meter-values">
+                <span class="meter-value positive">{{ (advanceDecline.advancing * 100).toFixed(1) }}% Advancing</span>
+                <span class="meter-value negative">{{ (advanceDecline.declining * 100).toFixed(1) }}% Declining</span>
+                <span class="meter-value neutral">{{ (advanceDecline.unchanged * 100).toFixed(1) }}% Unchanged</span>
+              </div>
+            </div>
+          </div>
+          <div class="breadth-section">
+            <h3>New Highs/Lows</h3>
+            <div class="breadth-meter">
+              <div class="meter-container">
+                <div class="meter-segment bar-positive" :style="{ width: (newHighsLows.newHighs * 100) + '%' }"></div>
+                <div class="meter-segment bar-negative" :style="{ width: (newHighsLows.newLows * 100) + '%' }"></div>
+                <div class="meter-segment bar-neutral" :style="{ width: (newHighsLows.neutral * 100) + '%' }"></div>
+              </div>
+              <div class="meter-values">
+                <span class="meter-value positive">{{ (newHighsLows.newHighs * 100).toFixed(1) }}% New Highs</span>
+                <span class="meter-value negative">{{ (newHighsLows.newLows * 100).toFixed(1) }}% New Lows</span>
+                <span class="meter-value neutral">{{ (newHighsLows.neutral * 100).toFixed(1) }}% Neutral</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
 
          <!-- Third Row: Placeholder for future widgets -->
@@ -297,44 +332,6 @@
         </div>
       </section>
     </div>
-           <!-- Market News Section -->
-    <div class="dashboard-row-news">
-      <section class="market-news-section card" aria-label="Market Index News">
-        <h2 id="market-news-heading">Latest Market News</h2>
-        <div v-if="newsLoading" class="loading-state">Loading news...</div>
-        <div v-else-if="newsError" class="error-state">{{ newsError }}</div>
-        <div v-else class="news-ticker-container">
-          <button class="nav-arrow nav-arrow-left" @click="scrollNews('left')" aria-label="Previous news">
-            &#9664;
-          </button>
-          <div class="news-carousel" ref="newsCarousel">
-            <a
-              v-for="(article, idx) in sortedNews"
-              :key="idx"
-              :href="article.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="news-article"
-            >
-              <div class="article-header">
-                <span class="article-source">{{ article.source }}</span>
-                <span class="article-date">{{ formatNewsDate(article.publishedDate) }}</span>
-              </div>
-              <div class="article-title">{{ article.title }}</div>
-              <div class="article-description">{{ truncateText(article.description, 120) }}</div>
-              <div class="article-tickers">
-                <span v-for="ticker in article.tickers.slice(0, 3)" :key="ticker" class="ticker-badge">
-                  {{ ticker }}
-                </span>
-              </div>
-            </a>
-          </div>
-          <button class="nav-arrow nav-arrow-right" @click="scrollNews('right')" aria-label="Next news">
-            &#9654;
-          </button>
-        </div>
-      </section>
-    </div>
 </main>
 </template>
 
@@ -494,7 +491,7 @@ const topIndustries = computed(() => {
   if (!marketStats.value?.industryTierList) return [];
   return [...marketStats.value.industryTierList]
     .sort((a, b) => b.average_return - a.average_return)
-    .slice(0, 5)
+    .slice(0, 10)
     .map(i => ({
       industry: i.industry,
       avgReturnStr: (i.average_return * 100 > 0 ? '+' : '') + (i.average_return * 100).toFixed(2) + '%',
@@ -506,35 +503,12 @@ const bottomIndustries = computed(() => {
   if (!marketStats.value?.industryTierList) return [];
   return [...marketStats.value.industryTierList]
     .sort((a, b) => a.average_return - b.average_return)
-    .slice(0, 5)
+    .slice(0, 10)
     .map(i => ({
       industry: i.industry,
       avgReturnStr: (i.average_return * 100 > 0 ? '+' : '') + (i.average_return * 100).toFixed(2) + '%',
       count: i.count
     }));
-});
-
-// --- Sorted news for display ---
-const sortedNews = computed(() => {
-  if (!indexNews.value) return [];
-  
-  // Flatten all news from all tickers into a single array
-  const allNews: NewsArticle[] = [];
-  Object.values(indexNews.value).forEach(newsArray => {
-    allNews.push(...newsArray);
-  });
-  
-  // Remove duplicates based on URL
-  const uniqueNews = allNews.filter((article, index, self) =>
-    index === self.findIndex(a => a.url === article.url)
-  );
-  
-  // Sort by published date (most recent first)
-  return uniqueNews.sort((a, b) => {
-    const dateA = new Date(a.publishedDate).getTime();
-    const dateB = new Date(b.publishedDate).getTime();
-    return dateB - dateA;
-  });
 });
 
 // --- Market Outlook ---
@@ -570,18 +544,25 @@ function formatOutlook(outlook: string) {
   return outlook.charAt(0).toUpperCase() + outlook.slice(1);
 }
 
+// --- Market Breadth ---
+const newHighsLows = computed(() => {
+  if (!marketStats.value?.newHighsLows) {
+    return { newHighs: 0, newLows: 0, neutral: 0 };
+  }
+  return marketStats.value.newHighsLows;
+});
+
+const advanceDecline = computed(() => {
+  if (!marketStats.value?.advanceDecline) {
+    return { advancing: 0, declining: 0, unchanged: 0 };
+  }
+  return marketStats.value.advanceDecline;
+});
+
 // --- Market stats state ---
 const marketStats = ref<MarketStats | null>(null);
 const statsLoading = ref(true);
 const statsError = ref('');
-
-// --- News state ---
-const indexNews = ref<Record<string, NewsArticle[]>>({});
-const newsLoading = ref(true);
-const newsError = ref('');
-const newsCarousel = ref<HTMLElement | null>(null);
-let autoScrollInterval: NodeJS.Timeout | null = null;
-let userInteractionTimeout: NodeJS.Timeout | null = null;
 
 // Expose to template
 defineExpose({ 
@@ -591,13 +572,10 @@ defineExpose({
   marketOutlook, 
   getOutlookClass, 
   formatOutlook,
-  indexNews,
-  newsLoading,
-  newsError,
-  scrollNews,
+  newHighsLows,
+  advanceDecline,
   formatNewsDate,
-  truncateText,
-  sortedNews
+  truncateText
 });
 
 // --- Last update logic ---
@@ -638,74 +616,6 @@ async function fetchMarketStats() {
   } finally {
     statsLoading.value = false;
   }
-}
-
-// --- Fetch index news ---
-async function fetchIndexNews() {
-  newsLoading.value = true;
-  newsError.value = '';
-  try {
-    const tickers = indexList.join(',');
-    const res = await fetch(`/api/index-news?tickers=${tickers}`, {
-      headers: {
-        'x-api-key': import.meta.env.VITE_EREUNA_KEY || ''
-      }
-    });
-    if (!res.ok) throw new Error('Failed to fetch index news');
-    indexNews.value = await res.json();
-  } catch (e: any) {
-    newsError.value = e?.message || 'Error fetching news';
-    indexNews.value = {};
-  } finally {
-    newsLoading.value = false;
-  }
-}
-
-// --- News carousel functions ---
-function scrollNews(direction: 'left' | 'right') {
-  if (!newsCarousel.value) return;
-  
-  const scrollAmount = newsCarousel.value.offsetWidth * 0.8;
-  const newScrollLeft = direction === 'left' 
-    ? newsCarousel.value.scrollLeft - scrollAmount 
-    : newsCarousel.value.scrollLeft + scrollAmount;
-  
-  newsCarousel.value.scrollTo({
-    left: newScrollLeft,
-    behavior: 'smooth'
-  });
-
-  // Reset auto-scroll timer
-  resetAutoScroll();
-}
-
-function startAutoScroll() {
-  if (autoScrollInterval) clearInterval(autoScrollInterval);
-  
-  autoScrollInterval = setInterval(() => {
-    if (!newsCarousel.value) return;
-    
-    const maxScroll = newsCarousel.value.scrollWidth - newsCarousel.value.offsetWidth;
-    const currentScroll = newsCarousel.value.scrollLeft;
-    
-    if (currentScroll >= maxScroll) {
-      // Reset to beginning
-      newsCarousel.value.scrollTo({ left: 0, behavior: 'smooth' });
-    } else {
-      // Scroll right
-      scrollNews('right');
-    }
-  }, 5000); // Auto-scroll every 5 seconds
-}
-
-function resetAutoScroll() {
-  if (userInteractionTimeout) clearTimeout(userInteractionTimeout);
-  if (autoScrollInterval) clearInterval(autoScrollInterval);
-  
-  // Restart auto-scroll after 5 seconds of inactivity
-  userInteractionTimeout = setTimeout(() => {
-    startAutoScroll();
-  }, 5000);
 }
 
 function formatNewsDate(dateStr: string): string {
@@ -855,20 +765,8 @@ onMounted(() => {
     updateSmaData();
     updateIndexData();
   });
-  fetchIndexNews().then(() => {
-    // Start auto-scroll after news is loaded
-    setTimeout(() => startAutoScroll(), 5000);
-  });
   // Update last update string every minute in case time zone changes
   setInterval(updateLastUpdateString, 60000);
-  
-  // Add mouse enter/leave listeners to pause auto-scroll on hover
-  if (newsCarousel.value) {
-    newsCarousel.value.addEventListener('mouseenter', () => {
-      if (autoScrollInterval) clearInterval(autoScrollInterval);
-    });
-    newsCarousel.value.addEventListener('mouseleave', resetAutoScroll);
-  }
 });
 </script>
 
@@ -1056,6 +954,65 @@ onMounted(() => {
   font-size: 1rem;
   margin-left: 8px;
 }
+.bar-neutral {
+  background: var(--base3);
+  height: 100%;
+}
+.dashboard-row .market-breadth.card {
+  flex: 1 1 0;
+  min-width: 320px;
+  max-width: 100%;
+}
+.dashboard-row-outlook .market-breadth.card {
+  flex: 1 1 0;
+  min-width: 320px;
+  max-width: 100%;
+}
+.breadth-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 16px;
+}
+.breadth-section h3 {
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+  color: var(--accent1);
+}
+.breadth-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.meter-container {
+  display: flex;
+  height: 24px;
+  width: 100%;
+  background: var(--base3);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.meter-segment {
+  height: 100%;
+}
+.meter-values {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+.meter-value {
+  font-weight: 600;
+}
+.meter-value.positive {
+  color: var(--positive);
+}
+.meter-value.negative {
+  color: var(--negative);
+}
+.meter-value.neutral {
+  color: var(--text2);
+}
 .dashboard-top {
   display: flex;
   justify-content: space-between;
@@ -1206,7 +1163,7 @@ onMounted(() => {
 }
 
 .market-outlook-section {
-  width: 100%;
+  flex: 1 1 0;
 }
 
 .market-outlook-section h2 {

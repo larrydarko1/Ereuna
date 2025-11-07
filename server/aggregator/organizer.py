@@ -1812,19 +1812,53 @@ def calculate_intrinsic_value(stock_doc):
     quarterly_financials = stock_doc.get('quarterlyFinancials', [])
     shares_out = stock_doc.get('SharesOutstanding', None)
     if not quarterly_financials or len(quarterly_financials) < 20 or not shares_out or shares_out <= 0:
-        return {'type': None, 'intrinsic_value': None}
+        return {'type': 'Stock', 'intrinsic_value': 0}
+
+    # Check that financial data is recent (within last 2 years)
+    latest_q = quarterly_financials[0]
+    fiscal_date_ending = latest_q.get('fiscalDateEnding')
+    if fiscal_date_ending:
+        try:
+            # Handle both datetime objects and strings
+            if isinstance(fiscal_date_ending, dict) and '$date' in fiscal_date_ending:
+                fiscal_date_str = fiscal_date_ending['$date']
+                fiscal_date = datetime.fromisoformat(fiscal_date_str.replace('Z', '+00:00'))
+            elif isinstance(fiscal_date_ending, str):
+                fiscal_date = datetime.fromisoformat(fiscal_date_ending.replace('Z', '+00:00'))
+            elif hasattr(fiscal_date_ending, 'year'):  # Already a datetime object
+                fiscal_date = fiscal_date_ending
+            else:
+                return {'type': 'Stock', 'intrinsic_value': 0}
+
+            # Check if data is too old (more than 1 year old)
+            now = datetime.now(timezone.utc)
+            days_old = (now - fiscal_date.replace(tzinfo=timezone.utc) if fiscal_date.tzinfo is None else now - fiscal_date).days
+            if days_old > 365:  # 1 year = 365 days
+                return {'type': 'Stock', 'intrinsic_value': 0}
+        except Exception:
+            # If we can't parse the date, reject it
+            return {'type': 'Stock', 'intrinsic_value': 0}
+    else:
+        # No fiscal date = can't verify recency
+        return {'type': 'Stock', 'intrinsic_value': 0}
 
     # Check for negative equity (company is insolvent)
-    latest_q = quarterly_financials[0]
     equity = latest_q.get('equity', 0)
     if equity is not None and equity <= 0:
-        return {'type': None, 'intrinsic_value': None}
+        return {'type': 'Stock', 'intrinsic_value': 0}
+    
+    # Check debt-to-equity ratio - extremely leveraged companies are risky
+    total_debt = latest_q.get('debt', 0) or 0
+    if equity and equity > 0:
+        debt_to_equity = abs(total_debt / equity)
+        if debt_to_equity > 10:  # D/E ratio > 10 is extreme leverage
+            return {'type': 'Stock', 'intrinsic_value': 0}
     
     # Check for excessive reverse splits (sign of distressed company)
     splits = stock_doc.get('splits', [])
     reverse_splits = [s for s in splits if s.get('split_factor', 1) < 1]
     if len(reverse_splits) >= 5:  # 5+ reverse splits = red flag
-        return {'type': None, 'intrinsic_value': None}
+        return {'type': 'Stock', 'intrinsic_value': 0}
 
     # Extract last 20 quarters of free cash flow (FCF)
     fcf_list = []
@@ -1844,13 +1878,13 @@ def calculate_intrinsic_value(stock_doc):
                 continue
     
     if len(fcf_list) < 20:
-        return {'type': None, 'intrinsic_value': None}
+        return {'type': 'Stock', 'intrinsic_value': 0}
     
     # Sanity check: If company is consistently losing money, don't value it with DCF
     if len(net_income_list) >= 12:
         profitable_quarters = sum(1 for ni in net_income_list[:12] if ni > 0)
         if profitable_quarters < 6:  # Less than half of last 12 quarters profitable
-            return {'type': None, 'intrinsic_value': None}
+            return {'type': 'Stock', 'intrinsic_value': 0}
 
     
     # Calculate annual FCF for each of the last 5 years
@@ -1860,11 +1894,11 @@ def calculate_intrinsic_value(stock_doc):
     # If FCF swings wildly (high volatility), DCF is unreliable
     fcf_volatility = np.std(annual_fcfs) / (abs(np.mean(annual_fcfs)) + 1)  # +1 to avoid division by zero
     if fcf_volatility > 2.0:  # Coefficient of variation > 200%
-        return {'type': None, 'intrinsic_value': None}
+        return {'type': 'Stock', 'intrinsic_value': 0}
     
     # Check if most recent annual FCF is positive (need sustainable cash generation)
     if annual_fcfs[0] <= 0:
-        return {'type': None, 'intrinsic_value': None}
+        return {'type': 'Stock', 'intrinsic_value': 0}
     
     # Calculate 5-year CAGR of FCF
     try:
@@ -1900,20 +1934,34 @@ def calculate_intrinsic_value(stock_doc):
     net_cash = cash - debt
 
     intrinsic_equity_value = sum(discounted_fcfs) + discounted_terminal + net_cash
-    intrinsic_value_per_share = intrinsic_equity_value / shares_out if shares_out else None
+    intrinsic_value_per_share = intrinsic_equity_value / shares_out if shares_out else 0
     
     # Final sanity check: intrinsic value should be reasonable
     # If it's absurdly high compared to market realities, reject it
-    if intrinsic_value_per_share and intrinsic_value_per_share > 1000000:  # $1M per share is unrealistic
-        return {'type': None, 'intrinsic_value': None}
+    if intrinsic_value_per_share > 1000000:  # $1M per share is unrealistic
+        return {'type': 'Stock', 'intrinsic_value': 0}
     
     # Also reject if negative (means company is worthless by DCF)
-    if intrinsic_value_per_share and intrinsic_value_per_share < 0:
-        return {'type': None, 'intrinsic_value': None}
+    if intrinsic_value_per_share < 0:
+        return {'type': 'Stock', 'intrinsic_value': 0}
+    
+    # Additional check: if intrinsic value is >100x current price, likely calculation error
+    # Get current price from TimeSeries if available
+    time_series = stock_doc.get('TimeSeries', {})
+    if time_series and intrinsic_value_per_share > 0:
+        try:
+            most_recent_date = max(time_series.keys())
+            current_price = time_series[most_recent_date].get('4. close')
+            if current_price and current_price > 0:
+                ratio = intrinsic_value_per_share / current_price
+                if ratio > 100:  # Intrinsic value >100x current price is suspicious
+                    return {'type': 'Stock', 'intrinsic_value': 0}
+        except (ValueError, KeyError, TypeError):
+            pass  # If we can't get price, proceed with other checks
 
     return {
         'type': 'Stock',
-        'intrinsic_value': round(intrinsic_value_per_share, 2) if intrinsic_value_per_share else None
+        'intrinsic_value': round(intrinsic_value_per_share, 2) if intrinsic_value_per_share > 0 else 0
     }
     
 async def update_intrinsic_values():
@@ -1921,12 +1969,15 @@ async def update_intrinsic_values():
     count = 0
     async for doc in asset_info_collection.find({'Delisted': False}):
         result = calculate_intrinsic_value(doc)
-        intrinsic_value = result.get('intrinsic_value')
-        if intrinsic_value is not None:
-            await asset_info_collection.update_one(
-                {'_id': doc['_id']},
-                {'$set': {'IntrinsicValue': float(intrinsic_value)}}
-            )
+        intrinsic_value = result.get('intrinsic_value', 0)
+        
+        # Always update with the calculated value (0 if invalid, or actual value)
+        await asset_info_collection.update_one(
+            {'_id': doc['_id']},
+            {'$set': {'IntrinsicValue': float(intrinsic_value)}}
+        )
+        
+        if intrinsic_value > 0:
             count += 1
 
 # Calculate CAGR (Compound Annual Growth Rate) since IPO for each stock
@@ -2231,6 +2282,74 @@ async def update_market_stats():
             total = up + down if (up + down) > 0 else 1
             sma_stats[f"SMA{period}"][asset_type] = {"up": up / total, "down": down / total}
 
+    # Calculate Advancing/Declining stocks and New Highs/Lows (NYSE/NASDAQ stocks only)
+    advancing = 0
+    declining = 0
+    unchanged = 0
+    new_highs = 0
+    new_lows = 0
+    neutral = 0
+    
+    for symbol, info in symbol_map.items():
+        # Only process NYSE/NASDAQ stocks
+        symbol_asset_type = info.get("AssetType", "")
+        symbol_exchange = info.get("Exchange", "")
+        
+        if symbol_asset_type != "Stock" or symbol_exchange not in ["NYSE", "NASDAQ", "OTC", "PINK"]:
+            continue
+        
+        # Get last 2 days for both advancing/declining and new highs/lows
+        cursor = ohlcv_col.find(
+            {"tickerID": symbol},
+            {"close": 1, "high": 1, "low": 1, "_id": 0}
+        ).sort("timestamp", -1).limit(2)
+        docs = await cursor.to_list(length=2)
+        
+        if len(docs) < 2:
+            continue
+        
+        today = docs[0]
+        yesterday = docs[1]
+        
+        today_close = today.get("close")
+        yesterday_close = yesterday.get("close")
+        yesterday_high = yesterday.get("high")
+        yesterday_low = yesterday.get("low")
+        
+        # Advancing/Declining: compare today's close vs yesterday's close
+        if today_close and yesterday_close:
+            if today_close > yesterday_close:
+                advancing += 1
+            elif today_close < yesterday_close:
+                declining += 1
+            else:
+                unchanged += 1
+        
+        # New Highs/Lows: compare today's close with yesterday's high/low
+        if today_close and yesterday_high and yesterday_low:
+            if today_close > yesterday_high:
+                new_highs += 1
+            elif today_close < yesterday_low:
+                new_lows += 1
+            else:
+                neutral += 1
+    
+    # Calculate percentages
+    total_ad = advancing + declining + unchanged
+    total_hl = new_highs + new_lows + neutral
+    
+    advance_decline_stats = {
+        "advancing": advancing / total_ad if total_ad > 0 else 0,
+        "declining": declining / total_ad if total_ad > 0 else 0,
+        "unchanged": unchanged / total_ad if total_ad > 0 else 0
+    }
+    
+    new_highs_lows_stats = {
+        "newHighs": new_highs / total_hl if total_hl > 0 else 0,
+        "newLows": new_lows / total_hl if total_hl > 0 else 0,
+        "neutral": neutral / total_hl if total_hl > 0 else 0
+    }
+
     # Performance for SPY, QQQ, DIA, IWM, EFA, EEM
     index_tickers = ["SPY", "QQQ", "DIA", "IWM", "EFA", "EEM"]
     index_performance = {}
@@ -2308,6 +2427,8 @@ async def update_market_stats():
         "SMA100": sma_stats["SMA100"],
         "SMA150": sma_stats["SMA150"],
         "SMA200": sma_stats["SMA200"],
+        "advanceDecline": advance_decline_stats,
+        "newHighsLows": new_highs_lows_stats,
         "marketOutlook": market_outlook,
         "indexPerformance": index_performance,
         "top10DailyGainers": top_10_gainers,
@@ -2378,7 +2499,7 @@ async def Daily():
     print(f"✓ Completed in {(end_time - start_time)/60:.2f} minutes")
     #await checkAndUpdateFinancialUpdates()
     #await fetchNews()
-
+        
 if __name__ == '__main__':  
     import motor.motor_asyncio
     # Make sure db is defined as in your main code

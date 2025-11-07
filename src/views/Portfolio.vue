@@ -28,6 +28,85 @@
       />
     </div>
   </div>
+   <div class="benchmark-menu">
+   <!-- Benchmarks Panel -->
+  <div class="benchmark-panel">
+    <div class="benchmark-chips">
+      <div v-if="portfolioBenchmarks.length === 0" class="no-benchmarks">
+        No benchmarks selected
+      </div>
+      <div
+        v-for="(benchmark, index) in portfolioBenchmarks"
+        :key="index"
+        class="benchmark-chip"
+      >
+        <span>{{ benchmark }}</span>
+        <button
+          class="remove-btn"
+          @click="removeBenchmark(index)"
+          aria-label="Remove benchmark"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+    <button class="edit-watch-panel-btn" @click="showBenchmarkSelector = true" aria-label="Manage Benchmarks">
+      Manage Benchmarks
+    </button>
+  </div>
+
+  <BenchmarkSelector
+    v-if="showBenchmarkSelector"
+    :user="user?.Username ?? ''"
+    :api-key="apiKey"
+    :portfolio="selectedPortfolioIndex"
+    :current-benchmarks="portfolioBenchmarks"
+    @close="showBenchmarkSelector = false"
+    @saved="handleBenchmarksSaved"
+    @notify="(msg: any) => showNotification(msg.text)"
+  />
+  </div>
+
+  <!-- Benchmark Performance Comparison -->
+  <div v-if="portfolioSummary?.benchmarkPerformance && portfolioSummary.benchmarkPerformance.length > 0" class="benchmark-performance-section">
+    <div class="benchmark-performance-scroll">
+      <div v-for="benchmark in portfolioSummary.benchmarkPerformance" :key="benchmark.symbol" class="benchmark-card">
+        <div class="benchmark-header">
+          <span class="benchmark-symbol">{{ benchmark.symbol }}</span>
+          <span class="benchmark-status" :class="benchmark.beating ? 'outperforming' : 'underperforming'">
+            <svg v-if="benchmark.beating" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 3L9.00001 4L11.2929 6.29289L8.50001 9.08579L5.50001 6.08579L0.292908 11.2929L1.70712 12.7071L5.50001 8.91421L8.50001 11.9142L12.7071 7.70711L15 10L16 9L16 3H10Z" fill="currentColor"></path>
+            </svg>
+            <svg v-else viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 13L9.00001 12L11.2929 9.70712L8.50001 6.91423L5.50001 9.91423L0.292908 4.70712L1.70712 3.29291L5.50001 7.0858L8.50001 4.0858L12.7071 8.29291L15 6.00001L16 7.00001L16 13H10Z" fill="currentColor"></path>
+            </svg>
+            <span>{{ benchmark.beating ? 'Beating' : 'Lagging' }}</span>
+          </span>
+        </div>
+        <div class="benchmark-stats">
+          <div class="stat-item">
+            <span class="stat-label">Benchmark</span>
+            <span class="stat-value" :class="benchmark.return >= 0 ? 'positive' : 'negative'">
+              {{ benchmark.return >= 0 ? '+' : '' }}{{ benchmark.return.toFixed(2) }}%
+            </span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Portfolio</span>
+            <span class="stat-value" :class="benchmark.portfolioReturn >= 0 ? 'positive' : 'negative'">
+              {{ benchmark.portfolioReturn >= 0 ? '+' : '' }}{{ benchmark.portfolioReturn.toFixed(2) }}%
+            </span>
+          </div>
+          <div class="stat-item highlight">
+            <span class="stat-label">Diff</span>
+            <span class="stat-value" :class="benchmark.outperformance >= 0 ? 'positive' : 'negative'">
+              {{ benchmark.outperformance >= 0 ? '+' : '' }}{{ benchmark.outperformance.toFixed(2) }}%
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="portfolio-summary-main">
     <div class="portfolio-summary">
       <div class="summary-row">
@@ -216,6 +295,7 @@
         </div>
       </div>
     </div>
+
     <div class="portfolio-charts">
       <div class="portfolio-linechart-container" aria-label="Portfolio total value over time chart">
         <div class="linechart-fixed-height">
@@ -259,6 +339,7 @@
   :maxShares="sellPosition.shares"
   :price="sellPosition.price"
   :currentPrice="latestQuotes[sellPosition.symbol]"
+  :isShort="sellPosition.isShort"
   @close="showSellModal = false"
   @sell="handleSell"
   :user="user?.Username ?? ''"
@@ -273,6 +354,16 @@
   :portfolio="selectedPortfolioIndex"
   @close="showAddCashModal = false"
   @refresh="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showAddCashModal = false }"
+  @notify="showNotification($event)"
+/>
+<WithdrawCashPopup
+  v-if="showWithdrawCashModal"
+  :user="user?.Username ?? ''"
+  :api-key="apiKey"
+  :portfolio="selectedPortfolioIndex"
+  :available-cash="cash"
+  @close="showWithdrawCashModal = false"
+  @refresh="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showWithdrawCashModal = false }"
   @notify="showNotification($event)"
 />
 <BaseValuePopup
@@ -320,12 +411,13 @@
             <tr>
               <th>% of Portfolio</th>
               <th>Symbol</th>
+              <th>Type</th>
               <th>Shares</th>
               <th>Avg. Price</th>
               <th>Current Price</th>
               <th>Total Value</th>
               <th>PnL (%)</th>
-                <th>PnL ($)</th>
+              <th>PnL ($)</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -337,13 +429,21 @@
               <td>-</td>
               <td>-</td>
               <td>-</td>
+              <td>-</td>
               <td>${{ cash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
               <td>-</td>
               <td>-</td>
-              <td></td>
+              <td>
+                <button class="action-btn"
+                  @click="showWithdrawCashModal = true"
+                  :disabled="cash <= 0"
+                  :aria-label="`Withdraw Cash`">
+                  Withdraw
+                </button>
+              </td>
             </tr>
             <tr v-if="portfolio.length === 0 && cash === 0">
-              <td colspan="8" style="text-align:center; color: var(--text2);">
+              <td colspan="10" style="text-align:center; color: var(--text2);">
                 No Active Positions
               </td>
             </tr>
@@ -354,7 +454,22 @@
                 </span>
               </td>
               <td>{{ position.Symbol }}</td>
-              <td>{{ position.Shares }}</td>
+              <td>
+                <span 
+                  :class="['position-type-badge', position.IsShort ? 'short' : 'long']"
+                  :title="position.IsShort ? 'Short Position' : 'Long Position'"
+                >
+                  {{ position.IsShort ? 'Short' : 'Long' }}
+                </span>
+                <span 
+                  v-if="position.Leverage && position.Leverage > 1" 
+                  class="leverage-badge"
+                  :title="`${position.Leverage}x Leverage`"
+                >
+                  {{ position.Leverage }}x
+                </span>
+              </td>
+              <td>{{ position.Shares.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
               <td>${{ Number(position.AvgPrice).toFixed(2) }}</td>
               <td>
                 <span v-if="latestQuotes[position.Symbol] !== undefined">
@@ -378,9 +493,9 @@
               </td>
               <td>
                 <button class="action-btn"
-                  @click="openSellModal({ symbol: position.Symbol, shares: position.Shares, price: position.AvgPrice })"
+                  @click="openSellModal({ symbol: position.Symbol, shares: position.Shares, price: position.AvgPrice, isShort: position.IsShort })"
                   :aria-label="`Sell ${position.Symbol}`">
-                  Sell
+                  Close
                 </button>
               </td>
             </tr>
@@ -396,6 +511,7 @@
             <th>Date</th>
             <th>Symbol</th>
             <th>Action</th>
+            <th>Type</th>
             <th>Shares</th>
             <th>Price</th>
             <th>Commissions</th>
@@ -404,7 +520,7 @@
         </thead>
         <tbody>
           <tr v-if="sortedTransactionHistory.length === 0">
-            <td colspan="7" style="text-align:center; color: var(--text2);">
+            <td colspan="8" style="text-align:center; color: var(--text2);">
               No transaction history
             </td>
           </tr>
@@ -412,6 +528,18 @@
             <td>{{ tx.Date ? tx.Date.slice(0, 10) : '' }}</td>
             <td>{{ tx.Symbol }}</td>
             <td>{{ tx.Action }}</td>
+            <td>
+              <span v-if="tx.Leverage && tx.Leverage > 1" class="leverage-badge-small" :title="`${tx.Leverage}x Leverage`">
+                {{ tx.Leverage }}x
+              </span>
+              <span v-if="tx.IsShort" class="short-badge-small" title="Short Position">
+                Short
+              </span>
+              <span v-else-if="tx.Symbol && tx.Action !== 'Cash Deposit' && tx.Action !== 'Cash Withdrawal'" class="long-badge-small" title="Long Position">
+                Long
+              </span>
+              <span v-if="!tx.Symbol || tx.Action === 'Cash Deposit' || tx.Action === 'Cash Withdrawal'">-</span>
+            </td>
             <td>{{ tx.Shares }}</td>
             <td>{{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toFixed(2) }}</td>
             <td>{{ isNaN(Number(tx.Commission)) ? '-' : '$' + Number(tx.Commission).toFixed(2) }}</td>
@@ -447,7 +575,9 @@ import annotationPlugin from 'chartjs-plugin-annotation';
 import ImportPortfolioPopup from '@/components/Portfolio/ImportPortfolioPopup.vue';
 import DownloadPortfolioPopup from '@/components/Portfolio/DownloadPortfolioPopup.vue'
 import BaseValuePopup from '@/components/Portfolio/BaseValue.vue'
+import WithdrawCashPopup from '@/components/Portfolio/withdrawCash.vue'
 import NotificationPopup from '@/components/NotificationPopup.vue';
+import BenchmarkSelector from '@/components/Portfolio/BenchmarkSelector.vue';
 
 // access user from store 
 const userStore = useUserStore();
@@ -467,6 +597,8 @@ type Position = {
   Symbol: string;
   Shares: number;
   AvgPrice: number;
+  Leverage?: number;
+  IsShort?: boolean;
 };
 type Trade = {
   Date?: string;
@@ -476,18 +608,23 @@ type Trade = {
   Price?: number;
   Commission?: number;
   Total?: number;
+  Leverage?: number;
+  IsShort?: boolean;
 };
 
 const showTradeModal = ref(false)
 const showSellModal = ref(false)
-const sellPosition = ref({ symbol: '', shares: 0, price: 0 })
+const sellPosition = ref({ symbol: '', shares: 0, price: 0, isShort: false })
 const showAddCashModal = ref(false)
+const showWithdrawCashModal = ref(false)
 const showImportPopup = ref(false)
 const showDownloadPopup = ref(false)
 const showBaseValueModal = ref(false)
+const showBenchmarkSelector = ref(false)
+const portfolioBenchmarks = ref<string[]>([])
 
-function openSellModal(position: { symbol: string; shares: number; price: number }) {
-  sellPosition.value = { ...position }
+function openSellModal(position: { symbol: string; shares: number; price: number; isShort?: boolean }) {
+  sellPosition.value = { ...position, isShort: position.isShort || false }
   showSellModal.value = true
 }
 
@@ -582,6 +719,13 @@ function getPnLDollar(position: Position): string {
   const close = latestQuotes.value[position.Symbol];
   if (close === undefined || close === null) return '';
   if (!position.AvgPrice) return '';
+  
+  // For short positions, profit when price goes down
+  if (position.IsShort) {
+    return ((position.AvgPrice - close) * position.Shares).toFixed(2);
+  }
+  
+  // For long positions, profit when price goes up
   return ((close - position.AvgPrice) * position.Shares).toFixed(2);
 }
 
@@ -850,6 +994,14 @@ function getPnLPercent(position: Position): string {
   const close = latestQuotes.value[position.Symbol];
   if (close === undefined || close === null) return '';
   if (!position.AvgPrice) return '';
+  
+  // For short positions, profit when price goes down
+  if (position.IsShort) {
+    const pnlPerc = ((position.AvgPrice - close) / position.AvgPrice) * 100;
+    return pnlPerc.toFixed(2);
+  }
+  
+  // For long positions, profit when price goes up
   const pnlPerc = ((close - position.AvgPrice) / position.AvgPrice) * 100;
   return pnlPerc.toFixed(2);
 }
@@ -857,7 +1009,14 @@ function getPnLPercent(position: Position): string {
 function getPnLClass(position: Position): string {
   const close = latestQuotes.value[position.Symbol];
   if (close === undefined || close === null) return '';
-  return close - position.AvgPrice >= 0 ? 'positive' : 'negative';
+  
+  // For short positions, green when price goes down, red when goes up
+  if (position.IsShort) {
+    return close <= position.AvgPrice ? 'positive' : 'negative';
+  }
+  
+  // For long positions, green when price goes up, red when goes down
+  return close >= position.AvgPrice ? 'positive' : 'negative';
 }
 
 function getCurrentPrice(position: Position): string {
@@ -941,6 +1100,15 @@ type PortfolioSummary = {
     tradeCount?: number;
   };
   positionsCount?: number;
+  benchmarkPerformance?: {
+    symbol: string;
+    inceptionPrice: number;
+    currentPrice: number;
+    return: number;
+    portfolioReturn: number;
+    outperformance: number;
+    beating: boolean;
+  }[];
 };
 const portfolioSummary = ref<PortfolioSummary | null>(null);
 const portfolioValueHistory = computed(() => {
@@ -1068,6 +1236,58 @@ function selectPortfolio(idx: number) {
   fetchTransactionHistory();
   fetchCash();
   fetchPortfolioSummary();
+  fetchBenchmarks();
+}
+
+// --- Benchmark Functions ---
+async function fetchBenchmarks() {
+  try {
+    const headers = { 'x-api-key': apiKey };
+    const response = await fetch(
+      `/api/portfolio/benchmarks?username=${user.value?.Username ?? ''}&portfolio=${selectedPortfolioIndex.value}`,
+      { headers }
+    );
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+    portfolioBenchmarks.value = data.benchmarks || [];
+  } catch (error) {
+    portfolioBenchmarks.value = [];
+  }
+}
+
+function handleBenchmarksSaved(benchmarks: string[]) {
+  portfolioBenchmarks.value = benchmarks;
+  fetchPortfolioSummary(); // Refresh to get benchmark data
+}
+
+function removeBenchmark(index: number) {
+  const updatedBenchmarks = [...portfolioBenchmarks.value];
+  updatedBenchmarks.splice(index, 1);
+  saveBenchmarksDirectly(updatedBenchmarks);
+}
+
+async function saveBenchmarksDirectly(benchmarks: string[]) {
+  try {
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey
+    };
+    const response = await fetch('/api/portfolio/benchmarks', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        username: user.value?.Username ?? '',
+        portfolio: selectedPortfolioIndex.value,
+        benchmarks
+      })
+    });
+    if (!response.ok) throw new Error('Failed to update benchmarks');
+    portfolioBenchmarks.value = benchmarks;
+    showNotification('Benchmark removed successfully');
+    fetchPortfolioSummary(); // Refresh to update benchmark performance data
+  } catch (error) {
+    showNotification('Failed to remove benchmark');
+  }
 }
 
 // On mount, load the first portfolio by default
@@ -1203,15 +1423,127 @@ const isPortfolioBlank = computed(() => {
   width: 100%;
   padding: 5px 0px;
   justify-content: space-between; 
+  margin-bottom: 5px;
 }
 
-.benchmark-panel {
+.benchmark-menu {
   display: flex;
   flex-direction: row;
   background-color: var(--base2);
   width: 100%;
   padding: 5px 0px;
   justify-content: space-between; 
+}
+
+.benchmark-panel {
+  display: flex;
+  align-items: center;
+  background-color: var(--base2);
+  width: 100%;
+  padding: 8px 10px;
+  gap: 12px;
+
+  .benchmark-label {
+    color: var(--text1);
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .benchmark-chips {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    align-items: center;
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    min-width: 0;
+    max-width: 100%;
+    
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: var(--base3);
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: var(--accent1);
+      border-radius: 2px;
+    }
+
+    .no-benchmarks {
+      color: var(--text2);
+      font-size: bold;
+      font-size: 1rem;
+      white-space: nowrap;
+      align-self: center;
+    }
+
+    .benchmark-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent1);
+      color: var(--text3);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+
+      .remove-btn {
+        background: none;
+        border: none;
+        color: var(--text3);
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.2s;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+      }
+    }
+  }
+
+  .edit-watch-panel-btn {
+    background-color: var(--base2);
+    color: var(--text1);
+    border: 1px solid var(--base4);
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: fit-content;
+
+    &:hover {
+      background-color: var(--base4);
+      color: var(--text1);
+    }
+
+    svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+  }
 }
 
 .menu-btn {
@@ -1644,5 +1976,202 @@ const isPortfolioBlank = computed(() => {
     padding: 8px 12px;
   }
 }
+
+/* Badge styles for position types and leverage */
+.position-type-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.position-type-badge.long {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+}
+
+.position-type-badge.short {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.4);
+}
+
+.leverage-badge {
+  display: inline-block;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 700;
+  background: rgba(140, 141, 254, 0.2);
+  color: var(--accent1);
+  border: 1px solid rgba(140, 141, 254, 0.4);
+}
+
+.leverage-badge-small,
+.short-badge-small,
+.long-badge-small {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.75em;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.leverage-badge-small {
+  background: rgba(140, 141, 254, 0.15);
+  color: var(--accent1);
+  border: 1px solid rgba(140, 141, 254, 0.3);
+}
+
+.short-badge-small {
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.long-badge-small {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+/* Benchmark Performance Section */
+.benchmark-performance-section {
+  background: var(--base2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  overflow: hidden;
+}
+
+.benchmark-performance-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+  
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: var(--base3);
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--accent1);
+    border-radius: 3px;
+  }
+}
+
+.benchmark-card {
+  background: var(--base3);
+  border-radius: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--base4);
+  min-width: 180px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: var(--accent1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.benchmark-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.benchmark-symbol {
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--accent1);
+  white-space: nowrap;
+}
+
+.benchmark-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  
+  svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+  
+  &.outperforming {
+    background: rgba(76, 175, 80, 0.15);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+  }
+  
+  &.underperforming {
+    background: rgba(244, 67, 54, 0.15);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+  }
+}
+
+.benchmark-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  
+  &.highlight {
+    padding-top: 6px;
+    margin-top: 2px;
+    border-top: 1px solid var(--base4);
+  }
+}
+
+.stat-label {
+  color: var(--text2);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.stat-value {
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  
+  &.positive {
+    color: #4caf50;
+  }
+  
+  &.negative {
+    color: #f44336;
+  }
+}
+
+@media (max-width: 768px) {
+  .benchmark-card {
+    min-width: 160px;
+  }
+}
+
 
 </style>
