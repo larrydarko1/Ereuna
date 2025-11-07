@@ -3,7 +3,7 @@
     <h1>Security & 2FA</h1>
     <p>Ereuna supports two-factor authentication (2FA) via authenticator apps like 2FAS. SMS or email-based 2FA is not available at this time.</p>
     <p>To enable 2FA, follow these steps:</p>
-    <img src="@/assets/images/docs/MFA-enable.gif" alt="Enable 2FA Process" class="mfa-gif" />
+    <img src="/docs/MFA-enable.gif" alt="Enable 2FA Process" class="mfa-gif" />
     <p>1. In the Account section, navigate to the Security subsection.</p>
     <p>2. Toggle the 2FA switch to enable it.</p>
     <p>3. A QR code will be generated. Scan it with your authenticator app.</p>
@@ -11,7 +11,7 @@
     <p>5. Click the confirm button. If successful, 2FA will be activated.</p>
     <p>To disable 2FA, simply toggle the switch off.</p>
     <p>When logging in, after entering your password, you will be prompted with a popup to enter the 6-digit code from your authenticator app.</p>
-    <img src="@/assets/images/docs/MFA-login.gif" alt="2FA Login Process" class="mfa-gif" />
+    <img src="/docs/MFA-login.gif" alt="2FA Login Process" class="mfa-gif" />
 </div>
 </template>
 

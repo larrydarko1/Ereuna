@@ -6,7 +6,7 @@
       <p>You <b>need</b> a <strong>Recovery Key</strong> to restore your account. If you don't have or have lost your Recovery Key, contact support at <a href="mailto:contact@ereuna.io">contact@ereuna.io</a> for assistance.</p>
     </div>
     <p>To recover your password, navigate to the recovery page at <a href="https://ereuna.io/recovery" target="_blank">https://ereuna.io/recovery</a>.</p>
-    <img class="img" src="@/assets/images/docs/recovery.png" alt="">
+    <img class="img" src="/docs/recovery.png" alt="">
     <p>Once there, paste your Recovery Key (which you downloaded from the Account section) into the input field and click 'Recover Account'. Your Recovery Key should look something like this: <code>5031ed70814d33f43a9b9aabc3ecf473b087a4cc357d40e6699eae7d8b7cb1a12605b017333fcf8410da50ff0783b49b7245b7a6d556be7f99589783729255ff</code>. If the key is valid, you'll be prompted to enter and confirm a new password.</p>
     <p>After successfully setting your new password, you'll regain access to your account. Remember to download a new Recovery Key from your Account section for future use to ensure continued security.</p>
   </div>

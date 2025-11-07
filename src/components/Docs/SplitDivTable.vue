@@ -4,7 +4,7 @@
   <p>
     In the <b>Charts</b> section, the left side panel also includes tables dedicated to <b>Dividends</b> and <b>Splits</b> for each company or asset.
   </p>
-  <img class="img" src="@/assets/images/docs/divsplit-table.png" alt="">
+  <img class="img" src="/docs/divsplit-table.png" alt="">
   <p>
     The <b>Dividend Table</b> lists all dividend payment dates along with the corresponding dividend amounts, allowing you to quickly see how much the asset has paid out over time.
   </p>

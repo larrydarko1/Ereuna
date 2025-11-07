@@ -4,7 +4,7 @@
       <div class="disclaimer-box">
       <p><strong>Important Note:</strong> Ereuna uses a recharge-based subscription model. We do not store payment methods on our platform, and there are no automatic charges. Once your subscription expires, no automatic renewals will occur. To extend your subscription, you must manually make a payment through the renewal option. There is no need for a "cancel subscription" button, as subscriptions do not auto-renew.</p>
     </div>
-    <img src="@/assets/images/docs/subscription.png" alt="Subscriptions Overview" class="subscription-img" />
+    <img src="/docs/subscription.png" alt="Subscriptions Overview" class="subscription-img" />
     <p>The Subscriptions subsection allows you to manage your account's subscription details. Here, you can:</p>
     <ul>
       <li>View your username and account information.</li>

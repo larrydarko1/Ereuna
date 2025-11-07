@@ -1,7 +1,7 @@
 <template>
 <div class="center-container">
   <h1>Resetting a Portfolio</h1>
-  <img src="@/assets/images/docs/portfolio-reset.gif" alt="Portfolio Reset Process" class="reset-gif" />
+  <img src="/docs/portfolio-reset.gif" alt="Portfolio Reset Process" class="reset-gif" />
   <p>Resetting a portfolio is straightforward. In the header section of the Portfolio view, locate the "Reset" button.</p>
   <p>Click the "Reset" button. A confirmation popup will appear.</p>
   <p>Click to confirm the reset, and the selected portfolio will be cleared of all positions, transactions, and reset to its base value.</p>

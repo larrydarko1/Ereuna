@@ -1,11 +1,12 @@
 <template>
 <div class="center-container">
   <h1>Portfolio Overview</h1>
-  <img src="@/assets/images/docs/portfolio-overview.png" alt="Portfolio Overview" class="portfolio-img" />
+  <img src="/docs/portfolio-overview.png" alt="Portfolio Overview" class="portfolio-img" />
   <p>The Portfolio section allows users to simulate up to 10 different portfolios. You can manually simulate trades and positions (including commissions), add cash, set base values for each portfolio, and export or import portfolios.</p>
   <p>The section is structured as follows:</p>
-  <p>1. <strong>Header Session:</strong> Contains buttons to switch between portfolios and a menu for additional options.</p>
-  <p>2. <strong>Summary Session:</strong> Displays key statistics such as:</p>
+  <p>1. <strong>Header Section:</strong> Contains buttons to switch between portfolios and a menu for additional options.</p>
+  <p>2. <strong>Benchmark Section:</strong> Since patch v3.9.2, you can now select up to 5 benchmarks for each portfolio.</p>
+  <p>3. <strong>Summary Section:</strong> Displays key statistics such as:</p>
   <ul>
     <li><strong>Base Value:</strong> The initial amount of capital set for the portfolio.</li>
     <li><strong>Total Value:</strong> The current total value of the portfolio, including cash and positions.</li>
@@ -35,8 +36,8 @@
     <li><strong>Biggest Loser:</strong> The trade with the highest loss.</li>
   </ul>
   <p>This section also includes a line chart for the P/L curve and a bar chart showing the distribution of closed trades based on number of trades and returns.</p>
-  <p>3. <strong>Position Section:</strong> Displays all open positions (including cash as a separate position) and a pie chart to graphically visualize the portfolio allocation.</p>
-  <p>4. <strong>Transaction History:</strong> Shows the simulated history of the portfolio, including all closed transactions (cash deposits are stored here as well).</p>
+  <p>4. <strong>Position Section:</strong> Displays all open positions (including cash as a separate position) and a pie chart to graphically visualize the portfolio allocation.</p>
+  <p>5. <strong>Transaction History:</strong> Shows the simulated history of the portfolio, including all closed transactions (cash deposits are stored here as well).</p>
   <p>More features will be added in the future.</p>
 </div>
 </template>

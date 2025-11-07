@@ -4,7 +4,7 @@
   <p>
     In the left panel of the <b>Charts</b> section, you can now view the 5 most recent news articles related to the selected symbol.
   </p>
-  <img class="img" src="@/assets/images/docs/news.png" alt="News Section Example">
+  <img class="img" src="/docs/news.png" alt="News Section Example">
   <p>
     Clicking on "Read More" for any article will redirect you to the full blog post containing the complete content.
   </p>

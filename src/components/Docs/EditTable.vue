@@ -1,7 +1,7 @@
 <template>
  <div class="center-container">
     <h1>Customizing Table Columns</h1>
-    <img src="@/assets/images/docs/edit-columns.gif" alt="">
+    <img src="/docs/edit-columns.gif" alt="">
     <p>You can customize the columns for the table, including their values and order. There's an 'Edit Table' button in the menu. Clicking it opens a menu where you can make changes.</p>
     <p>On the left side of the menu, you can select attributes for the columns. On the right side, you can reorder the columns and remove them as needed.</p>
     <p>To reset the entire table to its default settings, press the reset button near the save button. To confirm your changes, press the save button, and it will update the table accordingly.</p>

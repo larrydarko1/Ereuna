@@ -5,7 +5,7 @@
     There are two primary methods to add and remove symbols from watchlists in the Charts section.
   </p>
   <h2>Method 1: Using the Search Input</h2>
-  <img class="img" src="@/assets/images/docs/searchinput.gif" alt="">
+  <img class="img" src="/docs/searchinput.gif" alt="">
   <p>
     Enter a symbol in the search input field and click 'Add Symbol'. If a watchlist is currently selected, the symbol will be added to it.
   </p>
@@ -13,17 +13,17 @@
     To remove a symbol, hover over the symbol within the watchlist and click the X button that appears.
   </p>
   <h2>Method 2: Using the Dropdown Menu</h2>
-  <img class="img" src="@/assets/images/docs/dropdown.gif" alt=""></img>
+  <img class="img" src="/docs/dropdown.gif" alt=""></img>
   <p>
     Each symbol in the watchlist features a dropdown menu. Hover over the symbol to reveal a menu listing all existing watchlists. Toggle the checkboxes for the watchlists to which you wish to add the symbol. If a symbol is already present in a watchlist, untoggle the checkbox to remove it.
   </p>
   <h2>Reordering Symbols</h2>
-   <img class="img" src="@/assets/images/docs/drag-drop.gif" alt=""></img>
+   <img class="img" src="/docs/drag-drop.gif" alt=""></img>
   <p>
     Symbols within a watchlist can be reordered by dragging and dropping them.
   </p>
   <h2>Sorting Symbols</h2>
-  <img class="img" src="@/assets/images/docs/sort.gif" alt="">
+  <img class="img" src="/docs/sort.gif" alt="">
   <p>
     The watchlist header enables temporary sorting of symbols in ascending or descending order by the following criteria:
   </p>

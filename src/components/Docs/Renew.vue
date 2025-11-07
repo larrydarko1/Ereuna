@@ -2,7 +2,7 @@
 <div class="center-container">
   <h1>Renew Subscription</h1>
   <p>To renew your subscription on Ereuna, follow these steps:</p>
-    <img src="@/assets/images/docs/renew-subscription.gif" alt="Renew Subscription Process" class="renew-gif" />
+    <img src="/docs/renew-subscription.gif" alt="Renew Subscription Process" class="renew-gif" />
   <p>1. In the Subscriptions subsection, click the "Renew" button.</p>
   <p>2. A popup will appear where you can select your desired subscription duration.</p>
   <p>3. Add your payment method details.</p>

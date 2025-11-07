@@ -4,7 +4,7 @@
   <p>
     The main chart component is built using <b>lightweight-charts</b> by TradingView. In the future, we plan to fork this library to add more custom features on top of it.
   </p>
-  <img class="img" src="@/assets/images/docs/main-chart.png" alt="Main Chart Example">
+  <img class="img" src="/docs/main-chart.png" alt="Main Chart Example">
   <p>
     The chart supports the following timeframes: <b>1m</b>, <b>5m</b>, <b>15m</b>, <b>30m</b>, <b>1hr</b>, <b>1d</b>, and <b>1w</b>.
   </p>

@@ -7,7 +7,7 @@
   <p>
     To view the full financial statements, click on the <b>'View Financial Statements'</b> button. This will open a popup containing the entire set of financial statements for the selected company.
   </p>
-   <img class="img" src="@/assets/images/docs/financial-table.gif" alt="">
+   <img class="img" src="/docs/financial-table.gif" alt="">
   <p>
     Each value in the table displays a percentage return in the corner, calculated by comparing the value to the previous quarter or year, depending on the selected view.
   </p>

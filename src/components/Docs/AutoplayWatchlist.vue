@@ -7,7 +7,7 @@
   <p>
     On the right panel, locate the dropdown menu and hover over it to display the options.
   </p>
-  <img class="img" src="@/assets/images/docs/autoplay.gif" alt="">
+  <img class="img" src="/docs/autoplay.gif" alt="">
   <p>
     Select the <b>'Autoplay'</b> option from the dropdown menu to activate it.
   </p>

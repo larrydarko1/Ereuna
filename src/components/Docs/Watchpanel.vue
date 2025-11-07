@@ -4,11 +4,11 @@
   <p>
     The Watch Panel is a Wall Street-style quotation area in the <b>Charts</b> section where you can add symbols to monitor closely.
   </p>
-  <img class="img" src="@/assets/images/docs/edit-watchpanel.png" alt="">
+  <img class="img" src="/docs/edit-watchpanel.png" alt="">
   <p>
     On the right side of the panel, there is an edit button. Clicking it opens a popup where you can add or remove symbols as desired, with a limit of 20 symbols.
   </p>
-  <img class="img" src="@/assets/images/docs/watchpanel-popup.png" alt="">
+  <img class="img" src="/docs/watchpanel-popup.png" alt="">
 </div>
 </template><script setup lang="ts">
 </script>

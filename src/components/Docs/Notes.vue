@@ -4,7 +4,7 @@
   <p>
    Notes created for specific symbols are displayed in a table within the left panel of the <b>Charts</b> section.
   </p>
-    <img class="img" src="@/assets/images/docs/note.gif" alt="">
+    <img class="img" src="/docs/note.gif" alt="">
   <p>
     To create a note, navigate to the dropdown menu in the top right corner of the Charts section and select the 'Create Note' option. A popup will appear where you can enter your note. After submitting, the new note will be visible in the left panel.
   </p>

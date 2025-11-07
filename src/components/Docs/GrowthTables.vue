@@ -4,11 +4,11 @@
   <p>
     In the <b>Charts</b> section, the left side panel includes three dedicated tables that display key growth metrics for each company: <b>EPS (Earnings Per Share)</b>, <b>Revenue</b>, and <b>Net Income</b>.
   </p>
-  <img class="img" src="@/assets/images/docs/growth-table.png" alt="EPS, Sales, Earnings Tables Example">
+  <img class="img" src="/docs/growth-table.png" alt="EPS, Sales, Earnings Tables Example">
   <p>
     Each table tracks the selected metric for every quarter since the company's public listing. For each quarter, you can view both <b>Quarter-over-Quarter (QoQ)</b> and <b>Year-over-Year (YoY)</b> growth rates.
   </p>
-  <img class="img" src="@/assets/images/docs/growth-table.gif" alt="">
+  <img class="img" src="/docs/growth-table.gif" alt="">
   <p>
     Next to each QoQ and YoY value, there are two icons that visually indicate the growth trend. The icon color changes based on the percentage change:
   </p>
