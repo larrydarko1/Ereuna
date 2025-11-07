@@ -9,7 +9,7 @@
   <p>To generate a Recovery Key for your Ereuna account, follow these steps:</p>
   <p>1. Log in to your account and navigate to the Account section at <a href="https://ereuna.io/account" target="_blank">https://ereuna.io/account</a>. The Account subsection should be the default view.</p>
   <p>2. Locate the 'Recovery/Authentication Key' section.</p>
-    <img class="img" src="@/assets/images/docs/recovery-key.png" alt="Account Section Screenshot" />
+    <img class="img" src="/docs/recovery-key.png" alt="Account Section Screenshot" />
   <p>3. Enter your password and click the 'Generate New Key' button. If successful, a download will begin with your new Recovery Key in a text file. <b>Store this file securely!</b></p>
   <p>4. You have successfully generated a new Recovery Key for your account.</p>
 </div>

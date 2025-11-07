@@ -4,7 +4,7 @@
   <p>To change your password on Ereuna, follow these steps:</p>
   <p>1. Log in to your account and navigate to the Account section at <a href="https://ereuna.io/account" target="_blank">https://ereuna.io/account</a>. The Account subsection should be the default view.</p>
   <p>2. Locate the 'Change Password' subsection.</p>
-    <img class="img" src="@/assets/images/docs/change-password.png" alt="Account Section Screenshot" />
+    <img class="img" src="/docs/change-password.png" alt="Account Section Screenshot" />
   <p>3. Enter your old password in the first input field, your new password in the second, and confirm the new password in the third. Then click the 'Change Password' button.</p>
   <p>4. Your password has been successfully changed.</p>
   <div class="disclaimer-box">

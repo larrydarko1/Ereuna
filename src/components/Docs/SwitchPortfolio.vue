@@ -2,7 +2,7 @@
 <div class="center-container">
   <h1>Switching Portfolios</h1>
   <p>To switch between different portfolios in the Portfolio section, use the header section which contains buttons numbered 1 to 10. Each button represents a separate portfolio.</p>
-  <img src="@/assets/images/docs/portfolio-switch.png" alt="Portfolio Header" class="portfolio-img" />
+  <img src="/docs/portfolio-switch.png" alt="Portfolio Header" class="portfolio-img" />
   <p>Simply click on the button corresponding to the portfolio you want to view or manage. The interface will instantly switch to display the selected portfolio's data.</p>
 </div>
 </template>

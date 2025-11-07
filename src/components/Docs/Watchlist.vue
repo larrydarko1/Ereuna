@@ -2,7 +2,7 @@
 <div class="center-container">
   <h1>Managing Watchlists</h1>
   <p><strong>Note:</strong> Each user can create up to <b>20 watchlists</b>. If you reach this limit, you will need to delete an existing watchlist before creating a new one.</p>
-    <img class="img" src="@/assets/images/docs/watchlists.gif" alt="">
+    <img class="img" src="/docs/watchlists.gif" alt="">
   <h2>Creating a Watchlist</h2>
   <p>Log in to your account and navigate to <a href="https://ereuna.io/charts" target="_blank">https://ereuna.io/charts</a>.</p>
   <p>On the right panel, locate the dropdown menu and hover over it to display the options.</p>

@@ -1,7 +1,7 @@
 <template>
 <div class="center-container">
   <h1>Adding Cash to Portfolio</h1>
-  <img src="@/assets/images/docs/add-cash.gif" alt="Add Cash Process" class="add-cash-gif" />
+  <img src="/docs/add-cash.gif" alt="Add Cash Process" class="add-cash-gif" />
   <p>Adding cash is typically the first step when starting a new portfolio, as it provides the liquidity needed for trades. In the header section of the Portfolio view, locate the "Add Cash" button.</p>
   <p>Click the "Add Cash" button. A popup will appear where you can enter:</p>
   <ul>

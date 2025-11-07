@@ -2,9 +2,9 @@
  <div class="center-container">
     <h1>Mini-Charts and Screener Summary</h1>
     <p>In the screener's right side panel, you will find two mini charts for each stock: one displays the weekly chart and the other displays the daily chart. This allows you to quickly view both timeframes at a glance while screening.</p>
-    <img class="import-img" src="@/assets/images/docs/mini-charts.png" alt="">
+    <img class="import-img" src="/docs/mini-charts.png" alt="">
     <p>Below the mini charts, you will find the Screener Summary section. This section provides a summary of all values for the current screener, including all filters used and their values.</p>
-    <img class="import-img" src="@/assets/images/docs/summary.png" alt="">
+    <img class="import-img" src="/docs/summary.png" alt="">
  </div>
 </template>
 

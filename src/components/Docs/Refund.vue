@@ -2,7 +2,7 @@
 <div class="center-container">
   <h1>Request Refund</h1>
   <p>To request a refund for your Ereuna subscription, follow these steps:</p>
-   <img src="@/assets/images/docs/refund.gif" alt="Refund Request Process" class="refund-gif" />
+   <img src="/docs/refund.gif" alt="Refund Request Process" class="refund-gif" />
   <p>1. In the Subscriptions subsection, click the "Ask for Refund" button.</p>
   <p>2. A popup will appear showing a summary of the amount eligible for automatic refund.</p>
   <p>3. Review the details and click the button to confirm your refund request.</p>

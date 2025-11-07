@@ -5,7 +5,7 @@
   <p>To change your theme, follow these steps:</p>
   <p>1. Log in to your account and navigate to the Account section at <a href="https://ereuna.io/account" target="_blank">https://ereuna.io/account</a>. Open the Themes subsection.</p>
   <p>2. Browse the available themes and click on the one you prefer.</p>
-  <img class="img" src="@/assets/images/docs/themes.gif" alt="Theme Selection Animation" />
+  <img class="img" src="/docs/themes.gif" alt="Theme Selection Animation" />
   <p>3. The app will immediately apply your selected theme.</p>
 </div>
 </template>

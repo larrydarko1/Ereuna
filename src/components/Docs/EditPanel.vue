@@ -7,7 +7,7 @@
   <p>
     Click on the <b>Edit Panel</b> button at the top of the panel. This will open a popup menu where you can manage the panel's components.
   </p>
-  <img class="img" src="@/assets/images/docs/edit-panel.gif" alt="">
+  <img class="img" src="/docs/edit-panel.gif" alt="">
   <p>
     In the popup menu, each section represents a component of the panel. You can hide a component by clicking the <b>Remove</b> button, which will make it invisible.
   </p>
@@ -23,7 +23,7 @@
   <p>
     You can also edit the <b>Summary Panel</b> by clicking the 'Edit Summary' button in the Summary component. This will open another popup; the same rules for editing apply: you can add, remove, and sort elements inside the summary panel.
   </p>
-  <img class="img" src="@/assets/images/docs/edit-summary.gif" alt="">
+  <img class="img" src="/docs/edit-summary.gif" alt="">
   <p>You now have full control over which elements are visible in the left side panel of the Charts section.</p>
 </div>
 </template>

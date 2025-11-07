@@ -3,12 +3,12 @@
     <h1>Hiding Assets</h1>
     <p>You can customize your own database of assets by hiding assets that don't fit your style or workflow. Hidden assets will not appear in your screening results, even if they meet the filter criteria.</p>
     <p>In the screener section, for each asset in the results list, there is a dropdown menu. Hover over it to display the available options. To hide an asset, click on <b>'Hide Asset'</b> in the dropdown menu. The asset will be hidden from your profile and will no longer appear in screening results.</p>
-     <img class="import-img" src="@/assets/images/docs/hide-asset.gif" alt="">
+     <img class="import-img" src="/docs/hide-asset.gif" alt="">
     <p>To view all hidden assets, click the <b>'Hidden Assets'</b> button in the middle menu. This will show all assets you have hidden.</p>
     <p>Inside the Hidden List, you can reintroduce assets to your database. Hover over the dropdown menu for an asset and select <b>'Show Asset'</b>. The asset will be restored and will appear in screening results again.</p>
-    <img class="import-img" src="@/assets/images/docs/show-asset.gif" alt="">
+    <img class="import-img" src="/docs/show-asset.gif" alt="">
     <p><strong>Note:</strong> Hidden assets are still searchable in the charts section. When viewing a hidden asset in charts, a badge will appear to remind you that the asset is hidden from your profile.</p>
-    <img class="import-img" src="@/assets/images/docs/hidden-badge.png" alt="">
+    <img class="import-img" src="/docs/hidden-badge.png" alt="">
  </div>
 </template>
 

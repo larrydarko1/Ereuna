@@ -9,7 +9,7 @@
   <p>To delete your Ereuna account, follow these steps:</p>
   <p>1. Log in to your account and navigate to the Account section at <a href="https://ereuna.io/account" target="_blank">https://ereuna.io/account</a>. The Account subsection should be the default view.</p>
   <p>2. Scroll down to the 'Delete Account' section.</p>
-  <img class="img" src="@/assets/images/docs/delete-account.png" alt="Account Section Screenshot" />
+  <img class="img" src="/docs/delete-account.png" alt="Account Section Screenshot" />
   <p>3. Enter your password to confirm your identity, then click the 'Delete Account' button.</p>
   <p>4. Your account has been deleted. You will no longer be able to access any data or services associated with your account.</p>
 </div>

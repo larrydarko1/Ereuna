@@ -1,7 +1,7 @@
 <template>
 <div class="center-container">
   <h1>Selling a Position</h1>
-  <img src="@/assets/images/docs/sell-position.gif" alt="Sell Position Process" class="sell-position-gif" />
+  <img src="/docs/sell-position.gif" alt="Sell Position Process" class="sell-position-gif" />
   <p>To sell an existing position in your portfolio, navigate to the Positions section.</p>
   <p>Each active position will have a "Sell" button attached to it. Click the "Sell" button for the position you want to sell.</p>
   <p>A popup will appear where you can enter the sell details:</p>

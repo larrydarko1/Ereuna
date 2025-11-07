@@ -1,7 +1,7 @@
 <template>
  <div class="center-container">
     <h1>Downloading Screener Results</h1>
-    <img src="@/assets/images/docs/download-list.gif" alt="">
+    <img src="/docs/download-list.gif" alt="">
     <p>To download the results from your screener, locate the "Download Results" button in the menu and click on it. This will download a CSV table containing all the results from the current list.</p>
  </div>
 </template>

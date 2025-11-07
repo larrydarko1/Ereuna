@@ -23,7 +23,7 @@
 
   <h3>Delisted Stocks</h3>
   <p>14,000+ delisted stocks are also available for historical analysis.</p>
-  <img src="@/assets/images/docs/delisted.png" alt="Delisted Stocks" class="delisted-pic" />
+  <img src="/docs/delisted.png" alt="Delisted Stocks" class="delisted-pic" />
 
   <div class="disclaimer-box">
     <h4>Future Expansions</h4>

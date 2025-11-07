@@ -4,7 +4,7 @@
   <p>
     The <b>Summary Table</b> is the first default element of the left panel in the <b>Charts</b> section. It provides a brief but complete overview of the company or financial asset you are viewing.
   </p>
-  <img class="img" src="@/assets/images/docs/summary-table.png" alt="">
+  <img class="img" src="/docs/summary-table.png" alt="">
   <p>
     As of today, you can view and edit the following information:
   </p>

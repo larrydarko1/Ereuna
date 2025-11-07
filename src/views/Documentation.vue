@@ -27,7 +27,7 @@
       </div>
       <div class="nav-title">
         <h1>Docs</h1>
-        <span class="nav-version">v3.9.1</span>
+        <span class="nav-version">v3.9.2</span>
       </div>
     </div>
 
@@ -45,7 +45,7 @@
       >
         {{ item }}
       </p>
-      <span class="version">Ereuna v3.9.1</span>
+      <span class="version">Ereuna v3.9.2</span>
     </div>
     
     <div class="side2" :class="{ hidden: isMobile && mobileView !== 'submenu' }">

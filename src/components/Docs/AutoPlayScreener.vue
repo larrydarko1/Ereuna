@@ -2,7 +2,7 @@
  <div class="center-container">
     <h1>Autoplay Screener Results</h1>
     <p>You can autoplay any results list. In the middle menu, click on the <b>'Autoplay'</b> button. While autoplay is active, each result in the list will be automatically selected every 5 seconds. To disable autoplay, simply click the <b>'Autoplay'</b> button again.</p>
-    <img class="import-img" src="@/assets/images/docs/autoplay2.gif" alt="">
+    <img class="import-img" src="/docs/autoplay2.gif" alt="">
  </div>
 </template>
 

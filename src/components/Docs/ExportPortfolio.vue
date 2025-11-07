@@ -2,9 +2,9 @@
 <div class="center-container">
   <h1>Exporting a Portfolio</h1>
   <p>To export your portfolio data, locate the "Export" button in the header section of the Portfolio view.</p>
-  <img src="@/assets/images/docs/export-button.png" alt="Export Button" class="export-img" />
+  <img src="/docs/export-button.png" alt="Export Button" class="export-img" />
   <p>Click the "Export" button. A popup will appear with two options:</p>
-  <img src="@/assets/images/docs/export-popup.png" alt="Export Popup" class="export-img" />
+  <img src="/docs/export-popup.png" alt="Export Popup" class="export-img" />
   <ul>
     <li><strong>PDF:</strong> Download a formatted PDF for presentation purposes.</li>
     <li><strong>CSV:</strong> Download a CSV file for data analysis and future importing. Ensure the CSV format is preserved exactly if you plan to import it back.</li>

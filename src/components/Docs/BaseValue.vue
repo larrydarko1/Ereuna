@@ -1,7 +1,7 @@
 <template>
 <div class="center-container">
   <h1>Setting Base Value</h1>
-  <img src="@/assets/images/docs/set-base-value.gif" alt="Set Base Value Process" class="set-base-value-gif" />
+  <img src="/docs/set-base-value.gif" alt="Set Base Value Process" class="set-base-value-gif" />
   <p>The base value represents the initial capital of your portfolio and is used in performance calculations. In the header section of the Portfolio view, locate the "Set Base Value" button.</p>
   <p>Click the "Set Base Value" button. A popup will appear where you can enter the desired base value for the selected portfolio.</p>
   <p>Enter the amount and confirm to set the base value. This can be adjusted at any time to reflect changes in your portfolio's starting point.</p>

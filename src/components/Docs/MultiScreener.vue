@@ -3,9 +3,9 @@
     <h1>Multi-Screener Feature</h1>
     <p>With the Multi-Screener feature, you can select multiple screeners and run them simultaneously with a single click. This generates a compact list of all results, with duplicate symbols highlighted and hidden stocks removed, making it more efficient than running each screener individually.</p>
     <p>To use it, go to the selection menu on the left panel. When you hover over it, all your screeners will be displayed. On the left of each screener, there is a checkbox. To include a screener in the Multi-Screener function, ensure its checkbox is toggled on (by default, it is on). Unchecked screeners will not be included.</p>
-    <img src="@/assets/images/docs/multi-screener1.png" alt="" class="import-img">
+    <img src="/docs/multi-screener1.png" alt="" class="import-img">
     <p>When you're ready, go to the middle menu and click on <b>'Multi-Screener'</b>.</p>
-    <img src="@/assets/images/docs/multi-screener2.gif" alt="" class="import-img">
+    <img src="/docs/multi-screener2.gif" alt="" class="import-img">
     <p>The Multi-Screener will automatically generate the combined results list. Duplicate symbols will have an asterisk (*) attached to the ticker symbol. Hovering over the asterisk will show how many times the symbol appeared and in which screeners. The results are also automatically sorted from most duplicated value, showing the most relevant results first.</p>
  </div>
 </template>

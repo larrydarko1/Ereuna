@@ -1,7 +1,7 @@
 <template>
   <div class="center-container">
     <h1>Dashboard Overview</h1>
-    <img src="@/assets/images/docs/dashboard.gif" alt="Dashboard Overview" class="dashboard-gif" />
+    <img src="/docs/dashboard.gif" alt="Dashboard Overview" class="dashboard-gif" />
     <p>The Dashboard is your central hub for market insights and portfolio monitoring. Currently, users cannot customize the dashboard layout, but as Ereuna continues active development, customizable dashboards are planned for future updates.</p>
     
     <h3>Market Outlook</h3>
@@ -59,9 +59,6 @@
     <h4>Important Disclaimer</h4>
     <p>Intrinsic value calculations are estimates based on historical financial data and assumptions about future performance. They should not be considered as investment advice or guarantees of future returns. Always conduct thorough research and consider multiple factors before making investment decisions. Market prices may differ from intrinsic values for valid reasons, including growth expectations, market sentiment, and company-specific factors.</p>
   </div>
-  
-  <h3>News</h3>
-  <p>This section features recent articles and news related to major market indexes, providing context and insights into current market events and trends.</p>
   </div>
 </template>
 
