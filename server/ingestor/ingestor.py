@@ -122,7 +122,7 @@ async def tiingo_subscription():
     try:
         query = {
             "Delisted": False,
-            "AssetType": {"$in": ["Stock", "ETF"]}
+            "Symbol": {"$in": ["PLTR", "RDDT"]}
         }
         docs = await db.AssetInfo.find(query, {"Symbol": 1, "_id": 0}).to_list(length=None)
         tickers = [d.get("Symbol").upper() for d in docs if d.get("Symbol")]

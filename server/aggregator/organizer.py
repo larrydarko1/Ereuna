@@ -87,14 +87,15 @@ api_key = os.getenv('TIINGO_KEY')
 # Configure MongoDB client with proper timeouts and pool settings
 mongo_client = motor.motor_asyncio.AsyncIOMotorClient(
     mongo_uri,
-    serverSelectionTimeoutMS=30000,  # 30 seconds for server selection
-    socketTimeoutMS=360000,  # 6 minutes for socket operations
-    connectTimeoutMS=20000,  # 20 seconds for initial connection
-    maxPoolSize=50,  # Increase pool size for concurrent operations
-    minPoolSize=10,
-    maxIdleTimeMS=45000,  # Keep connections alive
+    serverSelectionTimeoutMS=120000,  # 2 minutes for server selection (increased for long operations)
+    socketTimeoutMS=900000,  # 15 minutes for socket operations (increased from 6 min)
+    connectTimeoutMS=60000,  # 1 minute for initial connection (increased from 20 sec)
+    maxPoolSize=100,  # Increase pool size for concurrent operations (increased from 50)
+    minPoolSize=20,  # Keep more connections ready (increased from 10)
+    maxIdleTimeMS=300000,  # 5 minutes keep-alive (increased from 45 sec)
     retryWrites=True,
-    retryReads=True
+    retryReads=True,
+    heartbeatFrequencyMS=10000,  # Check server health every 10 seconds
 )
 db = mongo_client['EreunaDB']
 
@@ -905,8 +906,21 @@ async def checkAndUpdateFinancialUpdates():
     })]
     pass  # Print removed for clean output
     new_tickers_data = {}
+    
+    total_tickers = len(tickers)
+    processed = 0
+    
+    def print_financials_progress(processed, total, bar_length=50):
+        """Print progress bar for financial updates"""
+        percentage = int(100 * processed / total) if total > 0 else 0
+        filled_length = int(bar_length * processed / total) if total > 0 else 0
+        bar = '█' * filled_length + '░' * (bar_length - filled_length)
+        print(f'\r  Progress: |{bar}| {percentage}% ({processed}/{total} stocks)', end='', flush=True)
+    
+    print_financials_progress(0, total_tickers)
 
     for ticker in tickers:
+        processed += 1
         pass  # Print removed for clean output
         url = f'https://api.tiingo.com/tiingo/fundamentals/{ticker}/statements?token={api_key}'
         response = requests.get(url)
@@ -1003,6 +1017,10 @@ async def checkAndUpdateFinancialUpdates():
                 pass  # Print removed for clean output
         else:
             pass  # Print removed for clean output
+        
+        print_financials_progress(processed, total_tickers)
+    
+    print()  # Move to next line after progress bar
 
     #maintenanceMode(True)
     # Update the quarterly and annual earnings and financial data in the MongoDB database (async)
@@ -1712,65 +1730,95 @@ async def ExMachina():
 async def fetchNews():
     news_collection = db["News"]
     asset_info_collection = db["AssetInfo"]
-    symbols = [doc['Symbol'] async for doc in asset_info_collection.find({'Delisted': False})]
-    total_inserted = 0
-    MAX_NEWS_PER_SYMBOL = 5
-
-    for symbol in symbols:
-        api_url = f"https://api.tiingo.com/tiingo/news?tickers={symbol.lower()}&token={api_key}"
-        response = requests.get(api_url)
-
-        if response.status_code == 200:
-            news_items = response.json()
-            # Sort news by publishedDate descending (most recent first)
-            news_items.sort(key=lambda x: x.get("publishedDate", ""), reverse=True)
-            # Only keep the most recent MAX_NEWS_PER_SYMBOL articles
-            news_items = news_items[:MAX_NEWS_PER_SYMBOL]
-            documents = []
-            for item in news_items:
-                tickers_upper = [t.upper() for t in item.get("tickers", [])]
-                # Convert publishedDate string to datetime (BSON compatible)
-                published_date_str = item.get("publishedDate")
-                published_date = None
-                if published_date_str:
-                    try:
-                        published_date = datetime.strptime(published_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-                    except ValueError:
+    
+    # Get only stocks and ETFs that are not delisted
+    symbols = [doc['Symbol'] async for doc in asset_info_collection.find({
+        'Delisted': False,
+        'AssetType': {'$in': ['Stock', 'ETF']}
+    })]
+    
+    # Process in batches of 50 tickers to avoid URL length issues
+    BATCH_SIZE = 50
+    total_batches = (len(symbols) + BATCH_SIZE - 1) // BATCH_SIZE
+    
+    documents_to_insert = []
+    seen_urls = set()
+    processed_batches = 0
+    
+    def print_news_progress(processed, total, bar_length=50):
+        """Print progress bar for news fetching"""
+        percentage = int(100 * processed / total) if total > 0 else 0
+        filled_length = int(bar_length * processed / total) if total > 0 else 0
+        bar = '█' * filled_length + '░' * (bar_length - filled_length)
+        print(f'\r  Progress: |{bar}| {percentage}% ({processed}/{total} batches)', end='', flush=True)
+    
+    print_news_progress(0, total_batches)
+    
+    # Process symbols in batches
+    for i in range(0, len(symbols), BATCH_SIZE):
+        batch_symbols = symbols[i:i + BATCH_SIZE]
+        tickers_param = ','.join([s.lower() for s in batch_symbols])
+        
+        # Fetch news for this batch
+        api_url = f"https://api.tiingo.com/tiingo/news?tickers={tickers_param}&token={api_key}"
+        
+        try:
+            response = requests.get(api_url, timeout=30)
+            
+            if response.status_code == 200:
+                news_items = response.json()
+                
+                for item in news_items:
+                    url = item.get("url")
+                    if not url or url in seen_urls:
+                        continue
+                    
+                    seen_urls.add(url)
+                    tickers_upper = [t.upper() for t in item.get("tickers", [])]
+                    
+                    # Convert publishedDate string to datetime (BSON compatible)
+                    published_date_str = item.get("publishedDate")
+                    published_date = None
+                    if published_date_str:
                         try:
-                            published_date = datetime.strptime(published_date_str, "%Y-%m-%dT%H:%M:%SZ")
-                        except Exception:
-                            published_date = None
-                doc = {
-                    "publishedDate": published_date,
-                    "title": item.get("title"),
-                    "url": item.get("url"),
-                    "description": item.get("description"),
-                    "source": item.get("source"),
-                    "tickers": tickers_upper,
-                }
-                exists = await news_collection.find_one({
-                    "url": doc["url"],
-                    "publishedDate": doc["publishedDate"]
-                })
-                if not exists:
-                    documents.append(doc)
-            # Remove old news for this symbol if more than MAX_NEWS_PER_SYMBOL exist
-            existing_news = [doc async for doc in news_collection.find({"tickers": symbol.upper()}).sort("publishedDate", -1)]
-            if len(existing_news) + len(documents) > MAX_NEWS_PER_SYMBOL:
-                # Remove oldest to keep only MAX_NEWS_PER_SYMBOL
-                to_remove = existing_news[MAX_NEWS_PER_SYMBOL - len(documents):]
-                for doc in to_remove:
-                    await news_collection.delete_one({"_id": doc["_id"]})
-            if documents:
-                await news_collection.insert_many(documents)
-                total_inserted += len(documents)
-                pass  # Print removed for clean output
-            else:
-                pass  # Print removed for clean output
-        else:
-            pass  # Print removed for clean output
-
-    pass  # Print removed for clean output
+                            published_date = datetime.strptime(published_date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
+                        except ValueError:
+                            try:
+                                published_date = datetime.strptime(published_date_str, "%Y-%m-%dT%H:%M:%SZ")
+                            except Exception:
+                                published_date = None
+                    
+                    # Check if this exact article already exists in the database
+                    exists = await news_collection.find_one({
+                        "url": url,
+                        "publishedDate": published_date
+                    })
+                    
+                    if not exists:
+                        doc = {
+                            "publishedDate": published_date,
+                            "title": item.get("title"),
+                            "url": url,
+                            "description": item.get("description"),
+                            "source": item.get("source"),
+                            "tickers": tickers_upper,
+                        }
+                        documents_to_insert.append(doc)
+        except Exception as e:
+            pass  # Silently continue with next batch
+        
+        processed_batches += 1
+        print_news_progress(processed_batches, total_batches)
+    
+    # Bulk insert all new documents
+    if documents_to_insert:
+        try:
+            await news_collection.insert_many(documents_to_insert, ordered=False)
+        except Exception:
+            pass  # Handle any duplicate key errors gracefully
+    
+    print()  # Move to next line after progress bar
+    print(f"  Inserted {len(documents_to_insert)} new articles")
 
 async def generate_weekly_candles():
     daily_collection = db["OHCLVData"]
@@ -1885,6 +1933,28 @@ def calculate_intrinsic_value(stock_doc):
         profitable_quarters = sum(1 for ni in net_income_list[:12] if ni > 0)
         if profitable_quarters < 6:  # Less than half of last 12 quarters profitable
             return {'type': 'Stock', 'intrinsic_value': 0}
+    
+    # Additional profitability check using EPS from quarterlyEarnings
+    quarterly_earnings = stock_doc.get('quarterlyEarnings', [])
+    if quarterly_earnings and len(quarterly_earnings) >= 12:
+        eps_list = []
+        for q in quarterly_earnings[:12]:
+            eps = q.get('reportedEPS')
+            if eps is not None:
+                try:
+                    eps_list.append(float(eps))
+                except Exception:
+                    continue
+        
+        if len(eps_list) >= 8:  # Need at least 8 quarters of EPS data
+            profitable_eps_quarters = sum(1 for eps in eps_list if eps > 0)
+            if profitable_eps_quarters < 4:  # Less than half profitable
+                return {'type': 'Stock', 'intrinsic_value': 0}
+            
+            # Check for extreme EPS volatility (sign of distressed/unstable company)
+            eps_volatility = np.std(eps_list) / (abs(np.mean(eps_list)) + 0.01)
+            if eps_volatility > 3.0:  # Coefficient of variation > 300%
+                return {'type': 'Stock', 'intrinsic_value': 0}
 
     
     # Calculate annual FCF for each of the last 5 years
@@ -2497,8 +2567,20 @@ async def Daily():
     end_time = time.time()
     print()  # Move to next line after progress bar
     print(f"✓ Completed in {(end_time - start_time)/60:.2f} minutes")
-    #await checkAndUpdateFinancialUpdates()
-    #await fetchNews()
+    
+    # Fetch news with progress tracking
+    print("\nChecking and updating news...")
+    news_start = time.time()
+    await fetchNews()
+    news_end = time.time()
+    print(f"✓ News updated in {(news_end - news_start)/60:.2f} minutes")
+    
+    # Update financial statements with progress tracking
+    print("\nChecking and updating financial statements...")
+    financials_start = time.time()
+    await checkAndUpdateFinancialUpdates()
+    financials_end = time.time()
+    print(f"✓ Financial statements updated in {(financials_end - financials_start)/60:.2f} minutes")
         
 if __name__ == '__main__':  
     import motor.motor_asyncio

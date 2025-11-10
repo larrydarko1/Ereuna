@@ -337,16 +337,30 @@ export async function updatePortfolioStats(
     if (Object.keys(plByTicker).length) {
         const maxTicker = Object.keys(plByTicker).reduce((a, b) => plByTicker[a] > plByTicker[b] ? a : b);
         const minTicker = Object.keys(plByTicker).reduce((a, b) => plByTicker[a] < plByTicker[b] ? a : b);
+
+        // Set biggest winner
         biggestWinner = {
             ticker: maxTicker,
             amount: Number(plByTicker[maxTicker].toFixed(2)),
             tradeCount: tradeCounts[maxTicker]
         };
-        biggestLoser = {
-            ticker: minTicker,
-            amount: Math.abs(Number(plByTicker[minTicker].toFixed(2))),
-            tradeCount: tradeCounts[minTicker]
-        };
+
+        // Only set biggest loser if it's a different ticker or if the single ticker has negative P/L
+        if (maxTicker !== minTicker) {
+            biggestLoser = {
+                ticker: minTicker,
+                amount: Math.abs(Number(plByTicker[minTicker].toFixed(2))),
+                tradeCount: tradeCounts[minTicker]
+            };
+        } else if (plByTicker[maxTicker] < 0) {
+            // If same ticker and P/L is negative, set it as loser instead of winner
+            biggestWinner = null;
+            biggestLoser = {
+                ticker: maxTicker,
+                amount: Math.abs(Number(plByTicker[maxTicker].toFixed(2))),
+                tradeCount: tradeCounts[maxTicker]
+            };
+        }
     }
 
     // Trade Returns Chart Data (binning)

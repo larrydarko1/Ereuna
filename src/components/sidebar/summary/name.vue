@@ -12,5 +12,4 @@ defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
 </script>
 
 <style lang="scss">
-
 </style>
