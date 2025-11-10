@@ -10,7 +10,17 @@ import requests
 #Middleware
 load_dotenv()  
 mongo_uri = os.getenv('MONGODB_URI') 
-client = MongoClient(mongo_uri)
+
+# Configure MongoDB client with longer timeouts and better connection pooling for long-running operations
+client = MongoClient(
+    mongo_uri,
+    serverSelectionTimeoutMS=60000,  # 60 seconds for server selection
+    connectTimeoutMS=60000,  # 60 seconds for initial connection
+    socketTimeoutMS=600000,  # 10 minutes for socket operations
+    maxPoolSize=50,  # Increase connection pool
+    retryWrites=True,  # Enable automatic retries for write operations
+    retryReads=True,  # Enable automatic retries for read operations
+)
 db = client['EreunaDB']  
 api_key = os.getenv('TIINGO_KEY')
 

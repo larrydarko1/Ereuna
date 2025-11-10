@@ -2814,14 +2814,14 @@ export default function (app: any, deps: any) {
     app.post('/panel2', validate([
         validationSchemas.username(),
         body('newListOrder')
-            .isArray({ min: 1, max: 49 })
-            .withMessage('Panel list must contain between 1 and 49 items'),
+            .isArray({ min: 1, max: 50 })
+            .withMessage('Panel list must contain between 1 and 50 items'),
         body('newListOrder.*.order')
-            .isInt({ min: 1, max: 49 })
-            .withMessage('Order must be an integer between 1 and 49'),
+            .isInt({ min: 1, max: 50 })
+            .withMessage('Order must be an integer between 1 and 50'),
         body('newListOrder.*.tag')
             .isIn(['Symbol', 'CompanyName', 'AssetType', 'Exchange', 'ISIN', 'IPODate', 'Sector', 'Industry', 'ReportedCurrency', 'TechnicalScore1W', 'TechnicalScore1M', 'TechnicalScore4M', 'MarketCap', 'SharesOutstanding', 'Location', 'DividendDate', 'DividendYieldTTM', 'BookValue', 'PEGRatio', 'PERatio', 'Description', 'AverageVolume1W', 'AverageVolume1M', 'AverageVolume6M', 'AverageVolume1Y', 'RelativeVolume1W', 'RelativeVolume1M', 'RelativeVolume6M', 'RelativeVolume1Y', 'PercentageOff52wkHigh', 'PercentageOff52wkLow', 'AllTimeHigh', 'AllTimeLow', 'PSRatio', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'Gap', 'RSI',
-                'fiftytwoWeekHigh', 'fiftytwoWeekLow', 'FundCategory', 'FundFamily', 'NetExpenseRatio', 'IntrinsicValue', 'CAGR', 'CAGRYears'])
+                'fiftytwoWeekHigh', 'fiftytwoWeekLow', 'FundCategory', 'FundFamily', 'NetExpenseRatio', 'IntrinsicValue', 'CAGR', 'CAGRYears', 'CompanyWebsite'])
             .withMessage('Invalid tag'),
         body('newListOrder.*.name')
             .isString()

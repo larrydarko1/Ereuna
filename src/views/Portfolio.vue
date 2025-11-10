@@ -31,27 +31,16 @@
    <div class="benchmark-menu">
    <!-- Benchmarks Panel -->
   <div class="benchmark-panel">
-    <div class="benchmark-chips">
-      <div v-if="portfolioBenchmarks.length === 0" class="no-benchmarks">
+    <div class="benchmarks-row">
+      <span v-if="portfolioBenchmarks.length === 0" class="no-benchmarks">
         No benchmarks selected
-      </div>
-      <div
-        v-for="(benchmark, index) in portfolioBenchmarks"
-        :key="index"
-        class="benchmark-chip"
-      >
-        <span>{{ benchmark }}</span>
-        <button
-          class="remove-btn"
-          @click="removeBenchmark(index)"
-          aria-label="Remove benchmark"
-        >
-          ×
-        </button>
-      </div>
+      </span>
     </div>
-    <button class="edit-watch-panel-btn" @click="showBenchmarkSelector = true" aria-label="Manage Benchmarks">
-      Manage Benchmarks
+    <button class="edit-watch-panel-btn" @click="showBenchmarkSelector = true" aria-label="Edit Benchmarks">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.013 2.293L13.707 4.987L12.293 6.401L9.599 3.707L11.013 2.293ZM2 11V13.5H4.5L11.8765 6.1235L9.3765 3.6235L2 11Z" fill="currentColor"/>
+      </svg>
+      <span>Edit Benchmarks</span>
     </button>
   </div>
 
@@ -763,7 +752,10 @@ const lineData = computed(() => {
         backgroundColor: 'rgba(140, 141, 254, 0.7)',
         tension: 0.4,
         fill: true,
-        pointRadius: 3,
+        pointRadius: 0,
+        pointHoverRadius: 6,
+        pointHoverBorderWidth: 2,
+        pointHoverBorderColor: accent2,
       }
     ]
   };
@@ -775,16 +767,22 @@ const lineOptions = {
     legend: { display: false },
     tooltip: { enabled: true }
   },
+  hover: {
+    mode: 'point' as const,
+    intersect: false
+  },
   scales: {
     x: {
       ticks: {
         color: text2,
         display: false 
       },
-      title: { display: false }
+      title: { display: false },
+      grid: { display: false }
     },
     y: {
-      ticks: { color: text2 }
+      ticks: { color: text2 },
+      grid: { display: false }
     }
   }
 }
@@ -1181,8 +1179,8 @@ const tradeReturnsChartData = computed(() => {
       {
         label: 'Number of Trades',
         data: chart.bins.map((b: { count: number; positive: boolean }) => b.count),
-        backgroundColor: chart.bins.map((b: { count: number; positive: boolean }) => b.positive ? 'rgba(76, 175, 80, 0.7)' : 'rgba(244, 67, 54, 0.7)'),
-        borderColor: chart.bins.map((b: { count: number; positive: boolean }) => b.positive ? '#4caf50' : '#f44336'),
+        backgroundColor: chart.bins.map((b: { count: number; positive: boolean }) => b.positive ? `rgba(${getVar('--positive').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ')}, 0.7)` : `rgba(${getVar('--negative').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ')}, 0.7)`),
+        borderColor: chart.bins.map((b: { count: number; positive: boolean }) => b.positive ? getVar('--positive') : getVar('--negative')),
         borderWidth: 1,
       }
     ]
@@ -1196,32 +1194,17 @@ const tradeReturnsChartOptions = computed(() => {
     responsive: true,
     plugins: {
       legend: { display: false },
-      tooltip: { enabled: true },
-      annotation: {
-        annotations: medianBinLabel !== undefined ? {
-          medianLine: {
-            type: "line" as const,
-            xMin: medianBinLabel,
-            xMax: medianBinLabel,
-            borderColor: accent1,
-            borderWidth: 2,
-            label: {
-              enabled: true,
-              content: 'Median',
-              position: "end",
-              color: accent1,
-              backgroundColor: 'rgba(30,30,47,0.85)',
-              font: { weight: 'bold' }
-            }
-          }
-        } : undefined
-      }
+      tooltip: { enabled: true }
     },
     scales: {
-      x: { ticks: { color: getVar('--text2') } },
+      x: { 
+        ticks: { display: false },
+        grid: { display: false }
+      },
       y: {
         ticks: { color: getVar('--text2') },
-        title: { display: true, text: 'Number of Trades', color: getVar('--text2') }
+        title: { display: true, text: 'Number of Trades', color: getVar('--text2') },
+        grid: { display: false }
       }
     }
   };
@@ -1437,111 +1420,61 @@ const isPortfolioBlank = computed(() => {
 
 .benchmark-panel {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   background-color: var(--base2);
   width: 100%;
-  padding: 8px 10px;
-  gap: 12px;
+  gap: 0px;
+  position: relative;
 
-  .benchmark-label {
-    color: var(--text1);
-    font-weight: 600;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .benchmark-chips {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: 6px;
-    align-items: center;
+  .benchmarks-row {
     flex: 1;
-    overflow-x: auto;
-    overflow-y: hidden;
     min-width: 0;
-    max-width: 100%;
-    
-    &::-webkit-scrollbar {
-      height: 4px;
-    }
-    
-    &::-webkit-scrollbar-track {
-      background: var(--base3);
-    }
-    
-    &::-webkit-scrollbar-thumb {
-      background: var(--accent1);
-      border-radius: 2px;
-    }
+    display: flex;
+    align-items: flex-start;
 
     .no-benchmarks {
       color: var(--text2);
-      font-size: bold;
-      font-size: 1rem;
-      white-space: nowrap;
-      align-self: center;
-    }
-
-    .benchmark-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--accent1);
-      color: var(--text3);
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-weight: bold;
       font-size: 0.85rem;
-      white-space: nowrap;
-      flex-shrink: 0;
-
-      .remove-btn {
-        background: none;
-        border: none;
-        color: var(--text3);
-        font-size: 1.2rem;
-        cursor: pointer;
-        padding: 0;
-        width: 16px;
-        height: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        transition: background 0.2s;
-
-        &:hover {
-          background: rgba(255, 255, 255, 0.2);
-        }
-      }
+      font-style: italic;
+      padding: 8px 12px;
     }
   }
 
   .edit-watch-panel-btn {
-    background-color: var(--base2);
-    color: var(--text1);
-    border: 1px solid var(--base4);
-    border-radius: 5px;
-    padding: 0.5rem 1rem;
+    background-color: transparent;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    color: var(--text2);
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
     cursor: pointer;
-    transition: background 0.2s;
-    white-space: nowrap;
+    transition: all 0.2s;
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 6px;
-    min-width: fit-content;
+    justify-content: center;
+    gap: 4px;
+    height: auto;
+    white-space: nowrap;
+    margin-right: 6px;
 
     &:hover {
-      background-color: var(--base4);
-      color: var(--text1);
+      background-color: var(--base3);
+      color: var(--accent1);
     }
 
     svg {
-      width: 14px;
-      height: 14px;
+      width: 12px;
+      height: 12px;
       flex-shrink: 0;
+    }
+
+    span {
+      font-size: 0.8rem;
+      font-weight: 500;
     }
   }
 }
@@ -1988,15 +1921,15 @@ const isPortfolioBlank = computed(() => {
 }
 
 .position-type-badge.long {
-  background: rgba(76, 175, 80, 0.2);
-  color: #4caf50;
-  border: 1px solid rgba(76, 175, 80, 0.4);
+  background: color-mix(in srgb, var(--positive) 20%, transparent);
+  color: var(--positive);
+  border: 1px solid color-mix(in srgb, var(--positive) 40%, transparent);
 }
 
 .position-type-badge.short {
-  background: rgba(244, 67, 54, 0.2);
-  color: #f44336;
-  border: 1px solid rgba(244, 67, 54, 0.4);
+  background: color-mix(in srgb, var(--negative) 20%, transparent);
+  color: var(--negative);
+  border: 1px solid color-mix(in srgb, var(--negative) 40%, transparent);
 }
 
 .leverage-badge {
@@ -2005,9 +1938,9 @@ const isPortfolioBlank = computed(() => {
   border-radius: 4px;
   font-size: 0.8em;
   font-weight: 700;
-  background: rgba(140, 141, 254, 0.2);
+  background: color-mix(in srgb, var(--accent1) 20%, transparent);
   color: var(--accent1);
-  border: 1px solid rgba(140, 141, 254, 0.4);
+  border: 1px solid color-mix(in srgb, var(--accent1) 40%, transparent);
 }
 
 .leverage-badge-small,
@@ -2022,21 +1955,21 @@ const isPortfolioBlank = computed(() => {
 }
 
 .leverage-badge-small {
-  background: rgba(140, 141, 254, 0.15);
+  background: color-mix(in srgb, var(--accent1) 15%, transparent);
   color: var(--accent1);
-  border: 1px solid rgba(140, 141, 254, 0.3);
+  border: 1px solid color-mix(in srgb, var(--accent1) 30%, transparent);
 }
 
 .short-badge-small {
-  background: rgba(244, 67, 54, 0.15);
-  color: #f44336;
-  border: 1px solid rgba(244, 67, 54, 0.3);
+  background: color-mix(in srgb, var(--negative) 15%, transparent);
+  color: var(--negative);
+  border: 1px solid color-mix(in srgb, var(--negative) 30%, transparent);
 }
 
 .long-badge-small {
-  background: rgba(76, 175, 80, 0.15);
-  color: #4caf50;
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  background: color-mix(in srgb, var(--positive) 15%, transparent);
+  color: var(--positive);
+  border: 1px solid color-mix(in srgb, var(--positive) 30%, transparent);
 }
 
 /* Benchmark Performance Section */
@@ -2077,11 +2010,7 @@ const isPortfolioBlank = computed(() => {
   min-width: 180px;
   flex-shrink: 0;
   transition: all 0.2s;
-
-  &:hover {
-    border-color: var(--accent1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
+  cursor: default;
 }
 
 .benchmark-header {
@@ -2116,15 +2045,15 @@ const isPortfolioBlank = computed(() => {
   }
   
   &.outperforming {
-    background: rgba(76, 175, 80, 0.15);
-    color: #4caf50;
-    border: 1px solid rgba(76, 175, 80, 0.3);
+    background: color-mix(in srgb, var(--positive) 15%, transparent);
+    color: var(--positive);
+    border: 1px solid color-mix(in srgb, var(--positive) 30%, transparent);
   }
   
   &.underperforming {
-    background: rgba(244, 67, 54, 0.15);
-    color: #f44336;
-    border: 1px solid rgba(244, 67, 54, 0.3);
+    background: color-mix(in srgb, var(--negative) 15%, transparent);
+    color: var(--negative);
+    border: 1px solid color-mix(in srgb, var(--negative) 30%, transparent);
   }
 }
 
@@ -2159,11 +2088,11 @@ const isPortfolioBlank = computed(() => {
   white-space: nowrap;
   
   &.positive {
-    color: #4caf50;
+    color: var(--positive);
   }
   
   &.negative {
-    color: #f44336;
+    color: var(--negative);
   }
 }
 

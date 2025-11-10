@@ -25,68 +25,66 @@
         </span>
       </div>
     </section>
-         <!-- Market Outlook Section -->
+         <!-- Market Overview Section (Outlook + Breadth Combined) -->
     <div class="dashboard-row-outlook">
-      <section class="market-outlook-section card" aria-label="Market Outlook">
-        <h2 id="market-outlook-heading">Market Outlook</h2>
-        <div class="outlook-grid" aria-labelledby="market-outlook-heading">
+      <section class="market-overview-section card" aria-label="Market Overview">
+        <h2 id="market-overview-heading">Market Overview</h2>
+        <div class="overview-container" aria-labelledby="market-overview-heading">
           <div v-if="statsLoading" class="loading-state">Loading...</div>
           <div v-else-if="statsError" class="error-state">{{ statsError }}</div>
           <template v-else>
-            <div class="outlook-item">
-              <div class="outlook-label">Short Term</div>
-              <div class="outlook-badge" :class="getOutlookClass(marketOutlook.shortTerm)">
-                {{ formatOutlook(marketOutlook.shortTerm) }}
+            <!-- Outlook Pills - Compact Horizontal Layout -->
+            <div class="outlook-pills">
+              <div class="outlook-pill">
+                <span class="pill-label">Short Term</span>
+                <span class="pill-badge" :class="getOutlookClass(marketOutlook.shortTerm)">
+                  {{ formatOutlook(marketOutlook.shortTerm) }}
+                </span>
+              </div>
+              <div class="outlook-pill">
+                <span class="pill-label">Mid Term</span>
+                <span class="pill-badge" :class="getOutlookClass(marketOutlook.midTerm)">
+                  {{ formatOutlook(marketOutlook.midTerm) }}
+                </span>
+              </div>
+              <div class="outlook-pill">
+                <span class="pill-label">Long Term</span>
+                <span class="pill-badge" :class="getOutlookClass(marketOutlook.longTerm)">
+                  {{ formatOutlook(marketOutlook.longTerm) }}
+                </span>
               </div>
             </div>
-            <div class="outlook-item">
-              <div class="outlook-label">Mid Term</div>
-              <div class="outlook-badge" :class="getOutlookClass(marketOutlook.midTerm)">
-                {{ formatOutlook(marketOutlook.midTerm) }}
+            
+            <!-- Breadth Meters - Compact Side-by-Side Layout -->
+            <div class="breadth-compact">
+              <div class="breadth-item">
+                <h3>Advance/Decline</h3>
+                <div class="meter-container">
+                  <div class="meter-segment bar-positive" :style="{ width: (advanceDecline.advancing * 100) + '%' }"></div>
+                  <div class="meter-segment bar-negative" :style="{ width: (advanceDecline.declining * 100) + '%' }"></div>
+                  <div class="meter-segment bar-neutral" :style="{ width: (advanceDecline.unchanged * 100) + '%' }"></div>
+                </div>
+                <div class="meter-compact-values">
+                  <span class="meter-value positive">{{ (advanceDecline.advancing * 100).toFixed(1) }}%</span>
+                  <span class="meter-value negative">{{ (advanceDecline.declining * 100).toFixed(1) }}%</span>
+                  <span class="meter-value neutral">{{ (advanceDecline.unchanged * 100).toFixed(1) }}%</span>
+                </div>
               </div>
-            </div>
-            <div class="outlook-item">
-              <div class="outlook-label">Long Term</div>
-              <div class="outlook-badge" :class="getOutlookClass(marketOutlook.longTerm)">
-                {{ formatOutlook(marketOutlook.longTerm) }}
+              <div class="breadth-item">
+                <h3>New Highs/Lows</h3>
+                <div class="meter-container">
+                  <div class="meter-segment bar-positive" :style="{ width: (newHighsLows.newHighs * 100) + '%' }"></div>
+                  <div class="meter-segment bar-negative" :style="{ width: (newHighsLows.newLows * 100) + '%' }"></div>
+                  <div class="meter-segment bar-neutral" :style="{ width: (newHighsLows.neutral * 100) + '%' }"></div>
+                </div>
+                <div class="meter-compact-values">
+                  <span class="meter-value positive">{{ (newHighsLows.newHighs * 100).toFixed(1) }}%</span>
+                  <span class="meter-value negative">{{ (newHighsLows.newLows * 100).toFixed(1) }}%</span>
+                  <span class="meter-value neutral">{{ (newHighsLows.neutral * 100).toFixed(1) }}%</span>
+                </div>
               </div>
             </div>
           </template>
-        </div>
-      </section>
-      <section class="market-breadth card" aria-label="Market Breadth">
-        <h2 id="market-breadth-heading">Market Breadth</h2>
-        <div class="breadth-container" aria-labelledby="market-breadth-heading">
-          <div class="breadth-section">
-            <h3>Advance/Decline</h3>
-            <div class="breadth-meter">
-              <div class="meter-container">
-                <div class="meter-segment bar-positive" :style="{ width: (advanceDecline.advancing * 100) + '%' }"></div>
-                <div class="meter-segment bar-negative" :style="{ width: (advanceDecline.declining * 100) + '%' }"></div>
-                <div class="meter-segment bar-neutral" :style="{ width: (advanceDecline.unchanged * 100) + '%' }"></div>
-              </div>
-              <div class="meter-values">
-                <span class="meter-value positive">{{ (advanceDecline.advancing * 100).toFixed(1) }}% Advancing</span>
-                <span class="meter-value negative">{{ (advanceDecline.declining * 100).toFixed(1) }}% Declining</span>
-                <span class="meter-value neutral">{{ (advanceDecline.unchanged * 100).toFixed(1) }}% Unchanged</span>
-              </div>
-            </div>
-          </div>
-          <div class="breadth-section">
-            <h3>New Highs/Lows</h3>
-            <div class="breadth-meter">
-              <div class="meter-container">
-                <div class="meter-segment bar-positive" :style="{ width: (newHighsLows.newHighs * 100) + '%' }"></div>
-                <div class="meter-segment bar-negative" :style="{ width: (newHighsLows.newLows * 100) + '%' }"></div>
-                <div class="meter-segment bar-neutral" :style="{ width: (newHighsLows.neutral * 100) + '%' }"></div>
-              </div>
-              <div class="meter-values">
-                <span class="meter-value positive">{{ (newHighsLows.newHighs * 100).toFixed(1) }}% New Highs</span>
-                <span class="meter-value negative">{{ (newHighsLows.newLows * 100).toFixed(1) }}% New Lows</span>
-                <span class="meter-value neutral">{{ (newHighsLows.neutral * 100).toFixed(1) }}% Neutral</span>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
     </div>
@@ -958,58 +956,33 @@ onMounted(() => {
   background: var(--base3);
   height: 100%;
 }
-.dashboard-row .market-breadth.card {
-  flex: 1 1 0;
-  min-width: 320px;
-  max-width: 100%;
-}
-.dashboard-row-outlook .market-breadth.card {
-  flex: 1 1 0;
-  min-width: 320px;
-  max-width: 100%;
-}
-.breadth-container {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin-top: 16px;
-}
-.breadth-section h3 {
-  margin-bottom: 12px;
-  font-size: 1.1rem;
-  color: var(--accent1);
-}
-.breadth-meter {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+
+/* Breadth meter container shared styles */
 .meter-container {
   display: flex;
-  height: 24px;
+  height: 20px;
   width: 100%;
   background: var(--base3);
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
 }
+
 .meter-segment {
   height: 100%;
 }
-.meter-values {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  font-size: 0.9rem;
-}
+
 .meter-value {
   font-weight: 600;
 }
+
 .meter-value.positive {
   color: var(--positive);
 }
+
 .meter-value.negative {
   color: var(--negative);
 }
+
 .meter-value.neutral {
   color: var(--text2);
 }
@@ -1155,83 +1128,99 @@ onMounted(() => {
   color: var(--text3);
 }
 
-/* Market Outlook Section */
+/* Market Overview Section (Combined Outlook + Breadth) */
 .dashboard-row-outlook {
   display: flex;
   gap: 5px;
   margin-bottom: 5px;
 }
 
-.market-outlook-section {
-  flex: 1 1 0;
+.market-overview-section {
+  width: 100%;
 }
 
-.market-outlook-section h2 {
-  margin-bottom: 20px;
+.market-overview-section h2 {
+  margin-bottom: 16px;
 }
 
-.outlook-grid {
-  display: flex;
-  gap: 20px;
-  justify-content: space-between;
-}
-
-.outlook-item {
-  flex: 1;
+.overview-container {
   display: flex;
   flex-direction: column;
+  gap: 20px;
+}
+
+/* Compact Outlook Pills */
+.outlook-pills {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.outlook-pill {
+  display: flex;
+  align-items: center;
   gap: 10px;
-  padding: 16px;
+  padding: 8px 16px;
   background: var(--base4);
   border-radius: 8px;
   border: 1.5px solid var(--base3);
-  text-align: center;
 }
 
-.outlook-label {
+.pill-label {
   color: var(--text2);
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
-.outlook-badge {
-  padding: 10px 16px;
-  border-radius: 6px;
-  font-size: 1.1rem;
+.pill-badge {
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 0.95rem;
   font-weight: 700;
-  text-align: center;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  min-width: 80px;
+  text-align: center;
 }
 
-.outlook-badge.outlook-positive {
+.pill-badge.outlook-positive {
   background: var(--positive);
   color: var(--base1);
 }
 
-.outlook-badge.outlook-neutral {
+.pill-badge.outlook-neutral {
   background: var(--accent1);
   color: var(--base1);
 }
 
-.outlook-badge.outlook-negative {
+.pill-badge.outlook-negative {
   background: var(--negative);
   color: var(--base1);
 }
 
-.outlook-percentage {
-  color: var(--text1);
+/* Compact Breadth Section */
+.breadth-compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.breadth-item h3 {
+  margin-bottom: 10px;
   font-size: 1rem;
+  color: var(--accent1);
   font-weight: 600;
 }
 
-.outlook-smas {
-  color: var(--text2);
+.meter-compact-values {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
   font-size: 0.85rem;
-  font-style: italic;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 /* Market News Section */

@@ -379,6 +379,7 @@ const assetInfo = reactive({
   IntrinsicValue: '-',
   CAGR: '-',
   CAGRYears: '-',
+  companyWebsite: '-',
 });
 
 //takes date strings inside database and converts them into actual date, in italian format

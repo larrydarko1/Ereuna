@@ -16,7 +16,9 @@
     <div class="login container">
       <form class="login-form" @submit.prevent="login" autocomplete="on" aria-label="Login form">
         <div class="logo-container">
-          <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/ereuna.png" alt="Ereuna logo" draggable="false">
+          <router-link to="/">
+            <img class="logo" style="margin-bottom: 30px;" src="@/assets/icons/ereuna.png" alt="Ereuna logo" draggable="false">
+          </router-link>
         </div>
         <br>
         <br>
