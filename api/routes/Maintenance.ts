@@ -7,16 +7,14 @@ export default function (app: any, deps: any) {
         body,
         sanitizeInput,
         logger,
-        MongoClient,
-        uri,
-        crypto
+        crypto,
+        getDB
     } = deps;
 
     // Maintenance status GET endpoint
     app.get('/maintenance-status',
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -30,29 +28,13 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(401).json({ message: 'Unauthorized API Access', requestId });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const systemSettings = db.collection('systemSettings');
                 const status = await systemSettings.findOne({ name: 'EreunaApp' });
                 return res.json({ maintenance: status ? status.maintenance : false, requestId });
             } catch (error) {
                 const errObj = handleError(error, 'GET /maintenance-status', { requestId }, 500);
                 return res.status(errObj.statusCode || 500).json({ ...errObj, requestId });
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'GET /maintenance-status',
-                            requestId
-                        });
-                    }
-                }
             }
         });
 
@@ -69,7 +51,6 @@ export default function (app: any, deps: any) {
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -84,9 +65,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access', requestId });
                 }
                 const maintenance = sanitizeInput(req.body.maintenance?.toString?.() ?? '').toLowerCase() === 'true';
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const systemSettings = db.collection('systemSettings');
                 await systemSettings.updateOne(
                     { name: 'EreunaApp' },
@@ -107,20 +86,6 @@ export default function (app: any, deps: any) {
             } catch (error: any) {
                 const errObj = handleError(error, 'POST /maintenance-status', { requestId }, 500);
                 return res.status(errObj.statusCode || 500).json({ ...errObj, requestId });
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'POST /maintenance-status',
-                            requestId,
-                        });
-                    }
-                }
             }
         }
     );
@@ -129,7 +94,6 @@ export default function (app: any, deps: any) {
     app.get('/communications',
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -143,29 +107,13 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(401).json({ message: 'Unauthorized API Access', requestId });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const alertsCollection = db.collection('Alerts');
                 const communications = await alertsCollection.find({}).sort({ publishedDate: -1 }).toArray();
                 return res.status(200).json({ communications, requestId });
             } catch (error: any) {
                 const errObj = handleError(error, 'GET /communications', { requestId }, 500);
                 return res.status(errObj.statusCode || 500).json({ ...errObj, requestId });
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'GET /communications',
-                            requestId,
-                        });
-                    }
-                }
             }
         }
     );
@@ -174,7 +122,6 @@ export default function (app: any, deps: any) {
     app.get('/docs-features',
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -188,29 +135,13 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(401).json({ message: 'Unauthorized API Access', requestId });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const docsCollection = db.collection('Docs');
                 const features = await docsCollection.find({}).sort({ _id: -1 }).toArray();
                 return res.status(200).json({ features, requestId });
             } catch (error: any) {
                 const errObj = handleError(error, 'GET /docs-features', { requestId }, 500);
                 return res.status(errObj.statusCode || 500).json({ ...errObj, requestId });
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'GET /docs-features',
-                            requestId,
-                        });
-                    }
-                }
             }
         }
     );

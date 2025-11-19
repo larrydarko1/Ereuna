@@ -9,8 +9,7 @@ export default function (app: any, deps: any) {
         validationSets,
         sanitizeInput,
         logger,
-        MongoClient,
-        uri
+        getDB
     } = deps;
 
     // endpoint to create new notes 
@@ -21,7 +20,6 @@ export default function (app: any, deps: any) {
             validationSchemas.Username('Username')
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 // Type-safe extraction of params and body
                 const symbolParam = req.params.symbol;
@@ -53,9 +51,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
 
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Notes');
 
                 // Check number of existing notes for the user and symbol
@@ -103,19 +99,6 @@ export default function (app: any, deps: any) {
             } catch (error) {
                 const errObj = handleError(error, 'POST /:symbol/notes', { user: req.body?.Username }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'POST /:symbol/notes'
-                        });
-                    }
-                }
             }
         }
     );
@@ -123,7 +106,6 @@ export default function (app: any, deps: any) {
     // endpoint to search notes 
     app.get('/:user/:symbol/notes', validate(validationSets.notesSearch),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 // Type-safe extraction of params
                 const symbolParam = req.params.symbol;
@@ -152,9 +134,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
 
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Notes');
 
                 // Find all notes for the given symbol and Username
@@ -167,26 +147,12 @@ export default function (app: any, deps: any) {
             } catch (error) {
                 const errObj = handleError(error, 'GET /:user/:symbol/notes', { user: req.params?.user }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'GET /:user/:symbol/notes'
-                        });
-                    }
-                }
             }
         });
 
     // endpoint to delete a note
     app.delete('/:symbol/notes/:noteId', validate(validationSets.notesDeletion),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 // Type-safe extraction of params and query
                 const symbolParam = req.params.symbol;
@@ -215,9 +181,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
 
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Notes');
 
                 // Find and delete the note with the given id, symbol, and Username
@@ -233,19 +197,6 @@ export default function (app: any, deps: any) {
             } catch (error) {
                 const errObj = handleError(error, 'DELETE /:symbol/notes/:noteId', { user: req.query?.user }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'DELETE /:symbol/notes/:noteId'
-                        });
-                    }
-                }
             }
         }
     );

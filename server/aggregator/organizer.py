@@ -468,9 +468,9 @@ async def getPrice():
 
                 # Check for splitFactor and divCash conditions
                 if doc['splitFactor'] != 1 and doc['splitFactor'] != 1.0:
-                    Split(doc['tickerID'], doc['timestamp'], doc['splitFactor'])
+                    await Split(doc['tickerID'], doc['timestamp'], doc['splitFactor'])
                 if doc['divCash'] != 0 and doc['divCash'] != 0.0:
-                    Dividends(doc['tickerID'], doc['timestamp'], doc['divCash'])
+                    await Dividends(doc['tickerID'], doc['timestamp'], doc['divCash'])
 
             # Progress bar for inserting price data
             total_docs = len(daily_data_dict)
@@ -2154,6 +2154,23 @@ async def update_market_stats():
         assets.append(doc)
     symbol_map = {a["Symbol"]: a for a in assets}
 
+    # --- Determine most recent trading timestamp (for filtering stale data) ---
+    # Get the most recent timestamp from a major index (SPY) as reference
+    spy_cursor = ohlcv_col.find(
+        {"tickerID": "SPY"},
+        {"timestamp": 1, "_id": 0}
+    ).sort("timestamp", -1).limit(1)
+    spy_docs = await spy_cursor.to_list(length=1)
+    
+    if spy_docs and spy_docs[0].get("timestamp"):
+        most_recent_timestamp = spy_docs[0]["timestamp"]
+        # Allow up to 5 days lag (for edge cases, weekends, etc.)
+        cutoff_timestamp = most_recent_timestamp - timedelta(days=5)
+    else:
+        # Fallback: use current date minus 5 days
+        most_recent_timestamp = datetime.now(timezone.utc)
+        cutoff_timestamp = most_recent_timestamp - timedelta(days=5)
+
     # --- Calculate top 10 daily gainers/losers (NYSE/NASDAQ only) ---
     daily_returns = []
     for symbol, info in symbol_map.items():
@@ -2167,11 +2184,23 @@ async def update_market_stats():
             {"close": 1, "timestamp": 1, "_id": 0}
         ).sort("timestamp", -1).limit(2)
         closes = [doc async for doc in cursor]
+        
         if len(closes) == 2:
+            # Check if data is recent (not stale/delisted)
+            latest_timestamp = closes[0].get("timestamp")
+            if not latest_timestamp or latest_timestamp < cutoff_timestamp:
+                continue  # Skip stale data
+            
             last = closes[0]["close"]
             prev = closes[1]["close"]
+            
             if last and prev and prev != 0:
                 daily_return = (last - prev) / prev
+
+                # Filter out extreme outliers (>200% daily moves are usually errors or halts)
+                if abs(daily_return) > 2.0:  # >200% move
+                    continue
+                
                 daily_returns.append({
                     "symbol": symbol,
                     "daily_return": daily_return
@@ -2234,9 +2263,13 @@ async def update_market_stats():
     now = datetime.now(timezone.utc)
     quarter_ago = now - timedelta(days=90)
 
-
     gain_data = []
     for symbol, info in symbol_map.items():
+        # Only include NYSE/NASDAQ stocks for tier lists (no OTC/PINK)
+        exchange = info.get("Exchange", "")
+        if exchange not in ["NYSE", "NASDAQ"]:
+            continue
+        
         # Get closes for the last quarter (timestamp ascending)
         cursor = ohlcv_col.find(
             {"tickerID": symbol, "timestamp": {"$gte": quarter_ago}},
@@ -2245,6 +2278,12 @@ async def update_market_stats():
         closes = [doc async for doc in cursor]
         if len(closes) < 2:
             continue
+        
+        # Check if latest data is recent (not stale)
+        latest_timestamp = closes[-1].get("timestamp")
+        if not latest_timestamp or latest_timestamp < cutoff_timestamp:
+            continue
+        
         first_close = closes[0]["close"]
         last_close = closes[-1]["close"]
         if first_close and last_close and first_close != 0:
@@ -2274,6 +2313,9 @@ async def update_market_stats():
     # Market-cap-weighted average returns for sector, with stock count (optimized)
     sector_tier_list = []
     for sector, group in gain_df.groupby("sector"):
+        # Exclude sectors with only 1 stock
+        if len(group) < 2:
+            continue
         total_cap = group["market_cap"].sum()
         if total_cap == 0:
             continue
@@ -2284,6 +2326,9 @@ async def update_market_stats():
     # Median returns for industry, with stock count (optimized)
     industry_tier_list = []
     for industry, group in gain_df.groupby("industry"):
+        # Exclude industries with only 1 stock (key change!)
+        if len(group) < 2:
+            continue
         industry_tier_list.append({"industry": industry, "average_return": group["gain"].median(), "count": len(group)})
     industry_tier_list.sort(key=lambda x: x["average_return"], reverse=True)
 
@@ -2505,7 +2550,7 @@ async def update_market_stats():
         "top10DailyLosers": top_10_losers,
         "top10Undervalued": top_10_undervalued,
         "top10Overvalued": top_10_overvalued,
-        "updatedAt": datetime.now(timezone.utc)
+        "updatedAt": most_recent_timestamp  # Use SPY's most recent timestamp
     }
     await stats_col.update_one(
         {"_id": "marketStats"},
@@ -2571,14 +2616,14 @@ async def Daily():
     # Fetch news with progress tracking
     print("\nChecking and updating news...")
     news_start = time.time()
-    await fetchNews()
+    #await fetchNews()
     news_end = time.time()
     print(f"✓ News updated in {(news_end - news_start)/60:.2f} minutes")
     
     # Update financial statements with progress tracking
     print("\nChecking and updating financial statements...")
     financials_start = time.time()
-    await checkAndUpdateFinancialUpdates()
+    #await checkAndUpdateFinancialUpdates()
     financials_end = time.time()
     print(f"✓ Financial statements updated in {(financials_end - financials_start)/60:.2f} minutes")
         

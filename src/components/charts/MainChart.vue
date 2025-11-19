@@ -103,6 +103,12 @@
     </span>
   </span>
 </div>
+<div id="legend3-5">
+  <div class="market-status-badge">
+    <span class="status-indicator" :class="marketStatusClass"></span>
+    <span class="status-text">{{ marketStatusText }}</span>
+  </div>
+</div>
 <div id="legend4">
   <span
     v-for="indicator in activeIndicators"
@@ -767,6 +773,7 @@ const ohlcDisplay = computed<OHLCDisplay | null>(() => {
 const hiddenList = ref<string[]>([]); // stores hidden tickers for user (for hidden badge in chart)
 const indicatorList = ref<Indicator[]>([]); // stores in indicators settings for each user
 const intrinsicVisible = ref<boolean>(false);
+const marketStatus = ref<'open' | 'closed' | 'holiday'>('closed');
 
 // Refs used to measure & animate the Name text when truncated
 const nameContainer = ref<HTMLElement | null>(null);
@@ -839,9 +846,22 @@ async function fetchIndicatorList() {
   }
 }
 
+let statusInterval: ReturnType<typeof setInterval> | null = null;
+
 onMounted(() => {
   fetchHiddenList();
   fetchIndicatorList();
+  checkMarketStatus();
+  
+  // Check market status every 5 seconds for more accurate updates
+  statusInterval = setInterval(checkMarketStatus, 5000);
+  
+  onUnmounted(() => {
+    if (statusInterval) {
+      clearInterval(statusInterval);
+      statusInterval = null;
+    }
+  });
 });
 
 const isInHiddenList = (item: string): boolean => {
@@ -853,6 +873,68 @@ function onSettingsSaved() {
   // Use current symbol and timeframe
   fetchChartData();
   fetchIndicatorList();
+}
+
+// Computed properties for market status
+const marketStatusClass = computed<string>(() => {
+  return `status-${marketStatus.value}`;
+});
+
+const marketStatusText = computed<string>(() => {
+  if (marketStatus.value === 'open') return 'Market Open';
+  if (marketStatus.value === 'closed') return 'Market Close';
+  return 'Holiday';
+});
+
+// Function to check market status
+function checkMarketStatus(): void {
+  // Get current time in US Eastern Time
+  const nowET = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const day = nowET.getDay(); // 0 = Sunday, 6 = Saturday
+  const hours = nowET.getHours();
+  const minutes = nowET.getMinutes();
+  const time = hours * 60 + minutes; // Convert to minutes since midnight
+  
+  // US holidays (simplified - you may want to expand this)
+  const holidays = [
+    '2025-01-01', // New Year's Day
+    '2025-01-20', // MLK Day
+    '2025-02-17', // Presidents Day
+    '2025-04-18', // Good Friday
+    '2025-05-26', // Memorial Day
+    '2025-06-19', // Juneteenth
+    '2025-07-04', // Independence Day
+    '2025-09-01', // Labor Day
+    '2025-11-27', // Thanksgiving
+    '2025-12-25', // Christmas
+  ];
+  
+  // Get date string in ET timezone
+  const year = nowET.getFullYear();
+  const month = String(nowET.getMonth() + 1).padStart(2, '0');
+  const date = String(nowET.getDate()).padStart(2, '0');
+  const dateStr = `${year}-${month}-${date}`;
+  
+  if (holidays.includes(dateStr)) {
+    marketStatus.value = 'holiday';
+    return;
+  }
+  
+  // Weekend check
+  if (day === 0 || day === 6) {
+    marketStatus.value = 'closed';
+    return;
+  }
+  
+  // Market hours: 9:30 AM - 4:00 PM EST/EDT (in minutes: 570 - 960)
+  const marketOpen = 9 * 60 + 30; // 9:30 AM
+  const marketClose = 16 * 60; // 4:00 PM
+  
+  if (time >= marketOpen && time < marketClose) {
+    marketStatus.value = 'open';
+  } else {
+    marketStatus.value = 'closed';
+  }
 }
 
 // Computed property for active indicators in the chart
@@ -963,10 +1045,9 @@ h1 {
   font-size: 15px;
   white-space: nowrap;
   width: max-content;
-  /* prepare for transform-based scrolling */
   transition: transform 0.45s ease-out;
   will-change: transform;
-  padding-right: 12px; /* extra space so last letters are visible when scrolled */
+  padding-right: 12px; 
 }
 
 .title-inline {
@@ -1026,9 +1107,24 @@ h1 {
   gap: 2px;
 }
 
-#legend4 {
+#legend3-5 {
   position: absolute;
   top: 7%;
+  left: 0;
+  z-index: 1000;
+  background-color: transparent;
+  color: var(--text2);
+  border: none;
+  margin-top: 20px;
+  margin-left: 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+#legend4 {
+  position: absolute;
+  top: 10%;
   left: 0;
   z-index: 1000;
   background-color: transparent;
@@ -1060,6 +1156,75 @@ h1 {
 .badge-message p{
 font-size: 8px;
 font-weight: bold;
+}
+
+.market-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.status-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+
+.status-indicator.status-open {
+  background-color: var(--positive);
+  box-shadow: 0 0 4px var(--positive), 0 0 8px var(--positive);
+  animation: pulse-open 2s ease-in-out infinite;
+}
+
+.status-indicator.status-closed {
+  background-color: var(--negative);
+  box-shadow: 0 0 3px var(--negative);
+  animation: fade-pulse 3s ease-in-out infinite;
+}
+
+.status-indicator.status-holiday {
+  background-color: var(--accent1);
+  box-shadow: 0 0 4px var(--accent1), 0 0 8px var(--accent1);
+  animation: pulse-holiday 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-open {
+  0%, 100% {
+    box-shadow: 0 0 4px var(--positive), 0 0 8px var(--positive);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 6px var(--positive), 0 0 12px var(--positive);
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulse-holiday {
+  0%, 100% {
+    box-shadow: 0 0 4px var(--accent1), 0 0 8px var(--accent1);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 6px var(--accent1), 0 0 14px var(--accent1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes fade-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.status-text {
+  color: var(--text2);
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 

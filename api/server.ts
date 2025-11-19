@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { MongoClient } from 'mongodb';
+import { MongoClient, Db } from 'mongodb';
 import argon2 from 'argon2';
 import config from './utils/config.js';
 import jwt from 'jsonwebtoken';
@@ -13,6 +13,43 @@ import logger, { handleError } from './utils/logger.js';
 import { validate, validationSchemas, validationSets, body, sanitizeInput, query, sanitizeUsername, sanitizeUsernameCanonical } from './utils/validationUtils.js';
 
 dotenv.config();
+
+// MongoDB Connection Pool
+let mongoClient: MongoClient | null = null;
+let db: Db | null = null;
+
+export async function getDB(): Promise<Db> {
+  if (!mongoClient || !db) {
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      throw new Error('MONGODB_URI is not defined');
+    }
+
+    mongoClient = new MongoClient(uri, {
+      maxPoolSize: 100,     // Max 100 concurrent connections (2 per user at peak)
+      minPoolSize: 20,      // Keep 20 connections ready
+      maxIdleTimeMS: 30000, // Close idle connections after 30s
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+
+    await mongoClient.connect();
+    db = mongoClient.db('EreunaDB');
+
+    logger.info('MongoDB connection pool initialized');
+
+    // Graceful shutdown
+    process.on('SIGINT', async () => {
+      if (mongoClient) {
+        await mongoClient.close();
+        logger.info('MongoDB connection pool closed');
+        process.exit(0);
+      }
+    });
+  }
+
+  return db;
+}
 
 // CORS and Rate Limiting
 // In production, requests come through nginx proxy so they appear same-origin
@@ -110,6 +147,14 @@ const bruteForceProtection = rateLimit({
 // Apply CORS and Brute Force Protection (max 10 requests per minute)
 app.use(/^\/(login|signup-paywall|verify|recover|generate-key|download-key|retrieve-key|password-change|change-password2|change-username|account-delete|verify-mfa|twofa)(\/.*)?$/, cors(corsOptions), bruteForceProtection);
 
+// Initialize MongoDB connection pool on startup
+getDB().then(() => {
+  logger.info('MongoDB connection pool ready');
+}).catch((err) => {
+  logger.error(`Failed to initialize MongoDB: ${err.message}`);
+  process.exit(1);
+});
+
 // Start HTTP server. Traefik will terminate TLS and forward requests to this service over the internal network.
 app.listen(port, () => {
   console.log(`HTTP Server running on http://localhost:${port}`);
@@ -127,14 +172,14 @@ import Maintenance from './routes/Maintenance.js';
 import Portfolio from './routes/Portfolio.js';
 import Dashboard from './routes/Dashboard.js';
 
-Users(app, { validate, validationSchemas, sanitizeInput, sanitizeUsername, sanitizeUsernameCanonical, logger, crypto, MongoClient, uri, argon2, jwt, config });
-Notes(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri });
-Charts(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri });
-Watchlists(app, { validate, validationSchemas, validationSets, body, sanitizeInput, logger, MongoClient, uri });
-Screener(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri, crypto, query });
-Maintenance(app, { validate, body, sanitizeInput, logger, MongoClient, uri, crypto });
-Portfolio(app, { validate, validationSchemas, body, query, sanitizeInput, logger, MongoClient, uri });
-Dashboard(app, { sanitizeInput, logger, MongoClient, uri });
+Users(app, { validate, validationSchemas, sanitizeInput, sanitizeUsername, sanitizeUsernameCanonical, logger, crypto, MongoClient, uri, argon2, jwt, config, getDB });
+Notes(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri, getDB });
+Charts(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri, getDB });
+Watchlists(app, { validate, validationSchemas, validationSets, body, sanitizeInput, logger, MongoClient, uri, getDB });
+Screener(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri, crypto, query, getDB });
+Maintenance(app, { validate, body, sanitizeInput, logger, MongoClient, uri, crypto, getDB });
+Portfolio(app, { validate, validationSchemas, body, query, sanitizeInput, logger, MongoClient, uri, getDB });
+Dashboard(app, { sanitizeInput, logger, MongoClient, uri, getDB });
 
 // Error-handling middleware (must be last before export)
 import type { ErrorRequestHandler } from 'express';

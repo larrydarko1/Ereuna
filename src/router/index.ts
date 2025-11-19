@@ -6,13 +6,11 @@ const routes = [
     name: 'Home',
     component: () => import('../views/HomeB.vue')
   },
-  /*
   {
     path: '/careers',
     name: 'Careers',
     component: () => import('../views/Careers.vue')
   },
-  */
   {
     path: '/communications',
     name: 'Communications',
@@ -22,6 +20,11 @@ const routes = [
     path: '/about',
     name: 'About',
     component: () => import('../views/AboutB.vue')
+  },
+  {
+    path: '/quiz',
+    name: 'Quiz',
+    component: () => import('../views/Quiz.vue')
   },
   {
     path: '/charts',
@@ -71,7 +74,7 @@ const routes = [
   {
     path: '/:catchAll(.*)', // Catch-all route
     name: 'NotFound',
-    component: () => import('../views/Home.vue')
+    component: () => import('../views/HomeB.vue')
   },
   {
     path: '/recovery',
