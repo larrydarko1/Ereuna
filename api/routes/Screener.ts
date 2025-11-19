@@ -1,6 +1,8 @@
 import { body, param } from '../utils/validationUtils.js';
 import { Request, Response } from 'express';
 import { handleError } from '../utils/logger.js';
+import { enrichAssetsWithPriceAndVolume, isMarketHoursUTC as isMarketHours } from '../utils/priceVolumeUtils.js';
+import { withCache, invalidateCache } from '../utils/cache.js';
 
 export default function (app: any, deps: any) {
     const {
@@ -9,23 +11,19 @@ export default function (app: any, deps: any) {
         sanitizeInput,
         logger,
         obfuscateUsername,
-        MongoClient,
-        uri,
+        getDB,
         crypto,
         query
     } = deps;
 
-    function isMarketHoursUTC() {
-        const now = new Date();
-        const day = now.getUTCDay(); // Sunday=0, Saturday=6
-        const hour = now.getUTCHours();
-        const minute = now.getUTCMinutes();
-        // Market open: 13:30 UTC, close: 23:00 UTC
-        const isWeekday = day >= 1 && day <= 5;
-        const afterOpen = hour > 13 || (hour === 13 && minute >= 30);
-        const beforeClose = hour < 23;
-        return isWeekday && afterOpen && beforeClose;
-    }
+    // Use imported isMarketHours function from priceVolumeUtils
+    const isMarketHoursUTC = isMarketHours;
+
+    // Helper function to invalidate all screener caches for a user
+    const invalidateUserScreenerCache = async (username: string) => {
+        await invalidateCache(`screener:*:${username}:*`);
+        logger.debug(`Invalidated all screener caches for user: ${username}`);
+    };
 
     // endpoint that handles creation of new screeners 
     app.post('/:user/create/screener/:list',
@@ -34,7 +32,6 @@ export default function (app: any, deps: any) {
             validationSchemas.screenerName()
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -49,9 +46,7 @@ export default function (app: any, deps: any) {
                 }
                 const user = sanitizeInput(req.params.user);
                 const list = sanitizeInput(req.params.list);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const screenerCount = await collection.countDocuments({ UsernameID: user });
                 if (screenerCount >= 20) {
@@ -83,6 +78,8 @@ export default function (app: any, deps: any) {
                 };
                 const result = await collection.insertOne(screenerDoc);
                 if (result.insertedCount === 1 || result.acknowledged) {
+                    // Invalidate user's screener caches
+                    await invalidateUserScreenerCache(user);
                     return res.json({
                         message: 'Screener created successfully',
                         screenerCount: screenerCount + 1
@@ -103,19 +100,6 @@ export default function (app: any, deps: any) {
                     list: req.params.list
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'POST /:user/create/screener/:list'
-                        });
-                    }
-                }
             }
         }
     );
@@ -128,7 +112,6 @@ export default function (app: any, deps: any) {
             validationSchemas.newname()
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -164,9 +147,7 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(400).json({ message: 'New name must be different from the current name' });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const existingScreener = await collection.findOne({ UsernameID: Username, Name: newname });
                 if (existingScreener) {
@@ -200,19 +181,6 @@ export default function (app: any, deps: any) {
                     newname: req.body.newname
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'PATCH /:user/rename/screener'
-                        });
-                    }
-                }
             }
         }
     );
@@ -224,7 +192,6 @@ export default function (app: any, deps: any) {
             validationSchemas.screenerName()
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -239,9 +206,7 @@ export default function (app: any, deps: any) {
                 }
                 const user = sanitizeInput(req.params.user);
                 const list = sanitizeInput(req.params.list);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const filter = { Name: list, UsernameID: user };
                 const result = await collection.deleteOne(filter);
@@ -255,6 +220,8 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(404).json({ message: 'Screener not found' });
                 }
+                // Invalidate user's screener caches
+                await invalidateUserScreenerCache(user);
                 res.json({ message: 'Screener deleted successfully' });
             } catch (error) {
                 const errObj = handleError(error, 'DELETE /:user/delete/screener/:list', {
@@ -262,19 +229,6 @@ export default function (app: any, deps: any) {
                     list: req.params.list
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'DELETE /:user/delete/screener/:list'
-                        });
-                    }
-                }
             }
         }
     );
@@ -337,7 +291,6 @@ export default function (app: any, deps: any) {
             validationSchemas.userParam('user')
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -357,177 +310,98 @@ export default function (app: any, deps: any) {
                 if (limit > 500) limit = 500; // Prevent excessive load
                 if (page < 1) page = 1;
                 const skip = (page - 1) * limit;
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
-                // Find the user document and extract the 'Hidden' array
-                const usersCollection = db.collection('Users');
-                const userDoc = await usersCollection.findOne({ Username: user });
-                if (!userDoc) {
-                    logger.warn({
-                        msg: 'User not found',
-                        user: user,
-                        context: 'GET /:user/screener/results/all',
-                        statusCode: 404
-                    });
-                    return res.status(404).json({ message: 'User not found' });
-                }
-                const hiddenSymbols = userDoc.Hidden || [];
-                // Build projection based on Table array
-                // Add index signature to projection for dynamic keys
-                const projection: { [key: string]: any } = { Symbol: 1, _id: 0 };
-                if (Array.isArray(userDoc.Table)) {
-                    userDoc.Table.forEach((key: string) => {
-                        if (fieldMap[key]) {
-                            if (key === 'price') {
-                                // We'll fetch price from OHCLVData1m later
-                            } else if (key === 'volume') {
-                                // We'll fetch volume from OHCLVData after market close
-                            } else if ([
-                                'fcf', 'cash', 'current_debt', 'current_assets', 'current_liabilities', 'current_ratio', 'roe', 'roa'
-                            ].includes(key)) {
-                                // Add index signature to qfMap for dynamic keys
-                                const qfMap: { [key: string]: string } = {
-                                    fcf: 'freeCashFlow',
-                                    cash: 'cashAndEq',
-                                    current_debt: 'debtCurrent',
-                                    current_assets: 'assetsCurrent',
-                                    current_liabilities: 'liabilitiesCurrent',
-                                    current_ratio: 'currentRatio',
-                                    roe: 'roe',
-                                    roa: 'roa',
-                                };
-                                const field = qfMap[key];
-                                if (field) {
-                                    projection[field] = { $ifNull: [{ $getField: { field: field, input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
-                                }
-                            } else {
-                                projection[fieldMap[key]] = 1;
-                            }
-                        }
-                    });
-                }
-                // Filter the AssetInfo collection using the 'Hidden' array and Delisted = false
-                const assetInfoCollection = db.collection('AssetInfo');
-                const query = { Symbol: { $nin: hiddenSymbols }, Delisted: false };
-                const totalCount = await assetInfoCollection.countDocuments(query);
-                const filteredAssets = await assetInfoCollection.find(
-                    query,
-                    { projection }
-                )
-                    .skip(skip)
-                    .limit(limit)
-                    .toArray();
-                // Collections for price and volume
-                const ohclvCollection = db.collection('OHCLVData1m');
-                const dailyCollection = db.collection('OHCLVData');
-                // Build response with price, volume, and todaychange logic
-                const assetsWithPriceAndVolume = await Promise.all(filteredAssets.map(async (asset: any) => {
-                    let price = null;
-                    let volume = null;
-                    let volume_message = null;
-                    let todaychange = null;
-                    // Fetch latest price from OHCLVData1m
-                    let latestCandle: any[] = [];
-                    try {
-                        latestCandle = await ohclvCollection.find({ tickerID: asset.Symbol })
-                            .sort({ timestamp: -1 })
-                            .limit(1)
-                            .toArray();
-                        if (latestCandle.length > 0) {
-                            price = latestCandle[0].close;
-                        }
-                    } catch (err) {
-                        if (err instanceof Error) {
+
+                // Cache key includes user and pagination params
+                const cacheKey = `screener:all:${user}:p${page}:l${limit}`;
+
+                // Use cache wrapper - will automatically fallback to DB if Redis unavailable
+                const result = await withCache(
+                    cacheKey,
+                    async () => {
+                        const db = await getDB();
+                        // Find the user document and extract the 'Hidden' array
+                        const usersCollection = db.collection('Users');
+                        const userDoc = await usersCollection.findOne({ Username: user });
+                        if (!userDoc) {
                             logger.warn({
-                                msg: 'Error fetching OHCLVData1m for symbol',
-                                symbol: asset.Symbol,
-                                error: err.message,
-                                context: 'GET /:user/screener/results/all'
+                                msg: 'User not found',
+                                user: user,
+                                context: 'GET /:user/screener/results/all',
+                                statusCode: 404
+                            });
+                            throw new Error('User not found');
+                        }
+                        const hiddenSymbols = userDoc.Hidden || [];
+                        // Build projection based on Table array
+                        // Add index signature to projection for dynamic keys
+                        const projection: { [key: string]: any } = { Symbol: 1, _id: 0 };
+                        if (Array.isArray(userDoc.Table)) {
+                            userDoc.Table.forEach((key: string) => {
+                                if (fieldMap[key]) {
+                                    if (key === 'price') {
+                                        // We'll fetch price from OHCLVData1m later
+                                    } else if (key === 'volume') {
+                                        // We'll fetch volume from OHCLVData after market close
+                                    } else if ([
+                                        'fcf', 'cash', 'current_debt', 'current_assets', 'current_liabilities', 'current_ratio', 'roe', 'roa'
+                                    ].includes(key)) {
+                                        // Add index signature to qfMap for dynamic keys
+                                        const qfMap: { [key: string]: string } = {
+                                            fcf: 'freeCashFlow',
+                                            cash: 'cashAndEq',
+                                            current_debt: 'debtCurrent',
+                                            current_assets: 'assetsCurrent',
+                                            current_liabilities: 'liabilitiesCurrent',
+                                            current_ratio: 'currentRatio',
+                                            roe: 'roe',
+                                            roa: 'roa',
+                                        };
+                                        const field = qfMap[key];
+                                        if (field) {
+                                            projection[field] = { $ifNull: [{ $getField: { field: field, input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
+                                        }
+                                    } else {
+                                        projection[fieldMap[key]] = 1;
+                                    }
+                                }
                             });
                         }
-                    }
-                    if (isMarketHoursUTC()) {
-                        volume = null;
-                        volume_message = "Intraday volume is unavailable during market hours. Final volume will be available after market close.";
-                        // Calculate todaychange using 1m close and previous day close
-                        try {
-                            const prevDayCandle: any[] = await dailyCollection.find({ tickerID: asset.Symbol })
-                                .sort({ timestamp: -1 })
-                                .limit(1)
-                                .toArray();
-                            if (latestCandle.length > 0 && prevDayCandle.length > 0 && prevDayCandle[0].close) {
-                                const prevClose = prevDayCandle[0].close;
-                                todaychange = (price - prevClose) / prevClose;
-                            } else {
-                                todaychange = null;
-                            }
-                        } catch (err) {
-                            if (err instanceof Error) {
-                                logger.warn({
-                                    msg: 'Error fetching previous day close for todaychange',
-                                    symbol: asset.Symbol,
-                                    error: err.message,
-                                    context: 'GET /:user/screener/results/all'
-                                });
-                            }
-                            todaychange = null;
-                        }
-                    } else {
-                        try {
-                            const dailyCandle: any[] = await dailyCollection.find({ tickerID: asset.Symbol })
-                                .sort({ timestamp: -1 })
-                                .limit(1)
-                                .toArray();
-                            if (dailyCandle.length > 0) {
-                                volume = dailyCandle[0].volume;
-                            }
-                        } catch (err) {
-                            if (err instanceof Error) {
-                                logger.warn({
-                                    msg: 'Error fetching OHCLVData for volume',
-                                    symbol: asset.Symbol,
-                                    error: err.message,
-                                    context: 'GET /:user/screener/results/all'
-                                });
-                            }
-                        }
-                        volume_message = null;
-                        todaychange = asset.todaychange !== undefined ? asset.todaychange : null;
-                    }
-                    return {
-                        ...asset,
-                        Close: price,
-                        Volume: volume,
-                        volume_message,
-                        todaychange
-                    };
-                }));
-                res.json({
-                    page,
-                    limit,
-                    totalCount,
-                    totalPages: Math.ceil(totalCount / limit),
-                    data: assetsWithPriceAndVolume
-                });
+                        // Filter the AssetInfo collection using the 'Hidden' array and Delisted = false
+                        const assetInfoCollection = db.collection('AssetInfo');
+                        const query = { Symbol: { $nin: hiddenSymbols }, Delisted: false };
+                        const totalCount = await assetInfoCollection.countDocuments(query);
+                        const filteredAssets = await assetInfoCollection.find(
+                            query,
+                            { projection }
+                        )
+                            .skip(skip)
+                            .limit(limit)
+                            .toArray();
+                        // OPTIMIZED: Bulk fetch price and volume data for all symbols at once
+                        // This replaces 100+ individual queries with 2-3 bulk queries
+                        const assetsWithPriceAndVolume = await enrichAssetsWithPriceAndVolume(
+                            db,
+                            filteredAssets,
+                            logger
+                        );
+                        return {
+                            page,
+                            limit,
+                            totalCount,
+                            totalPages: Math.ceil(totalCount / limit),
+                            data: assetsWithPriceAndVolume
+                        };
+                    },
+                    undefined, // Use smart TTL (60s market hours, 5min after)
+                    'price' // Data type for smart TTL
+                );
+
+                res.json(result);
             } catch (error) {
                 const errObj = handleError(error, 'GET /:user/screener/results/all', {
                     user: req.params.user
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'GET /:user/screener/results/all'
-                        });
-                    }
-                }
             }
         }
     );
@@ -538,7 +412,6 @@ export default function (app: any, deps: any) {
             validationSchemas.userParam('user')
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -552,193 +425,111 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
                 const user = sanitizeInput(req.params.user);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
-                // Find the user document and extract the 'Hidden' array
-                const usersCollection = db.collection('Users');
-                const userDoc = await usersCollection.findOne({ Username: user });
-                if (!userDoc) {
-                    logger.warn({
-                        msg: 'Hidden Results - User Not Found',
-                        username: user,
-                        context: 'GET /:user/screener/results/hidden',
-                        statusCode: 404
-                    });
-                    return res.status(404).json({
-                        message: 'User not found',
-                        username: user
-                    });
-                }
-                // Check if hidden symbols exist
-                const hiddenSymbols: string[] = userDoc.Hidden || [];
-                if (hiddenSymbols.length === 0) {
-                    return res.json({
-                        page: 1,
-                        limit: 100,
-                        totalCount: 0,
-                        totalPages: 1,
-                        data: []
-                    });
-                }
+
                 // Pagination parameters
                 let page = parseInt(String(req.query.page), 10) || 1;
                 let limit = parseInt(String(req.query.limit), 10) || 100;
                 if (limit > 500) limit = 500;
                 if (page < 1) page = 1;
                 const skip = (page - 1) * limit;
-                // Build projection based on Table array (same as /results/all)
-                const projection: Record<string, any> = { Symbol: 1, _id: 0 };
-                if (Array.isArray(userDoc.Table)) {
-                    userDoc.Table.forEach((key: string) => {
-                        if (fieldMap[key]) {
-                            if (key === 'price') {
-                                // We'll fetch price from OHCLVData1m later
-                            } else if (key === 'volume') {
-                                // We'll fetch volume from OHCLVData after market close
-                            } else if ([
-                                'fcf', 'cash', 'current_debt', 'current_assets', 'current_liabilities', 'current_ratio', 'roe', 'roa'
-                            ].includes(key)) {
-                                const qfMap: Record<string, string> = {
-                                    fcf: 'freeCashFlow',
-                                    cash: 'cashAndEq',
-                                    current_debt: 'debtCurrent',
-                                    current_assets: 'assetsCurrent',
-                                    current_liabilities: 'liabilitiesCurrent',
-                                    current_ratio: 'currentRatio',
-                                    roe: 'roe',
-                                    roa: 'roa',
-                                };
-                                const field = qfMap[key as keyof typeof qfMap];
-                                if (field) {
-                                    projection[qfMap[key as keyof typeof qfMap]] = { $ifNull: [{ $getField: { field: qfMap[key as keyof typeof qfMap], input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
-                                }
-                            } else {
-                                projection[fieldMap[key]] = 1;
-                            }
-                        }
-                    });
-                }
-                const assetInfoCollection = db.collection('AssetInfo');
-                const query = { Symbol: { $in: hiddenSymbols }, Delisted: false };
-                const totalCount = await assetInfoCollection.countDocuments(query);
-                const filteredAssets = await assetInfoCollection.find(
-                    query,
-                    { projection }
-                )
-                    .skip(skip)
-                    .limit(limit)
-                    .toArray();
-                // Collections for price and volume
-                const ohclvCollection = db.collection('OHCLVData1m');
-                const dailyCollection = db.collection('OHCLVData');
-                // Build response with price, volume, and todaychange logic (same as /results/all)
-                const assetsWithPriceAndVolume = await Promise.all(filteredAssets.map(async (asset: any) => {
-                    let price = null;
-                    let volume = null;
-                    let volume_message = null;
-                    let todaychange = null;
-                    // Fetch latest price from OHCLVData1m
-                    let latestCandle: any[] = [];
-                    try {
-                        latestCandle = await ohclvCollection.find({ tickerID: asset.Symbol })
-                            .sort({ timestamp: -1 })
-                            .limit(1)
-                            .toArray();
-                        if (latestCandle.length > 0) {
-                            price = latestCandle[0].close;
-                        }
-                    } catch (err) {
-                        if (err instanceof Error) {
+
+                // Cache key for hidden results
+                const cacheKey = `screener:hidden:${user}:p${page}:l${limit}`;
+
+                // Use cache wrapper
+                const result = await withCache(
+                    cacheKey,
+                    async () => {
+                        const db = await getDB();
+                        // Find the user document and extract the 'Hidden' array
+                        const usersCollection = db.collection('Users');
+                        const userDoc = await usersCollection.findOne({ Username: user });
+                        if (!userDoc) {
                             logger.warn({
-                                msg: 'Error fetching OHCLVData1m for symbol',
-                                symbol: asset.Symbol,
-                                error: err.message,
-                                context: 'GET /:user/screener/results/hidden'
+                                msg: 'Hidden Results - User Not Found',
+                                username: user,
+                                context: 'GET /:user/screener/results/hidden',
+                                statusCode: 404
+                            });
+                            throw new Error('User not found');
+                        }
+                        // Check if hidden symbols exist
+                        const hiddenSymbols: string[] = userDoc.Hidden || [];
+                        if (hiddenSymbols.length === 0) {
+                            return {
+                                page: 1,
+                                limit: 100,
+                                totalCount: 0,
+                                totalPages: 1,
+                                data: []
+                            };
+                        }
+                        // Build projection based on Table array (same as /results/all)
+                        const projection: Record<string, any> = { Symbol: 1, _id: 0 };
+                        if (Array.isArray(userDoc.Table)) {
+                            userDoc.Table.forEach((key: string) => {
+                                if (fieldMap[key]) {
+                                    if (key === 'price') {
+                                        // We'll fetch price from OHCLVData1m later
+                                    } else if (key === 'volume') {
+                                        // We'll fetch volume from OHCLVData after market close
+                                    } else if ([
+                                        'fcf', 'cash', 'current_debt', 'current_assets', 'current_liabilities', 'current_ratio', 'roe', 'roa'
+                                    ].includes(key)) {
+                                        const qfMap: Record<string, string> = {
+                                            fcf: 'freeCashFlow',
+                                            cash: 'cashAndEq',
+                                            current_debt: 'debtCurrent',
+                                            current_assets: 'assetsCurrent',
+                                            current_liabilities: 'liabilitiesCurrent',
+                                            current_ratio: 'currentRatio',
+                                            roe: 'roe',
+                                            roa: 'roa',
+                                        };
+                                        const field = qfMap[key as keyof typeof qfMap];
+                                        if (field) {
+                                            projection[qfMap[key as keyof typeof qfMap]] = { $ifNull: [{ $getField: { field: qfMap[key as keyof typeof qfMap], input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };
+                                        }
+                                    } else {
+                                        projection[fieldMap[key]] = 1;
+                                    }
+                                }
                             });
                         }
-                    }
-                    if (isMarketHoursUTC()) {
-                        volume = null;
-                        volume_message = "Intraday volume is unavailable during market hours. Final volume will be available after market close.";
-                        // Calculate todaychange using 1m close and previous day close
-                        try {
-                            const prevDayCandle: any[] = await dailyCollection.find({ tickerID: asset.Symbol })
-                                .sort({ timestamp: -1 })
-                                .limit(1)
-                                .toArray();
-                            if (latestCandle.length > 0 && prevDayCandle.length > 0 && prevDayCandle[0].close) {
-                                const prevClose = prevDayCandle[0].close;
-                                todaychange = (price - prevClose) / prevClose;
-                            } else {
-                                todaychange = null;
-                            }
-                        } catch (err) {
-                            if (err instanceof Error) {
-                                logger.warn({
-                                    msg: 'Error fetching previous day close for todaychange',
-                                    symbol: asset.Symbol,
-                                    error: err.message,
-                                    context: 'GET /:user/screener/results/hidden'
-                                });
-                            }
-                            todaychange = null;
-                        }
-                    } else {
-                        try {
-                            const dailyCandle: any[] = await dailyCollection.find({ tickerID: asset.Symbol })
-                                .sort({ timestamp: -1 })
-                                .limit(1)
-                                .toArray();
-                            if (dailyCandle.length > 0) {
-                                volume = dailyCandle[0].volume;
-                            }
-                        } catch (err) {
-                            if (err instanceof Error) {
-                                logger.warn({
-                                    msg: 'Error fetching OHCLVData for volume',
-                                    symbol: asset.Symbol,
-                                    error: err.message,
-                                    context: 'GET /:user/screener/results/hidden'
-                                });
-                            }
-                        }
-                        volume_message = null;
-                        todaychange = asset.todaychange !== undefined ? asset.todaychange : null;
-                    }
-                    return {
-                        ...asset,
-                        Close: price,
-                        Volume: volume,
-                        volume_message,
-                        todaychange
-                    };
-                }));
-                res.json({
-                    page,
-                    limit,
-                    totalCount,
-                    totalPages: Math.ceil(totalCount / limit),
-                    data: assetsWithPriceAndVolume
-                });
+                        const assetInfoCollection = db.collection('AssetInfo');
+                        const query = { Symbol: { $in: hiddenSymbols }, Delisted: false };
+                        const totalCount = await assetInfoCollection.countDocuments(query);
+                        const filteredAssets = await assetInfoCollection.find(
+                            query,
+                            { projection }
+                        )
+                            .skip(skip)
+                            .limit(limit)
+                            .toArray();
+                        // OPTIMIZED: Bulk fetch price and volume data for all symbols at once
+                        const assetsWithPriceAndVolume = await enrichAssetsWithPriceAndVolume(
+                            db,
+                            filteredAssets,
+                            logger
+                        );
+                        return {
+                            page,
+                            limit,
+                            totalCount,
+                            totalPages: Math.ceil(totalCount / limit),
+                            data: assetsWithPriceAndVolume
+                        };
+                    },
+                    undefined,
+                    'price'
+                );
+
+                res.json(result);
             } catch (error) {
                 const errObj = handleError(error, 'GET /:user/screener/results/hidden', {
                     user: req.params.user
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'GET /:user/screener/results/hidden'
-                        });
-                    }
-                }
             }
         }
     );
@@ -761,7 +552,6 @@ export default function (app: any, deps: any) {
         async (req: Request, res: Response) => {
             const user = sanitizeInput(req.params.user);
             const screenerName = sanitizeInput(req.params.name);
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -775,9 +565,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
 
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
 
                 const usersCollection = db.collection('Users');
                 const userDoc = await usersCollection.findOne({ Username: user });
@@ -1952,106 +1740,49 @@ export default function (app: any, deps: any) {
                 if (page < 1) page = 1;
                 const skip = (page - 1) * limit;
 
-                const assetInfoCollection = db.collection('AssetInfo');
-                const totalCount = await assetInfoCollection.countDocuments(query);
-                const filteredAssets = await assetInfoCollection.find(
-                    query,
-                    { projection }
-                )
-                    .skip(skip)
-                    .limit(limit)
-                    .toArray();
+                // Cache key includes user, screener name, and pagination params
+                const cacheKey = `screener:filtered:${user}:${screenerName}:p${page}:l${limit}`;
 
-                // Collections for price and volume
-                const ohclvCollection = db.collection('OHCLVData1m');
-                const dailyCollection = db.collection('OHCLVData');
-
-                // Build response with price, volume, and todaychange logic
-                const assetsWithPriceAndVolume = await Promise.all(filteredAssets.map(async (asset: any) => {
-                    let price = null;
-                    let volume = null;
-                    let volume_message = null;
-                    let todaychange = null;
-
-                    // Fetch latest price from OHCLVData1m during market hours, otherwise use daily close
-                    let latestCandle = [];
-                    try {
-                        latestCandle = await ohclvCollection.find({ tickerID: asset.Symbol })
-                            .sort({ timestamp: -1 })
-                            .limit(1)
+                // Use cache wrapper for filtered results
+                const result = await withCache(
+                    cacheKey,
+                    async () => {
+                        const assetInfoCollection = db.collection('AssetInfo');
+                        const totalCount = await assetInfoCollection.countDocuments(query);
+                        const filteredAssets = await assetInfoCollection.find(
+                            query,
+                            { projection }
+                        )
+                            .skip(skip)
+                            .limit(limit)
                             .toArray();
-                        if (latestCandle.length > 0) {
-                            price = latestCandle[0].close;
-                        }
-                    } catch (err: any) {
-                        logger.warn('Error fetching OHCLVData1m for symbol', { symbol: asset.Symbol, error: err?.message || String(err) });
-                    }
 
-                    if (isMarketHoursUTC()) {
-                        volume = null;
-                        volume_message = "Intraday volume is unavailable during market hours. Final volume will be available after market close.";
-                        // Calculate todaychange using 1m close and previous day close
-                        try {
-                            const prevDayCandle = await dailyCollection.find({ tickerID: asset.Symbol })
-                                .sort({ timestamp: -1 })
-                                .limit(1)
-                                .toArray();
-                            if (latestCandle.length > 0 && prevDayCandle.length > 0 && prevDayCandle[0].close) {
-                                const prevClose = prevDayCandle[0].close;
-                                todaychange = (price - prevClose) / prevClose;
-                            } else {
-                                todaychange = null;
-                            }
-                        } catch (err: any) {
-                            logger.warn('Error fetching previous day close for todaychange', { symbol: asset.Symbol, error: err?.message || String(err) });
-                            todaychange = null;
-                        }
-                    } else {
-                        try {
-                            const dailyCandle = await dailyCollection.find({ tickerID: asset.Symbol })
-                                .sort({ timestamp: -1 })
-                                .limit(1)
-                                .toArray();
-                            if (dailyCandle.length > 0) {
-                                volume = dailyCandle[0].volume;
-                            }
-                        } catch (err: any) {
-                            logger.warn('Error fetching OHCLVData for volume', { symbol: asset.Symbol, error: err?.message || String(err) });
-                        }
-                        volume_message = null;
-                        todaychange = asset.todaychange !== undefined ? asset.todaychange : null;
-                    }
+                        // OPTIMIZED: Bulk fetch price and volume data for all symbols at once
+                        const assetsWithPriceAndVolume = await enrichAssetsWithPriceAndVolume(
+                            db,
+                            filteredAssets,
+                            logger
+                        );
 
-                    return {
-                        ...asset,
-                        Close: price,
-                        Volume: volume,
-                        volume_message,
-                        todaychange
-                    };
-                }));
+                        return {
+                            page,
+                            limit,
+                            totalCount,
+                            totalPages: Math.ceil(totalCount / limit),
+                            data: assetsWithPriceAndVolume
+                        };
+                    },
+                    undefined,
+                    'price'
+                );
 
-                res.json({
-                    page,
-                    limit,
-                    totalCount,
-                    totalPages: Math.ceil(totalCount / limit),
-                    data: assetsWithPriceAndVolume
-                });
+                res.json(result);
             } catch (error: any) {
                 const errObj = handleError(error, 'GET /screener/:user/results/filtered/:name', {
                     user,
                     screenerName
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeErr: any) {
-                        logger.error('Error closing MongoDB client', { error: closeErr?.message || String(closeErr) });
-                    }
-                }
             }
         }
     );
@@ -2066,7 +1797,6 @@ export default function (app: any, deps: any) {
                 .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores')
         ]),
         async (req: Request, res: Response) => {
-            let client;
             // Generate requestId for logging
             const requestId = crypto.randomBytes(16).toString('hex');
             try {
@@ -2083,9 +1813,7 @@ export default function (app: any, deps: any) {
                 }
                 // Sanitize input
                 const usernameId = sanitizeInput(req.params.usernameID);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const screenersCollection = db.collection('Screeners');
                 const screeners = await screenersCollection.find({ UsernameID: usernameId, Include: true }).toArray();
                 const screenerNames = screeners.map((screener: any) => screener.Name);
@@ -3228,66 +2956,13 @@ export default function (app: any, deps: any) {
                         }
                         // Query AssetInfo
                         const filteredAssets = await assetInfoCollection.find(query, { projection }).toArray();
-                        // Collections for price and volume
-                        const ohclvCollection = db.collection('OHCLVData1m');
-                        const dailyCollection = db.collection('OHCLVData');
-                        // Market hour logic
-                        const isMarketHoursUTC = () => {
-                            const now = new Date();
-                            const day = now.getUTCDay();
-                            const hour = now.getUTCHours();
-                            return day >= 1 && day <= 5 && hour >= 13 && hour < 20;
-                        };
-                        // Enrich assets with price, volume, todaychange
-                        const enrichedAssets = await Promise.all(filteredAssets.map(async (asset: any) => {
-                            let price = null;
-                            let volume = null;
-                            let volume_message = null;
-                            let todaychange = null;
-                            let latestCandle = [];
-                            try {
-                                latestCandle = await ohclvCollection.find({ tickerID: asset.Symbol }).sort({ timestamp: -1 }).limit(1).toArray();
-                                if (latestCandle.length > 0) {
-                                    price = latestCandle[0].close;
-                                }
-                            } catch (err) {
-                                logger.warn({ msg: 'Error fetching OHCLVData1m', symbol: asset.Symbol, error: (err as Error).message });
-                            }
-                            if (isMarketHoursUTC()) {
-                                volume = null;
-                                volume_message = "Intraday volume is unavailable during market hours. Final volume will be available after market close.";
-                                try {
-                                    const prevDayCandle = await dailyCollection.find({ tickerID: asset.Symbol }).sort({ timestamp: -1 }).limit(1).toArray();
-                                    if (latestCandle.length > 0 && prevDayCandle.length > 0 && prevDayCandle[0].close) {
-                                        const prevClose = prevDayCandle[0].close;
-                                        todaychange = (price - prevClose) / prevClose;
-                                    } else {
-                                        todaychange = null;
-                                    }
-                                } catch (err) {
-                                    logger.warn({ msg: 'Error fetching previous day close for todaychange', symbol: asset.Symbol, error: (err as Error).message });
-                                    todaychange = null;
-                                }
-                            } else {
-                                try {
-                                    const dailyCandle = await dailyCollection.find({ tickerID: asset.Symbol }).sort({ timestamp: -1 }).limit(1).toArray();
-                                    if (dailyCandle.length > 0) {
-                                        volume = dailyCandle[0].volume;
-                                    }
-                                } catch (err) {
-                                    logger.warn({ msg: 'Error fetching OHCLVData for volume', symbol: asset.Symbol, error: (err as Error).message });
-                                }
-                                volume_message = null;
-                                todaychange = asset.todaychange !== undefined ? asset.todaychange : null;
-                            }
-                            return {
-                                ...asset,
-                                Close: price,
-                                Volume: volume,
-                                volume_message,
-                                todaychange
-                            };
-                        }));
+
+                        // OPTIMIZED: Bulk fetch price and volume data for all symbols at once
+                        const enrichedAssets = await enrichAssetsWithPriceAndVolume(
+                            db,
+                            filteredAssets,
+                            logger
+                        );
 
                         enrichedAssets.forEach(asset => {
                             const key = asset.Symbol;
@@ -3343,17 +3018,31 @@ export default function (app: any, deps: any) {
                 let limit = parseInt(String(req.query.limit), 10) || 100;
                 if (limit > 500) limit = 500;
                 if (page < 1) page = 1;
-                const totalCount = finalResults.length;
-                const totalPages = Math.ceil(totalCount / limit);
-                const paginatedResults = finalResults.slice((page - 1) * limit, page * limit);
 
-                res.json({
-                    page,
-                    limit,
-                    totalCount,
-                    totalPages,
-                    data: paginatedResults
-                });
+                // Cache key for combined screener results
+                const cacheKey = `screener:combined:${usernameId}:p${page}:l${limit}`;
+
+                // Cache the pagination result
+                const result = await withCache(
+                    cacheKey,
+                    async () => {
+                        const totalCount = finalResults.length;
+                        const totalPages = Math.ceil(totalCount / limit);
+                        const paginatedResults = finalResults.slice((page - 1) * limit, page * limit);
+
+                        return {
+                            page,
+                            limit,
+                            totalCount,
+                            totalPages,
+                            data: paginatedResults
+                        };
+                    },
+                    undefined,
+                    'static' // Static data type - uses 30min TTL
+                );
+
+                res.json(result);
 
             } catch (error) {
                 // Use structured error handler from logger.ts
@@ -3364,18 +3053,6 @@ export default function (app: any, deps: any) {
                     error: (error as Error).message
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                // Ensure client is closed
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        logger.warn({
-                            msg: 'Database Client Closure Failed',
-                            error: (closeError as Error).message
-                        });
-                    }
-                }
             }
         }
     );
@@ -3388,7 +3065,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -3430,9 +3106,7 @@ export default function (app: any, deps: any) {
                     return res.status(400).json({ message: 'Both min price and max price cannot be empty' });
                 }
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const collection = db.collection('Screeners');
                     const ohlcCollection = db.collection('OHCLVData');
                     if (isNaN(minPrice)) {
@@ -3517,20 +3191,6 @@ export default function (app: any, deps: any) {
                         message: 'Database operation failed',
                         error: errorObj.message
                     });
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                            logger.error({
-                                msg: 'Error closing database connection',
-                                error: closeErr.message,
-                                context: 'PATCH /screener/price',
-                                statusCode: 500
-                            });
-                        }
-                    }
                 }
             } catch (error) {
                 const errorObj = error instanceof Error ? error : new Error(String(error));
@@ -3558,7 +3218,6 @@ export default function (app: any, deps: any) {
             validationSchemas.maxPrice()
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -3592,9 +3251,7 @@ export default function (app: any, deps: any) {
                     return res.status(400).json({ message: 'Both min market cap and max market cap cannot be empty' });
                 }
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const assetInfoCollection = db.collection('AssetInfo');
                     const collection = db.collection('Screeners');
                     let finalMinPrice = minPrice;
@@ -3695,19 +3352,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                            logger.error({
-                                msg: 'Error closing database connection',
-                                error: closeErr.message,
-                                context: 'PATCH /screener/marketcap'
-                            });
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /screener/marketcap', {}, 500);
@@ -3754,7 +3398,6 @@ export default function (app: any, deps: any) {
                 })
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -3790,9 +3433,7 @@ export default function (app: any, deps: any) {
                     return res.status(400).json({ message: 'At least one of min or max IPO date must be provided' });
                 }
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const assetInfoCollection = db.collection('AssetInfo');
                     const collection = db.collection('Screeners');
                     let finalMinPrice = minPrice;
@@ -3877,19 +3518,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                            logger.error({
-                                msg: 'Error closing database connection',
-                                error: closeErr.message,
-                                context: 'PATCH /screener/ipo-date'
-                            });
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /screener/ipo-date', {}, 500);
@@ -3911,7 +3539,6 @@ export default function (app: any, deps: any) {
             validationSchemas.symbolParam('symbol')
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -3927,9 +3554,7 @@ export default function (app: any, deps: any) {
                 const symbol = sanitizeInput(req.params.symbol).toUpperCase();
                 const Username = sanitizeInput(req.params.user);
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const usersCollection = db.collection('Users');
                     const assetInfoCollection = db.collection('AssetInfo');
                     const assetExists = await assetInfoCollection.findOne({ Symbol: symbol });
@@ -3965,6 +3590,8 @@ export default function (app: any, deps: any) {
                     const filter = { Username: Username };
                     const updateDoc = { $addToSet: { Hidden: symbol } };
                     const result = await usersCollection.updateOne(filter, updateDoc);
+                    // Invalidate user's screener caches since hidden list affects results
+                    await invalidateUserScreenerCache(Username);
                     res.json({ message: 'Hidden List updated successfully', symbol });
                 } catch (dbError) {
                     const errObj = handleError(dbError, 'PATCH /screener/:user/hidden/:symbol', {
@@ -3980,19 +3607,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                            logger.error({
-                                msg: 'Error closing database connection',
-                                error: closeErr.message,
-                                context: 'PATCH /screener/:user/hidden/:symbol'
-                            });
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /screener/:user/hidden/:symbol', {}, 500);
@@ -4013,7 +3627,6 @@ export default function (app: any, deps: any) {
             validationSchemas.userParam('user')
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -4028,9 +3641,7 @@ export default function (app: any, deps: any) {
                 }
                 const username = sanitizeInput(req.params.user);
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const collection = db.collection('Users');
                     const userDoc = await collection.findOne({ Username: username }, {
                         projection: {
@@ -4063,19 +3674,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                            logger.error({
-                                msg: 'Error closing database connection',
-                                error: closeErr.message,
-                                context: 'GET /screener/results/:user/hidden'
-                            });
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'GET /screener/results/:user/hidden', {}, 500);
@@ -4096,7 +3694,6 @@ export default function (app: any, deps: any) {
             validationSchemas.userParam('user')
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -4111,9 +3708,7 @@ export default function (app: any, deps: any) {
                 }
                 const username = sanitizeInput(req.params.user);
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const collection = db.collection('Screeners');
                     const userDocs = await collection.find({ UsernameID: username }, {
                         projection: {
@@ -4148,19 +3743,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                            logger.error({
-                                msg: 'Error closing database connection',
-                                error: closeErr.message,
-                                context: 'GET /screener/:user/names'
-                            });
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'GET /screener/:user/names', {}, 500);
@@ -4182,7 +3764,6 @@ export default function (app: any, deps: any) {
             validationSchemas.symbolParam('symbol')
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -4212,9 +3793,7 @@ export default function (app: any, deps: any) {
                     });
                 }
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const collection = db.collection('Users');
                     // Find user to ensure they exist and the symbol is in their hidden list
                     const userDoc = await collection.findOne({
@@ -4254,6 +3833,8 @@ export default function (app: any, deps: any) {
                         context: 'PATCH /screener/:user/show/:symbol',
                         statusCode: 200
                     });
+                    // Invalidate user's screener caches since hidden list affects results
+                    await invalidateUserScreenerCache(username);
                     res.status(200).json({
                         message: 'Hidden List updated successfully',
                         username: username,
@@ -4273,19 +3854,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn({
-                                msg: 'Error closing database connection',
-                                error: (closeError instanceof Error ? closeError.message : String(closeError)),
-                                context: 'PATCH /screener/:user/show/:symbol',
-                                statusCode: 500
-                            });
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /screener/:user/show/:symbol', {}, 500);
@@ -4305,7 +3873,6 @@ export default function (app: any, deps: any) {
     // endpoint that retrieves all available asset types for user (for screener)
     app.get('/screener/asset-type',
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -4319,9 +3886,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const assetInfoCollection = db.collection('AssetInfo');
                     // Retrieve distinct asset types
                     const assetTypes = await assetInfoCollection.distinct('AssetType');
@@ -4350,19 +3915,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn({
-                                msg: 'Error closing database connection',
-                                error: closeError instanceof Error ? closeError.message : String(closeError),
-                                context: 'GET /screener/asset-type',
-                                statusCode: 500
-                            });
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'GET /screener/asset-type', {}, 500);
@@ -4397,7 +3949,6 @@ export default function (app: any, deps: any) {
                 })
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -4418,9 +3969,7 @@ export default function (app: any, deps: any) {
                     assetTypes.map((type: string) => sanitizeInput(type).replace(/&amp;/g, '&'))
                 )];
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const collection = db.collection('Screeners');
                     const filter = {
                         UsernameID: Username,
@@ -4465,19 +4014,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn({
-                                msg: 'Error closing database connection',
-                                error: closeError instanceof Error ? closeError.message : String(closeError),
-                                context: 'PATCH /screener/asset-types',
-                                statusCode: 500
-                            });
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /screener/asset-types', {}, 500);
@@ -4496,7 +4032,6 @@ export default function (app: any, deps: any) {
     // endpoint that retrieves all available sectors for user (for screener)
     app.get('/screener/sectors',
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -4510,9 +4045,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const assetInfoCollection = db.collection('AssetInfo');
                     // Retrieve distinct sectors
                     const sectors = await assetInfoCollection.distinct('Sector');
@@ -4535,19 +4068,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn({
-                                msg: 'Error closing database connection',
-                                error: closeError instanceof Error ? closeError.message : String(closeError),
-                                context: 'GET /screener/sectors',
-                                statusCode: 500
-                            });
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'GET /screener/sectors', {}, 500);
@@ -4582,7 +4102,6 @@ export default function (app: any, deps: any) {
                 })
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -4606,9 +4125,7 @@ export default function (app: any, deps: any) {
                     })
                 )];
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const collection = db.collection('Screeners');
                     const filter = {
                         UsernameID: { $regex: new RegExp(`^${Username}$`, 'i') },
@@ -4653,19 +4170,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn({
-                                msg: 'Error closing database connection',
-                                error: closeError instanceof Error ? closeError.message : String(closeError),
-                                context: 'PATCH /screener/sectors',
-                                statusCode: 500
-                            });
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /screener/sectors', {}, 500);
@@ -4684,7 +4188,6 @@ export default function (app: any, deps: any) {
     // endpoint that retrieves all available exchanges for user (screener)
     app.get('/screener/exchange',
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -4698,9 +4201,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const assetInfoCollection = db.collection('AssetInfo');
                     // Retrieve distinct exchanges
                     const exchanges = await assetInfoCollection.distinct('Exchange');
@@ -4723,14 +4224,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn({ closeError }, 'Error closing database connection');
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'GET /screener/exchange', {}, 500);
@@ -4763,7 +4256,6 @@ export default function (app: any, deps: any) {
                 })
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -4784,9 +4276,7 @@ export default function (app: any, deps: any) {
                     exchanges.map((exchange: string) => sanitizeInput(exchange))
                 )];
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const collection = db.collection('Screeners');
                     // Comprehensive debugging of user's screeners
                     const allUserScreeners = await collection.find({
@@ -4845,14 +4335,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn({ closeError }, 'Error closing database connection');
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /screener/exchange', {}, 500);
@@ -4871,7 +4353,6 @@ export default function (app: any, deps: any) {
     // endpoint that retrieves all available countries for user (screener)
     app.get('/screener/country',
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -4885,9 +4366,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const assetInfoCollection = db.collection('AssetInfo');
                     // Use the `distinct` method to get an array of unique Country values
                     const Country = await assetInfoCollection.distinct('Country');
@@ -4903,14 +4382,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn({ closeError }, 'Error closing database connection');
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'GET /screener/country', {}, 500);
@@ -4944,7 +4415,6 @@ export default function (app: any, deps: any) {
                 })
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -4965,9 +4435,7 @@ export default function (app: any, deps: any) {
                     countries.map((country: string) => sanitizeInput(country))
                 )];
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const collection = db.collection('Screeners');
                     // Comprehensive debugging of user's screeners
                     const allUserScreeners = await collection.find({
@@ -5026,14 +4494,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn({ closeError }, 'Error closing database connection');
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /screener/country', {}, 500);
@@ -5058,7 +4518,6 @@ export default function (app: any, deps: any) {
     ]),
         async (req: Request, res: Response) => {
             let minPrice, maxPrice, screenerName, Username;
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -5087,9 +4546,7 @@ export default function (app: any, deps: any) {
                     return res.status(400).json({ message: 'Both min PE and max PE cannot be empty' });
                 }
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const collection = db.collection('Screeners');
                     const assetInfoCollection = db.collection('AssetInfo');
                     if (isNaN(minPrice)) {
@@ -5157,14 +4614,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn({ closeError }, 'Error closing database connection');
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /screener/pe', {}, 500);
@@ -5186,7 +4635,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -5227,9 +4675,7 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(400).json({ message: 'Both min PEG and max PEG cannot be empty' });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
                 if (isNaN(minPrice) && !isNaN(maxPrice)) {
@@ -5309,24 +4755,6 @@ export default function (app: any, deps: any) {
                     statusCode: 500
                 });
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        let closeErr: Error;
-                        if (typeof closeError === 'object' && closeError !== null && 'message' in closeError) {
-                            closeErr = closeError as Error;
-                        } else {
-                            closeErr = new Error(String(closeError));
-                        }
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'PATCH /screener/peg'
-                        });
-                    }
-                }
             }
         });
 
@@ -5338,7 +4766,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -5379,9 +4806,7 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(400).json({ message: 'Both min EPS and max EPS cannot be empty' });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
                 if (isNaN(minPrice) && !isNaN(maxPrice)) {
@@ -5466,24 +4891,6 @@ export default function (app: any, deps: any) {
                     statusCode: 500
                 });
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        let closeErr: Error;
-                        if (typeof closeError === 'object' && closeError !== null && 'message' in closeError) {
-                            closeErr = closeError as Error;
-                        } else {
-                            closeErr = new Error(String(closeError));
-                        }
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'PATCH /screener/eps'
-                        });
-                    }
-                }
             }
         });
 
@@ -5495,7 +4902,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -5536,9 +4942,7 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(400).json({ message: 'Both min PS Ratio and max PS Ratio cannot be empty' });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
                 if (isNaN(minPrice) && !isNaN(maxPrice)) {
@@ -5623,24 +5027,6 @@ export default function (app: any, deps: any) {
                     statusCode: 500
                 });
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        let closeErr: Error;
-                        if (typeof closeError === 'object' && closeError !== null && 'message' in closeError) {
-                            closeErr = closeError as Error;
-                        } else {
-                            closeErr = new Error(String(closeError));
-                        }
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'PATCH /screener/ps-ratio'
-                        });
-                    }
-                }
             }
         });
 
@@ -5652,7 +5038,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -5693,9 +5078,7 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(400).json({ message: 'Both min PB Ratio and max PB Ratio cannot be empty' });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
                 if (isNaN(minPrice) && !isNaN(maxPrice)) {
@@ -5780,24 +5163,6 @@ export default function (app: any, deps: any) {
                     statusCode: 500
                 });
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        let closeErr: Error;
-                        if (typeof closeError === 'object' && closeError !== null && 'message' in closeError) {
-                            closeErr = closeError as Error;
-                        } else {
-                            closeErr = new Error(String(closeError));
-                        }
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'PATCH /screener/pb-ratio'
-                        });
-                    }
-                }
             }
         });
 
@@ -5809,7 +5174,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -5850,9 +5214,7 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(400).json({ message: 'Both min and max Dividend Yield cannot be empty' });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
                 let effectiveMinPrice = isNaN(minPrice) ? 0.001 : minPrice;
@@ -5951,24 +5313,6 @@ export default function (app: any, deps: any) {
                     statusCode: 500
                 });
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        let closeErr: Error;
-                        if (typeof closeError === 'object' && closeError !== null && 'message' in closeError) {
-                            closeErr = closeError as Error;
-                        } else {
-                            closeErr = new Error(String(closeError));
-                        }
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'PATCH /screener/div-yield'
-                        });
-                    }
-                }
             }
         });
 
@@ -5991,7 +5335,6 @@ export default function (app: any, deps: any) {
                 })
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -6012,9 +5355,7 @@ export default function (app: any, deps: any) {
                     fundFamilies.map((family: string) => sanitizeInput(family))
                 )];
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const collection = db.collection('Screeners');
                     const filter = {
                         UsernameID: Username,
@@ -6046,14 +5387,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn({ closeError }, 'Error closing database connection');
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /screener/fund-family', {}, 500);
@@ -6089,7 +5422,6 @@ export default function (app: any, deps: any) {
                 })
         ]),
         async (req: Request, res: Response) => {
-            let client;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -6110,9 +5442,7 @@ export default function (app: any, deps: any) {
                     fundCategories.map((category: string) => sanitizeInput(category))
                 )];
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const collection = db.collection('Screeners');
                     const filter = {
                         UsernameID: Username,
@@ -6144,14 +5474,6 @@ export default function (app: any, deps: any) {
                         statusCode: 500
                     });
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError) {
-                            logger.warn({ closeError }, 'Error closing database connection');
-                        }
-                    }
                 }
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /screener/fund-category', {}, 500);
@@ -6175,7 +5497,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -6216,9 +5537,7 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(400).json({ message: 'Both min and max Net Expense Ratio cannot be empty' });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
                 let effectiveMinRatio = isNaN(minRatio) ? 0 : minRatio;
@@ -6317,24 +5636,6 @@ export default function (app: any, deps: any) {
                     statusCode: 500
                 });
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        let closeErr: Error;
-                        if (typeof closeError === 'object' && closeError !== null && 'message' in closeError) {
-                            closeErr = closeError as Error;
-                        } else {
-                            closeErr = new Error(String(closeError));
-                        }
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'PATCH /screener/net-expense-ratio'
-                        });
-                    }
-                }
             }
         });
 
@@ -6343,7 +5644,6 @@ export default function (app: any, deps: any) {
         validationSchemas.user(),
         validationSchemas.screenerNameBody(),
     ]), async (req: Request, res: Response) => {
-        let client: any;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -6374,9 +5674,7 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(400).json({ message: 'Username is required' });
             }
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const collection = db.collection('Screeners');
             const assetInfoCollection = db.collection('AssetInfo');
             // Use index signature for dynamic keys
@@ -6520,24 +5818,6 @@ export default function (app: any, deps: any) {
                 statusCode: 500
             });
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    let closeErr: Error;
-                    if (typeof closeError === 'object' && closeError !== null && 'message' in closeError) {
-                        closeErr = closeError as Error;
-                    } else {
-                        closeErr = new Error(String(closeError));
-                    }
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'PATCH /screener/fundamental-growth'
-                    });
-                }
-            }
         }
     });
 
@@ -6549,7 +5829,6 @@ export default function (app: any, deps: any) {
         validationSchemas.averageVolumeOption(),
         ...validationSchemas.volumeValues()
     ]), async (req: Request, res: Response) => {
-        let client: any;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -6570,9 +5849,7 @@ export default function (app: any, deps: any) {
             const avgVolOption = sanitizeInput(req.body.avgVolOption);
             const screenerName = sanitizeInput(req.body.screenerName);
             const Username = sanitizeInput(req.body.user);
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const screenersCollection = db.collection('Screeners');
             const assetInfoCollection = db.collection('AssetInfo');
             const filter = { UsernameID: Username, Name: screenerName };
@@ -6649,24 +5926,6 @@ export default function (app: any, deps: any) {
                 statusCode: 500
             });
             res.status(errObj.statusCode || 500).json({ message: 'Internal Server Error', error: errObj.message });
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    let closeErr: Error;
-                    if (typeof closeError === 'object' && closeError !== null && 'message' in closeError) {
-                        closeErr = closeError as Error;
-                    } else {
-                        closeErr = new Error(String(closeError));
-                    }
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'PATCH /screener/volume'
-                    });
-                }
-            }
         }
     });
 
@@ -6676,7 +5935,6 @@ export default function (app: any, deps: any) {
         validationSchemas.screenerNameBody(),
         validationSchemas.rsScore()
     ]), async (req: Request, res: Response) => {
-        let client: any;
         let Username = '';
         let screenerName = '';
         try {
@@ -6703,9 +5961,7 @@ export default function (app: any, deps: any) {
             Username = sanitizeInput(req.body.user);
             // Log plain username
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const collection = db.collection('Screeners');
             const filter = { UsernameID: Username, Name: screenerName };
             // Use index signature for dynamic keys
@@ -6752,20 +6008,6 @@ export default function (app: any, deps: any) {
                 user: Username,
                 screenerName: req.body.screenerName
             }, 500);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError: any) {
-                    logger.warn({
-                        msg: 'Error closing database connection',
-                        user: Username,
-                        error: closeError.message,
-                        context: 'PATCH /screener/rs-score',
-                        statusCode: 500
-                    });
-                }
-            }
         }
     });
 
@@ -6775,7 +6017,6 @@ export default function (app: any, deps: any) {
         validationSchemas.screenerNameBody(),
         validationSchemas.ADV(),
     ]), async (req: Request, res: Response) => {
-        let client: any;
         let Username = '';
         let screenerName = '';
         try {
@@ -6803,9 +6044,7 @@ export default function (app: any, deps: any) {
             screenerName = sanitizeInput(req.body.screenerName);
             Username = sanitizeInput(req.body.user);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const assetInfoCollection = db.collection('AssetInfo');
             const screenersCollection = db.collection('Screeners');
             const maxValues = await assetInfoCollection.aggregate([
@@ -6859,20 +6098,6 @@ export default function (app: any, deps: any) {
                 statusCode: 500
             });
             res.status(500).json({ message: 'Internal Server Error' });
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError: any) {
-                    logger.warn({
-                        msg: 'Error closing database connection',
-                        user: Username,
-                        error: closeError instanceof Error ? closeError.message : String(closeError),
-                        context: 'PATCH /screener/adv',
-                        statusCode: 500
-                    });
-                }
-            }
         }
     });
 
@@ -6882,7 +6107,6 @@ export default function (app: any, deps: any) {
         validationSchemas.screenerNameBody(),
         validationSchemas.pricePerformanceValues()
     ]), async (req: Request, res: Response) => {
-        let client: any;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -6915,9 +6139,7 @@ export default function (app: any, deps: any) {
             const screenerName = sanitizeInput(req.body.screenerName);
             const Username = sanitizeInput(req.body.user);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const collection = db.collection('Screeners');
             const assetInfoCollection = db.collection('AssetInfo');
             const filter = { UsernameID: Username, Name: screenerName };
@@ -7058,20 +6280,6 @@ export default function (app: any, deps: any) {
         } catch (error: any) {
             const errObj = handleError(error, 'PATCH /screener/price-performance', { username: req.body.user }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError: any) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        username: req.body.user,
-                        context: 'PATCH /screener/price-performance'
-                    });
-                }
-            }
         }
     });
 
@@ -7082,7 +6290,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -7114,9 +6321,7 @@ export default function (app: any, deps: any) {
                     return res.status(400).json({ message: 'Both min ROE and max ROE cannot be empty' });
                 }
 
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -7187,18 +6392,6 @@ export default function (app: any, deps: any) {
                     screenerName: req.body.screenerName
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: any) {
-                        logger.warn({
-                            msg: 'Error closing database connection',
-                            error: closeError.message,
-                            context: 'PATCH /screener/roe'
-                        });
-                    }
-                }
             }
         });
 
@@ -7209,7 +6402,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -7241,9 +6433,7 @@ export default function (app: any, deps: any) {
                     return res.status(400).json({ message: 'Both min ROA and max ROA cannot be empty' });
                 }
 
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -7314,18 +6504,6 @@ export default function (app: any, deps: any) {
                     screenerName: req.body.screenerName
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: any) {
-                        logger.warn({
-                            msg: 'Error closing database connection',
-                            error: closeError.message,
-                            context: 'PATCH /screener/roa'
-                        });
-                    }
-                }
             }
         });
 
@@ -7336,7 +6514,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -7368,9 +6545,7 @@ export default function (app: any, deps: any) {
                     return res.status(400).json({ message: 'Both min CAGR and max CAGR cannot be empty' });
                 }
 
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -7439,18 +6614,6 @@ export default function (app: any, deps: any) {
                     screenerName: req.body.screenerName
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: any) {
-                        logger.warn({
-                            msg: 'Error closing database connection',
-                            error: closeError.message,
-                            context: 'PATCH /screener/cagr'
-                        });
-                    }
-                }
             }
         });
 
@@ -7470,7 +6633,6 @@ export default function (app: any, deps: any) {
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -7490,9 +6652,7 @@ export default function (app: any, deps: any) {
                 const user = sanitizeInput(req.params.user);
                 const list = sanitizeInput(req.params.list);
 
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
 
                 const filter = { Name: list, UsernameID: user };
@@ -7543,19 +6703,6 @@ export default function (app: any, deps: any) {
                     requestId
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: any) {
-                        logger.warn({
-                            msg: 'Database Client Closure Failed',
-                            requestId,
-                            error: closeError.message,
-                            context: 'PATCH /:user/toggle/screener/:list'
-                        });
-                    }
-                }
             }
         }
     );
@@ -7567,7 +6714,6 @@ export default function (app: any, deps: any) {
             validationSchemas.screenerNameParam()
         ]),
         async (req: Request, res: Response) => {
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -7585,10 +6731,7 @@ export default function (app: any, deps: any) {
                 const UsernameID = sanitizeInput(req.params.user);
                 const Name = sanitizeInput(req.params.name);
 
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
 
                 const filter = { UsernameID: UsernameID, Name: Name };
@@ -7644,19 +6787,6 @@ export default function (app: any, deps: any) {
             } catch (error: any) {
                 const errObj = handleError(error, 'PATCH /screener/reset/:user/:name', { username: req.params.user }, 500);
                 res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: any) {
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeError.message,
-                            username: req.params.user,
-                            context: 'PATCH /screener/reset/:user/:name'
-                        });
-                    }
-                }
             }
         }
     );
@@ -7683,7 +6813,6 @@ export default function (app: any, deps: any) {
                 .withMessage('Invalid parameter to reset')
         ]),
         async (req: Request, res: Response) => {
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -7710,10 +6839,7 @@ export default function (app: any, deps: any) {
                     context: 'PATCH /reset/screener/param'
                 });
 
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const filter = { UsernameID: UsernameID, Name: Name };
                 const updateDoc: { $unset: Record<string, any> } = { $unset: {} };
@@ -7831,19 +6957,6 @@ export default function (app: any, deps: any) {
             } catch (error: any) {
                 const errObj = handleError(error, 'PATCH /reset/screener/param', { username: req.body.user }, 500);
                 res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: any) {
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeError.message,
-                            username: req.body.user,
-                            context: 'PATCH /reset/screener/param'
-                        });
-                    }
-                }
             }
         }
     );
@@ -7855,7 +6968,6 @@ export default function (app: any, deps: any) {
             validationSchemas.screenerNameParam(),
         ]),
         async (req: Request, res: Response) => {
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -7873,9 +6985,7 @@ export default function (app: any, deps: any) {
                 const usernameID = sanitizeInput(req.params.user);
                 const name = sanitizeInput(req.params.name);
 
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const screenersCollection = db.collection('Screeners');
 
                 const query = { UsernameID: usernameID, Name: name };
@@ -7986,18 +7096,6 @@ export default function (app: any, deps: any) {
                     screenerName: req.params.name
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: any) {
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeError.message,
-                            context: 'GET /screener/datavalues/:user/:name'
-                        });
-                    }
-                }
             }
         }
     );
@@ -8010,7 +7108,6 @@ export default function (app: any, deps: any) {
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -8030,9 +7127,7 @@ export default function (app: any, deps: any) {
                 const usernameID = sanitizeInput(req.params.usernameID);
                 const name = sanitizeInput(req.params.name);
 
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const screenersCollection = db.collection('Screeners');
                 const filter = { UsernameID: usernameID, Name: name };
 
@@ -8086,19 +7181,6 @@ export default function (app: any, deps: any) {
                     requestId
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: any) {
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeError.message,
-                            context: 'GET /screener/summary/:usernameID/:name',
-                            requestId
-                        });
-                    }
-                }
             }
         }
     );
@@ -8119,7 +7201,6 @@ export default function (app: any, deps: any) {
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client: any;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -8139,9 +7220,7 @@ export default function (app: any, deps: any) {
                 const user = sanitizeInput(req.params.user);
                 const list = sanitizeInput(req.params.list);
 
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
 
                 const filter = { Name: list, UsernameID: user };
@@ -8192,19 +7271,6 @@ export default function (app: any, deps: any) {
                     requestId
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: any) {
-                        logger.warn({
-                            msg: 'Database Client Closure Failed',
-                            requestId,
-                            error: closeError.message,
-                            context: 'PATCH /:user/toggle/screener/:list'
-                        });
-                    }
-                }
             }
         }
     );
@@ -8215,7 +7281,6 @@ export default function (app: any, deps: any) {
         validationSchemas.minPrice(),
         validationSchemas.maxPrice()
     ]), async (req: Request, res: Response) => {
-        let client: any;
         let minCurrentRatio: number, maxCurrentRatio: number, screenerName: string, Username: string;
         try {
             const apiKey = req.header('x-api-key');
@@ -8272,10 +7337,7 @@ export default function (app: any, deps: any) {
                 return res.status(400).json(errObj);
             }
 
-            client = new MongoClient(uri);
-            await client.connect();
-
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const collection = db.collection('Screeners');
             const assetInfoCollection = db.collection('AssetInfo');
 
@@ -8394,16 +7456,6 @@ export default function (app: any, deps: any) {
                 screenerName: req.body.screenerName
             }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError: any) {
-                    logger.warn('Error closing database connection', {
-                        error: closeError.message
-                    });
-                }
-            }
         }
     });
 
@@ -8414,7 +7466,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client: any;
             let minCurrentAssets: number, maxCurrentAssets: number, screenerName: string, Username: string;
             try {
                 const apiKey = req.header('x-api-key');
@@ -8465,10 +7516,7 @@ export default function (app: any, deps: any) {
                     return res.status(400).json(errObj);
                 }
 
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -8587,16 +7635,6 @@ export default function (app: any, deps: any) {
                     screenerName: req.body.screenerName
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        logger.warn('Error closing database connection', {
-                            error: (closeError as any).message
-                        });
-                    }
-                }
             }
         });
 
@@ -8607,7 +7645,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client: any;
             let minCurrentLiabilities: number, maxCurrentLiabilities: number, screenerName: string, Username: string;
             try {
                 const apiKey = req.header('x-api-key');
@@ -8658,10 +7695,7 @@ export default function (app: any, deps: any) {
                     return res.status(400).json(errObj);
                 }
 
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -8780,16 +7814,6 @@ export default function (app: any, deps: any) {
                     screenerName: req.body.screenerName
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        logger.warn('Error closing database connection', {
-                            error: (closeError as any).message
-                        });
-                    }
-                }
             }
         });
 
@@ -8800,7 +7824,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client: any;
             let minCurrentDebt: number, maxCurrentDebt: number, screenerName: string, Username: string;
             try {
                 const apiKey = req.header('x-api-key');
@@ -8851,10 +7874,7 @@ export default function (app: any, deps: any) {
                     return res.status(400).json(errObj);
                 }
 
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -8973,16 +7993,6 @@ export default function (app: any, deps: any) {
                     screenerName: req.body.screenerName
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        logger.warn('Error closing database connection', {
-                            error: (closeError as any).message
-                        });
-                    }
-                }
             }
         });
 
@@ -8992,7 +8002,6 @@ export default function (app: any, deps: any) {
         validationSchemas.minPrice(),
         validationSchemas.maxPrice()
     ]), async (req: Request, res: Response) => {
-        let client: any;
         let minCashEquivalents: number, maxCashEquivalents: number, screenerName: string, Username: string;
         try {
             const apiKey = req.header('x-api-key');
@@ -9041,9 +8050,7 @@ export default function (app: any, deps: any) {
             }
 
             try {
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -9170,20 +8177,6 @@ export default function (app: any, deps: any) {
                     message: 'Database operation failed',
                     error: err.message
                 });
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: unknown) {
-                        const err = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: err.message,
-                            context: 'PATCH /screener/cash-equivalents',
-                            statusCode: 500
-                        });
-                    }
-                }
             }
         } catch (error: unknown) {
             const errObj = handleError(error instanceof Error ? error : new Error(String(error)), 'PATCH /screener/cash-equivalents', {
@@ -9200,7 +8193,6 @@ export default function (app: any, deps: any) {
         validationSchemas.minPrice(),
         validationSchemas.maxPrice()
     ]), async (req: Request, res: Response) => {
-        let client: any;
         let minFreeCashFlow: number, maxFreeCashFlow: number, screenerName: string, Username: string;
         try {
             const apiKey = req.header('x-api-key');
@@ -9249,9 +8241,7 @@ export default function (app: any, deps: any) {
             }
 
             try {
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -9378,20 +8368,6 @@ export default function (app: any, deps: any) {
                     message: 'Database operation failed',
                     error: err.message
                 });
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: unknown) {
-                        const err = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: err.message,
-                            context: 'PATCH /screener/free-cash-flow',
-                            statusCode: 500
-                        });
-                    }
-                }
             }
         } catch (error: unknown) {
             const errObj = handleError(error instanceof Error ? error : new Error(String(error)), 'PATCH /screener/free-cash-flow', {
@@ -9408,7 +8384,6 @@ export default function (app: any, deps: any) {
         validationSchemas.minPrice(),
         validationSchemas.maxPrice()
     ]), async (req: Request, res: Response) => {
-        let client: any;
         let minProfitMargin: number, maxProfitMargin: number, screenerName: string, Username: string;
         try {
             const apiKey = req.header('x-api-key');
@@ -9457,10 +8432,7 @@ export default function (app: any, deps: any) {
             }
 
             try {
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -9595,19 +8567,6 @@ export default function (app: any, deps: any) {
                     message: 'Database operation failed',
                     error: err.message
                 });
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: unknown) {
-                        const err = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.warn({
-                            msg: 'Error closing database connection',
-                            error: err.message,
-                            context: 'PATCH /screener/profit-margin'
-                        });
-                    }
-                }
             }
         } catch (error: unknown) {
             const errObj = handleError(error instanceof Error ? error : new Error(String(error)), 'PATCH /screener/profit-margin', {
@@ -9624,7 +8583,6 @@ export default function (app: any, deps: any) {
         validationSchemas.minPrice(),
         validationSchemas.maxPrice()
     ]), async (req: Request, res: Response) => {
-        let client: any;
         let minGrossMargin: number, maxGrossMargin: number, screenerName: string, Username: string;
         try {
             const apiKey = req.header('x-api-key');
@@ -9673,10 +8631,7 @@ export default function (app: any, deps: any) {
             }
 
             try {
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -9811,19 +8766,6 @@ export default function (app: any, deps: any) {
                     message: 'Database operation failed',
                     error: err.message
                 });
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: unknown) {
-                        const err = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.warn({
-                            msg: 'Error closing database connection',
-                            error: err.message,
-                            context: 'PATCH /screener/gross-margin'
-                        });
-                    }
-                }
             }
         } catch (error: unknown) {
             const errObj = handleError(error instanceof Error ? error : new Error(String(error)), 'PATCH /screener/gross-margin', {
@@ -9840,7 +8782,6 @@ export default function (app: any, deps: any) {
         validationSchemas.minPrice(),
         validationSchemas.maxPrice()
     ]), async (req: Request, res: Response) => {
-        let client: any;
         let minDebtToEquityRatio: number, maxDebtToEquityRatio: number, screenerName: string, Username: string;
         try {
             const apiKey = req.header('x-api-key');
@@ -9889,10 +8830,7 @@ export default function (app: any, deps: any) {
             }
 
             try {
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -10027,19 +8965,6 @@ export default function (app: any, deps: any) {
                     message: 'Database operation failed',
                     error: err.message
                 });
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: unknown) {
-                        const err = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.warn({
-                            msg: 'Error closing database connection',
-                            error: err.message,
-                            context: 'PATCH /screener/debt-to-equity-ratio'
-                        });
-                    }
-                }
             }
         } catch (error: unknown) {
             const errObj = handleError(error instanceof Error ? error : new Error(String(error)), 'PATCH /screener/debt-to-equity-ratio', {
@@ -10056,7 +8981,6 @@ export default function (app: any, deps: any) {
         validationSchemas.minPrice(),
         validationSchemas.maxPrice()
     ]), async (req: Request, res: Response) => {
-        let client: any;
         let minBookValue: number, maxBookValue: number, screenerName: string, Username: string;
         try {
             const apiKey = req.header('x-api-key');
@@ -10105,10 +9029,7 @@ export default function (app: any, deps: any) {
             }
 
             try {
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -10246,19 +9167,6 @@ export default function (app: any, deps: any) {
                     message: 'Database operation failed',
                     error: err.message
                 });
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: unknown) {
-                        const err = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.warn({
-                            msg: 'Error closing database connection',
-                            error: err.message,
-                            context: 'PATCH /screener/book-value'
-                        });
-                    }
-                }
             }
         } catch (error: unknown) {
             const errObj = handleError(error instanceof Error ? error : new Error(String(error)), 'PATCH /screener/book-value', {
@@ -10275,7 +9183,6 @@ export default function (app: any, deps: any) {
         validationSchemas.minPrice(),
         validationSchemas.maxPrice()
     ]), async (req: Request, res: Response) => {
-        let client: any;
         let minPrice: number, maxPrice: number, screenerName: string, Username: string;
         try {
             const apiKey = req.header('x-api-key');
@@ -10324,10 +9231,7 @@ export default function (app: any, deps: any) {
             }
 
             try {
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -10462,19 +9366,6 @@ export default function (app: any, deps: any) {
                     message: 'Database operation failed',
                     error: err.message
                 });
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: unknown) {
-                        const err = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.warn({
-                            msg: 'Error closing database connection',
-                            error: err.message,
-                            context: 'PATCH /screener/ev'
-                        });
-                    }
-                }
             }
         } catch (error: unknown) {
             const errObj = handleError(error instanceof Error ? error : new Error(String(error)), 'PATCH /screener/ev', {
@@ -10491,7 +9382,6 @@ export default function (app: any, deps: any) {
         validationSchemas.minPrice(),
         validationSchemas.maxPrice()
     ]), async (req: Request, res: Response) => {
-        let client: any;
         let minRSI: number, maxRSI: number, screenerName: string, Username: string;
         try {
             const apiKey = req.header('x-api-key');
@@ -10540,10 +9430,7 @@ export default function (app: any, deps: any) {
             }
 
             try {
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -10625,19 +9512,6 @@ export default function (app: any, deps: any) {
                     message: 'Database operation failed',
                     error: err.message
                 });
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: unknown) {
-                        const err = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.warn({
-                            msg: 'Error closing database connection',
-                            error: err.message,
-                            context: 'PATCH /screener/rsi'
-                        });
-                    }
-                }
             }
         } catch (error: unknown) {
             const errObj = handleError(error instanceof Error ? error : new Error(String(error)), 'PATCH /screener/rsi', {
@@ -10654,7 +9528,6 @@ export default function (app: any, deps: any) {
         validationSchemas.minPrice(),
         validationSchemas.maxPrice()
     ]), async (req: Request, res: Response) => {
-        let client: any;
         let minGap: number, maxGap: number, screenerName: string, Username: string;
         try {
             const apiKey = req.header('x-api-key');
@@ -10703,10 +9576,7 @@ export default function (app: any, deps: any) {
             }
 
             try {
-                client = new MongoClient(uri);
-                await client.connect();
-
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Screeners');
                 const assetInfoCollection = db.collection('AssetInfo');
 
@@ -10832,18 +9702,6 @@ export default function (app: any, deps: any) {
                     message: 'Database operation failed',
                     error: err.message
                 });
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: unknown) {
-                        logger.warn({
-                            msg: 'Error closing database connection',
-                            error: closeError instanceof Error ? closeError.message : String(closeError),
-                            context: 'PATCH /screener/gap-percent'
-                        });
-                    }
-                }
             }
         } catch (error: unknown) {
             const errObj = handleError(error instanceof Error ? error : new Error(String(error)), 'PATCH /screener/gap-percent', {
@@ -10859,7 +9717,6 @@ export default function (app: any, deps: any) {
         body('columns').isArray({ min: 1 }).withMessage('Columns must be a non-empty array'),
         body('user').isString().trim().notEmpty().withMessage('User is required')
     ]), async (req: Request, res: Response) => {
-        let client: any;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -10876,9 +9733,7 @@ export default function (app: any, deps: any) {
             const { user, columns } = req.body;
             const sanitizedUser = sanitizeInput(user);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
 
             // Update or insert the Table array for the user
@@ -10900,18 +9755,6 @@ export default function (app: any, deps: any) {
                 username: req.body?.user
             }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError: unknown) {
-                    logger.warn({
-                        msg: 'Error closing database connection',
-                        error: closeError instanceof Error ? closeError.message : String(closeError),
-                        context: 'PATCH /update/columns'
-                    });
-                }
-            }
         }
     });
 
@@ -10919,7 +9762,6 @@ export default function (app: any, deps: any) {
     app.get('/get/columns', validate([
         query('user').isString().trim().notEmpty().withMessage('User is required')
     ]), async (req: Request, res: Response) => {
-        let client: any;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -10936,9 +9778,7 @@ export default function (app: any, deps: any) {
             const user = req.query.user;
             const sanitizedUser = sanitizeInput(user);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
 
             const userDoc = await usersCollection.findOne(
@@ -10961,18 +9801,6 @@ export default function (app: any, deps: any) {
                 username: req.query?.user
             }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError: unknown) {
-                    logger.warn({
-                        msg: 'Error closing database connection',
-                        error: closeError instanceof Error ? closeError.message : String(closeError),
-                        context: 'GET /get/columns'
-                    });
-                }
-            }
         }
     });
 
@@ -10984,7 +9812,6 @@ export default function (app: any, deps: any) {
         validationSchemas.maxPrice()
     ]),
         async (req: Request, res: Response) => {
-            let client: any;
             let minIV: number, maxIV: number, screenerName: string, Username: string;
             try {
                 const apiKey = req.header('x-api-key');
@@ -11032,10 +9859,7 @@ export default function (app: any, deps: any) {
                 }
 
                 try {
-                    client = new MongoClient(uri);
-                    await client.connect();
-
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const collection = db.collection('Screeners');
                     const assetInfoCollection = db.collection('AssetInfo');
 
@@ -11152,18 +9976,6 @@ export default function (app: any, deps: any) {
                         screenerName
                     }, 500);
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    if (client) {
-                        try {
-                            await client.close();
-                        } catch (closeError: unknown) {
-                            logger.warn({
-                                msg: 'Error closing database connection',
-                                error: closeError instanceof Error ? closeError.message : String(closeError),
-                                context: 'PATCH /screener/intrinsic-value'
-                            });
-                        }
-                    }
                 }
             } catch (error: unknown) {
                 const errObj = handleError(error instanceof Error ? error : new Error(String(error)), 'PATCH /screener/intrinsic-value', {

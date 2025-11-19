@@ -11,7 +11,8 @@ export default function (app: any, deps: any) {
         sanitizeInput,
         logger,
         MongoClient,
-        uri
+        uri,
+        getDB
     } = deps;
     // --- GET trades for a specific portfolio ---
     app.get('/trades', validate([
@@ -20,7 +21,6 @@ export default function (app: any, deps: any) {
         query('limit').optional().isInt({ min: 1, max: 500 }).withMessage('Limit must be 1-500'),
         query('skip').optional().isInt({ min: 0 }).withMessage('Skip must be >= 0')
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -52,9 +52,7 @@ export default function (app: any, deps: any) {
             const tradesLimit = limit ? Math.min(parseInt(limit, 10), 500) : 100;
             const tradesSkip = skip ? Math.max(parseInt(skip, 10), 0) : 0;
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const tradesCollection = db.collection('Trades');
             const tradesArr = await tradesCollection.find({ Username: sanitizedUser, PortfolioNumber: portfolioNumber })
                 .skip(tradesSkip)
@@ -70,19 +68,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'GET /trades', { user: req.query?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'GET /trades'
-                    });
-                }
-            }
         }
     });
 
@@ -137,9 +122,7 @@ export default function (app: any, deps: any) {
                 Timestamp: new Date().toISOString()  // Add timestamp for same-day ordering
             };
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const portfoliosCollection = db.collection('Portfolios');
             const assetInfoCollection = db.collection('AssetInfo');
             const positionsCollection = db.collection('Positions');
@@ -260,8 +243,6 @@ export default function (app: any, deps: any) {
                 user: req.body?.username
             });
             return res.status(500).json({ message: 'An error occurred while adding trade' });
-        } finally {
-            if (client) await client.close();
         }
     });
 
@@ -273,7 +254,6 @@ export default function (app: any, deps: any) {
         query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be 1-100'),
         query('skip').optional().isInt({ min: 0 }).withMessage('Skip must be >= 0')
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -305,9 +285,7 @@ export default function (app: any, deps: any) {
             const positionsLimit = limit ? Math.min(parseInt(limit, 10), 100) : 50;
             const positionsSkip = skip ? Math.max(parseInt(skip, 10), 0) : 0;
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const positionsCollection = db.collection('Positions');
             const positionsArr = await positionsCollection.find({ Username: sanitizedUser, PortfolioNumber: portfolioNumber })
                 .skip(positionsSkip)
@@ -323,19 +301,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'GET /portfolio', { user: req.query?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'GET /portfolio'
-                    });
-                }
-            }
         }
     });
 
@@ -344,7 +309,6 @@ export default function (app: any, deps: any) {
         validationSchemas.usernameQuery(),
         query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -381,9 +345,7 @@ export default function (app: any, deps: any) {
             }
             const portfolioNumber = parseInt(portfolioStr, 10);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const portfoliosCollection = db.collection('Portfolios');
             const positionsCollection = db.collection('Positions');
             const tradesCollection = db.collection('Trades');
@@ -403,19 +365,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'DELETE /portfolio', { user: req.query?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'DELETE /portfolio'
-                    });
-                }
-            }
         }
     });
 
@@ -427,7 +376,6 @@ export default function (app: any, deps: any) {
         body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be a positive number'),
         body('date').optional().isISO8601().withMessage('Date must be a valid ISO date')
     ], async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -491,9 +439,7 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(400).json({ message: 'Invalid input' });
             }
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const portfoliosCollection = db.collection('Portfolios');
             // Check if BaseValue is 0, and set it to the deposit amount if so
             const portfolioDoc = await portfoliosCollection.findOne({ Username: sanitizedUser, Number: portfolioNumber });
@@ -528,19 +474,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'POST /portfolio/cash', { user: req.body?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'POST /portfolio/cash'
-                    });
-                }
-            }
         }
     });
 
@@ -552,7 +485,6 @@ export default function (app: any, deps: any) {
         body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be a positive number'),
         body('date').optional().isISO8601().withMessage('Date must be a valid ISO date')
     ], async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -616,9 +548,7 @@ export default function (app: any, deps: any) {
                 return res.status(400).json({ message: 'Invalid input' });
             }
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const portfoliosCollection = db.collection('Portfolios');
 
             // Check if user has sufficient cash
@@ -658,19 +588,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'POST /portfolio/withdraw-cash', { user: req.body?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'POST /portfolio/withdraw-cash'
-                    });
-                }
-            }
         }
     });
 
@@ -679,7 +596,6 @@ export default function (app: any, deps: any) {
         query('username').isString().trim().notEmpty().withMessage('Username is required'),
         query('portfolio').isInt({ min: 1, max: 10 }).withMessage('Portfolio number required (1-10)')
     ], async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -716,9 +632,7 @@ export default function (app: any, deps: any) {
             }
             const portfolioNumber = parseInt(portfolioStr, 10);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const portfoliosCollection = db.collection('Portfolios');
             const portfolioDoc = await portfoliosCollection.findOne(
                 { Username: sanitizedUser, Number: portfolioNumber },
@@ -739,25 +653,11 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'GET /portfolio/cash', { user: req.query?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'GET /portfolio/cash'
-                    });
-                }
-            }
         }
     });
 
     // --- GET latest quotes for active portfolio  ---
     app.get('/quotes', async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -783,9 +683,7 @@ export default function (app: any, deps: any) {
             }
             const symbols = symbolsParam.split(',').map(s => sanitizeInput(s.trim().toUpperCase()));
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const assetInfoCollection = db.collection('AssetInfo');
 
             // Fetch all matching assets in one query
@@ -818,19 +716,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'GET /quotes', {}, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'GET /quotes'
-                    });
-                }
-            }
         }
     });
 
@@ -846,7 +731,6 @@ export default function (app: any, deps: any) {
         body('trade.Total').isFloat({ min: 0 }).withMessage('Total must be a number'),
         body('trade.Commission').optional().isFloat({ min: 0 }).withMessage('Commission must be a non-negative number'),
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -905,9 +789,7 @@ export default function (app: any, deps: any) {
                 return res.status(400).json({ message: 'Trade date cannot be in the future' });
             }
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const portfoliosCollection = db.collection('Portfolios');
             const assetInfoCollection = db.collection('AssetInfo');
 
@@ -1033,19 +915,6 @@ export default function (app: any, deps: any) {
             }
             const errObj = handleError(error, 'POST /trades/sell', { user: req.body?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'POST /trades/sell'
-                    });
-                }
-            }
         }
     });
 
@@ -1057,7 +926,6 @@ export default function (app: any, deps: any) {
         body('positions').isArray().withMessage('Positions must be an array'),
         body('trades').isArray().withMessage('Trades must be an array')
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -1222,9 +1090,7 @@ export default function (app: any, deps: any) {
             });
             const safeTrades = trades.map(sanitizeRow);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const portfoliosCollection = db.collection('Portfolios');
             const positionsCollection = db.collection('Positions');
             const tradesCollection = db.collection('Trades');
@@ -1282,19 +1148,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'POST /portfolio/import', { user: req.body?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'POST /portfolio/import'
-                    });
-                }
-            }
         }
     });
 
@@ -1303,7 +1156,6 @@ export default function (app: any, deps: any) {
         validationSchemas.usernameQuery(),
         query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -1340,9 +1192,7 @@ export default function (app: any, deps: any) {
             }
             const portfolioNumber = parseInt(portfolioStr, 10);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const portfoliosCollection = db.collection('Portfolios');
             const positionsCollection = db.collection('Positions');
 
@@ -1533,19 +1383,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'GET /portfolio/summary', { user: req.query?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'GET /portfolio/summary'
-                    });
-                }
-            }
         }
     });
 
@@ -1556,7 +1393,6 @@ export default function (app: any, deps: any) {
         body('portfolio').isInt({ min: 1, max: 10 }).withMessage('Portfolio number required (1-10)'),
         body('baseValue').isFloat({ min: 0.01 }).withMessage('BaseValue must be a positive number')
     ], async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -1613,9 +1449,7 @@ export default function (app: any, deps: any) {
                 return res.status(400).json({ message: 'Invalid input' });
             }
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const portfoliosCollection = db.collection('Portfolios');
             // Update BaseValue for the portfolio
             const result = await portfoliosCollection.updateOne(
@@ -1636,19 +1470,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'POST /portfolio/basevalue', { user: req.body?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'POST /portfolio/basevalue'
-                    });
-                }
-            }
         }
     });
 
@@ -1657,7 +1478,6 @@ export default function (app: any, deps: any) {
         validationSchemas.usernameQuery(),
         query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -1694,9 +1514,7 @@ export default function (app: any, deps: any) {
             }
             const portfolioNumber = parseInt(portfolioStr, 10);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const portfoliosCollection = db.collection('Portfolios');
             const tradesCollection = db.collection('Trades');
             const positionsCollection = db.collection('Positions');
@@ -1777,19 +1595,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'GET /portfolio/export', { user: req.query?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'GET /portfolio/export'
-                    });
-                }
-            }
         }
     });
 
@@ -1798,7 +1603,6 @@ export default function (app: any, deps: any) {
         validationSchemas.usernameQuery(),
         query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -1837,9 +1641,7 @@ export default function (app: any, deps: any) {
             }
             const portfolioNumber = parseInt(portfolioStr, 10);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const portfoliosCollection = db.collection('Portfolios');
 
             const portfolioDoc = await portfoliosCollection.findOne(
@@ -1862,19 +1664,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'GET /portfolio/benchmarks', { user: req.query?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'GET /portfolio/benchmarks'
-                    });
-                }
-            }
         }
     });
 
@@ -1884,7 +1673,6 @@ export default function (app: any, deps: any) {
         body('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)'),
         body('benchmarks').isArray({ max: 5 }).withMessage('Benchmarks must be an array with max 5 items')
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -1937,9 +1725,7 @@ export default function (app: any, deps: any) {
             // Sanitize and validate benchmark symbols
             const sanitizedBenchmarks = benchmarks.map(b => sanitizeInput(b).toUpperCase().trim()).filter(b => b);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const portfoliosCollection = db.collection('Portfolios');
             const assetInfoCollection = db.collection('AssetInfo');
 
@@ -1988,19 +1774,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'POST /portfolio/benchmarks', { user: req.body?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'POST /portfolio/benchmarks'
-                    });
-                }
-            }
         }
     });
 

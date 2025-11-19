@@ -88,7 +88,7 @@ services:
       # Compression Middleware
       traefik.http.middlewares.compression.compress: "true"
     deploy:
-      replicas: 2
+      replicas: 1
       restart_policy:
         condition: on-failure
 
@@ -124,7 +124,7 @@ services:
       environment: production
       traefik.enable: "false"
     deploy:
-      replicas: 2
+      replicas: 1
       restart_policy:
         condition: on-failure
 
@@ -226,6 +226,7 @@ services:
 
   loki:
     image: grafana/loki:latest
+    user: "0:0" # Run as root to avoid permission issues, until we figure out what the fuck is going on
     expose:
       - "3100"
     volumes:
@@ -398,7 +399,7 @@ services:
       traefik.http.routers.websocket.tls.certresolver: "cloudflare"
       traefik.http.services.websocket.loadbalancer.server.port: "8000"
     deploy:
-      replicas: 2
+      replicas: 1
       restart_policy:
         condition: on-failure
 

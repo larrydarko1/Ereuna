@@ -493,46 +493,67 @@
       </div>
     </div>
     <div class="portfolio-history-container scrollable-table">
-      <h2 style="margin-left: 10px;">Transaction History</h2>
-  <table class="portfolio-table" aria-label="Transaction History Table">
+      <div class="history-header">
+        <h2>Transaction History</h2>
+        <div class="history-count" v-if="sortedTransactionHistory.length > 0">
+          {{ sortedTransactionHistory.length }} {{ sortedTransactionHistory.length === 1 ? 'Transaction' : 'Transactions' }}
+        </div>
+      </div>
+  <table class="portfolio-table history-table" aria-label="Transaction History Table">
         <thead>
           <tr>
             <th>Date</th>
             <th>Symbol</th>
             <th>Action</th>
             <th>Type</th>
-            <th>Shares</th>
-            <th>Price</th>
-            <th>Commissions</th>
-            <th>Total</th>
+            <th class="number-col">Shares</th>
+            <th class="number-col">Price</th>
+            <th class="number-col">Fees</th>
+            <th class="number-col">Total</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="sortedTransactionHistory.length === 0">
-            <td colspan="8" style="text-align:center; color: var(--text2);">
-              No transaction history
+          <tr v-if="sortedTransactionHistory.length === 0" class="empty-state">
+            <td colspan="8">
+              <div class="empty-state-content">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 2C8.44772 2 8 2.44772 8 3C8 3.55228 8.44772 4 9 4H15C15.5523 4 16 3.55228 16 3C16 2.44772 15.5523 2 15 2H9Z" fill="currentColor"/>
+                  <path d="M4 5C4 3.89543 4.89543 3 6 3C6 4.65685 7.34315 6 9 6H15C16.6569 6 18 4.65685 18 3C19.1046 3 20 3.89543 20 5V19C20 20.1046 19.1046 21 18 21H6C4.89543 21 4 20.1046 4 19V5Z" fill="currentColor"/>
+                </svg>
+                <span>No transaction history</span>
+              </div>
             </td>
           </tr>
-          <tr v-for="(tx, i) in sortedTransactionHistory" :key="i">
-            <td>{{ tx.Date ? tx.Date.slice(0, 10) : '' }}</td>
-            <td>{{ tx.Symbol }}</td>
-            <td>{{ tx.Action }}</td>
-            <td>
-              <span v-if="tx.Leverage && tx.Leverage > 1" class="leverage-badge-small" :title="`${tx.Leverage}x Leverage`">
-                {{ tx.Leverage }}x
-              </span>
-              <span v-if="tx.IsShort" class="short-badge-small" title="Short Position">
-                Short
-              </span>
-              <span v-else-if="tx.Symbol && tx.Action !== 'Cash Deposit' && tx.Action !== 'Cash Withdrawal'" class="long-badge-small" title="Long Position">
-                Long
-              </span>
-              <span v-if="!tx.Symbol || tx.Action === 'Cash Deposit' || tx.Action === 'Cash Withdrawal'">-</span>
+          <tr v-for="(tx, i) in sortedTransactionHistory" :key="i" :class="{'buy-row': tx.Action === 'Buy', 'sell-row': tx.Action === 'Sell'}">
+            <td class="date-col">{{ tx.Date ? tx.Date.slice(0, 10) : '' }}</td>
+            <td class="symbol-col">
+              <span class="symbol-text">{{ tx.Symbol }}</span>
             </td>
-            <td>{{ tx.Shares }}</td>
-            <td>{{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toFixed(2) }}</td>
-            <td>{{ isNaN(Number(tx.Commission)) ? '-' : '$' + Number(tx.Commission).toFixed(2) }}</td>
-            <td>${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
+            <td class="action-col">
+              <span class="action-badge" :class="tx.Action?.toLowerCase()">
+                {{ tx.Action }}
+              </span>
+            </td>
+            <td class="type-col">
+              <div class="badge-group">
+                <span v-if="tx.Leverage && tx.Leverage > 1" class="leverage-badge-small" :title="`${tx.Leverage}x Leverage`">
+                  {{ tx.Leverage }}x
+                </span>
+                <span v-if="tx.IsShort" class="short-badge-small" title="Short Position">
+                  Short
+                </span>
+                <span v-else-if="tx.Symbol && tx.Action !== 'Cash Deposit' && tx.Action !== 'Cash Withdrawal'" class="long-badge-small" title="Long Position">
+                  Long
+                </span>
+                <span v-if="!tx.Symbol || tx.Action === 'Cash Deposit' || tx.Action === 'Cash Withdrawal'" class="neutral-text">-</span>
+              </div>
+            </td>
+            <td class="number-col">{{ tx.Shares || '-' }}</td>
+            <td class="number-col price-col">{{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
+            <td class="number-col commission-col">{{ isNaN(Number(tx.Commission)) ? '-' : '$' + Number(tx.Commission).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
+            <td class="number-col total-col" :class="tx.Action === 'Buy' || tx.Action === 'Cash Withdrawal' ? 'negative' : tx.Action === 'Sell' || tx.Action === 'Cash Deposit' ? 'positive' : ''">
+              ${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+            </td>
           </tr>
         </tbody>
       </table>
@@ -720,6 +741,20 @@ function getPnLDollar(position: Position): string {
 
 
 const pieOptions = computed(() => ({
+  responsive: true,
+  // allow the canvas to expand to the container height set in CSS
+  maintainAspectRatio: false,
+  // Adjust space around the chart so the pie doesn't touch container edges
+  layout: {
+    padding: {
+      top: 18,
+      bottom: 18,
+      left: 18,
+      right: 18
+    }
+  },
+  // control pie radius; smaller value means more inner padding
+  radius: '70%',
   plugins: {
     legend: {
       display: false, // Hide the legend
@@ -742,6 +777,7 @@ const pieOptions = computed(() => ({
 
 const lineData = computed(() => {
   const history = portfolioValueHistory.value as { date: string; value: number }[];
+  
   return {
     labels: history.map((h) => h.date),
     datasets: [
@@ -749,13 +785,14 @@ const lineData = computed(() => {
         label: 'Total Value (Positions + Cash)',
         data: history.map((h) => h.value),
         borderColor: accent1,
-        backgroundColor: 'rgba(140, 141, 254, 0.7)',
+        backgroundColor: accent1,
         tension: 0.4,
         fill: true,
         pointRadius: 0,
         pointHoverRadius: 6,
         pointHoverBorderWidth: 2,
-        pointHoverBorderColor: accent2,
+        pointHoverBorderColor: accent1,
+        borderWidth: 2,
       }
     ]
   };
@@ -763,26 +800,77 @@ const lineData = computed(() => {
 
 const lineOptions = {
   responsive: true,
-  plugins: {
-    legend: { display: false },
-    tooltip: { enabled: true }
+  maintainAspectRatio: false,
+  interaction: {
+    mode: 'index' as const,
+    intersect: false,
   },
-  hover: {
-    mode: 'point' as const,
-    intersect: false
+  plugins: {
+    legend: { 
+      display: false 
+    },
+    tooltip: { 
+      enabled: true,
+      mode: 'index' as const,
+      intersect: false,
+      backgroundColor: base1,
+      titleColor: text1,
+      bodyColor: text2,
+      borderColor: accent1,
+      borderWidth: 1,
+      padding: 12,
+      displayColors: false,
+      callbacks: {
+        title: (context: any) => {
+          return context[0].label;
+        },
+        label: (context: any) => {
+          return '$' + context.parsed.y.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+        }
+      }
+    }
+  },
+  elements: {
+    line: {
+      borderWidth: 2
+    },
+    point: {
+      radius: 0,
+      hitRadius: 10,
+      hoverRadius: 6
+    }
   },
   scales: {
     x: {
-      ticks: {
-        color: text2,
-        display: false 
+      display: true,
+      grid: { 
+        display: false,
+        drawBorder: false
       },
-      title: { display: false },
-      grid: { display: false }
+      ticks: {
+        display: false
+      }
     },
     y: {
-      ticks: { color: text2 },
-      grid: { display: false }
+      display: true,
+      position: 'right' as const,
+      grid: { 
+        display: false,
+        drawBorder: false
+      },
+      ticks: { 
+        color: text2,
+        font: {
+          size: 11
+        },
+        padding: 8,
+        callback: function(value: any) {
+          return '$' + value.toLocaleString();
+        }
+      }
     }
   }
 }
@@ -1598,6 +1686,8 @@ const isPortfolioBlank = computed(() => {
   margin-top: 0;
   height: auto;
   box-sizing: border-box;
+  border: 1px solid rgba(140, 141, 254, 0.15);
+  padding: 8px 0;
 }
 
 .portfolio-charts {
@@ -1615,21 +1705,31 @@ const isPortfolioBlank = computed(() => {
   width: 50%;
   box-sizing: border-box;
   align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--base1);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--base1);
+  }
 
   .attribute, .value {
     flex: 1;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 12px;
+    padding-right: 12px;
     font-weight: 600;
   }
 
   .attribute {
-    color: var(--text1);
+    color: var(--text2);
+    font-size: 0.85em;
+    font-weight: 500;
   }
 
   .value {
-    color: var(--text2);
+    color: var(--text1);
     text-align: right;
+    font-size: 0.9em;
 
     &.positive {
       color: var(--positive);
@@ -1653,6 +1753,9 @@ const isPortfolioBlank = computed(() => {
   background: var(--base2);
   flex: 1 1 0;
   height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .portfolio-table-container {
@@ -1664,15 +1767,37 @@ const isPortfolioBlank = computed(() => {
 }
 
 .portfolio-history-container {
-  background: var(--base2);
+  background: var(--base1);
   margin-top: 5px;
+  border: 1px solid var(--base2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--base2);
+  border-bottom: 1px solid var(--base1);
 
   h2 {
-    color: var(--accent1);
-    margin-bottom: 16px;
-    font-size: 1.2rem;
+    color: var(--text1);
+    margin: 0;
+    font-size: 1.1rem;
     font-weight: 600;
+    letter-spacing: -0.02em;
   }
+}
+
+.history-count {
+  font-size: 1rem;
+  color: var(--text3);
+  background: var(--accent1);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: bold;
 }
 
 .portfolio-table {
@@ -1703,6 +1828,165 @@ const isPortfolioBlank = computed(() => {
 
   .negative {
     color: var(--negative);
+  }
+}
+
+.history-table {
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--base1);
+
+    th {
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      color: var(--text2);
+      font-weight: 600;
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--base3);
+      background: var(--base1);
+    }
+  }
+
+  tbody {
+    tr {
+      transition: background-color 0.15s ease;
+      
+      &:hover {
+        background: var(--base2);
+      }
+
+      &.buy-row {
+        border-left: 3px solid transparent;
+      }
+
+      &.sell-row {
+        border-left: 3px solid transparent;
+      }
+    }
+
+    td {
+      padding: 14px 16px;
+      font-size: 0.9rem;
+      color: var(--text1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      vertical-align: middle;
+    }
+  }
+
+  .number-col {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  .date-col {
+    color: var(--text2);
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .symbol-col {
+    .symbol-text {
+      font-weight: 600;
+      color: var(--text1);
+      font-size: 0.95rem;
+    }
+  }
+
+  .action-col {
+    .action-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+
+      &.buy {
+        background: rgba(52, 211, 153, 0.15);
+        color: var(--positive);
+        border: 1px solid rgba(52, 211, 153, 0.3);
+      }
+
+      &.sell {
+        background: rgba(248, 113, 113, 0.15);
+        color: var(--negative);
+        border: 1px solid rgba(248, 113, 113, 0.3);
+      }
+
+      &.cash {
+        background: rgba(140, 141, 254, 0.15);
+        color: var(--accent1);
+        border: 1px solid rgba(140, 141, 254, 0.3);
+      }
+    }
+  }
+
+  .type-col {
+    .badge-group {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .neutral-text {
+      color: var(--text2);
+      font-size: 0.85rem;
+    }
+  }
+
+  .price-col,
+  .commission-col {
+    color: var(--text2);
+    font-size: 0.88rem;
+  }
+
+  .total-col {
+    font-weight: 600;
+    font-size: 0.92rem;
+    
+    &.positive {
+      color: var(--positive);
+    }
+
+    &.negative {
+      color: var(--text1);
+    }
+  }
+
+  .empty-state {
+    &:hover {
+      background: transparent !important;
+    }
+
+    td {
+      border: none;
+      padding: 48px 24px;
+    }
+  }
+
+  .empty-state-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--text2);
+
+    svg {
+      width: 48px;
+      height: 48px;
+      opacity: 0.3;
+    }
+
+    span {
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
   }
 }
 
@@ -1946,30 +2230,33 @@ const isPortfolioBlank = computed(() => {
 .leverage-badge-small,
 .short-badge-small,
 .long-badge-small {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 0.75em;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
   font-weight: 600;
-  margin-right: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .leverage-badge-small {
-  background: color-mix(in srgb, var(--accent1) 15%, transparent);
+  background: rgba(140, 141, 254, 0.15);
   color: var(--accent1);
-  border: 1px solid color-mix(in srgb, var(--accent1) 30%, transparent);
+  border: 1px solid rgba(140, 141, 254, 0.35);
 }
 
 .short-badge-small {
-  background: color-mix(in srgb, var(--negative) 15%, transparent);
+  background: rgba(248, 113, 113, 0.15);
   color: var(--negative);
-  border: 1px solid color-mix(in srgb, var(--negative) 30%, transparent);
+  border: 1px solid rgba(248, 113, 113, 0.35);
 }
 
 .long-badge-small {
-  background: color-mix(in srgb, var(--positive) 15%, transparent);
+  background: rgba(52, 211, 153, 0.15);
   color: var(--positive);
-  border: 1px solid color-mix(in srgb, var(--positive) 30%, transparent);
+  border: 1px solid rgba(52, 211, 153, 0.35);
 }
 
 /* Benchmark Performance Section */

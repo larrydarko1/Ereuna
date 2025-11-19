@@ -1,0 +1,40 @@
+# Production replica overrides
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: ereuna-prod
+spec:
+  replicas: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: ereuna-prod
+spec:
+  replicas: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: websocket
+  namespace: ereuna-prod
+spec:
+  replicas: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aggregator
+  namespace: ereuna-prod
+spec:
+  replicas: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingestor
+  namespace: ereuna-prod
+spec:
+  replicas: 1

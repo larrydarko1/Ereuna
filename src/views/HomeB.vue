@@ -1489,5 +1489,19 @@ a.social {
   display: flex;
 }
 
+.footer-main {
+  justify-content: center;
+  align-items: center;
+}
+
+.footer-legal-links {
+  justify-content: center;
+  align-items: center;
+}
+
+.footer-main {
+  flex-direction: column;
+}
+
 }
 </style>

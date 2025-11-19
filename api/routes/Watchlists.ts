@@ -38,9 +38,7 @@ export default function (app: any, deps: any) {
         body,
         sanitizeInput,
         logger,
-        obfuscateUsername,
-        MongoClient,
-        uri
+        getDB
     } = deps;
 
 
@@ -50,7 +48,6 @@ export default function (app: any, deps: any) {
             validationSchemas.userParam('user')
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -64,9 +61,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
                 const user = sanitizeInput(req.params.user);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Watchlists');
                 const userWatchlists = await collection.find({ UsernameID: user }).toArray();
                 if (userWatchlists.length === 0) {
@@ -88,19 +83,6 @@ export default function (app: any, deps: any) {
                     user: req.params.user ? req.params.user : 'Unknown'
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'GET /:user/watchlists'
-                        });
-                    }
-                }
             }
         }
     );
@@ -112,7 +94,6 @@ export default function (app: any, deps: any) {
             validationSchemas.watchlistName()
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -127,9 +108,7 @@ export default function (app: any, deps: any) {
                 }
                 const user = sanitizeInput(req.params.user);
                 const list = sanitizeInput(req.params.list);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Watchlists');
                 const Watchlists = await collection.findOne({ UsernameID: user, Name: list });
                 if (!Watchlists) {
@@ -149,19 +128,6 @@ export default function (app: any, deps: any) {
                     list: req.params.list ? req.params.list : 'Unknown'
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'GET /:user/watchlists/:list'
-                        });
-                    }
-                }
             }
         }
     );
@@ -169,7 +135,6 @@ export default function (app: any, deps: any) {
 
     // Retrieves OHCLV for multiple elements inside the watchlist
     app.get('/data-values', async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -187,9 +152,7 @@ export default function (app: any, deps: any) {
                 return res.status(400).json({ message: 'No tickers provided' });
             }
             const tickers = (tickersParam as string).split(',').map((t: string) => sanitizeInput(t));
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const collection = db.collection('OHCLVData');
             const results: { [ticker: string]: OHCLVResponse } = {};
             for (const ticker of tickers) {
@@ -224,19 +187,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'GET /data-values', {}, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'GET /data-values'
-                    });
-                }
-            }
         }
     });
 
@@ -257,7 +207,6 @@ export default function (app: any, deps: any) {
                 .matches(/^[A-Z0-9]+$/).withMessage('Symbol must be uppercase alphanumeric')
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -275,9 +224,7 @@ export default function (app: any, deps: any) {
                 const { Name, symbol } = req.body;
                 const sanitizedSymbol = sanitizeInput(symbol.toUpperCase());
                 const sanitizedName = sanitizeInput(Name);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Watchlists');
                 const watchlist = await collection.findOne({
                     Name: sanitizedName,
@@ -372,19 +319,6 @@ export default function (app: any, deps: any) {
                     symbol: req.body.symbol ? req.body.symbol : 'Unknown'
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'PATCH /:user/watchlists/:list'
-                        });
-                    }
-                }
             }
         }
     );
@@ -397,7 +331,6 @@ export default function (app: any, deps: any) {
             validationSchemas.symbolParam('ticker')
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -413,9 +346,7 @@ export default function (app: any, deps: any) {
                 const list = sanitizeInput(req.params.list);
                 const ticker = sanitizeInput(req.params.ticker).toUpperCase();
                 const user = sanitizeInput(req.params.user);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Watchlists');
                 const watchlist = await collection.findOne({
                     Name: list,
@@ -480,19 +411,6 @@ export default function (app: any, deps: any) {
                     ticker: req.params.ticker ? req.params.ticker : 'Unknown'
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'PATCH /:user/deleteticker/watchlists/:list/:ticker'
-                        });
-                    }
-                }
             }
         }
     );
@@ -504,7 +422,6 @@ export default function (app: any, deps: any) {
             validationSchemas.watchlistName()
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -519,9 +436,7 @@ export default function (app: any, deps: any) {
                 }
                 const list = sanitizeInput(req.params.list);
                 const user = sanitizeInput(req.params.user);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Watchlists');
                 const filter = { Name: list, UsernameID: user };
                 const result = await collection.deleteOne(filter);
@@ -542,19 +457,6 @@ export default function (app: any, deps: any) {
                     list: req.params.list ? req.params.list : 'Unknown'
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'DELETE /:user/delete/watchlists/:list'
-                        });
-                    }
-                }
             }
         });
 
@@ -565,7 +467,6 @@ export default function (app: any, deps: any) {
             validationSchemas.watchlistName()
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -580,9 +481,7 @@ export default function (app: any, deps: any) {
                 }
                 const list = sanitizeInput(req.params.list);
                 const user = sanitizeInput(req.params.user);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Watchlists');
                 // Check how many watchlists the user already has
                 const existingWatchlistsCount = await collection.countDocuments({ UsernameID: user });
@@ -652,19 +551,6 @@ export default function (app: any, deps: any) {
                     list: req.params.list ? req.params.list : 'Unknown'
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'POST /:user/create/watchlists/:list'
-                        });
-                    }
-                }
             }
         }
     );
@@ -676,7 +562,6 @@ export default function (app: any, deps: any) {
             validationSchemas.newname()
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -702,9 +587,7 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(400).json({ message: 'Please provide a new name' });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Watchlists');
                 const filter = { UsernameID: Username, Name: oldname };
                 const updateDoc = { $set: { Name: newname } };
@@ -728,19 +611,6 @@ export default function (app: any, deps: any) {
                     newname: req.body.newname ? req.body.newname : 'Unknown'
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'PATCH /:user/rename/watchlists/:oldname'
-                        });
-                    }
-                }
             }
         });
 
@@ -774,7 +644,6 @@ export default function (app: any, deps: any) {
                 })
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -794,9 +663,7 @@ export default function (app: any, deps: any) {
                     ticker: sanitizeInput(item.ticker),
                     exchange: sanitizeInput(item.exchange)
                 }));
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Watchlists');
                 const filter = { UsernameID: user, Name: Name };
                 const update = { $set: { List: newListOrder } };
@@ -822,19 +689,6 @@ export default function (app: any, deps: any) {
                     newListOrder: req.body.newListOrder ? req.body.newListOrder : 'Unknown'
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'PATCH /watchlists/update-order/:Username/:Name'
-                        });
-                    }
-                }
             }
         }
     );
@@ -864,7 +718,6 @@ export default function (app: any, deps: any) {
                 .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores')
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -882,9 +735,7 @@ export default function (app: any, deps: any) {
                 const watchlistName = sanitizeInput(req.body.watchlistName);
                 const symbol = sanitizeInput(req.body.symbol);
                 const user = sanitizeInput(req.body.user);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Watchlists');
                 // Verify watchlist exists and belongs to the user
                 const watchlist = await collection.findOne({
@@ -958,19 +809,6 @@ export default function (app: any, deps: any) {
                     isAdding: req.params.isAdding ? req.params.isAdding : 'Unknown'
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'PATCH /watchlist/addticker/:isAdding'
-                        });
-                    }
-                }
             }
         }
     );
@@ -985,7 +823,7 @@ export default function (app: any, deps: any) {
                 .matches(/^[a-zA-Z0-9_]+$/).withMessage('Username can only contain letters, numbers, and underscores')
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;;
+            ;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -999,9 +837,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
                 const user = sanitizeInput(req.params.user);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Watchlists');
                 // Find all watchlists for the given user
                 const userWatchlists = await collection.find({ UsernameID: user }, { projection: { _id: 0, Name: 1, List: 1 } }).toArray();
@@ -1020,19 +856,6 @@ export default function (app: any, deps: any) {
                     user: req.params.user ? req.params.user : 'Unknown'
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'GET /:user/full-watchlists'
-                        });
-                    }
-                }
             }
         }
     );
@@ -1040,7 +863,6 @@ export default function (app: any, deps: any) {
     //endpoint that retrieves exchanges for each symbol (related to assigning pictures correctly)
     app.get('/symbols-exchanges',
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1053,9 +875,7 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('AssetInfo');
                 // Find all documents but only return Symbol and Exchange fields
                 const documents = await collection.find(
@@ -1080,26 +900,12 @@ export default function (app: any, deps: any) {
             } catch (error) {
                 const errObj = handleError(error, 'GET /symbols-exchanges', {}, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'GET /symbols-exchanges'
-                        });
-                    }
-                }
             }
         });
 
     // Endpoint that retrieves the last update date
     app.get('/getlastupdate',
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1112,9 +918,7 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 // Read the lightweight Stats document containing the last market update
                 const statsCollection = db.collection('Stats');
                 const statsDoc = await statsCollection.findOne({ _id: 'marketStats' }, { projection: { _id: 1, updatedAt: 1 } });
@@ -1137,19 +941,6 @@ export default function (app: any, deps: any) {
             } catch (error) {
                 const errObj = handleError(error, 'GET /getlastupdate', {}, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'GET /getlastupdate'
-                        });
-                    }
-                }
             }
         }
     );
@@ -1160,7 +951,6 @@ export default function (app: any, deps: any) {
             validationSchemas.chartData('ticker')
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1174,9 +964,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
                 const ticker = sanitizeInput(req.params.ticker).toUpperCase();
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('AssetInfo');
                 const data = await collection.findOne({ Symbol: ticker });
                 if (!data || !data.AnnualFinancials || !data.quarterlyFinancials) {
@@ -1196,19 +984,6 @@ export default function (app: any, deps: any) {
                     ticker: req.params.ticker ? req.params.ticker : 'Unknown'
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'GET /:ticker/financials'
-                        });
-                    }
-                }
             }
         }
     );
@@ -1216,7 +991,6 @@ export default function (app: any, deps: any) {
     // Endpoint that retrieves watch panel data for a user
     app.get('/watchpanel/:user',
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1233,9 +1007,7 @@ export default function (app: any, deps: any) {
                 if (!username) {
                     return res.status(400).json({ message: 'Missing user parameter' });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const assetInfoCollection = db.collection('Users');
                 const ohclvCollection = db.collection('OHCLVData');
                 // Find the user's WatchPanel array
@@ -1270,19 +1042,6 @@ export default function (app: any, deps: any) {
                     user: req.params.user ? req.params.user : 'Unknown'
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'GET /watchpanel/:user'
-                        });
-                    }
-                }
             }
         }
     );
@@ -1292,7 +1051,6 @@ export default function (app: any, deps: any) {
         validationSchemas.userParam('user'),
         validationSchemas.symbolsArray()
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -1313,9 +1071,7 @@ export default function (app: any, deps: any) {
             if (!Array.isArray(symbols) || symbols.length > 20 || symbols.some(s => typeof s !== 'string')) {
                 return res.status(400).json({ message: 'Invalid symbols array (must be array of max 20 strings)' });
             }
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
             const assetInfoCollection = db.collection('AssetInfo');
             const ohclvCollection = db.collection('OHCLVData');
@@ -1356,19 +1112,6 @@ export default function (app: any, deps: any) {
                 symbols: req.body.symbols ? req.body.symbols : 'Unknown'
             }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'PATCH /watchpanel/:user'
-                    });
-                }
-            }
         }
     });
 
@@ -1376,7 +1119,6 @@ export default function (app: any, deps: any) {
     app.get('/:symbol/news', validate(validationSets.newsSearch), async (req: Request, res: Response) => {
         const ticker = req.params.symbol.toUpperCase();
         const sanitizedTicker = sanitizeInput(ticker);
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -1389,9 +1131,7 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const newsCollection = db.collection('News');
             // Find all news where the ticker is in the tickers array
             const news = await newsCollection.find({
@@ -1406,19 +1146,6 @@ export default function (app: any, deps: any) {
                 symbol: req.params.symbol ? req.params.symbol : 'Unknown'
             }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'GET /:symbol/news'
-                    });
-                }
-            }
         }
     });
 

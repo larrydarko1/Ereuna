@@ -162,6 +162,30 @@
               <p class="sales-subtext">With plans to add more financial instruments and expand our document database in the future.</p>
             </div>
           </div>
+
+          <!-- Quiz CTA Section -->
+<div class="quiz-cta-section">
+  <div class="quiz-cta-content">
+    <div class="quiz-cta-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="var(--text1)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 16V12" stroke="var(--text1)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 8H12.01" stroke="var(--text1)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="quiz-cta-text">
+      <h3>Not sure if <span style="color: var(--accent1); font-size: inherit;">Ereuna</span> is the right fit for you?</h3>
+      <p>Take our quick compatibility quiz to find out if our platform matches your investment needs and style.</p>
+    </div>
+    <button class="quiz-cta-button" @click="$router.push('/quiz')">
+      Take the Quiz
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
         </div>
     <div class="content-section" id="pricing" style="cursor: default; margin-top: 50px;">
        <div class="pricing-cards">
@@ -224,9 +248,9 @@
    <div style="display: flex; align-items: left; gap: 12px;">
               <img src="@/assets/icons/ereuna.png" alt="Ereuna Logo" class="icon" style="height: 40px; opacity: 0.7;" draggable="false" />
             </div>
-  <p>Level 2, Valletta Buildings, South Street, Valletta VLT 1103, Malta</p>
-  <p>Company Registration No.: C 123456</p>
-  <p>VAT No.: MT12345678</p>
+  <p>Suite 12, The Quadrant, Sliema SLM 1549, Malta</p>
+  <p>Company Registration No.: C 987654</p>
+  <p>VAT No.: MT24681357</p>
   <p>Email: <a href="mailto:contact@ereuna.io">contact@ereuna.io</a></p>
 </div>
     <!-- Navigation Links -->
@@ -237,6 +261,7 @@
         <router-link to="/documentation">Documentation</router-link>
          <router-link to="/communications">Communications</router-link>
         <router-link to="/careers">Careers</router-link>
+        <router-link to="/quiz">Quiz</router-link>
       </div>
     </div>
     <!-- Banking & Legal -->
@@ -1260,6 +1285,86 @@ a.social {
   background: $accent2;
 }
 
+/* Quiz CTA Section */
+.quiz-cta-section {
+  max-width: 900px;
+  margin-top: 20rem;
+  margin-left: 20rem;
+  margin-right: auto;
+  padding: 0 20px;
+}
+
+.quiz-cta-content {
+  background-color: $base2;
+  border-radius: 16px;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.quiz-cta-content:hover {
+  transform: translateY(-2px);
+}
+
+.quiz-cta-icon {
+  color: $accent1;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quiz-cta-text {
+  flex: 1;
+  text-align: left;
+}
+
+.quiz-cta-text h3 {
+  color: $text1;
+  font-size: 24px;
+  margin: 0 0 10px 0;
+  font-weight: 600;
+}
+
+.quiz-cta-text p {
+  color: $text2;
+  font-size: 16px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.quiz-cta-button {
+  background: $accent1;
+  color: $text4;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease, transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.quiz-cta-button:hover {
+  background: $accent2;
+  transform: translateX(4px);
+}
+
+.quiz-cta-button svg {
+  transition: transform 0.2s ease;
+}
+
+.quiz-cta-button:hover svg {
+  transform: translateX(4px);
+}
+
 .back-to-top:hover {
   opacity: 1;
 }
@@ -1911,6 +2016,26 @@ a.social {
 .ereuna-bar:hover {
   background: linear-gradient(135deg, $accent2 0%, $accent1 100%);
 }
+
+  .quiz-cta-content {
+    flex-direction: column;
+    text-align: center;
+    padding: 30px 20px;
+    gap: 20px;
+  }
+
+  .quiz-cta-text h3 {
+    font-size: 20px;
+  }
+
+  .quiz-cta-text p {
+    font-size: 14px;
+  }
+
+  .quiz-cta-button {
+    width: 100%;
+    justify-content: center;
+  }
 
 }
 </style>

@@ -17,8 +17,7 @@ export default function (app: any, deps: any) {
         sanitizeUsernameCanonical,
         logger,
         crypto,
-        MongoClient,
-        uri,
+        getDB,
         argon2,
         jwt,
         config
@@ -32,7 +31,6 @@ export default function (app: any, deps: any) {
             validationSchemas.rememberMe()
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 const { username, password, rememberMe } = req.body;
                 const apiKey = req.header('x-api-key');
@@ -56,9 +54,7 @@ export default function (app: any, deps: any) {
                     return res.status(400).json({ message: 'Please fill both username and password fields' });
                 }
                 const sanitizedUsername = sanitizeInput(username);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const usersCollection = db.collection('Users');
                 const user = await usersCollection.findOne({ Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } });
                 if (!user) {
@@ -121,19 +117,6 @@ export default function (app: any, deps: any) {
             } catch (error) {
                 const errObj = handleError(error, 'POST /login', {}, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'POST /login'
-                        });
-                    }
-                }
             }
         }
     );
@@ -142,7 +125,6 @@ export default function (app: any, deps: any) {
     app.post('/signup-paywall', validate([
         validationSets.signupPaywall
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -193,9 +175,7 @@ export default function (app: any, deps: any) {
                 total: sanitizedTotal,
                 context: 'POST /signup-paywall'
             });
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
             const agentsCollection = db.collection('Agents');
             if (await isUsernameTaken(usersCollection, sanitizedUsername, logger)) {
@@ -330,19 +310,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'POST /signup-paywall', {}, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'POST /signup-paywall'
-                    });
-                }
-            }
         }
     });
 
@@ -589,7 +556,6 @@ export default function (app: any, deps: any) {
     app.post('/renew-subscription', validate([
         validationSets.renewalPaywall
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -632,9 +598,7 @@ export default function (app: any, deps: any) {
                 context: 'POST /renew-subscription'
             });
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
             const agentsCollection = db.collection('Agents');
             const userDoc = await usersCollection.findOne({ Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } });
@@ -759,19 +723,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'POST /renew-subscription', {}, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'POST /renew-subscription'
-                    });
-                }
-            }
         }
     });
 
@@ -781,7 +732,6 @@ export default function (app: any, deps: any) {
         validationSchemas.password(),
         // Optionally: country, promoCode, etc. (add as needed)
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -808,9 +758,7 @@ export default function (app: any, deps: any) {
                 promoCode: sanitizedPromoCode,
                 context: 'POST /signup-free'
             });
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
             if (await isUsernameTaken(usersCollection, sanitizedUsername, logger)) {
                 logger.warn({
@@ -905,19 +853,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'POST /signup-free', {}, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection (free)',
-                        error: closeErr.message,
-                        context: 'POST /signup-free'
-                    });
-                }
-            }
         }
     });
 
@@ -1013,7 +948,6 @@ export default function (app: any, deps: any) {
             validationSchemas.rememberMe()
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 const { username, mfaCode, rememberMe } = req.body;
                 const apiKey = req.header('x-api-key');
@@ -1028,9 +962,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
                 const sanitizedUsername = sanitizeInput(username);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const usersCollection = db.collection('Users');
                 const user = await usersCollection.findOne({ Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } });
                 if (!user) {
@@ -1083,19 +1015,6 @@ export default function (app: any, deps: any) {
             } catch (error) {
                 const errObj = handleError(error, 'POST /verify-mfa', {}, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'POST /verify-mfa'
-                        });
-                    }
-                }
             }
         }
     );
@@ -1108,7 +1027,6 @@ export default function (app: any, deps: any) {
             // to do: validate mfaCode and secret for confirmation
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 const { username, enabled, mode, mfaCode, secret } = req.body;
                 const apiKey = req.header('x-api-key');
@@ -1132,9 +1050,7 @@ export default function (app: any, deps: any) {
                     return res.status(400).json({ message: 'Please fill the username field' });
                 }
                 const sanitizedUsername = sanitizeInput(username);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const usersCollection = db.collection('Users');
                 const user = await usersCollection.findOne({ Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } });
                 if (!user) {
@@ -1259,19 +1175,6 @@ export default function (app: any, deps: any) {
             } catch (error) {
                 const errObj = handleError(error, 'POST /twofa', {}, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'POST /twofa'
-                        });
-                    }
-                }
             }
         }
     );
@@ -1282,7 +1185,6 @@ export default function (app: any, deps: any) {
             validationSchemas.username()
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 const { username } = req.body;
                 const apiKey = req.header('x-api-key');
@@ -1305,9 +1207,7 @@ export default function (app: any, deps: any) {
                     return res.status(400).json({ message: 'Username required' });
                 }
                 const sanitizedUsername = sanitizeInput(username);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const usersCollection = db.collection('Users');
                 const user = await usersCollection.findOne({ Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } });
                 if (!user) {
@@ -1331,19 +1231,6 @@ export default function (app: any, deps: any) {
             } catch (error) {
                 const errObj = handleError(error, 'POST /twofa-status', {}, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'POST /twofa-status'
-                        });
-                    }
-                }
             }
         }
     );
@@ -1354,7 +1241,6 @@ export default function (app: any, deps: any) {
             validationSchemas.recoveryKey()
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1369,9 +1255,7 @@ export default function (app: any, deps: any) {
                 }
                 const { recoveryKey } = req.body;
                 const sanitizedRecoveryKey = sanitizeInput(recoveryKey);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const usersCollection = db.collection('Users');
                 const users = await usersCollection.find({ HashedAuthKey: { $exists: true } }).toArray();
                 const matchedUser = await Promise.all(users.map(async (user: any) => {
@@ -1412,19 +1296,6 @@ export default function (app: any, deps: any) {
             } catch (error) {
                 const errObj = handleError(error, 'POST /recover', {}, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'POST /recover'
-                        });
-                    }
-                }
             }
         }
     );
@@ -1436,7 +1307,6 @@ export default function (app: any, deps: any) {
             validationSchemas.password()
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1451,9 +1321,7 @@ export default function (app: any, deps: any) {
                 }
                 const { user, password } = req.body;
                 const sanitizedUsername = sanitizeInput(user);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Users');
                 const filter = { Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } };
                 const userDoc = await collection.findOne(filter);
@@ -1527,29 +1395,12 @@ export default function (app: any, deps: any) {
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /generate-key', {}, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.warn({
-                            msg: 'MongoDB Client Closure Failed',
-                            error: {
-                                message: closeErr.message,
-                                name: closeErr.name
-                            },
-                            context: 'PATCH /generate-key'
-                        });
-                    }
-                }
             }
         }
     );
 
     // Endpoint to actually retrieve the key using the token
     app.get('/retrieve-key', async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -1571,9 +1422,7 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(400).json({ message: 'Token is required' });
             }
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const tokenDoc = await db.collection('DownloadTokens').findOne({ token });
             if (!tokenDoc) {
                 logger.warn({
@@ -1609,19 +1458,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'GET /retrieve-key', {}, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'GET /retrieve-key'
-                    });
-                }
-            }
         }
     });
 
@@ -1650,7 +1486,6 @@ export default function (app: any, deps: any) {
                     }))
                 });
             }
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1665,9 +1500,7 @@ export default function (app: any, deps: any) {
                 }
                 const { oldPassword, newPassword, user } = req.body;
                 const sanitizedUsername = sanitizeInput(user);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Users');
                 const userDoc = await collection.findOne({
                     Username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') }
@@ -1741,19 +1574,6 @@ export default function (app: any, deps: any) {
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /password-change', {}, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeErr.message,
-                            context: 'PATCH /password-change'
-                        });
-                    }
-                }
             }
         }
     );
@@ -1790,10 +1610,8 @@ export default function (app: any, deps: any) {
                 }
                 const sanitizedRecoveryKey = sanitizeInput(recoveryKey);
                 const sanitizedNewPassword = sanitizeInput(newPassword);
-                const client = new MongoClient(uri);
                 try {
-                    await client.connect();
-                    const db = client.db('EreunaDB');
+                    const db = await getDB();
                     const usersCollection = db.collection('Users');
                     const users = await usersCollection.find({}).toArray();
                     const matchedUser = await Promise.all(users.map(async (user: any) => {
@@ -1850,9 +1668,7 @@ export default function (app: any, deps: any) {
                 } catch (error) {
                     const errObj = handleError(error, 'PATCH /change-password2', {}, 500);
                     return res.status(errObj.statusCode || 500).json(errObj);
-                } finally {
-                    await client.close();
-                }
+                } finally { }
             } catch (error) {
                 const errObj = handleError(error, 'PATCH /change-password2', {}, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
@@ -1868,7 +1684,6 @@ export default function (app: any, deps: any) {
             validationSchemas.newUsername()
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -1895,9 +1710,7 @@ export default function (app: any, deps: any) {
                         errors: [{ field: 'newUsername', message: 'Current username and new username cannot be the same' }]
                     });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const usersCollection = db.collection('Users');
                 const existingUser = await usersCollection.findOne({
                     Username: { $regex: new RegExp(`^${sanitizedNewUsername}$`, 'i') }
@@ -1982,19 +1795,6 @@ export default function (app: any, deps: any) {
                     newUsernameLength: req.body.newUsername ? req.body.newUsername.length : 0
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: any) {
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeError instanceof Error ? closeError.message : String(closeError),
-                            context: 'PATCH /change-username',
-                            statusCode: 500
-                        });
-                    }
-                }
             }
         }
     );
@@ -2005,7 +1805,6 @@ export default function (app: any, deps: any) {
             validationSchemas.password()
         ]),
         async (req: Request, res: Response) => {
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -2020,9 +1819,7 @@ export default function (app: any, deps: any) {
                 }
                 const { user, password } = req.body;
                 const sanitizedUsername = sanitizeInput(user);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const usersCollection = db.collection('Users');
                 const userDoc = await usersCollection.findOne({ Username: sanitizedUsername });
                 if (!userDoc) {
@@ -2087,19 +1884,6 @@ export default function (app: any, deps: any) {
                     usernameLength: req.body.user ? req.body.user.length : 0
                 }, 500);
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError: any) {
-                        logger.error({
-                            msg: 'Error closing database connection',
-                            error: closeError instanceof Error ? closeError.message : String(closeError),
-                            context: 'DELETE /account-delete',
-                            statusCode: 500
-                        });
-                    }
-                }
             }
         }
     );
@@ -2126,7 +1910,6 @@ export default function (app: any, deps: any) {
                 });
             }
             const sanitizedUsername = sanitizeInput(username);
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -2139,9 +1922,7 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const usersCollection = db.collection('Users');
                 const userDoc = await usersCollection.findOne({ Username: sanitizedUsername });
                 if (!userDoc) {
@@ -2171,19 +1952,6 @@ export default function (app: any, deps: any) {
                     statusCode: errObj.statusCode || 500
                 });
                 return res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        logger.warn({
-                            msg: 'Database Client Closure Failed',
-                            error: closeError instanceof Error ? closeError.message : String(closeError),
-                            context: 'GET /get-expiration-date',
-                            statusCode: 500
-                        });
-                    }
-                }
             }
         }
     );
@@ -2199,7 +1967,6 @@ export default function (app: any, deps: any) {
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -2214,9 +1981,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
                 const user = sanitizeInput(req.params.user);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const usersCollection = db.collection('Users');
                 const userDoc = await usersCollection.findOne({
                     Username: { $regex: new RegExp(`^${user}$`, 'i') }
@@ -2249,20 +2014,6 @@ export default function (app: any, deps: any) {
                     statusCode: errObj.statusCode || 500
                 });
                 res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        logger.warn({
-                            msg: 'Database Client Closure Failed',
-                            requestId,
-                            error: closeError instanceof Error ? closeError.message : String(closeError),
-                            context: 'GET /get-receipts/:user',
-                            statusCode: 500
-                        });
-                    }
-                }
             }
         }
     );
@@ -2278,7 +2029,6 @@ export default function (app: any, deps: any) {
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -2293,9 +2043,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
                 const username = sanitizeInput(req.params.user);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Users');
                 const userDoc = await collection.findOne(
                     { Username: username },
@@ -2326,20 +2074,6 @@ export default function (app: any, deps: any) {
                     statusCode: errObj.statusCode || 500
                 });
                 res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        logger.warn({
-                            msg: 'Database Client Closure Failed',
-                            requestId,
-                            error: closeError instanceof Error ? closeError.message : String(closeError),
-                            context: 'GET /:user/default-symbol',
-                            statusCode: 500
-                        });
-                    }
-                }
             }
         }
     );
@@ -2363,7 +2097,6 @@ export default function (app: any, deps: any) {
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -2391,9 +2124,7 @@ export default function (app: any, deps: any) {
                 }
                 const username = sanitizeInput(req.params.user);
                 const defaultSymbol = sanitizeInput(req.body.defaultSymbol).toUpperCase();
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Users');
                 const assetInfoCollection = db.collection('AssetInfo');
                 const symbolExists = await assetInfoCollection.findOne({ Symbol: defaultSymbol });
@@ -2441,20 +2172,6 @@ export default function (app: any, deps: any) {
                     statusCode: errObj.statusCode || 500
                 });
                 res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        logger.warn({
-                            msg: 'Database Client Closure Failed',
-                            requestId,
-                            error: closeError instanceof Error ? closeError.message : String(closeError),
-                            context: 'PATCH /:user/update-default-symbol',
-                            statusCode: 500
-                        });
-                    }
-                }
             }
         }
     );
@@ -2470,7 +2187,6 @@ export default function (app: any, deps: any) {
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
-            let client: typeof MongoClient | undefined;
             try {
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -2485,9 +2201,7 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access' });
                 }
                 const username = sanitizeInput(req.params.user);
-                client = new MongoClient(uri);
-                await client.connect();
-                const db = client.db('EreunaDB');
+                const db = await getDB();
                 const collection = db.collection('Users');
                 const userDoc = await collection.findOne(
                     { Username: username },
@@ -2518,20 +2232,6 @@ export default function (app: any, deps: any) {
                     statusCode: errObj.statusCode || 500
                 });
                 res.status(errObj.statusCode || 500).json(errObj);
-            } finally {
-                if (client) {
-                    try {
-                        await client.close();
-                    } catch (closeError) {
-                        logger.warn({
-                            msg: 'Database Client Closure Failed',
-                            requestId,
-                            error: closeError instanceof Error ? closeError.message : String(closeError),
-                            context: 'GET /:user/hidden',
-                            statusCode: 500
-                        });
-                    }
-                }
             }
         }
     );
@@ -2539,7 +2239,6 @@ export default function (app: any, deps: any) {
     // endpoint to update the current theme
     // Note: This endpoint handles empty usernames gracefully (no-op) to avoid validation errors when user is not logged in
     app.post('/theme', async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2569,9 +2268,7 @@ export default function (app: any, deps: any) {
             const sanitizedUser = sanitizeUsernameCanonical(username);
             const displayUser = sanitizeUsername(username);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
 
             // Use case-insensitive lookup via collation to match login behaviour and avoid regex injection
@@ -2599,15 +2296,12 @@ export default function (app: any, deps: any) {
                 statusCode: errObj.statusCode || 500
             });
             return res.status(errObj.statusCode || 500).json({ message: 'An error occurred while updating theme' });
-        } finally {
-            if (client) await client.close();
-        }
+        } finally { }
     });
 
     // endpoint to load current theme for user 
     // Note: This endpoint handles empty usernames gracefully (returns empty response) to avoid validation errors when user is not logged in
     app.post('/load-theme', async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2632,9 +2326,7 @@ export default function (app: any, deps: any) {
             const sanitizedUser = sanitizeUsernameCanonical(username);
             const displayUser = sanitizeUsername(username);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
 
             // Case-insensitive lookup via collation to match login behaviour and avoid regex injection
@@ -2662,9 +2354,7 @@ export default function (app: any, deps: any) {
             });
             // Return empty object on error so frontend uses localStorage
             return res.status(200).json({});
-        } finally {
-            if (client) await client.close();
-        }
+        } finally { }
     });
 
     // endpoint to update the current panel order
@@ -2686,7 +2376,7 @@ export default function (app: any, deps: any) {
             .isBoolean()
             .withMessage('Hidden must be a boolean'),
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;;
+        ;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2701,9 +2391,7 @@ export default function (app: any, deps: any) {
             }
             const { username, newListOrder } = req.body;
             const sanitizedUser = sanitizeInput(username);
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
             const userDocument = await usersCollection.findOne({ Username: sanitizedUser });
             if (!userDocument) {
@@ -2755,16 +2443,14 @@ export default function (app: any, deps: any) {
                 statusCode: errObj.statusCode || 500
             });
             return res.status(errObj.statusCode || 500).json({ message: 'An error occurred while updating panel list' });
-        } finally {
-            if (client) await client.close();
-        }
+        } finally { }
     });
 
     // endpoint to get the current panel order
     app.get('/panel', validate([
         validationSchemas.usernameQuery()
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;;
+        ;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2779,9 +2465,7 @@ export default function (app: any, deps: any) {
             }
             const { username } = req.query;
             const sanitizedUser = sanitizeInput(username);
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
             const userDocument = await usersCollection.findOne({ Username: sanitizedUser }, { projection: { panel: 1 } });
             if (!userDocument) {
@@ -2805,9 +2489,7 @@ export default function (app: any, deps: any) {
                 statusCode: errObj.statusCode || 500
             });
             return res.status(errObj.statusCode || 500).json({ message: 'An error occurred while retrieving the panel list' });
-        } finally {
-            if (client) await client.close();
-        }
+        } finally { }
     });
 
     // endpoint to update the current summary panel order
@@ -2830,7 +2512,7 @@ export default function (app: any, deps: any) {
             .isBoolean()
             .withMessage('Hidden must be a boolean'),
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;;
+        ;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2845,9 +2527,7 @@ export default function (app: any, deps: any) {
             }
             const { username, newListOrder } = req.body;
             const sanitizedUser = sanitizeInput(username);
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
             const userDocument = await usersCollection.findOne({ Username: sanitizedUser });
             if (!userDocument) {
@@ -2913,16 +2593,14 @@ export default function (app: any, deps: any) {
             }, 500);
             // Error already logged in handleError
             return res.status(errObj.statusCode || 500).json({ message: 'An error occurred while updating panel list' });
-        } finally {
-            if (client) await client.close();
-        }
+        } finally { }
     });
 
     // endpoint to get the current summary panel order
     app.get('/panel2', validate([
         validationSchemas.usernameQuery()
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;;
+        ;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2937,9 +2615,7 @@ export default function (app: any, deps: any) {
             }
             const { username } = req.query;
             const sanitizedUser = sanitizeInput(username);
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
             const userDocument = await usersCollection.findOne({ Username: sanitizedUser }, { projection: { panel2: 1 } });
             if (!userDocument) {
@@ -2963,16 +2639,14 @@ export default function (app: any, deps: any) {
                 statusCode: errObj.statusCode || 500
             });
             return res.status(errObj.statusCode || 500).json({ message: 'An error occurred while retrieving the panel list' });
-        } finally {
-            if (client) await client.close();
-        }
+        } finally { }
     });
 
     // endpoint to get the current panel order
     app.get('/panel', validate([
         validationSchemas.usernameQuery()
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;;
+        ;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -2987,9 +2661,7 @@ export default function (app: any, deps: any) {
             }
             const { username } = req.query;
             const sanitizedUser = sanitizeInput(username);
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
             const userDocument = await usersCollection.findOne({ Username: sanitizedUser }, { projection: { panel: 1 } });
             if (!userDocument) {
@@ -3019,14 +2691,11 @@ export default function (app: any, deps: any) {
                 statusCode: errObj.statusCode || 500
             });
             return res.status(errObj.statusCode || 500).json({ message: 'An error occurred while retrieving the panel list' });
-        } finally {
-            if (client) await client.close();
-        }
+        } finally { }
     });
 
     // Endpoint to get the VAT rates list
     app.get('/vat-rates', async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -3039,9 +2708,7 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const statsCollection = db.collection('Stats');
             const vatDoc = await statsCollection.findOne(
                 { _id: 'vat_rates' },
@@ -3065,16 +2732,13 @@ export default function (app: any, deps: any) {
                 statusCode: errObj.statusCode || 500
             });
             return res.status(errObj.statusCode || 500).json({ message: 'An error occurred while retrieving VAT rates' });
-        } finally {
-            if (client) await client.close();
-        }
+        } finally { }
     });
 
     // Endpoint for requesting a refund (manual review, 14-day window)
     app.post('/request-refund', validate([
         validationSets.refundRequest
     ]), async (req: Request, res: Response) => {
-        let client: typeof MongoClient | undefined;
         try {
             const apiKey = req.header('x-api-key');
             const sanitizedKey = sanitizeInput(apiKey);
@@ -3094,9 +2758,7 @@ export default function (app: any, deps: any) {
             const sanitizedAmount = typeof amount === 'number' ? amount : parseFloat(sanitizeInput(amount));
             const sanitizedPaymentIntentId = sanitizeInput(paymentIntentId);
 
-            client = new MongoClient(uri);
-            await client.connect();
-            const db = client.db('EreunaDB');
+            const db = await getDB();
             const usersCollection = db.collection('Users');
             const receiptsCollection = db.collection('Receipts');
             const refundsCollection = db.collection('Refunds');
@@ -3203,19 +2865,6 @@ export default function (app: any, deps: any) {
         } catch (error) {
             const errObj = handleError(error, 'POST /request-refund', {}, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
-        } finally {
-            if (client) {
-                try {
-                    await client.close();
-                } catch (closeError) {
-                    const closeErr = closeError instanceof Error ? closeError : new Error(String(closeError));
-                    logger.error({
-                        msg: 'Error closing database connection',
-                        error: closeErr.message,
-                        context: 'POST /request-refund'
-                    });
-                }
-            }
         }
     });
 

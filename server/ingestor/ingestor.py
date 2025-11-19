@@ -91,13 +91,17 @@ def is_market_hours():
 bandwidth_stats = {}  # {symbol: {'bytes': int, 'messages': int}}
 
 def print_bandwidth():
-    print("\n=== BANDWIDTH USAGE ===")
+    print("\n=== BANDWIDTH USAGE SUMMARY ===")
     total_bytes = sum(s['bytes'] for s in bandwidth_stats.values())
     total_msgs = sum(s['messages'] for s in bandwidth_stats.values())
-    for symbol, stats in sorted(bandwidth_stats.items()):
-        print(f"{symbol.upper()}: {stats['bytes']/1024/1024:.2f} MB, {stats['messages']} msgs")
-    print(f"TOTAL: {total_bytes/1024/1024:.2f} MB, {total_msgs} msgs")
-    print("========================\n")
+    unique_symbols = len(bandwidth_stats)
+    
+    print(f"Total Symbols: {unique_symbols}")
+    print(f"Total Messages: {total_msgs:,}")
+    print(f"Total Bandwidth: {total_bytes/1024/1024:.2f} MB ({total_bytes/1024/1024/1024:.3f} GB)")
+    if total_msgs > 0:
+        print(f"Avg per Message: {total_bytes/total_msgs:.0f} bytes")
+    print("================================\n")
 
 # --- Shutdown flag ---
 shutdown_requested = False
@@ -122,7 +126,7 @@ async def tiingo_subscription():
     try:
         query = {
             "Delisted": False,
-            "Symbol": {"$in": ["PLTR", "RDDT"]}
+            "Exchange": {"$in": ["NASDAQ", "NYSE"]}
         }
         docs = await db.AssetInfo.find(query, {"Symbol": 1, "_id": 0}).to_list(length=None)
         tickers = [d.get("Symbol").upper() for d in docs if d.get("Symbol")]

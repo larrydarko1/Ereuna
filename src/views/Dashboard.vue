@@ -3,92 +3,66 @@
   <main class="dashboard" aria-label="Dashboard main content">
 
      <!-- Top Section: Date/Time & Market Status -->
-    <section class="dashboard-top" aria-label="Market status and date/time">
-      <div class="datetime" aria-label="Current date and time">
-        <span class="date" aria-label="Current date">{{ currentDate }}</span>
-        <span class="time" aria-label="Current time">{{ currentTime }}</span>
-        <div class="dashboard-disclaimer">
-          <span class="disclaimer-label">Last update: </span>
-          <span class="disclaimer-value">{{ lastUpdateString }}</span>
-          <span class="disclaimer-note">&mdash; Stats update every trading day at market close</span>
+    <section class="dashboard-top card" aria-label="Market status and date/time">
+      <div class="dashboard-top-left">
+        <div class="datetime" aria-label="Current date and time">
+          <span class="date" aria-label="Current date">{{ currentDate }}</span>
+          <span class="time" aria-label="Current time">{{ currentTime }}</span>
+          <div class="dashboard-disclaimer">
+            <span class="disclaimer-label">Last update:</span>
+            <span class="disclaimer-value">{{ lastUpdateString }}</span>
+          </div>
         </div>
       </div>
-      <div class="market-status" :class="marketStatusClass" role="status" aria-live="polite">
-        <span class="status-label">US Markets </span>
-        <span class="status-value">
-          <template v-if="marketStatus === 'Holiday'">
-            Holiday: {{ holidayName }}
-          </template>
-          <template v-else>
-            {{ marketStatus }}
-          </template>
-        </span>
+
+      <div class="dashboard-top-center">
+        <div class="outlook-pills">
+          <div class="outlook-pill">
+            <span class="pill-label">Short Term</span>
+            <span class="pill-badge" :class="getOutlookClass(marketOutlook.shortTerm)">{{ formatOutlook(marketOutlook.shortTerm) }}</span>
+          </div>
+          <div class="outlook-pill">
+            <span class="pill-label">Mid Term</span>
+            <span class="pill-badge" :class="getOutlookClass(marketOutlook.midTerm)">{{ formatOutlook(marketOutlook.midTerm) }}</span>
+          </div>
+          <div class="outlook-pill">
+            <span class="pill-label">Long Term</span>
+            <span class="pill-badge" :class="getOutlookClass(marketOutlook.longTerm)">{{ formatOutlook(marketOutlook.longTerm) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-top-right">
+        <div class="breadth-compact">
+          <div class="breadth-item">
+            <h3>Advance/Decline</h3>
+            <div class="meter-container">
+              <div class="meter-segment bar-positive" :style="{ width: (advanceDecline.advancing * 100) + '%' }"></div>
+              <div class="meter-segment bar-negative" :style="{ width: (advanceDecline.declining * 100) + '%' }"></div>
+              <div class="meter-segment bar-neutral" :style="{ width: (advanceDecline.unchanged * 100) + '%' }"></div>
+            </div>
+            <div class="meter-compact-values">
+              <span class="meter-value positive">{{ (advanceDecline.advancing * 100).toFixed(1) }}%</span>
+              <span class="meter-value negative">{{ (advanceDecline.declining * 100).toFixed(1) }}%</span>
+              <span class="meter-value neutral">{{ (advanceDecline.unchanged * 100).toFixed(1) }}%</span>
+            </div>
+          </div>
+          <div class="breadth-item">
+            <h3>New Highs/Lows</h3>
+            <div class="meter-container">
+              <div class="meter-segment bar-positive" :style="{ width: (newHighsLows.newHighs * 100) + '%' }"></div>
+              <div class="meter-segment bar-negative" :style="{ width: (newHighsLows.newLows * 100) + '%' }"></div>
+              <div class="meter-segment bar-neutral" :style="{ width: (newHighsLows.neutral * 100) + '%' }"></div>
+            </div>
+            <div class="meter-compact-values">
+              <span class="meter-value positive">{{ (newHighsLows.newHighs * 100).toFixed(1) }}%</span>
+              <span class="meter-value negative">{{ (newHighsLows.newLows * 100).toFixed(1) }}%</span>
+              <span class="meter-value neutral">{{ (newHighsLows.neutral * 100).toFixed(1) }}%</span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
-         <!-- Market Overview Section (Outlook + Breadth Combined) -->
-    <div class="dashboard-row-outlook">
-      <section class="market-overview-section card" aria-label="Market Overview">
-        <h2 id="market-overview-heading">Market Overview</h2>
-        <div class="overview-container" aria-labelledby="market-overview-heading">
-          <div v-if="statsLoading" class="loading-state">Loading...</div>
-          <div v-else-if="statsError" class="error-state">{{ statsError }}</div>
-          <template v-else>
-            <!-- Outlook Pills - Compact Horizontal Layout -->
-            <div class="outlook-pills">
-              <div class="outlook-pill">
-                <span class="pill-label">Short Term</span>
-                <span class="pill-badge" :class="getOutlookClass(marketOutlook.shortTerm)">
-                  {{ formatOutlook(marketOutlook.shortTerm) }}
-                </span>
-              </div>
-              <div class="outlook-pill">
-                <span class="pill-label">Mid Term</span>
-                <span class="pill-badge" :class="getOutlookClass(marketOutlook.midTerm)">
-                  {{ formatOutlook(marketOutlook.midTerm) }}
-                </span>
-              </div>
-              <div class="outlook-pill">
-                <span class="pill-label">Long Term</span>
-                <span class="pill-badge" :class="getOutlookClass(marketOutlook.longTerm)">
-                  {{ formatOutlook(marketOutlook.longTerm) }}
-                </span>
-              </div>
-            </div>
-            
-            <!-- Breadth Meters - Compact Side-by-Side Layout -->
-            <div class="breadth-compact">
-              <div class="breadth-item">
-                <h3>Advance/Decline</h3>
-                <div class="meter-container">
-                  <div class="meter-segment bar-positive" :style="{ width: (advanceDecline.advancing * 100) + '%' }"></div>
-                  <div class="meter-segment bar-negative" :style="{ width: (advanceDecline.declining * 100) + '%' }"></div>
-                  <div class="meter-segment bar-neutral" :style="{ width: (advanceDecline.unchanged * 100) + '%' }"></div>
-                </div>
-                <div class="meter-compact-values">
-                  <span class="meter-value positive">{{ (advanceDecline.advancing * 100).toFixed(1) }}%</span>
-                  <span class="meter-value negative">{{ (advanceDecline.declining * 100).toFixed(1) }}%</span>
-                  <span class="meter-value neutral">{{ (advanceDecline.unchanged * 100).toFixed(1) }}%</span>
-                </div>
-              </div>
-              <div class="breadth-item">
-                <h3>New Highs/Lows</h3>
-                <div class="meter-container">
-                  <div class="meter-segment bar-positive" :style="{ width: (newHighsLows.newHighs * 100) + '%' }"></div>
-                  <div class="meter-segment bar-negative" :style="{ width: (newHighsLows.newLows * 100) + '%' }"></div>
-                  <div class="meter-segment bar-neutral" :style="{ width: (newHighsLows.neutral * 100) + '%' }"></div>
-                </div>
-                <div class="meter-compact-values">
-                  <span class="meter-value positive">{{ (newHighsLows.newHighs * 100).toFixed(1) }}%</span>
-                  <span class="meter-value negative">{{ (newHighsLows.newLows * 100).toFixed(1) }}%</span>
-                  <span class="meter-value neutral">{{ (newHighsLows.neutral * 100).toFixed(1) }}%</span>
-                </div>
-              </div>
-            </div>
-          </template>
-        </div>
-      </section>
-    </div>
-
          <!-- Third Row: Placeholder for future widgets -->
   <div class="dashboard-row3">
     <section style="width: 100%; margin-bottom: 5px;">
@@ -582,15 +556,17 @@ const lastUpdateString = ref('');
 function updateLastUpdateString() {
   // Use the time when marketStats was last fetched as the update time
   // If API provides a timestamp, use it instead
+  // NOTE: Show only the plain date (no timezone conversion, no hours/minutes)
   if (marketStats.value && marketStats.value.updatedAt) {
     // Assume ISO string or timestamp
     const d = new Date(marketStats.value.updatedAt);
-    lastUpdateString.value = d.toLocaleString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', year: 'numeric', month: 'short', day: 'numeric' });
+    // Use plain date only, no timezone, no time-of-day
+    lastUpdateString.value = d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   } else {
     // Fallback: use current time in US Eastern
+    // Use plain date only
     const now = new Date();
-    const estString = now.toLocaleString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', year: 'numeric', month: 'short', day: 'numeric' });
-    lastUpdateString.value = estString;
+    lastUpdateString.value = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 }
 
@@ -639,71 +615,17 @@ function truncateText(text: string, maxLength: number): string {
 // Date & Time logic
 const currentDate = ref('');
 const currentTime = ref('');
-const marketStatus = ref('Closed');
-const marketStatusClass = ref('closed');
-const holidayName = ref('');
+// market status badge removed — we no longer display market open/close
 
-// US market hours: 9:30am - 4:00pm ET (Eastern Time)
-const MARKET_OPEN_HOUR = 9;
-const MARKET_OPEN_MINUTE = 30;
-const MARKET_CLOSE_HOUR = 16;
-const MARKET_CLOSE_MINUTE = 0;
 
-// US market holidays (sample, add more as needed)
-const usMarketHolidays = [
-  { date: '2025-01-01', name: "New Year's Day" },
-  { date: '2025-07-04', name: 'Independence Day' },
-  { date: '2025-12-25', name: 'Christmas Day' },
-  { date: '2025-11-27', name: 'Thanksgiving Day' },
-  { date: '2025-09-01', name: 'Labor Day' },
-  // Add more holidays as needed
-];
-
-function getUSEasternDate() {
-  // Get current time in US Eastern Time (New York)
-  const now = new Date();
-  const estString = now.toLocaleString('en-US', { timeZone: 'America/New_York' });
-  return new Date(estString);
-}
+// removed getUSEasternDate() and market hours logic since market badge has been removed
 
 function updateDateTime() {
   const now = new Date();
   currentDate.value = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   currentTime.value = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-  // Get YYYY-MM-DD for holiday check (in US Eastern Time)
-  const estDate = getUSEasternDate();
-  const yyyy = estDate.getFullYear();
-  const mm = String(estDate.getMonth() + 1).padStart(2, '0');
-  const dd = String(estDate.getDate()).padStart(2, '0');
-  const todayStr = `${yyyy}-${mm}-${dd}`;
-
-  // Check for holiday
-  const holiday = usMarketHolidays.find(h => h.date === todayStr);
-  if (holiday) {
-    marketStatus.value = 'Holiday';
-    marketStatusClass.value = 'holiday';
-    holidayName.value = holiday.name;
-    return;
-  }
-
-  // Get hour and minute in US Eastern Time
-  const hour = estDate.getHours();
-  const minute = estDate.getMinutes();
-
-  // Market open logic
-  if (
-    (hour > MARKET_OPEN_HOUR || (hour === MARKET_OPEN_HOUR && minute >= MARKET_OPEN_MINUTE)) &&
-    (hour < MARKET_CLOSE_HOUR || (hour === MARKET_CLOSE_HOUR && minute < MARKET_CLOSE_MINUTE))
-  ) {
-    marketStatus.value = 'Open';
-    marketStatusClass.value = 'open';
-    holidayName.value = '';
-  } else {
-    marketStatus.value = 'Closed';
-    marketStatusClass.value = 'closed';
-    holidayName.value = '';
-  }
+  // Market status removed — we only update date/time here
 }
 
 // SMA data from API
@@ -791,6 +713,10 @@ onMounted(() => {
   box-sizing: border-box;
   background-color: var(--base4);
   overflow-x: scroll;
+  padding-top: 0px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 10px;
 }
 .dashboard-row {
   display: flex;
@@ -820,13 +746,13 @@ onMounted(() => {
   min-height: 120px;
 }
 .dashboard-row .market-indexes.card {
-  flex: 0 0 350px;
-  min-width: 280px;
-  max-width: 350px;
+  flex: 0 0 420px;
+  min-width: 300px;
+  max-width: 420px;
 }
 .dashboard-row .sma-distribution.card {
   flex: 1 1 0;
-  min-width: 320px;
+  min-width: 280px;
   max-width: 100%;
 }
 .dashboard-row2 .sectors-movers.card {
@@ -856,6 +782,12 @@ onMounted(() => {
   color: var(--text1);
   font-size: 1rem;
   margin-bottom: 4px;
+}
+.sector-lists .count {
+  color: var(--text2);
+  font-size: 0.9rem;
+  margin-left: 6px;
+  font-weight: 600;
 }
 .dashboard-row2 .movers-volume-sentiment.card {
   flex: 1 1 0;
@@ -930,12 +862,22 @@ onMounted(() => {
   color: var(--accent1);
   font-weight: 600;
 }
+.sma-bar .bar-container { 
+  height: 14px;
+  border-radius: 18px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02));
+}
+
+.sma-bar .bar-positive,
+.sma-bar .bar-negative { 
+  border-radius: 18px;
+}
 .bar-container {
   display: flex;
   height: 18px;
   width: 90%;
   background: var(--base3);
-  border-radius: 8px;
+  border-radius: 5px;
   overflow: hidden;
 }
 .bar-positive {
@@ -945,6 +887,10 @@ onMounted(() => {
 .bar-negative {
   background: var(--negative);
   height: 100%;
+}
+
+.bar-negative, .bar-positive {
+  transition: width 0.4s cubic-bezier(.2,.9,.2,1);
 }
 .bar-values {
   display: flex;
@@ -963,7 +909,7 @@ onMounted(() => {
   height: 20px;
   width: 100%;
   background: var(--base3);
-  border-radius: 10px;
+  border-radius: 5px;
   overflow: hidden;
 }
 
@@ -990,9 +936,33 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: 16px 18px; /* slightly more padding for card-like spacing */
   margin-bottom: 5px;
   background-color: var(--base2);
+  box-shadow: 0 6px 18px rgba(10, 20, 30, 0.06);
+  border: 1px solid rgba(0,0,0,0.035);
+}
+
+.dashboard-top-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 240px;
+}
+
+.dashboard-top-center {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-top-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 300px;
+  justify-content: flex-end;
 }
 .datetime {
   color: var(--text1);
@@ -1000,10 +970,13 @@ onMounted(() => {
   flex-direction: column;
 }
 .date{
-    font-size: 2.5rem;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--text1);
 }
 .time {
-  font-size: 2rem;
+  font-size: 1.25rem;
+  color: var(--text2);
 }
 .market-status {
   font-size: 1.2rem;
@@ -1027,8 +1000,13 @@ onMounted(() => {
 }
 .card {
   background: var(--base2);
-  padding: 24px;
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(10, 20, 30, 0.08);
+  border: 1px solid rgba(0,0,0,0.04);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
 }
+
 .market-indexes table,
 .sma-distribution table {
   width: 100%;
@@ -1039,19 +1017,33 @@ onMounted(() => {
 .market-indexes td,
 .sma-distribution th,
 .sma-distribution td {
-  padding: 10px 8px;
+  padding: 12px 10px;
   text-align: left;
-  border-bottom: 1px solid var(--base3);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
 }
 .market-indexes th,
 .sma-distribution th {
   color: var(--accent1);
-  font-size: 1rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  background: linear-gradient(180deg, rgba(0,0,0,0.02), transparent);
 }
 .market-indexes td,
 .sma-distribution td {
   color: var(--text1);
-  font-size: 1rem;
+  font-size: 0.98rem;
+}
+
+.market-indexes tbody tr:hover,
+.sma-distribution tbody tr:hover {
+  background: rgba(0,0,0,0.02);
+}
+
+.market-indexes tbody tr:nth-child(even),
+.sma-distribution tbody tr:nth-child(even) {
+  background: rgba(0,0,0,0.01);
 }
 .positive {
   color: var(--positive) !important;
@@ -1087,6 +1079,10 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   transition: border-color 0.18s;
+}
+
+.asset-type-dropdown .dropdown-selected:hover {
+  border-color: rgba(0,0,0,0.06);
 }
 
 .asset-type-dropdown .dropdown-arrow {
@@ -1161,7 +1157,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 16px;
+  padding: 6px 14px;
   background: var(--base4);
   border-radius: 8px;
   border: 1.5px solid var(--base3);
@@ -1186,6 +1182,10 @@ onMounted(() => {
   text-align: center;
 }
 
+.pill-badge {
+  box-shadow: 0 6px 18px rgba(10,20,30,0.04);
+}
+
 .pill-badge.outlook-positive {
   background: var(--positive);
   color: var(--base1);
@@ -1206,6 +1206,12 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+}
+
+.breadth-compact .breadth-item {
+  background: linear-gradient(180deg, rgba(0,0,0,0.01), transparent);
+  padding: 12px;
+  border-radius: 10px;
 }
 
 .breadth-item h3 {
@@ -1561,6 +1567,19 @@ h2 {
   font-weight: 700;
 }
 
+.card h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.card h2::after {
+  content: '';
+  flex: 1 1 0;
+  height: 1px;
+  background: rgba(0,0,0,0.03);
+  margin-left: 12px;
+}
+
 .e-card.archie-card {
   background: transparent;
   position: relative;
@@ -1569,6 +1588,7 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 12px; /* make archie card match other card radii */
 }
 
 .wave {
@@ -1887,6 +1907,17 @@ h2 {
     font-size: 1rem;
     padding: 6px 10px;
   }
+}
+
+@media (max-width: 900px) {
+  .dashboard-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .dashboard-top-left { min-width: 0; }
+  .dashboard-top-right { min-width: 0; justify-content: flex-start; }
+  .dashboard-top-center { justify-content: flex-start; }
 }
 
 /* Additional responsive styles for market news to prevent overflow */
