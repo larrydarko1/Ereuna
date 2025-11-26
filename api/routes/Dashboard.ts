@@ -139,4 +139,46 @@ export default function (app: any, deps: any) {
         }
     });
 
+    // --- GET holidays ---
+    app.get('/holidays', async (req: Request, res: Response) => {
+        try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'GET /holidays',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+
+            // Use connection pool and caching
+            const holidaysDoc = await withCache(
+                'holidays',
+                async () => {
+                    const db = await getDB();
+                    const statsCollection = db.collection('Stats');
+                    return await statsCollection.findOne({ _id: 'Holidays' });
+                },
+                86400, // 24 hour TTL since holidays don't change often
+                'price'
+            );
+
+            if (!holidaysDoc) {
+                logger.warn({
+                    msg: 'Holidays document not found',
+                    context: 'GET /holidays',
+                    statusCode: 404
+                });
+                return res.status(404).json({ message: 'Holidays document not found' });
+            }
+            return res.status(200).json(holidaysDoc);
+        } catch (error) {
+            const errObj = handleError(error, 'GET /holidays', {}, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
+        }
+    });
+
 }

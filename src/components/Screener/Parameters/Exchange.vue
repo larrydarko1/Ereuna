@@ -1,70 +1,52 @@
 <template>
- <div :class="[ShowExchange ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Exchange</p>
-        <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-          @mouseover="handleMouseOver($event, 'exchange')" @mouseout="handleMouseOut" aria-label="Show info for Exchange parameter">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" v-model="ShowExchange" aria-label="Toggle Exchange filter">
-              <span class="slider round"></span>
-            </label>
-          </div>
-          <div style="border: none" v-if="ShowExchange">
-            <div class="row2">
-              <div class="check" v-for="(exchange, index) in Exchanges" :key="index">
-                <div :id="`exchange-${index}`" class="custom-checkbox" :class="{ checked: selectedExchanges[index] }"
-                  @click="toggleExchange(index)" :aria-label="`Toggle ${exchange} exchange`" role="checkbox" :aria-checked="selectedExchanges[index]">
-                  <span class="checkmark"></span>
-                  {{ exchange }}
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetExchange" aria-label="Set Exchange filter">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'), ShowExchange = false" aria-label="Reset Exchange filter">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
-            </div>
-          </div>
+  <div :class="[ShowExchangeModel ? 'param-card-expanded' : 'param-card']">
+    <div class="header">
+      <div class="title-section">
+        <span class="title">Exchange</span>
+        <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+          @mouseover="handleMouseOver($event, 'exchange')" @mouseout="handleMouseOut($event)" aria-label="Show info for Exchange parameter">
+          <path
+            d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M12 18.01L12.01 17.9989" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round"></path>
+        </svg>
+      </div>
+      <label class="switch">
+        <input type="checkbox" v-model="ShowExchangeModel" aria-label="Toggle Exchange filter">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="content" v-if="ShowExchangeModel">
+      <div class="checkbox-group">
+        <div class="checkbox-item" v-for="(exchange, index) in Exchanges" :key="index">
+          <label class="checkbox-label" :for="`exchange-${index}`">
+            <input
+              :id="`exchange-${index}`"
+              type="checkbox"
+              v-model="selectedExchanges[index]"
+              class="checkbox-input"
+              :aria-label="'Select ' + exchange + ' exchange'"
+            >
+            <span class="checkbox-custom"></span>
+            <span class="checkbox-text">{{ exchange }}</span>
+          </label>
         </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" @click="emit('reset'); ShowExchangeModel = false" aria-label="Reset Exchange filter">
+          Reset
+        </button>
+        <button class="btn btn-primary" @click="SetExchange()" aria-label="Set Exchange filter">
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -88,7 +70,7 @@ const props = defineProps({
   initialSelected: { type: Array as () => string[], required: false, default: () => [] }
 })
 
-const ShowExchange = computed({
+const ShowExchangeModel = computed({
   get: () => props.ShowExchange,
   set: (val: boolean) => emit('update:ShowExchange', val)
 });
@@ -131,10 +113,6 @@ watch(() => props.initialSelected, (val: string[] | undefined) => {
   selectedExchanges.value = Exchanges.value.map(e => val.includes(e));
 });
 
-const toggleExchange = (index: number) => {
-  selectedExchanges.value[index] = !selectedExchanges.value[index];
-};
-
 // sends exchanges data to update screener
 async function SetExchange() {
   const selected = Exchanges.value.filter((_, index) => selectedExchanges.value[index]);
@@ -173,103 +151,80 @@ async function SetExchange() {
 </script>
 
 <style scoped>
-
-.param-s1 {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
+/* Card Container */
+.param-card {
   background-color: var(--base2);
-  border: none;
-  height: 20px;
-  position: relative;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 4px 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.param-s1-expanded {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
+.param-card:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border-color: var(--base3);
+}
+
+.param-card-expanded {
   background-color: var(--base2);
-  border: none;
-  height: 120px;
-  position: relative;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 4px 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  border: 1px solid var(--base3);
 }
 
-.row {
-  border: none;
-  margin: none;
-  padding: none;
+/* Header Section */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
 }
 
-.row2 {
-  border: none;
-  margin: none;
-  padding: none;
-  position: absolute;
-  left: 2%;
-  top: 40px;
-  float: left;
+.title-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.btns {
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text1);
+  letter-spacing: 0.01em;
   background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 89%;
 }
 
-.btnsr {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 80%;
-}
-
-.iconbtn {
-  width: 15px;
-  height: 15px;
-  opacity: 0.60;
+.info-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--text2);
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-.iconbtn:hover {
-  opacity: 1;
+.info-icon:hover {
+  color: var(--text1);
 }
 
-.question-img {
-  width: 15px;
-  cursor: pointer;
-  margin-left: 5px;
-}
-
-label,
-input,
-p {
-  border: none;
-}
-
+/* Toggle Switch */
 .switch {
   position: relative;
   display: inline-block;
-  width: 40px;
-  height: 20px;
-  margin: none;
-  padding: none;
+  width: 34px;
+  height: 18px;
 }
 
-/* Hide default HTML checkbox */
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
-  margin: none;
-  padding: none;
 }
 
-/* The slider */
 .slider {
   position: absolute;
   cursor: pointer;
@@ -278,91 +233,153 @@ p {
   right: 0;
   bottom: 0;
   background-color: var(--base3);
-  -webkit-transition: .3s;
-  transition: .3s;
-  margin: none;
-  padding: none;
+  transition: 0.2s;
+  border-radius: 18px;
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 13px;
-  width: 13px;
-  left: 2px;
-  bottom: 3.5px;
-  background-color: var(--text3);
-  -webkit-transition: .3s;
-  transition: .3s;
-  margin: none;
-  padding: none;
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--text2);
+  transition: 0.2s;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-input:checked+.slider {
+input:checked + .slider {
   background-color: var(--accent1);
 }
 
-input:focus+.slider {
-  box-shadow: 0 0 1px var(--accent1);
+input:checked + .slider:before {
+  transform: translateX(16px);
+  background-color: var(--text3);
 }
 
-input:checked+.slider:before {
-  -webkit-transform: translateX(13px);
-  -ms-transform: translateX(13px);
-  transform: translateX(22px);
+/* Content Section */
+.content {
+  margin-top: 10px;
+  animation: slideDown 0.2s ease;
 }
 
-/* Rounded sliders */
-.slider.round {
-  border-radius: 17px;
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.slider.round:before {
-  border-radius: 50%;
+/* Checkbox Group */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 10px;
 }
 
-.check {
-  float: left;
+.checkbox-item {
+  flex: 0 0 auto;
+  min-width: 0;
 }
 
-.check {
-  border: none;
-  font-size: 8px;
-  align-items: center;
-  text-align: center;
-}
-
-.custom-checkbox {
+.checkbox-label {
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 5px;
-  opacity: 0.7;
-  transition: opacity 0.3s;
+  font-size: 13px;
+  color: var(--text2);
+  transition: color 0.2s ease;
+  user-select: none;
 }
 
-.custom-checkbox.checked {
+.checkbox-label:hover {
   color: var(--text1);
-  opacity: 1;
 }
 
-.checkmark {
-  width: 8px;
-  height: 8px;
-  background-color: var(--text1);
-  border-radius: 50%;
-  margin-right: 5px;
-  display: inline-block;
-  transition: background-color 0.3s, border-color 0.3s;
+.checkbox-input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
 }
 
-.custom-checkbox.checked .checkmark {
+.checkbox-custom {
+  position: relative;
+  height: 12px;
+  width: 12px;
+  background-color: var(--base3);
+  border: 1px solid var(--base4);
+  border-radius: 99px;
+  margin-right: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.checkbox-input:checked ~ .checkbox-custom {
   background-color: var(--accent1);
-  border-color: var(--accent1);
 }
 
-.custom-checkbox.checked {
+.checkbox-input:checked ~ .checkbox-custom:after {
+  display: block;
+}
+
+.checkbox-input:checked ~ .checkbox-text {
   color: var(--text1);
 }
 
+/* Actions */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.btn {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.01em;
+}
+
+.btn-secondary {
+  background-color: var(--base3);
+  color: var(--text2);
+  font-weight: 600;
+}
+
+.btn-secondary:hover {
+  background-color: var(--base4);
+  color: var(--text1);
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background-color: var(--accent1);
+  color: var(--text3);
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  box-shadow: 0 1px 4px rgba(var(--accent1-rgb, 59, 130, 246), 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
 </style>

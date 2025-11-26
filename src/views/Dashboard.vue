@@ -17,24 +17,45 @@
 
       <div class="dashboard-top-center">
         <div class="outlook-pills">
-          <div class="outlook-pill">
+          <div class="outlook-pill" @mouseenter="showTooltip('shortTerm')" @mouseleave="hideTooltip">
             <span class="pill-label">Short Term</span>
             <span class="pill-badge" :class="getOutlookClass(marketOutlook.shortTerm)">{{ formatOutlook(marketOutlook.shortTerm) }}</span>
+            <div v-if="tooltipVisible === 'shortTerm'" class="outlook-tooltip">
+              <strong>Short Term Outlook (1-3 Months)</strong>
+              <p>Based on recent market momentum, technical indicators, and short-term trends.</p>
+              <div class="tooltip-metric">
+                <span class="metric-label">{{ marketOutlook.shortTermPercent }}% of stocks trending up</span>
+              </div>
+            </div>
           </div>
-          <div class="outlook-pill">
+          <div class="outlook-pill" @mouseenter="showTooltip('midTerm')" @mouseleave="hideTooltip">
             <span class="pill-label">Mid Term</span>
             <span class="pill-badge" :class="getOutlookClass(marketOutlook.midTerm)">{{ formatOutlook(marketOutlook.midTerm) }}</span>
+            <div v-if="tooltipVisible === 'midTerm'" class="outlook-tooltip">
+              <strong>Mid Term Outlook (3-6 Months)</strong>
+              <p>Reflects quarterly performance trends and medium-term market cycles.</p>
+              <div class="tooltip-metric">
+                <span class="metric-label">{{ marketOutlook.midTermPercent }}% of stocks trending up</span>
+              </div>
+            </div>
           </div>
-          <div class="outlook-pill">
+          <div class="outlook-pill" @mouseenter="showTooltip('longTerm')" @mouseleave="hideTooltip">
             <span class="pill-label">Long Term</span>
             <span class="pill-badge" :class="getOutlookClass(marketOutlook.longTerm)">{{ formatOutlook(marketOutlook.longTerm) }}</span>
+            <div v-if="tooltipVisible === 'longTerm'" class="outlook-tooltip">
+              <strong>Long Term Outlook (6-12 Months)</strong>
+              <p>Indicates annual trends, fundamental strength, and sustained market direction.</p>
+              <div class="tooltip-metric">
+                <span class="metric-label">{{ marketOutlook.longTermPercent }}% of stocks trending up</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="dashboard-top-right">
         <div class="breadth-compact">
-          <div class="breadth-item">
+          <div class="breadth-item" @mouseenter="showTooltip('advanceDecline')" @mouseleave="hideTooltip">
             <h3>Advance/Decline</h3>
             <div class="meter-container">
               <div class="meter-segment bar-positive" :style="{ width: (advanceDecline.advancing * 100) + '%' }"></div>
@@ -46,8 +67,17 @@
               <span class="meter-value negative">{{ (advanceDecline.declining * 100).toFixed(1) }}%</span>
               <span class="meter-value neutral">{{ (advanceDecline.unchanged * 100).toFixed(1) }}%</span>
             </div>
+            <div v-if="tooltipVisible === 'advanceDecline'" class="breadth-tooltip">
+              <strong>Advance/Decline Ratio</strong>
+              <p>Measures the proportion of stocks that are advancing (green), declining (red), or unchanged (gray) in price today.</p>
+              <ul>
+                <li><span class="positive">●</span> Advancing: Stocks closing higher than previous close</li>
+                <li><span class="negative">●</span> Declining: Stocks closing lower than previous close</li>
+                <li><span class="neutral">●</span> Unchanged: Stocks with no price change</li>
+              </ul>
+            </div>
           </div>
-          <div class="breadth-item">
+          <div class="breadth-item" @mouseenter="showTooltip('newHighsLows')" @mouseleave="hideTooltip">
             <h3>New Highs/Lows</h3>
             <div class="meter-container">
               <div class="meter-segment bar-positive" :style="{ width: (newHighsLows.newHighs * 100) + '%' }"></div>
@@ -58,6 +88,15 @@
               <span class="meter-value positive">{{ (newHighsLows.newHighs * 100).toFixed(1) }}%</span>
               <span class="meter-value negative">{{ (newHighsLows.newLows * 100).toFixed(1) }}%</span>
               <span class="meter-value neutral">{{ (newHighsLows.neutral * 100).toFixed(1) }}%</span>
+            </div>
+            <div v-if="tooltipVisible === 'newHighsLows'" class="breadth-tooltip">
+              <strong>New Highs/Lows</strong>
+              <p>Shows the percentage of stocks reaching new 52-week highs or lows today.</p>
+              <ul>
+                <li><span class="positive">●</span> New Highs: Stocks at their highest price in 52 weeks</li>
+                <li><span class="negative">●</span> New Lows: Stocks at their lowest price in 52 weeks</li>
+                <li><span class="neutral">●</span> Neutral: Stocks not at extremes</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -536,6 +575,17 @@ const marketStats = ref<MarketStats | null>(null);
 const statsLoading = ref(true);
 const statsError = ref('');
 
+// Tooltip state
+const tooltipVisible = ref<string | null>(null);
+
+function showTooltip(type: string) {
+  tooltipVisible.value = type;
+}
+
+function hideTooltip() {
+  tooltipVisible.value = null;
+}
+
 // Expose to template
 defineExpose({ 
   topGainers, 
@@ -547,7 +597,10 @@ defineExpose({
   newHighsLows,
   advanceDecline,
   formatNewsDate,
-  truncateText
+  truncateText,
+  tooltipVisible,
+  showTooltip,
+  hideTooltip
 });
 
 // --- Last update logic ---
@@ -711,9 +764,9 @@ onMounted(() => {
   min-height: 100vh;
   width: 100vw;
   box-sizing: border-box;
-  background-color: var(--base4);
+  background-color: var(--base1);
   overflow-x: scroll;
-  padding-top: 0px;
+  padding-top: 5px;
   padding-left: 10px;
   padding-right: 10px;
   padding-bottom: 10px;
@@ -1151,6 +1204,7 @@ onMounted(() => {
   gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
+  position: relative;
 }
 
 .outlook-pill {
@@ -1161,6 +1215,9 @@ onMounted(() => {
   background: var(--base4);
   border-radius: 8px;
   border: 1.5px solid var(--base3);
+  position: relative;
+  cursor: help;
+  transition: background 0.2s;
 }
 
 .pill-label {
@@ -1206,12 +1263,20 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+  position: relative;
 }
 
 .breadth-compact .breadth-item {
   background: linear-gradient(180deg, rgba(0,0,0,0.01), transparent);
   padding: 12px;
   border-radius: 10px;
+  position: relative;
+  cursor: help;
+  transition: background 0.2s;
+}
+
+.breadth-compact .breadth-item:hover {
+  background: linear-gradient(180deg, rgba(0,0,0,0.03), rgba(0,0,0,0.01));
 }
 
 .breadth-item h3 {
@@ -1227,6 +1292,136 @@ onMounted(() => {
   justify-content: center;
   font-size: 0.85rem;
   margin-top: 6px;
+}
+
+/* Breadth Tooltip */
+.breadth-tooltip {
+  position: absolute;
+  top: 100%;
+  left: -10%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: var(--base1);
+  border: 2px solid var(--accent1);
+  border-radius: 8px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 280px;
+  max-width: 320px;
+  animation: fadeInTooltip 0.2s ease;
+  pointer-events: none;
+}
+
+@keyframes fadeInTooltip {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.breadth-tooltip strong {
+  display: block;
+  color: var(--accent1);
+  font-size: 1rem;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.breadth-tooltip p {
+  color: var(--text1);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0 0 10px 0;
+}
+
+.breadth-tooltip ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.breadth-tooltip li {
+  color: var(--text1);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.breadth-tooltip li:last-child {
+  margin-bottom: 0;
+}
+
+.breadth-tooltip li span {
+  font-size: 1.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.breadth-tooltip li .positive {
+  color: var(--positive);
+}
+
+.breadth-tooltip li .negative {
+  color: var(--negative);
+}
+
+.breadth-tooltip li .neutral {
+  color: var(--text2);
+}
+
+/* Outlook Tooltip */
+.outlook-tooltip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 8px;
+  background: var(--base1);
+  border: 2px solid var(--accent1);
+  border-radius: 8px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 260px;
+  max-width: 300px;
+  animation: fadeInTooltip 0.2s ease;
+  pointer-events: none;
+}
+
+.outlook-tooltip strong {
+  display: block;
+  color: var(--accent1);
+  font-size: 1rem;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.outlook-tooltip p {
+  color: var(--text1);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0 0 10px 0;
+}
+
+.tooltip-metric {
+  background: var(--base3);
+  padding: 8px 10px;
+  border-radius: 6px;
+  border-left: 3px solid var(--accent1);
+}
+
+.tooltip-metric .metric-label {
+  color: var(--text1);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 /* Market News Section */

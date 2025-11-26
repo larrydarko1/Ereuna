@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="splits-container">
     <div v-if="displayedSplitsItems.length > 0" id="SplitsTable">
       <div class="splits-header">
         <div class="splits-cell" style="flex: 0 0 50%;">Reported</div>
@@ -130,5 +130,14 @@ watch(() => props.symbol, () => fetchSplitsDate(showAllSplits.value));
 </script>
 
 <style scoped>
-/* Add your styles here */
+.splits-container {
+  display: flex;
+  flex-direction: column;
+  color: var(--text2);
+  border: none;
+  border-radius: 6px;
+  margin: 5px;
+  padding: 5px;
+  background-color: var(--base2);
+}
 </style>

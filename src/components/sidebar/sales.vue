@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="sales-container">
     <div v-if="displayedSalesItems.length > 0" id="Salestable">
       <div class="sales-header">
         <div class="sales-cell" style="flex: 0 0 20%;">Reported</div>
@@ -197,5 +197,14 @@ watch(() => props.symbol, () => {
 </script>
 
 <style scoped>
-/* Add your styles here */
+.sales-container {
+  display: flex;
+  flex-direction: column;
+  color: var(--text2);
+  border: none;
+  border-radius: 6px;
+  margin: 5px;
+  padding: 5px;
+  background-color: var(--base2);
+}
 </style>

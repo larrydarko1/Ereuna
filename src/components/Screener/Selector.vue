@@ -141,7 +141,7 @@ function toggleDropdown() {
   backdrop-filter: blur(8px) saturate(1.2);
   -webkit-backdrop-filter: blur(8px) saturate(1.2);
   overflow: visible;
-  margin-bottom: 3px;
+  border-radius: 6px;
 }
 
 .screener-dropdown-icon {

@@ -254,41 +254,43 @@
                     </button>
                     <div class="dropdown-menu3">
                       <div class="watchlist-dropdown-menu3">
-                        <div v-for="(ticker, index) in watchlist.tickers" :key="index" class="watchlist-item">
-                          <label :for="'watchlist-' + index" class="checkbox-label">
-                            <div @click.stop="toggleWatchlist(ticker, item.ticker)" style="cursor: pointer;">
-                              <svg width="24" height="24" v-if="isAssetInWatchlist(ticker.Name, item.ticker)"
-                                viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                                <g id="SVGRepo_iconCarrier">
-                                  <g id="Interface / Checkbox_Check">
-                                    <path id="Vector"
-                                      d="M8 12L11 15L16 9M4 16.8002V7.2002C4 6.08009 4 5.51962 4.21799 5.0918C4.40973 4.71547 4.71547 4.40973 5.0918 4.21799C5.51962 4 6.08009 4 7.2002 4H16.8002C17.9203 4 18.4796 4 18.9074 4.21799C19.2837 4.40973 19.5905 4.71547 19.7822 5.0918C20 5.5192 20 6.07899 20 7.19691V16.8036C20 17.9215 20 18.4805 19.7822 18.9079C19.5905 19.2842 19.2837 19.5905 18.9074 19.7822C18.48 20 17.921 20 16.8031 20H7.19691C6.07899 20 5.5192 20 5.0918 19.7822C4.71547 19.5905 4.40973 19.2842 4.21799 18.9079C4 18.4801 4 17.9203 4 16.8002Z"
-                                      stroke="var(--text1)" stroke-width="2" stroke-linecap="round"
-                                      stroke-linejoin="round">
-                                    </path>
-                                  </g>
+                        <div 
+                          v-for="(ticker, index) in watchlist.tickers" 
+                          :key="index" 
+                          class="watchlist-checkbox-item"
+                          @click="toggleWatchlist(ticker, item.ticker)"
+                        >
+                          <div class="checkbox-wrapper">
+                            <svg width="20" height="20" v-if="isAssetInWatchlist(ticker.Name, item.ticker)"
+                              viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                              <g id="SVGRepo_iconCarrier">
+                                <g id="Interface / Checkbox_Check">
+                                  <path id="Vector"
+                                    d="M8 12L11 15L16 9M4 16.8002V7.2002C4 6.08009 4 5.51962 4.21799 5.0918C4.40973 4.71547 4.71547 4.40973 5.0918 4.21799C5.51962 4 6.08009 4 7.2002 4H16.8002C17.9203 4 18.4796 4 18.9074 4.21799C19.2837 4.40973 19.5905 4.71547 19.7822 5.0918C20 5.5192 20 6.07899 20 7.19691V16.8036C20 17.9215 20 18.4805 19.7822 18.9079C19.5905 19.2842 19.2837 19.5905 18.9074 19.7822C18.48 20 17.921 20 16.8031 20H7.19691C6.07899 20 5.5192 20 5.0918 19.7822C4.71547 19.5905 4.40973 19.2842 4.21799 18.9079C4 18.4801 4 17.9203 4 16.8002Z"
+                                    stroke="var(--text1)" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                  </path>
                                 </g>
-                              </svg>
-                              <svg width="24" height="24" v-else viewBox="0 0 24 24" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                                <g id="SVGRepo_iconCarrier">
-                                  <g id="Interface / Checkbox_Unchecked">
-                                    <path id="Vector"
-                                      d="M4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2842 19.7822 18.9079C20 18.4805 20 17.9215 20 16.8036V7.19691C20 6.07899 20 5.5192 19.7822 5.0918C19.5905 4.71547 19.2837 4.40973 18.9074 4.21799C18.4796 4 17.9203 4 16.8002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002Z"
-                                      stroke="var(--text1)" stroke-width="2" stroke-linecap="round"
-                                      stroke-linejoin="round">
-                                    </path>
-                                  </g>
+                              </g>
+                            </svg>
+                            <svg width="20" height="20" v-else viewBox="0 0 24 24" fill="none"
+                              xmlns="http://www.w3.org/2000/svg">
+                              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                              <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                              <g id="SVGRepo_iconCarrier">
+                                <g id="Interface / Checkbox_Unchecked">
+                                  <path id="Vector"
+                                    d="M4 7.2002V16.8002C4 17.9203 4 18.4801 4.21799 18.9079C4.40973 19.2842 4.71547 19.5905 5.0918 19.7822C5.5192 20 6.07899 20 7.19691 20H16.8031C17.921 20 18.48 20 18.9074 19.7822C19.2837 19.5905 19.5905 19.2842 19.7822 18.9079C20 18.4805 20 17.9215 20 16.8036V7.19691C20 6.07899 20 5.5192 19.7822 5.0918C19.5905 4.71547 19.2837 4.40973 18.9074 4.21799C18.4796 4 17.9203 4 16.8002 4H7.2002C6.08009 4 5.51962 4 5.0918 4.21799C4.71547 4.40973 4.40973 4.71547 4.21799 5.0918C4 5.51962 4 6.08009 4 7.2002Z"
+                                    stroke="var(--text1)" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                  </path>
                                 </g>
-                              </svg>
-                            </div>
-                            <span class="checkmark"></span>
-                            {{ ticker.Name }}
-                          </label>
+                              </g>
+                            </svg>
+                          </div>
+                          <span class="watchlist-name">{{ ticker.Name }}</span>
                         </div>
                       </div>
                     </div>
@@ -1193,6 +1195,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   background-color: var(--base2);
+  border-radius: 6px;
+  margin: 0 5px 2px 5px;
 }
 
 #realwatchlist {
@@ -1209,6 +1213,9 @@ onUnmounted(() => {
   display: flex;
   flex-direction: row;
   width: 100%;
+  border-radius: 6px;
+  margin: 0 5px 2px 5px;
+  width: calc(100% - 10px);
 }
 
 #list:focus {
@@ -1219,6 +1226,8 @@ onUnmounted(() => {
   width: 100%;
   max-height: 595px;
   overflow-y: auto;
+   border-radius: 6px;
+  margin: 0 0px 2px 0px;
 }
 
 /* Classes */
@@ -1249,8 +1258,9 @@ onUnmounted(() => {
 .watchlist-dropdown-menu {
   background-color: var(--base4);
   padding: 10px;
-  border-radius: 5px;
+  border-radius: 7px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  border: 1.5px solid var(--base2);
 }
 
 .badge {
@@ -1262,6 +1272,18 @@ onUnmounted(() => {
   vertical-align: baseline;
   border-radius: 25px;
   background-color: var(--text1);
+}
+
+.watchlist-item {
+  padding: 8px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background 0.18s, color 0.18s;
+}
+
+.select-container .watchlist-dropdown-menu .watchlist-item:hover {
+  background-color: var(--base2);
+  color: var(--text1);
 }
 
 .icondlt {
@@ -1340,8 +1362,9 @@ onUnmounted(() => {
 .watchlist-dropdown-menu2 {
   background-color: var(--base4);
   padding: 5px;
-  border-radius: 5px;
+  border-radius: 7px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  border: 1.5px solid var(--base3);
 }
 
 .dropdown-item {
@@ -1351,12 +1374,15 @@ onUnmounted(() => {
   padding: 10px;
   background-color: var(--base4);
   border: none;
-  color: var(--text1);
+  color: var(--text2);
   text-align: left;
   cursor: pointer;
+  border-radius: 5px;
+  transition: background 0.18s, color 0.18s;
 }
 .dropdown-item:hover {
   background-color: var(--base2);
+  color: var(--text1);
   border-radius: 5px;
   cursor: pointer;
 }
@@ -1404,6 +1430,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   color: var(--text1);
+  border-radius: 6px;
+  margin: 0 5px 2px 5px;
 }
 .wlist:hover {
   cursor: pointer;
@@ -1438,14 +1466,14 @@ onUnmounted(() => {
   border: none;
   margin: 0;
   padding: 0;
+  margin-left: 1rem;
 }
 
 .dropdown-menu3 {
   display: none;
-  cursor: pointer;
-  width: 200px;
-  max-height: 190px;
-  overflow-y: scroll;
+  width: 180px;
+  max-height: 200px;
+  overflow-y: auto;
   position: absolute;
   z-index: 1000;
   top: -10px;
@@ -1454,28 +1482,57 @@ onUnmounted(() => {
 
 .watchlist-dropdown-menu3 {
   background-color: var(--base4);
-  padding: 7px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-  border-radius: 5px;
+  gap: 1px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-radius: 7px;
+  border: 1.5px solid var(--base3);
   z-index: 1000;
 }
-.watchlist-dropdown-menu3>div {
-  background-color: var(--base4);
-  padding: 1px;
-  height: 28px;
+
+.watchlist-checkbox-item {
   display: flex;
   align-items: center;
-}
-.watchlist-dropdown-menu3>div:hover {
-  background-color: var(--base2);
-  border-radius: 5px;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, transform 0.2s ease;
+  user-select: none;
 }
 
-.checkbox-label {
+.watchlist-checkbox-item:hover {
+  background-color: var(--base2);
+  color: var(--text1);
+  transform: translateX(1px);
+}
+
+.watchlist-checkbox-item:active {
+  transform: translateX(1px);
+}
+
+.checkbox-wrapper {
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.watchlist-checkbox-item:hover .checkbox-wrapper {
+  transform: scale(1.1);
+}
+
+.watchlist-name {
+  flex: 1;
+  font-size: 1rem;
+  color: var(--text1);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .empty-list-message {

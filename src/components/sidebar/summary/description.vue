@@ -26,4 +26,16 @@ const minHeight = '48px';
 
 <style lang="scss">
 
+.toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text1);
+  font-weight: bold;
+  background-color: var(--base2);
+  cursor: pointer;
+  padding: 5px;
+  font-size: 0.9em;
+  border-radius: 0 0 6px 6px;
+}
+
 </style>

@@ -1,6 +1,6 @@
 <template>
-   <h1 class="title3">DAILY CHART</h1>
                                 <div class="chart-container">
+                                  <h1 class="badge">DAILY CHART</h1>
                                   <div class="loading-container2" v-if="isChartLoading2 || isLoading2">
                                     <Loader />
                                   </div>
@@ -209,8 +209,14 @@ async function fetchChartDataWS(symbolParam: string | null): Promise<void> {
 
 // Unified fetchChartData function with immediate fallback logic
 async function fetchChartData(symbolParam: string | null, before: string | number | null = null, append: boolean = false): Promise<void> {
-  isChartLoading2.value = true;
-  await fetchChartDataWS(symbolParam);
+  if (!append) isChartLoading2.value = true;
+  if (append) {
+    // For lazy loading, use REST API directly
+    await fetchChartDataREST(symbolParam, before, append);
+  } else {
+    // For initial load, use WebSocket
+    await fetchChartDataWS(symbolParam);
+  }
 }
 
 
@@ -471,10 +477,26 @@ onUnmounted(() => {
   padding: 7px 3px;
 }
 
+.badge {
+  position: absolute;
+  top: 5px;
+  left: 10px;
+  background-color: var(--base2);
+  color: var(--text1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 9;
+}
+
 .chart-container {
   position: relative;
   width: 100%;
   height: 250px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .loading-container2 {
@@ -492,14 +514,6 @@ onUnmounted(() => {
 
 .hidden {
   visibility: hidden;
-}
-
-h1 {
-  background-color: var(--base2);
-  color: var(--text2);
-  text-align: center;
-  padding: 3.5px;
-  margin: 0;
 }
 
 #dl-chart {

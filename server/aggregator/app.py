@@ -6,7 +6,7 @@ from fastapi import FastAPI, Response
 from redis.asyncio import from_url as redis_from_url
 import motor.motor_asyncio
 from urllib.parse import urlparse, urlunparse
-from prometheus_client import Counter, Gauge, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Counter, Gauge, generate_latest, CONTENT_TYPE_LATEST, Histogram
 import pytz
 
 from server.aggregator import aggregator as aggregator_mod
@@ -25,6 +25,14 @@ logger = logging.getLogger('aggregator_server')
 # Prometheus metrics
 aggregator_requests = Counter('aggregator_requests_total', 'Total requests to aggregator')
 aggregator_health = Gauge('aggregator_health_status', 'Health status of aggregator (1=healthy, 0=unhealthy)')
+
+# Upload performance metrics
+upload_success_total = Counter('aggregator_upload_success_total', 'Total successful candle uploads', ['collection'])
+upload_failed_total = Counter('aggregator_upload_failed_total', 'Total failed candle uploads', ['collection'])
+upload_invalid_total = Counter('aggregator_upload_invalid_total', 'Total invalid candles filtered', ['collection'])
+upload_batch_size = Histogram('aggregator_upload_batch_size', 'Upload batch sizes', ['collection'])
+upload_duration_seconds = Histogram('aggregator_upload_duration_seconds', 'Upload duration in seconds', ['collection'])
+pending_candles_gauge = Gauge('aggregator_pending_candles', 'Number of pending candles in memory', ['type'])
 
 # Filter out health check/metrics logs from uvicorn access logger
 class HealthCheckFilter(logging.Filter):
@@ -68,8 +76,18 @@ async def startup():
 
     # create motor client and verify connectivity; if configured for Docker hostnames
     # and the host is unreachable in local dev, attempt a localhost fallback.
+    # OPTIMIZED: Configure connection pool for high throughput with parallel workers
     try:
-        app.state.mongo_client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URI)
+        app.state.mongo_client = motor.motor_asyncio.AsyncIOMotorClient(
+            MONGO_URI,
+            maxPoolSize=100,  # Increased to support 8 parallel upload workers
+            minPoolSize=20,  # Keep more connections warm for workers
+            maxIdleTimeMS=45000,  # Keep idle connections for 45s
+            serverSelectionTimeoutMS=5000,  # Faster timeout for connection issues
+            retryWrites=True,  # Enable automatic write retries
+            w=1,  # Acknowledge from primary only (faster, less strict than 'majority')
+            journal=False  # Disable journaling for speed (accept some risk)
+        )
         try:
             await app.state.mongo_client.admin.command('ping')
             logger.debug('Mongo ping successful')
@@ -84,7 +102,16 @@ async def startup():
                     new_netloc = 'localhost' + (f":{port}" if port else '')
                     alt = urlunparse((p.scheme, new_netloc, p.path or '', p.params or '', p.query or '', p.fragment or ''))
                     logger.debug(f"Attempting Mongo fallback to {alt}")
-                    app.state.mongo_client = motor.motor_asyncio.AsyncIOMotorClient(alt)
+                    app.state.mongo_client = motor.motor_asyncio.AsyncIOMotorClient(
+                        alt,
+                        maxPoolSize=100,
+                        minPoolSize=20,
+                        maxIdleTimeMS=45000,
+                        serverSelectionTimeoutMS=5000,
+                        retryWrites=True,
+                        w=1,
+                        journal=False
+                    )
                     await app.state.mongo_client.admin.command('ping')
                     logger.debug('Mongo fallback ping successful')
                     MONGO_URI = alt
@@ -100,6 +127,18 @@ async def startup():
         aggregator_mod.redis_pub = app.state.redis_client
     except Exception:
         logger.exception('Failed to set aggregator_mod.redis_pub')
+    
+    # Connect Prometheus metrics to aggregator module
+    try:
+        aggregator_mod.metrics_callbacks['upload_success'] = lambda coll, count: upload_success_total.labels(collection=coll).inc(count)
+        aggregator_mod.metrics_callbacks['upload_failed'] = lambda coll, count: upload_failed_total.labels(collection=coll).inc(count)
+        aggregator_mod.metrics_callbacks['upload_invalid'] = lambda coll, count: upload_invalid_total.labels(collection=coll).inc(count)
+        aggregator_mod.metrics_callbacks['upload_batch_size'] = lambda coll, size: upload_batch_size.labels(collection=coll).observe(size)
+        aggregator_mod.metrics_callbacks['upload_duration'] = lambda coll, duration: upload_duration_seconds.labels(collection=coll).observe(duration)
+        aggregator_mod.metrics_callbacks['pending_candles'] = lambda candle_type, count: pending_candles_gauge.labels(type=candle_type).set(count)
+        logger.debug('Connected Prometheus metrics to aggregator module')
+    except Exception:
+        logger.exception('Failed to connect metrics callbacks')
 
     app.state.queue = asyncio.Queue()
 

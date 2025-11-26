@@ -1,170 +1,224 @@
 <template>
-  <div :class="[showPricePerfModel ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Price Performance</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                aria-label="Price Performance Info" @mouseover="handleMouseOver($event, 'perf')" @mouseout="handleMouseOut">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showPricePerfModel" style="border: none;" aria-label="Toggle Price Performance">
-              <span class="slider round"></span>
-            </label>
+  <div :class="[showPricePerfModel ? 'param-card-expanded' : 'param-card']">
+    <div class="header">
+      <div class="title-section">
+        <span class="title">Price Performance</span>
+        <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+          @mouseover="handleMouseOver($event, 'perf')" @mouseout="handleMouseOut($event)" aria-label="Show info for Price Performance parameter">
+          <path
+            d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M12 18.01L12.01 17.9989" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round"></path>
+        </svg>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="price-check" v-model="showPricePerfModel" aria-label="Toggle Price Performance filter">
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="content" v-if="showPricePerfModel">
+      <div class="perf-section">
+        <div class="section-title">Change %</div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <label class="input-label">Minimum</label>
+            <input class="input-field" id="changeperc1" type="number" step="0.01" placeholder="0.00" aria-label="Change Percent minimum">
           </div>
-          <div style="border: none;" v-if="showPricePerfModel">
-            <div class="DataInputs11">
-              <p style="text-align: center;">Change %</p>
-              <div style="display: flex; justify-content: center; align-items: center; border: none;">
-                <input class="input" id="changeperc1" type="text" style="width: 70px; margin: 0 5px;" placeholder="Min" aria-label="Change Percent Min">
-                <input class="input" id="changeperc2" type="text" style="width: 70px; margin: 0 5px;" placeholder="Max" aria-label="Change Percent Max">
-                <div class="changeperc-select-container">
-                  <div class="changeperc-dropdown-btn" aria-label="Change Percent Select">
-                    <p class="selected-value">{{ changepercSelect }}</p>
-                  </div>
-                  <div class="changeperc-dropdown-menu">
-                    <div v-for="(option, index) in changepercOptions" :key="index"
-                      @click="selectChangepercOption(option)" aria-label="Change Percent Option">
-                      {{ option }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div style="border: none;">
-                <p style="text-align: center;">% off 52weekhigh</p>
-                <div style="display: flex; justify-content: center; align-items: center; border:none;">
-                  <input class="input" type="text" id="weekhigh1" style="width: 70px; margin: 0 5px;" placeholder="Min" aria-label="52 Week High Min">
-                  <input class="input" type="text" id="weekhigh2" style="width: 70px; margin: 0 5px;" placeholder="Max" aria-label="52 Week High Max">
-                </div>
-                <p style="text-align: center;">% off 52weeklow</p>
-                <div style="display: flex; justify-content: center; align-items: center; border:none;">
-                  <input class="input" type="text" id="weeklow1" style="width: 70px; margin: 0 5px;" placeholder="Min" aria-label="52 Week Low Min">
-                  <input class="input" type="text" id="weeklow2" style="width: 70px; margin: 0 5px;" placeholder="Max" aria-label="52 Week Low Max">
-                </div>
-              </div>
-              <div style="display: flex; flex-direction: column; align-items: center; border:none;">
-                <br>
-                <div class="custom-checkbox" :class="{ checked: allTimeHigh }" @click="toggleAllTimeHigh" aria-label="New All Time High">
-                  <span class="checkmark"></span>
-                  New All time High
-                </div>
-                <div class="custom-checkbox" :class="{ checked: allTimeLow }" @click="toggleAllTimeLow" aria-label="New All Time Low">
-                  <span class="checkmark"></span>
-                  New All time Low
-                </div>
-              </div>
-              <br>
-              <div style="display: flex; flex-direction: column; align-items: center; border: none;">
-                <div style="display: flex; align-items: center; border: none;">
-                  <p style="margin-right: 10px;">200 DMA</p>
-                  <div class="ma200-select-container">
-                    <div class="ma200-dropdown-btn" aria-label="200 DMA Select">
-                      <p class="selected-value">{{ ma200Select }}</p>
-                    </div>
-                    <div class="ma200-dropdown-menu">
-                      <div v-for="(option, index) in ma200Options" :key="index" @click="selectMa200Option(option)" aria-label="200 DMA Option">
-                        {{ option }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div style="display: flex; align-items: center; border: none;">
-                  <p style="margin-right: 10px;">50 DMA</p>
-                  <div class="ma50-select-container">
-                    <div class="ma50-dropdown-btn" aria-label="50 DMA Select">
-                      <p class="selected-value">{{ ma50Select }}</p>
-                    </div>
-                    <div class="ma50-dropdown-menu">
-                      <div v-for="(option, index) in ma50Options" :key="index" @click="selectMa50Option(option)" aria-label="50 DMA Option">
-                        {{ option }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div style="display: flex; align-items: center; border: none;">
-                  <p style="margin-right: 10px;">20 DMA</p>
-                  <div class="ma20-select-container">
-                    <div class="ma20-dropdown-btn" aria-label="20 DMA Select">
-                      <p class="selected-value">{{ ma20Select }}</p>
-                    </div>
-                    <div class="ma20-dropdown-menu">
-                      <div v-for="(option, index) in ma20Options" :key="index" @click="selectMa20Option(option)" aria-label="20 DMA Option">
-                        {{ option }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div style="display: flex; align-items: center; border: none;">
-                  <p style="margin-right: 10px;">10 DMA</p>
-                  <div class="ma10-select-container">
-                    <div class="ma10-dropdown-btn" aria-label="10 DMA Select">
-                      <p class="selected-value">{{ ma10Select }}</p>
-                    </div>
-                    <div class="ma10-dropdown-menu">
-                      <div v-for="(option, index) in ma10Options" :key="index" @click="selectMa10Option(option)" aria-label="10 DMA Option">
-                        {{ option }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div style="display: flex; align-items: center; border: none;">
-                  <p style="margin-right: 10px;">Price</p>
-                  <div class="price-select-container">
-                    <div class="price-dropdown-btn" aria-label="Price Select">
-                      <p class="selected-value">{{ priceSelect }}</p>
-                    </div>
-                    <div class="price-dropdown-menu">
-                      <div v-for="(option, index) in priceOptions" :key="index" @click="selectPriception(option)" aria-label="Price Option">
-                        {{ option }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetPricePerformance()" aria-label="Set Price Performance">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
+          <div class="input-wrapper">
+            <label class="input-label">Maximum</label>
+            <input class="input-field" id="changeperc2" type="number" step="0.01" placeholder="0.00" aria-label="Change Percent maximum">
+          </div>
+          <div class="input-wrapper">
+            <label class="input-label">Period</label>
+            <div class="dropdown-container">
+              <div class="dropdown-btn" @click="toggleChangepercDropdown" aria-label="Select Change Percent period">
+                <span class="selected-value">{{ changepercDisplay }}</span>
+                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showPricePerf', false)" aria-label="Reset Price Performance">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
+              </div>
+              <div class="dropdown-menu" v-show="changepercDropdownOpen">
+                <div
+                  v-for="option in changepercOptions"
+                  :key="option.value"
+                  class="dropdown-item"
+                  @click="selectChangepercOption(option)"
+                >
+                  {{ option.display }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+      
+      <div class="perf-section">
+        <div class="section-title">% off 52weekhigh</div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <label class="input-label">Minimum</label>
+            <input class="input-field" id="weekhigh1" type="number" step="0.01" placeholder="0.00" aria-label="52 Week High minimum">
+          </div>
+          <div class="input-wrapper">
+            <label class="input-label">Maximum</label>
+            <input class="input-field" id="weekhigh2" type="number" step="0.01" placeholder="0.00" aria-label="52 Week High maximum">
+          </div>
+        </div>
+      </div>
+      
+      <div class="perf-section">
+        <div class="section-title">% off 52weeklow</div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <label class="input-label">Minimum</label>
+            <input class="input-field" id="weeklow1" type="number" step="0.01" placeholder="0.00" aria-label="52 Week Low minimum">
+          </div>
+          <div class="input-wrapper">
+            <label class="input-label">Maximum</label>
+            <input class="input-field" id="weeklow2" type="number" step="0.01" placeholder="0.00" aria-label="52 Week Low maximum">
+          </div>
+        </div>
+      </div>
+      
+      <div class="perf-section">
+        <div class="section-title">All Time Records</div>
+        <div class="checkbox-group">
+          <label class="custom-checkbox" :class="{ checked: allTimeHigh }" @click="toggleAllTimeHigh" aria-label="New All Time High">
+            <span class="checkmark"></span>
+            New All Time High
+          </label>
+          <label class="custom-checkbox" :class="{ checked: allTimeLow }" @click="toggleAllTimeLow" aria-label="New All Time Low">
+            <span class="checkmark"></span>
+            New All Time Low
+          </label>
+        </div>
+      </div>
+      
+      <div class="perf-section">
+        <div class="section-title">Moving Averages</div>
+        <div class="ma-group">
+          <div class="ma-item">
+            <span class="ma-label">200 DMA</span>
+            <div class="dropdown-container">
+              <div class="dropdown-btn" @click="toggleMa200Dropdown" aria-label="Select 200 DMA">
+                <span class="selected-value">{{ ma200Display }}</span>
+                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="dropdown-menu" v-show="ma200DropdownOpen">
+                <div
+                  v-for="option in ma200Options"
+                  :key="option.value"
+                  class="dropdown-item"
+                  @click="selectMa200Option(option)"
+                >
+                  {{ option.display }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ma-item">
+            <span class="ma-label">50 DMA</span>
+            <div class="dropdown-container">
+              <div class="dropdown-btn" @click="toggleMa50Dropdown" aria-label="Select 50 DMA">
+                <span class="selected-value">{{ ma50Display }}</span>
+                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="dropdown-menu" v-show="ma50DropdownOpen">
+                <div
+                  v-for="option in ma50Options"
+                  :key="option.value"
+                  class="dropdown-item"
+                  @click="selectMa50Option(option)"
+                >
+                  {{ option.display }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ma-item">
+            <span class="ma-label">20 DMA</span>
+            <div class="dropdown-container">
+              <div class="dropdown-btn" @click="toggleMa20Dropdown" aria-label="Select 20 DMA">
+                <span class="selected-value">{{ ma20Display }}</span>
+                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="dropdown-menu" v-show="ma20DropdownOpen">
+                <div
+                  v-for="option in ma20Options"
+                  :key="option.value"
+                  class="dropdown-item"
+                  @click="selectMa20Option(option)"
+                >
+                  {{ option.display }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ma-item">
+            <span class="ma-label">10 DMA</span>
+            <div class="dropdown-container">
+              <div class="dropdown-btn" @click="toggleMa10Dropdown" aria-label="Select 10 DMA">
+                <span class="selected-value">{{ ma10Display }}</span>
+                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="dropdown-menu" v-show="ma10DropdownOpen">
+                <div
+                  v-for="option in ma10Options"
+                  :key="option.value"
+                  class="dropdown-item"
+                  @click="selectMa10Option(option)"
+                >
+                  {{ option.display }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ma-item">
+            <span class="ma-label">Price</span>
+            <div class="dropdown-container">
+              <div class="dropdown-btn" @click="togglePriceDropdown" aria-label="Select Price">
+                <span class="selected-value">{{ priceDisplay }}</span>
+                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="dropdown-menu" v-show="priceDropdownOpen">
+                <div
+                  v-for="option in priceOptions"
+                  :key="option.value"
+                  class="dropdown-item"
+                  @click="selectPriception(option)"
+                >
+                  {{ option.display }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="actions">
+        <button class="btn btn-secondary" @click="emit('reset'); emit('update:showPricePerf', false)" aria-label="Reset Price Performance filter">
+          Reset
+        </button>
+        <button class="btn btn-primary" @click="SetPricePerformance()" aria-label="Set Price Performance filter">
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -196,74 +250,74 @@ const showPricePerfModel = computed({
   set: (val: boolean) => emit('update:showPricePerf', val)
 });
 const changepercOptions = ref([
-  '-',
-  '1D',
-  '1W',
-  '1M',
-  '4M',
-  '6M',
-  '1Y',
-  'YTD'
+  { display: '-', value: '-' },
+  { display: '1 Day', value: '1D' },
+  { display: '1 Week', value: '1W' },
+  { display: '1 Month', value: '1M' },
+  { display: '4 Months', value: '4M' },
+  { display: '6 Months', value: '6M' },
+  { display: '1 Year', value: '1Y' },
+  { display: 'Year to Date', value: 'YTD' }
 ]);
 
 const ma200Options = ref([
-  '-',
-  'abv50',
-  'abv20',
-  'abv10',
-  'abvPrice',
-  'blw50',
-  'blw20',
-  'blw10',
-  'blwPrice'
+  { display: '-', value: '-' },
+  { display: 'Above 50DMA', value: 'abv50' },
+  { display: 'Above 20DMA', value: 'abv20' },
+  { display: 'Above 10DMA', value: 'abv10' },
+  { display: 'Above Price', value: 'abvPrice' },
+  { display: 'Below 50DMA', value: 'blw50' },
+  { display: 'Below 20DMA', value: 'blw20' },
+  { display: 'Below 10DMA', value: 'blw10' },
+  { display: 'Below Price', value: 'blwPrice' }
 ]);
 
 const ma50Options = ref([
-  '-',
-  'abv200',
-  'abv20',
-  'abv10',
-  'abvPrice',
-  'blw200',
-  'blw20',
-  'blw10',
-  'blwPrice'
+  { display: '-', value: '-' },
+  { display: 'Above 200DMA', value: 'abv200' },
+  { display: 'Above 20DMA', value: 'abv20' },
+  { display: 'Above 10DMA', value: 'abv10' },
+  { display: 'Above Price', value: 'abvPrice' },
+  { display: 'Below 200DMA', value: 'blw200' },
+  { display: 'Below 20DMA', value: 'blw20' },
+  { display: 'Below 10DMA', value: 'blw10' },
+  { display: 'Below Price', value: 'blwPrice' }
 ]);
 
 const ma20Options = ref([
-  '-',
-  'abv200',
-  'abv50',
-  'abv10',
-  'abvPrice',
-  'blw200',
-  'blw50',
-  'blw10',
-  'blwPrice'
+  { display: '-', value: '-' },
+  { display: 'Above 200DMA', value: 'abv200' },
+  { display: 'Above 50DMA', value: 'abv50' },
+  { display: 'Above 10DMA', value: 'abv10' },
+  { display: 'Above Price', value: 'abvPrice' },
+  { display: 'Below 200DMA', value: 'blw200' },
+  { display: 'Below 50DMA', value: 'blw50' },
+  { display: 'Below 10DMA', value: 'blw10' },
+  { display: 'Below Price', value: 'blwPrice' }
 ]);
 
 const ma10Options = ref([
-  '-',
-  'abv200',
-  'abv50',
-  'abv20',
-  'abvPrice',
-  'blw200',
-  'blw50',
-  'blw20',
-  'blwPrice'
+  { display: '-', value: '-' },
+  { display: 'Above 200DMA', value: 'abv200' },
+  { display: 'Above 50DMA', value: 'abv50' },
+  { display: 'Above 20DMA', value: 'abv20' },
+  { display: 'Above Price', value: 'abvPrice' },
+  { display: 'Below 200DMA', value: 'blw200' },
+  { display: 'Below 50DMA', value: 'blw50' },
+  { display: 'Below 20DMA', value: 'blw20' },
+  { display: 'Below Price', value: 'blwPrice' }
 ]);
 
 const priceOptions = ref([
-  '-',
-  'abv200',
-  'abv50',
-  'abv20',
-  'abv10',
-  'blw200',
-  'blw50',
-  'blw20',
-  'blw10'
+  { display: '-', value: '-' },
+  { display: 'Above 200DMA', value: 'abv200' },
+  { display: 'Above 50DMA', value: 'abv50' },
+  { display: 'Above 20DMA', value: 'abv20' },
+  { display: 'Above 10DMA', value: 'abv10' },
+  { display: 'Below 200DMA', value: 'blw200' },
+  { display: 'Below 50DMA', value: 'blw50' },
+  { display: 'Below 20DMA', value: 'blw20' },
+  { display: 'Below 10DMA', value: 'blw10' }
 ]);
 
 const changepercSelect = ref('-');
@@ -273,28 +327,108 @@ const ma20Select = ref('-');
 const ma10Select = ref('-');
 const priceSelect = ref('-');
 
-function selectChangepercOption(option: string) {
-  changepercSelect.value = option;
+const changepercDisplay = ref('-');
+const ma200Display = ref('-');
+const ma50Display = ref('-');
+const ma20Display = ref('-');
+const ma10Display = ref('-');
+const priceDisplay = ref('-');
+
+const changepercDropdownOpen = ref<boolean>(false);
+const ma200DropdownOpen = ref<boolean>(false);
+const ma50DropdownOpen = ref<boolean>(false);
+const ma20DropdownOpen = ref<boolean>(false);
+const ma10DropdownOpen = ref<boolean>(false);
+const priceDropdownOpen = ref<boolean>(false);
+
+function selectChangepercOption(option: { display: string; value: string }) {
+  changepercSelect.value = option.value;
+  changepercDisplay.value = option.display;
+  changepercDropdownOpen.value = false;
 }
 
-function selectMa200Option(option: string) {
-  ma200Select.value = option;
+function selectMa200Option(option: { display: string; value: string }) {
+  ma200Select.value = option.value;
+  ma200Display.value = option.display;
+  ma200DropdownOpen.value = false;
 }
 
-function selectMa50Option(option: string) {
-  ma50Select.value = option;
+function selectMa50Option(option: { display: string; value: string }) {
+  ma50Select.value = option.value;
+  ma50Display.value = option.display;
+  ma50DropdownOpen.value = false;
 }
 
-function selectMa20Option(option: string) {
-  ma20Select.value = option;
+function selectMa20Option(option: { display: string; value: string }) {
+  ma20Select.value = option.value;
+  ma20Display.value = option.display;
+  ma20DropdownOpen.value = false;
 }
 
-function selectMa10Option(option: string) {
-  ma10Select.value = option;
+function selectMa10Option(option: { display: string; value: string }) {
+  ma10Select.value = option.value;
+  ma10Display.value = option.display;
+  ma10DropdownOpen.value = false;
 }
 
-function selectPriception(option: string) {
-  priceSelect.value = option;
+function selectPriception(option: { display: string; value: string }) {
+  priceSelect.value = option.value;
+  priceDisplay.value = option.display;
+  priceDropdownOpen.value = false;
+}
+
+function toggleChangepercDropdown() {
+  changepercDropdownOpen.value = !changepercDropdownOpen.value;
+  ma200DropdownOpen.value = false;
+  ma50DropdownOpen.value = false;
+  ma20DropdownOpen.value = false;
+  ma10DropdownOpen.value = false;
+  priceDropdownOpen.value = false;
+}
+
+function toggleMa200Dropdown() {
+  ma200DropdownOpen.value = !ma200DropdownOpen.value;
+  changepercDropdownOpen.value = false;
+  ma50DropdownOpen.value = false;
+  ma20DropdownOpen.value = false;
+  ma10DropdownOpen.value = false;
+  priceDropdownOpen.value = false;
+}
+
+function toggleMa50Dropdown() {
+  ma50DropdownOpen.value = !ma50DropdownOpen.value;
+  changepercDropdownOpen.value = false;
+  ma200DropdownOpen.value = false;
+  ma20DropdownOpen.value = false;
+  ma10DropdownOpen.value = false;
+  priceDropdownOpen.value = false;
+}
+
+function toggleMa20Dropdown() {
+  ma20DropdownOpen.value = !ma20DropdownOpen.value;
+  changepercDropdownOpen.value = false;
+  ma200DropdownOpen.value = false;
+  ma50DropdownOpen.value = false;
+  ma10DropdownOpen.value = false;
+  priceDropdownOpen.value = false;
+}
+
+function toggleMa10Dropdown() {
+  ma10DropdownOpen.value = !ma10DropdownOpen.value;
+  changepercDropdownOpen.value = false;
+  ma200DropdownOpen.value = false;
+  ma50DropdownOpen.value = false;
+  ma20DropdownOpen.value = false;
+  priceDropdownOpen.value = false;
+}
+
+function togglePriceDropdown() {
+  priceDropdownOpen.value = !priceDropdownOpen.value;
+  changepercDropdownOpen.value = false;
+  ma200DropdownOpen.value = false;
+  ma50DropdownOpen.value = false;
+  ma20DropdownOpen.value = false;
+  ma10DropdownOpen.value = false;
 }
 
 const allTimeHigh = ref(false);
@@ -320,6 +454,13 @@ watch(() => props.initialSettings, (val) => {
     ma20Select.value = val.MA20?.[2] ?? ma20Select.value;
     ma10Select.value = val.MA10?.[2] ?? ma10Select.value;
     priceSelect.value = val.CurrentPrice?.[2] ?? priceSelect.value;
+    // Set display values
+    changepercDisplay.value = changepercOptions.value.find(opt => opt.value === changepercSelect.value)?.display ?? '-';
+    ma200Display.value = ma200Options.value.find(opt => opt.value === ma200Select.value)?.display ?? '-';
+    ma50Display.value = ma50Options.value.find(opt => opt.value === ma50Select.value)?.display ?? '-';
+    ma20Display.value = ma20Options.value.find(opt => opt.value === ma20Select.value)?.display ?? '-';
+    ma10Display.value = ma10Options.value.find(opt => opt.value === ma10Select.value)?.display ?? '-';
+    priceDisplay.value = priceOptions.value.find(opt => opt.value === priceSelect.value)?.display ?? '-';
     // set numeric inputs if provided
     const setVal = (id: string, v: any) => {
       const el = document.getElementById(id) as HTMLInputElement | null;
@@ -499,117 +640,80 @@ async function SetPricePerformance() {
 </script>
 
 <style scoped>
-
-.param-s1 {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
+/* Card Container */
+.param-card {
   background-color: var(--base2);
-  border: none;
-  height: 20px;
-  position: relative;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 4px 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.param-s1-expanded {
-   margin: 3px;
-  padding: 5px;
-  color: var(--text2);
+.param-card:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border-color: var(--base3);
+}
+
+.param-card-expanded {
   background-color: var(--base2);
-  border: none;
-  height: 450px;
-  position: relative;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 4px 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  border: 1px solid var(--base3);
 }
 
-.btns {
+/* Header Section */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.title-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text1);
+  letter-spacing: 0.01em;
   background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 89%;
 }
 
-.btnsr {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 80%;
-}
-
-.row {
-  border: none;
-  margin: none;
-  padding: none;
-}
-
-.left {
-  border: none;
-  outline: none;
-  display: inline-flex;
-  width: 100px;
-  height: 15px;
-  margin: 5px;
-  position: absolute;
-  top: 35%;
-  left: 2%;
-}
-
-.right {
-  border: none;
-  outline: none;
-  display: inline-flex;
-  width: 100px;
-  height: 15px;
-  margin: 5px;
-  position: absolute;
-  top: 60%;
-  left: 2%;
-}
-
-.iconbtn {
-  width: 15px;
-  height: 15px;
-  opacity: 0.60;
+.info-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--text2);
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-.iconbtn:hover {
-  opacity: 1;
+.info-icon:hover {
+  color: var(--text1);
 }
 
-.question-img {
-  width: 15px;
-  cursor: pointer;
-  margin-left: 5px;
-}
-
-label,
-input,
-p {
-  border: none;
-}
-
+/* Toggle Switch */
 .switch {
   position: relative;
   display: inline-block;
-  width: 40px;
-  height: 20px;
-  margin: none;
-  padding: none;
+  width: 34px;
+  height: 18px;
 }
 
-/* Hide default HTML checkbox */
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
-  margin: none;
-  padding: none;
 }
 
-/* The slider */
 .slider {
   position: absolute;
   cursor: pointer;
@@ -618,234 +722,295 @@ p {
   right: 0;
   bottom: 0;
   background-color: var(--base3);
-  -webkit-transition: .3s;
-  transition: .3s;
-  margin: none;
-  padding: none;
+  transition: 0.2s;
+  border-radius: 18px;
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 13px;
-  width: 13px;
-  left: 2px;
-  bottom: 3.5px;
-  background-color: var(--text3);
-  -webkit-transition: .3s;
-  transition: .3s;
-  margin: none;
-  padding: none;
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--text2);
+  transition: 0.2s;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-input:checked+.slider {
+input:checked + .slider {
   background-color: var(--accent1);
 }
 
-input:focus+.slider {
-  box-shadow: 0 0 1px var(--accent1);
+input:checked + .slider:before {
+  transform: translateX(16px);
+  background-color: var(--text3);
 }
 
-input:checked+.slider:before {
-  -webkit-transform: translateX(13px);
-  -ms-transform: translateX(13px);
-  transform: translateX(22px);
+/* Content Section */
+.content {
+  margin-top: 10px;
+  animation: slideDown 0.2s ease;
 }
 
-/* Rounded sliders */
-.slider.round {
-  border-radius: 17px;
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.slider.round:before {
-  border-radius: 50%;
+/* Performance Sections */
+.perf-section {
+  margin-bottom: 12px;
 }
 
-.input {
-  border-radius: 5px;
-  padding: 5px 5px 5px 15px;
-  margin: 7px;
-  width: 160px;
-  outline: none;
+.perf-section:last-child {
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+}
+
+/* Input Group */
+.input-group {
+  display: flex;
+  gap: 6px;
+  align-items: end;
+}
+
+.input-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.input-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.input-field {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
   color: var(--text1);
-  transition: border-color 0.3s, box-shadow 0.3s;
-  border: solid 1px var(--base4);
+  background-color: var(--base3);
+  border: 1px solid var(--base4);
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.input-field::placeholder {
+  color: var(--text2);
+  opacity: 0.6;
+}
+
+.input-field:focus {
   background-color: var(--base4);
 }
 
-.input:focus {
-  border-color: var(--accent1);
-  outline: none;
+.input-field:hover:not(:focus) {
+  border-color: var(--text2);
+}
+
+/* Dropdown */
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--text1);
+  background-color: var(--base3);
+  border: 1px solid var(--base4);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 60px;
+}
+
+.dropdown-btn:hover {
+  background-color: var(--base4);
+  border-color: var(--text2);
+}
+
+.dropdown-arrow {
+  width: 12px;
+  height: 12px;
+  color: var(--text2);
+  transition: transform 0.2s ease;
+}
+
+.dropdown-container:hover .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--base2);
+  border: 1px solid var(--base4);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  margin-top: 2px;
+}
+
+.dropdown-item {
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--text1);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: var(--base3);
+}
+
+/* Checkbox Group */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .custom-checkbox {
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 5px;
-  opacity: 0.7;
-  transition: opacity 0.3s;
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  background-color: var(--base3);
+  border: 1px solid var(--base4);
+}
+
+.custom-checkbox:hover {
+  background-color: var(--base4);
+  border-color: var(--text2);
 }
 
 .custom-checkbox.checked {
-  color: var(--text1);
-  opacity: 1;
-}
-
-.checkmark {
-  width: 8px;
-  height: 8px;
-  background-color: var(--text1);
-  border-radius: 50%;
-  margin-right: 5px;
-  display: inline-block;
-  transition: background-color 0.3s, border-color 0.3s;
-}
-
-.custom-checkbox.checked .checkmark {
   background-color: var(--accent1);
+  color: var(--text3);
   border-color: var(--accent1);
 }
 
-.custom-checkbox.checked {
+.checkmark {
+  width: 10px;
+  height: 10px;
+  background-color: var(--text2);
+  border-radius: 50%;
+  margin-right: 8px;
+  display: inline-block;
+  transition: all 0.2s ease;
+  border: 2px solid var(--text2);
+}
+
+.custom-checkbox.checked .checkmark {
+  background-color: var(--text3);
+  border-color: var(--text3);
+}
+
+/* MA Group */
+.ma-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.ma-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background-color: var(--base3);
+  border: 1px solid var(--base4);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.ma-item:hover {
+  background-color: var(--base4);
+  border-color: var(--text2);
+}
+
+.ma-label {
+  font-size: 11px;
+  font-weight: 500;
   color: var(--text1);
 }
 
-.DataInputs11 {
-  position: absolute;
-  left: 10%;
-  top: 10%;
+/* Actions */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.btn {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 500;
   border: none;
-}
-
-.DataInputs11 p {
-  font-weight: bold;
-}
-
-.changeperc-select-container {
-  position: relative;
-  background-color: var(--base2);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  width: 20px;
-  height: 5px;
-  border-radius: 5px;
-  margin-left: 4px;
-  padding: 7px;
-  z-index: 1000;
-  border: solid 2px var(--base1);
-}
-
-.changeperc-dropdown-btn {
-  background-color: transparent;
-  border: none;
+  border-radius: 4px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.01em;
 }
 
-.changeperc-dropdown-menu {
-  display: none;
-  cursor: pointer;
-  width: 125px;
-  position: absolute;
-  z-index: 1000;
-  top: -10px;
-  left: 20px;
+.btn-secondary {
+  background-color: var(--base3);
+  color: var(--text2);
+  font-weight: 600;
 }
 
-.changeperc-dropdown-menu>div {
-  background-color: var(--base1);
-  padding: 5px;
-  height: 14px;
-  display: flex;
-  align-items: center;
-}
-
-.changeperc-dropdown-menu>div:hover {
-  background-color: var(--base2);
-}
-
-.changeperc-dropdown-btn:hover+.changeperc-dropdown-menu,
-.changeperc-dropdown-menu:hover {
-  display: block;
-}
-
-.ma200-select-container,
-.ma50-select-container,
-.ma20-select-container,
-.ma10-select-container,
-.price-select-container {
-  position: relative;
-  background-color: var(--base2);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  width: 40px;
-  height: 5px;
-  border-radius: 5px;
-  margin-left: 4px;
-  padding: 7px;
-  border: solid 2px var(--base1);
-}
-
-.ma200-dropdown-btn,
-.ma50-dropdown-btn,
-.ma20-dropdown-btn,
-.ma10-dropdown-btn,
-.price-dropdown-btn {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.ma200-dropdown-menu,
-.ma50-dropdown-menu,
-.ma20-dropdown-menu,
-.ma10-dropdown-menu,
-.price-dropdown-menu {
-  display: none;
-  cursor: pointer;
-  width: 125px;
-  position: absolute;
-  z-index: 1000;
-  top: -10px;
-  left: 20px;
-}
-
-.ma200-dropdown-menu>div,
-.ma50-dropdown-menu>div,
-.ma20-dropdown-menu>div,
-.ma10-dropdown-menu>div,
-.price-dropdown-menu>div {
-  background-color: var(--base1);
-  padding: 5px;
-  height: 14px;
-  display: flex;
-  align-items: center;
-}
-
-.ma200-dropdown-menu>div:hover,
-.ma50-dropdown-menu>div:hover,
-.ma20-dropdown-menu>div:hover,
-.ma10-dropdown-menu>div:hover,
-.price-dropdown-menu>div:hover {
-  background-color: var(--base2);
+.btn-secondary:hover {
+  background-color: var(--base4);
   color: var(--text1);
 }
 
-.ma200-dropdown-btn:hover+.ma200-dropdown-menu,
-.ma200-dropdown-menu:hover,
-.ma50-dropdown-btn:hover+.ma50-dropdown-menu,
-.ma50-dropdown-menu:hover,
-.ma20-dropdown-btn:hover+.ma20-dropdown-menu,
-.ma20-dropdown-menu:hover,
-.ma10-dropdown-btn:hover+.ma10-dropdown-menu,
-.ma10-dropdown-menu:hover,
-.price-dropdown-btn:hover+.price-dropdown-menu,
-.price-dropdown-menu:hover {
-  display: block;
+.btn-secondary:active {
+  transform: scale(0.98);
 }
 
+.btn-primary {
+  background-color: var(--accent1);
+  color: var(--text3);
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  box-shadow: 0 1px 4px rgba(var(--accent1-rgb, 59, 130, 246), 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
 </style>

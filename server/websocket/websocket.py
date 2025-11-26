@@ -1,29 +1,21 @@
 import sys
 sys.path.append('.')
-from server.aggregator.organizer import Daily
-import datetime as dt
 import os
 import json
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, Request, status, Body, Response
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-import websockets
-import ssl
 import asyncio
 import motor.motor_asyncio
-import traceback
 import logging
-from server.aggregator.aggregator import start_aggregator, pubsub_channels, get_latest_in_progress_candle
+from server.aggregator.aggregator import pubsub_channels, get_latest_in_progress_candle
 import redis.asyncio as aioredis
 import typing
-from bson import ObjectId
 from dateutil.parser import isoparse
 import datetime
 from starlette.websockets import WebSocketDisconnect
-from server.aggregator.ipo import IPO
-from pydantic import BaseModel, validator
-import re
 from prometheus_client import Counter, Gauge, generate_latest, CONTENT_TYPE_LATEST
+import pytz
 
 load_dotenv()
 
@@ -63,7 +55,8 @@ redis_client: typing.Optional[aioredis.Redis] = None
 redis_listener_task: typing.Optional[asyncio.Task] = None
 
 # Queue helpers to avoid unbounded memory growth per-client
-def make_bounded_queue(maxsize: int = 128) -> asyncio.Queue:
+def make_bounded_queue(maxsize: int = 2000) -> asyncio.Queue:
+    """Increased to 2000 for high-end VPS (32GB RAM allows larger buffers)"""
     return asyncio.Queue(maxsize=maxsize)
 
 def safe_put_nowait(q: asyncio.Queue, item) -> bool:
@@ -263,19 +256,31 @@ async def websocket_shutdown():
         except Exception:
             pass
 
-MARKET_OPEN_HOUR = 13  # UTC 13:30 (9:30am ET)
-MARKET_CLOSE_HOUR = 20  # UTC 20:00 (4:00pm ET)
-MARKET_OPEN_MINUTE = 30
-MARKET_CLOSE_MINUTE = 1
+# --- Market hours calculation (auto DST) ---
+def get_market_hours_utc():
+    et = pytz.timezone('US/Eastern')
+    now_et = datetime.datetime.now(et)
+    open_et = now_et.replace(hour=9, minute=30, second=0, microsecond=0)
+    close_et = now_et.replace(hour=16, minute=0, second=0, microsecond=0)
+    return (open_et.astimezone(pytz.UTC).hour, open_et.astimezone(pytz.UTC).minute,
+            close_et.astimezone(pytz.UTC).hour, close_et.astimezone(pytz.UTC).minute)
+
+MARKET_OPEN_H, MARKET_OPEN_M, MARKET_CLOSE_H, MARKET_CLOSE_M = get_market_hours_utc()
+logger.info(f"Market hours: {MARKET_OPEN_H}:{MARKET_OPEN_M:02d} - {MARKET_CLOSE_H}:{MARKET_CLOSE_M:02d} UTC")
 
 def is_market_hours():
     now = datetime.datetime.utcnow()
-    # Exclude weekends
-    if now.weekday() >= 5:
+    if now.weekday() >= 5:  # Weekend
         return False
-    open_time = now.replace(hour=MARKET_OPEN_HOUR, minute=MARKET_OPEN_MINUTE, second=0, microsecond=0)
-    close_time = now.replace(hour=MARKET_CLOSE_HOUR, minute=MARKET_CLOSE_MINUTE, second=0, microsecond=0)
+    open_time = now.replace(hour=MARKET_OPEN_H, minute=MARKET_OPEN_M, second=0, microsecond=0)
+    close_time = now.replace(hour=MARKET_CLOSE_H, minute=MARKET_CLOSE_M, second=0, microsecond=0)
     return open_time <= now <= close_time
+
+async def market_hours_monitor(interval=10):
+    """Monitor market hours and yield True when market is open, False when closed"""
+    while True:
+        yield is_market_hours()
+        await asyncio.sleep(interval)
 
 # --- Health check endpoints ---
 @app.get("/ready")
@@ -464,123 +469,146 @@ async def websocket_chartdata(
     except WebSocketDisconnect:
         logger.info("Client disconnected before initial chartdata could be sent.")
         return
-    if is_market_hours():
-        q = make_bounded_queue()
-        pubsub_channels[(ticker, pubsub_tf)].append(q)
-        logger.info(f"Subscribed to pubsub for {ticker} ({pubsub_tf}) [market hours]")
-        try:
-            in_progress_candle = None
-            last_in_progress_timestamp = None
-            while True:
+    
+    # Dynamic market hours monitoring
+    q = make_bounded_queue()
+    monitor = market_hours_monitor()
+    subscribed = False
+    monitor_task = None
+    
+    async def check_market_transition():
+        nonlocal subscribed
+        async for market_open in monitor:
+            if market_open and not subscribed:
+                pubsub_channels[(ticker, pubsub_tf)].append(q)
+                subscribed = True
+                logger.info(f"[Market OPEN] Subscribed to pubsub for {ticker} ({pubsub_tf})")
+            elif not market_open and subscribed:
                 try:
-                    cndl = await q.get()
-                    is_final = cndl.get('final', False)
-                    if is_final:
-                        arr.append(cndl)
-                        if length is not None and len(arr) > length:
-                            arr = arr[-length:]
-                        in_progress_candle = None
-                        last_in_progress_timestamp = None
-                    else:
-                        # Check if we moved to a new candle timestamp (new bucket started)
-                        current_timestamp = cndl.get('timestamp')
-                        if last_in_progress_timestamp is not None and current_timestamp != last_in_progress_timestamp:
-                            # New candle started but old one never finalized via pubsub
-                            # Query DB for any missing candles
-                            fresh_arr = await coll.find({'tickerID': ticker}).sort('timestamp', -1).to_list(length=length)
-                            fresh_arr = list(reversed(fresh_arr))
-                            if fresh_arr and len(fresh_arr) > len(arr):
-                                arr = fresh_arr
-                        
-                        in_progress_candle = cndl
-                        last_in_progress_timestamp = current_timestamp
-                    ohlc_arr = arr.copy()
-                    if in_progress_candle:
-                        if not ohlc_arr or ohlc_arr[-1]['timestamp'] != in_progress_candle['timestamp']:
-                            ohlc_arr.append(in_progress_candle)
-                        else:
-                            ohlc_arr[-1] = in_progress_candle
-                    ohlc = [
-                        {
-                            'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
-                            'open': float(str(item['open'])[:8]),
-                            'high': float(str(item['high'])[:8]),
-                            'low': float(str(item['low'])[:8]),
-                            'close': float(str(item['close'])[:8])
-                        }
-                        for item in ohlc_arr
-                    ]
-                    if timeframe == 'intraday1m':
-                        volume = [
-                            {
-                                'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
-                                'value': item.get('volume', 0)
-                            }
-                            for item in ohlc_arr
-                        ]
-                    else:
-                        volume = [
-                            {
-                                'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
-                                'value': item['volume']
-                            }
-                            for item in ohlc_arr
-                        ]
-                    ma_data = {}
-                    if chartSettings and isinstance(chartSettings.get('indicators'), list):
-                        for idx, indicator in enumerate(chartSettings['indicators']):
-                            if not indicator.get('visible'):
-                                continue
-                            if indicator.get('type') == 'EMA':
-                                maArr = calcEMA_py(ohlc_arr, indicator.get('timeframe', 10), timeType)
-                            else:
-                                maArr = calcMA_py(ohlc_arr, indicator.get('timeframe', 10), timeType)
-                            ma_data[f'MA{idx+1}'] = maArr
-                    else:
-                        ma_data['MA1'] = calcMA_py(ohlc_arr, 10, timeType) if ohlc_arr else []
-                        ma_data['MA2'] = calcMA_py(ohlc_arr, 20, timeType) if ohlc_arr else []
-                        ma_data['MA3'] = calcMA_py(ohlc_arr, 50, timeType) if ohlc_arr else []
-                        ma_data['MA4'] = calcMA_py(ohlc_arr, 200, timeType) if ohlc_arr else []
-                    intrinsicValue = None
-                    if chartSettings and chartSettings.get('intrinsicValue', {}).get('visible'):
-                        assetInfo = await db.AssetInfo.find_one({'Symbol': ticker})
-                        if assetInfo and 'IntrinsicValue' in assetInfo:
-                            intrinsicValue = assetInfo['IntrinsicValue']
-                    update_payload = {
-                        'ohlc': ohlc,
-                        'volume': volume,
-                        **ma_data
+                    pubsub_channels[(ticker, pubsub_tf)].remove(q)
+                except (KeyError, ValueError):
+                    pass
+                subscribed = False
+                logger.info(f"[Market CLOSED] Unsubscribed from pubsub for {ticker} ({pubsub_tf})")
+    
+    try:
+        monitor_task = asyncio.create_task(check_market_transition())
+        in_progress_candle = None
+        last_in_progress_timestamp = None
+        while True:
+            try:
+                cndl = await asyncio.wait_for(q.get(), timeout=1.0)
+            except asyncio.TimeoutError:
+                continue
+            
+            is_final = cndl.get('final', False)
+            if is_final:
+                arr.append(cndl)
+                if length is not None and len(arr) > length:
+                    arr = arr[-length:]
+                in_progress_candle = None
+                last_in_progress_timestamp = None
+            else:
+                # Check if we moved to a new candle timestamp (new bucket started)
+                current_timestamp = cndl.get('timestamp')
+                if last_in_progress_timestamp is not None and current_timestamp != last_in_progress_timestamp:
+                    # New candle started but old one never finalized via pubsub
+                    # Query DB for any missing candles
+                    fresh_arr = await coll.find({'tickerID': ticker}).sort('timestamp', -1).to_list(length=length)
+                    fresh_arr = list(reversed(fresh_arr))
+                    if fresh_arr and len(fresh_arr) > len(arr):
+                        arr = fresh_arr
+                
+                in_progress_candle = cndl
+                last_in_progress_timestamp = current_timestamp
+            ohlc_arr = arr.copy()
+            if in_progress_candle:
+                if not ohlc_arr or ohlc_arr[-1]['timestamp'] != in_progress_candle['timestamp']:
+                    ohlc_arr.append(in_progress_candle)
+                else:
+                    ohlc_arr[-1] = in_progress_candle
+            ohlc = [
+                {
+                    'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
+                    'open': float(str(item['open'])[:8]),
+                    'high': float(str(item['high'])[:8]),
+                    'low': float(str(item['low'])[:8]),
+                    'close': float(str(item['close'])[:8])
+                }
+                for item in ohlc_arr
+            ]
+            if timeframe == 'intraday1m':
+                volume = [
+                    {
+                        'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
+                        'value': item.get('volume', 0)
                     }
-                    if intrinsicValue is not None:
-                        update_payload['intrinsicValue'] = intrinsicValue
-                    try:
-                        await websocket.send_text(json.dumps({'type': 'update', 'data': update_payload}))
-                    except WebSocketDisconnect:
-                        logger.info(f"Client disconnected from /ws/chartdata: ticker={ticker}, timeframe={timeframe}, user={user}")
-                        break
-                except Exception as e:
-                    logger.error(f"Exception in /ws/chartdata loop: {e}")
-                    import traceback
-                    traceback.print_exc()
-                    try:
-                        await websocket.send_text(json.dumps({'error': str(e)}))
-                    except WebSocketDisconnect:
-                        logger.info("Client disconnected during error send.")
-                        break
-                    except Exception:
-                        pass
-                    break
-        finally:
+                    for item in ohlc_arr
+                ]
+            else:
+                volume = [
+                    {
+                        'time': item['timestamp'].isoformat()[:19] if timeType == 'datetime' else item['timestamp'].isoformat()[:10],
+                        'value': item['volume']
+                    }
+                    for item in ohlc_arr
+                ]
+            ma_data = {}
+            if chartSettings and isinstance(chartSettings.get('indicators'), list):
+                for idx, indicator in enumerate(chartSettings['indicators']):
+                    if not indicator.get('visible'):
+                        continue
+                    if indicator.get('type') == 'EMA':
+                        maArr = calcEMA_py(ohlc_arr, indicator.get('timeframe', 10), timeType)
+                    else:
+                        maArr = calcMA_py(ohlc_arr, indicator.get('timeframe', 10), timeType)
+                    ma_data[f'MA{idx+1}'] = maArr
+            else:
+                ma_data['MA1'] = calcMA_py(ohlc_arr, 10, timeType) if ohlc_arr else []
+                ma_data['MA2'] = calcMA_py(ohlc_arr, 20, timeType) if ohlc_arr else []
+                ma_data['MA3'] = calcMA_py(ohlc_arr, 50, timeType) if ohlc_arr else []
+                ma_data['MA4'] = calcMA_py(ohlc_arr, 200, timeType) if ohlc_arr else []
+            intrinsicValue = None
+            if chartSettings and chartSettings.get('intrinsicValue', {}).get('visible'):
+                assetInfo = await db.AssetInfo.find_one({'Symbol': ticker})
+                if assetInfo and 'IntrinsicValue' in assetInfo:
+                    intrinsicValue = assetInfo['IntrinsicValue']
+            update_payload = {
+                'ohlc': ohlc,
+                'volume': volume,
+                **ma_data
+            }
+            if intrinsicValue is not None:
+                update_payload['intrinsicValue'] = intrinsicValue
+            try:
+                await websocket.send_text(json.dumps({'type': 'update', 'data': update_payload}))
+            except WebSocketDisconnect:
+                logger.info(f"Client disconnected from /ws/chartdata: ticker={ticker}, timeframe={timeframe}, user={user}")
+                break
+    except WebSocketDisconnect:
+        logger.info(f"[ws/chartdata] Client disconnected: ticker={ticker}")
+    except Exception as e:
+        logger.error(f"Exception in /ws/chartdata: {e}")
+        try:
+            await websocket.send_text(json.dumps({'error': str(e)}))
+        except Exception:
+            pass
+    finally:
+        if monitor_task and not monitor_task.done():
+            monitor_task.cancel()
+            try:
+                await monitor_task
+            except asyncio.CancelledError:
+                pass
+        if subscribed:
             try:
                 pubsub_channels[(ticker, pubsub_tf)].remove(q)
             except (KeyError, ValueError):
                 pass
-            try:
-                await websocket.close()
-            except Exception:
-                pass
-    else:
-        logger.info(f"Market is closed. Not subscribing to pubsub for {ticker} ({pubsub_tf})")
+        try:
+            await websocket.close()
+        except Exception:
+            pass
 
 # --- GET latest quotes for active portfolio ---
 def sanitize_input(val):
@@ -732,24 +760,51 @@ async def websocket_watchpanel(
         await websocket.close()
         return
 
-    # --- Per-client queue and pubsub subscription ---
+    # --- Per-client queue and pubsub subscription with dynamic market hours ---
     client_queue = make_bounded_queue()
     pubsub_refs = []
     listener_tasks = []  # Track tasks for cleanup
-    for ticker in tickers:
-        async def pubsub_listener(q, t):
-            while True:
-                cndl = await q.get()
-                await client_queue.put((t, cndl))
-        q = make_bounded_queue()
-        pubsub_channels[(ticker, '1d')].append(q)
-        pubsub_refs.append((ticker, q))
-        task = asyncio.create_task(pubsub_listener(q, ticker))
-        listener_tasks.append(task)
-
+    monitor = market_hours_monitor()
+    subscribed = False
+    monitor_task = None
+    
+    async def check_market_transition_watchpanel():
+        nonlocal subscribed
+        async for market_open in monitor:
+            if market_open and not subscribed:
+                for ticker in tickers:
+                    async def pubsub_listener(q, t):
+                        while True:
+                            cndl = await q.get()
+                            await client_queue.put((t, cndl))
+                    q = make_bounded_queue()
+                    pubsub_channels[(ticker, '1d')].append(q)
+                    pubsub_refs.append((ticker, q))
+                    task = asyncio.create_task(pubsub_listener(q, ticker))
+                    listener_tasks.append(task)
+                subscribed = True
+                logger.info(f"[Market OPEN] Subscribed to watchpanel pubsub for {len(tickers)} tickers")
+            elif not market_open and subscribed:
+                for task in listener_tasks:
+                    if not task.done():
+                        task.cancel()
+                listener_tasks.clear()
+                for ticker, q in pubsub_refs:
+                    try:
+                        pubsub_channels[(ticker, '1d')].remove(q)
+                    except (KeyError, ValueError):
+                        pass
+                pubsub_refs.clear()
+                subscribed = False
+                logger.info(f"[Market CLOSED] Unsubscribed from watchpanel pubsub")
+    
     try:
+        monitor_task = asyncio.create_task(check_market_transition_watchpanel())
         while True:
-            ticker, cndl = await client_queue.get()
+            try:
+                ticker, cndl = await asyncio.wait_for(client_queue.get(), timeout=1.0)
+            except asyncio.TimeoutError:
+                continue
             prevs = last_two_closes.get(ticker, [])
             # If the update is for a new timestamp, shift previous
             if prevs and prevs[0].get('timestamp', prevs[0].get('start')) != cndl['timestamp']:
@@ -878,27 +933,52 @@ async def websocket_data_values(
     except WebSocketDisconnect:
         return
 
-    # --- Per-client queue and pubsub subscription ---
+    # --- Per-client queue and pubsub subscription with dynamic market hours ---
     client_queue = make_bounded_queue()
-    # Register a pubsub listener for each ticker that puts updates into the client queue
     pubsub_refs = []
     listener_tasks = []  # Track tasks for cleanup
-    for ticker in ticker_list:
-        async def pubsub_listener(q, t):
-            while True:
-                cndl = await q.get()
-                await client_queue.put((t, cndl))
-        q = make_bounded_queue()
-        pubsub_channels[(ticker, '1d')].append(q)
-        pubsub_refs.append((ticker, q))
-        # Start a background task for each ticker's pubsub queue and track it
-        task = asyncio.create_task(pubsub_listener(q, ticker))
-        listener_tasks.append(task)
-
+    monitor = market_hours_monitor()
+    subscribed = False
+    monitor_task = None
+    
+    async def check_market_transition_data_values():
+        nonlocal subscribed
+        async for market_open in monitor:
+            if market_open and not subscribed:
+                for ticker in ticker_list:
+                    async def pubsub_listener(q, t):
+                        while True:
+                            cndl = await q.get()
+                            await client_queue.put((t, cndl))
+                    q = make_bounded_queue()
+                    pubsub_channels[(ticker, '1d')].append(q)
+                    pubsub_refs.append((ticker, q))
+                    task = asyncio.create_task(pubsub_listener(q, ticker))
+                    listener_tasks.append(task)
+                subscribed = True
+                logger.info(f"[Market OPEN] Subscribed to data-values pubsub for {len(ticker_list)} tickers")
+            elif not market_open and subscribed:
+                for task in listener_tasks:
+                    if not task.done():
+                        task.cancel()
+                listener_tasks.clear()
+                for ticker, q in pubsub_refs:
+                    try:
+                        pubsub_channels[(ticker, '1d')].remove(q)
+                    except (KeyError, ValueError):
+                        pass
+                pubsub_refs.clear()
+                subscribed = False
+                logger.info(f"[Market CLOSED] Unsubscribed from data-values pubsub")
+    
     try:
+        monitor_task = asyncio.create_task(check_market_transition_data_values())
         while True:
             # Wait for any update from any ticker
-            ticker, cndl = await client_queue.get()
+            try:
+                ticker, cndl = await asyncio.wait_for(client_queue.get(), timeout=1.0)
+            except asyncio.TimeoutError:
+                continue
             # Use in-memory cache for last two closes, update it
             prevs = last_two_closes.get(ticker, [])
             # If the update is for a new timestamp, shift previous
@@ -943,6 +1023,13 @@ async def websocket_data_values(
         except Exception:
             pass
     finally:
+        # Cancel monitor task
+        if monitor_task and not monitor_task.done():
+            monitor_task.cancel()
+            try:
+                await monitor_task
+            except asyncio.CancelledError:
+                pass
         # Cancel all listener tasks
         for task in listener_tasks:
             if not task.done():
@@ -1063,12 +1150,34 @@ async def websocket_chartdata(
         logger.info("Client disconnected before initial data could be sent.")
         return
 
-    # Subscribe to pubsub for real-time weekly updates
+    # Subscribe to pubsub for real-time weekly updates with dynamic market hours
     q = make_bounded_queue()
-    pubsub_channels[(ticker, '1w')].append(q)
+    monitor = market_hours_monitor()
+    subscribed = False
+    monitor_task = None
+    
+    async def check_market_transition_wk():
+        nonlocal subscribed
+        async for market_open in monitor:
+            if market_open and not subscribed:
+                pubsub_channels[(ticker, '1w')].append(q)
+                subscribed = True
+                logger.info(f"[Market OPEN] Subscribed to pubsub for {ticker} (1w)")
+            elif not market_open and subscribed:
+                try:
+                    pubsub_channels[(ticker, '1w')].remove(q)
+                except (KeyError, ValueError):
+                    pass
+                subscribed = False
+                logger.info(f"[Market CLOSED] Unsubscribed from pubsub for {ticker} (1w)")
+    
     try:
+        monitor_task = asyncio.create_task(check_market_transition_wk())
         while True:
-            cndl = await q.get()
+            try:
+                cndl = await asyncio.wait_for(q.get(), timeout=1.0)
+            except asyncio.TimeoutError:
+                continue
             # Add new candle to weeklyData, keep max 500
             weeklyData.append(cndl)
             if len(weeklyData) > 500:
@@ -1113,10 +1222,17 @@ async def websocket_chartdata(
         except Exception:
             pass
     finally:
-        try:
-            pubsub_channels[(ticker, '1w')].remove(q)
-        except (KeyError, ValueError):
-            pass
+        if monitor_task and not monitor_task.done():
+            monitor_task.cancel()
+            try:
+                await monitor_task
+            except asyncio.CancelledError:
+                pass
+        if subscribed:
+            try:
+                pubsub_channels[(ticker, '1w')].remove(q)
+            except (KeyError, ValueError):
+                pass
         try:
             await websocket.close()
         except Exception:
@@ -1220,12 +1336,34 @@ async def websocket_chartdata_dl(
         logger.info("Client disconnected before initial data could be sent.")
         return
 
-    # Subscribe to pubsub for real-time daily updates
+    # Subscribe to pubsub for real-time daily updates with dynamic market hours
     q = make_bounded_queue()
-    pubsub_channels[(ticker, '1d')].append(q)
+    monitor = market_hours_monitor()
+    subscribed = False
+    monitor_task = None
+    
+    async def check_market_transition_dl():
+        nonlocal subscribed
+        async for market_open in monitor:
+            if market_open and not subscribed:
+                pubsub_channels[(ticker, '1d')].append(q)
+                subscribed = True
+                logger.info(f"[Market OPEN] Subscribed to pubsub for {ticker} (1d)")
+            elif not market_open and subscribed:
+                try:
+                    pubsub_channels[(ticker, '1d')].remove(q)
+                except (KeyError, ValueError):
+                    pass
+                subscribed = False
+                logger.info(f"[Market CLOSED] Unsubscribed from pubsub for {ticker} (1d)")
+    
     try:
+        monitor_task = asyncio.create_task(check_market_transition_dl())
         while True:
-            cndl = await q.get()
+            try:
+                cndl = await asyncio.wait_for(q.get(), timeout=1.0)
+            except asyncio.TimeoutError:
+                continue
             # Add new candle to dailyData, keep max 2000
             dailyData.append(cndl)
             if len(dailyData) > 2000:
@@ -1270,10 +1408,17 @@ async def websocket_chartdata_dl(
         except Exception:
             pass
     finally:
-        try:
-            pubsub_channels[(ticker, '1d')].remove(q)
-        except (KeyError, ValueError):
-            pass
+        if monitor_task and not monitor_task.done():
+            monitor_task.cancel()
+            try:
+                await monitor_task
+            except asyncio.CancelledError:
+                pass
+        if subscribed:
+            try:
+                pubsub_channels[(ticker, '1d')].remove(q)
+            except (KeyError, ValueError):
+                pass
         try:
             await websocket.close()
         except Exception:

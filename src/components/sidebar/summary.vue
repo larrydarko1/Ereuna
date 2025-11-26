@@ -235,5 +235,14 @@ const getSidebarProps = (tag: string) => {
 </script>
 
 <style lang="scss">
-
+.summary-container {
+  display: flex;
+  flex-direction: column;
+  color: var(--text2);
+  border: none;
+  border-radius: 6px;
+  margin: 5px;
+  padding: 5px;
+  background-color: var(--base2);
+}
 </style>

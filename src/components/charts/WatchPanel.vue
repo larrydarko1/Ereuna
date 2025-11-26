@@ -1,5 +1,5 @@
 <template>
-  <div class="watch-panel-container" style="display: flex; align-items: center; justify-content: space-between;" role="region" aria-label="Watch Panel">
+  <div class="watch-panel-container" role="region" aria-label="Watch Panel">
     <div class="watch-panel" style="display: flex; gap: 8px;" role="list" aria-label="Watch panel tickers">
       <template v-if="watchPanel.length > 0">
         <div class="watch-panel-track" :class="{ 'scrolling': watchPanel.length > 12 }" role="listbox" aria-label="Ticker list">
@@ -191,5 +191,16 @@ function openEditor() {
 <style scoped>
 .no-symbols {
   color: var(--text2);
+}
+
+.watch-panel-container {
+  background-color: var(--base2);
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(100% - 10px);
+  margin: 2px 5px;
 }
 </style>

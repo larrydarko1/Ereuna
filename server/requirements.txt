@@ -11,3 +11,4 @@ numpy
 motor
 redis
 prometheus-client
+orjson>=3.9.0

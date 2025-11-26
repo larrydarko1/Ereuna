@@ -13,6 +13,8 @@ let isRedisAvailable = false;
 function initializeRedis(): Redis | null {
     try {
         const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+        logger.info(`Attempting to connect to Redis at: ${redisUrl}`);
+
         const client = new Redis(redisUrl, {
             maxRetriesPerRequest: 3,
             retryStrategy: (times) => {
@@ -23,10 +25,11 @@ function initializeRedis(): Redis | null {
                 return Math.min(times * 100, 2000); // Exponential backoff
             },
             lazyConnect: true, // Don't connect until first command
+            connectTimeout: 5000, // 5 second timeout
         });
 
         client.on('connect', () => {
-            logger.info('Redis connected successfully');
+            logger.info(`Redis connected successfully to ${redisUrl}`);
             isRedisAvailable = true;
         });
 
