@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="earn-container">
     <div v-if="displayedEarningsItems.length > 0" id="Earntable">
       <div class="earn-header">
         <div class="earn-cell" style="flex: 0 0 20%;">Reported</div>
@@ -193,5 +193,14 @@ watch(() => props.symbol, () => {
 </script>
 
 <style scoped>
-/* Add your styles here */
+.earn-container {
+  display: flex;
+  flex-direction: column;
+  color: var(--text2);
+  border: none;
+  border-radius: 6px;
+  margin: 5px;
+  padding: 5px;
+  background-color: var(--base2);
+}
 </style>

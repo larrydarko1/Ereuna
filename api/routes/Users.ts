@@ -476,7 +476,8 @@ export default function (app: any, deps: any) {
                     { type: 'SMA', timeframe: 20, visible: true },
                     { type: 'SMA', timeframe: 10, visible: true }
                 ],
-                intrinsicValue: { visible: true }
+                intrinsicValue: { visible: true },
+                chartType: 'candlestick'
             },
             panel: [
                 { order: 1, tag: 'Summary', name: 'Summary', hidden: false },

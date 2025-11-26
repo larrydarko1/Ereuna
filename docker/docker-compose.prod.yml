@@ -101,9 +101,12 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongodb:27017/EreunaDB
+      - REDIS_URL=redis://redis:6379/0
       - CORS_ORIGIN=https://ereuna.io
       - PORT=5500
       - LOG_LEVEL=info
@@ -275,6 +278,12 @@ services:
       - "6379"
     networks:
       - ereuna-network-internal
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     logging:
       driver: json-file
       options:
@@ -293,8 +302,10 @@ services:
     env_file:
       - ../.env
     depends_on:
-      - redis
-      - mongodb
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
     environment:
       - REDIS_URL=redis://redis:6379/0
       - MONGO_URI=mongodb://mongodb:27017/
@@ -329,8 +340,10 @@ services:
     env_file:
       - ../.env
     depends_on:
-      - redis
-      - mongodb
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
     environment:
       - REDIS_URL=redis://redis:6379/0
       - MONGO_URI=mongodb://mongodb:27017/
@@ -365,8 +378,10 @@ services:
     env_file:
       - ../.env
     depends_on:
-      - redis
-      - mongodb
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
     environment:
       - REDIS_URL=redis://redis:6379/0
       - MONGO_URI=mongodb://mongodb:27017/
@@ -437,7 +452,8 @@ services:
     expose:
       - "9121"
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     logging:
       driver: json-file

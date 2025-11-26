@@ -1,565 +1,567 @@
 <template>
     <Header />
-  <div class="portfolio-menu">
-    <div style="display: flex; margin-left: 10px;">
-      <button
-        v-for="n in 10"
-        :key="n"
-        :class="['portfolio-btn', selectedPortfolioIndex === n - 1 ? 'selected' : '']"
-        @click="selectPortfolio(n - 1)"
-        :aria-label="`Select portfolio ${n}`"
-      >
-        {{ n }}
+  <div class="portfolio">
+    <div class="portfolio-menu card">
+      <div style="display: flex; margin-left: 10px;">
+        <button
+          v-for="n in 10"
+          :key="n"
+          :class="['portfolio-btn', selectedPortfolioIndex === n - 1 ? 'selected' : '']"
+          @click="selectPortfolio(n - 1)"
+          :aria-label="`Select portfolio ${n}`"
+        >
+          {{ n }}
+        </button>
+      </div>
+      <div style="display: flex; gap: 8px; margin-right: 10px;">
+        <button class="menu-btn" @click="showTradeModal = true" aria-label="Open New Trade dialog">New Trade</button>
+        <button class="menu-btn" @click="showAddCashModal = true" aria-label="Open Add Cash dialog">Add Cash</button>
+        <button class="menu-btn" @click="showBaseValueModal = true" aria-label="Open Set Base Value dialog">Set Base Value</button>
+        <button class="menu-btn" :disabled="isPortfolioBlank" @click="showResetDialog = true" aria-label="Open Reset Portfolio dialog">Reset</button>
+        <button class="menu-btn" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)" @click="showImportPopup = true" aria-label="Open Import Portfolio dialog">Import</button>
+        <button class="menu-btn" :disabled="isPortfolioBlank" @click="showDownloadPopup = true" aria-label="Open Export Portfolio dialog">Export</button>
+        <DownloadPortfolioPopup
+          v-if="showDownloadPopup"
+          :user="user?.Username ?? ''"
+          :api-key="apiKey"
+          :portfolio="selectedPortfolioIndex"
+          @close="showDownloadPopup = false"
+        />
+      </div>
+    </div>
+    <!-- Benchmarks Panel -->
+    <div class="benchmark-panel">
+      <div class="benchmarks-row">
+        <span v-if="portfolioBenchmarks.length === 0" class="no-benchmarks">
+          No benchmarks selected
+        </span>
+      </div>
+      <button class="edit-watch-panel-btn" @click="showBenchmarkSelector = true" aria-label="Edit Benchmarks">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11.013 2.293L13.707 4.987L12.293 6.401L9.599 3.707L11.013 2.293ZM2 11V13.5H4.5L11.8765 6.1235L9.3765 3.6235L2 11Z" fill="currentColor"/>
+        </svg>
+        <span>Edit Benchmarks</span>
       </button>
     </div>
-    <div style="display: flex; gap: 8px; margin-right: 10px;">
-      <button class="menu-btn" @click="showTradeModal = true" aria-label="Open New Trade dialog">New Trade</button>
-      <button class="menu-btn" @click="showAddCashModal = true" aria-label="Open Add Cash dialog">Add Cash</button>
-      <button class="menu-btn" @click="showBaseValueModal = true" aria-label="Open Set Base Value dialog">Set Base Value</button>
-      <button class="menu-btn" :disabled="isPortfolioBlank" @click="showResetDialog = true" aria-label="Open Reset Portfolio dialog">Reset</button>
-      <button class="menu-btn" :disabled="!(portfolio.length === 0 && transactionHistory.length === 0 && cash === 0)" @click="showImportPopup = true" aria-label="Open Import Portfolio dialog">Import</button>
-      <button class="menu-btn" :disabled="isPortfolioBlank" @click="showDownloadPopup = true" aria-label="Open Export Portfolio dialog">Export</button>
-      <DownloadPortfolioPopup
-        v-if="showDownloadPopup"
-        :user="user?.Username ?? ''"
-        :api-key="apiKey"
-        :portfolio="selectedPortfolioIndex"
-        @close="showDownloadPopup = false"
-      />
-    </div>
-  </div>
-   <div class="benchmark-menu">
-   <!-- Benchmarks Panel -->
-  <div class="benchmark-panel">
-    <div class="benchmarks-row">
-      <span v-if="portfolioBenchmarks.length === 0" class="no-benchmarks">
-        No benchmarks selected
-      </span>
-    </div>
-    <button class="edit-watch-panel-btn" @click="showBenchmarkSelector = true" aria-label="Edit Benchmarks">
-      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M11.013 2.293L13.707 4.987L12.293 6.401L9.599 3.707L11.013 2.293ZM2 11V13.5H4.5L11.8765 6.1235L9.3765 3.6235L2 11Z" fill="currentColor"/>
-      </svg>
-      <span>Edit Benchmarks</span>
-    </button>
-  </div>
 
-  <BenchmarkSelector
-    v-if="showBenchmarkSelector"
+    <BenchmarkSelector
+      v-if="showBenchmarkSelector"
+      :user="user?.Username ?? ''"
+      :api-key="apiKey"
+      :portfolio="selectedPortfolioIndex"
+      :current-benchmarks="portfolioBenchmarks"
+      @close="showBenchmarkSelector = false"
+      @saved="handleBenchmarksSaved"
+      @notify="(msg: any) => showNotification(msg.text)"
+    />
+
+    <!-- Benchmark Performance Comparison -->
+    <div v-if="portfolioSummary?.benchmarkPerformance && portfolioSummary.benchmarkPerformance.length > 0" class="benchmark-performance-section card">
+      <div class="benchmark-performance-scroll">
+        <div v-for="benchmark in portfolioSummary.benchmarkPerformance" :key="benchmark.symbol" class="benchmark-card">
+          <div class="benchmark-header">
+            <span class="benchmark-symbol">{{ benchmark.symbol }}</span>
+            <span class="benchmark-status" :class="benchmark.beating ? 'outperforming' : 'underperforming'">
+              <svg v-if="benchmark.beating" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 3L9.00001 4L11.2929 6.29289L8.50001 9.08579L5.50001 6.08579L0.292908 11.2929L1.70712 12.7071L5.50001 8.91421L8.50001 11.9142L12.7071 7.70711L15 10L16 9L16 3H10Z" fill="currentColor"></path>
+              </svg>
+              <svg v-else viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 13L9.00001 12L11.2929 9.70712L8.50001 6.91423L5.50001 9.91423L0.292908 4.70712L1.70712 3.29291L5.50001 7.0858L8.50001 4.0858L12.7071 8.29291L15 6.00001L16 7.00001L16 13H10Z" fill="currentColor"></path>
+              </svg>
+              <span>{{ benchmark.beating ? 'Beating' : 'Lagging' }}</span>
+            </span>
+          </div>
+          <div class="benchmark-stats">
+            <div class="stat-item">
+              <span class="stat-label">Benchmark</span>
+              <span class="stat-value" :class="benchmark.return >= 0 ? 'positive' : 'negative'">
+                {{ benchmark.return >= 0 ? '+' : '' }}{{ benchmark.return.toFixed(2) }}%
+              </span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Portfolio</span>
+              <span class="stat-value" :class="benchmark.portfolioReturn >= 0 ? 'positive' : 'negative'">
+                {{ benchmark.portfolioReturn >= 0 ? '+' : '' }}{{ benchmark.portfolioReturn.toFixed(2) }}%
+              </span>
+            </div>
+            <div class="stat-item highlight">
+              <span class="stat-label">Diff</span>
+              <span class="stat-value" :class="benchmark.outperformance >= 0 ? 'positive' : 'negative'">
+                {{ benchmark.outperformance >= 0 ? '+' : '' }}{{ benchmark.outperformance.toFixed(2) }}%
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="portfolio-summary-main">
+      <div class="portfolio-summary card">
+        <div class="summary-row">
+          <div class="attribute">Base Value</div>
+          <div class="value">
+            ${{ portfolioSummary?.BaseValue?.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }) ?? '-' }}
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Total Value</div>
+          <div class="value">
+            ${{ portfolioSummary?.totalPortfolioValue2?.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }) ?? '-' }}
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Active Positions</div>
+          <div class="value">
+            ${{ portfolioSummary?.totalPortfolioValue?.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }) ?? '-' }}
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Cash</div>
+          <div class="value">
+            ${{ portfolioSummary?.cash?.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }) ?? '-' }}
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Total P/L</div>
+          <div class="value" :class="(portfolioSummary?.totalPL ?? 0) >= 0 ? 'positive' : 'negative'">
+            {{ (portfolioSummary?.totalPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.totalPL?.toLocaleString(undefined, {
+              minimumFractionDigits: 2, maximumFractionDigits: 2
+            }) ?? '-' }}
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Total P/L (%)</div>
+          <div class="value" :class="(portfolioSummary?.totalPL ?? 0) > 0 ? 'positive' : (portfolioSummary?.totalPL ?? 0) < 0 ? 'negative' : ''">
+            <template v-if="portfolioSummary?.totalPLPercent !== '' && Number(portfolioSummary?.totalPLPercent) !== 0">
+              {{ (portfolioSummary?.totalPL ?? 0) > 0 ? '+' : '' }}{{ portfolioSummary?.totalPLPercent }}%
+            </template>
+            <template v-else>
+              -
+            </template>
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Unrealized P/L</div>
+          <div class="value" :class="(portfolioSummary?.unrealizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
+            {{ (portfolioSummary?.unrealizedPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.unrealizedPL?.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }) ?? '-' }}
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Unrealized P/L (%)</div>
+          <div class="value" :class="(portfolioSummary?.unrealizedPL ?? 0) > 0 ? 'positive' : (portfolioSummary?.unrealizedPL ?? 0) < 0 ? 'negative' : ''">
+            <template v-if="portfolioSummary?.unrealizedPLPercent !== '' && Number(portfolioSummary?.unrealizedPLPercent) !== 0">
+              {{ (portfolioSummary?.unrealizedPL ?? 0) >= 0 ? '+' : '' }}{{ portfolioSummary?.unrealizedPLPercent }}%
+            </template>
+            <template v-else>
+              -
+            </template>
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Realized P/L</div>
+          <div class="value" :class="(portfolioSummary?.realizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
+            {{ (portfolioSummary?.realizedPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.realizedPL?.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }) ?? '-' }}
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Realized P/L (%)</div>
+          <div class="value" :class="(portfolioSummary?.realizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
+            {{ (portfolioSummary?.realizedPL ?? 0) >= 0 ? '+' : '' }}{{ portfolioSummary?.realizedPLPercent }}%
+          </div>
+        </div>
+        <!-- Advanced Portfolio Stats -->
+        <div class="summary-row">
+          <div class="attribute">Avg. Position Size</div>
+          <div class="value">{{ portfolioSummary?.avgPositionSize }}%</div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Avg. Hold Time (Winners)</div>
+          <div class="value">{{ portfolioSummary?.avgHoldTimeWinners }} days</div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Avg. Hold Time (Losers)</div>
+          <div class="value">{{ portfolioSummary?.avgHoldTimeLosers }} days</div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Avg. Gain %</div>
+          <div class="value positive">+{{ portfolioSummary?.avgGain }}%</div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Avg. Loss %</div>
+          <div class="value negative">{{ portfolioSummary?.avgLoss }}%</div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Avg. Gain</div>
+          <div class="value positive">
+            +${{ portfolioSummary?.avgGainAbs }}
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Avg. Loss</div>
+          <div class="value negative">
+            -${{ portfolioSummary?.avgLossAbs }}
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Gain/Loss Ratio</div>
+          <div class="value">{{ portfolioSummary?.gainLossRatio }}</div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Risk/Reward Ratio</div>
+          <div class="value">{{ portfolioSummary?.riskRewardRatio }}</div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Winning Trades</div>
+          <div class="value positive">
+            {{ portfolioSummary?.winnerCount }} ({{ portfolioSummary?.winnerPercent }}%)
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Losing Trades</div>
+          <div class="value negative">
+            {{ portfolioSummary?.loserCount }} ({{ portfolioSummary?.loserPercent }}%)
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Breakeven Trades</div>
+          <div class="value">
+            {{ portfolioSummary?.breakevenCount }} ({{ portfolioSummary?.breakevenPercent }}%)
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Profit Factor</div>
+          <div class="value">{{ portfolioSummary?.profitFactor }}</div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Sortino Ratio</div>
+          <div class="value">{{ portfolioSummary?.sortinoRatio }}</div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Biggest Winner</div>
+          <div class="value positive">
+            <template v-if="portfolioSummary?.biggestWinner?.ticker">
+              {{ portfolioSummary.biggestWinner.ticker }} (+${{ portfolioSummary.biggestWinner.amount }})
+            </template>
+            <template v-else>
+              -
+            </template>
+            <div v-if="portfolioSummary?.biggestWinner?.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
+              Trades: {{ portfolioSummary.biggestWinner.tradeCount }}
+            </div>
+          </div>
+        </div>
+        <div class="summary-row">
+          <div class="attribute">Biggest Loser</div>
+          <div class="value negative">
+            <template v-if="portfolioSummary?.biggestLoser?.ticker">
+              {{ portfolioSummary.biggestLoser.ticker }} (-${{ portfolioSummary.biggestLoser.amount }})
+            </template>
+            <template v-else>
+              -
+            </template>
+            <div v-if="portfolioSummary?.biggestLoser?.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
+              Trades: {{ portfolioSummary.biggestLoser.tradeCount }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="portfolio-charts">
+        <div class="portfolio-linechart-container card" aria-label="Portfolio total value over time chart">
+          <div class="linechart-fixed-height">
+            <Line :data="lineData" :options="lineOptions" />
+          </div>
+        </div>
+        <div class="portfolio-bar-chart-container card" aria-label="Trade returns bar chart">
+          <h3 style="color: var(--accent1); margin-bottom: 12px;">Trade Returns (%)</h3>
+          <div class="linechart-fixed-height">
+            <Bar :data="tradeReturnsChartData" :options="(tradeReturnsChartOptions as any)" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <section class="portfolio-container">
+      <div class="portfolio-header">
+         <div v-if="showResetDialog" class="reset-modal-overlay">
+        <div class="reset-modal">
+          <h3>Reset Portfolio</h3>
+          <p>Are you sure you want to reset your entire portfolio? This cannot be undone.</p>
+          <div style="margin-top: 16px;">
+            <button class="trade-btn" @click="confirmResetPortfolio">Yes, Reset</button>
+            <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">Cancel</button>
+          </div>
+          <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
+        </div>
+      </div>
+        <TradePopup
+    v-if="showTradeModal"
     :user="user?.Username ?? ''"
     :api-key="apiKey"
     :portfolio="selectedPortfolioIndex"
-    :current-benchmarks="portfolioBenchmarks"
-    @close="showBenchmarkSelector = false"
-    @saved="handleBenchmarksSaved"
-    @notify="(msg: any) => showNotification(msg.text)"
+    @close="showTradeModal = false"
+    @refresh-history="{ fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showTradeModal = false }"
+    :cash="cash"
+    @notify="showNotification($event)"
   />
-  </div>
-
-  <!-- Benchmark Performance Comparison -->
-  <div v-if="portfolioSummary?.benchmarkPerformance && portfolioSummary.benchmarkPerformance.length > 0" class="benchmark-performance-section">
-    <div class="benchmark-performance-scroll">
-      <div v-for="benchmark in portfolioSummary.benchmarkPerformance" :key="benchmark.symbol" class="benchmark-card">
-        <div class="benchmark-header">
-          <span class="benchmark-symbol">{{ benchmark.symbol }}</span>
-          <span class="benchmark-status" :class="benchmark.beating ? 'outperforming' : 'underperforming'">
-            <svg v-if="benchmark.beating" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M10 3L9.00001 4L11.2929 6.29289L8.50001 9.08579L5.50001 6.08579L0.292908 11.2929L1.70712 12.7071L5.50001 8.91421L8.50001 11.9142L12.7071 7.70711L15 10L16 9L16 3H10Z" fill="currentColor"></path>
-            </svg>
-            <svg v-else viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M10 13L9.00001 12L11.2929 9.70712L8.50001 6.91423L5.50001 9.91423L0.292908 4.70712L1.70712 3.29291L5.50001 7.0858L8.50001 4.0858L12.7071 8.29291L15 6.00001L16 7.00001L16 13H10Z" fill="currentColor"></path>
-            </svg>
-            <span>{{ benchmark.beating ? 'Beating' : 'Lagging' }}</span>
-          </span>
-        </div>
-        <div class="benchmark-stats">
-          <div class="stat-item">
-            <span class="stat-label">Benchmark</span>
-            <span class="stat-value" :class="benchmark.return >= 0 ? 'positive' : 'negative'">
-              {{ benchmark.return >= 0 ? '+' : '' }}{{ benchmark.return.toFixed(2) }}%
-            </span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Portfolio</span>
-            <span class="stat-value" :class="benchmark.portfolioReturn >= 0 ? 'positive' : 'negative'">
-              {{ benchmark.portfolioReturn >= 0 ? '+' : '' }}{{ benchmark.portfolioReturn.toFixed(2) }}%
-            </span>
-          </div>
-          <div class="stat-item highlight">
-            <span class="stat-label">Diff</span>
-            <span class="stat-value" :class="benchmark.outperformance >= 0 ? 'positive' : 'negative'">
-              {{ benchmark.outperformance >= 0 ? '+' : '' }}{{ benchmark.outperformance.toFixed(2) }}%
-            </span>
-          </div>
-        </div>
+        <SellTradePopup
+    v-if="showSellModal"
+    :symbol="sellPosition.symbol"
+    :maxShares="sellPosition.shares"
+    :price="sellPosition.price"
+    :currentPrice="latestQuotes[sellPosition.symbol]"
+    :isShort="sellPosition.isShort"
+    @close="showSellModal = false"
+    @sell="handleSell"
+    :user="user?.Username ?? ''"
+    :api-key="apiKey"
+    :portfolio="selectedPortfolioIndex"
+    @notify="showNotification($event)"
+  />
+  <AddCashPopup
+    v-if="showAddCashModal"
+    :user="user?.Username ?? ''"
+    :api-key="apiKey"
+    :portfolio="selectedPortfolioIndex"
+    @close="showAddCashModal = false"
+    @refresh="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showAddCashModal = false }"
+    @notify="showNotification($event)"
+  />
+  <WithdrawCashPopup
+    v-if="showWithdrawCashModal"
+    :user="user?.Username ?? ''"
+    :api-key="apiKey"
+    :portfolio="selectedPortfolioIndex"
+    :available-cash="cash"
+    @close="showWithdrawCashModal = false"
+    @refresh="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showWithdrawCashModal = false }"
+    @notify="showNotification($event)"
+  />
+  <BaseValuePopup
+    v-if="showBaseValueModal"
+    :user="user?.Username ?? ''"
+    :api-key="apiKey"
+    :portfolio="selectedPortfolioIndex"
+    @close="showBaseValueModal = false"
+    @base-value-updated="fetchPortfolioSummary(); fetchPortfolio(); showBaseValueModal = false"
+    @notify="showNotification($event)"
+  />
+  <ImportPortfolioPopup
+    v-if="showImportPopup"
+    :user="user?.Username ?? ''"
+    :api-key="apiKey"
+    :portfolio="selectedPortfolioIndex"
+    @close="showImportPopup = false"
+    @imported="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showImportPopup = false }"
+    @import-success="showNotification('Portfolio imported successfully!')"
+    @notify="showNotification($event)"
+  />
       </div>
-    </div>
-  </div>
-
-  <div class="portfolio-summary-main">
-    <div class="portfolio-summary">
-      <div class="summary-row">
-        <div class="attribute">Base Value</div>
-        <div class="value">
-          ${{ portfolioSummary?.BaseValue?.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          }) ?? '-' }}
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Total Value</div>
-        <div class="value">
-          ${{ portfolioSummary?.totalPortfolioValue2?.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          }) ?? '-' }}
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Active Positions</div>
-        <div class="value">
-          ${{ portfolioSummary?.totalPortfolioValue?.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          }) ?? '-' }}
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Cash</div>
-        <div class="value">
-          ${{ portfolioSummary?.cash?.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          }) ?? '-' }}
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Total P/L</div>
-        <div class="value" :class="(portfolioSummary?.totalPL ?? 0) >= 0 ? 'positive' : 'negative'">
-          {{ (portfolioSummary?.totalPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.totalPL?.toLocaleString(undefined, {
-            minimumFractionDigits: 2, maximumFractionDigits: 2
-          }) ?? '-' }}
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Total P/L (%)</div>
-        <div class="value" :class="(portfolioSummary?.totalPL ?? 0) > 0 ? 'positive' : (portfolioSummary?.totalPL ?? 0) < 0 ? 'negative' : ''">
-          <template v-if="portfolioSummary?.totalPLPercent !== '' && Number(portfolioSummary?.totalPLPercent) !== 0">
-            {{ (portfolioSummary?.totalPL ?? 0) > 0 ? '+' : '' }}{{ portfolioSummary?.totalPLPercent }}%
+      <div class="portfolio-main-flex">
+        <div class="portfolio-pie-container card" aria-label="Portfolio allocation pie chart">
+          <template v-if="(portfolioSummary?.positionsCount !== undefined ? portfolioSummary.positionsCount <= 100 : portfolio.length <= 100)">
+            <template v-if="portfolio.length === 0 && cash === 0">
+              <div class="no-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; height: 350px; color: var(--text2); background: var(--base2);">
+                <strong>No Positions Available</strong>
+              </div>
+            </template>
+            <template v-else>
+              <Pie :data="pieChartData" :options="pieOptions" />
+            </template>
           </template>
           <template v-else>
-            -
-          </template>
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Unrealized P/L</div>
-        <div class="value" :class="(portfolioSummary?.unrealizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
-          {{ (portfolioSummary?.unrealizedPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.unrealizedPL?.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          }) ?? '-' }}
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Unrealized P/L (%)</div>
-        <div class="value" :class="(portfolioSummary?.unrealizedPL ?? 0) > 0 ? 'positive' : (portfolioSummary?.unrealizedPL ?? 0) < 0 ? 'negative' : ''">
-          <template v-if="portfolioSummary?.unrealizedPLPercent !== '' && Number(portfolioSummary?.unrealizedPLPercent) !== 0">
-            {{ (portfolioSummary?.unrealizedPL ?? 0) >= 0 ? '+' : '' }}{{ portfolioSummary?.unrealizedPLPercent }}%
-          </template>
-          <template v-else>
-            -
-          </template>
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Realized P/L</div>
-        <div class="value" :class="(portfolioSummary?.realizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
-          {{ (portfolioSummary?.realizedPL ?? 0) >= 0 ? '+' : '' }}${{ portfolioSummary?.realizedPL?.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          }) ?? '-' }}
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Realized P/L (%)</div>
-        <div class="value" :class="(portfolioSummary?.realizedPL ?? 0) >= 0 ? 'positive' : 'negative'">
-          {{ (portfolioSummary?.realizedPL ?? 0) >= 0 ? '+' : '' }}{{ portfolioSummary?.realizedPLPercent }}%
-        </div>
-      </div>
-      <!-- Advanced Portfolio Stats -->
-      <div class="summary-row">
-        <div class="attribute">Avg. Position Size</div>
-        <div class="value">{{ portfolioSummary?.avgPositionSize }}%</div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Avg. Hold Time (Winners)</div>
-        <div class="value">{{ portfolioSummary?.avgHoldTimeWinners }} days</div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Avg. Hold Time (Losers)</div>
-        <div class="value">{{ portfolioSummary?.avgHoldTimeLosers }} days</div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Avg. Gain %</div>
-        <div class="value positive">+{{ portfolioSummary?.avgGain }}%</div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Avg. Loss %</div>
-        <div class="value negative">{{ portfolioSummary?.avgLoss }}%</div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Avg. Gain</div>
-        <div class="value positive">
-          +${{ portfolioSummary?.avgGainAbs }}
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Avg. Loss</div>
-        <div class="value negative">
-          -${{ portfolioSummary?.avgLossAbs }}
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Gain/Loss Ratio</div>
-        <div class="value">{{ portfolioSummary?.gainLossRatio }}</div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Risk/Reward Ratio</div>
-        <div class="value">{{ portfolioSummary?.riskRewardRatio }}</div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Winning Trades</div>
-        <div class="value positive">
-          {{ portfolioSummary?.winnerCount }} ({{ portfolioSummary?.winnerPercent }}%)
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Losing Trades</div>
-        <div class="value negative">
-          {{ portfolioSummary?.loserCount }} ({{ portfolioSummary?.loserPercent }}%)
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Breakeven Trades</div>
-        <div class="value">
-          {{ portfolioSummary?.breakevenCount }} ({{ portfolioSummary?.breakevenPercent }}%)
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Profit Factor</div>
-        <div class="value">{{ portfolioSummary?.profitFactor }}</div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Sortino Ratio</div>
-        <div class="value">{{ portfolioSummary?.sortinoRatio }}</div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Biggest Winner</div>
-        <div class="value positive">
-          <template v-if="portfolioSummary?.biggestWinner?.ticker">
-            {{ portfolioSummary.biggestWinner.ticker }} (+${{ portfolioSummary.biggestWinner.amount }})
-          </template>
-          <template v-else>
-            -
-          </template>
-          <div v-if="portfolioSummary?.biggestWinner?.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
-            Trades: {{ portfolioSummary.biggestWinner.tradeCount }}
-          </div>
-        </div>
-      </div>
-      <div class="summary-row">
-        <div class="attribute">Biggest Loser</div>
-        <div class="value negative">
-          <template v-if="portfolioSummary?.biggestLoser?.ticker">
-            {{ portfolioSummary.biggestLoser.ticker }} (-${{ portfolioSummary.biggestLoser.amount }})
-          </template>
-          <template v-else>
-            -
-          </template>
-          <div v-if="portfolioSummary?.biggestLoser?.ticker" style="font-size: 0.7em; color: var(--text2); margin-top: 2px;">
-            Trades: {{ portfolioSummary.biggestLoser.tradeCount }}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="portfolio-charts">
-      <div class="portfolio-linechart-container" aria-label="Portfolio total value over time chart">
-        <div class="linechart-fixed-height">
-          <Line :data="lineData" :options="lineOptions" />
-        </div>
-      </div>
-      <div class="portfolio-bar-chart-container" aria-label="Trade returns bar chart">
-        <h3 style="color: var(--accent1); margin-bottom: 12px;">Trade Returns (%)</h3>
-        <div class="linechart-fixed-height">
-          <Bar :data="tradeReturnsChartData" :options="(tradeReturnsChartOptions as any)" />
-        </div>
-      </div>
-    </div>
-  </div>
-  <section class="portfolio-container">
-    <div class="portfolio-header">
-       <div v-if="showResetDialog" class="reset-modal-overlay">
-      <div class="reset-modal">
-        <h3>Reset Portfolio</h3>
-        <p>Are you sure you want to reset your entire portfolio? This cannot be undone.</p>
-        <div style="margin-top: 16px;">
-          <button class="trade-btn" @click="confirmResetPortfolio">Yes, Reset</button>
-          <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">Cancel</button>
-        </div>
-        <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
-      </div>
-    </div>
-      <TradePopup
-  v-if="showTradeModal"
-  :user="user?.Username ?? ''"
-  :api-key="apiKey"
-  :portfolio="selectedPortfolioIndex"
-  @close="showTradeModal = false"
-  @refresh-history="{ fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showTradeModal = false }"
-  :cash="cash"
-  @notify="showNotification($event)"
-/>
-      <SellTradePopup
-  v-if="showSellModal"
-  :symbol="sellPosition.symbol"
-  :maxShares="sellPosition.shares"
-  :price="sellPosition.price"
-  :currentPrice="latestQuotes[sellPosition.symbol]"
-  :isShort="sellPosition.isShort"
-  @close="showSellModal = false"
-  @sell="handleSell"
-  :user="user?.Username ?? ''"
-  :api-key="apiKey"
-  :portfolio="selectedPortfolioIndex"
-  @notify="showNotification($event)"
-/>
-<AddCashPopup
-  v-if="showAddCashModal"
-  :user="user?.Username ?? ''"
-  :api-key="apiKey"
-  :portfolio="selectedPortfolioIndex"
-  @close="showAddCashModal = false"
-  @refresh="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showAddCashModal = false }"
-  @notify="showNotification($event)"
-/>
-<WithdrawCashPopup
-  v-if="showWithdrawCashModal"
-  :user="user?.Username ?? ''"
-  :api-key="apiKey"
-  :portfolio="selectedPortfolioIndex"
-  :available-cash="cash"
-  @close="showWithdrawCashModal = false"
-  @refresh="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showWithdrawCashModal = false }"
-  @notify="showNotification($event)"
-/>
-<BaseValuePopup
-  v-if="showBaseValueModal"
-  :user="user?.Username ?? ''"
-  :api-key="apiKey"
-  :portfolio="selectedPortfolioIndex"
-  @close="showBaseValueModal = false"
-  @base-value-updated="fetchPortfolioSummary(); fetchPortfolio(); showBaseValueModal = false"
-  @notify="showNotification($event)"
-/>
-<ImportPortfolioPopup
-  v-if="showImportPopup"
-  :user="user?.Username ?? ''"
-  :api-key="apiKey"
-  :portfolio="selectedPortfolioIndex"
-  @close="showImportPopup = false"
-  @imported="() => { fetchCash(); fetchPortfolio(); fetchTransactionHistory(); fetchPortfolioSummary(); showImportPopup = false }"
-  @import-success="showNotification('Portfolio imported successfully!')"
-  @notify="showNotification($event)"
-/>
-    </div>
-    <div class="portfolio-main-flex">
-      <div class="portfolio-pie-container" aria-label="Portfolio allocation pie chart">
-        <template v-if="(portfolioSummary?.positionsCount !== undefined ? portfolioSummary.positionsCount <= 100 : portfolio.length <= 100)">
-          <template v-if="portfolio.length === 0 && cash === 0">
-            <div class="no-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; height: 350px; color: var(--text2); background: var(--base2);">
-              <strong>No Positions Available</strong>
+            <div class="too-many-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; height: 350px ;color: var(--text2); background: var(--base2);">
+              <strong>Too many positions to display pie chart.</strong><br>
+              Please reduce the number of positions to view allocation breakdown.
             </div>
           </template>
-          <template v-else>
-            <Pie :data="pieChartData" :options="pieOptions" />
-          </template>
-        </template>
-        <template v-else>
-          <div class="too-many-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; height: 350px ;color: var(--text2); background: var(--base2);">
-            <strong>Too many positions to display pie chart.</strong><br>
-            Please reduce the number of positions to view allocation breakdown.
-          </div>
-        </template>
+        </div>
+        <div class="portfolio-table-container card scrollable-table">
+    <table class="portfolio-table" aria-label="Portfolio Positions Table">
+            <thead>
+              <tr>
+                <th>% of Portfolio</th>
+                <th>Symbol</th>
+                <th>Type</th>
+                <th>Shares</th>
+                <th>Avg. Price</th>
+                <th>Current Price</th>
+                <th>Total Value</th>
+                <th>PnL (%)</th>
+                <th>PnL ($)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Cash row always at the top -->
+              <tr class="cash-row">
+                <td>{{ getPercOfCash() }}%</td>
+                <td>Cash</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td>${{ cash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                  <button class="action-btn"
+                    @click="showWithdrawCashModal = true"
+                    :disabled="cash <= 0"
+                    :aria-label="`Withdraw Cash`">
+                    Withdraw
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="portfolio.length === 0 && cash === 0">
+                <td colspan="10" style="text-align:center; color: var(--text2);">
+                  No Active Positions
+                </td>
+              </tr>
+              <tr v-for="position in portfolio" :key="position.Symbol">
+                <td>
+                  <span v-if="latestQuotes[position.Symbol] !== undefined">
+                    {{ getPercOfPortfolio(position) }}%
+                  </span>
+                </td>
+                <td>{{ position.Symbol }}</td>
+                <td>
+                  <span 
+                    :class="['position-type-badge', position.IsShort ? 'short' : 'long']"
+                    :title="position.IsShort ? 'Short Position' : 'Long Position'"
+                  >
+                    {{ position.IsShort ? 'Short' : 'Long' }}
+                  </span>
+                  <span 
+                    v-if="position.Leverage && position.Leverage > 1" 
+                    class="leverage-badge"
+                    :title="`${position.Leverage}x Leverage`"
+                  >
+                    {{ position.Leverage }}x
+                  </span>
+                </td>
+                <td>{{ position.Shares.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
+                <td>${{ Number(position.AvgPrice).toFixed(2) }}</td>
+                <td>
+                  <span v-if="latestQuotes[position.Symbol] !== undefined">
+                    ${{ getCurrentPrice(position) }}
+                  </span>
+                </td>
+                <td>
+                  <span v-if="latestQuotes[position.Symbol] !== undefined">
+                    ${{ getTotalValue(position) }}
+                  </span>
+                </td>
+                <td :class="getPnLClass(position)">
+                  <span v-if="latestQuotes[position.Symbol] !== undefined">
+                    {{ Number(getPnLPercent(position)) > 0 ? '+' : '' }}{{ getPnLPercent(position) }}%
+                  </span>
+                </td>
+                <td :class="getPnLClass(position)">
+                  <span v-if="latestQuotes[position.Symbol] !== undefined">
+                    {{ Number(getPnLDollar(position)) > 0 ? '+' : '' }}${{ getPnLDollar(position) }}
+                  </span>
+                </td>
+                <td>
+                  <button class="action-btn"
+                    @click="openSellModal({ symbol: position.Symbol, shares: position.Shares, price: position.AvgPrice, isShort: position.IsShort })"
+                    :aria-label="`Sell ${position.Symbol}`">
+                    Close
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="portfolio-table-container scrollable-table">
-  <table class="portfolio-table" aria-label="Portfolio Positions Table">
+      <div class="portfolio-history-container card">
+        <div class="history-header">
+          <h2>Transaction History</h2>
+          <div class="history-count" v-if="sortedTransactionHistory.length > 0">
+            {{ sortedTransactionHistory.length }} {{ sortedTransactionHistory.length === 1 ? 'Transaction' : 'Transactions' }}
+          </div>
+        </div>
+        <div class="history-table-container">
+    <table class="portfolio-table history-table" aria-label="Transaction History Table">
           <thead>
             <tr>
-              <th>% of Portfolio</th>
+              <th>Date</th>
               <th>Symbol</th>
+              <th>Action</th>
               <th>Type</th>
-              <th>Shares</th>
-              <th>Avg. Price</th>
-              <th>Current Price</th>
-              <th>Total Value</th>
-              <th>PnL (%)</th>
-              <th>PnL ($)</th>
-              <th>Actions</th>
+              <th class="number-col">Shares</th>
+              <th class="number-col">Price</th>
+              <th class="number-col">Fees</th>
+              <th class="number-col">Total</th>
             </tr>
           </thead>
           <tbody>
-            <!-- Cash row always at the top -->
-            <tr class="cash-row">
-              <td>{{ getPercOfCash() }}%</td>
-              <td>Cash</td>
-              <td>-</td>
-              <td>-</td>
-              <td>-</td>
-              <td>-</td>
-              <td>${{ cash.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-              <td>-</td>
-              <td>-</td>
-              <td>
-                <button class="action-btn"
-                  @click="showWithdrawCashModal = true"
-                  :disabled="cash <= 0"
-                  :aria-label="`Withdraw Cash`">
-                  Withdraw
-                </button>
+            <tr v-if="sortedTransactionHistory.length === 0" class="empty-state">
+              <td colspan="8">
+                <div class="empty-state-content">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 2C8.44772 2 8 2.44772 8 3C8 3.55228 8.44772 4 9 4H15C15.5523 4 16 3.55228 16 3C16 2.44772 15.5523 2 15 2H9Z" fill="currentColor"/>
+                    <path d="M4 5C4 3.89543 4.89543 3 6 3C6 4.65685 7.34315 6 9 6H15C16.6569 6 18 4.65685 18 3C19.1046 3 20 3.89543 20 5V19C20 20.1046 19.1046 21 18 21H6C4.89543 21 4 20.1046 4 19V5Z" fill="currentColor"/>
+                  </svg>
+                  <span>No transaction history</span>
+                </div>
               </td>
             </tr>
-            <tr v-if="portfolio.length === 0 && cash === 0">
-              <td colspan="10" style="text-align:center; color: var(--text2);">
-                No Active Positions
+            <tr v-for="(tx, i) in sortedTransactionHistory" :key="i" :class="{'buy-row': tx.Action === 'Buy', 'sell-row': tx.Action === 'Sell'}">
+              <td class="date-col">{{ tx.Date ? tx.Date.slice(0, 10) : '' }}</td>
+              <td class="symbol-col">
+                <span class="symbol-text">{{ tx.Symbol }}</span>
               </td>
-            </tr>
-            <tr v-for="position in portfolio" :key="position.Symbol">
-              <td>
-                <span v-if="latestQuotes[position.Symbol] !== undefined">
-                  {{ getPercOfPortfolio(position) }}%
+              <td class="action-col">
+                <span class="action-badge" :class="tx.Action?.toLowerCase()">
+                  {{ tx.Action }}
                 </span>
               </td>
-              <td>{{ position.Symbol }}</td>
-              <td>
-                <span 
-                  :class="['position-type-badge', position.IsShort ? 'short' : 'long']"
-                  :title="position.IsShort ? 'Short Position' : 'Long Position'"
-                >
-                  {{ position.IsShort ? 'Short' : 'Long' }}
-                </span>
-                <span 
-                  v-if="position.Leverage && position.Leverage > 1" 
-                  class="leverage-badge"
-                  :title="`${position.Leverage}x Leverage`"
-                >
-                  {{ position.Leverage }}x
-                </span>
+              <td class="type-col">
+                <div class="badge-group">
+                  <span v-if="tx.Leverage && tx.Leverage > 1" class="leverage-badge-small" :title="`${tx.Leverage}x Leverage`">
+                    {{ tx.Leverage }}x
+                  </span>
+                  <span v-if="tx.IsShort" class="short-badge-small" title="Short Position">
+                    Short
+                  </span>
+                  <span v-else-if="tx.Symbol && tx.Action !== 'Cash Deposit' && tx.Action !== 'Cash Withdrawal'" class="long-badge-small" title="Long Position">
+                    Long
+                  </span>
+                  <span v-if="!tx.Symbol || tx.Action === 'Cash Deposit' || tx.Action === 'Cash Withdrawal'" class="neutral-text">-</span>
+                </div>
               </td>
-              <td>{{ position.Shares.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-              <td>${{ Number(position.AvgPrice).toFixed(2) }}</td>
-              <td>
-                <span v-if="latestQuotes[position.Symbol] !== undefined">
-                  ${{ getCurrentPrice(position) }}
-                </span>
-              </td>
-              <td>
-                <span v-if="latestQuotes[position.Symbol] !== undefined">
-                  ${{ getTotalValue(position) }}
-                </span>
-              </td>
-              <td :class="getPnLClass(position)">
-                <span v-if="latestQuotes[position.Symbol] !== undefined">
-                  {{ Number(getPnLPercent(position)) > 0 ? '+' : '' }}{{ getPnLPercent(position) }}%
-                </span>
-              </td>
-              <td :class="getPnLClass(position)">
-                <span v-if="latestQuotes[position.Symbol] !== undefined">
-                  {{ Number(getPnLDollar(position)) > 0 ? '+' : '' }}${{ getPnLDollar(position) }}
-                </span>
-              </td>
-              <td>
-                <button class="action-btn"
-                  @click="openSellModal({ symbol: position.Symbol, shares: position.Shares, price: position.AvgPrice, isShort: position.IsShort })"
-                  :aria-label="`Sell ${position.Symbol}`">
-                  Close
-                </button>
+              <td class="number-col">{{ tx.Shares || '-' }}</td>
+              <td class="number-col price-col">{{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
+              <td class="number-col commission-col">{{ isNaN(Number(tx.Commission)) ? '-' : '$' + Number(tx.Commission).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
+              <td class="number-col total-col" :class="tx.Action === 'Buy' || tx.Action === 'Cash Withdrawal' ? 'negative' : tx.Action === 'Sell' || tx.Action === 'Cash Deposit' ? 'positive' : ''">
+                ${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
               </td>
             </tr>
           </tbody>
         </table>
-      </div>
-    </div>
-    <div class="portfolio-history-container scrollable-table">
-      <div class="history-header">
-        <h2>Transaction History</h2>
-        <div class="history-count" v-if="sortedTransactionHistory.length > 0">
-          {{ sortedTransactionHistory.length }} {{ sortedTransactionHistory.length === 1 ? 'Transaction' : 'Transactions' }}
         </div>
       </div>
-  <table class="portfolio-table history-table" aria-label="Transaction History Table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Symbol</th>
-            <th>Action</th>
-            <th>Type</th>
-            <th class="number-col">Shares</th>
-            <th class="number-col">Price</th>
-            <th class="number-col">Fees</th>
-            <th class="number-col">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="sortedTransactionHistory.length === 0" class="empty-state">
-            <td colspan="8">
-              <div class="empty-state-content">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 2C8.44772 2 8 2.44772 8 3C8 3.55228 8.44772 4 9 4H15C15.5523 4 16 3.55228 16 3C16 2.44772 15.5523 2 15 2H9Z" fill="currentColor"/>
-                  <path d="M4 5C4 3.89543 4.89543 3 6 3C6 4.65685 7.34315 6 9 6H15C16.6569 6 18 4.65685 18 3C19.1046 3 20 3.89543 20 5V19C20 20.1046 19.1046 21 18 21H6C4.89543 21 4 20.1046 4 19V5Z" fill="currentColor"/>
-                </svg>
-                <span>No transaction history</span>
-              </div>
-            </td>
-          </tr>
-          <tr v-for="(tx, i) in sortedTransactionHistory" :key="i" :class="{'buy-row': tx.Action === 'Buy', 'sell-row': tx.Action === 'Sell'}">
-            <td class="date-col">{{ tx.Date ? tx.Date.slice(0, 10) : '' }}</td>
-            <td class="symbol-col">
-              <span class="symbol-text">{{ tx.Symbol }}</span>
-            </td>
-            <td class="action-col">
-              <span class="action-badge" :class="tx.Action?.toLowerCase()">
-                {{ tx.Action }}
-              </span>
-            </td>
-            <td class="type-col">
-              <div class="badge-group">
-                <span v-if="tx.Leverage && tx.Leverage > 1" class="leverage-badge-small" :title="`${tx.Leverage}x Leverage`">
-                  {{ tx.Leverage }}x
-                </span>
-                <span v-if="tx.IsShort" class="short-badge-small" title="Short Position">
-                  Short
-                </span>
-                <span v-else-if="tx.Symbol && tx.Action !== 'Cash Deposit' && tx.Action !== 'Cash Withdrawal'" class="long-badge-small" title="Long Position">
-                  Long
-                </span>
-                <span v-if="!tx.Symbol || tx.Action === 'Cash Deposit' || tx.Action === 'Cash Withdrawal'" class="neutral-text">-</span>
-              </div>
-            </td>
-            <td class="number-col">{{ tx.Shares || '-' }}</td>
-            <td class="number-col price-col">{{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-            <td class="number-col commission-col">{{ isNaN(Number(tx.Commission)) ? '-' : '$' + Number(tx.Commission).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-            <td class="number-col total-col" :class="tx.Action === 'Buy' || tx.Action === 'Cash Withdrawal' ? 'negative' : tx.Action === 'Sell' || tx.Action === 'Cash Deposit' ? 'positive' : ''">
-              ${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-  <NotificationPopup ref="notification" />
+    </section>
+    <NotificationPopup ref="notification" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -1481,6 +1483,41 @@ const isPortfolioBlank = computed(() => {
 </script>
 
 <style lang="scss" scoped>
+.portfolio {
+  min-height: 100vh;
+  width: 100vw;
+  box-sizing: border-box;
+  background-color: var(--base1);
+  overflow-x: scroll;
+  padding-top: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 10px;
+}
+
+.portfolio-row {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.portfolio-row-main {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 5px;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.card {
+  background: var(--base2);
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(10, 20, 30, 0.08);
+  border: 1px solid rgba(0,0,0,0.04);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+
 .portfolio-container {
   background: var(--base1);
   color: var(--text1);
@@ -1495,6 +1532,9 @@ const isPortfolioBlank = computed(() => {
   padding: 5px 0px;
   justify-content: space-between; 
   margin-bottom: 5px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(10, 20, 30, 0.08);
+  border: 1px solid rgba(0,0,0,0.04);
 }
 
 .benchmark-menu {
@@ -1504,6 +1544,9 @@ const isPortfolioBlank = computed(() => {
   width: 100%;
   padding: 5px 0px;
   justify-content: space-between; 
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(10, 20, 30, 0.08);
+  border: 1px solid rgba(0,0,0,0.04);
 }
 
 .benchmark-panel {
@@ -1514,6 +1557,9 @@ const isPortfolioBlank = computed(() => {
   width: 100%;
   gap: 0px;
   position: relative;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(10, 20, 30, 0.08);
+  border: 1px solid rgba(0,0,0,0.04);
 
   .benchmarks-row {
     flex: 1;
@@ -1682,11 +1728,9 @@ const isPortfolioBlank = computed(() => {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
-  background-color: var(--base2);
   margin-top: 0;
   height: auto;
   box-sizing: border-box;
-  border: 1px solid rgba(140, 141, 254, 0.15);
   padding: 8px 0;
 }
 
@@ -1708,10 +1752,6 @@ const isPortfolioBlank = computed(() => {
   padding: 8px 0;
   border-bottom: 1px solid var(--base1);
   transition: background-color 0.15s ease;
-
-  &:hover {
-    background-color: var(--base1);
-  }
 
   .attribute, .value {
     flex: 1;
@@ -1750,7 +1790,6 @@ const isPortfolioBlank = computed(() => {
 }
 
 .portfolio-pie-container {
-  background: var(--base2);
   flex: 1 1 0;
   height: 400px;
   display: flex;
@@ -1759,7 +1798,6 @@ const isPortfolioBlank = computed(() => {
 }
 
 .portfolio-table-container {
-  background: var(--base2);
   overflow-x: auto;
   flex: 2 1 0;
   overflow-y: auto;
@@ -1767,11 +1805,14 @@ const isPortfolioBlank = computed(() => {
 }
 
 .portfolio-history-container {
-  background: var(--base1);
   margin-top: 5px;
-  border: 1px solid var(--base2);
-  border-radius: 4px;
-  overflow: hidden;
+  border-radius: 12px;
+  overflow: visible;
+}
+
+.history-table-container {
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .history-header {
@@ -1785,9 +1826,9 @@ const isPortfolioBlank = computed(() => {
   h2 {
     color: var(--text1);
     margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
 }
 
@@ -2010,8 +2051,6 @@ const isPortfolioBlank = computed(() => {
 .portfolio-linechart-container,
 
 .portfolio-bar-chart-container {
-  background: var(--base2);
-  padding: 15px;
   display: block;
   height: 210px; /* Reduced height for desktop */
   min-height: 120px;
@@ -2023,6 +2062,10 @@ const isPortfolioBlank = computed(() => {
     display: block;
     box-sizing: border-box;
   }
+}
+
+.portfolio-linechart-container {
+  margin-bottom: 5px;
 }
 
 .linechart-fixed-height {
@@ -2261,8 +2304,7 @@ const isPortfolioBlank = computed(() => {
 
 /* Benchmark Performance Section */
 .benchmark-performance-section {
-  background: var(--base2);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 12px 16px;
   overflow: hidden;
 }
@@ -2290,7 +2332,7 @@ const isPortfolioBlank = computed(() => {
 }
 
 .benchmark-card {
-  background: var(--base3);
+  background: var(--base1);
   border-radius: 6px;
   padding: 12px 14px;
   border: 1px solid var(--base4);
@@ -2364,7 +2406,7 @@ const isPortfolioBlank = computed(() => {
 }
 
 .stat-label {
-  color: var(--text2);
+  color: var(--text1);
   font-size: 0.8rem;
   white-space: nowrap;
 }

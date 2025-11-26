@@ -79,6 +79,34 @@ def get_market_hours_utc():
 MARKET_OPEN_H, MARKET_OPEN_M, MARKET_CLOSE_H, MARKET_CLOSE_M = get_market_hours_utc()
 logger.info(f"Market hours: {MARKET_OPEN_H}:{MARKET_OPEN_M:02d} - {MARKET_CLOSE_H}:{MARKET_CLOSE_M:02d} UTC")
 
+async def is_holiday():
+    """
+    Check if today is a market holiday by querying the Stats collection.
+    Returns True if today is a holiday (in New York timezone).
+    """
+    try:
+        # Get current date in New York timezone
+        ny_tz = pytz.timezone('America/New_York')
+        today = datetime.datetime.now(ny_tz).strftime('%Y-%m-%d')
+        
+        # Query the Stats collection for holidays
+        holidays_doc = await db.Stats.find_one({"_id": "Holidays"})
+        
+        if not holidays_doc or "Holidays" not in holidays_doc:
+            logger.warning("No holidays document found in Stats collection")
+            return False
+        
+        # Check if today matches any holiday date
+        for holiday in holidays_doc["Holidays"]:
+            if holiday.get("date") == today:
+                logger.info(f"🎉 Today is a holiday: {holiday.get('name')}")
+                return True
+        
+        return False
+    except Exception as e:
+        logger.error(f"Error checking holidays: {e}")
+        return False  # Fail open - don't block trading on error
+
 def is_market_hours():
     now = datetime.datetime.utcnow()
     if now.weekday() >= 5:  # Weekend
@@ -255,8 +283,19 @@ async def tiingo_subscription():
 async def market_loop():
     """Check market hours every 10 seconds, run subscription when open"""
     logger.info("Market loop started")
+    holiday_logged = False
     
     while not shutdown_requested:
+        # Check if today is a holiday
+        if await is_holiday():
+            if not holiday_logged:
+                holiday_logged = True
+            await asyncio.sleep(60)
+            continue
+        
+        # Reset flag when no longer a holiday
+        holiday_logged = False
+        
         if is_market_hours():
             logger.info("🔔 Market is OPEN - starting subscription")
             await tiingo_subscription()

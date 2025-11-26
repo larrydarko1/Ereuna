@@ -105,4 +105,13 @@ onUnmounted(() => {
   font-size: 10px;
   line-height: 1.4;
 }
+
+#chartdiv2 {
+  padding: 10px;
+  background: var(--base2);
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(10, 20, 30, 0.08);
+  border: 1px solid rgba(0,0,0,0.04);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
 </style>

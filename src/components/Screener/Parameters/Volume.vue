@@ -1,96 +1,96 @@
 <template>
-    <div :class="[showVolumeModel ? 'param-s1-expanded' : 'param-s1']">
-          <div class="row">
-            <div
-              style="float:left; font-weight: bold; position:absolute; top: 0px; left: 5px; display: flex; flex-direction: row; align-items: center;">
-              <p>Volume</p>
-              <svg class="question-img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                @mouseover="handleMouseOver($event, 'volume')" @mouseout="handleMouseOut"
-                aria-label="Show info about Volume">
-                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path
-                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="var(--text1)"
-                    stroke-width="2.088" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M12 18.01L12.01 17.9989" stroke="var(--text1)" stroke-width="2.088" stroke-linecap="round"
-                    stroke-linejoin="round"></path>
-                </g>
-              </svg>
-            </div>
-            <label style="float:right" class="switch">
-              <input type="checkbox" id="price-check" v-model="showVolumeModel" style="border: none;" aria-label="Toggle Volume inputs">
-              <span class="slider round" aria-label="Toggle switch"></span>
-            </label>
+  <div :class="[showVolumeModel ? 'param-card-expanded' : 'param-card']">
+    <div class="header">
+      <div class="title-section">
+        <span class="title">Volume</span>
+        <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+          @mouseover="handleMouseOver($event, 'volume')" @mouseout="handleMouseOut($event)" aria-label="Show info for Volume parameter">
+          <path
+            d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M12 18.01L12.01 17.9989" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round"></path>
+        </svg>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="price-check" v-model="showVolumeModel" aria-label="Toggle Volume filter">
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="content" v-if="showVolumeModel">
+      <div class="volume-section">
+        <div class="section-title">Relative Volume</div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <label class="input-label">Minimum</label>
+            <input class="input-field" id="left-relvol" type="number" step="0.01" placeholder="0.00" aria-label="Relative Volume minimum">
           </div>
-          <div style="border: none;" v-if="showVolumeModel">
-            <div class="DataInputs">
-              <p>Relative Volume</p>
-              <div style="display: flex; align-items: center;">
-                <input class="input" id="left-relvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;" aria-label="Relative Volume min">
-                <input class="input" id="right-relvol" type="text" placeholder="max"
-                  style="width: 70px; margin: 0 5px;" aria-label="Relative Volume max">
-                <div class="relvol-select-container" style="margin-left: 5px;">
-                  <div class="relvol-dropdown-btn" aria-label="Select Relative Volume period">
-                    <p class="selected-value">{{ relVolSelect }}</p>
-                  </div>
-                  <div class="relvol-dropdown-menu">
-                    <div v-for="(option, index) in relVolOptions" :key="index" @click="selectRelVolOption(option)" aria-label="Relative Volume option {{ option }}">
-                      {{ option }}
-                    </div>
-                  </div>
+          <div class="input-wrapper">
+            <label class="input-label">Maximum</label>
+            <input class="input-field" id="right-relvol" type="number" step="0.01" placeholder="0.00" aria-label="Relative Volume maximum">
+          </div>
+          <div class="input-wrapper">
+            <label class="input-label">Period</label>
+            <div class="dropdown-container">
+              <div class="dropdown-btn" @click="toggleRelVolDropdown" aria-label="Select Relative Volume period">
+                <span class="selected-value">{{ relVolSelect }}</span>
+                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="dropdown-menu" v-show="relVolDropdownOpen">
+                <div v-for="(option, index) in relVolOptions" :key="index" @click="selectRelVolOption(option)" class="dropdown-item">
+                  {{ option }}
                 </div>
               </div>
-              <p>Average Volume (1000s)</p>
-              <div style="display: flex; align-items: center;">
-                <input class="input" id="left-avgvol" type="text" placeholder="min" style="width: 70px; margin: 0 5px;" aria-label="Average Volume min">
-                <input class="input" id="right-avgvol" type="text" placeholder="max"
-                  style="width: 70px; margin: 0 5px;" aria-label="Average Volume max">
-                <div class="avgvol-select-container" style="margin-left: 5px;">
-                  <div class="avgvol-dropdown-btn" aria-label="Select Average Volume period">
-                    <p class="selected-value">{{ avgVolSelect }}</p>
-                  </div>
-                  <div class="avgvol-dropdown-menu">
-                    <div v-for="(option, index) in avgVolOptions" :key="index" @click="selectAvgVolOption(option)" aria-label="Average Volume option {{ option }}">
-                      {{ option }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <button class="btns" style="float:right" @click="SetVolume()" aria-label="Set Volume">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 32 32"
-                  style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;" version="1.1"
-                  xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:serif="http://www.serif.com/"
-                  xmlns:xlink="http://www.w3.org/1999/xlink">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M9,29l0,-8.25c0,-1.518 1.232,-2.75 2.75,-2.75l8.5,0c1.518,0 2.75,1.232 2.75,2.75l0,8.25l-14,-0Zm-2,-0.101c-0.953,-0.195 -1.837,-0.665 -2.536,-1.363c-0.937,-0.938 -1.464,-2.21 -1.464,-3.536c-0,-4.439 -0,-11.561 0,-16c-0,-1.326 0.527,-2.598 1.464,-3.536c0.938,-0.937 2.21,-1.464 3.536,-1.464l2,-0l0,5.083c0,2.201 1.613,3.917 3.5,3.917l5,0c1.887,0 3.5,-1.716 3.5,-3.917l0,-5.083l0.221,0c0.24,0 0.472,0.087 0.654,0.244l5.779,5c0.22,0.19 0.346,0.466 0.346,0.756c0,0 0,9.426 -0,15c0,1.326 -0.527,2.598 -1.464,3.536c-0.699,0.698 -1.583,1.168 -2.536,1.363l0,-8.149c0,-2.622 -2.128,-4.75 -4.75,-4.75c0,0 -8.5,0 -8.5,0c-2.622,0 -4.75,2.128 -4.75,4.75l0,8.149Zm13,-25.899l0,5.083c0,1.02 -0.626,1.917 -1.5,1.917c0,0 -5,0 -5,0c-0.874,0 -1.5,-0.897 -1.5,-1.917l0,-5.083l8,0Z">
-                    </path>
-                    <g></g>
-                  </g>
-                </svg>
-              </button>
-              <button class="btnsr" style="float:right" @click="emit('reset'); emit('update:showVolume', false)" aria-label="Reset Volume">
-                <svg class="iconbtn" fill="var(--text1)" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"
-                  transform="rotate(90)">
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-                  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-                  <g id="SVGRepo_iconCarrier">
-                    <path
-                      d="M960 0v213.333c411.627 0 746.667 334.934 746.667 746.667S1371.627 1706.667 960 1706.667 213.333 1371.733 213.333 960c0-197.013 78.4-382.507 213.334-520.747v254.08H640V106.667H53.333V320h191.04C88.64 494.08 0 720.96 0 960c0 529.28 430.613 960 960 960s960-430.72 960-960S1489.387 0 960 0"
-                      fill-rule="evenodd"></path>
-                  </g>
-                </svg>
-              </button>
             </div>
           </div>
         </div>
+      </div>
+      
+      <div class="volume-section">
+        <div class="section-title">Average Volume (1000s)</div>
+        <div class="input-group">
+          <div class="input-wrapper">
+            <label class="input-label">Minimum</label>
+            <input class="input-field" id="left-avgvol" type="number" step="0.01" placeholder="0.00" aria-label="Average Volume minimum">
+          </div>
+          <div class="input-wrapper">
+            <label class="input-label">Maximum</label>
+            <input class="input-field" id="right-avgvol" type="number" step="0.01" placeholder="0.00" aria-label="Average Volume maximum">
+          </div>
+          <div class="input-wrapper">
+            <label class="input-label">Period</label>
+            <div class="dropdown-container">
+              <div class="dropdown-btn" @click="toggleAvgVolDropdown" aria-label="Select Average Volume period">
+                <span class="selected-value">{{ avgVolSelect }}</span>
+                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="dropdown-menu" v-show="avgVolDropdownOpen">
+                <div v-for="(option, index) in avgVolOptions" :key="index" @click="selectAvgVolOption(option)" class="dropdown-item">
+                  {{ option }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="actions">
+        <button class="btn btn-secondary" @click="emit('reset'); emit('update:showVolume', false)" aria-label="Reset Volume filter">
+          Reset
+        </button>
+        <button class="btn btn-primary" @click="SetVolume()" aria-label="Set Volume filter">
+          Apply
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -140,12 +140,27 @@ const avgVolOptions = ref<string[]>([
 const relVolSelect = ref<string>('-');
 const avgVolSelect = ref<string>('-');
 
+const relVolDropdownOpen = ref<boolean>(false);
+const avgVolDropdownOpen = ref<boolean>(false);
+
 function selectRelVolOption(option: string) {
   relVolSelect.value = option;
+  relVolDropdownOpen.value = false;
 }
 
 function selectAvgVolOption(option: string) {
   avgVolSelect.value = option;
+  avgVolDropdownOpen.value = false;
+}
+
+function toggleRelVolDropdown() {
+  relVolDropdownOpen.value = !relVolDropdownOpen.value;
+  avgVolDropdownOpen.value = false; // Close other dropdown
+}
+
+function toggleAvgVolDropdown() {
+  avgVolDropdownOpen.value = !avgVolDropdownOpen.value;
+  relVolDropdownOpen.value = false; // Close other dropdown
 }
 
 // Defensive getter for input values
@@ -213,117 +228,80 @@ async function SetVolume() {
 </script>
 
 <style scoped>
-
-.param-s1 {
-  margin: 3px;
-  padding: 5px;
-  color: var(--text2);
+/* Card Container */
+.param-card {
   background-color: var(--base2);
-  border: none;
-  height: 20px;
-  position: relative;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 4px 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.param-s1-expanded {
-   margin: 3px;
-  padding: 5px;
-  color: var(--text2);
+.param-card:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border-color: var(--base3);
+}
+
+.param-card-expanded {
   background-color: var(--base2);
-  border: none;
-  height: 200px;
-  position: relative;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 4px 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  border: 1px solid var(--base3);
 }
 
-.row {
-  border: none;
-  margin: none;
-  padding: none;
+/* Header Section */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
 }
 
-.left {
-  border: none;
-  outline: none;
-  display: inline-flex;
-  width: 100px;
-  height: 15px;
-  margin: 5px;
-  position: absolute;
-  top: 35%;
-  left: 2%;
+.title-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.right {
-  border: none;
-  outline: none;
-  display: inline-flex;
-  width: 100px;
-  height: 15px;
-  margin: 5px;
-  position: absolute;
-  top: 60%;
-  left: 2%;
-}
-
-.btns {
+.title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text1);
+  letter-spacing: 0.01em;
   background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 89%;
 }
 
-.btnsr {
-  background-color: transparent;
-  border: none;
-  padding: 5px;
-  position: absolute;
-  bottom: 0%;
-  left: 80%;
-}
-
-.iconbtn {
-  width: 15px;
-  height: 15px;
-  opacity: 0.60;
+.info-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--text2);
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-.iconbtn:hover {
-  opacity: 1;
+.info-icon:hover {
+  color: var(--text1);
 }
 
-.question-img {
-  width: 15px;
-  cursor: pointer;
-  margin-left: 5px;
-}
-
-label,
-input,
-p {
-  border: none;
-}
-
+/* Toggle Switch */
 .switch {
   position: relative;
   display: inline-block;
-  width: 40px;
-  height: 20px;
-  margin: none;
-  padding: none;
+  width: 34px;
+  height: 18px;
 }
 
-/* Hide default HTML checkbox */
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
-  margin: none;
-  padding: none;
 }
 
-/* The slider */
 .slider {
   position: absolute;
   cursor: pointer;
@@ -332,136 +310,221 @@ p {
   right: 0;
   bottom: 0;
   background-color: var(--base3);
-  -webkit-transition: .3s;
-  transition: .3s;
-  margin: none;
-  padding: none;
+  transition: 0.2s;
+  border-radius: 18px;
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 13px;
-  width: 13px;
-  left: 2px;
-  bottom: 3.5px;
-  background-color: var(--text3);
-  -webkit-transition: .3s;
-  transition: .3s;
-  margin: none;
-  padding: none;
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--text2);
+  transition: 0.2s;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-input:checked+.slider {
+input:checked + .slider {
   background-color: var(--accent1);
 }
 
-input:focus+.slider {
-  box-shadow: 0 0 1px var(--accent1);
+input:checked + .slider:before {
+  transform: translateX(16px);
+  background-color: var(--text3);
 }
 
-input:checked+.slider:before {
-  -webkit-transform: translateX(13px);
-  -ms-transform: translateX(13px);
-  transform: translateX(22px);
+/* Content Section */
+.content {
+  margin-top: 10px;
+  animation: slideDown 0.2s ease;
 }
 
-/* Rounded sliders */
-.slider.round {
-  border-radius: 17px;
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.slider.round:before {
-  border-radius: 50%;
+/* Volume Sections */
+.volume-section {
+  margin-bottom: 12px;
 }
 
-.input {
-  border-radius: 5px;
-  padding: 5px 5px 5px 15px;
-  margin: 7px;
-  width: 160px;
-  outline: none;
+.volume-section:last-child {
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+}
+
+/* Input Group */
+.input-group {
+  display: flex;
+  gap: 6px;
+  align-items: end;
+}
+
+.input-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.input-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.input-field {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
   color: var(--text1);
-  transition: border-color 0.3s, box-shadow 0.3s;
-  border: solid 1px var(--base4);
+  background-color: var(--base3);
+  border: 1px solid var(--base4);
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.input-field::placeholder {
+  color: var(--text2);
+  opacity: 0.6;
+}
+
+.input-field:focus {
   background-color: var(--base4);
 }
 
-.input:focus {
-  border-color: var(--accent1);
-  outline: none;
+.input-field:hover:not(:focus) {
+  border-color: var(--text2);
 }
 
-.DataInputs {
-  position: absolute;
-  left: 5%;
-  top: 15%;
-  border: none;
-}
-
-.DataInputs input {
-  width: 50px;
-  margin-right: 5px;
-}
-
-.DataInputs p {
-  font-weight: bold;
-}
-
-.relvol-select-container,
-.avgvol-select-container {
+/* Dropdown */
+.dropdown-container {
   position: relative;
-  background-color: var(--base2);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  width: 40px;
-  height: 5px;
-  border-radius: 5px;
-  margin-left: 4px;
-  padding: 7px;
-  border: solid 2px var(--base1);
 }
 
-.relvol-dropdown-btn,
-.avgvol-dropdown-btn {
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.relvol-dropdown-menu,
-.avgvol-dropdown-menu {
-  display: none;
-  cursor: pointer;
-  width: 125px;
-  position: absolute;
-  z-index: 1000;
-  top: -10px;
-  left: 20px;
-}
-
-.relvol-dropdown-menu>div,
-.avgvol-dropdown-menu>div {
-  background-color: var(--base1);
-  padding: 5px;
-  height: 14px;
+.dropdown-btn {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--text1);
+  background-color: var(--base3);
+  border: 1px solid var(--base4);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 60px;
 }
 
-.relvol-dropdown-menu>div:hover,
-.avgvol-dropdown-menu>div:hover {
+.dropdown-btn:hover {
+  background-color: var(--base4);
+  border-color: var(--text2);
+}
+
+.dropdown-arrow {
+  width: 12px;
+  height: 12px;
+  color: var(--text2);
+  transition: transform 0.2s ease;
+}
+
+.dropdown-container:hover .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
   background-color: var(--base2);
+  border: 1px solid var(--base4);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  margin-top: 2px;
+}
+
+.dropdown-item {
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--text1);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: var(--base3);
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.btn {
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.01em;
+}
+
+.btn-secondary {
+  background-color: var(--base3);
+  color: var(--text2);
+  font-weight: 600;
+}
+
+.btn-secondary:hover {
+  background-color: var(--base4);
   color: var(--text1);
 }
 
-.relvol-dropdown-btn:hover+.relvol-dropdown-menu,
-.relvol-dropdown-menu:hover,
-.avgvol-dropdown-btn:hover+.avgvol-dropdown-menu,
-.avgvol-dropdown-menu:hover {
-  display: block;
+.btn-secondary:active {
+  transform: scale(0.98);
 }
 
+.btn-primary {
+  background-color: var(--accent1);
+  color: var(--text3);
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  box-shadow: 0 1px 4px rgba(var(--accent1-rgb, 59, 130, 246), 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
 </style>

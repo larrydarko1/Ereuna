@@ -82,9 +82,9 @@
                       </svg>
                       <p>Add to Watchlist</p>
                       <div class="ml-nested-dropdown-menu">
-                        <div v-for="(ticker, index) in (watchlist?.tickers ?? [])" :key="index" class="ml-watchlist-item">
+                        <div v-for="(ticker, index) in (watchlist?.tickers ?? [])" :key="index" class="ml-watchlist-item" @click.stop="toggleWatchlist(ticker, asset.Symbol)">
                           <label :for="'watchlist-' + index" class="ml-checkbox-label">
-                            <div @click.stop="toggleWatchlist(ticker, asset.Symbol)" style="cursor: pointer;">
+                            <div>
                               <div v-html="getWatchlistIcon ? getWatchlistIcon(ticker.Name ?? ticker, asset.Symbol) : ''"></div>
                             </div>
                             <span></span>
@@ -431,8 +431,9 @@ const columnsMinWidth = computed(() => {
   top: -10px;
   left: 20px;
   padding: 5px;
-  border-radius: 5px;
+  border-radius: 7px;
   background-color: var(--base4);
+  border: 1.5px solid var(--base3);
 }
 
 .ml-dropdown-menu>div {
@@ -442,6 +443,7 @@ const columnsMinWidth = computed(() => {
   display: flex;
   align-items: center;
   border-radius: 5px;
+  transition: background 0.18s, color 0.18s;
 }
 
 .ml-dropdown-menu>div:hover {
@@ -466,11 +468,12 @@ const columnsMinWidth = computed(() => {
   max-height: 185px;
   overflow-y: scroll;
   padding: 5px;
-  border-radius: 5px;
+  border-radius: 7px;
   min-width: 150px;
   z-index: 1001;
   align-items: center;
   justify-content: center;
+  border: 1.5px solid var(--base3);
 }
 
 .ml-nested-dropdown:hover .ml-nested-dropdown-menu {
@@ -480,6 +483,11 @@ const columnsMinWidth = computed(() => {
 .ml-checkbox-label {
   display: flex;
   align-items: center;
+  cursor: pointer;
+}
+
+.ml-checkbox-label span {
+  margin-right: 5px;
 }
 
 .ml-watchlist-item {
@@ -489,6 +497,8 @@ const columnsMinWidth = computed(() => {
   height: 24px;
   box-sizing: border-box;
   border-radius: 5px;
+  transition: background 0.18s, color 0.18s;
+  cursor: pointer;
 }
 
 .ml-watchlist-item:hover {

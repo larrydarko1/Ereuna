@@ -32,13 +32,13 @@
               <svg v-if="!showPanel" class="edit-icon" viewBox="0 0 24 24" height="10" width="10" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path fill-rule="evenodd" clip-rule="evenodd"
     d="M20.8477 1.87868C19.6761 0.707109 17.7766 0.707105 16.605 1.87868L2.44744 16.0363C2.02864 16.4551 1.74317 16.9885 1.62702 17.5692L1.03995 20.5046C0.760062 21.904 1.9939 23.1379 3.39334 22.858L6.32868 22.2709C6.90945 22.1548 7.44285 21.8693 7.86165 21.4505L22.0192 7.29289C23.1908 6.12132 23.1908 4.22183 22.0192 3.05025L20.8477 1.87868ZM18.0192 3.29289C18.4098 2.90237 19.0429 2.90237 19.4335 3.29289L20.605 4.46447C20.9956 4.85499 20.9956 5.48815 20.605 5.87868L17.9334 8.55027L15.3477 5.96448L18.0192 3.29289ZM13.9334 7.3787L3.86165 17.4505C3.72205 17.5901 3.6269 17.7679 3.58818 17.9615L3.00111 20.8968L5.93645 20.3097C6.13004 20.271 6.30784 20.1759 6.44744 20.0363L16.5192 9.96448L13.9334 7.3787Z"
-    fill="var(--text1)"></path>
+    fill="var(--text3)"></path>
 </svg>
 <svg v-else class="edit-icon" viewBox="0 0 24 24" height="10" width="10" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path d="M18 6L6 18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-    stroke="var(--text1)"></path>
+    stroke="currentColor"></path>
   <path d="M6 6L18 18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-    stroke="var(--text1)"></path>
+    stroke="currentColor"></path>
 </svg>
               {{ showPanel ? 'Close Popup' : 'Edit Panel' }}
             </div>
@@ -673,62 +673,6 @@ function getSidebarProps(tag: string) {
   cursor: pointer;
 }
 
-/* div that contains input and button for searching symbols */
-#searchtable {
-  display: flex;
-  align-items: center;
-  background-color: var(--base2);
-  position: relative;
-}
-
-/* input for searching symbols */
-#searchbar {
-  border-radius: 5px;
-  padding: 10px 10px 10px 15px;
-  margin: 7px;
-  width: calc(100% - 30px);
-  outline: none;
-  color: var(--text2);
-  transition: border-color 0.3s, box-shadow 0.3s;
-  border: solid 1px var(--base1);
-  background-color: var(--base4);
-}
-
-#searchbar:focus {
-  border-color: var(--accent1);
-  outline: none;
-}
-
-/* button for searching symbols, inside searchbar */
-.wlbtn2 {
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-  flex-shrink: 0;
-  color: var(--text1);
-  background-color: var(--accent1);
-  border: none;
-  padding: 0;
-  outline: none;
-  cursor: pointer;
-  height: 32px;
-  width: 32px;
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: background-color 0.2s ease-in-out;
-}
-
-.wlbtn2:hover {
-  background-color: var(--accent2);
-  box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
-  outline: none;
-}
 
 /* Hide chart elements while loading */
 .tv-lightweight-charts {
@@ -1132,12 +1076,14 @@ function getSidebarProps(tag: string) {
 .watchlist-dropdown-menu {
   background-color: var(--base4);
   padding: 10px;
-  border-radius: 5px;
+  border-radius: 7px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  border: 1.5px solid var(--base2);
 }
 
 .select-container .watchlist-dropdown-menu div:hover {
   background-color: var(--base2);
+  color: var(--text1);
   border-radius: 5px;
 }
 
@@ -1155,36 +1101,24 @@ function getSidebarProps(tag: string) {
 }
 
 .editbtn {
-  background-color: var(--base4);
+  background-color: var(--accent1);
   border: none;
   cursor: pointer;
-  width: 100%;
   padding: 5px;
-  color: var(--text1);
+  color: var(--text3);
   transition: background-color 0.5s ease-in-out;
   align-items: center;
   justify-content: center;
   display: flex;
   flex-direction: row;
   gap: 5px;
+  border-radius: 6px;
+   margin: 0 5px 2px 5px;
+   width: calc(100% - 20px);
+   font-weight: bold;
 }
 
 .editbtn:hover {
-  background-color: var(--base2);
-}
-
-.financialbtn {
-  background-color: var(--accent1);
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  padding: 10px;
-  color: var(--text3);
-  font-weight: bold;
-  transition: background-color 0.5s ease-in-out;
-}
-
-.financialbtn:hover {
   background-color: var(--accent2);
 }
 
@@ -1258,7 +1192,8 @@ function getSidebarProps(tag: string) {
   display: flex;
   flex-direction: column;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-  border-radius: 5px;
+  border-radius: 7px;
+  border: 1.5px solid var(--base2);
 }
 
 .watchlist-dropdown-menu3>div {
@@ -1271,6 +1206,7 @@ function getSidebarProps(tag: string) {
 
 .watchlist-dropdown-menu3>div:hover {
   background-color: var(--base2);
+  color: var(--text1);
   border-radius: 5px;
 }
 
@@ -1312,12 +1248,14 @@ function getSidebarProps(tag: string) {
 .watchlist-dropdown-menu2 {
   background-color: var(--base4);
   padding: 5px;
-  border-radius: 5px;
+  border-radius: 7px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  border: 1.5px solid var(--base2);
 }
 
 .dropdown-item:hover {
   background-color: var(--base2);
+  color: var(--text1);
   border-radius: 5px;
   cursor: pointer;
 }
@@ -1337,13 +1275,6 @@ function getSidebarProps(tag: string) {
 .CreateWatchlist input.input-error {
   border: solid 1px red !important;
   /* Use !important to ensure it takes precedence */
-}
-
-.summary-container {
-  display: flex;
-  flex-direction: column;
-  color: var(--text2);
-  border: none;
 }
 
 /* summary rows main */

@@ -230,18 +230,25 @@ watchEffect(() => {
 #main {
   display: flex;
   flex-direction: row;
-  height: 100vh;
-  overflow: hidden;
-  width: 100%;
-  //min-width: 1250px;
+  min-height: 100vh;
+  width: 100vw;
+  box-sizing: border-box;
+  background-color: var(--base1);
+  overflow-x: scroll;
+  padding: 5px 10px 10px 10px;
+  gap: 5px;
 }
 
 .sidebar {
   display: flex;
   flex-direction: column;
   width: 15%;
-  padding: 20px;
-  background-color: var(--base2);
+  background: var(--base2);
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(10, 20, 30, 0.08);
+  border: 1px solid rgba(0,0,0,0.04);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
   overflow-y: auto;
 }
 
@@ -250,7 +257,12 @@ watchEffect(() => {
   position: relative;
   flex-direction: column;
   width: 100%;
-  background-color: var(--base4);
+  background: var(--base2);
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(10, 20, 30, 0.08);
+  border: 1px solid rgba(0,0,0,0.04);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
   text-align: center;
   overflow-y: auto;
 }
@@ -272,8 +284,9 @@ watchEffect(() => {
   font-size: 15px;
   cursor: pointer;
   border-radius: 5px;
-  transition: background-color 0.3s ease-in-out;
+  transition: background-color 0.3s ease-in-out, transform 0.14s ease, box-shadow 0.14s ease;
   opacity: 0.80;
+  border: 1px solid rgba(0,0,0,0.04);
 }
 
 .menu:hover {
@@ -281,12 +294,15 @@ watchEffect(() => {
   background-color: var(--accent1);
   opacity: 1;
   color: var(--text3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(10, 20, 30, 0.06);
 }
 
 .menu.selected {
   background-color: var(--accent1);
   opacity: 1;
   color: var(--text3);
+  box-shadow: 0 4px 12px rgba(10, 20, 30, 0.06);
 }
 
 .icon {
@@ -317,16 +333,21 @@ p {
   margin: 5px;
   width: 150px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease, transform 0.14s ease, box-shadow 0.14s ease;
+  box-shadow: 0 2px 8px rgba(10, 20, 30, 0.04);
 }
 
 .userbtn:disabled , .userbtn:disabled:hover {
   cursor: not-allowed;
   background-color: var(--base3);
+  transform: none;
+  box-shadow: none;
 }
 
 .userbtn:hover {
   background-color: var(--accent2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(10, 20, 30, 0.06);
 }
 
 /* inputs for settings */
@@ -340,18 +361,20 @@ p {
   transition: border-color 0.3s, box-shadow 0.3s;
   border: solid 1px var(--base4);
   background-color: var(--base4);
+  box-shadow: 0 2px 8px rgba(10, 20, 30, 0.04);
 }
 
 .userinput:focus {
   border-color: var(--accent1);
   outline: none;
+  box-shadow: 0 4px 12px rgba(10, 20, 30, 0.06);
 }
 
 @media (max-width: 1150px) {
   .sidebar {
     width: 60px;
     min-width: 60px;
-    padding: 10px 0;
+    padding: 22px 10px;
     align-items: center;
   }
   .menu {

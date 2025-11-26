@@ -200,7 +200,6 @@ async function LogOut() {
   background-color: var(--base1);
   border: solid 1px var(--base1);
   padding: 0px 10px;
-  //min-width: 1350px;
   display: flex;
   align-items: center;
   justify-content: space-between;

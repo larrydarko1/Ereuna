@@ -494,15 +494,16 @@ async def getPrice():
                 await daily_collection.insert_one(daily_doc)
                 
                 # Also upsert to 1m collection with 20:00:00 timestamp
+                # Use close value for all OHLC fields and set volume to 0
                 timestamp_1m = daily_doc['timestamp'].replace(hour=20, minute=0, second=0, microsecond=0)
                 intraday_1m_doc = {
                     'tickerID': daily_doc['tickerID'],
                     'timestamp': timestamp_1m,
-                    'open': daily_doc['open'],
-                    'high': daily_doc['high'],
-                    'low': daily_doc['low'],
+                    'open': daily_doc['close'],
+                    'high': daily_doc['close'],
+                    'low': daily_doc['close'],
                     'close': daily_doc['close'],
-                    'volume': daily_doc['volume']
+                    'volume': 0
                 }
                 
                 # Upsert to 1m collection (delete existing with same tickerID and timestamp, then insert)

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="dividends-container">
     <div v-if="displayedDividendsItems.length > 0" id="DividendsTable">
       <div class="dividends-header">
         <div class="dividends-cell" style="flex: 0 0 50%;">Reported</div>
@@ -125,7 +125,17 @@ watch(() => props.symbol, () => fetchDividendsDate(showAllDividends.value));
 </script>
 
 <style scoped>
-/* Add your styles here */
+.dividends-container {
+  display: flex;
+  flex-direction: column;
+  color: var(--text2);
+  border: none;
+  border-radius: 6px;
+  margin: 5px;
+  padding: 5px;
+  background-color: var(--base2);
+}
+
 .loading-indicator {
   text-align: center;
   padding: 10px;

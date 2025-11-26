@@ -76,6 +76,29 @@
           </div>
           <div class="indicator-label">Intrinsic Value</div>
         </div>
+        <div class="indicator-row-compact indicator-module chart-type-row">
+          <div class="indicator-label" style="margin-left: 2rem;">Chart Type</div>
+          <div class="indicator-piece">
+            <div class="custom-dropdown" @click="toggleChartTypeDropdown" :aria-label="'Select chart type'">
+              <div class="selected-value">
+                {{ chartType === 'candlestick' ? 'Candlestick' : 'Bar' }}
+                <span class="dropdown-arrow" :class="{ open: chartTypeDropdownOpen }">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                      <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z" fill="var(--text1)"></path>
+                    </g>
+                  </svg>
+                </span>
+              </div>
+              <div v-if="chartTypeDropdownOpen" class="dropdown-list">
+                <div class="dropdown-item" @click.stop="selectChartType('candlestick')">Candlestick</div>
+                <div class="dropdown-item" @click.stop="selectChartType('bar')">Bar</div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="modal-actions">
           <button type="button" class="cancel-btn" @click="close" aria-label="Cancel chart settings">Cancel</button>
           <button type="submit" class="trade-btn" aria-label="Save chart settings">Save</button>
@@ -101,6 +124,7 @@ const props = defineProps<{
   user: string;
   indicatorList: Indicator[];
   intrinsicVisible?: boolean;
+  chartType?: string;
 }>()
 
 const indicators = ref<Indicator[]>(
@@ -122,15 +146,34 @@ const showIntrinsicValue = ref<boolean>(props.intrinsicVisible ?? true)
 watch(() => props.intrinsicVisible, (v) => {
   showIntrinsicValue.value = v ?? false
 }, { immediate: true })
+
+// Initialize chart type from props
+const chartType = ref<string>(props.chartType || 'candlestick')
+watch(() => props.chartType, (v) => {
+  chartType.value = v || 'candlestick'
+}, { immediate: true })
+
 const dropdownOpen = ref<number | null>(null)
+const chartTypeDropdownOpen = ref<boolean>(false)
 
 function toggleDropdown(idx: number) {
   dropdownOpen.value = dropdownOpen.value === idx ? null : idx
+  chartTypeDropdownOpen.value = false
+}
+
+function toggleChartTypeDropdown() {
+  chartTypeDropdownOpen.value = !chartTypeDropdownOpen.value
+  dropdownOpen.value = null
 }
 
 function selectType(idx: number, type: string) {
   indicators.value[idx].type = type
   dropdownOpen.value = null
+}
+
+function selectChartType(type: string) {
+  chartType.value = type
+  chartTypeDropdownOpen.value = false
 }
 
 async function postChartSettings() {
@@ -142,7 +185,8 @@ async function postChartSettings() {
     })),
     intrinsicValue: {
       visible: showIntrinsicValue.value
-    }
+    },
+    chartType: chartType.value
   }
   try {
     await fetch(`/api/chart-settings?user=${encodeURIComponent(props.user)}`,
@@ -170,6 +214,7 @@ async function saveSettings() {
 function close() {
   emit('close')
   dropdownOpen.value = null
+  chartTypeDropdownOpen.value = false
 }
 </script>
 
@@ -187,6 +232,10 @@ function close() {
 }
 .indicator-row-compact:hover {
   border-color: var(--accent1);
+}
+
+.chart-type-row {
+  justify-content: space-between;
 }
 
 .indicator-module {
@@ -358,29 +407,28 @@ input[type="number"]:focus {
 .custom-dropdown {
   position: relative;
   min-width: 110px;
-  background: var(--base1);
-  border: 1.5px solid var(--base3);
-  border-radius: 7px;
   cursor: pointer;
   user-select: none;
-  transition: border-color 0.18s;
-}
-.custom-dropdown:focus-within, .custom-dropdown:hover {
-  border-color: var(--accent1);
 }
 .selected-value {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 12px;
+  background: var(--base1);
   color: var(--text1);
+  border-radius: 6px;
+  padding: 6px 12px;
+  border: 1.5px solid var(--base3);
   font-size: 0.98rem;
-  line-height: 1.2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.18s;
+}
+.selected-value:focus {
+  border-color: var(--accent1);
 }
 .dropdown-arrow {
   display: flex;
   align-items: center;
-  margin-left: 8px;
+  margin-left: 6px;
   transition: transform 0.18s;
 }
 .dropdown-arrow.open {
@@ -392,20 +440,27 @@ input[type="number"]:focus {
   right: 0;
   top: 100%;
   background: var(--base2);
-  border: 1.5px solid var(--accent1);
-  border-radius: 0 0 7px 7px;
+  border: 1.5px solid var(--base3);
+  border-radius: 7px;
   z-index: 10;
-  box-shadow: 0 4px 16px 0 rgba(0,0,0,0.10);
-  margin-top: 2px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  max-height: 150px;
+  overflow-y: auto;
   padding: 0;
 }
 .dropdown-item {
-  padding: 4px 8px;
+  padding: 10px 12px;
   color: var(--text1);
+  text-align: left;
   cursor: pointer;
   font-size: 0.98rem;
-  transition: background 0.15s;
+  border-radius: 7px;
+  transition: background 0.18s, color 0.18s;
   line-height: 1.2;
+}
+.dropdown-item:hover {
+  background: var(--accent1);
+  color: var(--text3);
 }
 .custom-checkbox {
   display: flex;

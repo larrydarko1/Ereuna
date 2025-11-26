@@ -1,6 +1,6 @@
 <template>
- <h1 style="margin-top: 2px;" class="title3">WEEKLY CHART</h1>
                                 <div class="chart-container">
+                                  <h1 class="badge">WEEKLY CHART</h1>
                                   <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
                                     <Loader />
                                   </div>
@@ -199,8 +199,14 @@ async function fetchChartDataWS(symbolParam: string | null): Promise<void> {
 
 // Unified fetchChartData function with immediate fallback logic
 async function fetchChartData(symbolParam: string | null, before: string | number | null = null, append: boolean = false): Promise<void> {
-  isChartLoading1.value = true;
-  await fetchChartDataWS(symbolParam);
+  if (!append) isChartLoading1.value = true;
+  if (append) {
+    // For lazy loading, use REST API directly
+    await fetchChartDataREST(symbolParam, before, append);
+  } else {
+    // For initial load, use WebSocket
+    await fetchChartDataWS(symbolParam);
+  }
 }
 onUnmounted(() => {
   closeChartWS();
@@ -463,10 +469,24 @@ h1 {
   margin: 0;
 }
 
+.badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: var(--base2);
+  color: var(--text1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 9;
+}
+
 .chart-container {
   position: relative;
   width: 100%;
   height: 250px;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .loading-container1 {

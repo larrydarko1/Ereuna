@@ -6,11 +6,16 @@
     :apiKey="props.apiKey"
     :user="props.user"
     :indicatorList="indicatorList"
-  :intrinsicVisible="intrinsicVisible"
+    :intrinsicVisible="intrinsicVisible"
+    :chartType="isBarChart ? 'bar' : 'candlestick'"
   />
+  <div class="mainchart-dashboard">
                                <div class="chart-container">
                                   <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
                                     <Loader />
+                                  </div>
+                                  <div class="no-data-container" v-if="!isChartLoading1 && !isLoading1 && data.length === 0">
+                                    <p>No Data Available</p>
                                   </div>
                                   <div id="legend">
                                       <div class="chart-img-wrapper" style="position: relative; display: inline-block;">
@@ -39,7 +44,7 @@
   </div>
                                   </div>
 <div id="legend2">
-  <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+  <div style="display: flex; gap: 3px; margin-bottom: 3px;">
     <button
       v-for="type in chartTypes"
       :key="type.value"
@@ -50,42 +55,13 @@
       {{ type.shortLabel }}
     </button>
   </div>
-  <div style="display: flex; gap: 5px; justify-content: flex-end;">
+  <div style="display: flex; gap: 3px; justify-content: flex-end;">
     <button class="navbt2" @click="showEditChart = true">
-      Edit Chart
-    </button>
-    <button class="navbt navbt-svg" v-b-tooltip.hover title="Change Chart type" @click="toggleChartType"
-      aria-label="Toggle chart type">
-      <span v-if="isBarChart">
-        <!-- Bar chart SVG -->
-        <svg class="chart-type-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="4" y="10" width="3" height="8" fill="currentColor"/>
-          <rect x="10" y="6" width="3" height="12" fill="currentColor"/>
-          <rect x="16" y="2" width="3" height="16" fill="currentColor"/>
-        </svg>
-      </span>
-      <span v-else>
-        <!-- Candlestick chart SVG (custom) -->
-        <svg class="chart-type-icon" version="1.1" id="_x32_" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" fill="currentColor">
-          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-          <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-          <g id="SVGRepo_iconCarrier">
-            <g>
-              <polygon class="st0" points="195.047,75.844 178.797,75.844 178.797,109.047 138.156,109.047 138.156,320.344 178.797,320.344 178.797,360.297 195.047,360.297 195.047,320.344 235.688,320.344 235.688,109.047 195.047,109.047 "></polygon>
-              <polygon class="st0" points="512,49.438 471.375,49.438 471.375,16.25 455.109,16.25 455.109,49.438 414.469,49.438 414.469,293.25 455.109,293.25 455.109,333.203 471.375,333.203 471.375,293.25 512,293.25 "></polygon>
-              <path class="st0" d="M56.875,203.172h-16.25v36.578H0v219.422h40.625v36.578h16.25v-36.578h40.656V239.75H56.875V203.172z M81.281,256v186.922H16.25V256H81.281z"></path>
-              <path class="st0" d="M333.203,151.703h-16.25v33.188h-40.641v227.563h40.641v39.953h16.25v-39.953h40.641V184.891h-40.641V151.703z M357.594,201.156v195.047h-65.031V201.156H357.594z"></path>
-            </g>
-          </g>
-        </svg>
-      </span>
-    </button>
-    <button class="navbt navbt-svg disabled">
-      <svg class="chart-type-icon" width="24" height="24" viewBox="0 0 24 24" fill="var(--accent1)" xmlns="http://www.w3.org/2000/svg">
+      <svg class="chart-type-icon" fill="currentColor" viewBox="0 0 32 32" enable-background="new 0 0 32 32" id="Glyph" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
         <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
         <g id="SVGRepo_iconCarrier">
-          <path d="M2 15.6157C2 16.463 2.68179 17.1448 4.04537 18.5083L5.49167 19.9546C6.85525 21.3182 7.53704 22 8.38426 22C9.23148 22 9.91327 21.3182 11.2769 19.9546L19.9546 11.2769C21.3182 9.91327 22 9.23148 22 8.38426C22 7.53704 21.3182 6.85525 19.9546 5.49167L18.5083 4.04537C17.1448 2.68179 16.463 2 15.6157 2C14.8623 2 14.2396 2.53926 13.1519 3.61778C13.1817 3.63981 13.2103 3.66433 13.2373 3.69135L14.6515 5.10556C14.9444 5.39846 14.9444 5.87333 14.6515 6.16622C14.3586 6.45912 13.8837 6.45912 13.5908 6.16622L12.1766 4.75201C12.1494 4.7248 12.1247 4.69601 12.1026 4.66595L11.0299 5.73861C11.06 5.76077 11.0888 5.78545 11.116 5.81267L13.2373 7.93399C13.5302 8.22688 13.5302 8.70176 13.2373 8.99465C12.9444 9.28754 12.4695 9.28754 12.1766 8.99465L10.0553 6.87333C10.0281 6.84612 10.0034 6.81733 9.98125 6.78726L8.90859 7.85993C8.93865 7.88209 8.96744 7.90678 8.99465 7.93399L10.4089 9.3482C10.7018 9.6411 10.7018 10.116 10.4089 10.4089C10.116 10.7018 9.6411 10.7018 9.3482 10.4089L7.93399 8.99465C7.90678 8.96744 7.88209 8.93865 7.85993 8.90859L6.78727 9.98125C6.81733 10.0034 6.84612 10.0281 6.87333 10.0553L8.99465 12.1766C9.28754 12.4695 9.28754 12.9444 8.99465 13.2373C8.70176 13.5302 8.22688 13.5302 7.93399 13.2373L5.81267 11.116C5.78545 11.0888 5.76077 11.06 5.73861 11.0299L4.66595 12.1026C4.69601 12.1247 4.7248 12.1494 4.75201 12.1766L6.16622 13.5908C6.45912 13.8837 6.45912 14.3586 6.16622 14.6515C5.87333 14.9444 5.39846 14.9444 5.10556 14.6515L3.69135 13.2373C3.66433 13.2103 3.63981 13.1817 3.61778 13.1519C2.53926 14.2396 2 14.8623 2 15.6157Z" fill="currentColor"></path>
+          <path d="M27.526,18.036L27,17.732c-0.626-0.361-1-1.009-1-1.732s0.374-1.371,1-1.732l0.526-0.304 c1.436-0.83,1.927-2.662,1.098-4.098l-1-1.732c-0.827-1.433-2.666-1.925-4.098-1.098L23,7.339c-0.626,0.362-1.375,0.362-2,0 c-0.626-0.362-1-1.009-1-1.732V5c0-1.654-1.346-3-3-3h-2c-1.654,0-3,1.346-3,3v0.608c0,0.723-0.374,1.37-1,1.732 c-0.626,0.361-1.374,0.362-2,0L8.474,7.036C7.042,6.209,5.203,6.701,4.375,8.134l-1,1.732c-0.829,1.436-0.338,3.269,1.098,4.098 L5,14.268C5.626,14.629,6,15.277,6,16s-0.374,1.371-1,1.732l-0.526,0.304c-1.436,0.829-1.927,2.662-1.098,4.098l1,1.732 c0.828,1.433,2.667,1.925,4.098,1.098L9,24.661c0.626-0.363,1.374-0.361,2,0c0.626,0.362,1,1.009,1,1.732V27c0,1.654,1.346,3,3,3h2 c1.654,0,3-1.346,3-3v-0.608c0-0.723,0.374-1.37,1-1.732c0.625-0.361,1.374-0.362,2,0l0.526,0.304 c1.432,0.826,3.271,0.334,4.098-1.098l1-1.732C29.453,20.698,28.962,18.865,27.526,18.036z M16,21c-2.757,0-5-2.243-5-5s2.243-5,5-5 s5,2.243,5,5S18.757,21,16,21z" id="XMLID_273_"></path>
         </g>
       </svg>
     </button>
@@ -105,8 +81,21 @@
 </div>
 <div id="legend3-5">
   <div class="market-status-badge">
-    <span class="status-indicator" :class="marketStatusClass"></span>
+    <span v-if="marketStatus !== 'holiday'" class="status-indicator" :class="marketStatusClass"></span>
+    <svg v-else viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="status-indicator holiday-icon">
+      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+      <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g id="SVGRepo_iconCarrier">
+        <g>
+          <path fill="none" d="M0 0H24V24H0z"></path>
+          <path d="M11 6v8h8c0 4.418-3.582 8-8 8s-8-3.582-8-8c0-4.335 3.58-8 8-8zm10-4v2l-5.327 6H21v2h-8v-2l5.326-6H13V2h8z" fill="currentColor"></path>
+        </g>
+      </g>
+    </svg>
     <span class="status-text">{{ marketStatusText }}</span>
+  </div>
+  <div v-if="isEODOnly" class="eod-only-badge">
+    <span class="eod-text">EOD Only</span>
   </div>
 </div>
 <div id="legend4">
@@ -119,8 +108,9 @@
   </span>
 </div>
                                   <div id="wk-chart" ref="wkchart" style="width: 100%; height: 250px;"
-                                    :class="{ 'hidden': isChartLoading1 || isLoading1 }"></div>
+                                    :class="{ 'hidden': isChartLoading1 || isLoading1 || data.length === 0 }"></div>
                                 </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -354,7 +344,7 @@ function updateChartSize(): void {
     // ignore applyOptions errors
   }
 }
-const isBarChart = ref(false);
+const isBarChart = ref(false); // Will be set from user settings
 
 // Chart series and update logic at top-level scope
 let mainSeries: ReturnType<IChartApi['addBarSeries']> | ReturnType<IChartApi['addCandlestickSeries']> | null = null;
@@ -697,9 +687,7 @@ onUnmounted(() => {
   // close websocket if open
   closeChartWS();
 });
-function toggleChartType() {
-  isBarChart.value = !isBarChart.value;
-}
+
 
 // Watch for prop changes to selectedSymbol and update chart
 watch(() => props.selectedSymbol, (newSymbol, oldSymbol) => {
@@ -774,6 +762,8 @@ const hiddenList = ref<string[]>([]); // stores hidden tickers for user (for hid
 const indicatorList = ref<Indicator[]>([]); // stores in indicators settings for each user
 const intrinsicVisible = ref<boolean>(false);
 const marketStatus = ref<'open' | 'closed' | 'holiday'>('closed');
+const currentHolidayName = ref<string>('');
+const holidays = ref<Array<{date: string, name: string}>>([]);
 
 // Refs used to measure & animate the Name text when truncated
 const nameContainer = ref<HTMLElement | null>(null);
@@ -841,8 +831,28 @@ async function fetchIndicatorList() {
     timeframe: typeof ind.timeframe === 'string' ? Number(ind.timeframe) : ind.timeframe
   })) as Indicator[];
   intrinsicVisible.value = !!payload.intrinsicValueVisible;
+  // Set chart type from user settings
+  if (payload.chartType === 'bar') {
+    isBarChart.value = true;
+  } else {
+    isBarChart.value = false;
+  }
   } catch (err) {
     // Handle errors as needed
+  }
+}
+
+async function fetchHolidays() {
+  try {
+    const response = await fetch('/api/holidays', {
+      headers: { 'X-API-KEY': props.apiKey },
+    });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const payload = await response.json();
+    holidays.value = payload.Holidays || [];
+  } catch (err) {
+    // Handle errors as needed - fallback to empty array
+    holidays.value = [];
   }
 }
 
@@ -851,6 +861,7 @@ let statusInterval: ReturnType<typeof setInterval> | null = null;
 onMounted(() => {
   fetchHiddenList();
   fetchIndicatorList();
+  fetchHolidays();
   checkMarketStatus();
   
   // Check market status every 5 seconds for more accurate updates
@@ -870,9 +881,10 @@ const isInHiddenList = (item: string): boolean => {
 
 // Handle chart refresh after settings are saved
 function onSettingsSaved() {
-  // Use current symbol and timeframe
-  fetchChartData();
+  // Fetch indicator list first to get updated chart type
   fetchIndicatorList();
+  // Then refresh chart data
+  fetchChartData();
 }
 
 // Computed properties for market status
@@ -883,11 +895,19 @@ const marketStatusClass = computed<string>(() => {
 const marketStatusText = computed<string>(() => {
   if (marketStatus.value === 'open') return 'Market Open';
   if (marketStatus.value === 'closed') return 'Market Close';
+  if (marketStatus.value === 'holiday') return 'Holiday | ' + currentHolidayName.value;
   return 'Holiday';
+});
+
+// Computed property for EOD Only badge
+const isEODOnly = computed<boolean>(() => {
+  const exchange = props.assetInfo?.Exchange;
+  return exchange && exchange !== 'NASDAQ' && exchange !== 'NYSE';
 });
 
 // Function to check market status
 function checkMarketStatus(): void {
+  currentHolidayName.value = '';
   // Get current time in US Eastern Time
   const nowET = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
   const day = nowET.getDay(); // 0 = Sunday, 6 = Saturday
@@ -895,19 +915,8 @@ function checkMarketStatus(): void {
   const minutes = nowET.getMinutes();
   const time = hours * 60 + minutes; // Convert to minutes since midnight
   
-  // US holidays (simplified - you may want to expand this)
-  const holidays = [
-    '2025-01-01', // New Year's Day
-    '2025-01-20', // MLK Day
-    '2025-02-17', // Presidents Day
-    '2025-04-18', // Good Friday
-    '2025-05-26', // Memorial Day
-    '2025-06-19', // Juneteenth
-    '2025-07-04', // Independence Day
-    '2025-09-01', // Labor Day
-    '2025-11-27', // Thanksgiving
-    '2025-12-25', // Christmas
-  ];
+  // US holidays (fetched from database)
+  const holidayList = holidays.value;
   
   // Get date string in ET timezone
   const year = nowET.getFullYear();
@@ -915,8 +924,10 @@ function checkMarketStatus(): void {
   const date = String(nowET.getDate()).padStart(2, '0');
   const dateStr = `${year}-${month}-${date}`;
   
-  if (holidays.includes(dateStr)) {
+  const holiday = holidayList.find(h => h.date === dateStr);
+  if (holiday) {
     marketStatus.value = 'holiday';
+    currentHolidayName.value = holiday.name;
     return;
   }
   
@@ -999,6 +1010,18 @@ h1 {
   position: relative;
   width: 100%;
   height: 550px;
+  border-radius: 6px;
+}
+
+.mainchart-dashboard {
+  display: flex;
+  flex-direction: column;
+  color: var(--text2);
+  border: none;
+  border-radius: 6px;
+  padding: 5px;
+  background-color: var(--base2);
+  width: calc(100% - 10px);
 }
 
 .loading-container1 {
@@ -1012,6 +1035,25 @@ h1 {
   align-items: center;
   background-color: var(--base1);
   z-index: 10;
+}
+
+.no-data-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--base1);
+  z-index: 10;
+}
+
+.no-data-container p {
+  color: var(--text2);
+  font-size: 16px;
+  font-weight: 500;
 }
 
 
@@ -1088,6 +1130,7 @@ h1 {
   border: none;
   flex-direction: column;
   display: flex;
+  gap: 3px;
 }
 
 #legend3 {
@@ -1190,6 +1233,12 @@ font-weight: bold;
   animation: pulse-holiday 1.5s ease-in-out infinite;
 }
 
+.holiday-icon {
+  width: 12px;
+  height: 12px;
+  color: var(--text2);
+}
+
 @keyframes pulse-open {
   0%, 100% {
     box-shadow: 0 0 4px var(--positive), 0 0 8px var(--positive);
@@ -1227,6 +1276,23 @@ font-weight: bold;
   font-weight: 600;
 }
 
+.eod-only-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 2px 6px;
+  background-color: var(--text2);
+  border-radius: 3px;
+  opacity: 0.85;
+}
+
+.eod-text {
+  color: var(--base1);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
 
 .chart-img {
   width: 20px;
@@ -1259,29 +1325,27 @@ font-weight: bold;
 }
 
 .navbt {
-  background-color: var(--text2);
-  color: var(--base1);
+  background-color: transparent;
+  color: var(--text2);
   text-align: center;
   justify-content: center;
   cursor: pointer;
-  border: solid var(--text2) 1px;
-  border-radius: 5px;
-  opacity: 0.60;
-  width: 32px;
-  height: 32px;
+  border: none;
+  border-radius: 0;
+  opacity: 1;
+  width: 28px;
+  height: 28px;
   align-items: center;
   display: flex;
-  font-weight: bold;
+  font-weight: normal;
   padding: 0;
+  transition: all 0.2s ease;
 }
 
-.navbt-svg {
-  background-color: var(--text2);
-}
 
 .chart-type-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   display: block;
 }
 
@@ -1291,47 +1355,44 @@ font-weight: bold;
 }
 
 .navbt:hover {
-  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text1);
 }
 
 .navbt.selected {
-  opacity: 1;
-  background-color: var(--text1);
-  color: var(--base2);
-  border: solid var(--text1) 1px;
+  background-color: transparent;
+  color: var(--text1);
+  font-weight: bold;
+  border-bottom: 1px solid var(--text1);
 }
 
 .navbt2 {
-  background-color: var(--text2);
-  color: var(--base1);
+  background-color: transparent;
+  color: var(--text2);
   text-align: center;
   justify-content: center;
   cursor: pointer;
-  border: solid var(--text2) 1px;
-  border-radius: 5px;
-  padding: 15px;
-  opacity: 0.60;
-  width: 89px;
-  height: 25px;
+  border: none;
+  border-radius: 0;
+  padding: 4px;
+  opacity: 1;
+  height: 28px;
   align-items: center;
   display: flex;
-  font-weight: bold;
+  font-weight: normal;
+  font-size: 12px;
+  transition: all 0.2s ease;
 }
 
 .navbt2:hover {
-  opacity: 1;
+  color: var(--text1);
 }
 
 .navbt2.selected {
-  opacity: 1;
-  background-color: var(--text1);
-  color: var(--base2);
-  border: solid var(--text1) 1px;
-}
-
-.chart-type-icon {
-  width: 20px;
-  height: 20px;
+  background-color: transparent;
+  color: var(--text1);
+  font-weight: bold;
+  border-bottom: 1px solid var(--text1);
 }
 
 </style>

@@ -794,21 +794,12 @@
                               @symbol-selected="setCharts"
                             />
 
-                                <h1 class="title3">SUMMARY</h1>
-                                <div style="padding-top: 5px; border:none" id="summary">
-                                  <div style="color: whitesmoke; text-align: center; border: none; overflow: scroll">
-                                    <div style="color: var(--text1)" v-for="(item, index) in screenerSummary"
-                                      :key="index">
-                                      <div style="padding: 5px;" v-if="item">
-                                        <span style="font-weight: bold;">{{ item.attribute }}</span> :
-                                        <span>
-                                          {{ formatValue(item) }}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div style="height: 30px; border: none"></div>
-                                </div>
+                            <Summary
+                              :apiKey="apiKey"
+                              :username="user?.Username ?? ''"
+                              :selectedScreener="selectedScreener"
+                              ref="summaryRef"
+                            />
                               </div>
                             </div>
                             <NotificationPopup ref="notification" />
@@ -837,6 +828,7 @@ import CombinedList from '@/components/Screener/Tables/CombinedList.vue';
 // charts components
 import Chart1 from '@/components/Screener/Chart1.vue'; // weekly chart
 import Chart2 from '@/components/Screener/Chart2.vue'; // daily chart
+import Summary from '@/components/Screener/Summary.vue'; // summary component
 
 //filter components
 import Price from '@/components/Screener/Parameters/Price.vue';
@@ -934,6 +926,7 @@ const showCAGRModel = ref(false);
 
 // for popup notifications
 const notification = ref<Record<string, any>>({});
+const summaryRef = ref<any>(null);
 const showNotification = (message: string) => {
   notification.value.show(message);
 };
@@ -1062,7 +1055,9 @@ async function fetchScreenerResults(screenerName: string): Promise<void> {
     filterTotalCount.value = data.totalCount;
     filterPage.value += 1;
     currentList.value = [...filterResults.value];
-    await SummaryScreener();
+    if (summaryRef.value) {
+      await summaryRef.value.loadSummary();
+    }
   } catch (error: unknown) {
     // TypeScript: handle error type and fix typo
     if (error instanceof Error) {
@@ -1368,8 +1363,7 @@ const HiddenResults = ref<any[]>([]); // stores hidden results list
 const compoundedResults = ref<any[]>([]); // it will store all compounded screener results, minus duplicates and hidden
 const hideList = ref<any[]>([]); // stores hidden list of users
 const ScreenersName = ref<any[]>([]); // stores all user's screeners
-const currentList = ref<any[]>([]); // Initialize currentList as an empty array
-const screenerSummary = ref<any[]>([]); // stores all params for a screener, summary bottom right below charts 
+const currentList = ref<any[]>([]); // Initialize currentList as an empty array 
 
 //related to lists / toggle
 watch(screenerResults, (newValue: any[]) => {
@@ -2031,116 +2025,6 @@ async function Reset(value: string): Promise<void> {
   }
 }
 
-// function that updates screener summary graphically 
-async function SummaryScreener(): Promise<void> {
-  const Name = selectedScreener.value;
-
-  try {
-    const response = await fetch(`/api/screener/summary/${user.value?.Username ?? ''}/${Name}`, {
-      headers: {
-        'X-API-KEY': apiKey,
-      }
-    });
-    const screenerSettings = await response.json();
-
-    const attributes = [
-      'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'PS', 'ForwardPE', 'PEG', 'EPS', 'PB', 'DivYield',
-      'EPSQoQ', 'EPSYoY', 'EarningsQoQ', 'EarningsYoY', 'RevQoQ', 'RevYoY', 'AvgVolume1W', 'AvgVolume1M', 'AvgVolume6M', 'AvgVolume1Y',
-      'RelVolume1W', 'RelVolume1M', 'RelVolume6M', 'RelVolume1Y', 'RSScore1W', 'RSScore1M', 'RSScore4M', 'MA10', 'MA20', 'MA50', 'MA200', 'CurrentPrice', 'NewHigh',
-      'NewLow', 'PercOffWeekHigh', 'PercOffWeekLow', 'changePerc', 'IPO', 'ADV1W', 'ADV1M', 'ADV4M', 'ADV1Y', 'ROE', 'ROA', 'currentRatio',
-      'assetsCurrent', 'liabilitiesCurrent', 'debtCurrent', 'cashAndEq', 'freeCashFlow', 'profitMargin', 'grossMargin', 'debtEquity', 'bookVal', 'EV',
-      'RSI', 'Gap', 'AssetTypes', 'IV', 'FundFamilies', 'FundCategories', 'NetExpenseRatio', 'CAGR'
-    ];
-
-  const attributeMapping: { [key: string]: string } = {
-      'MarketCap': 'Market Cap',
-      'PE': 'PE Ratio',
-      'PB': 'PB Ratio',
-      'PS': 'PS Ratio',
-      'DivYield': 'Dividend Yield (%)',
-      'EPSQoQ': 'EPS Growth QoQ (%)',
-      'EPSYoY': 'EPS Growth YoY (%)',
-      'EarningsQoQ': 'Earnings Growth QoQ (%)',
-      'EarningsYoY': 'Earnings Growth YoY (%)',
-      'RevQoQ': 'Revenue Growth QoQ (%)',
-      'RevYoY': 'Revenue Growth YoY (%)',
-      'AvgVolume1W': 'Average Volume (1W)',
-      'AvgVolume1M': 'Average Volume (1M)',
-      'AvgVolume6M': 'Average Volume (6M)',
-      'AvgVolume1Y': 'Average Volume (1Y)',
-      'RelVolume1W': 'Relative Volume (1W)',
-      'RelVolume1M': 'Relative Volume (1M)',
-      'RelVolume6M': 'Relative Volume (6M)',
-      'RelVolume1Y': 'Relative Volume (1Y)',
-      'RSScore1W': 'RS Score (1W)',
-      'RSScore1M': 'RS Score (1M)',
-      'RSScore4M': 'RS Score (4M)',
-      'NewHigh': 'New High',
-      'NewLow': 'New Low',
-      'PercOffWeekHigh': '% Off 52WeekHigh',
-      'PercOffWeekLow': '% Off 52WeekLow',
-      'changePerc': 'Change (%)',
-      'IPO': 'IPO',
-      'ADV1W': 'ADV (1W)',
-      'ADV1M': 'ADV (1M)',
-      'ADV4M': 'ADV (4M)',
-      'ADV1Y': 'ADV (1Y)',
-      'ROE': 'ROE',
-      'ROA': 'ROA',
-      'currentRatio': 'Current Ratio',
-      'assetsCurrent': 'Current Assets',
-      'liabilitiesCurrent': 'Current Liabilities',
-      'debtCurrent': 'Current Debt',
-      'cashAndEq': 'Cash and Equivalents',
-      'freeCashFlow': 'Free Cash Flow',
-      'profitMargin': 'Profit Margin',
-      'grossMargin': 'Gross Margin',
-      'debtEquity': 'Debt/Equity',
-      'bookVal': 'Book Value',
-      'EV': 'Enterprise Value',
-      'RSI': 'RSI',
-      'Gap': 'Gap %',
-      'AssetTypes': 'Asset Types',
-      'IV': 'Intrinsic Value',
-      'FundFamilies': 'Fund Families',
-      'FundCategories': 'Fund Categories',
-      'NetExpenseRatio': 'Net Expense Ratio %',
-      'CAGR': 'CAGR %'
-    };
-
-  const valueMapping: { [key: string]: string } = {
-      'abv200': 'Above 200MA',
-      'abv50': 'Above 50MA',
-      'abv20': 'Above 20MA',
-      'abv10': 'Above 10MA',
-      'blw200': 'Below 200MA',
-      'blw50': 'Below 50MA',
-      'blw20': 'Below 20MA',
-      'blw10': 'Below 20MA',
-    };
-
-    const newScreenerSummary: { attribute: string; value: any }[] = [];
-    attributes.forEach((attribute) => {
-      if (screenerSettings[attribute]) {
-        const attributeName = attributeMapping[attribute] || attribute;
-        const attributeValue = screenerSettings[attribute];
-        const mappedValue = valueMapping[attributeValue] || attributeValue;
-        newScreenerSummary.push({
-          attribute: attributeName,
-          value: mappedValue
-        });
-      }
-    });
-    screenerSummary.value = newScreenerSummary; // Replace the entire array
-  } catch (error) {
-    if (error instanceof Error) {
-      errorMessage.value = error.message;
-    } else {
-      errorMessage.value = String(error);
-    }
-  }
-}
-
 const emit = defineEmits(['update:modelValue']);
 
 function selectScreener(screener: string): void {
@@ -2410,7 +2294,7 @@ function getTooltipText(id: string): string {
     case 'gap':
       return 'Gap % is a measure of the percentage change in a stock\'s price from the previous day\'s close to the current day\'s open. It is calculated as (Current Open - Previous Close) / Previous Close. A positive gap % indicates an upward price movement, while a negative gap % indicates a downward price movement.';
     case 'assetType':
-      return 'Category of the asset, in this case we support Stocks and ETFs.';
+      return 'Category of the asset, in this case we support Stocks, ETFs and Mutual Funds.';
     case 'iv':
       return `Intrinsic Value (IV) estimates a stock's true worth using a Discounted Cash Flow (DCF) model. We calculate IV by:
       1. Summing the last 20 quarters of Free Cash Flow (FCF) to get annual FCF for the past 5 years.
@@ -2437,99 +2321,6 @@ const props = defineProps({
   }
 });
 const item = toRef(props, 'item');
-
-function formatDate(date: string | number | Date) {
-  let d = date instanceof Date ? date : new Date(date);
-  if (isNaN(d.getTime())) return '';
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}-${month}-${year}`;
-}
-
-const percentageAttributes = [
-  'ADV (1W)',
-  'ADV (1M)',
-  'ADV (4M)',
-  'ADV (1Y)',
-  'Gap %',
-  '% Off 52WeekHigh',
-  '% Off 52WeekLow'
-];
-
-const growthAttributes = [
-  'Dividend Yield (%)',
-  'EPS Growth QoQ (%)',
-  'EPS Growth YoY (%)',
-  'Earnings Growth QoQ (%)',
-  'Earnings Growth YoY (%)',
-  'Revenue Growth QoQ (%)',
-  'Revenue Growth YoY (%)'
-];
-
-function formatValue(item: { attribute: string; value: any }) {
-  if (!item.value && item.value !== 0) return '';
-
-  const attribute = item.attribute;
-  let value = item.value;
-
-  if (attribute === 'IPO') {
-    if (Array.isArray(value)) {
-      return value.map(d => formatDate(d)).filter(d => d !== '').join(' - ');
-    } else {
-      return formatDate(value);
-    }
-  }
-
-  if (attribute === 'Change (%)') {
-    if (Array.isArray(value) && value.length === 3) {
-      // Process first two elements with growthAttributes logic (multiply by 100 + format)
-      const processed = value.slice(0, 2).map(v => {
-        let num = parseFloat(v);
-        return isNaN(num) ? v : (num * 100).toFixed(2) + '%';
-      });
-      // Append third element as is (string, untouched)
-      processed.push(String(value[2]));
-      return processed.join(' - ');
-    } else {
-      // Fallback to string representation if not array or length != 3
-      return Array.isArray(value) ? value.join(' - ') : String(value);
-    }
-  }
-
-  if (percentageAttributes.includes(attribute)) {
-    if (Array.isArray(value)) {
-      return value.map(v => {
-        let num = parseFloat(v);
-        return isNaN(num) ? v : num.toFixed(2) + '%';
-      }).join(' - ');
-    } else {
-      let num = parseFloat(value);
-      return isNaN(num) ? value : num.toFixed(2) + '%';
-    }
-  }
-
-  if (growthAttributes.includes(attribute)) {
-    if (Array.isArray(value)) {
-      return value.map(v => {
-        let num = parseFloat(v);
-        return isNaN(num) ? v : (num * 100).toFixed(2) + '%';
-      }).join(' - ');
-    } else {
-      let num = parseFloat(value);
-      return isNaN(num) ? value : (num * 100).toFixed(2) + '%';
-    }
-  }
-
-  if (Array.isArray(value)) {
-    let cleaned = value.map(v => String(v).replace(/'/g, '').replace(/,/g, '-'));
-    return cleaned.join(' - ');
-  } else if (typeof value === 'string') {
-    return value.replace(/'/g, '').replace(/,/g, '-');
-  } else {
-    return String(value);
-  }
-}
 
 const selected = ref('filters')
 function select(option: string) {
@@ -2746,7 +2537,7 @@ const showSelector = computed(() => {
   top: 0;
   right: 0;
   width: 30%;
-  background-color: var(--base4);
+  background-color: var(--base2);
   z-index: 1000;
 }
 
@@ -2870,6 +2661,8 @@ p {
   display: flex;
   flex-direction: row;
   background-color: var(--base2);
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .title2 {
@@ -3137,12 +2930,6 @@ p {
   font-weight: bold;
   border: none;
   text-align: center;
-}
-
-#summary {
-  background-color: var(--base1);
-  border: none;
-  min-height: 250px;
 }
 
 .no-border {
@@ -3613,6 +3400,8 @@ h1 {
 
   .navmenu-mobile {
     display: flex;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .mobilenav {

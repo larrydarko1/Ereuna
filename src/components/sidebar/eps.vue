@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="eps-container">
     <div v-if="displayedEPSItems.length > 0" id="EPStable">
       <div class="eps-header">
         <div class="eps-cell" style="flex: 0 0 20%;">Reported</div>
@@ -195,5 +195,14 @@ watch(() => props.symbol, () => {
 </script>
 
 <style scoped>
-/* Add your styles here */
+.eps-container {
+  display: flex;
+  flex-direction: column;
+  color: var(--text2);
+  border: none;
+  border-radius: 6px;
+  margin: 5px;
+  padding: 5px;
+  background-color: var(--base2);
+}
 </style>
