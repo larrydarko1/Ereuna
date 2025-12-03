@@ -9,6 +9,12 @@
     :intrinsicVisible="intrinsicVisible"
     :chartType="isBarChart ? 'bar' : 'candlestick'"
   />
+  <AIPopup
+    v-if="showAIPopup"
+    @close="showAIPopup = false"
+    :aiData="aiData"
+    :Symbol="assetInfo?.Symbol"
+  />
   <div class="mainchart-dashboard">
                                <div class="chart-container">
                                   <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
@@ -56,6 +62,15 @@
     </button>
   </div>
   <div style="display: flex; gap: 3px; justify-content: flex-end;">
+    <button class="navbt2" @click="showAIPopup = true" v-if="hasAIData">
+      <svg class="chart-type-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+        <g id="SVGRepo_iconCarrier">
+          <path d="M12 3C12 7.97056 16.0294 12 21 12C16.0294 12 12 16.0294 12 21C12 16.0294 7.97056 12 3 12C7.97056 12 12 7.97056 12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+      </svg>
+    </button>
     <button class="navbt2" @click="showEditChart = true">
       <svg class="chart-type-icon" fill="currentColor" viewBox="0 0 32 32" enable-background="new 0 0 32 32" id="Glyph" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -80,7 +95,8 @@
   </span>
 </div>
 <div id="legend3-5">
-  <div class="market-status-badge">
+  <div v-if="isMarketStatusLoading" class="loader-line"></div>
+  <div v-else class="market-status-badge">
     <span v-if="marketStatus !== 'holiday'" class="status-indicator" :class="marketStatusClass"></span>
     <svg v-else viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="status-indicator holiday-icon">
       <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -125,6 +141,7 @@ import {
   IPriceLine
 } from 'lightweight-charts';
 import EditChart from '@/components/charts/EditChart.vue';
+import AIPopup from '@/components/charts/AIPopup.vue';
 
 // --- Chart Data Interfaces ---
 interface OHLCData {
@@ -164,6 +181,7 @@ interface ChartDataResult {
 
 
 const showEditChart = ref(false);
+const showAIPopup = ref(false);
 const imgError = ref(false);
 let isLoadingMore: boolean = false;
 let allDataLoaded: boolean = false;
@@ -177,6 +195,15 @@ const props = defineProps<{
   assetInfo?: Record<string, any>;
   getImagePath: (symbol: string) => string;
 }>();
+
+const hasAIData = computed(() => {
+  return props.assetInfo?.AI && Array.isArray(props.assetInfo.AI) && props.assetInfo.AI.length > 0;
+});
+
+const aiData = computed(() => {
+  if (!hasAIData.value || !props.assetInfo?.AI) return null;
+  return props.assetInfo.AI[0];
+});
 
 
 
@@ -575,7 +602,7 @@ watch(
         lineWidth: 2,
         lineStyle: 2, // Dashed
         axisLabelVisible: true,
-        title: 'Intrinsic Value',
+        title: '✦ Intrinsic Value',
         // Removed invalid labelVisible option
       });
     }
@@ -764,6 +791,7 @@ const intrinsicVisible = ref<boolean>(false);
 const marketStatus = ref<'open' | 'closed' | 'holiday'>('closed');
 const currentHolidayName = ref<string>('');
 const holidays = ref<Array<{date: string, name: string}>>([]);
+const isMarketStatusLoading = ref<boolean>(true);
 
 // Refs used to measure & animate the Name text when truncated
 const nameContainer = ref<HTMLElement | null>(null);
@@ -853,15 +881,17 @@ async function fetchHolidays() {
   } catch (err) {
     // Handle errors as needed - fallback to empty array
     holidays.value = [];
+  } finally {
+    isMarketStatusLoading.value = false;
   }
 }
 
 let statusInterval: ReturnType<typeof setInterval> | null = null;
 
-onMounted(() => {
+onMounted(async () => {
   fetchHiddenList();
   fetchIndicatorList();
-  fetchHolidays();
+  await fetchHolidays();
   checkMarketStatus();
   
   // Check market status every 5 seconds for more accurate updates
@@ -1199,6 +1229,28 @@ h1 {
 .badge-message p{
 font-size: 8px;
 font-weight: bold;
+}
+
+.loader-line {
+  width: 10px;
+  height: 2px;
+  background: var(--text2);
+  border-radius: 2px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: scaleX(1);
+  }
+
+  50% {
+    transform: scaleX(0.5);
+  }
+
+  100% {
+    transform: scaleX(1);
+  }
 }
 
 .market-status-badge {

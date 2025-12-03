@@ -884,4 +884,125 @@ export default function (app: any, deps: any) {
         }
     });
 
+    // Advanced search endpoint with fuzzy matching
+    app.get('/search/assets', async (req: Request, res: Response) => {
+        try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'GET /search/assets',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+
+            const query = sanitizeInput(req.query.q as string || '').trim();
+            const limit = Math.min(parseInt(req.query.limit as string) || 20, 50); // Max 50 results
+
+            if (!query || query.length < 1) {
+                return res.json({ results: [] });
+            }
+
+            // Cache key based on query and limit
+            const cacheKey = `search:assets:${query.toLowerCase()}:${limit}`;
+
+            // Use cache with 5 minute TTL for search results
+            const result = await withCache(
+                cacheKey,
+                async () => {
+                    const db = await getDB();
+                    const collection = db.collection('AssetInfo');
+
+                    // Create search pattern - case insensitive
+                    const searchPattern = new RegExp(query.split('').join('.*'), 'i');
+                    const exactPattern = new RegExp(`^${query}`, 'i');
+
+                    // Multi-field search query with scoring
+                    const pipeline = [
+                        {
+                            $match: {
+                                Delisted: false,
+                                $or: [
+                                    { Symbol: exactPattern },
+                                    { ISIN: exactPattern },
+                                    { Name: exactPattern },
+                                    { Symbol: searchPattern },
+                                    { ISIN: searchPattern },
+                                    { Name: searchPattern }
+                                ]
+                            }
+                        },
+                        {
+                            $addFields: {
+                                // Priority scoring: exact matches first, then partial
+                                score: {
+                                    $sum: [
+                                        // Exact symbol match (highest priority)
+                                        { $cond: [{ $regexMatch: { input: "$Symbol", regex: exactPattern } }, 1000, 0] },
+                                        // Exact ISIN match
+                                        { $cond: [{ $regexMatch: { input: { $ifNull: ["$ISIN", ""] }, regex: exactPattern } }, 900, 0] },
+                                        // Exact name match (start of name)
+                                        { $cond: [{ $regexMatch: { input: { $ifNull: ["$Name", ""] }, regex: exactPattern } }, 800, 0] },
+                                        // Partial symbol match
+                                        { $cond: [{ $regexMatch: { input: "$Symbol", regex: searchPattern } }, 500, 0] },
+                                        // Partial ISIN match
+                                        { $cond: [{ $regexMatch: { input: { $ifNull: ["$ISIN", ""] }, regex: searchPattern } }, 400, 0] },
+                                        // Partial name match
+                                        { $cond: [{ $regexMatch: { input: { $ifNull: ["$Name", ""] }, regex: searchPattern } }, 300, 0] },
+                                        // Boost based on asset type (common stocks ranked higher)
+                                        { $cond: [{ $eq: ["$AssetType", "Common Stock"] }, 50, 0] },
+                                        { $cond: [{ $eq: ["$AssetType", "ETF"] }, 30, 0] },
+                                        // Boost based on exchange (major exchanges ranked higher)
+                                        { $cond: [{ $in: ["$Exchange", ["NASDAQ", "NYSE", "AMEX"]] }, 20, 0] }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            $sort: { score: -1, MarketCapitalization: -1 }
+                        },
+                        {
+                            $limit: limit
+                        },
+                        {
+                            $project: {
+                                _id: 0,
+                                Symbol: 1,
+                                Name: 1,
+                                ISIN: 1,
+                                Exchange: 1,
+                                AssetType: 1,
+                                Currency: 1,
+                                MarketCapitalization: 1,
+                                Sector: 1
+                            }
+                        }
+                    ];
+
+                    const results = await collection.aggregate(pipeline).toArray();
+
+                    logger.info({
+                        msg: 'Asset search completed',
+                        query,
+                        resultsCount: results.length,
+                        context: 'GET /search/assets'
+                    });
+
+                    return { results };
+                },
+                300 // 5 minutes TTL
+            );
+
+            res.json(result);
+        } catch (error) {
+            const errObj = handleError(error, 'GET /search/assets', {
+                query: req.query.q
+            }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
+        }
+    });
+
 };

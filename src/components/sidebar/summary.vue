@@ -62,6 +62,7 @@ import IntrinsicValue from '@/components/sidebar/summary/intrinsicvalue.vue';
 import CAGR from '@/components/sidebar/summary/cagr.vue';
 import CAGRYears from '@/components/sidebar/summary/cagryears.vue';
 import CompanyWebsite from '@/components/sidebar/summary/companywebsite.vue';
+import AIRecommendation from '@/components/sidebar/summary/airecommendation.vue';
 
 // access user from store 
 const userStore = useUserStore();
@@ -122,6 +123,7 @@ const sidebarComponentMap: Record<string, any> = {
   CAGR,
   CAGRYears,
   CompanyWebsite,
+  AIRecommendation,
 };
 interface Field {
   order: number;
@@ -183,7 +185,8 @@ const initialFields = [
   { order: 46, tag: 'CAGR', name: 'CAGR', hidden: false },
   { order: 47, tag: 'CAGRYears', name: 'CAGR Years', hidden: false },
   { order: 48, tag: 'CompanyWebsite', name: 'Website', hidden: false },
-  { order: 49, tag: 'Description', name: 'Description', hidden: false },
+  { order: 49, tag: 'AIRecommendation', name: 'AI Recommendation', hidden: false },
+  { order: 50, tag: 'Description', name: 'Description', hidden: false },
 ];
 
 async function fetchPanel2() {

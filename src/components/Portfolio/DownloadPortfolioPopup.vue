@@ -570,22 +570,38 @@ function exportPortfolioData() {
 
   // --- Stats Section ---
   const stats = exportData.value.stats || {};
-  // Exclude Username, Number, portfolioValueHistory, tradeReturnsChart
-  const statsExcluded = ['Username', 'Number', 'portfolioValueHistory', 'tradeReturnsChart'];
+  // Exclude Username, Number, portfolioValueHistory, tradeReturnsChart, and computed fields
+  const statsExcluded = ['Username', 'Number', 'portfolioValueHistory', 'tradeReturnsChart', 'totalValue', 'unrealizedPL', 'baseValue'];
   const statsRows: [string, string][] = [];
+  
+  // Add BaseValue first
+  if (stats.hasOwnProperty('BaseValue')) {
+    statsRows.push(['BaseValue', escapeCSV(stats.BaseValue)]);
+  }
+  // Add cash second
+  if (stats.hasOwnProperty('cash')) {
+    statsRows.push(['cash', escapeCSV(stats.cash)]);
+  }
+  
+  // Add all other stats
   Object.entries(stats).forEach(([key, value]) => {
-    if (statsExcluded.includes(key)) return;
+    if (statsExcluded.includes(key) || key === 'BaseValue' || key === 'cash') return;
     // For objects (biggestWinner/Loser), flatten
-    if (typeof value === 'object' && value !== null) {
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
       Object.entries(value).forEach(([subKey, subValue]) => {
         statsRows.push([`${key}.${subKey}`, escapeCSV(subValue)]);
+      });
+    } else if (Array.isArray(value)) {
+      // For arrays (benchmarks), export as indexed rows
+      value.forEach((item, index) => {
+        statsRows.push([`${key}.${index}`, escapeCSV(item)]);
       });
     } else {
       statsRows.push([key, escapeCSV(value)]);
     }
   });
-  // Remove the header row ('key,value') from Stats section
-  let statsCSV = 'Stats\n' + statsRows.slice(1).map(row => row.join(',')).join('\n');
+  
+  let statsCSV = 'Stats\n' + statsRows.map(row => row.join(',')).join('\n');
 
   // --- Trades Section ---
   const trades = exportData.value.transactionHistory || [];
@@ -599,8 +615,8 @@ function exportPortfolioData() {
 
   // --- Positions Section ---
   const positions = exportData.value.portfolio || [];
-  // Exclude _id, Username, PortfolioNumber
-  const posExcluded = ['_id', 'Username', 'PortfolioNumber'];
+  // Exclude _id, Username, PortfolioNumber, and computed fields
+  const posExcluded = ['_id', 'Username', 'PortfolioNumber', 'currentValue', 'latestClose', 'unrealizedPL'];
   let posHeaders: string[] = [];
   if (positions.length > 0) {
     posHeaders = Object.keys(positions[0]).filter(h => !posExcluded.includes(h));

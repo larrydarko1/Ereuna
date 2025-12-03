@@ -282,7 +282,8 @@ export default function (app: any, deps: any) {
         cagr: 'CAGR',
         fund_family: 'fundFamily',
         fund_category: 'FundCategory',
-        net_expense_ratio: 'netExpenseRatio'
+        net_expense_ratio: 'netExpenseRatio',
+        ai_recommendation: 'AI'
     };
 
     // endpoint that sends filtered database data into screener results (minus hidden list for user)
@@ -649,6 +650,7 @@ export default function (app: any, deps: any) {
                     FundFamilies?: string[];
                     FundCategories?: string[];
                     NetExpenseRatio?: [number, number];
+                    AIRecommendations?: string[];
                 } | null;
                 if (!screenerData) {
                     logger.warn({
@@ -932,6 +934,11 @@ export default function (app: any, deps: any) {
 
                 if (screenerData.NetExpenseRatio && screenerData.NetExpenseRatio[0] !== 0 && screenerData.NetExpenseRatio[1] !== 0) {
                     screenerFilters.NetExpenseRatio = screenerData.NetExpenseRatio;
+                }
+
+                // AI Recommendations filter
+                if (screenerData.AIRecommendations && screenerData.AIRecommendations.length > 0) {
+                    screenerFilters.AIRecommendations = screenerData.AIRecommendations;
                 }
 
                 // Filter the AssetInfo collection to only include non-delisted assets
@@ -1692,6 +1699,9 @@ export default function (app: any, deps: any) {
                                 $lt: screenerFilters.NetExpenseRatio[1]
                             };
                             break;
+                        case 'AIRecommendations':
+                            query['AI.Recommendation'] = { $in: screenerFilters.AIRecommendations };
+                            break;
                         default:
                             break;
                     }
@@ -2113,6 +2123,11 @@ export default function (app: any, deps: any) {
 
                         if (screenerData.NetExpenseRatio && screenerData.NetExpenseRatio[0] !== 0 && screenerData.NetExpenseRatio[1] !== 0) {
                             screenerFilters.NetExpenseRatio = screenerData.NetExpenseRatio;
+                        }
+
+                        // AI Recommendations filter
+                        if (screenerData.AIRecommendations && screenerData.AIRecommendations.length > 0) {
+                            screenerFilters.AIRecommendations = screenerData.AIRecommendations;
                         }
 
                         Object.keys(screenerFilters).forEach((key) => {
@@ -2870,6 +2885,9 @@ export default function (app: any, deps: any) {
                                         $lt: screenerFilters.NetExpenseRatio[1]
                                     };
                                     break;
+                                case 'AIRecommendations':
+                                    query['AI.Recommendation'] = { $in: screenerFilters.AIRecommendations };
+                                    break;
                                 default:
                                     break;
                             }
@@ -2926,6 +2944,7 @@ export default function (app: any, deps: any) {
                             rsi: 'RSI',
                             intrinsic_value: 'IntrinsicValue',
                             cagr: 'CAGR',
+                            ai_recommendation: 'AI'
                         };
                         const qfMap: Record<string, string> = {
                             fcf: 'freeCashFlow',
@@ -4502,6 +4521,122 @@ export default function (app: any, deps: any) {
                     error: errObj.message,
                     username: req.body.user,
                     context: 'PATCH /screener/country',
+                    statusCode: 500
+                });
+                return res.status(errObj.statusCode || 500).json(errObj);
+            }
+        }
+    );
+
+    // endpoint that retrieves all available AI recommendations for user (screener)
+    app.get('/screener/ai-recommendation',
+        async (req: Request, res: Response) => {
+            try {
+                const apiKey = req.header('x-api-key');
+                const sanitizedKey = sanitizeInput(apiKey);
+                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                    logger.warn({
+                        msg: 'Invalid API key',
+                        providedApiKey: !!sanitizedKey,
+                        context: 'GET /screener/ai-recommendation',
+                        statusCode: 401
+                    });
+                    return res.status(401).json({ message: 'Unauthorized API Access' });
+                }
+                // Return fixed list of AI recommendation values
+                const recommendations = ['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'];
+                res.status(200).json(recommendations);
+            } catch (error) {
+                const errObj = handleError(error, 'GET /screener/ai-recommendation', {}, 500);
+                logger.error({
+                    msg: 'AI Recommendation Retrieval Error',
+                    error: errObj.message,
+                    context: 'GET /screener/ai-recommendation',
+                    statusCode: 500
+                });
+                return res.status(errObj.statusCode || 500).json(errObj);
+            }
+        }
+    );
+
+    // endpoint that updates screener document with AI recommendation params 
+    app.patch('/screener/ai-recommendation',
+        validate([
+            validationSchemas.user(),
+            validationSchemas.screenerNameBody(),
+            body('recommendations')
+                .isArray().withMessage('Recommendations must be an array')
+                .custom((value) => {
+                    const validRecommendations = ['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'];
+                    if (!value.every((rec: string) =>
+                        typeof rec === 'string' &&
+                        validRecommendations.includes(rec)
+                    )) {
+                        throw new Error('Each recommendation must be one of: Strong Buy, Buy, Hold, Sell, Strong Sell');
+                    }
+                    return true;
+                })
+        ]),
+        async (req: Request, res: Response) => {
+            try {
+                const apiKey = req.header('x-api-key');
+                const sanitizedKey = sanitizeInput(apiKey);
+                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                    logger.warn({
+                        msg: 'Invalid API key',
+                        providedApiKey: !!sanitizedKey,
+                        context: 'PATCH /screener/ai-recommendation',
+                        statusCode: 401
+                    });
+                    return res.status(401).json({ message: 'Unauthorized API Access' });
+                }
+                const recommendations = req.body.recommendations;
+                const Username = req.body.user;
+                const screenerName = req.body.screenerName;
+                // Remove duplicates
+                const sanitizedRecommendations = [...new Set(recommendations)];
+                try {
+                    const db = await getDB();
+                    const collection = db.collection('Screeners');
+                    await invalidateUserScreenerCache(Username);
+                    const filter = {
+                        UsernameID: Username,
+                        Name: screenerName
+                    };
+                    const updateResult = await collection.updateOne(filter, {
+                        $set: { AIRecommendations: sanitizedRecommendations }
+                    });
+                    if (updateResult.matchedCount === 0) {
+                        return res.status(404).json({
+                            message: 'Screener not found'
+                        });
+                    }
+                    res.json({
+                        message: 'AI Recommendations updated successfully',
+                        recommendations: sanitizedRecommendations
+                    });
+                } catch (dbError) {
+                    const errObj = handleError(dbError, 'PATCH /screener/ai-recommendation', {
+                        username: Username,
+                        screenerName
+                    }, 500);
+                    logger.error({
+                        msg: 'Database Operation Error',
+                        error: errObj.message,
+                        username: Username,
+                        screenerName,
+                        context: 'PATCH /screener/ai-recommendation',
+                        statusCode: 500
+                    });
+                    return res.status(errObj.statusCode || 500).json(errObj);
+                }
+            } catch (error) {
+                const errObj = handleError(error, 'PATCH /screener/ai-recommendation', {}, 500);
+                logger.error({
+                    msg: 'AI Recommendations Update Error',
+                    error: errObj.message,
+                    username: req.body.user,
+                    context: 'PATCH /screener/ai-recommendation',
                     statusCode: 500
                 });
                 return res.status(errObj.statusCode || 500).json(errObj);
@@ -6804,7 +6939,7 @@ export default function (app: any, deps: any) {
             body('stringValue')
                 .trim()
                 .isIn([
-                    'price', 'marketCap', 'IPO', 'Sector', 'Exchange', 'Country',
+                    'price', 'marketCap', 'IPO', 'Sector', 'Exchange', 'Country', 'AIRecommendation',
                     'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta',
                     'DivYield', 'FundGrowth', 'PricePerformance', 'RSscore', 'Volume', 'ADV', 'ROE', 'ROA', 'CurrentRatio', 'CurrentAssets',
                     'CurrentLiabilities', 'CurrentDebt', 'CashEquivalents', 'FCF', 'ProfitMargin', 'GrossMargin',
@@ -6921,6 +7056,7 @@ export default function (app: any, deps: any) {
                     case 'FundFamily': updateDoc.$unset.FundFamilies = ''; break;
                     case 'FundCategory': updateDoc.$unset.FundCategories = ''; break;
                     case 'NetExpenseRatio': updateDoc.$unset.NetExpenseRatio = ''; break;
+                    case 'AIRecommendation': updateDoc.$unset.AIRecommendations = ''; break;
                     default:
                         logger.warn({
                             msg: 'Attempted to reset with unknown parameter',
@@ -6935,6 +7071,9 @@ export default function (app: any, deps: any) {
 
                 const options = { returnOriginal: false };
                 const result = await collection.findOneAndUpdate(filter, updateDoc, options);
+
+                // Invalidate user's screener caches
+                await invalidateUserScreenerCache(UsernameID);
 
                 if (result) {
                     res.json({
@@ -7157,7 +7296,7 @@ export default function (app: any, deps: any) {
 
                 // Maintain original attributes list and filtering logic
                 const attributes = [
-                    'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta', 'DivYield',
+                    'Price', 'MarketCap', 'Sectors', 'Exchanges', 'Countries', 'AIRecommendations', 'PE', 'ForwardPE', 'PEG', 'EPS', 'PS', 'PB', 'Beta', 'DivYield',
                     'EPSQoQ', 'EPSYoY', 'EarningsQoQ', 'EarningsYoY', 'RevQoQ', 'RevYoY', 'changePerc', 'PercOffWeekHigh', 'PercOffWeekLow',
                     'NewHigh', 'NewLow', 'MA10', 'MA20', 'MA50', 'MA200', 'CurrentPrice', 'RSScore1W', 'RSScore1M', 'RSScore4M', 'AvgVolume1W', 'RelVolume1W',
                     'AvgVolume1M', 'RelVolume1M', 'AvgVolume6M', 'RelVolume6M', 'AvgVolume1Y', 'RelVolume1Y', '1mchange', '1ychange', '4mchange',

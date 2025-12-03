@@ -15,7 +15,7 @@
     </div>
         <div class="navbtn" @click="scrollToSection('features')">Features</div>
         <div class="navbtn">
-          <router-link class="navbtn" to="/documentation" style="opacity: 1; text-decoration: none;">Documentation</router-link>
+          <router-link class="navbtn" to="/documentation" style="opacity: 1; text-decoration: none;">Docs</router-link>
         </div>
         <div class="navbtn">
           <router-link class="navbtn" to="/signup" style=" opacity: 1; text-decoration: none;">Sign Up</router-link>
@@ -124,9 +124,14 @@
         <h2 style="text-align: center; font-size: 20px; color: whitesmoke; cursor: default;">FREQUENTLY ASKED QUESTIONS</h2>
         <div class="faq-cards">
           <div class="faq-card" v-for="(item, index) in faqs" :key="index">
-            <h3 class="faq-question">{{ item.question }}</h3>
-            <div v-show="item.show">
-              <p class="faq-answer">{{ item.answer }}</p>
+            <h3 class="faq-question" @click="toggleFAQ(index)" :class="{ 'open': item.show }">
+              {{ item.question }}
+              <svg class="chevron" :class="{ 'rotated': item.show }" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6,9 12,15 18,9"></polyline>
+              </svg>
+            </h3>
+            <div class="faq-answer" :class="{ 'open': item.show }">
+              <p>{{ item.answer }}</p>
             </div>
           </div>
         </div>
@@ -266,42 +271,42 @@ const faqs = ref([
   {
     question: 'Will there be more financial instruments added in the future?',
     answer: 'Of Course! as the platform grows, there are plans to add more financial instruments to the platform, such as European Stocks, Asian Stocks, Forex and Cryptocurrencies.',
-    show: true
+    show: false
   },
   {
     question: 'Is the service free?',
     answer: 'Yes! Ereuna is currently in open beta and completely free to use. All features are accessible without any payment or commitment during this period. No payment information is collected, and there will be no charges in the future without prior notice. Users are free to leave at any time.',
-    show: true
+    show: false
   },
   {
     question: 'How long will the open beta last?',
     answer: 'The open beta will continue until the platform is ready for a full launch and a sufficient user base is reached. Users will be notified in advance before any changes to pricing or access.',
-    show: true
+    show: false
   },
   {
     question: 'Who is this platform designed for?',
     answer: 'Ereuna is designed primarily for retail traders and investors, especially those with a mid- to long-term investment horizon. The aim is to make advanced research tools more accessible and affordable, offering unique aggregation features that save time and help users make smarter decisions. The platform is built to be more cost-effective than the competition, with ongoing development of AI-enhanced research tools to assist and speed up the research process without compromising quality—making workflows more efficient and insightful.',
-    show: true
+    show: false
   },
   {
     question: 'Can I use Ereuna on mobile?',
     answer: 'Yes, a mobile version of Ereuna is available. While the website is intended to be accessible and usable on all devices, the mobile experience is not yet as optimized as the desktop version. Some features may not work properly or may behave differently due to the smaller screen size and touch input. Improvements and refinements to the mobile experience are ongoing, and issues will be addressed in future updates.',
-    show: true
+    show: false
   },
   {
     question: 'How can I give feedback or report bugs?',
     answer: 'Feedback and bug reports are welcome. Suggestions or issues can be sent to contact@ereuna.io',
-    show: true
+    show: false
   },
   {
     question: 'Is my data private and secure?',
     answer: 'Absolutely, no information that could deanonymize users is stored. Ereuna does not collect emails, payment information, or any personal data that might compromise user security. Privacy is a top priority, and no user data is shared or sold to third parties.',
-    show: true
+    show: false
   },
   {
     question: 'What will be the price at launch?',
     answer: 'At launch, Ereuna will offer a single, all-inclusive subscription tier for 14.99€ + VAT per month. All features are included—no hidden fees, no upsells. The service is recharge-based, so there are no automatic or recurring charges: renewal is always user-controlled.',
-    show: true
+    show: false
   },
 ]);
 
@@ -311,6 +316,10 @@ const scrollToSection = (sectionId: string) => {
     element.scrollIntoView({ behavior: 'smooth' });
   }
 };
+
+function toggleFAQ(index: number) {
+  faqs.value[index].show = !faqs.value[index].show;
+}
 
 const showPolicy = ref(false);
 
@@ -750,22 +759,71 @@ a:hover{
 .faq-card {
   background-color: $base2;
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   width: 80%;
   color: $text2;
+  transition: all 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+   z-index: 1000;
+}
+
+.faq-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
 
 .faq-question {
-  font-size: 2rem;
-  font-weight: bold;
+  font-size: 1.5rem;
+  font-weight: 600;
   margin-bottom: 10px;
   opacity: 1;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: color 0.3s ease;
+  color: $text1;
+}
+
+.faq-question:hover {
+  color: $accent1;
+}
+
+.faq-question.open {
+  color: $accent1;
+}
+
+.chevron {
+  transition: transform 0.3s ease, color 0.3s ease;
+  color: $text1;
+}
+
+.faq-question.open .chevron {
+  color: $accent1;
+}
+
+.chevron.rotated {
+  transform: rotate(180deg);
 }
 
 .faq-answer {
-  font-size: 1.5rem;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  opacity: 0;
   color: $text2;
+}
+
+.faq-answer.open {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.faq-answer p {
+  font-size: 1.2rem;
+  margin: 10px 0 0 0;
+  line-height: 1.6;
 }
 
 .modal {
@@ -880,10 +938,10 @@ a:hover{
   color: var(--text1);
   font-size: 2rem;
   border-radius: 4px;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.7s ease;
 }
 .feature-card-modern:hover {
-  transform: translateY(-4px) scale(1.02);
+  transform: translateY(-8px) scale(1.02);
 }
 
 .feature-title-modern {

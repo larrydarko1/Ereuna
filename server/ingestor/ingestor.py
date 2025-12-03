@@ -99,7 +99,6 @@ async def is_holiday():
         # Check if today matches any holiday date
         for holiday in holidays_doc["Holidays"]:
             if holiday.get("date") == today:
-                logger.info(f"🎉 Today is a holiday: {holiday.get('name')}")
                 return True
         
         return False

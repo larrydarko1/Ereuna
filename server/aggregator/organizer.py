@@ -746,6 +746,58 @@ async def adjust_intraday_for_split(tickerID, splitFactor):
             await collection.insert_many(adjusted_docs)
         pass  # Print removed for clean output
 
+# Adjust portfolio positions and trades for split/reverse split
+async def adjust_portfolio_for_split(tickerID, splitFactor):
+    """
+    Adjusts Positions and Trades collections for a stock split.
+    For forward splits (e.g., 10:1), shares multiply and prices divide.
+    For reverse splits (e.g., 1:10), shares divide and prices multiply.
+    """
+    positions_collection = db['Positions']
+    trades_collection = db['Trades']
+    
+    # Adjust Positions
+    positions = [doc async for doc in positions_collection.find({'Symbol': tickerID})]
+    for position in positions:
+        if splitFactor > 1:
+            # Forward split: shares increase, avg price decreases
+            new_shares = position['Shares'] * splitFactor
+            new_avg_price = position['AvgPrice'] / splitFactor
+        elif 0 < splitFactor < 1:
+            # Reverse split: shares decrease, avg price increases
+            factor = 1 / splitFactor
+            new_shares = position['Shares'] / factor
+            new_avg_price = position['AvgPrice'] * factor
+        else:
+            continue
+        
+        await positions_collection.update_one(
+            {'_id': position['_id']},
+            {'$set': {'Shares': new_shares, 'AvgPrice': new_avg_price}}
+        )
+    
+    # Adjust Trades
+    trades = [doc async for doc in trades_collection.find({'Symbol': tickerID})]
+    for trade in trades:
+        if splitFactor > 1:
+            # Forward split: shares increase, price decreases
+            new_shares = trade['Shares'] * splitFactor
+            new_price = trade['Price'] / splitFactor
+            new_total = new_shares * new_price
+        elif 0 < splitFactor < 1:
+            # Reverse split: shares decrease, price increases
+            factor = 1 / splitFactor
+            new_shares = trade['Shares'] / factor
+            new_price = trade['Price'] * factor
+            new_total = new_shares * new_price
+        else:
+            continue
+        
+        await trades_collection.update_one(
+            {'_id': trade['_id']},
+            {'$set': {'Shares': new_shares, 'Price': new_price, 'Total': new_total}}
+        )
+
 #updates splits when triggered 
 async def Split(tickerID, timestamp, splitFactor):
     asset_info_collection = db['AssetInfo']
@@ -780,6 +832,8 @@ async def Split(tickerID, timestamp, splitFactor):
         pass  # Print removed for clean output
         # Adjust intraday data for split/reverse split
         await adjust_intraday_for_split(tickerID, splitFactor)
+        # Adjust portfolio positions and trades for split/reverse split
+        await adjust_portfolio_for_split(tickerID, splitFactor)
         # If getHistoricalPrice2 is refactored to async, await it here
         await getHistoricalPrice2(tickerID)
     else:
@@ -2173,39 +2227,34 @@ async def update_market_stats():
         cutoff_timestamp = most_recent_timestamp - timedelta(days=5)
 
     # --- Calculate top 10 daily gainers/losers (NYSE/NASDAQ only) ---
+    nyse_nasdaq_symbols = [symbol for symbol, info in symbol_map.items() if info.get("Exchange", "") in ["NYSE", "NASDAQ"]]
     daily_returns = []
-    for symbol, info in symbol_map.items():
-        # Only include stocks from major exchanges (NYSE, NASDAQ)
-        exchange = info.get("Exchange", "")
-        if exchange not in ["NYSE", "NASDAQ"]:
-            continue
-            
-        cursor = ohlcv_col.find(
-            {"tickerID": symbol},
-            {"close": 1, "timestamp": 1, "_id": 0}
-        ).sort("timestamp", -1).limit(2)
-        closes = [doc async for doc in cursor]
+    
+    if nyse_nasdaq_symbols:
+        pipeline = [
+            {"$match": {"tickerID": {"$in": nyse_nasdaq_symbols}}},
+            {"$sort": {"tickerID": 1, "timestamp": -1}},
+            {"$group": {"_id": "$tickerID", "closes": {"$push": "$close"}, "timestamps": {"$push": "$timestamp"}}},
+            {"$project": {"last_two_closes": {"$slice": ["$closes", 2]}, "last_two_timestamps": {"$slice": ["$timestamps", 2]}}}
+        ]
+        results = await ohlcv_col.aggregate(pipeline).to_list(length=None)
         
-        if len(closes) == 2:
-            # Check if data is recent (not stale/delisted)
-            latest_timestamp = closes[0].get("timestamp")
-            if not latest_timestamp or latest_timestamp < cutoff_timestamp:
-                continue  # Skip stale data
-            
-            last = closes[0]["close"]
-            prev = closes[1]["close"]
-            
-            if last and prev and prev != 0:
-                daily_return = (last - prev) / prev
-
-                # Filter out extreme outliers (>200% daily moves are usually errors or halts)
-                if abs(daily_return) > 2.0:  # >200% move
-                    continue
-                
-                daily_returns.append({
-                    "symbol": symbol,
-                    "daily_return": daily_return
-                })
+        for doc in results:
+            symbol = doc["_id"]
+            closes = doc.get("last_two_closes", [])
+            timestamps = doc.get("last_two_timestamps", [])
+            if len(closes) == 2 and len(timestamps) == 2:
+                latest_timestamp = timestamps[0]
+                if latest_timestamp and latest_timestamp >= cutoff_timestamp:
+                    last = closes[0]
+                    prev = closes[1]
+                    if last and prev and prev != 0:
+                        daily_return = (last - prev) / prev
+                        if abs(daily_return) <= 2.0:  # Filter extreme outliers
+                            daily_returns.append({
+                                "symbol": symbol,
+                                "daily_return": daily_return
+                            })
 
     # Sort and get top/bottom 10
     top_10_gainers = sorted(daily_returns, key=lambda x: x["daily_return"], reverse=True)[:10]
@@ -2265,43 +2314,38 @@ async def update_market_stats():
     quarter_ago = now - timedelta(days=90)
 
     gain_data = []
-    for symbol, info in symbol_map.items():
-        # Only include NYSE/NASDAQ stocks for tier lists (no OTC/PINK)
-        exchange = info.get("Exchange", "")
-        if exchange not in ["NYSE", "NASDAQ"]:
-            continue
+    if nyse_nasdaq_symbols:
+        pipeline = [
+            {"$match": {"tickerID": {"$in": nyse_nasdaq_symbols}, "timestamp": {"$gte": quarter_ago}}},
+            {"$sort": {"tickerID": 1, "timestamp": 1}},
+            {"$group": {"_id": "$tickerID", "closes": {"$push": "$close"}, "timestamps": {"$push": "$timestamp"}}},
+            {"$project": {"first_close": {"$arrayElemAt": ["$closes", 0]}, "last_close": {"$arrayElemAt": ["$closes", -1]}, "latest_timestamp": {"$arrayElemAt": ["$timestamps", -1]}, "count": {"$size": "$closes"}}}
+        ]
+        results = await ohlcv_col.aggregate(pipeline).to_list(length=None)
         
-        # Get closes for the last quarter (timestamp ascending)
-        cursor = ohlcv_col.find(
-            {"tickerID": symbol, "timestamp": {"$gte": quarter_ago}},
-            {"close": 1, "timestamp": 1, "_id": 0, "volume": 1}
-        ).sort("timestamp", 1)
-        closes = [doc async for doc in cursor]
-        if len(closes) < 2:
-            continue
-        
-        # Check if latest data is recent (not stale)
-        latest_timestamp = closes[-1].get("timestamp")
-        if not latest_timestamp or latest_timestamp < cutoff_timestamp:
-            continue
-        
-        first_close = closes[0]["close"]
-        last_close = closes[-1]["close"]
-        if first_close and last_close and first_close != 0:
-            gain = (last_close - first_close) / first_close
-            sector = info.get("Sector", "")
-            industry = info.get("Industry", "")
-            # Get market cap from AssetInfo
-            market_cap = info.get("MarketCapitalization", None)
-            if market_cap is None or market_cap == 0:
+        for doc in results:
+            symbol = doc["_id"]
+            if doc["count"] < 2:
                 continue
-            gain_data.append({
-                "symbol": symbol,
-                "sector": sector,
-                "industry": industry,
-                "gain": gain,
-                "market_cap": market_cap
-            })
+            latest_timestamp = doc.get("latest_timestamp")
+            if not latest_timestamp or latest_timestamp < cutoff_timestamp:
+                continue
+            first_close = doc.get("first_close")
+            last_close = doc.get("last_close")
+            if first_close and last_close and first_close != 0:
+                gain = (last_close - first_close) / first_close
+                info = symbol_map.get(symbol, {})
+                sector = info.get("Sector", "")
+                industry = info.get("Industry", "")
+                market_cap = info.get("MarketCapitalization", None)
+                if market_cap and market_cap > 0 and sector and industry:
+                    gain_data.append({
+                        "symbol": symbol,
+                        "sector": sector,
+                        "industry": industry,
+                        "gain": gain,
+                        "market_cap": market_cap
+                    })
 
     if not gain_data:
         pass  # Print removed for clean output
@@ -2337,6 +2381,16 @@ async def update_market_stats():
     sma_periods = [5, 10, 20, 50, 100, 150, 200]
     sma_stats = {}
     asset_types_for_sma = ["ALL", "Stock", "ETF", "Mutual Fund", "OTC", "PINK"]
+    
+    # Fetch all closes in one aggregation pipeline
+    pipeline = [
+        {"$match": {"tickerID": {"$in": list(symbol_map.keys())}}},
+        {"$sort": {"tickerID": 1, "timestamp": -1}},
+        {"$group": {"_id": "$tickerID", "closes": {"$push": "$close"}}},
+        {"$project": {"closes": {"$slice": ["$closes", 200]}}}  # Limit to 200 closes (most recent)
+    ]
+    closes_results = await ohlcv_col.aggregate(pipeline).to_list(length=None)
+    closes_dict = {doc["_id"]: doc["closes"] for doc in closes_results}
     
     for period in sma_periods:
         sma_stats[f"SMA{period}"] = {}
@@ -2380,16 +2434,13 @@ async def update_market_stats():
                         continue
                 # If asset_type == "ALL", include everything (no filter)
                 
-                cursor = ohlcv_col.find(
-                    {"tickerID": symbol},
-                    {"close": 1, "_id": 0}
-                ).sort("timestamp", -1).limit(period)
-                closes = [doc["close"] for doc in await cursor.to_list(length=period) if "close" in doc]
+                closes = closes_dict.get(symbol, [])
                 if len(closes) < period:
                     continue
-                closes = closes[::-1]  # oldest to newest
-                sma = float(np.mean(closes))
-                last_close = closes[-1]
+                # closes are already descending (most recent first), so reverse for oldest to newest
+                closes_asc = closes[::-1]
+                sma = float(np.mean(closes_asc[-period:]))  # Last period closes (most recent)
+                last_close = closes[0]  # Most recent close
                 if last_close > sma:
                     up += 1
                 else:
@@ -2399,6 +2450,7 @@ async def update_market_stats():
             sma_stats[f"SMA{period}"][asset_type] = {"up": up / total, "down": down / total}
 
     # Calculate Advancing/Declining stocks and New Highs/Lows (NYSE/NASDAQ stocks only)
+    stock_symbols = [symbol for symbol, info in symbol_map.items() if info.get("AssetType", "") == "Stock" and info.get("Exchange", "") in ["NYSE", "NASDAQ", "OTC", "PINK"]]
     advancing = 0
     declining = 0
     unchanged = 0
@@ -2406,49 +2458,43 @@ async def update_market_stats():
     new_lows = 0
     neutral = 0
     
-    for symbol, info in symbol_map.items():
-        # Only process NYSE/NASDAQ stocks
-        symbol_asset_type = info.get("AssetType", "")
-        symbol_exchange = info.get("Exchange", "")
+    if stock_symbols:
+        pipeline = [
+            {"$match": {"tickerID": {"$in": stock_symbols}}},
+            {"$sort": {"tickerID": 1, "timestamp": -1}},
+            {"$group": {"_id": "$tickerID", "docs": {"$push": {"close": "$close", "high": "$high", "low": "$low"}}}},
+            {"$project": {"last_two": {"$slice": ["$docs", 2]}}}
+        ]
+        results = await ohlcv_col.aggregate(pipeline).to_list(length=None)
         
-        if symbol_asset_type != "Stock" or symbol_exchange not in ["NYSE", "NASDAQ", "OTC", "PINK"]:
-            continue
-        
-        # Get last 2 days for both advancing/declining and new highs/lows
-        cursor = ohlcv_col.find(
-            {"tickerID": symbol},
-            {"close": 1, "high": 1, "low": 1, "_id": 0}
-        ).sort("timestamp", -1).limit(2)
-        docs = await cursor.to_list(length=2)
-        
-        if len(docs) < 2:
-            continue
-        
-        today = docs[0]
-        yesterday = docs[1]
-        
-        today_close = today.get("close")
-        yesterday_close = yesterday.get("close")
-        yesterday_high = yesterday.get("high")
-        yesterday_low = yesterday.get("low")
-        
-        # Advancing/Declining: compare today's close vs yesterday's close
-        if today_close and yesterday_close:
-            if today_close > yesterday_close:
-                advancing += 1
-            elif today_close < yesterday_close:
-                declining += 1
-            else:
-                unchanged += 1
-        
-        # New Highs/Lows: compare today's close with yesterday's high/low
-        if today_close and yesterday_high and yesterday_low:
-            if today_close > yesterday_high:
-                new_highs += 1
-            elif today_close < yesterday_low:
-                new_lows += 1
-            else:
-                neutral += 1
+        for doc in results:
+            last_two = doc.get("last_two", [])
+            if len(last_two) == 2:
+                today = last_two[0]
+                yesterday = last_two[1]
+                
+                today_close = today.get("close")
+                yesterday_close = yesterday.get("close")
+                yesterday_high = yesterday.get("high")
+                yesterday_low = yesterday.get("low")
+                
+                # Advancing/Declining: compare today's close vs yesterday's close
+                if today_close and yesterday_close:
+                    if today_close > yesterday_close:
+                        advancing += 1
+                    elif today_close < yesterday_close:
+                        declining += 1
+                    else:
+                        unchanged += 1
+                
+                # New Highs/Lows: compare today's close with yesterday's high/low
+                if today_close and yesterday_high and yesterday_low:
+                    if today_close > yesterday_high:
+                        new_highs += 1
+                    elif today_close < yesterday_low:
+                        new_lows += 1
+                    else:
+                        neutral += 1
     
     # Calculate percentages
     total_ad = advancing + declining + unchanged
@@ -2469,35 +2515,44 @@ async def update_market_stats():
     # Performance for SPY, QQQ, DIA, IWM, EFA, EEM
     index_tickers = ["SPY", "QQQ", "DIA", "IWM", "EFA", "EEM"]
     index_performance = {}
-    for ticker in index_tickers:
-        cursor = ohlcv_col.find({"tickerID": ticker}, {"close": 1, "timestamp": 1, "_id": 0}).sort("timestamp", -1)
-        docs = await cursor.to_list(length=300)
-        closes = [doc["close"] for doc in docs if "close" in doc]
-        timestamps = [doc["timestamp"] for doc in docs if "timestamp" in doc]
-        if not closes or len(closes) < 2:
-            continue
-        today_close = closes[0]
-        perf = {"lastPrice": today_close}
-        perf["1D"] = ((closes[0] - closes[1]) / closes[1]) if len(closes) >= 2 else None
-        perf["1M"] = ((closes[0] - closes[21]) / closes[21]) if len(closes) >= 22 else None
-        perf["4M"] = ((closes[0] - closes[81]) / closes[81]) if len(closes) >= 82 else None
-        perf["1Y"] = ((closes[0] - closes[252]) / closes[252]) if len(closes) >= 253 else None
-        # YTD: find first close of current year
-        now = datetime.now(timezone.utc)
-        ytd_idx = None
-        for i, ts in enumerate(timestamps[::-1]):
-            if hasattr(ts, 'year') and ts.year == now.year:
-                ytd_idx = len(timestamps) - 1 - i
-                break
-        if ytd_idx is not None and ytd_idx < len(closes):
-            ytd_start_close = closes[ytd_idx]
-            if ytd_start_close != 0:
-                perf["YTD"] = ((closes[0] - ytd_start_close) / ytd_start_close)
+    
+    if index_tickers:
+        pipeline = [
+            {"$match": {"tickerID": {"$in": index_tickers}}},
+            {"$sort": {"tickerID": 1, "timestamp": -1}},
+            {"$group": {"_id": "$tickerID", "closes": {"$push": "$close"}, "timestamps": {"$push": "$timestamp"}}},
+            {"$project": {"closes": {"$slice": ["$closes", 300]}, "timestamps": {"$slice": ["$timestamps", 300]}}}
+        ]
+        results = await ohlcv_col.aggregate(pipeline).to_list(length=None)
+        
+        for doc in results:
+            ticker = doc["_id"]
+            closes = doc.get("closes", [])
+            timestamps = doc.get("timestamps", [])
+            if not closes or len(closes) < 2:
+                continue
+            today_close = closes[0]
+            perf = {"lastPrice": today_close}
+            perf["1D"] = ((closes[0] - closes[1]) / closes[1]) if len(closes) >= 2 else None
+            perf["1M"] = ((closes[0] - closes[21]) / closes[21]) if len(closes) >= 22 else None
+            perf["4M"] = ((closes[0] - closes[81]) / closes[81]) if len(closes) >= 82 else None
+            perf["1Y"] = ((closes[0] - closes[252]) / closes[252]) if len(closes) >= 253 else None
+            # YTD: find first close of current year
+            now = datetime.now(timezone.utc)
+            ytd_idx = None
+            for i, ts in enumerate(timestamps[::-1]):
+                if hasattr(ts, 'year') and ts.year == now.year:
+                    ytd_idx = len(timestamps) - 1 - i
+                    break
+            if ytd_idx is not None and ytd_idx < len(closes):
+                ytd_start_close = closes[ytd_idx]
+                if ytd_start_close != 0:
+                    perf["YTD"] = ((closes[0] - ytd_start_close) / ytd_start_close)
+                else:
+                    perf["YTD"] = None
             else:
                 perf["YTD"] = None
-        else:
-            perf["YTD"] = None
-        index_performance[ticker] = perf
+            index_performance[ticker] = perf
 
     # Calculate market outlook based on SMA distribution for ALL assets
     # Short term: SMA5, SMA10, SMA20
@@ -2579,7 +2634,6 @@ async def Daily():
         calculateAlltimehighlowandperc52wk,
         calculatePerc,
         calculate_cagr_since_ipo,
-        update_intrinsic_values,
         update_market_stats
     ]
 

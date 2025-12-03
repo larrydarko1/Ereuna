@@ -918,6 +918,293 @@ export default function (app: any, deps: any) {
         }
     });
 
+    // --- DELETE a specific trade and replay portfolio ---
+    app.delete('/trades/:tradeId', validate([
+        validationSchemas.usernameQuery(),
+        query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
+    ]), async (req: Request, res: Response) => {
+        try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'DELETE /trades/:tradeId',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+
+            const { tradeId } = req.params;
+            const { username, portfolio } = req.query as {
+                username?: string;
+                portfolio?: string;
+            };
+
+            if (!username || !portfolio) {
+                logger.warn({
+                    msg: 'Missing username or portfolio',
+                    context: 'DELETE /trades/:tradeId',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Missing username or portfolio' });
+            }
+
+            if (!tradeId) {
+                return res.status(400).json({ message: 'Missing trade ID' });
+            }
+
+            const sanitizedUser = sanitizeInput(username);
+            const portfolioNumber = parseInt(portfolio, 10);
+
+            const db = await getDB();
+            const tradesCollection = db.collection('Trades');
+            const portfoliosCollection = db.collection('Portfolios');
+            const positionsCollection = db.collection('Positions');
+
+            // Import ObjectId from mongodb
+            const { ObjectId } = await import('mongodb');
+
+            // Verify trade exists and belongs to user
+            const tradeToDelete = await tradesCollection.findOne({
+                _id: new ObjectId(tradeId),
+                Username: sanitizedUser,
+                PortfolioNumber: portfolioNumber
+            });
+
+            if (!tradeToDelete) {
+                return res.status(404).json({ message: 'Trade not found or unauthorized' });
+            }
+
+            // Delete the trade
+            await tradesCollection.deleteOne({
+                _id: new ObjectId(tradeId)
+            });
+
+            // Get portfolio document to restore initial state
+            const portfolioDoc = await portfoliosCollection.findOne({
+                Username: sanitizedUser,
+                Number: portfolioNumber
+            });
+
+            if (!portfolioDoc) {
+                return res.status(404).json({ message: 'Portfolio not found' });
+            }
+
+            // Clear all positions for this portfolio
+            await positionsCollection.deleteMany({
+                Username: sanitizedUser,
+                PortfolioNumber: portfolioNumber
+            });
+
+            // Reset cash to 0 (we'll rebuild from BaseValue and all trades)
+            await portfoliosCollection.updateOne(
+                { Username: sanitizedUser, Number: portfolioNumber },
+                { $set: { cash: 0 } }
+            );
+
+            // Get all remaining trades sorted by date
+            const remainingTrades = await tradesCollection.find({
+                Username: sanitizedUser,
+                PortfolioNumber: portfolioNumber
+            }).sort({ Date: 1 }).toArray();
+
+            // Replay all trades to rebuild portfolio state
+            for (const trade of remainingTrades) {
+                // Handle cash deposits and withdrawals
+                if (trade.Action === 'Cash Deposit') {
+                    await portfoliosCollection.updateOne(
+                        { Username: sanitizedUser, Number: portfolioNumber },
+                        { $inc: { cash: trade.Total } }
+                    );
+                    continue;
+                }
+
+                if (trade.Action === 'Cash Withdrawal') {
+                    await portfoliosCollection.updateOne(
+                        { Username: sanitizedUser, Number: portfolioNumber },
+                        { $inc: { cash: trade.Total } }  // Total is already negative for withdrawals
+                    );
+                    continue;
+                }
+
+                // Skip trades without a symbol (shouldn't happen after cash handling above)
+                if (!trade.Symbol || trade.Symbol === '' || trade.Symbol === '-') {
+                    continue;
+                }
+
+                const isShort = trade.IsShort || false;
+                const leverage = trade.Leverage || 1;
+
+                if (trade.Action === 'Buy' && !isShort) {
+                    // Regular buy (long position)
+                    const cashRequired = trade.Total / leverage;
+
+                    // Update cash
+                    await portfoliosCollection.updateOne(
+                        { Username: sanitizedUser, Number: portfolioNumber },
+                        { $inc: { cash: -cashRequired } }
+                    );
+
+                    // Update or create position
+                    const existingPosition = await positionsCollection.findOne({
+                        Username: sanitizedUser,
+                        PortfolioNumber: portfolioNumber,
+                        Symbol: trade.Symbol
+                    });
+
+                    if (existingPosition) {
+                        const totalShares = existingPosition.Shares + trade.Shares;
+                        const totalCost = (existingPosition.Shares * existingPosition.AvgPrice) + (trade.Shares * trade.Price);
+                        const newAvgPrice = totalCost / totalShares;
+
+                        await positionsCollection.updateOne(
+                            { Username: sanitizedUser, PortfolioNumber: portfolioNumber, Symbol: trade.Symbol },
+                            {
+                                $set: {
+                                    Shares: totalShares,
+                                    AvgPrice: newAvgPrice,
+                                    Leverage: leverage
+                                }
+                            }
+                        );
+                    } else {
+                        await positionsCollection.insertOne({
+                            Username: sanitizedUser,
+                            PortfolioNumber: portfolioNumber,
+                            Symbol: trade.Symbol,
+                            Shares: trade.Shares,
+                            AvgPrice: trade.Price,
+                            Leverage: leverage,
+                            IsShort: false
+                        });
+                    }
+                } else if (trade.Action === 'Sell' && isShort) {
+                    // Open short position
+                    const marginRequired = trade.Total;
+
+                    await portfoliosCollection.updateOne(
+                        { Username: sanitizedUser, Number: portfolioNumber },
+                        { $inc: { cash: -marginRequired } }
+                    );
+
+                    const existingPosition = await positionsCollection.findOne({
+                        Username: sanitizedUser,
+                        PortfolioNumber: portfolioNumber,
+                        Symbol: trade.Symbol,
+                        IsShort: true
+                    });
+
+                    if (existingPosition) {
+                        const totalShares = existingPosition.Shares + trade.Shares;
+                        const totalProceeds = (existingPosition.Shares * existingPosition.AvgPrice) + (trade.Shares * trade.Price);
+                        const newAvgPrice = totalProceeds / totalShares;
+
+                        await positionsCollection.updateOne(
+                            { Username: sanitizedUser, PortfolioNumber: portfolioNumber, Symbol: trade.Symbol, IsShort: true },
+                            {
+                                $set: {
+                                    Shares: totalShares,
+                                    AvgPrice: newAvgPrice
+                                }
+                            }
+                        );
+                    } else {
+                        await positionsCollection.insertOne({
+                            Username: sanitizedUser,
+                            PortfolioNumber: portfolioNumber,
+                            Symbol: trade.Symbol,
+                            Shares: trade.Shares,
+                            AvgPrice: trade.Price,
+                            IsShort: true
+                        });
+                    }
+                } else if (trade.Action === 'Sell' && !isShort) {
+                    // Close long position
+                    const existingPosition = await positionsCollection.findOne({
+                        Username: sanitizedUser,
+                        PortfolioNumber: portfolioNumber,
+                        Symbol: trade.Symbol,
+                        IsShort: false
+                    });
+
+                    if (existingPosition) {
+                        const newShares = existingPosition.Shares - trade.Shares;
+
+                        // Add cash from sale
+                        await portfoliosCollection.updateOne(
+                            { Username: sanitizedUser, Number: portfolioNumber },
+                            { $inc: { cash: trade.Total } }
+                        );
+
+                        if (newShares <= 0.001) {
+                            // Position fully closed
+                            await positionsCollection.deleteOne({
+                                Username: sanitizedUser,
+                                PortfolioNumber: portfolioNumber,
+                                Symbol: trade.Symbol,
+                                IsShort: false
+                            });
+                        } else {
+                            // Position partially closed
+                            await positionsCollection.updateOne(
+                                { Username: sanitizedUser, PortfolioNumber: portfolioNumber, Symbol: trade.Symbol, IsShort: false },
+                                { $set: { Shares: newShares } }
+                            );
+                        }
+                    }
+                } else if (trade.Action === 'Buy' && isShort) {
+                    // Close short position
+                    const existingPosition = await positionsCollection.findOne({
+                        Username: sanitizedUser,
+                        PortfolioNumber: portfolioNumber,
+                        Symbol: trade.Symbol,
+                        IsShort: true
+                    });
+
+                    if (existingPosition) {
+                        const newShares = existingPosition.Shares - trade.Shares;
+                        const closeCost = trade.Total;
+                        const saleProceeds = trade.Shares * existingPosition.AvgPrice;
+                        const realizedPL = saleProceeds - closeCost;
+                        const marginReturn = trade.Shares * existingPosition.AvgPrice;
+
+                        await portfoliosCollection.updateOne(
+                            { Username: sanitizedUser, Number: portfolioNumber },
+                            { $inc: { cash: marginReturn + realizedPL } }
+                        );
+
+                        if (newShares <= 0.001) {
+                            await positionsCollection.deleteOne({
+                                Username: sanitizedUser,
+                                PortfolioNumber: portfolioNumber,
+                                Symbol: trade.Symbol,
+                                IsShort: true
+                            });
+                        } else {
+                            await positionsCollection.updateOne(
+                                { Username: sanitizedUser, PortfolioNumber: portfolioNumber, Symbol: trade.Symbol, IsShort: true },
+                                { $set: { Shares: newShares } }
+                            );
+                        }
+                    }
+                }
+            }
+
+            // Recalculate portfolio statistics
+            await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
+
+            return res.status(200).json({
+                message: 'Trade deleted and portfolio recalculated successfully'
+            });
+
+        } catch (error) {
+            const errObj = handleError(error, 'DELETE /trades/:tradeId', { user: req.query?.username }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
+        }
+    });
+
     // --- POST import a full portfolio (positions, trades, cash) ---
     app.post('/portfolio/import', validate([
         validationSchemas.username(),
@@ -1044,14 +1331,29 @@ export default function (app: any, deps: any) {
             delete safeStats.baseValue;
             delete safeStats.totalValue;
             delete safeStats.unrealizedPL;
-            // Handle benchmarks array
+
+            // Handle benchmarks - convert benchmarks.0, benchmarks.1, etc. into array
+            const benchmarksArray: string[] = [];
+            Object.keys(safeStats).forEach(key => {
+                if (key.startsWith('benchmarks.')) {
+                    const index = parseInt(key.split('.')[1], 10);
+                    if (!isNaN(index)) {
+                        benchmarksArray[index] = String(safeStats[key]).toUpperCase().trim();
+                    }
+                    delete safeStats[key];
+                }
+            });
+            // Filter out empty values and limit to 5
+            safeStats.benchmarks = benchmarksArray
+                .filter((b: string) => b && b.length > 0)
+                .slice(0, 5);
+
+            // If benchmarks is already an array (alternative format), process it
             if (safeStats.hasOwnProperty('benchmarks') && Array.isArray(safeStats.benchmarks)) {
                 safeStats.benchmarks = safeStats.benchmarks
-                    .slice(0, 5) // Max 5 benchmarks
+                    .slice(0, 5)
                     .map((b: any) => String(b).toUpperCase().trim())
                     .filter((b: string) => b.length > 0);
-            } else {
-                safeStats.benchmarks = [];
             }
             // Convert cash and BaseValue to numbers
             if (safeStats.hasOwnProperty('cash')) {
@@ -1073,14 +1375,17 @@ export default function (app: any, deps: any) {
             }
             const safePositions = positions.map(sanitizeRow);
             // Only keep allowed fields for positions
-            const allowedPositionFields = ['Symbol', 'Shares', 'AvgPrice'];
+            const allowedPositionFields = ['Symbol', 'Shares', 'AvgPrice', 'IsShort', 'Leverage'];
             const safePositionsFiltered = safePositions.map(pos => {
                 const filtered: Record<string, any> = {};
                 for (const key of allowedPositionFields) {
                     if (pos.hasOwnProperty(key)) {
-                        if (key === 'Shares' || key === 'AvgPrice') {
+                        if (key === 'Shares' || key === 'AvgPrice' || key === 'Leverage') {
                             const num = Number(pos[key]);
-                            filtered[key] = isNaN(num) ? 0 : num;
+                            filtered[key] = isNaN(num) ? (key === 'Leverage' ? 1 : 0) : num;
+                        } else if (key === 'IsShort') {
+                            // Convert to boolean
+                            filtered[key] = pos[key] === true || pos[key] === 'true';
                         } else {
                             filtered[key] = pos[key];
                         }
@@ -1095,8 +1400,18 @@ export default function (app: any, deps: any) {
             const positionsCollection = db.collection('Positions');
             const tradesCollection = db.collection('Trades');
 
+            // Prepare the portfolio update object
+            // Remove any potential conflicting nested benchmark fields
+            const portfolioUpdate: Record<string, any> = { ...safeStats, Username: sanitizedUser, Number: portfolioNumber };
+
+            // Clean up any nested benchmark-related fields that might cause conflicts
+            const keysToRemove = Object.keys(portfolioUpdate).filter(key =>
+                key.startsWith('benchmarks.') ||
+                (key !== 'benchmarks' && key.toLowerCase().includes('benchmark'))
+            );
+            keysToRemove.forEach(key => delete portfolioUpdate[key]);
+
             // Upsert the portfolio document with all stats fields
-            const portfolioUpdate = { ...safeStats, Username: sanitizedUser, Number: portfolioNumber };
             await portfoliosCollection.updateOne(
                 { Username: sanitizedUser, Number: portfolioNumber },
                 { $set: portfolioUpdate },
@@ -1585,6 +1900,8 @@ export default function (app: any, deps: any) {
             // Add calculated values to stats
             portfolioStats.totalValue = Number(totalValue).toFixed(2);
             portfolioStats.unrealizedPL = Number(unrealizedPL).toFixed(2);
+            // Ensure cash is included in stats for export
+            portfolioStats.cash = portfolioDoc.cash || 0;
 
             // Build response payload
             return res.status(200).json({

@@ -316,7 +316,7 @@ async function saveBenchmarks() {
   }
 
   .empty-state {
-    color: var(--text3);
+    color: var(--text2);
     font-style: italic;
     padding: 12px;
     text-align: center;

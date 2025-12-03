@@ -232,9 +232,14 @@
     <h2 style="text-align: center; font-size: 20px; color: whitesmoke; cursor: default;">FREQUENTLY ASKED QUESTIONS</h2>
     <div class="faq-cards">
       <div class="faq-card" v-for="(item, index) in faqs" :key="index">
-        <h3 class="faq-question">{{ item.question }}</h3>
-        <div v-show="item.show">
-          <p class="faq-answer">{{ item.answer }}</p>
+        <h3 class="faq-question" @click="toggleFAQ(index)" :class="{ 'open': item.show }">
+          {{ item.question }}
+          <svg class="chevron" :class="{ 'rotated': item.show }" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6,9 12,15 18,9"></polyline>
+          </svg>
+        </h3>
+        <div class="faq-answer" :class="{ 'open': item.show }">
+          <p>{{ item.answer }}</p>
         </div>
       </div>
     </div>
@@ -399,47 +404,47 @@ const faqs = ref([
   {
     question: 'Who is this platform designed for?',
     answer: 'Ereuna is designed primarily for retail traders and investors, especially those with a mid- to long-term investment horizon. The aim is to make advanced research tools more accessible and affordable, offering unique aggregation features that save time and help users make smarter decisions. The platform is built to be more cost-effective than the competition, with ongoing development of AI-enhanced research tools to assist and speed up the research process without compromising quality—making workflows more efficient and insightful.',
-    show: true
+    show: false
   },
     {
     question: 'Will there be more financial instruments added in the future?',
     answer: 'Of course! As the platform grows, there are plans to add more financial instruments to the platform, such as European Stocks, Asian Stocks, Forex and Cryptocurrencies.',
-    show: true
+    show: false
   },
   {
     question: 'Can I use Ereuna on mobile?',
     answer: 'Yes, a mobile version of Ereuna is available. While the website is intended to be accessible and usable on all devices, the mobile experience is not yet as optimized as the desktop version. Some features may not work properly or may behave differently due to the smaller screen size and touch input. Improvements and refinements to the mobile experience are ongoing, and issues will be addressed in future updates.',
-    show: true
+    show: false
   },
   {
     question: 'Is my data private and secure?',
     answer: 'Absolutely, no information that could deanonymize users is stored. Ereuna does not collect emails, payment information, or any personal data that might compromise user security. Only minimal logs are kept, and privacy is a top priority. No user data is shared or sold to third parties.',
-    show: true
+    show: false
   },
   {
     question: 'What is the payment method?',
     answer: 'Credit Card via Stripe. Cryptocurrencies will be added in the future.',
-    show: true
+    show: false
   },
   {
     question: 'Is there a refund policy?',
     answer: 'Yes, you are eligible for refunds the first 15 days of payment. You can initiate an automatic refund in the Account Section or by writing to contact@ereuna.io and providing your Username and invoice / payment id. Refunds will be processed within 5 business days.',
-    show: true
+    show: false
   },
   {
     question: 'Is there a commitment or contract?',
     answer: 'No, there is no commitment or contract. It\'s recharge based, no automatic / recurring charges. You can add more days to your subscription in the Account Section.',
-    show: true
+    show: false
   },
   {
     question: 'Can I cancel my subscription at any time?',
     answer: 'Yes, you can stop renewing at any time. There are no recurring charges and no penalties for leaving.',
-    show: true
+    show: false
   },
   {
     question: 'Will there be more features in the future?',
     answer: 'Yes, Ereuna is under heavy active development. New features and improvements are released regularly based on user feedback and market needs.',
-    show: true
+    show: false
   },
 ]);
 
@@ -449,6 +454,10 @@ const scrollToSection = (sectionId: string) => {
     element.scrollIntoView({ behavior: 'smooth' });
   }
 };
+
+function toggleFAQ(index: number) {
+  faqs.value[index].show = !faqs.value[index].show;
+}
 
 const showPolicy = ref(false)
 
@@ -512,17 +521,28 @@ function setupCounterAnimations() {
 
 function animateCounter(counter: Element) {
   const target = parseInt(counter.getAttribute('data-target') || '0');
-  const duration = 2000; // 2 seconds
-  const step = target / (duration / 16); // ~60fps
+  const duration = 2500; // Slightly longer for more sophisticated feel
+  const startDelay = Math.random() * 300; // Random start delay for staggered effect
+  let startTime: number | null = null;
   let current = 0;
-  
-  const timer = setInterval(() => {
-    current += step;
-    if (current >= target) {
-      current = target;
-      clearInterval(timer);
+
+  // Easing function for smooth, modern animation
+  const easeOutQuart = (t: number): number => {
+    return 1 - Math.pow(1 - t, 4);
+  };
+
+  const animate = (timestamp: number) => {
+    if (!startTime) {
+      startTime = timestamp + startDelay;
+      return requestAnimationFrame(animate);
     }
-    
+
+    const elapsed = timestamp - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easedProgress = easeOutQuart(progress);
+
+    current = Math.floor(target * easedProgress);
+
     let displayValue: string;
     if (current >= 1000000) {
       displayValue = (Math.floor(current / 1000000)).toString() + 'M';
@@ -531,9 +551,21 @@ function animateCounter(counter: Element) {
     } else {
       displayValue = Math.floor(current).toString();
     }
-    
+
     counter.textContent = displayValue;
-  }, 16);
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      // Add a subtle bounce effect at the end
+      counter.classList.add('counter-bounce');
+      setTimeout(() => {
+        counter.classList.remove('counter-bounce');
+      }, 150);
+    }
+  };
+
+  requestAnimationFrame(animate);
 }
 
 </script>
@@ -955,22 +987,70 @@ a:hover{
 .faq-card {
   background-color: $base2;
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   width: 80%;
   color: $text2;
+  transition: all 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.faq-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
 
 .faq-question {
-  font-size: 2rem;
-  font-weight: bold;
+  font-size: 1.5rem;
+  font-weight: 600;
   margin-bottom: 10px;
   opacity: 1;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: color 0.3s ease;
+  color: $text1;
+}
+
+.faq-question:hover {
+  color: $accent1;
+}
+
+.faq-question.open {
+  color: $accent1;
+}
+
+.chevron {
+  transition: transform 0.3s ease, color 0.3s ease;
+  color: $text1;
+}
+
+.faq-question.open .chevron {
+  color: $accent1;
+}
+
+.chevron.rotated {
+  transform: rotate(180deg);
 }
 
 .faq-answer {
-  font-size: 1.5rem;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  opacity: 0;
   color: $text2;
+}
+
+.faq-answer.open {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+.faq-answer p {
+  font-size: 1.2rem;
+  margin: 10px 0 0 0;
+  line-height: 1.6;
 }
 
 .modal {
@@ -1084,7 +1164,7 @@ a:hover{
   color: var(--text1);
   font-size: 2rem;
   border-radius: 4px;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 .feature-card-modern:hover {
   transform: translateY(-6px) scale(1.03);
@@ -1563,6 +1643,11 @@ a.social {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.15s ease-out;
+}
+
+.counter-bounce {
+  transform: scale(1.05);
 }
 
 .counter-accent {
@@ -1574,6 +1659,11 @@ a.social {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.15s ease-out;
+}
+
+.counter-bounce {
+  transform: scale(1.05);
 }
 
 .stats-container {
@@ -1601,6 +1691,11 @@ a.social {
   background-clip: text;
   line-height: 1;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.15s ease-out;
+}
+
+.counter-bounce {
+  transform: scale(1.05);
 }
 
 .stat-label {
@@ -1614,10 +1709,12 @@ a.social {
 
 .stat-item .counter {
   font-size: 2rem;
+  transition: transform 0.15s ease-out;
 }
 
 .stat-item .counter-accent {
   font-size: 2rem;
+  transition: transform 0.15s ease-out;
 }
 
 //hide second set of button from desktop
@@ -1980,10 +2077,16 @@ a.social {
 
   .counter, .counter-accent {
     font-size: 2.5rem;
+    transition: transform 0.15s ease-out;
+  }
+
+  .counter-bounce {
+    transform: scale(1.05);
   }
 
   .stat-number {
     font-size: 1.5rem;
+    transition: transform 0.15s ease-out;
   }
 
   .stat-label {
@@ -1992,6 +2095,7 @@ a.social {
 
   .stat-item .counter, .stat-item .counter-accent {
     font-size: 1.5rem;
+    transition: transform 0.15s ease-out;
   }
 
   .sales-section1, .sales-section2 {

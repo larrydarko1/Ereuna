@@ -9,7 +9,6 @@
       :disabled="loading"
     >
       <div class="theme-name">{{ themeDisplayNames[theme] }}</div>
-      <div class="theme-description">{{ themeDescriptions[theme] }}</div>
       <div class="color-previews">
         <div
           v-for="(color, idx) in Object.values(themeColors[theme]).slice(0, 17)"
@@ -1181,62 +1180,6 @@ const themeColors: Record<string, Record<string, string>> = {
   }
 };
 
-const themeDescriptions: Record<string, string> = {
-  default: 'Default Theme. That\'s it ',
-  ihatemyeyes: 'No Seriously, Why?',
-  colorblind: 'I\'m sorry :(',
-  catpuccin: 'Feline-friendly latte vibes.',
-  black: 'Elegance in the absence of color. maybe it\'s too dark?',
-  nord: 'Frozen tundra chic.',
-  dracula: 'Bite me, I\'m coding.',
-  gruvbox: 'Woodsy, earthy, and surprisingly cozy.',
-  'tokyo-night': 'Neon dreams in the city that never sleeps.',
-  solarized: 'Sun-kissed code for your retinas.',
-  synthwave: '80s nostalgia with a digital twist.',
-  'github-dark': 'Where code meets professionalism.',
-  everforest: 'Ancient woods whispering secrets.',
-  'ayu-dark': 'Mystic oranges under a dark sky.',
-  'rose-pine': 'Pink paradise for romantics.',
-  material: 'Design that\'s as flat as your jokes.',
-  'one-dark': 'Atom\'s moody cousin.',
-  'night-owl': 'Hoot hoot, productivity boost.',
-  panda: 'Cute and cuddly, but dark.',
-  'monokai-pro': 'Vibrant like a fruit salad.',
-  'tomorrow-night': 'Timeless darkness, eternal code.',
-  'oceanic-next': 'Deep blue sea of syntax.',
-  palenight: 'Purple haze for dreamy devs.',
-  cobalt: 'Blue like the ocean, deep like your thoughts.',
-  poimandres: 'Ancient scrolls of wisdom.',
-  'github-light': 'Bright ideas in broad daylight.',
-  neon: 'Glow in the dark coding.',
-  moonlight: 'Soft glow for gentle nights.',
-  nightfox: 'Sly and clever under the moon.',
-  spacemacs: 'Emacs in space, boldly going.',
-  borland: 'DOS-era throwback, beep boop.',
-  amber: 'Golden hues for autumn coders.',
-  cyberpunk: 'Neon chaos in a dystopian world.',
-  matrix: 'Green rain, red pill included.',
-  sunset: 'Fiery end to a productive day.',
-  'deep-ocean': 'Abyssal mysteries in code form.',
-  gotham: 'Dark knight of themes.',
-  retro: 'Vintage vibes, no cassette required.',
-  spotify: 'Groovy greens for music lovers.',
-  autumn: 'Harvest season in your editor.',
-  noctis: 'Starry nights for stargazers.',
-  iceberg: 'Frozen code, cool as ice.',
-  tango: 'Dancing colors in harmony.',
-  horizon: 'Endless skies, infinite possibilities.',
-  railscasts: 'Rails on tracks to success.',
-  'vscode-dark': 'Microsoft\'s dark side.',
-  'slack-dark': 'Chatty darkness for teams.',
-  mintty: 'Fresh mint for your terminal.',
-  'atom-one': 'Atomic precision, one theme.',
-  jellybeans: 'Sweet, colorful, and sticky.',
-  falcon: 'Sharp vision for keen eyes.',
-  'forest-night': 'Moonlit woods, magical code.',
-  'light-owl': 'Basically light-mode with different accent colors..beware your eyes.'
-};
-
 async function setTheme(newTheme: string) {
   if (loading.value) return;
   loading.value = true;
@@ -1307,14 +1250,6 @@ async function setTheme(newTheme: string) {
   color: var(--text1);
   margin-bottom: 8px;
   text-transform: capitalize;
-}
-
-.theme-description {
-  font-size: 0.9rem;
-  color: var(--text2);
-  margin-bottom: 15px;
-  line-height: 1.4;
-  font-style: italic;
 }
 
 .color-previews {

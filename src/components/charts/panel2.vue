@@ -116,7 +116,8 @@ const initialFields: SummaryField[] = [
   { order: 46, tag: 'CAGR', name: 'CAGR', hidden: false },
   { order: 47, tag: 'CAGRYears', name: 'CAGR Years', hidden: false },
   { order: 48, tag: 'CompanyWebsite', name: 'Website', hidden: false },
-  { order: 49, tag: 'Description', name: 'Description', hidden: false },
+  { order: 49, tag: 'AIRecommendation', name: 'AI Recommendation', hidden: false },
+  { order: 50, tag: 'Description', name: 'Description', hidden: false },
 ];
 
 

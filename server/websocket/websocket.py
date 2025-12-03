@@ -728,10 +728,13 @@ async def websocket_watchpanel(
     watch_panel_data = []
     for ticker in tickers:
         docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
-        # Try Redis first, then local cache
-        cached_candle = await get_in_progress_from_redis(ticker, '1d')
-        if not cached_candle:
-            cached_candle = get_in_progress_cached(ticker, '1d')
+        # Only use cached candle during market hours for initial load
+        cached_candle = None
+        if is_market_hours():
+            # Try Redis first, then local cache
+            cached_candle = await get_in_progress_from_redis(ticker, '1d')
+            if not cached_candle:
+                cached_candle = get_in_progress_cached(ticker, '1d')
         def get_ts(doc):
             return doc.get('timestamp', doc.get('start'))
         if cached_candle and docs:
@@ -890,10 +893,13 @@ async def websocket_data_values(
     last_two_closes = {}
     results = {}
     for ticker in ticker_list:
-        # Try Redis first, then local cache
-        cached_candle = await get_in_progress_from_redis(ticker, '1d')
-        if not cached_candle:
-            cached_candle = get_in_progress_cached(ticker, '1d')
+        # Only use cached candle during market hours for initial load
+        cached_candle = None
+        if is_market_hours():
+            # Try Redis first, then local cache
+            cached_candle = await get_in_progress_from_redis(ticker, '1d')
+            if not cached_candle:
+                cached_candle = get_in_progress_cached(ticker, '1d')
         docs = await db['OHCLVData'].find({'tickerID': ticker}).sort('timestamp', -1).limit(2).to_list(length=2)
         def get_ts(doc):
             return doc.get('timestamp', doc.get('start'))

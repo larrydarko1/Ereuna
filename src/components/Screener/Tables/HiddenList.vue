@@ -186,6 +186,7 @@ const attributes = [
   { label: 'Fund Family', value: 'fund_family', backend: 'fundFamily' },
   { label: 'Fund Category', value: 'fund_category', backend: 'FundCategory' },
   { label: 'Net Expense Ratio', value: 'net_expense_ratio', backend: 'netExpenseRatio' },
+  { label: 'AI Recommendation', value: 'ai_recommendation', backend: 'AI' },
 ];
 
 function getColumnLabel(col: string): string {
@@ -239,6 +240,11 @@ function getColumnValue(asset: Asset, col: string): string {
     Currency: (v: any) => (typeof v === 'string' ? v.toUpperCase() : (v ?? '-')),
     netExpenseRatio: (v: any) => (typeof v === 'number' && v >= 0 ? v.toFixed(2) + '%' : '-'),
     CAGR: (v: any) => (typeof v === 'number' ? (v * 100).toFixed(2) + '%' : '-'),
+    AI: (v: any) => {
+      if (!v || !Array.isArray(v) || v.length === 0) return '-';
+      const recommendation = v[0]?.Recommendation;
+      return recommendation ? String(recommendation) : '-';
+    },
   };
   const formatter = formatRules[attr.backend];
   if (formatter) return formatter(value);
@@ -307,6 +313,7 @@ const styleMap: { [key: string]: number } = {
   fund_family: 250,
   fund_category: 250,
   net_expense_ratio: 120,
+  ai_recommendation: 130,
 };
 
 function getColumnStyle(col: string): string {
