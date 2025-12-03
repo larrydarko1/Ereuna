@@ -115,6 +115,7 @@ const attributes = [
   { label: 'Fund Family', value: 'fund_family' },
   { label: 'Fund Category', value: 'fund_category' },
   { label: 'Net Expense Ratio', value: 'net_expense_ratio' },
+  { label: 'AI Recommendation', value: 'ai_recommendation' },
 ]
 // Close the modal
 function close() {

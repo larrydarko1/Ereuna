@@ -5,7 +5,6 @@
       <h2>New Note</h2>
       <form @submit.prevent="sendNote">
         <div class="input-row">
-          <label for="note-content">Note</label>
           <textarea
             id="notes-container"
             v-model="noteContent"
@@ -177,30 +176,45 @@ label {
 }
 
 textarea {
-  padding: 10px 12px;
-  border-radius: 7px;
+  padding: 12px 16px;
+  border-radius: 10px;
   border: 1.5px solid var(--base3);
   background: var(--base1);
   color: var(--text1);
   font-size: 1.08rem;
   outline: none;
-  transition: border-color 0.18s;
+  transition: all 0.2s ease;
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.5;
 }
 textarea:focus {
   border-color: var(--accent1);
   background: var(--base4);
+}
+textarea::placeholder {
+  color: var(--text2);
+  opacity: 0.7;
 }
 textarea.error,
 .char-count.error {
   border-color: #e74c3c;
   color: #e74c3c;
 }
+.char-count.error {
+  background: rgba(231, 76, 60, 0.1);
+}
 
 .char-count {
   font-size: 0.85rem;
   color: var(--text2);
   align-self: flex-end;
-  margin-top: 2px;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--base1);
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .modal-actions {

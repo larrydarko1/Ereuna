@@ -44,20 +44,19 @@ $base4: #16161e;
 
 
 .ihatemyeyes {
-    --accent1: #7aa2f7;
+    --accent1: #5e7cbd;
     --accent2: #bb9af7;
     --accent3: #7dcfff;
-    --accent4: #7aa2f753; // semi-transparent overlay
-    --text1: #1a1b26;
+    --text1: #36454F;
     --text2: #24283b;
-    --text3: #414868;
+    --text3: #ffffff;
     --base1: #ffffff;
-    --base2: #f0f2f5;
-    --base3: #e9eaec;
-    --base4: #d1d5db;
+    --base2: #e9eaec;
+    --base3: #ffffff;
+    --base4: #f0f2f5;
     --positive: #7ca254;
     --negative: #f7768e;
-    --volume: #ff9e64;
+    --volume: #E5E4E2;
     --ma4: #9ece6a; // 200MA
     --ma3: #e0af68; // 50MA
     --ma2: #7aa2f7; // 20MA
@@ -203,11 +202,11 @@ $base4: #16161e;
     --base4: #16161e;
     --positive: #9ece6a;
     --negative: #f7768e;
-    --volume: #ff9e64;
-    --ma4: #9ece6a; // 200MA
-    --ma3: #e0af68; // 50MA
-    --ma2: #7aa2f7; // 20MA
-    --ma1: #bb9af7; // 10MA
+    --volume: #708090;
+    --ma4: #9ece6a;
+    --ma3: #e0af68;
+    --ma2: #7aa2f7;
+    --ma1: #bb9af7;
 }
 
 .solarized {

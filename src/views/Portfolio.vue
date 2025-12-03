@@ -1,6 +1,6 @@
 <template>
     <Header />
-  <div class="portfolio">
+  <div class="portfolio" :style="{ '--buy-bg': buyBg, '--buy-border': buyBorder, '--sell-bg': sellBg, '--sell-border': sellBorder, '--long-bg': longBg, '--long-border': longBorder, '--short-bg': shortBg, '--short-border': shortBorder, '--cash-bg': cashBg, '--cash-border': cashBorder, '--leverage-bg': leverageBg, '--leverage-border': leverageBorder }">
     <div class="portfolio-menu card">
       <div style="display: flex; margin-left: 10px;">
         <button
@@ -30,12 +30,7 @@
       </div>
     </div>
     <!-- Benchmarks Panel -->
-    <div class="benchmark-panel">
-      <div class="benchmarks-row">
-        <span v-if="portfolioBenchmarks.length === 0" class="no-benchmarks">
-          No benchmarks selected
-        </span>
-      </div>
+   <div class="benchmark-panel">
       <button class="edit-watch-panel-btn" @click="showBenchmarkSelector = true" aria-label="Edit Benchmarks">
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M11.013 2.293L13.707 4.987L12.293 6.401L9.599 3.707L11.013 2.293ZM2 11V13.5H4.5L11.8765 6.1235L9.3765 3.6235L2 11Z" fill="currentColor"/>
@@ -43,7 +38,6 @@
         <span>Edit Benchmarks</span>
       </button>
     </div>
-
     <BenchmarkSelector
       v-if="showBenchmarkSelector"
       :user="user?.Username ?? ''"
@@ -56,43 +50,62 @@
     />
 
     <!-- Benchmark Performance Comparison -->
-    <div v-if="portfolioSummary?.benchmarkPerformance && portfolioSummary.benchmarkPerformance.length > 0" class="benchmark-performance-section card">
-      <div class="benchmark-performance-scroll">
-        <div v-for="benchmark in portfolioSummary.benchmarkPerformance" :key="benchmark.symbol" class="benchmark-card">
-          <div class="benchmark-header">
-            <span class="benchmark-symbol">{{ benchmark.symbol }}</span>
-            <span class="benchmark-status" :class="benchmark.beating ? 'outperforming' : 'underperforming'">
-              <svg v-if="benchmark.beating" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 3L9.00001 4L11.2929 6.29289L8.50001 9.08579L5.50001 6.08579L0.292908 11.2929L1.70712 12.7071L5.50001 8.91421L8.50001 11.9142L12.7071 7.70711L15 10L16 9L16 3H10Z" fill="currentColor"></path>
-              </svg>
-              <svg v-else viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 13L9.00001 12L11.2929 9.70712L8.50001 6.91423L5.50001 9.91423L0.292908 4.70712L1.70712 3.29291L5.50001 7.0858L8.50001 4.0858L12.7071 8.29291L15 6.00001L16 7.00001L16 13H10Z" fill="currentColor"></path>
-              </svg>
-              <span>{{ benchmark.beating ? 'Beating' : 'Lagging' }}</span>
-            </span>
-          </div>
-          <div class="benchmark-stats">
-            <div class="stat-item">
-              <span class="stat-label">Benchmark</span>
-              <span class="stat-value" :class="benchmark.return >= 0 ? 'positive' : 'negative'">
-                {{ benchmark.return >= 0 ? '+' : '' }}{{ benchmark.return.toFixed(2) }}%
+    <div class="benchmark-performance-section card">
+      <template v-if="isPortfolioBlank">
+        <div class="benchmark-empty-message">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Benchmarks are not visible for empty portfolios</span>
+        </div>
+      </template>
+      <template v-else-if="portfolioSummary?.benchmarkPerformance && portfolioSummary.benchmarkPerformance.length > 0">
+        <div class="benchmark-performance-scroll">
+          <div v-for="benchmark in portfolioSummary.benchmarkPerformance" :key="benchmark.symbol" class="benchmark-card">
+            <div class="benchmark-header">
+              <span class="benchmark-symbol">{{ benchmark.symbol }}</span>
+              <span class="benchmark-status" :class="benchmark.beating ? 'outperforming' : 'underperforming'">
+                <svg v-if="benchmark.beating" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 3L9.00001 4L11.2929 6.29289L8.50001 9.08579L5.50001 6.08579L0.292908 11.2929L1.70712 12.7071L5.50001 8.91421L8.50001 11.9142L12.7071 7.70711L15 10L16 9L16 3H10Z" fill="currentColor"></path>
+                </svg>
+                <svg v-else viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 13L9.00001 12L11.2929 9.70712L8.50001 6.91423L5.50001 9.91423L0.292908 4.70712L1.70712 3.29291L5.50001 7.0858L8.50001 4.0858L12.7071 8.29291L15 6.00001L16 7.00001L16 13H10Z" fill="currentColor"></path>
+                </svg>
+                <span>{{ benchmark.beating ? 'Beating' : 'Lagging' }}</span>
               </span>
             </div>
-            <div class="stat-item">
-              <span class="stat-label">Portfolio</span>
-              <span class="stat-value" :class="benchmark.portfolioReturn >= 0 ? 'positive' : 'negative'">
-                {{ benchmark.portfolioReturn >= 0 ? '+' : '' }}{{ benchmark.portfolioReturn.toFixed(2) }}%
-              </span>
-            </div>
-            <div class="stat-item highlight">
-              <span class="stat-label">Diff</span>
-              <span class="stat-value" :class="benchmark.outperformance >= 0 ? 'positive' : 'negative'">
-                {{ benchmark.outperformance >= 0 ? '+' : '' }}{{ benchmark.outperformance.toFixed(2) }}%
-              </span>
+            <div class="benchmark-stats">
+              <div class="stat-item">
+                <span class="stat-label">Benchmark</span>
+                <span class="stat-value" :class="benchmark.return >= 0 ? 'positive' : 'negative'">
+                  {{ benchmark.return >= 0 ? '+' : '' }}{{ benchmark.return.toFixed(2) }}%
+                </span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Portfolio</span>
+                <span class="stat-value" :class="benchmark.portfolioReturn >= 0 ? 'positive' : 'negative'">
+                  {{ benchmark.portfolioReturn >= 0 ? '+' : '' }}{{ benchmark.portfolioReturn.toFixed(2) }}%
+                </span>
+              </div>
+              <div class="stat-item highlight">
+                <span class="stat-label">Diff</span>
+                <span class="stat-value" :class="benchmark.outperformance >= 0 ? 'positive' : 'negative'">
+                  {{ benchmark.outperformance >= 0 ? '+' : '' }}{{ benchmark.outperformance.toFixed(2) }}%
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </template>
+      <template v-else>
+        <div class="benchmark-empty-message">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 2C8.44772 2 8 2.44772 8 3C8 3.55228 8.44772 4 9 4H15C15.5523 4 16 3.55228 16 3C16 2.44772 15.5523 2 15 2H9Z" fill="currentColor"/>
+            <path d="M4 5C4 3.89543 4.89543 3 6 3C6 4.65685 7.34315 6 9 6H15C16.6569 6 18 4.65685 18 3C19.1046 3 20 3.89543 20 5V19C20 20.1046 19.1046 21 18 21H6C4.89543 21 4 20.1046 4 19V5Z" fill="currentColor"/>
+          </svg>
+          <span>No benchmark data available</span>
+        </div>
+      </template>
     </div>
 
     <div class="portfolio-summary-main">
@@ -373,6 +386,16 @@
     @import-success="showNotification('Portfolio imported successfully!')"
     @notify="showNotification($event)"
   />
+  <DeleteTradePopup
+    v-if="showDeleteTradeModal && tradeToDelete"
+    :trade="tradeToDelete"
+    :user="user?.Username ?? ''"
+    :api-key="apiKey"
+    :portfolio="selectedPortfolioIndex"
+    @close="showDeleteTradeModal = false"
+    @deleted="handleTradeDeleted"
+    @notify="showNotification($event)"
+  />
       </div>
       <div class="portfolio-main-flex">
         <div class="portfolio-pie-container card" aria-label="Portfolio allocation pie chart">
@@ -491,6 +514,85 @@
           </table>
         </div>
       </div>
+      
+      <!-- Monthly Performance Analysis Section -->
+      <div class="monthly-performance-container card" v-if="monthlyPerformanceData.length > 0">
+        <div class="monthly-perf-header">
+          <h2>Monthly Performance Analysis <span class="beta-badge">BETA</span></h2>
+          <div class="perf-summary">
+            <span class="winning-months">{{ winningMonthsCount }} Winning</span>
+            <span class="losing-months">{{ losingMonthsCount }} Losing</span>
+          </div>
+        </div>
+        <div class="monthly-perf-main">
+          <div class="monthly-perf-scroll">
+            <div v-for="month in monthlyPerformanceData" :key="month.period" class="monthly-perf-card">
+            <div class="month-header">
+              <div class="month-title">
+                <span class="month-label">{{ month.monthName }} {{ month.year }}</span>
+                <span class="trade-count">{{ month.tradeCount }} {{ month.tradeCount === 1 ? 'trade' : 'trades' }}</span>
+              </div>
+              <div class="month-return" :class="month.monthlyReturn >= 0 ? 'positive' : 'negative'">
+                {{ month.monthlyReturn >= 0 ? '+' : '' }}{{ month.monthlyReturn.toFixed(2) }}%
+              </div>
+            </div>
+            <div class="month-stats">
+              <div class="stat-row">
+                <span class="stat-label">Starting Value</span>
+                <span class="stat-value">${{ month.startingValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Ending Value</span>
+                <span class="stat-value">${{ month.endingValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+              </div>
+              <div class="stat-row" v-if="month.netCashFlow !== 0">
+                <span class="stat-label">Cash Flow</span>
+                <span class="stat-value" :class="month.netCashFlow >= 0 ? 'neutral' : 'neutral'">
+                  {{ month.netCashFlow >= 0 ? '+' : '' }}${{ Math.abs(month.netCashFlow).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                </span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">P/L</span>
+                <span class="stat-value" :class="month.profitLoss >= 0 ? 'positive' : 'negative'">
+                  {{ month.profitLoss >= 0 ? '+' : '-' }}${{ Math.abs(month.profitLoss).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                </span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Win Rate</span>
+                <span class="stat-value">{{ month.winRate.toFixed(1) }}%</span>
+              </div>
+              <div class="stat-row" v-if="month.winningTrades > 0">
+                <span class="stat-label">Avg. Win</span>
+                <span class="stat-value positive">+${{ month.avgWin.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+              </div>
+              <div class="stat-row" v-if="month.losingTrades > 0">
+                <span class="stat-label">Avg. Loss</span>
+                <span class="stat-value negative">-${{ Math.abs(month.avgLoss).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+              </div>
+              <div class="stat-row" v-if="month.profitFactor !== null">
+                <span class="stat-label">Profit Factor</span>
+                <span class="stat-value">{{ month.profitFactor.toFixed(2) }}</span>
+              </div>
+            </div>
+            </div>
+          </div>
+          <div class="monthly-charts-container">
+            <div class="monthly-returns-chart card">
+              <h3 style="color: var(--accent1); margin-bottom: 12px; font-size: 1rem;">Total P/L (%)</h3>
+              <div class="chart-container">
+                <Bar :data="monthlyPLDollarChartData" :options="(monthlyPLDollarChartOptions as any)" />
+              </div>
+            </div>
+            <div class="monthly-returns-chart card">
+              <h3 style="color: var(--accent1); margin-bottom: 12px; font-size: 1rem;">Monthly Returns (%)</h3>
+              <div class="chart-container">
+                <Bar :data="monthlyReturnsChartData" :options="(monthlyReturnsChartOptions as any)" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="portfolio-history-container card">
         <div class="history-header">
           <h2>Transaction History</h2>
@@ -510,11 +612,12 @@
               <th class="number-col">Price</th>
               <th class="number-col">Fees</th>
               <th class="number-col">Total</th>
+              <th class="action-header">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="sortedTransactionHistory.length === 0" class="empty-state">
-              <td colspan="8">
+              <td colspan="9">
                 <div class="empty-state-content">
                   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M9 2C8.44772 2 8 2.44772 8 3C8 3.55228 8.44772 4 9 4H15C15.5523 4 16 3.55228 16 3C16 2.44772 15.5523 2 15 2H9Z" fill="currentColor"/>
@@ -554,6 +657,19 @@
               <td class="number-col total-col" :class="tx.Action === 'Buy' || tx.Action === 'Cash Withdrawal' ? 'negative' : tx.Action === 'Sell' || tx.Action === 'Cash Deposit' ? 'positive' : ''">
                 ${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
               </td>
+              <td class="action-col-buttons">
+                <button 
+                  class="delete-trade-btn" 
+                  @click="openDeleteTradeModal(tx)"
+                  :title="`Delete this trade`"
+                  aria-label="Delete trade"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -590,6 +706,7 @@ import BaseValuePopup from '@/components/Portfolio/BaseValue.vue'
 import WithdrawCashPopup from '@/components/Portfolio/withdrawCash.vue'
 import NotificationPopup from '@/components/NotificationPopup.vue';
 import BenchmarkSelector from '@/components/Portfolio/BenchmarkSelector.vue';
+import DeleteTradePopup from '@/components/Portfolio/DeleteTradePopup.vue';
 
 // access user from store 
 const userStore = useUserStore();
@@ -613,6 +730,7 @@ type Position = {
   IsShort?: boolean;
 };
 type Trade = {
+  _id?: string;
   Date?: string;
   Symbol?: string;
   Action?: string;
@@ -634,10 +752,29 @@ const showDownloadPopup = ref(false)
 const showBaseValueModal = ref(false)
 const showBenchmarkSelector = ref(false)
 const portfolioBenchmarks = ref<string[]>([])
+const showDeleteTradeModal = ref(false)
+const tradeToDelete = ref<Trade | null>(null)
 
 function openSellModal(position: { symbol: string; shares: number; price: number; isShort?: boolean }) {
   sellPosition.value = { ...position, isShort: position.isShort || false }
   showSellModal.value = true
+}
+
+function openDeleteTradeModal(trade: Trade) {
+  tradeToDelete.value = trade
+  showDeleteTradeModal.value = true
+}
+
+function handleTradeDeleted() {
+  showDeleteTradeModal.value = false
+  tradeToDelete.value = null
+  // Refresh all portfolio data
+  setTimeout(() => {
+    fetchPortfolio();
+    fetchTransactionHistory();
+    fetchCash();
+    fetchPortfolioSummary();
+  }, 300);
 }
 
 function handleSell(sellOrder: any) {
@@ -680,6 +817,25 @@ const ma4 = getVar('--ma4') || '#4caf50';
 const ma3 = getVar('--ma3') || '#ffeb3b';
 const ma2 = getVar('--ma2') || '#2862ff';
 const ma1 = getVar('--ma1') || '#00bcd4';
+
+// Compute RGB values for theme colors
+const positiveRgb = getVar('--positive').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ');
+const negativeRgb = getVar('--negative').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ');
+const accentRgb = getVar('--accent1').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ');
+
+// Compute badge backgrounds and borders
+const buyBg = `rgba(${positiveRgb}, 0.15)`;
+const buyBorder = `rgba(${positiveRgb}, 0.3)`;
+const sellBg = `rgba(${negativeRgb}, 0.15)`;
+const sellBorder = `rgba(${negativeRgb}, 0.3)`;
+const longBg = `rgba(${positiveRgb}, 0.15)`;
+const longBorder = `rgba(${positiveRgb}, 0.35)`;
+const shortBg = `rgba(${negativeRgb}, 0.15)`;
+const shortBorder = `rgba(${negativeRgb}, 0.35)`;
+const cashBg = `rgba(${accentRgb}, 0.15)`;
+const cashBorder = `rgba(${accentRgb}, 0.3)`;
+const leverageBg = `rgba(${accentRgb}, 0.15)`;
+const leverageBorder = `rgba(${accentRgb}, 0.35)`;
 
 const themeColors = [
   accent1,
@@ -1480,6 +1636,407 @@ const isPortfolioBlank = computed(() => {
   return portfolio.value.length === 0 && transactionHistory.value.length === 0 && cash.value === 0;
 });
 
+// --- Monthly Performance Analysis ---
+type MonthlyPerformance = {
+  period: string;
+  monthName: string;
+  year: number;
+  startingValue: number;
+  endingValue: number;
+  netCashFlow: number;
+  profitLoss: number;
+  monthlyReturn: number;
+  tradeCount: number;
+  winningTrades: number;
+  losingTrades: number;
+  winRate: number;
+  avgWin: number;
+  avgLoss: number;
+  profitFactor: number | null;
+};
+
+const monthlyPerformanceData = computed<MonthlyPerformance[]>(() => {
+  const valueHistory = portfolioValueHistory.value;
+  const trades = transactionHistory.value as Trade[];
+  
+  if (!trades || trades.length === 0) return [];
+
+  // Find the date of the first transaction (inception)
+  const tradeDates = trades
+    .map(t => t.Date ? new Date(t.Date) : null)
+    .filter(d => d !== null) as Date[];
+  
+  if (tradeDates.length === 0) return [];
+  
+  const inceptionDate = new Date(Math.min(...tradeDates.map(d => d.getTime())));
+  const currentDate = new Date();
+  
+  // Generate all month keys from inception to current month
+  const allMonthKeys: string[] = [];
+  let iterDate = new Date(inceptionDate.getFullYear(), inceptionDate.getMonth(), 1);
+  const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  
+  while (iterDate <= endDate) {
+    const monthKey = `${iterDate.getFullYear()}-${String(iterDate.getMonth() + 1).padStart(2, '0')}`;
+    allMonthKeys.push(monthKey);
+    iterDate.setMonth(iterDate.getMonth() + 1);
+  }
+
+  // Group ALL trades by month
+  const monthlyTrades = new Map<string, Trade[]>();
+  trades.forEach(trade => {
+    if (!trade.Date) return;
+    const date = new Date(trade.Date);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    
+    if (!monthlyTrades.has(monthKey)) {
+      monthlyTrades.set(monthKey, []);
+    }
+    monthlyTrades.get(monthKey)?.push(trade);
+  });
+
+  // Group portfolio values by month using actual data
+  const monthlyValues = new Map<string, { values: number[], dates: string[] }>();
+  
+  if (valueHistory && valueHistory.length > 0) {
+    valueHistory.forEach(entry => {
+      const date = new Date(entry.date);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!monthlyValues.has(monthKey)) {
+        monthlyValues.set(monthKey, { values: [], dates: [] });
+      }
+      monthlyValues.get(monthKey)?.values.push(entry.value);
+      monthlyValues.get(monthKey)?.dates.push(entry.date);
+    });
+  }
+  
+  const monthlyData: MonthlyPerformance[] = [];
+  let previousEndingValue = 0; // Start from 0, not BaseValue
+
+  allMonthKeys.forEach((monthKey, index) => {
+    const [year, month] = monthKey.split('-').map(Number);
+    const monthDate = new Date(year, month - 1, 1);
+    const monthName = monthDate.toLocaleString('default', { month: 'short' });
+
+    // Get portfolio values for this month
+    const monthData = monthlyValues.get(monthKey);
+    
+    // Starting value should always be the previous month's ending value for continuity
+    // Exception: first month starts at 0
+    let startingValue = previousEndingValue;
+    let endingValue = previousEndingValue;
+
+    if (monthData && monthData.values.length > 0) {
+      // Use the last value of this month as the ending value
+      const sortedDates = [...monthData.dates].sort();
+      const lastDateIndex = monthData.dates.indexOf(sortedDates[sortedDates.length - 1]);
+      endingValue = monthData.values[lastDateIndex];
+    }
+
+    // Get trades for this month
+    const monthTrades = monthlyTrades.get(monthKey) || [];
+    
+    // Calculate net cash flow for this month (deposits - withdrawals)
+    let netCashFlow = 0;
+    monthTrades.forEach(trade => {
+      if (trade.Action === 'Cash Deposit') {
+        netCashFlow += trade.Total || 0;
+      } else if (trade.Action === 'Cash Withdrawal') {
+        netCashFlow += trade.Total || 0; // Total is already negative for withdrawals
+      }
+    });
+    
+    // Calculate trade statistics from actual closed positions
+    let totalGains = 0;
+    let totalLosses = 0;
+    let winningTrades = 0;
+    let losingTrades = 0;
+
+    // Track buy and sell transactions to match them
+    const positionMap = new Map<string, { avgPrice: number, shares: number }>();
+
+    monthTrades.forEach(trade => {
+      // Skip cash transactions
+      if (trade.Action === 'Cash Deposit' || trade.Action === 'Cash Withdrawal') return;
+      if (!trade.Symbol || trade.Symbol === '-') return;
+      
+      const symbol = trade.Symbol;
+      const shares = trade.Shares || 0;
+      const price = trade.Price || 0;
+      const commission = trade.Commission || 0;
+      
+      if (trade.Action === 'Buy' && !trade.IsShort) {
+        // Opening or adding to long position
+        const current = positionMap.get(symbol) || { avgPrice: 0, shares: 0 };
+        const totalCost = (current.avgPrice * current.shares) + (price * shares);
+        const totalShares = current.shares + shares;
+        positionMap.set(symbol, {
+          avgPrice: totalCost / totalShares,
+          shares: totalShares
+        });
+      } else if (trade.Action === 'Sell' && !trade.IsShort) {
+        // Closing long position - calculate P/L
+        const current = positionMap.get(symbol);
+        if (current && current.shares > 0) {
+          const costBasis = current.avgPrice * shares;
+          const saleProceeds = (price * shares) - commission;
+          const pl = saleProceeds - costBasis;
+          
+          if (pl > 0) {
+            totalGains += pl;
+            winningTrades++;
+          } else if (pl < 0) {
+            totalLosses += Math.abs(pl);
+            losingTrades++;
+          }
+          
+          // Update position
+          const remainingShares = current.shares - shares;
+          if (remainingShares > 0) {
+            positionMap.set(symbol, { avgPrice: current.avgPrice, shares: remainingShares });
+          } else {
+            positionMap.delete(symbol);
+          }
+        }
+      }
+    });
+
+    // Update for next iteration
+    previousEndingValue = endingValue;
+
+    // Calculate metrics with TIME-WEIGHTED return (excluding cash flows)
+    const profitLoss = endingValue - startingValue;
+    let monthlyReturn = 0;
+    
+    // If previous month was 0 and we had cash deposits, this is inception month
+    if (index === 0 || (startingValue === 0 && netCashFlow > 0)) {
+      // First month or first month with activity: calculate return based on growth from deposits
+      monthlyReturn = netCashFlow > 0 ? ((endingValue - netCashFlow) / netCashFlow) * 100 : 0;
+    } else {
+      // Normal months: use time-weighted return
+      // Adjust for cash flows: (Ending - Starting - NetCashFlow) / (Starting + NetCashFlow)
+      const baseWithCash = startingValue + netCashFlow;
+      const investmentReturn = endingValue - baseWithCash;
+      monthlyReturn = baseWithCash > 0 ? (investmentReturn / baseWithCash) * 100 : 0;
+    }
+    
+    const totalTrades = winningTrades + losingTrades;
+    const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+    const avgWin = winningTrades > 0 ? totalGains / winningTrades : 0;
+    const avgLoss = losingTrades > 0 ? totalLosses / losingTrades : 0;
+    const profitFactor = totalLosses > 0 ? totalGains / totalLosses : totalGains > 0 ? 999 : null;
+
+    monthlyData.push({
+      period: monthKey,
+      monthName,
+      year,
+      startingValue,
+      endingValue,
+      netCashFlow,
+      profitLoss,
+      monthlyReturn,
+      tradeCount: monthTrades.length,
+      winningTrades,
+      losingTrades,
+      winRate,
+      avgWin,
+      avgLoss,
+      profitFactor
+    });
+  });
+
+  // Return in reverse chronological order (most recent first)
+  return monthlyData.reverse();
+});
+
+const winningMonthsCount = computed(() => {
+  return monthlyPerformanceData.value.filter(m => m.monthlyReturn > 0).length;
+});
+
+const losingMonthsCount = computed(() => {
+  return monthlyPerformanceData.value.filter(m => m.monthlyReturn < 0).length;
+});
+
+// Monthly Returns Chart Data
+const monthlyReturnsChartData = computed(() => {
+  const data = [...monthlyPerformanceData.value].reverse(); // Chronological order for chart
+  
+  return {
+    labels: data.map(m => `${m.monthName} '${String(m.year).slice(2)}`),
+    datasets: [
+      {
+        label: 'Monthly Return %',
+        data: data.map(m => m.monthlyReturn),
+        backgroundColor: data.map(m => 
+          m.monthlyReturn >= 0 
+            ? `rgba(${positiveRgb}, 0.7)` 
+            : `rgba(${negativeRgb}, 0.7)`
+        ),
+        borderColor: data.map(m => 
+          m.monthlyReturn >= 0 
+            ? getVar('--positive') 
+            : getVar('--negative')
+        ),
+        borderWidth: 1,
+        borderRadius: 4,
+      }
+    ]
+  };
+});
+
+const monthlyReturnsChartOptions = computed(() => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      enabled: true,
+      backgroundColor: base1,
+      titleColor: text1,
+      bodyColor: text2,
+      borderColor: accent1,
+      borderWidth: 1,
+      padding: 12,
+      callbacks: {
+        label: (context: any) => {
+          const value = context.parsed.y;
+          return `Return: ${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+        }
+      }
+    }
+  },
+  scales: {
+    x: {
+      ticks: { 
+        color: text2,
+        font: { size: 10 },
+        maxRotation: 45,
+        minRotation: 45
+      },
+      grid: { display: false }
+    },
+    y: {
+      ticks: { 
+        color: text2,
+        callback: function(value: any) {
+          return value + '%';
+        }
+      },
+      grid: { 
+        color: 'rgba(255, 255, 255, 0.05)',
+        drawBorder: false
+      },
+      beginAtZero: true
+    }
+  }
+}));
+
+// Monthly P/L Percentage Chart Data (Cumulative Total P/L % change)
+const monthlyPLDollarChartData = computed(() => {
+  const data = [...monthlyPerformanceData.value].reverse(); // Chronological order for chart
+  
+  if (data.length === 0) return { labels: [], datasets: [] };
+  
+  // Calculate cumulative total P/L percentage for each month
+  const cumulativePLPercentages = data.map((m, index) => {
+    // Find the initial invested capital (first month's starting value + net cash flow)
+    const firstMonth = data[0];
+    let baseValue = firstMonth.startingValue + firstMonth.netCashFlow;
+    
+    // If still 0, use the first month with actual value
+    if (baseValue === 0) {
+      const firstNonZeroMonth = data.find(month => month.endingValue > 0);
+      if (!firstNonZeroMonth) return 0;
+      baseValue = firstNonZeroMonth.startingValue + firstNonZeroMonth.netCashFlow;
+    }
+    
+    if (baseValue === 0) return 0;
+    
+    // Calculate total invested up to this month (sum of all net cash flows up to this point)
+    let totalInvested = 0;
+    for (let i = 0; i <= index; i++) {
+      totalInvested += data[i].netCashFlow;
+    }
+    
+    // If no money invested yet, return 0
+    if (totalInvested === 0) return 0;
+    
+    // Calculate cumulative P/L percentage: (current ending value - total invested) / total invested * 100
+    const cumulativePL = ((m.endingValue - totalInvested) / totalInvested) * 100;
+    return cumulativePL;
+  });
+  
+  return {
+    labels: data.map(m => `${m.monthName} '${String(m.year).slice(2)}`),
+    datasets: [
+      {
+        label: 'Total P/L %',
+        data: cumulativePLPercentages,
+        backgroundColor: cumulativePLPercentages.map(pl => 
+          pl >= 0 
+            ? `rgba(${positiveRgb}, 0.7)` 
+            : `rgba(${negativeRgb}, 0.7)`
+        ),
+        borderColor: cumulativePLPercentages.map(pl => 
+          pl >= 0 
+            ? getVar('--positive') 
+            : getVar('--negative')
+        ),
+        borderWidth: 1,
+        borderRadius: 4,
+      }
+    ]
+  };
+});
+
+const monthlyPLDollarChartOptions = computed(() => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      enabled: true,
+      backgroundColor: base1,
+      titleColor: text1,
+      bodyColor: text2,
+      borderColor: accent1,
+      borderWidth: 1,
+      padding: 12,
+      callbacks: {
+        label: (context: any) => {
+          const value = context.parsed.y;
+          return `Total P/L: ${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+        }
+      }
+    }
+  },
+  scales: {
+    x: {
+      ticks: { 
+        color: text2,
+        font: { size: 10 },
+        maxRotation: 45,
+        minRotation: 45
+      },
+      grid: { display: false }
+    },
+    y: {
+      ticks: { 
+        color: text2,
+        callback: function(value: any) {
+          return value + '%';
+        }
+      },
+      grid: { 
+        color: 'rgba(255, 255, 255, 0.05)',
+        drawBorder: false
+      },
+      beginAtZero: true
+    }
+  }
+}));
+
 </script>
 
 <style lang="scss" scoped>
@@ -1948,21 +2505,21 @@ const isPortfolioBlank = computed(() => {
       letter-spacing: 0.03em;
 
       &.buy {
-        background: rgba(52, 211, 153, 0.15);
+        background: var(--buy-bg);
         color: var(--positive);
-        border: 1px solid rgba(52, 211, 153, 0.3);
+        border: 1px solid var(--buy-border);
       }
 
       &.sell {
-        background: rgba(248, 113, 113, 0.15);
+        background: var(--sell-bg);
         color: var(--negative);
-        border: 1px solid rgba(248, 113, 113, 0.3);
+        border: 1px solid var(--sell-border);
       }
 
       &.cash {
-        background: rgba(140, 141, 254, 0.15);
+        background: var(--cash-bg);
         color: var(--accent1);
-        border: 1px solid rgba(140, 141, 254, 0.3);
+        border: 1px solid var(--cash-border);
       }
     }
   }
@@ -2045,6 +2602,37 @@ const isPortfolioBlank = computed(() => {
     background: var(--accent2);
     color: var(--text3);
   }
+}
+
+.delete-trade-btn {
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(255, 0, 0, 0.1);
+    color: var(--negative);
+  }
+
+  svg {
+    pointer-events: none;
+  }
+}
+
+.action-col-buttons {
+  text-align: center;
+  padding: 8px !important;
+}
+
+.action-header {
+  text-align: center;
 }
 
 
@@ -2285,28 +2873,50 @@ const isPortfolioBlank = computed(() => {
 }
 
 .leverage-badge-small {
-  background: rgba(140, 141, 254, 0.15);
+  background: var(--leverage-bg);
   color: var(--accent1);
-  border: 1px solid rgba(140, 141, 254, 0.35);
+  border: 1px solid var(--leverage-border);
 }
 
 .short-badge-small {
-  background: rgba(248, 113, 113, 0.15);
+  background: var(--short-bg);
   color: var(--negative);
-  border: 1px solid rgba(248, 113, 113, 0.35);
+  border: 1px solid var(--short-border);
 }
 
 .long-badge-small {
-  background: rgba(52, 211, 153, 0.15);
+  background: var(--long-bg);
   color: var(--positive);
-  border: 1px solid rgba(52, 211, 153, 0.35);
+  border: 1px solid var(--long-border);
 }
 
-/* Benchmark Performance Section */
+/* Benchmark Cards */
 .benchmark-performance-section {
   border-radius: 12px;
   padding: 12px 16px;
   overflow: hidden;
+  min-height: 80px;
+}
+
+.benchmark-empty-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  color: var(--text2);
+  
+  svg {
+    width: 40px;
+    height: 40px;
+    opacity: 0.4;
+  }
+  
+  span {
+    font-size: 0.9rem;
+    font-style: italic;
+  }
 }
 
 .benchmark-performance-scroll {
@@ -2330,7 +2940,6 @@ const isPortfolioBlank = computed(() => {
     border-radius: 3px;
   }
 }
-
 .benchmark-card {
   background: var(--base1);
   border-radius: 6px;
@@ -2428,6 +3037,249 @@ const isPortfolioBlank = computed(() => {
 @media (max-width: 768px) {
   .benchmark-card {
     min-width: 160px;
+  }
+}
+
+/* Monthly Performance Analysis Styles */
+.monthly-performance-container {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  border-radius: 12px;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.monthly-perf-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--base3);
+
+  h2 {
+    color: var(--text1);
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+
+    .beta-badge {
+      display: inline-block;
+      background: var(--text2);
+      color: var(--base1);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-left: 8px;
+      vertical-align: middle;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+  }
+
+  .perf-summary {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+
+    span {
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+
+    .winning-months {
+      background: color-mix(in srgb, var(--positive) 15%, transparent);
+      color: var(--positive);
+      border: 1px solid color-mix(in srgb, var(--positive) 30%, transparent);
+    }
+
+    .losing-months {
+      background: color-mix(in srgb, var(--negative) 15%, transparent);
+      color: var(--negative);
+      border: 1px solid color-mix(in srgb, var(--negative) 30%, transparent);
+    }
+  }
+}
+
+.monthly-perf-main {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.monthly-perf-scroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 0;
+  flex: 5;
+  min-width: 0;
+
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--base3);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--volume);
+    border-radius: 4px;
+  }
+}
+
+.monthly-charts-container {
+  flex: 5;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.monthly-returns-chart {
+  padding: 16px;
+  background: var(--base1);
+  
+  .chart-container {
+    height: 200px;
+    width: 100%;
+  }
+}
+
+.monthly-perf-card {
+  background: var(--base1);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--base4);
+  min-width: 220px;
+  max-width: 230px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: var(--base3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.month-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--base3);
+
+  .month-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .month-label {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent1);
+    }
+
+    .trade-count {
+      font-size: 0.75rem;
+      color: var(--text2);
+      font-weight: 500;
+    }
+  }
+
+  .month-return {
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-align: right;
+
+    &.positive {
+      color: var(--positive);
+    }
+
+    &.negative {
+      color: var(--negative);
+    }
+  }
+}
+
+.month-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+
+    .stat-label {
+      color: var(--text2);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text1);
+
+      &.positive {
+        color: var(--positive);
+      }
+
+      &.negative {
+        color: var(--negative);
+      }
+
+      &.neutral {
+        color: var(--text2);
+      }
+    }
+  }
+}
+
+@media (max-width: 1150px) {
+  .monthly-perf-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    .perf-summary {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+
+  .monthly-perf-main {
+    flex-direction: column;
+  }
+
+  .monthly-perf-scroll {
+    flex: 1;
+  }
+
+  .monthly-charts-container {
+    max-width: 100%;
+    min-width: 100%;
+  }
+
+  .monthly-returns-chart {
+    max-width: 100%;
+    min-width: 100%;
+  }
+
+  .monthly-perf-card {
+    min-width: 240px;
+    max-width: 280px;
   }
 }
 

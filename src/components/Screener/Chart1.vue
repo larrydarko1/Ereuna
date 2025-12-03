@@ -271,7 +271,7 @@ onMounted(async () => {
       },
     },
     timeScale: {
-      barSpacing: 0.7,
+      barSpacing: 1.5,
       minBarSpacing: 0.1,
       rightOffset: 50,
     },

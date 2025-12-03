@@ -11,6 +11,17 @@
       aria-label="Search ticker or ISIN"
     />
     <button
+      class="wlbtn-advanced"
+      @click="$emit('open-advanced-search')"
+      v-b-tooltip.hover
+      title="Advanced Search"
+      aria-label="Open advanced search"
+    >
+      <svg height="15" width="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 7H21M3 12H21M3 17H21" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <button
       class="wlbtn2"
       id="searchBtn"
       @click="onSearch"
@@ -38,7 +49,7 @@ const props = defineProps({
     required: true
   }
 });
-const emit = defineEmits(['update:modelValue', 'search', 'input']);
+const emit = defineEmits(['update:modelValue', 'search', 'input', 'open-advanced-search']);
 
 function onInput(e: Event) {
   const input = e.target as HTMLInputElement;
@@ -109,6 +120,39 @@ function onSearch() {
   background-color: var(--accent2);
   box-shadow: 0 0 5px rgba(140, 141, 254, 0.5);
   outline: none;
+}
+
+.wlbtn-advanced {
+  position: absolute;
+  top: 50%;
+  right: 48px;
+  transform: translateY(-50%);
+  flex-shrink: 0;
+  color: var(--text1);
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  outline: none;
+  cursor: pointer;
+  height: 32px;
+  width: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease-in-out;
+  border-radius: 5px;
+}
+
+.wlbtn-advanced:hover {
+  background-color: var(--base1);
+}
+
+.wlbtn-advanced svg {
+  transition: transform 0.2s ease-in-out;
+}
+
+.wlbtn-advanced:hover svg {
+  transform: scale(1.1);
 }
 
 </style>

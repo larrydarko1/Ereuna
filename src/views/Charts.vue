@@ -91,8 +91,16 @@
          <SearchBar
   v-model="searchQuery"
   @search="searchTicker"
+  @open-advanced-search="showAdvancedSearch = true"
   ref="searchbarRef"
 />
+         <AdvancedSearch
+           :show="showAdvancedSearch"
+           :apiKey="apiKey"
+           :getImagePath="(symbol: string, exchange: string) => getImagePath(symbol, exchange)"
+           @close="showAdvancedSearch = false"
+           @select="handleAdvancedSearchSelect"
+         />
          <Watchlist
            :apiKey="apiKey"
            :user="user?.Username ?? ''"
@@ -141,6 +149,7 @@ import Notice from '@/components/charts/Notice.vue';
 // right session components
 import SearchBar from '@/components/charts/Search.vue';
 import Watchlist from '@/components/charts/Watchlist.vue';
+import AdvancedSearch from '@/components/charts/AdvancedSearch.vue';
 
 // utility components
 import Loader from '@/components/loader.vue';
@@ -171,6 +180,7 @@ const showNotification = (msg: string) => {
   if (notification.value) notification.value.show(msg);
 };
 const showPopup = ref(false); // div for financial statements
+const showAdvancedSearch = ref(false); // advanced search popup
 
 const searchQuery = ref('');
 
@@ -317,6 +327,11 @@ async function selectRow(item: string) {
   }
 }
 
+// Handle selection from advanced search
+async function handleAdvancedSearchSelect(symbol: string) {
+  await selectRow(symbol);
+}
+
 const assetInfo = reactive({
   Name: '-',
   ISIN: '-',
@@ -380,6 +395,7 @@ const assetInfo = reactive({
   CAGR: '-',
   CAGRYears: '-',
   companyWebsite: '-',
+  AI: [] as any[],
 });
 
 //takes date strings inside database and converts them into actual date, in italian format
@@ -617,14 +633,11 @@ function getSidebarProps(tag: string) {
 
 #chartdiv2 {
   flex: 1 1 0%;
-  padding: 15px 10px 10px 10px;
   border: none;
   background-color: var(--base2);
   color: var(--text2);
   z-index: 10;
-  margin: 2px;
   box-sizing: border-box;
-  height: 145px;
 }
 
 #sidebar-right {

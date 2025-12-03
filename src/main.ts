@@ -53,7 +53,7 @@ router.beforeEach(async (
     const token = localStorage.getItem('token');
     const userStore = useUserStore();
     // List of public routes that do not require authentication
-    const publicPages = ['Login', 'SignUp', 'PaymentRenew', 'Recovery', 'Home', 'Documentation', 'Careers', 'Communications', 'About', 'Maintenance', 'Quiz'];
+    const publicPages = ['Login', 'SignUp', 'PaymentRenew', 'Recovery', 'Home', 'Documentation', 'Careers', 'Communications', 'About', 'Maintenance', 'Quiz', 'Blog'];
     // Auth pages that authenticated users shouldn't access
     const authPages = ['Login', 'SignUp', 'Recovery'];
 

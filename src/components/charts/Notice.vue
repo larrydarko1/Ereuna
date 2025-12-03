@@ -1,10 +1,5 @@
 <template>
   <div id="chartdiv2" aria-label="Financial data notice" role="region">
-    <div class="logo-container">
-      <img draggable="false" src="@/assets/images/logos/tiingo.png" alt="Tiingo logo"
-        class="provider-logo"
-        aria-label="Tiingo logo">
-    </div>
     <p class="disclaimer-text" aria-label="Financial data source and update info">
       Real-time market data provided by IEX Cloud through Tiingo.com as of {{ currentDate }}. Real-time data is currently available only for major U.S. exchanges (NASDAQ and NYSE). 
       End-of-day (EOD) data consolidation occurs daily, Monday through Friday, between 6:00 PM and 6:30 PM ET, subject to Tiingo's data availability. 
@@ -88,17 +83,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.logo-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 7px;
-}
-
-.provider-logo {
-  height: 15px;
-  object-fit: contain;
-}
 
 .disclaimer-text {
   margin: 0;
@@ -109,9 +93,10 @@ onUnmounted(() => {
 #chartdiv2 {
   padding: 10px;
   background: var(--base2);
-  border-radius: 12px;
+  border-radius: 6px;
   box-shadow: 0 6px 18px rgba(10, 20, 30, 0.08);
   border: 1px solid rgba(0,0,0,0.04);
   transition: transform 0.14s ease, box-shadow 0.14s ease;
+  margin-top: 5px;
 }
 </style>

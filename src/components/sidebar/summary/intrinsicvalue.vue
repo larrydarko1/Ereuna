@@ -1,6 +1,6 @@
 <template>
  <div class="summary-row">
-              <div class="category">Intrinsic Value</div>
+              <div class="category">Intrinsic Value (AI)</div>
               <div class="response">
                 {{ (assetInfo.IntrinsicValue != null && !isNaN(assetInfo.IntrinsicValue)) ? parseFloat(assetInfo.IntrinsicValue) : '-'
                 }}

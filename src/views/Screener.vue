@@ -215,6 +215,20 @@
   v-model:ShowCountry="ShowCountry"
     :initialSelected="initialCountries"
        />
+       <AIRecommendation
+  :user="user?.Username ?? ''"
+  :apiKey="apiKey"
+  :notification="notification"
+  :selectedScreener="selectedScreener"
+  @fetchScreeners="handleFetchScreeners"
+  @handleMouseOver="handleMouseOver"
+  @handleMouseOut="handleMouseOut"
+  :isScreenerError="isScreenerError"
+  @reset="Reset('AIRecommendation')"
+  @notify="showNotification($event)"
+  v-model:ShowAIRecommendation="ShowAIRecommendation"
+    :initialSelected="initialAIRecommendations"
+       />
        <PE
   :user="user?.Username ?? ''"
   :apiKey="apiKey"
@@ -838,6 +852,7 @@ import AssetType from '@/components/Screener/Parameters/AssetType.vue';
 import Sector from '@/components/Screener/Parameters/Sector.vue';
 import Exchange from '@/components/Screener/Parameters/Exchange.vue';
 import Country from '@/components/Screener/Parameters/Country.vue';
+import AIRecommendation from '@/components/Screener/Parameters/AIRecommendation.vue';
 import PE from '@/components/Screener/Parameters/PE.vue';
 import PS from '@/components/Screener/Parameters/PS.vue';
 import PEG from '@/components/Screener/Parameters/PEG.vue';
@@ -885,11 +900,13 @@ const initialAssetTypes = ref<string[]>([]);
 const initialSectors = ref<string[]>([]);
 const initialExchanges = ref<string[]>([]);
 const initialCountries = ref<string[]>([]);
+const initialAIRecommendations = ref<string[]>([]);
 const initialFundFamilies = ref<string[]>([]);
 const initialFundCategories = ref<string[]>([]);
 const initialPricePerfSettings = ref<Record<string, any> | undefined>(undefined);
 const ShowExchange = ref(false);
 const ShowCountry = ref(false);
+const ShowAIRecommendation = ref(false);
 const ShowFundFamily = ref(false);
 const ShowFundCategory = ref(false);
 const showPEInputs = ref(false);
@@ -1662,6 +1679,7 @@ async function CurrentScreener(): Promise<void> {
     let AssetTypesList = screenerSettings.AssetTypes;
     let exchangesList = screenerSettings.Exchanges;
     let countriesList = screenerSettings.Countries;
+    let AIRecommendations = screenerSettings.AIRecommendations;
     let FundFamilies = screenerSettings.FundFamilies;
     let FundCategories = screenerSettings.FundCategories;
     let NetExpenseRatio = screenerSettings.NetExpenseRatio;
@@ -1730,6 +1748,7 @@ async function CurrentScreener(): Promise<void> {
   ShowAssetType.value = screenerSettings?.AssetTypes?.length > 0;
   ShowExchange.value = screenerSettings?.Exchanges?.length > 0;
   ShowCountry.value = screenerSettings?.Countries?.length > 0;
+  ShowAIRecommendation.value = screenerSettings?.AIRecommendations?.length > 0;
   ShowFundFamily.value = screenerSettings?.FundFamilies?.length > 0;
   ShowFundCategory.value = screenerSettings?.FundCategories?.length > 0;
   showPEInputs.value = screenerSettings?.PE?.length > 0;
@@ -1894,6 +1913,7 @@ async function CurrentScreener(): Promise<void> {
   initialExchanges.value = Array.isArray(exchangesList) ? exchangesList : [];
   initialAssetTypes.value = Array.isArray(AssetTypesList) ? AssetTypesList : [];
   initialCountries.value = Array.isArray(countriesList) ? countriesList : [];
+  initialAIRecommendations.value = Array.isArray(AIRecommendations) ? AIRecommendations : [];
   initialFundFamilies.value = Array.isArray(FundFamilies) ? FundFamilies : [];
   initialFundCategories.value = Array.isArray(FundCategories) ? FundCategories : [];
   // Price performance settings object passed to PricePerf to set its internal inputs and toggles
@@ -1948,6 +1968,7 @@ const valueMap: { [key: string]: string } = {
   'Sector': 'Sector',
   'Exchange': 'Exchange',
   'Country': 'Country',
+  'AIRecommendation': 'AIRecommendation',
   'PE': 'PE',
   'ForwardPE': 'ForwardPE',
   'PEG': 'PEG',
@@ -2305,6 +2326,8 @@ function getTooltipText(id: string): string {
       6. Adding net cash (cash minus debt) from the latest quarter.
       7. Dividing the total by shares outstanding to get IV per share.
       This approach helps assess if a stock is undervalued or overvalued based on its future cash flow potential.`;
+    case 'ai-recommendation':
+      return 'This filter displays assets with AI-generated investment recommendations, such as Strong Sell, Sell, Hold, Buy, or Strong Buy. These recommendations are produced by a proprietary algorithm that analyzes company financial statements. Please note that this is an experimental feature and should not be regarded as financial advice or a substitute for professional analysis.';
       default:
       return '';
   }
@@ -2441,7 +2464,7 @@ async function loadColumns() {
     const data = await response.json();
     // Accept only valid values (should match MainList/EditColumn attributes)
     const validValues = [
-      'price','market_cap','volume','ipo','assettype','sector','exchange','country','pe_ratio','ps_ratio','fcf','cash','current_debt','current_assets','current_liabilities','current_ratio','roe','roa','peg','eps','pb_ratio','dividend_yield','name','currency','industry','book_value','shares','rs_score1w','rs_score1m','rs_score4m','all_time_high','all_time_low','high_52w','low_52w','perc_change','isin','gap','ev','adv1w','adv1m','adv4m','adv1y','rsi','intrinsic_value','fund_family','fund_category','net_expense_ratio','cagr'
+      'price','market_cap','volume','ipo','assettype','sector','exchange','country','pe_ratio','ps_ratio','fcf','cash','current_debt','current_assets','current_liabilities','current_ratio','roe','roa','peg','eps','pb_ratio','dividend_yield','name','currency','industry','book_value','shares','rs_score1w','rs_score1m','rs_score4m','all_time_high','all_time_low','high_52w','low_52w','perc_change','isin','gap','ev','adv1w','adv1m','adv4m','adv1y','rsi','intrinsic_value','fund_family','fund_category','net_expense_ratio','cagr','ai_recommendation'
     ];
     selectedAttributes.value = (Array.isArray(data.columns) ? data.columns : []).filter((v: string) => validValues.includes(v));
   } catch (err) {
