@@ -81,7 +81,7 @@
           <div class="indicator-piece">
             <div class="custom-dropdown" @click="toggleChartTypeDropdown" :aria-label="'Select chart type'">
               <div class="selected-value">
-                {{ chartType === 'candlestick' ? 'Candlestick' : 'Bar' }}
+                {{ chartTypeLabel }}
                 <span class="dropdown-arrow" :class="{ open: chartTypeDropdownOpen }">
                   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -95,6 +95,9 @@
               <div v-if="chartTypeDropdownOpen" class="dropdown-list">
                 <div class="dropdown-item" @click.stop="selectChartType('candlestick')">Candlestick</div>
                 <div class="dropdown-item" @click.stop="selectChartType('bar')">Bar</div>
+                <div class="dropdown-item" @click.stop="selectChartType('line')">Line</div>
+                <div class="dropdown-item" @click.stop="selectChartType('area')">Area</div>
+                <div class="dropdown-item" @click.stop="selectChartType('baseline')">Baseline</div>
               </div>
             </div>
           </div>
@@ -109,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 interface Indicator {
   type: string;
@@ -152,6 +155,18 @@ const chartType = ref<string>(props.chartType || 'candlestick')
 watch(() => props.chartType, (v) => {
   chartType.value = v || 'candlestick'
 }, { immediate: true })
+
+// Computed property for displaying chart type label
+const chartTypeLabel = computed(() => {
+  const labels: Record<string, string> = {
+    'candlestick': 'Candlestick',
+    'bar': 'Bar',
+    'line': 'Line',
+    'area': 'Area',
+    'baseline': 'Baseline'
+  }
+  return labels[chartType.value] || 'Candlestick'
+})
 
 const dropdownOpen = ref<number | null>(null)
 const chartTypeDropdownOpen = ref<boolean>(false)

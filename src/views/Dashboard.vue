@@ -110,7 +110,13 @@
       <div class="wave"></div>
       <div class="wave"></div>
       <div class="infotop">
-        <span class="archie-title">Meet <span class="archie-name">Archie</span></span>
+        <span class="archie-title">Meet <span class="archie-name">Archie<svg class="archie-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path d="M12 3C12 7.97056 16.0294 12 21 12C16.0294 12 12 16.0294 12 21C12 16.0294 7.97056 12 3 12C7.97056 12 12 7.97056 12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            </g>
+          </svg></span></span>
         <div class="archie-tagline">Your Adaptive AI Trading Agent</div>
         <div class="archie-loader">
           <span class="loader-line"></span>
@@ -278,8 +284,15 @@
     <div class="dashboard-row-valuation">
       <section class="valuation-section card" aria-label="Stock Valuation Analysis">
         <h2 id="valuation-heading">
-          Stock Valuation Analysis
-          <span class="valuation-subtitle">Based on DCF Intrinsic Value</span>
+          <svg class="chart-type-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path d="M12 3C12 7.97056 16.0294 12 21 12C16.0294 12 12 16.0294 12 21C12 16.0294 7.97056 12 3 12C7.97056 12 12 7.97056 12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            </g>
+          </svg>
+          <span class="archie-full"><span class="archie-text">Archie</span>'s</span> Intrinsic Value Analysis
+          <span class="beta-badge">BETA</span>
         </h2>
         <div class="valuation-content" aria-labelledby="valuation-heading">
           <div class="valuation-column undervalued">
@@ -338,7 +351,7 @@
           </div>
         </div>
         <div class="valuation-disclaimer">
-          <strong>Note:</strong> Intrinsic values are calculated using Discounted Cash Flow (DCF) analysis. 
+          <strong>Note:</strong> Intrinsic values are calculated using advanced AI algorithms. 
           These are estimates and should not be considered as investment advice.
         </div>
       </section>
@@ -1593,6 +1606,16 @@ onMounted(() => {
   color: var(--text1);
 }
 
+.archie-text {
+  color: var(--accent1);
+  font-size: inherit;
+}
+
+.archie-full {
+  color: var(--text1);
+  font-size: inherit;
+}
+
 .valuation-subtitle {
   font-size: 0.85rem;
   color: var(--text1);
@@ -1755,6 +1778,26 @@ onMounted(() => {
   font-weight: 700;
 }
 
+.chart-type-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--accent1);
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.beta-badge {
+  display: inline-block;
+  background: var(--text2);
+  color: var(--base1);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  vertical-align: middle;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 h2 {
   margin: 0;
   font-size: 1.5rem;
@@ -1871,6 +1914,14 @@ h2 {
   font-weight: 800;
 }
 
+.archie-icon {
+  width: 13px;
+  height: 13px;
+  margin-left: 4px;
+  margin-bottom: 6px;
+  color: var(--accent1);
+}
+
 .archie-tagline {
   color: var(--accent2);
   font-size: 1.05rem;
@@ -1906,6 +1957,17 @@ h2 {
 
   100% {
     transform: scaleX(1);
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1) rotate(180deg);
   }
 }
 

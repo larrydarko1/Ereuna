@@ -7,7 +7,7 @@
     :user="props.user"
     :indicatorList="indicatorList"
     :intrinsicVisible="intrinsicVisible"
-    :chartType="isBarChart ? 'bar' : 'candlestick'"
+    :chartType="chartType"
   />
   <AIPopup
     v-if="showAIPopup"
@@ -91,6 +91,13 @@
     <span :class="['change', Number(ohlcDisplay.changeRaw) >= 0 ? 'pos' : 'neg']">
       {{ Number(ohlcDisplay.changeRaw) >= 0 ? '+' : '' }}{{ ohlcDisplay.changeRaw }}
       {{ Number(ohlcDisplay.changeRaw) >= 0 ? '+' : '' }}{{ ohlcDisplay.changePct }}%
+    </span>
+  </span>
+  <span v-else-if="simplePriceDisplay" class="ohlc-line">
+    Price: <span>{{ simplePriceDisplay.price }}</span>
+    <span :class="['change', Number(simplePriceDisplay.changeRaw) >= 0 ? 'pos' : 'neg']">
+      {{ Number(simplePriceDisplay.changeRaw) >= 0 ? '+' : '' }}{{ simplePriceDisplay.changeRaw }}
+      {{ Number(simplePriceDisplay.changeRaw) >= 0 ? '+' : '' }}{{ simplePriceDisplay.changePct }}%
     </span>
   </span>
 </div>
@@ -371,49 +378,116 @@ function updateChartSize(): void {
     // ignore applyOptions errors
   }
 }
-const isBarChart = ref(false); // Will be set from user settings
+const chartType = ref<string>('candlestick'); // Will be set from user settings
 
 // Chart series and update logic at top-level scope
-let mainSeries: ReturnType<IChartApi['addBarSeries']> | ReturnType<IChartApi['addCandlestickSeries']> | null = null;
+let mainSeries: any = null;
 function updateMainSeries(): void {
   if (!chart) return;
   const c = chart as IChartApi;
   if (mainSeries) {
     c.removeSeries(mainSeries);
   }
-  if (isBarChart.value) {
-    mainSeries = c.addBarSeries({
-      downColor: theme.negative,
-      upColor: theme.positive,
-      lastValueVisible: true,
-      priceLineVisible: true,
-    });
-  } else {
-    mainSeries = c.addCandlestickSeries({
-      downColor: theme.negative,
-      upColor: theme.positive,
-      borderDownColor: theme.negative,
-      borderUpColor: theme.positive,
-      wickDownColor: theme.negative,
-      wickUpColor: theme.positive,
-      lastValueVisible: true,
-      priceLineVisible: true,
-    });
+  
+  // Create series based on chart type
+  switch (chartType.value) {
+    case 'bar':
+      mainSeries = c.addBarSeries({
+        downColor: theme.negative,
+        upColor: theme.positive,
+        lastValueVisible: true,
+        priceLineVisible: true,
+      });
+      mainSeries.setData(data.value);
+      break;
+    
+    case 'candlestick':
+      mainSeries = c.addCandlestickSeries({
+        downColor: theme.negative,
+        upColor: theme.positive,
+        borderDownColor: theme.negative,
+        borderUpColor: theme.positive,
+        wickDownColor: theme.negative,
+        wickUpColor: theme.positive,
+        lastValueVisible: true,
+        priceLineVisible: true,
+      });
+      mainSeries.setData(data.value);
+      break;
+    
+    case 'line':
+      mainSeries = c.addLineSeries({
+        color: theme.accent1,
+        lineWidth: 2,
+        lastValueVisible: true,
+        priceLineVisible: true,
+        crosshairMarkerVisible: true,
+      });
+      // For line chart, use close prices
+      const lineData = data.value.map((d: OHLCData) => ({
+        time: d.time,
+        value: d.close
+      }));
+      mainSeries.setData(lineData);
+      break;
+    
+    case 'area':
+      mainSeries = c.addAreaSeries({
+        topColor: theme.accent1 + '80',
+        bottomColor: theme.accent1 + '10',
+        lineColor: theme.accent1,
+        lineWidth: 2,
+        lastValueVisible: true,
+        priceLineVisible: true,
+        crosshairMarkerVisible: true,
+      });
+      // For area chart, use close prices
+      const areaData = data.value.map((d: OHLCData) => ({
+        time: d.time,
+        value: d.close
+      }));
+      mainSeries.setData(areaData);
+      break;
+    
+    case 'baseline':
+      // Calculate average close price for baseline
+      const avgClose = data.value.length > 0
+        ? data.value.reduce((sum: number, d: OHLCData) => sum + d.close, 0) / data.value.length
+        : 0;
+      mainSeries = c.addBaselineSeries({
+        baseValue: { type: 'price', price: avgClose },
+        topLineColor: theme.positive,
+        topFillColor1: theme.positive + '40',
+        topFillColor2: theme.positive + '10',
+        bottomLineColor: theme.negative,
+        bottomFillColor1: theme.negative + '10',
+        bottomFillColor2: theme.negative + '40',
+        lineWidth: 2,
+        lastValueVisible: true,
+        priceLineVisible: true,
+      });
+      // For baseline chart, use close prices
+      const baselineData = data.value.map((d: OHLCData) => ({
+        time: d.time,
+        value: d.close
+      }));
+      mainSeries.setData(baselineData);
+      break;
+    
+    default:
+      // Default to candlestick
+      mainSeries = c.addCandlestickSeries({
+        downColor: theme.negative,
+        upColor: theme.positive,
+        borderDownColor: theme.negative,
+        borderUpColor: theme.positive,
+        wickDownColor: theme.negative,
+        wickUpColor: theme.positive,
+        lastValueVisible: true,
+        priceLineVisible: true,
+      });
+      mainSeries.setData(data.value);
   }
-  mainSeries.setData(data.value);
-
-  c.subscribeCrosshairMove((param) => {
-    if (!param || !param.time || !mainSeries) {
-      crosshairOhlc.value = null;
-      return;
-    }
-    const idx = data.value.findIndex((d: OHLCData) => d.time === param.time);
-    if (idx !== -1) {
-      crosshairOhlc.value = { ...data.value[idx], index: idx };
-    } else {
-      crosshairOhlc.value = null;
-    }
-  });
 }
 
 // mounts chart (candlestick or bar) and volume
@@ -476,14 +550,41 @@ onMounted(async () => {
     // ignore if ResizeObserver is not available
   }
   window.addEventListener('resize', updateChartSize);
+  
+  // Add crosshair subscription once
+  chart.subscribeCrosshairMove((param) => {
+    if (!param || !param.time) {
+      crosshairOhlc.value = null;
+      return;
+    }
+    const idx = data.value.findIndex((d: OHLCData) => d.time === param.time);
+    if (idx !== -1) {
+      crosshairOhlc.value = { ...data.value[idx], index: idx };
+    } else {
+      crosshairOhlc.value = null;
+    }
+  });
+  
   // No initial fetch here; handled by watcher below
 
-  watch(isBarChart, () => {
+  watch(chartType, () => {
     updateMainSeries();
   });
 
   watch(data, (newData: OHLCData[]) => {
-  if (mainSeries) mainSeries.setData(newData);
+    if (!mainSeries) return;
+    
+    // For line, area, and baseline charts, transform OHLC to value-based data
+    if (chartType.value === 'line' || chartType.value === 'area' || chartType.value === 'baseline') {
+      const transformedData = newData.map((d: OHLCData) => ({
+        time: d.time,
+        value: d.close
+      }));
+      mainSeries.setData(transformedData);
+    } else {
+      // For candlestick and bar, use OHLC data as-is
+      mainSeries.setData(newData);
+    }
   });
 
   const Histogram = chart.addHistogramSeries({
@@ -602,15 +703,19 @@ watch(
         lineWidth: 2,
         lineStyle: 2, // Dashed
         axisLabelVisible: true,
-        title: '✦ Intrinsic Value',
+        title: '✧ Intrinsic Value',
         // Removed invalid labelVisible option
       });
     }
   }
 
   watch(IntrinsicValue, updateIntrinsicPriceLine);
-  watch(isBarChart, updateIntrinsicPriceLine);
+  watch(chartType, updateIntrinsicPriceLine);
   updateIntrinsicPriceLine();
+  
+  // Initialize main series with current chart type
+  updateMainSeries();
+  
   // ensure initial sizing is correct
   updateChartSize();
   isLoading1.value = false;
@@ -618,7 +723,7 @@ watch(
   chart.timeScale().subscribeVisibleLogicalRangeChange(async (range) => {
     // range: LogicalRange | null
     if (isLoadingMore || allDataLoaded) return;
-    if (selectedDataType.value !== 'daily' && selectedDataType.value !== 'weekly') return;
+    // Enable lazy loading for all timeframes
     if (range && typeof range.from === 'number' && range.from < 20) {
       isLoadingMore = true;
       const oldest = data.value.length > 0 ? data.value[0].time : null;
@@ -629,7 +734,12 @@ watch(
       try {
         const symbol = props.selectedSymbol || props.defaultSymbol;
         const timeframe = selectedDataType.value;
-        const url = `/api/${symbol}/chartdata?timeframe=${timeframe}&user=${props.user}&before=${oldest}`;
+        // Convert Unix timestamp back to ISO string for intraday before parameter
+        let beforeParam = oldest;
+        if (isIntraday(timeframe) && typeof oldest === 'number') {
+          beforeParam = new Date(oldest * 1000).toISOString();
+        }
+        const url = `/api/${symbol}/chartdata?timeframe=${timeframe}&user=${props.user}&before=${beforeParam}`;
         const response = await fetch(url, {
           headers: { 'X-API-KEY': props.apiKey },
         });
@@ -640,52 +750,50 @@ watch(
           isLoadingMore = false;
           return;
         }
-        let newOhlc = [...result.ohlc];
-        if (newOhlc.length > 1 && newOhlc[0].time > newOhlc[newOhlc.length - 1].time) {
-          newOhlc = newOhlc.reverse();
-        }
+        
+        // Transform new data using same logic as initial load
+        const transform = isIntraday(timeframe)
+          ? (arr: any[]): any[] => {
+              const sorted = (arr || [])
+                .map((item: any) => ({ ...item, time: Math.floor(new Date(item.time).getTime() / 1000) }))
+                .sort((a: any, b: any) => a.time - b.time);
+              return sorted.filter((item: any, idx: number, arr: any[]) => idx === 0 || item.time !== arr[idx - 1].time);
+            }
+          : (arr: any[]): any[] => {
+              const sorted = (arr || []).sort((a: any, b: any) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
+              return sorted.filter((item: any, idx: number, arr: any[]) => idx === 0 || item.time !== arr[idx - 1].time);
+            };
+        
+        let newOhlc = transform(result.ohlc) as OHLCData[];
         const existingTimes = new Set(data.value.map((d: OHLCData) => d.time));
         newOhlc = newOhlc.filter((d: OHLCData) => !existingTimes.has(d.time));
         data.value = [...newOhlc, ...data.value];
-        let newVolume = result.volume || [];
-        if (newVolume.length > 1 && newVolume[0].time > newVolume[newVolume.length - 1].time) {
-          newVolume = newVolume.reverse();
-        }
+        
+        let newVolume = transform(result.volume) as VolumeData[];
         const existingVolTimes = new Set(data2.value.map((d: VolumeData) => d.time));
         newVolume = newVolume.filter((d: VolumeData) => !existingVolTimes.has(d.time));
         data2.value = [...newVolume, ...data2.value];
+        
         if (result.MA1) {
-          let newMA1 = result.MA1;
-          if (newMA1.length > 1 && newMA1[0].time > newMA1[newMA1.length - 1].time) {
-            newMA1 = newMA1.reverse();
-          }
+          let newMA1 = transform(result.MA1) as MAData[];
           const existingMA1Times = new Set(data3.value.map((d: MAData) => d.time));
           newMA1 = newMA1.filter((d: MAData) => !existingMA1Times.has(d.time));
           data3.value = [...newMA1, ...data3.value];
         }
         if (result.MA2) {
-          let newMA2 = result.MA2;
-          if (newMA2.length > 1 && newMA2[0].time > newMA2[newMA2.length - 1].time) {
-            newMA2 = newMA2.reverse();
-          }
+          let newMA2 = transform(result.MA2) as MAData[];
           const existingMA2Times = new Set(data4.value.map((d: MAData) => d.time));
           newMA2 = newMA2.filter((d: MAData) => !existingMA2Times.has(d.time));
           data4.value = [...newMA2, ...data4.value];
         }
         if (result.MA3) {
-          let newMA3 = result.MA3;
-          if (newMA3.length > 1 && newMA3[0].time > newMA3[newMA3.length - 1].time) {
-            newMA3 = newMA3.reverse();
-          }
+          let newMA3 = transform(result.MA3) as MAData[];
           const existingMA3Times = new Set(data5.value.map((d: MAData) => d.time));
           newMA3 = newMA3.filter((d: MAData) => !existingMA3Times.has(d.time));
           data5.value = [...newMA3, ...data5.value];
         }
         if (result.MA4) {
-          let newMA4 = result.MA4;
-          if (newMA4.length > 1 && newMA4[0].time > newMA4[newMA4.length - 1].time) {
-            newMA4 = newMA4.reverse();
-          }
+          let newMA4 = transform(result.MA4) as MAData[];
           const existingMA4Times = new Set(data6.value.map((d: MAData) => d.time));
           newMA4 = newMA4.filter((d: MAData) => !existingMA4Times.has(d.time));
           data6.value = [...newMA4, ...data6.value];
@@ -732,7 +840,6 @@ watch(() => props.defaultSymbol, (newSymbol, oldSymbol) => {
 const selectedDataType = ref('daily');
 
 const chartTypes = [
-  { label: 'Intraday 1m', value: 'intraday1m', shortLabel: '1m' },
   { label: 'Intraday 5m', value: 'intraday5m', shortLabel: '5m' },
   { label: 'Intraday 15m', value: 'intraday15m', shortLabel: '15m' },
   { label: 'Intraday 30m', value: 'intraday30m', shortLabel: '30m' },
@@ -765,6 +872,9 @@ interface OHLCDisplay {
   changePct: string;
 }
 const ohlcDisplay = computed<OHLCDisplay | null>(() => {
+  // Only show OHLC data for candlestick and bar charts
+  if (chartType.value !== 'candlestick' && chartType.value !== 'bar') return null;
+  
   let idx = -1;
   if (!data.value || data.value.length < 2) return null;
   if (crosshairOhlc.value && typeof crosshairOhlc.value.index === 'number') {
@@ -783,6 +893,33 @@ const ohlcDisplay = computed<OHLCDisplay | null>(() => {
   const changeRaw = (curr.close - prev.close).toFixed(2);
   const changePct = prev.close !== 0 ? ((curr.close - prev.close) / prev.close * 100).toFixed(2) : '0.00';
   return { open, high, low, close, changeRaw, changePct };
+});
+
+// Simple price display for line/area/baseline charts
+interface SimplePriceDisplay {
+  price: string;
+  changeRaw: string;
+  changePct: string;
+}
+const simplePriceDisplay = computed<SimplePriceDisplay | null>(() => {
+  // Only show for line, area, and baseline charts
+  if (chartType.value !== 'line' && chartType.value !== 'area' && chartType.value !== 'baseline') return null;
+  
+  let idx = -1;
+  if (!data.value || data.value.length < 2) return null;
+  if (crosshairOhlc.value && typeof crosshairOhlc.value.index === 'number') {
+    idx = crosshairOhlc.value.index;
+  } else {
+    idx = data.value.length - 1;
+  }
+  if (idx < 0 || idx >= data.value.length) return null;
+  const curr = data.value[idx];
+  const prev = idx > 0 ? data.value[idx - 1] : null;
+  if (!curr || !prev) return null;
+  const price = curr.close?.toFixed(2) ?? '-';
+  const changeRaw = (curr.close - prev.close).toFixed(2);
+  const changePct = prev.close !== 0 ? ((curr.close - prev.close) / prev.close * 100).toFixed(2) : '0.00';
+  return { price, changeRaw, changePct };
 });
 
 const hiddenList = ref<string[]>([]); // stores hidden tickers for user (for hidden badge in chart)
@@ -860,10 +997,10 @@ async function fetchIndicatorList() {
   })) as Indicator[];
   intrinsicVisible.value = !!payload.intrinsicValueVisible;
   // Set chart type from user settings
-  if (payload.chartType === 'bar') {
-    isBarChart.value = true;
+  if (payload.chartType) {
+    chartType.value = payload.chartType;
   } else {
-    isBarChart.value = false;
+    chartType.value = 'candlestick';
   }
   } catch (err) {
     // Handle errors as needed

@@ -949,8 +949,8 @@ export default function (app: any, deps: any) {
                         case 'Price':
                             query.$expr = {
                                 $and: [
-                                    { $gt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[0]] },
-                                    { $lt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[1]] }
+                                    { $gt: ["$TimeSeries.close", screenerFilters.Price[0]] },
+                                    { $lt: ["$TimeSeries.close", screenerFilters.Price[1]] }
                                 ]
                             };
                             break;
@@ -1214,7 +1214,7 @@ export default function (app: any, deps: any) {
                             if (screenerFilters.NewHigh === 'yes') {
                                 query.$expr = {
                                     $gt: [
-                                        { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
+                                        "$TimeSeries.close",
                                         "$AlltimeHigh"
                                     ]
                                 };
@@ -1224,7 +1224,7 @@ export default function (app: any, deps: any) {
                             if (screenerFilters.NewLow === 'yes') {
                                 query.$expr = {
                                     $lt: [
-                                        { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
+                                        "$TimeSeries.close",
                                         "$AlltimeLow"
                                     ]
                                 };
@@ -1241,18 +1241,7 @@ export default function (app: any, deps: any) {
                                 query.$expr = {
                                     $gt: [
                                         "$MA200",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
+                                        "$TimeSeries.close"
                                     ]
                                 };
                             } else if (screenerFilters.MA200 === 'blw50') {
@@ -1265,18 +1254,7 @@ export default function (app: any, deps: any) {
                                 query.$expr = {
                                     $lt: [
                                         "$MA200",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
+                                        "$TimeSeries.close"
                                     ]
                                 };
                             }
@@ -1293,18 +1271,7 @@ export default function (app: any, deps: any) {
                                 query.$expr = {
                                     $gt: [
                                         "$MA50",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
+                                        "$TimeSeries.close"
                                     ]
                                 };
                             } else if (screenerFilters.MA50 === 'blw200') {
@@ -1317,18 +1284,7 @@ export default function (app: any, deps: any) {
                                 query.$expr = {
                                     $lt: [
                                         "$MA50",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
+                                        "$TimeSeries.close"
                                     ]
                                 };
                             }
@@ -1345,18 +1301,7 @@ export default function (app: any, deps: any) {
                                 query.$expr = {
                                     $gt: [
                                         "$MA20",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
+                                        "$TimeSeries.close"
                                     ]
                                 };
                             } else if (screenerFilters.MA20 === 'blw200') {
@@ -1369,18 +1314,7 @@ export default function (app: any, deps: any) {
                                 query.$expr = {
                                     $lt: [
                                         "$MA20",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
+                                        "$TimeSeries.close"
                                     ]
                                 };
                             }
@@ -1397,18 +1331,7 @@ export default function (app: any, deps: any) {
                                 query.$expr = {
                                     $gt: [
                                         "$MA10",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
+                                        "$TimeSeries.close"
                                     ]
                                 };
                             } else if (screenerFilters.MA10 === 'blw200') {
@@ -1421,18 +1344,7 @@ export default function (app: any, deps: any) {
                                 query.$expr = {
                                     $lt: [
                                         "$MA10",
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        }
+                                        "$TimeSeries.close"
                                     ]
                                 };
                             }
@@ -1442,144 +1354,56 @@ export default function (app: any, deps: any) {
                             if (screenerFilters.CurrentPrice === 'abv200') {
                                 query.$expr = {
                                     $gt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
+                                        "$TimeSeries.close",
                                         "$MA200"
                                     ]
                                 };
                             } else if (screenerFilters.CurrentPrice === 'abv50') {
                                 query.$expr = {
                                     $gt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
+                                        "$TimeSeries.close",
                                         "$MA50"
                                     ]
                                 };
                             } else if (screenerFilters.CurrentPrice === 'abv20') {
                                 query.$expr = {
                                     $gt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
+                                        "$TimeSeries.close",
                                         "$MA20"
                                     ]
                                 };
                             } else if (screenerFilters.CurrentPrice === 'abv10') {
                                 query.$expr = {
                                     $gt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
+                                        "$TimeSeries.close",
                                         "$MA10"
                                     ]
                                 };
                             } else if (screenerFilters.CurrentPrice === 'blw200') {
                                 query.$expr = {
                                     $lt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
+                                        "$TimeSeries.close",
                                         "$MA200"
                                     ]
                                 };
                             } else if (screenerFilters.CurrentPrice === 'blw50') {
                                 query.$expr = {
                                     $lt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
+                                        "$TimeSeries.close",
                                         "$MA50"
                                     ]
                                 };
                             } else if (screenerFilters.CurrentPrice === 'blw20') {
                                 query.$expr = {
                                     $lt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
+                                        "$TimeSeries.close",
                                         "$MA20"
                                     ]
                                 };
                             } else if (screenerFilters.CurrentPrice === 'blw10') {
                                 query.$expr = {
                                     $lt: [
-                                        {
-                                            $arrayElemAt: [
-                                                {
-                                                    $map: {
-                                                        input: { $objectToArray: "$TimeSeries" },
-                                                        as: "item",
-                                                        in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                    }
-                                                },
-                                                0
-                                            ]
-                                        },
+                                        "$TimeSeries.close",
                                         "$MA10"
                                     ]
                                 };
@@ -2135,8 +1959,8 @@ export default function (app: any, deps: any) {
                                 case 'Price':
                                     query.$expr = {
                                         $and: [
-                                            { $gt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[0]] },
-                                            { $lt: [{ $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] }, screenerFilters.Price[1]] }
+                                            { $gt: ["$TimeSeries.close", screenerFilters.Price[0]] },
+                                            { $lt: ["$TimeSeries.close", screenerFilters.Price[1]] }
                                         ]
                                     };
                                     break;
@@ -2400,7 +2224,7 @@ export default function (app: any, deps: any) {
                                     if (screenerFilters.NewHigh === 'yes') {
                                         query.$expr = {
                                             $gt: [
-                                                { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
+                                                "$TimeSeries.close",
                                                 "$AlltimeHigh"
                                             ]
                                         };
@@ -2410,7 +2234,7 @@ export default function (app: any, deps: any) {
                                     if (screenerFilters.NewLow === 'yes') {
                                         query.$expr = {
                                             $lt: [
-                                                { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] },
+                                                "$TimeSeries.close",
                                                 "$AlltimeLow"
                                             ]
                                         };
@@ -2427,18 +2251,7 @@ export default function (app: any, deps: any) {
                                         query.$expr = {
                                             $gt: [
                                                 "$MA200",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
+                                                "$TimeSeries.close"
                                             ]
                                         };
                                     } else if (screenerFilters.MA200 === 'blw50') {
@@ -2451,18 +2264,7 @@ export default function (app: any, deps: any) {
                                         query.$expr = {
                                             $lt: [
                                                 "$MA200",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
+                                                "$TimeSeries.close"
                                             ]
                                         };
                                     }
@@ -2479,18 +2281,7 @@ export default function (app: any, deps: any) {
                                         query.$expr = {
                                             $gt: [
                                                 "$MA50",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
+                                                "$TimeSeries.close"
                                             ]
                                         };
                                     } else if (screenerFilters.MA50 === 'blw200') {
@@ -2503,18 +2294,7 @@ export default function (app: any, deps: any) {
                                         query.$expr = {
                                             $lt: [
                                                 "$MA50",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
+                                                "$TimeSeries.close"
                                             ]
                                         };
                                     }
@@ -2531,18 +2311,7 @@ export default function (app: any, deps: any) {
                                         query.$expr = {
                                             $gt: [
                                                 "$MA20",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
+                                                "$TimeSeries.close"
                                             ]
                                         };
                                     } else if (screenerFilters.MA20 === 'blw200') {
@@ -2555,18 +2324,7 @@ export default function (app: any, deps: any) {
                                         query.$expr = {
                                             $lt: [
                                                 "$MA20",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
+                                                "$TimeSeries.close"
                                             ]
                                         };
                                     }
@@ -2583,18 +2341,7 @@ export default function (app: any, deps: any) {
                                         query.$expr = {
                                             $gt: [
                                                 "$MA10",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
+                                                "$TimeSeries.close"
                                             ]
                                         };
                                     } else if (screenerFilters.MA10 === 'blw200') {
@@ -2607,18 +2354,7 @@ export default function (app: any, deps: any) {
                                         query.$expr = {
                                             $lt: [
                                                 "$MA10",
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                }
+                                                "$TimeSeries.close"
                                             ]
                                         };
                                     }
@@ -2628,144 +2364,56 @@ export default function (app: any, deps: any) {
                                     if (screenerFilters.CurrentPrice === 'abv200') {
                                         query.$expr = {
                                             $gt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
+                                                "$TimeSeries.close",
                                                 "$MA200"
                                             ]
                                         };
                                     } else if (screenerFilters.CurrentPrice === 'abv50') {
                                         query.$expr = {
                                             $gt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
+                                                "$TimeSeries.close",
                                                 "$MA50"
                                             ]
                                         };
                                     } else if (screenerFilters.CurrentPrice === 'abv20') {
                                         query.$expr = {
                                             $gt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
+                                                "$TimeSeries.close",
                                                 "$MA20"
                                             ]
                                         };
                                     } else if (screenerFilters.CurrentPrice === 'abv10') {
                                         query.$expr = {
                                             $gt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
+                                                "$TimeSeries.close",
                                                 "$MA10"
                                             ]
                                         };
                                     } else if (screenerFilters.CurrentPrice === 'blw200') {
                                         query.$expr = {
                                             $lt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
+                                                "$TimeSeries.close",
                                                 "$MA200"
                                             ]
                                         };
                                     } else if (screenerFilters.CurrentPrice === 'blw50') {
                                         query.$expr = {
                                             $lt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
+                                                "$TimeSeries.close",
                                                 "$MA50"
                                             ]
                                         };
                                     } else if (screenerFilters.CurrentPrice === 'blw20') {
                                         query.$expr = {
                                             $lt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
+                                                "$TimeSeries.close",
                                                 "$MA20"
                                             ]
                                         };
                                     } else if (screenerFilters.CurrentPrice === 'blw10') {
                                         query.$expr = {
                                             $lt: [
-                                                {
-                                                    $arrayElemAt: [
-                                                        {
-                                                            $map: {
-                                                                input: { $objectToArray: "$TimeSeries" },
-                                                                as: "item",
-                                                                in: { $getField: { field: "4. close", input: "$$item.v" } }
-                                                            }
-                                                        },
-                                                        0
-                                                    ]
-                                                },
+                                                "$TimeSeries.close",
                                                 "$MA10"
                                             ]
                                         };
@@ -2961,9 +2609,9 @@ export default function (app: any, deps: any) {
                             userDoc.Table.forEach((key: string) => {
                                 if (fieldMap[key]) {
                                     if (key === 'price') {
-                                        projection['Close'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "4. close", input: "$$item.v" } } } }, 0] };
+                                        projection['Close'] = "$TimeSeries.close";
                                     } else if (key === 'volume') {
-                                        projection['Volume'] = { $arrayElemAt: [{ $map: { input: { $objectToArray: "$TimeSeries" }, as: "item", in: { $getField: { field: "5. volume", input: "$$item.v" } } } }, 0] };
+                                        projection['Volume'] = "$TimeSeries.volume";
                                     } else if (Object.keys(qfMap).includes(key)) {
                                         const field = qfMap[key];
                                         projection[field] = { $ifNull: [{ $getField: { field, input: { $arrayElemAt: ['$quarterlyFinancials', 0] } } }, null] };

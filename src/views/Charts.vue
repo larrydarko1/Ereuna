@@ -355,8 +355,6 @@ const assetInfo = reactive({
   BookValue: '-',
   DividendYield: '-',
   DividendDate: '-',
-  quarterlyEarnings: [],
-  annualEarnings: [],
   quarterlyFinancials: [],
   annualFinancials: [],
   Symbol: '-',
@@ -450,8 +448,6 @@ async function showTicker() {
       assetInfo.TrailingPE = data.TrailingPE;
       assetInfo.WeekHigh = data.WeekHigh;
       assetInfo.WeekLow = data.WeekLow;
-      assetInfo.quarterlyEarnings = data.quarterlyEarnings;
-      assetInfo.annualEarnings = data.annualEarnings;
       assetInfo.quarterlyFinancials = data.quarterlyFinancials;
       assetInfo.annualFinancials = data.annualFinancials;
       assetInfo.RSScore1W = data.RSScore1W;

@@ -54,26 +54,13 @@ export default function (app: any, deps: any) {
                 return res.status(404).json({ message: 'Asset not found' });
             }
 
-            // EPS (quarterlyEarnings) - only send reportedEPS
-            if (Array.isArray(assetInfo.quarterlyEarnings)) {
-                const arr = assetInfo.quarterlyEarnings;
-                const earningsArr = (!req.query.showAllEPS || req.query.showAllEPS !== 'true')
-                    ? arr.slice(0, 8)
-                    : arr;
-                assetInfo.quarterlyEarnings = earningsArr.map((e: any) => ({
-                    reportedEPS: e.reportedEPS,
-                    fiscalDateEnding: e.fiscalDateEnding
-                }));
-            } else {
-                assetInfo.quarterlyEarnings = [];
-            }
-
-            // Earnings (quarterlyFinancials) - lazy load only
+            // Earnings (quarterlyFinancials) - include reportedEPS, netIncome, totalRevenue
             if (Array.isArray(assetInfo.quarterlyFinancials)) {
                 const arr = assetInfo.quarterlyFinancials;
-                const showAll = (req.query.showAllSales === 'true') || (req.query.showAllEarnings === 'true');
+                const showAll = (req.query.showAllSales === 'true') || (req.query.showAllEarnings === 'true') || (req.query.showAllEPS === 'true');
                 const financialsArr = showAll ? arr : arr.slice(0, 8);
                 assetInfo.quarterlyFinancials = financialsArr.map((f: any) => ({
+                    reportedEPS: f.reportedEPS,
                     netIncome: f.netIncome,
                     totalRevenue: f.totalRevenue,
                     fiscalDateEnding: f.fiscalDateEnding
@@ -203,38 +190,35 @@ export default function (app: any, deps: any) {
                     return res.status(400).json({ message: 'Invalid timeframe' });
             }
 
-            // Cap results for daily/weekly (lazy loading)
+            // Cap results for all timeframes (lazy loading)
             let arr: any[];
-            if (timeframe === 'daily') {
-                let query: any = { tickerID: ticker };
-                if (before) {
-                    let beforeDate = new Date(before as string);
-                    if (!isNaN(beforeDate.getTime())) {
-                        query.timestamp = { $lt: beforeDate };
-                    }
+            let query: any = { tickerID: ticker };
+            if (before) {
+                let beforeDate = new Date(before as string);
+                if (!isNaN(beforeDate.getTime())) {
+                    query.timestamp = { $lt: beforeDate };
                 }
+            }
+
+            if (timeframe === 'daily') {
                 arr = await coll.find(query)
                     .sort({ timestamp: -1 })
                     .limit(1250)
                     .toArray();
                 arr = arr.reverse();
             } else if (timeframe === 'weekly') {
-                let query: any = { tickerID: ticker };
-                if (before) {
-                    let beforeDate = new Date(before as string);
-                    if (!isNaN(beforeDate.getTime())) {
-                        query.timestamp = { $lt: beforeDate };
-                    }
-                }
                 arr = await coll.find(query)
                     .sort({ timestamp: -1 })
                     .limit(260)
                     .toArray();
                 arr = arr.reverse();
             } else {
-                arr = await coll.find({ tickerID: ticker })
-                    .sort({ timestamp: 1 })
+                // Intraday timeframes - limit to recent data for lazy loading
+                arr = await coll.find(query)
+                    .sort({ timestamp: -1 })
+                    .limit(2000)
                     .toArray();
+                arr = arr.reverse();
             }
 
             let data: Record<string, any> = {
@@ -283,148 +267,6 @@ export default function (app: any, deps: any) {
             res.status(200).json(data);
         } catch (error: any) {
             const errObj = handleError(error, 'GET /:ticker/chartdata', { ticker }, 500);
-            return res.status(errObj.statusCode || 500).json(errObj);
-        }
-    });
-
-    // sends data to chart2.vue component in the screener
-    app.get('/:ticker/chartdata-dl', validate(validationSets.chartData), async (req: Request, res: Response) => {
-        const ticker = sanitizeInput(req.params.ticker.toUpperCase());
-        const before = req.query.before;
-        try {
-            const apiKey = req.header('x-api-key');
-            const sanitizedKey = sanitizeInput(apiKey);
-            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                logger.warn({
-                    msg: 'Invalid API key',
-                    providedApiKey: !!sanitizedKey,
-                    context: 'GET /:ticker/chartdata-dl',
-                    statusCode: 401
-                });
-                return res.status(401).json({ message: 'Unauthorized API Access' });
-            }
-            const db = await getDB();
-            // Only fetch daily data from OHCLVData
-            const dailyColl = db.collection('OHCLVData');
-            let query: any = { tickerID: ticker };
-            if (before) {
-                let beforeDate = new Date(before as string);
-                if (!isNaN(beforeDate.getTime())) {
-                    query.timestamp = { $lt: beforeDate };
-                }
-            }
-            let dailyData: any[] = await dailyColl.find(query)
-                .sort({ timestamp: -1 })
-                .limit(500)
-                .toArray();
-            dailyData = dailyData.reverse();
-            // Helper for MA
-            function calcMA(Data: any[], period: number) {
-                if (Data.length < period) return [];
-                const arr: { time: string; value: number }[] = [];
-                for (let i = period - 1; i < Data.length; i++) {
-                    const sum = Data.slice(i - period + 1, i + 1).reduce((acc: number, curr: any) => acc + curr.close, 0);
-                    const average = sum / period;
-                    arr.push({
-                        time: Data[i].timestamp.toISOString().slice(0, 10),
-                        value: parseFloat(average.toFixed(2)),
-                    });
-                }
-                return arr;
-            }
-            // Format daily (always object with arrays)
-            const daily = {
-                ohlc: dailyData.length ? dailyData.map((item: any) => ({
-                    time: item.timestamp.toISOString().slice(0, 10),
-                    open: parseFloat(item.open.toString().slice(0, 8)),
-                    high: parseFloat(item.high.toString().slice(0, 8)),
-                    low: parseFloat(item.low.toString().slice(0, 8)),
-                    close: parseFloat(item.close.toString().slice(0, 8)),
-                })) : [],
-                volume: dailyData.length ? dailyData.map((item: any) => ({
-                    time: item.timestamp.toISOString().slice(0, 10),
-                    value: item.volume,
-                })) : [],
-                MA10: dailyData.length ? calcMA(dailyData, 10) : [],
-                MA20: dailyData.length ? calcMA(dailyData, 20) : [],
-                MA50: dailyData.length ? calcMA(dailyData, 50) : [],
-                MA200: dailyData.length ? calcMA(dailyData, 200) : [],
-            };
-            // Only send daily data
-            res.status(200).json({ daily });
-        } catch (error: any) {
-            const errObj = handleError(error, 'GET /:ticker/chartdata-dl', { ticker }, 500);
-            return res.status(errObj.statusCode || 500).json(errObj);
-        }
-    });
-
-    // sends data to chart1.vue component in the screener
-    app.get('/:ticker/chartdata-wk', validate(validationSets.chartData), async (req: Request, res: Response) => {
-        const ticker = sanitizeInput(req.params.ticker.toUpperCase());
-        const before = req.query.before;
-        try {
-            const apiKey = req.header('x-api-key');
-            const sanitizedKey = sanitizeInput(apiKey);
-            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
-                logger.warn({
-                    msg: 'Invalid API key',
-                    providedApiKey: !!sanitizedKey,
-                    context: 'GET /:ticker/chartdata-wk',
-                    statusCode: 401
-                });
-                return res.status(401).json({ message: 'Unauthorized API Access' });
-            }
-            const db = await getDB();
-            // Only fetch weekly data from OHCLVData2
-            const weeklyColl = db.collection('OHCLVData2');
-            let query: any = { tickerID: ticker };
-            if (before) {
-                let beforeDate = new Date(before as string);
-                if (!isNaN(beforeDate.getTime())) {
-                    query.timestamp = { $lt: beforeDate };
-                }
-            }
-            let weeklyData: any[] = await weeklyColl.find(query)
-                .sort({ timestamp: -1 })
-                .limit(500)
-                .toArray();
-            weeklyData = weeklyData.reverse();
-            // Helper for MA
-            function calcMA(Data: any[], period: number) {
-                if (Data.length < period) return [];
-                const arr: { time: string; value: number }[] = [];
-                for (let i = period - 1; i < Data.length; i++) {
-                    const sum = Data.slice(i - period + 1, i + 1).reduce((acc: number, curr: any) => acc + curr.close, 0);
-                    const average = sum / period;
-                    arr.push({
-                        time: Data[i].timestamp.toISOString().slice(0, 10),
-                        value: parseFloat(average.toFixed(2)),
-                    });
-                }
-                return arr;
-            }
-            // Format weekly (always object with arrays)
-            const weekly = {
-                ohlc: weeklyData.length ? weeklyData.map((item: any) => ({
-                    time: item.timestamp.toISOString().slice(0, 10),
-                    open: parseFloat(item.open.toString().slice(0, 8)),
-                    high: parseFloat(item.high.toString().slice(0, 8)),
-                    low: parseFloat(item.low.toString().slice(0, 8)),
-                    close: parseFloat(item.close.toString().slice(0, 8)),
-                })) : [],
-                volume: weeklyData.length ? weeklyData.map((item: any) => ({
-                    time: item.timestamp.toISOString().slice(0, 10),
-                    value: item.volume,
-                })) : [],
-                MA10: weeklyData.length ? calcMA(weeklyData, 10) : [],
-                MA20: weeklyData.length ? calcMA(weeklyData, 20) : [],
-                MA50: weeklyData.length ? calcMA(weeklyData, 50) : [],
-                MA200: weeklyData.length ? calcMA(weeklyData, 200) : [],
-            };
-            // Only send weekly data
-            res.status(200).json({ weekly });
-        } catch (error: any) {
-            const errObj = handleError(error, 'GET /:ticker/chartdata-wk', { ticker }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
         }
     });

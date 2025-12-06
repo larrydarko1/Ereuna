@@ -32,21 +32,21 @@
             class="eps-cell"
             style="flex: 0 0 20%;"
             v-else
-              :class="Number(calculatePercentageChange(earnings.reportedEPS, props.assetInfo?.quarterlyEarnings?.[index + 1]?.reportedEPS ?? 0)) > 0 ? 'positive' : 'negative'"
+              :class="Number(calculatePercentageChange(earnings.reportedEPS, props.assetInfo?.quarterlyFinancials?.[index + 1]?.reportedEPS ?? 0)) > 0 ? 'positive' : 'negative'"
           >
             {{
               isNaN(Number(calculatePercentageChange(
                 Number(earnings.reportedEPS),
-                Number(props.assetInfo?.quarterlyEarnings?.[index + 1]?.reportedEPS ?? 0)
+                Number(props.assetInfo?.quarterlyFinancials?.[index + 1]?.reportedEPS ?? 0)
               ))) ||
               !isFinite(Number(calculatePercentageChange(
                 Number(earnings.reportedEPS),
-                Number(props.assetInfo?.quarterlyEarnings?.[index + 1]?.reportedEPS ?? 0)
+                Number(props.assetInfo?.quarterlyFinancials?.[index + 1]?.reportedEPS ?? 0)
               )))
                 ? '-'
                 : calculatePercentageChange(
                       Number(earnings.reportedEPS),
-                      Number(props.assetInfo?.quarterlyEarnings?.[index + 1]?.reportedEPS ?? 0)
+                      Number(props.assetInfo?.quarterlyFinancials?.[index + 1]?.reportedEPS ?? 0)
                     ) + '%'
             }}
           </div>
@@ -100,13 +100,13 @@
 
 import { ref, computed, watch } from 'vue';
 
-interface QuarterlyEarning {
+interface QuarterlyFinancial {
   fiscalDateEnding: string;
   reportedEPS: number;
 }
 
 interface AssetInfo {
-  quarterlyEarnings?: QuarterlyEarning[];
+  quarterlyFinancials?: QuarterlyFinancial[];
 }
 
 const props = defineProps<{ 
@@ -129,14 +129,14 @@ function toggleEPS() {
 }
 
 const displayedEPSItems = computed(() => {
-  const earnings = props.assetInfo?.quarterlyEarnings || [];
+  const earnings = props.assetInfo?.quarterlyFinancials || [];
   if (earnings.length === 0) return [];
   if (earnings.length <= 4) return earnings;
   return showAllEPS.value ? earnings : earnings.slice(0, 4);
 });
 
 const showEPSButton = computed(() => {
-  return (props.assetInfo?.quarterlyEarnings?.length || 0) > 4;
+  return (props.assetInfo?.quarterlyFinancials?.length || 0) > 4;
 });
 
 //converts floats to percentage (%) for info box
@@ -153,13 +153,13 @@ function calculatePercentageChange(currentValue: number, previousValue: number):
 
 function calculateQoQ1(reportedEPS: number): string | null {
   if (!reportedEPS) return null;
-  const quarterlyEarnings = props.assetInfo?.quarterlyEarnings;
-  if (!quarterlyEarnings) return null;
-  const index = quarterlyEarnings.findIndex((earnings: QuarterlyEarning) => earnings.reportedEPS === reportedEPS);
+  const quarterlyFinancials = props.assetInfo?.quarterlyFinancials;
+  if (!quarterlyFinancials) return null;
+  const index = quarterlyFinancials.findIndex((earnings: QuarterlyFinancial) => earnings.reportedEPS === reportedEPS);
   if (index === -1) return null;
-  const previousQuarterlyEarnings = quarterlyEarnings[index + 1];
-  if (!previousQuarterlyEarnings) return null;
-  const previousReportedEPS = previousQuarterlyEarnings.reportedEPS;
+  const previousQuarterlyFinancials = quarterlyFinancials[index + 1];
+  if (!previousQuarterlyFinancials) return null;
+  const previousReportedEPS = previousQuarterlyFinancials.reportedEPS;
   if (previousReportedEPS === undefined) return null;
   let percentageChange;
   if (previousReportedEPS < 0) {
@@ -172,9 +172,9 @@ function calculateQoQ1(reportedEPS: number): string | null {
 
 function calculateYoY1(reportedEPS: number): string | null {
   if (!reportedEPS) return null;
-  const earnings = props.assetInfo?.quarterlyEarnings;
+  const earnings = props.assetInfo?.quarterlyFinancials;
   if (!earnings) return null;
-  const index = earnings.findIndex((earn: QuarterlyEarning) => earn.reportedEPS === reportedEPS);
+  const index = earnings.findIndex((earn: QuarterlyFinancial) => earn.reportedEPS === reportedEPS);
   if (index === -1) return null;
   const previousEarnings = earnings[index + 4];
   if (!previousEarnings) return null;
