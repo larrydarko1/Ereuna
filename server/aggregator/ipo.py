@@ -168,8 +168,6 @@ async def getFinancialsSingle(ticker):
         result = await asset_info_collection.find_one({'Symbol': ticker})
 
         if result:
-            quarterly_earnings_data = []
-            annual_earnings_data = []
             quarterly_financials_data = []
             annual_financials_data = []
             for statement in data:
@@ -177,13 +175,9 @@ async def getFinancialsSingle(ticker):
                 date = datetime.strptime(date_str, '%Y-%m-%d')
                 quarter = statement['quarter']
 
-                earnings_data = {
-                    'fiscalDateEnding': date,
-                    'reportedEPS': 0
-                }
-
                 financial_data = {
                     'fiscalDateEnding': date,
+                    'reportedEPS': 0,
                     'totalRevenue': 0,
                     'netIncome': 0
                 }
@@ -195,7 +189,7 @@ async def getFinancialsSingle(ticker):
                     netinc = next((item for item in income_statement if item['dataCode'] == 'netinc'), None)
 
                     if eps:
-                        earnings_data['reportedEPS'] = eps['value'] or 0
+                        financial_data['reportedEPS'] = eps['value'] or 0
 
                     if revenue and netinc:
                         financial_data['totalRevenue'] = revenue['value'] or 0
@@ -223,15 +217,11 @@ async def getFinancialsSingle(ticker):
                         financial_data[data_code] = value
 
                 if quarter == 0:
-                    annual_earnings_data.append(earnings_data)
                     annual_financials_data.append(financial_data)
                 else:
-                    quarterly_earnings_data.append(earnings_data)
                     quarterly_financials_data.append(financial_data)
 
             await asset_info_collection.update_one({'Symbol': ticker}, {'$set': {
-                'quarterlyEarnings': quarterly_earnings_data,
-                'annualEarnings': annual_earnings_data,
                 'quarterlyFinancials': quarterly_financials_data,
                 'AnnualFinancials': annual_financials_data
             }})

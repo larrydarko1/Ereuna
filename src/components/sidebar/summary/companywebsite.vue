@@ -2,7 +2,7 @@
   <div class="summary-row">
     <div class="category">Website</div>
     <div class="response">
-      <span v-if="!assetInfo.companyWebsite">-</span>
+      <span v-if="!assetInfo.companyWebsite || !assetInfo.companyWebsite.trim() || assetInfo.companyWebsite.trim() === '-'">-</span>
       <a 
         v-else 
         :href="formatUrl(assetInfo.companyWebsite)" 
@@ -25,19 +25,21 @@ defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
 
 // Ensure URL has proper protocol
 const formatUrl = (url: string): string => {
-  if (!url) return '';
+  if (!url || url.trim() === '' || url === '-') return '';
+  const trimmedUrl = url.trim();
   // If URL doesn't start with http:// or https://, add https://
-  if (!/^https?:\/\//i.test(url)) {
-    return `https://${url}`;
+  if (!/^https?:\/\//i.test(trimmedUrl)) {
+    return `https://${trimmedUrl}`;
   }
-  return url;
+  return trimmedUrl;
 };
 
 // Display a clean version of the URL (without protocol)
 const displayUrl = (url: string): string => {
-  if (!url) return '-';
+  if (!url || url.trim() === '' || url === '-') return '-';
+  const trimmedUrl = url.trim();
   // Remove protocol for display
-  return url.replace(/^https?:\/\//i, '');
+  return trimmedUrl.replace(/^https?:\/\//i, '');
 };
 </script>
 

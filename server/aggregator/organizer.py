@@ -294,8 +294,6 @@ async def getFinancials():
             result = await collection.find_one({'Symbol': ticker})
 
             if result:
-                quarterly_earnings_data = []
-                annual_earnings_data = []
                 quarterly_financials_data = []
                 annual_financials_data = []
                 for statement in data:
@@ -303,13 +301,9 @@ async def getFinancials():
                     date = datetime.strptime(date_str, '%Y-%m-%d')
                     quarter = statement['quarter']
 
-                    earnings_data = {
-                        'fiscalDateEnding': date,
-                        'reportedEPS': 0
-                    }
-
                     financial_data = {
                         'fiscalDateEnding': date,
+                        'reportedEPS': 0,
                         'totalRevenue': 0,
                         'netIncome': 0
                     }
@@ -321,7 +315,7 @@ async def getFinancials():
                         netinc = next((item for item in income_statement if item['dataCode'] == 'netinc'), None)
 
                         if eps:
-                            earnings_data['reportedEPS'] = eps['value'] or 0
+                            financial_data['reportedEPS'] = eps['value'] or 0
 
                         if revenue and netinc:
                             financial_data['totalRevenue'] = revenue['value'] or 0
@@ -349,15 +343,11 @@ async def getFinancials():
                             financial_data[data_code] = value
 
                     if quarter == 0:
-                        annual_earnings_data.append(earnings_data)
                         annual_financials_data.append(financial_data)
                     else:
-                        quarterly_earnings_data.append(earnings_data)
                         quarterly_financials_data.append(financial_data)
 
                 await collection.update_one({'Symbol': ticker}, {'$set': {
-                    'quarterlyEarnings': quarterly_earnings_data,
-                    'annualEarnings': annual_earnings_data,
                     'quarterlyFinancials': quarterly_financials_data,
                     'AnnualFinancials': annual_financials_data
                 }})
@@ -631,10 +621,10 @@ async def updateDailyRatios():
                     ps_ratio = 0
 
                 # Calculate the trailing price-to-earnings growth ratio
-                quarterly_earnings = asset_info_doc.get('quarterlyEarnings', [])
-                if len(quarterly_earnings) >= 2:
-                    most_recent_eps = quarterly_earnings[0].get('reportedEPS', 0)
-                    previous_eps = quarterly_earnings[1].get('reportedEPS', 0)
+                quarterly_financials = asset_info_doc.get('quarterlyFinancials', [])
+                if len(quarterly_financials) >= 2:
+                    most_recent_eps = quarterly_financials[0].get('reportedEPS', 0)
+                    previous_eps = quarterly_financials[1].get('reportedEPS', 0)
                     eps_growth_rate = (most_recent_eps - previous_eps) / previous_eps if previous_eps != 0 else 0
                     trailing_peg = pe_ratio / eps_growth_rate if eps_growth_rate != 0 else 0
                 else:
@@ -988,8 +978,6 @@ async def checkAndUpdateFinancialUpdates():
 
             if result:
                 # Process the data
-                quarterly_earnings_data = []
-                annual_earnings_data = []
                 quarterly_financials_data = []
                 annual_financials_data = []
                 new_data_found = False
@@ -999,13 +987,9 @@ async def checkAndUpdateFinancialUpdates():
                     date = datetime.strptime(date_str, '%Y-%m-%d')
                     quarter = statement['quarter']
 
-                    earnings_data = {
-                        'fiscalDateEnding': date,
-                        'reportedEPS': 0
-                    }
-
                     financial_data = {
                         'fiscalDateEnding': date,
+                        'reportedEPS': 0,
                         'totalRevenue': 0,
                         'netIncome': 0
                     }
@@ -1017,7 +1001,7 @@ async def checkAndUpdateFinancialUpdates():
                         netinc = next((item for item in income_statement if item['dataCode'] == 'netinc'), None)
 
                         if eps:
-                            earnings_data['reportedEPS'] = eps['value'] or 0
+                            financial_data['reportedEPS'] = eps['value'] or 0
 
                         if revenue and netinc:
                             financial_data['totalRevenue'] = revenue['value'] or 0
@@ -1045,26 +1029,22 @@ async def checkAndUpdateFinancialUpdates():
                             financial_data[data_code] = value
 
                     if quarter == 0:
-                        existing_annual_earnings = result.get('annualEarnings', [])
-                        existing_annual_earnings_dates = [item['fiscalDateEnding'] for item in existing_annual_earnings]
-                        if date not in existing_annual_earnings_dates:
+                        existing_annual_financials = result.get('AnnualFinancials', [])
+                        existing_annual_financials_dates = [item['fiscalDateEnding'] for item in existing_annual_financials]
+                        if date not in existing_annual_financials_dates:
                             new_data_found = True
                             pass  # Print removed for clean output
-                        annual_earnings_data.append(earnings_data)
                         annual_financials_data.append(financial_data)
                     else:
-                        existing_quarterly_earnings = result.get('quarterlyEarnings', [])
-                        existing_quarterly_earnings_dates = [item['fiscalDateEnding'] for item in existing_quarterly_earnings]
-                        if date not in existing_quarterly_earnings_dates:
+                        existing_quarterly_financials = result.get('quarterlyFinancials', [])
+                        existing_quarterly_financials_dates = [item['fiscalDateEnding'] for item in existing_quarterly_financials]
+                        if date not in existing_quarterly_financials_dates:
                             new_data_found = True
                             pass  # Print removed for clean output
-                        quarterly_earnings_data.append(earnings_data)
                         quarterly_financials_data.append(financial_data)
 
                 if new_data_found:
                     new_tickers_data[ticker] = {
-                        'quarterlyEarnings': quarterly_earnings_data,
-                        'annualEarnings': annual_earnings_data,
                         'quarterlyFinancials': quarterly_financials_data,
                         'AnnualFinancials': annual_financials_data
                     }
@@ -1118,18 +1098,17 @@ async def updateTimeSeries():
             )
             if recent_doc:
                 time_series_data = {
-                    '1. open': round(float(recent_doc.get('open', 0)), 2),
-                    '2. high': round(float(recent_doc.get('high', 0)), 2),
-                    '3. low': round(float(recent_doc.get('low', 0)), 2),
-                    '4. close': round(float(recent_doc.get('close', 0)), 2),
-                    '5. volume': round(float(recent_doc.get('volume', 0)), 2)
+                    'open': round(float(recent_doc.get('open', 0)), 2),
+                    'high': round(float(recent_doc.get('high', 0)), 2),
+                    'low': round(float(recent_doc.get('low', 0)), 2),
+                    'close': round(float(recent_doc.get('close', 0)), 2),
+                    'volume': round(float(recent_doc.get('volume', 0)), 2)
                 }
-                current_date = recent_doc['timestamp'].strftime('%Y-%m-%d')
                 updates.append(
                     UpdateOne(
                         {'Symbol': ticker},
                         {'$set': {
-                            'TimeSeries': {current_date: time_series_data}
+                            'TimeSeries': time_series_data
                         }}
                     )
                 )
@@ -1172,9 +1151,8 @@ async def getDividendYieldTTM():
             # Extract the current stock price
             current_stock_price = None
             if isinstance(time_series, dict) and time_series:
-                # Get the most recent date
-                most_recent_date = max(time_series.keys())
-                current_stock_price = time_series[most_recent_date].get('4. close')
+                # Get close price directly from TimeSeries
+                current_stock_price = time_series.get('close')
             if not current_stock_price:
                 await collection.update_one(
                     {'Symbol': ticker},
@@ -1655,10 +1633,9 @@ async def calculate_qoq_changes():
     async for doc in collection.find({'Delisted': False}):
         ticker = doc['Symbol']
         quarterly_income = doc.get('quarterlyFinancials', [])
-        quarterly_earnings = doc.get('quarterlyEarnings', [])
         total_revenue = [float(x.get('totalRevenue', 0)) for x in quarterly_income if x.get('totalRevenue') not in ['', 'None', None]]
         net_income = [float(x.get('netIncome', 0)) for x in quarterly_income if x.get('netIncome') not in ['', 'None', None]]
-        reported_eps = [float(x.get('reportedEPS', 0)) for x in quarterly_earnings if x.get('reportedEPS') not in ['', 'None', None]]
+        reported_eps = [float(x.get('reportedEPS', 0)) for x in quarterly_income if x.get('reportedEPS') not in ['', 'None', None]]
         if len(total_revenue) > 1:
             current_quarter = total_revenue[0]
             previous_quarter = total_revenue[1]
@@ -1698,10 +1675,9 @@ async def calculate_YoY_changes():
     async for doc in collection.find({'Delisted': False}):
         ticker = doc['Symbol']
         quarterly_income = doc.get('quarterlyFinancials', [])
-        quarterly_earnings = doc.get('quarterlyEarnings', [])
         total_revenue = [float(x.get('totalRevenue', 0)) for x in quarterly_income if x.get('totalRevenue') not in ['', 'None', None]]
         net_income = [float(x.get('netIncome', 0)) for x in quarterly_income if x.get('netIncome') not in ['', 'None', None]]
-        reported_eps = [float(x.get('reportedEPS', 0)) for x in quarterly_earnings if x.get('reportedEPS') not in ['', 'None', None]]
+        reported_eps = [float(x.get('reportedEPS', 0)) for x in quarterly_income if x.get('reportedEPS') not in ['', 'None', None]]
         if len(total_revenue) >= 5:
             current_quarter = total_revenue[0]
             previous_quarter = total_revenue[4]
@@ -1742,10 +1718,10 @@ async def update_eps_shares_dividend_date():
         async for document in collection.find({'Delisted': False}):
             ticker = document['Symbol']
 
-            # Check if the quarterlyEarnings array is not empty
-            if 'quarterlyEarnings' in document and document['quarterlyEarnings']:
-                # Extract the reportedEPS from the first object in the quarterlyEarnings array
-                reported_eps = document['quarterlyEarnings'][0].get('reportedEPS')
+            # Check if the quarterlyFinancials array is not empty
+            if 'quarterlyFinancials' in document and document['quarterlyFinancials']:
+                # Extract the reportedEPS from the first object in the quarterlyFinancials array
+                reported_eps = document['quarterlyFinancials'][0].get('reportedEPS')
 
                 # Update the EPS attribute of the document
                 if reported_eps is not None:
@@ -1989,11 +1965,10 @@ def calculate_intrinsic_value(stock_doc):
         if profitable_quarters < 6:  # Less than half of last 12 quarters profitable
             return {'type': 'Stock', 'intrinsic_value': 0}
     
-    # Additional profitability check using EPS from quarterlyEarnings
-    quarterly_earnings = stock_doc.get('quarterlyEarnings', [])
-    if quarterly_earnings and len(quarterly_earnings) >= 12:
+    # Additional profitability check using EPS from quarterlyFinancials
+    if quarterly_financials and len(quarterly_financials) >= 12:
         eps_list = []
-        for q in quarterly_earnings[:12]:
+        for q in quarterly_financials[:12]:
             eps = q.get('reportedEPS')
             if eps is not None:
                 try:
@@ -2075,8 +2050,7 @@ def calculate_intrinsic_value(stock_doc):
     time_series = stock_doc.get('TimeSeries', {})
     if time_series and intrinsic_value_per_share > 0:
         try:
-            most_recent_date = max(time_series.keys())
-            current_price = time_series[most_recent_date].get('4. close')
+            current_price = time_series.get('close')
             if current_price and current_price > 0:
                 ratio = intrinsic_value_per_share / current_price
                 if ratio > 100:  # Intrinsic value >100x current price is suspicious
@@ -2282,10 +2256,9 @@ async def update_market_stats():
         if not time_series or intrinsic_value is None or intrinsic_value <= 0:
             continue
         
-        # Get current price from most recent TimeSeries entry
+        # Get current price from TimeSeries
         try:
-            most_recent_date = max(time_series.keys())
-            current_price = time_series[most_recent_date].get("4. close")
+            current_price = time_series.get("close")
             
             if current_price and current_price > 0:
                 # Calculate valuation ratio: positive = undervalued, negative = overvalued

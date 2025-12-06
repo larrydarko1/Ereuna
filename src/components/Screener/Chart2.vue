@@ -1,12 +1,40 @@
 <template>
-                                <div class="chart-container">
-                                  <h1 class="badge">DAILY CHART</h1>
-                                  <div class="loading-container2" v-if="isChartLoading2 || isLoading2">
-                                    <Loader />
-                                  </div>
-                                  <div id="dl-chart" ref="dlchart" style="width: 100%; height: 250px;"
-                                    :class="{ 'hidden': isChartLoading2 || isLoading2 }"></div>
-                                </div>
+  <div class="chart-container">
+    <div class="chart-controls">
+      <div class="timeframe-selector">
+        <button
+          v-for="tf in timeframes"
+          :key="tf.value"
+          class="tf-btn"
+          :class="{ selected: selectedTimeframe === tf.value }"
+          @click="setTimeframe(tf.value)"
+        >
+          {{ tf.label }}
+        </button>
+      </div>
+      <div class="charttype-dropdown" @click="toggleChartTypeDropdown">
+        <div class="dropdown-selected">
+          {{ chartTypeOptions.find(o => o.value === selectedChartType)?.label }}
+          <span class="dropdown-arrow" :class="{ open: chartTypeDropdownOpen }">&#9662;</span>
+        </div>
+        <div class="dropdown-list" v-if="chartTypeDropdownOpen">
+          <div
+            v-for="opt in chartTypeOptions"
+            :key="opt.value"
+            class="dropdown-item"
+            @click.stop="selectChartType(opt.value)"
+          >
+            {{ opt.label }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="loading-container2" v-if="isChartLoading2 || isLoading2">
+      <Loader />
+    </div>
+    <div id="dl-chart" ref="dlchart" style="width: 100%; height: 250px;"
+      :class="{ 'hidden': isChartLoading2 || isLoading2 }"></div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -66,14 +94,60 @@ function onSymbolSelect(symbol: string) {
   emit('symbol-selected', symbol);
 }
 
+// Timeframe and chart type selection
+const selectedTimeframe = ref('daily');
+const selectedChartType = ref('candlestick');
+const chartTypeDropdownOpen = ref(false);
+
+const timeframes = [
+  { label: '5m', value: 'intraday5m' },
+  { label: '15m', value: 'intraday15m' },
+  { label: '30m', value: 'intraday30m' },
+  { label: '1h', value: 'intraday1hr' },
+  { label: '1D', value: 'daily' },
+  { label: '1W', value: 'weekly' },
+];
+
+const chartTypeOptions = [
+  { label: 'Candlestick', value: 'candlestick' },
+  { label: 'Bar', value: 'bar' },
+  { label: 'Line', value: 'line' },
+  { label: 'Area', value: 'area' },
+];
+
+function setTimeframe(tf: string) {
+  selectedTimeframe.value = tf;
+  fetchChartData(props.selectedSymbol, null, false);
+}
+
+function toggleChartTypeDropdown() {
+  chartTypeDropdownOpen.value = !chartTypeDropdownOpen.value;
+}
+
+function selectChartType(type: string) {
+  selectedChartType.value = type;
+  chartTypeDropdownOpen.value = false;
+  updateMainSeries();
+}
+
+function setChartType(ct: string) {
+  selectedChartType.value = ct;
+  updateMainSeries();
+}
+
+// Helper function to check if timeframe is intraday
+function isIntraday(timeframe: string): boolean {
+  return ['intraday1m', 'intraday5m', 'intraday15m', 'intraday30m', 'intraday1hr'].includes(timeframe);
+}
+
 
 // CHARTS SECTION
-const data = ref<OHLC[]>([]); // Daily OHCL Data
-const data2 = ref<Volume[]>([]); // Daily Volume Data
-const data3 = ref<MA[]>([]); // daily 10MA
-const data4 = ref<MA[]>([]); // daily 20MA
-const data5 = ref<MA[]>([]); // daily 50MA
-const data6 = ref<MA[]>([]); // daily 200MA
+const data = ref<OHLC[]>([]); // OHLC Data
+const data2 = ref<Volume[]>([]); // Volume Data
+const data3 = ref<MA[]>([]); // MA1
+const data4 = ref<MA[]>([]); // MA2
+const data5 = ref<MA[]>([]); // MA3
+const data6 = ref<MA[]>([]); // MA4
 
 
 // --- WebSocket connection for daily chart data ---
@@ -98,19 +172,32 @@ function closeChartWS(): void {
 async function fetchChartDataREST(symbolParam: string | null, before: string | number | null = null, append: boolean = false): Promise<void> {
   if (!append) isChartLoading2.value = true;
   let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol || props.selectedItem).toUpperCase();
-  let url = `/api/${symbol}/chartdata-dl?limit=500`;
+  let url = `/api/${symbol}/chartdata?timeframe=${selectedTimeframe.value}&limit=500`;
   if (before) url += `&before=${encodeURIComponent(before)}`;
   try {
     const response = await fetch(url, { headers: { 'X-API-KEY': props.apiKey } });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const result = await response.json();
-    const ohlc: OHLC[] = result.daily.ohlc || [];
-    const volume: Volume[] = result.daily.volume || [];
-    // Indicator arrays
-    const ma10: MA[] = result.daily.MA10 || [];
-    const ma20: MA[] = result.daily.MA20 || [];
-    const ma50: MA[] = result.daily.MA50 || [];
-    const ma200: MA[] = result.daily.MA200 || [];
+    
+    // Transform data based on timeframe
+    const transform = isIntraday(selectedTimeframe.value)
+      ? (arr: any[]): any[] => {
+          const sorted = (arr || [])
+            .map((item: any) => ({ ...item, time: typeof item.time === 'string' ? Math.floor(new Date(item.time).getTime() / 1000) : item.time }))
+            .sort((a: any, b: any) => a.time - b.time);
+          return sorted.filter((item: any, idx: number, arr: any[]) => idx === 0 || item.time !== arr[idx - 1].time);
+        }
+      : (arr: any[]): any[] => {
+          const sorted = (arr || []).sort((a: any, b: any) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
+          return sorted.filter((item: any, idx: number, arr: any[]) => idx === 0 || item.time !== arr[idx - 1].time);
+        };
+    
+    const ohlc: OHLC[] = transform(result.ohlc || []);
+    const volume: Volume[] = transform(result.volume || []);
+    const ma1: MA[] = transform(result.MA1 || []);
+    const ma2: MA[] = transform(result.MA2 || []);
+    const ma3: MA[] = transform(result.MA3 || []);
+    const ma4: MA[] = transform(result.MA4 || []);
     if (append) {
       // Prepend older data, avoid duplicates
       const existingTimes = new Set(data.value.map((d: OHLC) => d.time));
@@ -127,17 +214,17 @@ async function fetchChartDataREST(symbolParam: string | null, before: string | n
         const filteredNewArr = newArr.filter((d: MA) => !existingMATimes.has(d.time));
         return [...filteredNewArr, ...oldArr];
       };
-      data3.value = prependMA(data3.value, ma10);
-      data4.value = prependMA(data4.value, ma20);
-      data5.value = prependMA(data5.value, ma50);
-      data6.value = prependMA(data6.value, ma200);
+      data3.value = prependMA(data3.value, ma1);
+      data4.value = prependMA(data4.value, ma2);
+      data5.value = prependMA(data5.value, ma3);
+      data6.value = prependMA(data6.value, ma4);
     } else {
       data.value = ohlc;
       data2.value = volume;
-      data3.value = ma10;
-      data4.value = ma20;
-      data5.value = ma50;
-      data6.value = ma200;
+      data3.value = ma1;
+      data4.value = ma2;
+      data5.value = ma3;
+      data6.value = ma4;
     }
     // If less than 500, no more data to load
     if (ohlc.length < 500) {
@@ -159,7 +246,7 @@ async function fetchChartDataWS(symbolParam: string | null): Promise<void> {
   chartWSReceived = false;
   let symbol = (symbolParam || props.selectedSymbol || props.defaultSymbol || props.selectedItem).toUpperCase();
   let wsProto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  let wsUrl = `${wsProto}://${window.location.host}/ws/chartdata-dl?ticker=${encodeURIComponent(symbol)}&timeframe=daily`;
+  let wsUrl = `${wsProto}://${window.location.host}/ws/chartdata?ticker=${symbol}&timeframe=${selectedTimeframe.value}`;
   chartWS = new WebSocket(wsUrl, props.apiKey);
   let triedRest = false;
   chartWS.onopen = () => {};
@@ -172,18 +259,32 @@ async function fetchChartDataWS(symbolParam: string | null): Promise<void> {
       return;
     }
     if (msg.type === 'init' || msg.type === 'update') {
-      const ohlc: OHLC[] = msg.data.ohlc || [];
-      const volume: Volume[] = msg.data.volume || [];
-      const ma10: MA[] = msg.data.MA10 || [];
-      const ma20: MA[] = msg.data.MA20 || [];
-      const ma50: MA[] = msg.data.MA50 || [];
-      const ma200: MA[] = msg.data.MA200 || [];
-      data.value = ohlc;
-      data2.value = volume;
-      data3.value = ma10;
-      data4.value = ma20;
-      data5.value = ma50;
-      data6.value = ma200;
+      const ohlc = msg.data.ohlc || [];
+      const volume = msg.data.volume || [];
+      const ma1 = msg.data.MA1 || [];
+      const ma2 = msg.data.MA2 || [];
+      const ma3 = msg.data.MA3 || [];
+      const ma4 = msg.data.MA4 || [];
+      
+      // Transform data based on timeframe (intraday uses timestamps)
+      const transform = isIntraday(selectedTimeframe.value)
+        ? (arr: any[]): any[] => {
+            const sorted = (arr || [])
+              .map((item: any) => ({ ...item, time: typeof item.time === 'string' ? Math.floor(new Date(item.time).getTime() / 1000) : item.time }))
+              .sort((a: any, b: any) => a.time - b.time);
+            return sorted.filter((item: any, idx: number, arr: any[]) => idx === 0 || item.time !== arr[idx - 1].time);
+          }
+        : (arr: any[]): any[] => {
+            const sorted = (arr || []).sort((a: any, b: any) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
+            return sorted.filter((item: any, idx: number, arr: any[]) => idx === 0 || item.time !== arr[idx - 1].time);
+          };
+      
+      data.value = transform(ohlc);
+      data2.value = transform(volume);
+      data3.value = transform(ma1);
+      data4.value = transform(ma2);
+      data5.value = transform(ma3);
+      data6.value = transform(ma4);
       chartWSReceived = true;
       isChartLoading2.value = false;
     } else if (msg.error) {
@@ -245,6 +346,81 @@ const theme = {
 
 const dlchart = ref<HTMLElement | null>(null);
 
+// Chart instance and series references
+let chart: any = null;
+let mainSeries: any = null;
+let Histogram: any = null;
+let MaSeries1: any = null;
+let MaSeries2: any = null;
+let MaSeries3: any = null;
+let MaSeries4: any = null;
+
+// Function to update main series based on chart type
+function updateMainSeries(): void {
+  if (!chart || !data.value.length) return;
+  
+  if (mainSeries) {
+    chart.removeSeries(mainSeries);
+  }
+  
+  switch (selectedChartType.value) {
+    case 'bar':
+      mainSeries = chart.addBarSeries({
+        downColor: theme.negative,
+        upColor: theme.positive,
+        lastValueVisible: false,
+        priceLineVisible: false,
+      });
+      mainSeries.setData(data.value);
+      break;
+    
+    case 'candlestick':
+      mainSeries = chart.addCandlestickSeries({
+        downColor: theme.negative,
+        upColor: theme.positive,
+        borderDownColor: theme.negative,
+        borderUpColor: theme.positive,
+        wickDownColor: theme.negative,
+        wickUpColor: theme.positive,
+        priceLineVisible: false,
+        lastValueVisible: false,
+      });
+      mainSeries.setData(data.value);
+      break;
+    
+    case 'line':
+      mainSeries = chart.addLineSeries({
+        color: theme.accent1,
+        lastValueVisible: false,
+        priceLineVisible: false,
+        lineWidth: 2,
+        crosshairMarkerVisible: true,
+      });
+      const lineData = data.value.map((d: OHLC) => ({
+        time: d.time,
+        value: d.close
+      }));
+      mainSeries.setData(lineData);
+      break;
+    
+    case 'area':
+      mainSeries = chart.addAreaSeries({
+        topColor: theme.accent1 + '80',
+        bottomColor: theme.accent1 + '10',
+        lineColor: theme.accent1,
+        lineWidth: 2,
+        lastValueVisible: false,
+        priceLineVisible: false,
+        crosshairMarkerVisible: true,
+      });
+      const areaData = data.value.map((d: OHLC) => ({
+        time: d.time,
+        value: d.close
+      }));
+      mainSeries.setData(areaData);
+      break;
+  }
+}
 
 // mounts daily chart (including volume)
 onMounted(async () => {
@@ -253,7 +429,7 @@ onMounted(async () => {
   const rect = chartDiv.getBoundingClientRect();
   const width = window.innerWidth <= 1150 ? 400 : rect.width;
   const height = rect.height <= 1150 ? 250 : rect.width;
-  const chart = createChart(chartDiv, {
+  chart = createChart(chartDiv, {
     height: height,
     width: width,
     layout: {
@@ -287,7 +463,8 @@ onMounted(async () => {
     },
   });
 
-  const barSeries = chart.addCandlestickSeries({
+  // Initialize with candlestick series
+  mainSeries = chart.addCandlestickSeries({
     downColor: theme.negative,
     upColor: theme.positive,
     borderDownColor: theme.negative,
@@ -298,7 +475,7 @@ onMounted(async () => {
     lastValueVisible: false,
   });
 
-  const Histogram = chart.addHistogramSeries({
+  Histogram = chart.addHistogramSeries({
     color: theme.text1,
     lastValueVisible: false,
     priceLineVisible: false,
@@ -308,7 +485,7 @@ onMounted(async () => {
     priceScaleId: '',
   });
 
-  const MaSeries1 = chart.addLineSeries({
+  MaSeries1 = chart.addLineSeries({
     color: theme.ma1,
     lastValueVisible: false,
     priceLineVisible: false,
@@ -316,7 +493,7 @@ onMounted(async () => {
     crosshairMarkerVisible: false,
   });
 
-  const MaSeries2 = chart.addLineSeries({
+  MaSeries2 = chart.addLineSeries({
     color: theme.ma2,
     lineWidth: 1,
     lastValueVisible: false,
@@ -324,7 +501,7 @@ onMounted(async () => {
     crosshairMarkerVisible: false,
   });
 
-  const MaSeries3 = chart.addLineSeries({
+  MaSeries3 = chart.addLineSeries({
     color: theme.ma3,
     lineWidth: 1,
     lastValueVisible: false,
@@ -332,7 +509,7 @@ onMounted(async () => {
     crosshairMarkerVisible: false,
   });
 
-  const MaSeries4 = chart.addLineSeries({
+  MaSeries4 = chart.addLineSeries({
     color: theme.ma4,
     lineWidth: 1,
     lastValueVisible: false,
@@ -347,67 +524,48 @@ onMounted(async () => {
     }
   });
 
-  // --- Add transform function for sorting and deduplication ---
-  function transformOHLC(arr: OHLC[]): OHLC[] {
-    if (!Array.isArray(arr)) return [];
-    const sorted = arr.slice().sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
-    return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time).map(o => ({ ...o, time: String(o.time) }));
-  }
-  function transformVolume(arr: Volume[]): Volume[] {
-    if (!Array.isArray(arr)) return [];
-    const sorted = arr.slice().sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
-    return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time).map(o => ({ ...o, time: String(o.time) }));
-  }
-  function transformMA(arr: MA[]): MA[] {
-    if (!Array.isArray(arr)) return [];
-    const sorted = arr.slice().sort((a, b) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0));
-    return sorted.filter((item, idx, arr) => idx === 0 || item.time !== arr[idx - 1].time).map(o => ({ ...o, time: String(o.time) }));
-  }
+  // --- Data is already correctly formatted from fetch, just pass through ---
+  // No transformation needed - intraday has Unix timestamps, daily/weekly has date strings
 
   watch(data, (newData: OHLC[]) => {
-    barSeries.setData(transformOHLC(newData));
+    if (!mainSeries || !newData.length) return;
+    if (selectedChartType.value === 'line' || selectedChartType.value === 'area') {
+      const lineData = newData.map((d: OHLC) => ({
+        time: d.time,
+        value: d.close
+      }));
+      mainSeries.setData(lineData);
+    } else {
+      mainSeries.setData(newData);
+    }
   });
 
   watch(data2, (newData2: Volume[]) => {
-    Histogram.setData(transformVolume(newData2));
+    if (newData2 && newData2.length) {
+      Histogram.setData(newData2);
+    }
   });
 
   watch(data3, (newData3: MA[] | null) => {
-    if (newData3 === null) {
-      MaSeries1.setData([]); // Clear the series data when null
-    } else {
-      MaSeries1.setData(transformMA(newData3));
-    }
+    MaSeries1.setData(newData3 || []);
   });
 
   watch(data4, (newData4: MA[] | null) => {
-    if (newData4 === null) {
-      MaSeries2.setData([]); // Clear the series data when null
-    } else {
-      MaSeries2.setData(transformMA(newData4));
-    }
+    MaSeries2.setData(newData4 || []);
   });
 
   watch(data5, (newData5: MA[] | null) => {
-    if (newData5 === null) {
-      MaSeries3.setData([]); // Clear the series data when null
-    } else {
-      MaSeries3.setData(transformMA(newData5));
-    }
+    MaSeries3.setData(newData5 || []);
   });
 
   watch(data6, (newData6: MA[] | null) => {
-    if (newData6 === null) {
-      MaSeries4.setData([]); // Clear the series data when null
-    } else {
-      MaSeries4.setData(transformMA(newData6));
-    }
+    MaSeries4.setData(newData6 || []);
   });
 
   watch(data2, (newData2: Volume[]) => {
-    const cleanData2 = transformVolume(newData2);
-    const relativeVolumeData = cleanData2.map((dataPoint: Volume, index: number) => {
-      const averageVolume = calculateAverageVolume(cleanData2, index);
+    if (!newData2 || !newData2.length) return;
+    const relativeVolumeData = newData2.map((dataPoint: Volume, index: number) => {
+      const averageVolume = calculateAverageVolume(newData2, index);
       const relativeVolume = dataPoint.value / averageVolume;
       const color = relativeVolume > 2 ? theme.accent1 : theme.volume;
       return {
@@ -468,27 +626,6 @@ onUnmounted(() => {
 
 <style scoped>
 
-.title3 {
-  border: none;
-  width: 98%;
-  margin: none;
-  align-self: center;
-  justify-content: center;
-  padding: 7px 3px;
-}
-
-.badge {
-  position: absolute;
-  top: 5px;
-  left: 10px;
-  background-color: var(--base2);
-  color: var(--text1);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  z-index: 9;
-}
-
 .chart-container {
   position: relative;
   width: 100%;
@@ -497,6 +634,108 @@ onUnmounted(() => {
   overflow: hidden;
   margin-top: 5px;
   margin-bottom: 5px;
+}
+
+.chart-controls {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 5;
+  gap: 8px;
+}
+
+.timeframe-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  background-color: var(--base2);
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.tf-btn {
+  padding: 3px 6px;
+  background-color: var(--base3);
+  color: var(--text2);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tf-btn:hover {
+  background-color: var(--base4);
+  color: var(--text1);
+}
+
+.tf-btn.selected {
+  background-color: var(--accent1);
+  color: var(--base1);
+}
+
+.charttype-dropdown {
+  position: relative;
+  background-color: var(--base2);
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.dropdown-selected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text1);
+  white-space: nowrap;
+  min-width: 100px;
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  color: var(--text2);
+  transition: transform 0.2s ease;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-list {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background-color: var(--base2);
+  border: 1px solid var(--base3);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  z-index: 100;
+  min-width: 120px;
+}
+
+.dropdown-item {
+  padding: 8px 12px;
+  font-size: 11px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background-color: var(--base3);
+  color: var(--text1);
 }
 
 .loading-container2 {
