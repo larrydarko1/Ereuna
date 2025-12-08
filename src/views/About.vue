@@ -36,7 +36,7 @@
               <div class="stat-label">Documents</div>
             </div>
             <div class="stat-item">
-              <div class="stat-number">58.000+</div>
+              <div class="stat-number">60.000+</div>
               <div class="stat-label">Financial Assets Covered</div>
             </div>
           </div>

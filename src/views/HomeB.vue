@@ -40,6 +40,7 @@
     </div>
     <div class="hero">
       <div class="content">
+        <div class="beta-badge">OPEN BETA</div>
         <p style="cursor: default;" class="description">Unlock Smarter Investing with <span style="color: #8c8dfe; font-size: inherit ;">Ereuna</span></p>
         <p style="cursor: default;" class="call-to-action">Cut your research time and costs—invest with confidence.</p>
         <br>
@@ -270,7 +271,7 @@ function redirectToSign() {
 const faqs = ref([
   {
     question: 'Will there be more financial instruments added in the future?',
-    answer: 'Of Course! as the platform grows, there are plans to add more financial instruments to the platform, such as European Stocks, Asian Stocks, Forex and Cryptocurrencies.',
+    answer: 'Of Course! as the platform grows, there are plans to add more financial instruments to the platform, such as European Stocks, Asian Stocks, and Forex.',
     show: false
   },
   {
@@ -486,6 +487,20 @@ function setupCardAnimations() {
   font-size: 5rem;
   font-weight: bold;
   margin: 0;
+}
+
+.beta-badge {
+  background: var(--text2);
+  color: $text4;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 15px;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .pricing-card h3 {
@@ -1383,6 +1398,12 @@ a.social {
     word-wrap: break-word; /* Break text if it overflows the screen */
     padding-left: 5%;
     padding-right: 5%;
+  }
+
+  .beta-badge {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    margin-bottom: 10px;
   }
 
   .call-to-action {

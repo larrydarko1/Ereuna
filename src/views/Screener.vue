@@ -2315,7 +2315,7 @@ function getTooltipText(id: string): string {
     case 'gap':
       return 'Gap % is a measure of the percentage change in a stock\'s price from the previous day\'s close to the current day\'s open. It is calculated as (Current Open - Previous Close) / Previous Close. A positive gap % indicates an upward price movement, while a negative gap % indicates a downward price movement.';
     case 'assetType':
-      return 'Category of the asset, in this case we support Stocks, ETFs and Mutual Funds.';
+      return 'Category of the asset, in this case we support Stocks, ETFs, Mutual Funds, and Cryptocurrencies.';
     case 'iv':
       return `Intrinsic Value (IV) estimates a stock's true worth using a Discounted Cash Flow (DCF) model. We calculate IV by:
       1. Summing the last 20 quarters of Free Cash Flow (FCF) to get annual FCF for the past 5 years.

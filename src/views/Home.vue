@@ -408,7 +408,7 @@ const faqs = ref([
   },
     {
     question: 'Will there be more financial instruments added in the future?',
-    answer: 'Of course! As the platform grows, there are plans to add more financial instruments to the platform, such as European Stocks, Asian Stocks, Forex and Cryptocurrencies.',
+    answer: 'Of course! As the platform grows, there are plans to add more financial instruments to the platform, such as European Stocks, Asian Stocks, and Forex.',
     show: false
   },
   {
@@ -423,7 +423,7 @@ const faqs = ref([
   },
   {
     question: 'What is the payment method?',
-    answer: 'Credit Card via Stripe. Cryptocurrencies will be added in the future.',
+    answer: 'Credit Card via Stripe or Cryptocurrencies.',
     show: false
   },
   {

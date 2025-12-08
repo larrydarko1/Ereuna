@@ -513,6 +513,148 @@ async def getPrice():
             pass  # Print removed for clean output
     else:
         pass  # Print removed for clean output
+
+# Fetches crypto prices from Tiingo Crypto API and updates OHCLVData collection
+async def getCryptoPrice():
+    daily_collection = db["OHCLVData"]
+    asset_info_collection = db["AssetInfo"]
+    intraday_1m_collection = db["OHCLVData1m"]
+
+    # Get crypto symbols from AssetInfo collection (symbols with AssetType='Crypto' and not delisted)
+    crypto_symbols = [doc['Symbol'] async for doc in asset_info_collection.find({
+        'AssetType': 'Crypto',
+        'Delisted': False
+    })]
+    
+    if not crypto_symbols:
+        pass  # No crypto to fetch
+        return
+    
+    # Tiingo allows max 5 tickers per request for crypto API
+    BATCH_SIZE = 5
+    total_batches = (len(crypto_symbols) + BATCH_SIZE - 1) // BATCH_SIZE
+    
+    # Only fetch COMPLETED candles - crypto trades 24/7 so today's candle is incomplete
+    # Fetch from 2 days ago to yesterday to ensure we have complete daily candles
+    today = dt.datetime.now()
+    yesterday = today - dt.timedelta(days=1)
+    two_days_ago = today - dt.timedelta(days=2)
+    
+    print(f"Fetching crypto prices for {len(crypto_symbols)} assets in {total_batches} batches...")
+    
+    all_documents = []
+    processed_batches = 0
+    
+    def print_batch_progress(processed, total, bar_length=50):
+        percentage = int(100 * processed / total) if total > 0 else 0
+        filled_length = int(bar_length * processed / total) if total > 0 else 0
+        bar = '█' * filled_length + '░' * (bar_length - filled_length)
+        print(f'\rCrypto Batches: |{bar}| {percentage}% ({processed}/{total})', end='', flush=True)
+    
+    print_batch_progress(0, total_batches)
+    
+    # Process in batches of 5
+    for i in range(0, len(crypto_symbols), BATCH_SIZE):
+        batch_symbols = crypto_symbols[i:i + BATCH_SIZE]
+        tickers_param = ','.join([s.lower() for s in batch_symbols])
+        
+        # Fetch crypto prices (daily resolution) - only completed candles up to yesterday
+        # endDate is exclusive, so we use today to get up to (but not including) today
+        url = f'https://api.tiingo.com/tiingo/crypto/prices?tickers={tickers_param}&startDate={two_days_ago.strftime("%Y-%m-%d")}&endDate={today.strftime("%Y-%m-%d")}&resampleFreq=1day&token={api_key}'
+        
+        try:
+            response = requests.get(url, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if data:
+                    # Process crypto data
+                    for crypto_data in data:
+                        ticker = crypto_data.get('ticker', '').upper()
+                        price_data = crypto_data.get('priceData', [])
+                        
+                        if not price_data:
+                            continue
+                        
+                        for candle in price_data:
+                            # Parse timestamp
+                            timestamp_str = candle.get('date')
+                            if timestamp_str:
+                                timestamp = dt.datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                            else:
+                                continue
+                            
+                            # Skip today's candle if it somehow got included (incomplete candle)
+                            if timestamp.date() >= today.date():
+                                continue
+                            
+                            # Create document matching stock OHLCV structure
+                            crypto_doc = {
+                                'tickerID': ticker,
+                                'timestamp': timestamp.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None),
+                                'open': float(candle.get('open', 0)),
+                                'high': float(candle.get('high', 0)),
+                                'low': float(candle.get('low', 0)),
+                                'close': float(candle.get('close', 0)),
+                                'volume': float(candle.get('volume', 0))
+                            }
+                            
+                            all_documents.append(crypto_doc)
+            else:
+                pass  # Silently skip failed batches
+                
+        except Exception as e:
+            pass  # Silently skip failed batches
+        
+        processed_batches += 1
+        print_batch_progress(processed_batches, total_batches)
+    
+    print()  # New line after progress bar
+    
+    # Insert all collected documents
+    if all_documents:
+        total_docs = len(all_documents)
+        print(f"Inserting {total_docs} crypto records...")
+        
+        def print_insert_progress(completed, total, bar_length=50):
+            percentage = int(100 * completed / total) if total > 0 else 0
+            filled_length = int(bar_length * completed / total) if total > 0 else 0
+            bar = '█' * filled_length + '░' * (bar_length - filled_length)
+            print(f'\rCrypto Data: |{bar}| {percentage}%', end='', flush=True)
+        
+        for idx, crypto_doc in enumerate(all_documents):
+            # Delete existing daily document with same tickerID and timestamp
+            await daily_collection.delete_many({
+                'tickerID': crypto_doc['tickerID'],
+                'timestamp': crypto_doc['timestamp']
+            })
+            await daily_collection.insert_one(crypto_doc)
+            
+            # Also upsert to 1m collection with 20:00:00 timestamp
+            timestamp_1m = crypto_doc['timestamp'].replace(hour=20, minute=0, second=0, microsecond=0)
+            intraday_1m_doc = {
+                'tickerID': crypto_doc['tickerID'],
+                'timestamp': timestamp_1m,
+                'open': crypto_doc['close'],
+                'high': crypto_doc['close'],
+                'low': crypto_doc['close'],
+                'close': crypto_doc['close'],
+                'volume': 0
+            }
+            
+            # Upsert to 1m collection
+            await intraday_1m_collection.delete_many({
+                'tickerID': intraday_1m_doc['tickerID'],
+                'timestamp': intraday_1m_doc['timestamp']
+            })
+            await intraday_1m_collection.insert_one(intraday_1m_doc)
+            
+            # Update progress every 10 documents or at the end
+            if (idx + 1) % 10 == 0 or (idx + 1) == total_docs:
+                print_insert_progress(idx + 1, total_docs)
+        
+        print()  # New line after progress bar
         
 # Get Monday date of this week
 today = dt.date.today()
@@ -522,6 +664,13 @@ monday = dt.datetime.combine(today - dt.timedelta(days=today.weekday()), dt.time
 async def updateWeekly():
     # Delete all filtered documents on OHCLVData2 (assume this is sync, update if needed)
     remove_documents_with_timestamp(monday.strftime('%Y-%m-%dT%H:%M:%S.%f+00:00'))
+    
+    # Get asset types to determine which assets are crypto (need 7-day weeks) vs stocks (5-day weeks)
+    asset_info_collection = db['AssetInfo']
+    crypto_symbols = set([doc['Symbol'] async for doc in asset_info_collection.find({
+        'AssetType': 'Crypto',
+        'Delisted': False
+    })])
 
     pipeline = [
         {'$match': {'timestamp': {'$gte': monday}}},
@@ -550,9 +699,18 @@ async def updateWeekly():
     updates = []
     for result in results:
         if result['documents']:
+            ticker = result['_id']
+            is_crypto = ticker in crypto_symbols
+            
+            # For crypto: weekly candle = 7 days (Mon-Sun)
+            # For stocks: weekly candle = 5 trading days (Mon-Fri)
+            # Both use Monday as the timestamp, but crypto includes Sat/Sun data
+            # The aggregation already includes all days from Monday onwards,
+            # so stocks naturally exclude weekends (no trading data), crypto includes them
+            
             updates.append(
                 InsertOne({
-                    'tickerID': result['_id'],
+                    'tickerID': ticker,
                     'timestamp': monday,
                     'open': result['weekly_candle']['open'],
                     'high': result['weekly_candle']['high'],
@@ -2350,10 +2508,10 @@ async def update_market_stats():
         industry_tier_list.append({"industry": industry, "average_return": group["gain"].median(), "count": len(group)})
     industry_tier_list.sort(key=lambda x: x["average_return"], reverse=True)
 
-    # Calculate SMA stats for ALL assets and by AssetType (including OTC and PINK)
+    # Calculate SMA stats for ALL assets and by AssetType (including OTC, PINK, and Crypto)
     sma_periods = [5, 10, 20, 50, 100, 150, 200]
     sma_stats = {}
-    asset_types_for_sma = ["ALL", "Stock", "ETF", "Mutual Fund", "OTC", "PINK"]
+    asset_types_for_sma = ["ALL", "Stock", "ETF", "Mutual Fund", "OTC", "PINK", "Crypto"]
     
     # Fetch all closes in one aggregation pipeline
     pipeline = [
@@ -2399,6 +2557,11 @@ async def update_market_stats():
                         continue
                     symbol_exchange = info.get("Exchange", "")
                     if symbol_exchange not in ["NYSE", "NASDAQ"]:
+                        continue
+                elif asset_type == "Crypto":
+                    # Only include crypto assets
+                    symbol_asset_type = info.get("AssetType", "")
+                    if symbol_asset_type != "Crypto":
                         continue
                 elif asset_type != "ALL":
                     # For ETF and Mutual Fund, filter normally
@@ -2588,8 +2751,20 @@ async def update_market_stats():
     )
     
 async def Daily():
-    # Run getPrice first (sequentially)
-    await getPrice()
+    # Run getPrice and getCryptoPrice sequentially
+    # Check if today is a weekday (0=Monday, 6=Sunday)
+    today = datetime.now()
+    is_weekday = today.weekday() < 5  # 0-4 are Monday to Friday
+    
+    if is_weekday:
+        print(f"Weekday detected ({today.strftime('%A')}): Running stock price updates...")
+        await getPrice()
+    else:
+        print(f"Weekend detected ({today.strftime('%A')}): Skipping stock price updates...")
+    
+    # Always run crypto price updates (crypto markets are 24/7)
+    print("Running crypto price updates...")
+    await getCryptoPrice()
 
     print("Processing market data tasks...")
     

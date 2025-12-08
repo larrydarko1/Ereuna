@@ -1,7 +1,7 @@
 <template>
 <div class="center-container">
   <h1>Supported Tickers</h1>
-  <p>As of patch 3.9.1, Ereuna supports and maintains a database of 58,000+ ticker symbols across all supported asset classes (stocks, ETFs, and mutual funds).</p>
+  <p>As of patch 2025.248, Ereuna supports and maintains a database of 60,000+ ticker symbols across all supported asset classes (stocks, ETFs, mutual funds, and cryptocurrencies).</p>
 
   <h3>Stocks</h3>
   <p>Ereuna provides access to over 19,000 stocks traded on major markets:</p>
@@ -21,8 +21,17 @@
     <li><strong>Fundamentals:</strong> Quarterly updates for fundamental financial data</li>
   </ul>
 
-  <h3>Delisted Stocks</h3>
-  <p>14,000+ delisted stocks are also available for historical analysis.</p>
+  <h3>Cryptocurrencies</h3>
+  <p>Access to 2,400+ cryptocurrency pairs with End-of-Day (EOD) data:</p>
+  <ul>
+    <li><strong>Active Trading Pairs:</strong> 1,380+ actively traded cryptocurrencies</li>
+    <li><strong>EOD Price Updates:</strong> Daily price data updated at market close</li>
+    <li><strong>Historical Data:</strong> Full historical price data available for analysis</li>
+    <li><strong>Real-time Updates:</strong> Coming in future patches</li>
+  </ul>
+
+  <h3>Delisted Assets</h3>
+  <p>15,000+ delisted assets are also available for historical analysis.</p>
   <img src="/docs/delisted.png" alt="Delisted Stocks" class="delisted-pic" />
 
   <div class="disclaimer-box">
@@ -30,7 +39,6 @@
     <p>In upcoming patches, Ereuna will expand support to include:</p>
     <ul>
       <li>Forex (foreign exchange) markets</li>
-      <li>Cryptocurrencies</li>
     </ul>
     <p>Stay updated with our release notes for the latest additions.</p>
   </div>
