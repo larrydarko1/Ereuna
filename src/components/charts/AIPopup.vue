@@ -15,10 +15,6 @@
       </div>
       
       <div class="ai-popup-content">
-        <div class="ai-section">
-          <label>Model</label>
-          <div class="ai-value">{{ aiData?.Model || 'N/A' }}</div>
-        </div>
         
         <div class="ai-section">
           <label>Recommendation</label>
@@ -30,11 +26,6 @@
         <div class="ai-section">
           <label>Intrinsic Value</label>
           <div class="ai-value">{{ formatIntrinsicValue(aiData?.IntrinsicValue) }}</div>
-        </div>
-        
-        <div class="ai-section">
-          <label>Last Updated</label>
-          <div class="ai-value">{{ formatDate(aiData?.UpdatedAt) }}</div>
         </div>
         
         <div class="ai-section full-width">

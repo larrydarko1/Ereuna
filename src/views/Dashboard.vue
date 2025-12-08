@@ -24,7 +24,7 @@
               <strong>Short Term Outlook (1-3 Months)</strong>
               <p>Based on recent market momentum, technical indicators, and short-term trends.</p>
               <div class="tooltip-metric">
-                <span class="metric-label">{{ marketOutlook.shortTermPercent }}% of stocks trending up</span>
+                <span class="metric-label">{{ marketOutlook.shortTermPercent }}% of assets trending up</span>
               </div>
             </div>
           </div>
@@ -35,7 +35,7 @@
               <strong>Mid Term Outlook (3-6 Months)</strong>
               <p>Reflects quarterly performance trends and medium-term market cycles.</p>
               <div class="tooltip-metric">
-                <span class="metric-label">{{ marketOutlook.midTermPercent }}% of stocks trending up</span>
+                <span class="metric-label">{{ marketOutlook.midTermPercent }}% of assets trending up</span>
               </div>
             </div>
           </div>
@@ -46,7 +46,7 @@
               <strong>Long Term Outlook (6-12 Months)</strong>
               <p>Indicates annual trends, fundamental strength, and sustained market direction.</p>
               <div class="tooltip-metric">
-                <span class="metric-label">{{ marketOutlook.longTermPercent }}% of stocks trending up</span>
+                <span class="metric-label">{{ marketOutlook.longTermPercent }}% of assets trending up</span>
               </div>
             </div>
           </div>
@@ -69,11 +69,11 @@
             </div>
             <div v-if="tooltipVisible === 'advanceDecline'" class="breadth-tooltip">
               <strong>Advance/Decline Ratio</strong>
-              <p>Measures the proportion of stocks that are advancing (green), declining (red), or unchanged (gray) in price today.</p>
+              <p>Measures the proportion of assets that are advancing (green), declining (red), or unchanged (gray) in price today.</p>
               <ul>
-                <li><span class="positive">●</span> Advancing: Stocks closing higher than previous close</li>
-                <li><span class="negative">●</span> Declining: Stocks closing lower than previous close</li>
-                <li><span class="neutral">●</span> Unchanged: Stocks with no price change</li>
+                <li><span class="positive">●</span> Advancing: Assets closing higher than previous close</li>
+                <li><span class="negative">●</span> Declining: Assets closing lower than previous close</li>
+                <li><span class="neutral">●</span> Unchanged: Assets with no price change</li>
               </ul>
             </div>
           </div>
@@ -91,11 +91,11 @@
             </div>
             <div v-if="tooltipVisible === 'newHighsLows'" class="breadth-tooltip">
               <strong>New Highs/Lows</strong>
-              <p>Shows the percentage of stocks reaching new 52-week highs or lows today.</p>
+              <p>Shows the percentage of assets reaching new 52-week highs or lows today.</p>
               <ul>
-                <li><span class="positive">●</span> New Highs: Stocks at their highest price in 52 weeks</li>
-                <li><span class="negative">●</span> New Lows: Stocks at their lowest price in 52 weeks</li>
-                <li><span class="neutral">●</span> Neutral: Stocks not at extremes</li>
+                <li><span class="positive">●</span> New Highs: Assets at their highest price in 52 weeks</li>
+                <li><span class="negative">●</span> New Lows: Assets at their lowest price in 52 weeks</li>
+                <li><span class="neutral">●</span> Neutral: Assets not at extremes</li>
               </ul>
             </div>
           </div>
@@ -446,7 +446,7 @@ const topLosers = computed(() => {
 });
 
 // --- Asset type selector for SMA distribution ---
-const selectedAssetType = ref<'ALL' | 'Stock' | 'ETF' | 'Mutual Fund' | 'OTC' | 'PINK'>('ALL');
+const selectedAssetType = ref<'ALL' | 'Stock' | 'ETF' | 'Mutual Fund' | 'OTC' | 'PINK' | 'Crypto'>('ALL');
 const assetDropdownOpen = ref(false);
 const assetTypeOptions = [
   { value: 'ALL' as const, label: 'All Assets' },
@@ -454,14 +454,15 @@ const assetTypeOptions = [
   { value: 'ETF' as const, label: 'ETFs Only' },
   { value: 'Mutual Fund' as const, label: 'Mutual Funds Only' },
   { value: 'OTC' as const, label: 'OTC Stocks' },
-  { value: 'PINK' as const, label: 'PINK Stocks' }
+  { value: 'PINK' as const, label: 'PINK Stocks' },
+  { value: 'Crypto' as const, label: 'Cryptocurrencies' }
 ];
 
 function toggleAssetDropdown() {
   assetDropdownOpen.value = !assetDropdownOpen.value;
 }
 
-function selectAssetType(value: 'ALL' | 'Stock' | 'ETF' | 'Mutual Fund' | 'OTC' | 'PINK') {
+function selectAssetType(value: 'ALL' | 'Stock' | 'ETF' | 'Mutual Fund' | 'OTC' | 'PINK' | 'Crypto') {
   selectedAssetType.value = value;
   assetDropdownOpen.value = false;
 }
@@ -1171,8 +1172,7 @@ onMounted(() => {
   border-radius: 7px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   z-index: 100;
-  max-height: 200px;
-  overflow-y: auto;
+  /* Removed max-height and overflow-y to allow full dropdown without scrolling */
 }
 
 .asset-type-dropdown .dropdown-item {
@@ -1183,6 +1183,14 @@ onMounted(() => {
   font-size: 0.95rem;
   font-weight: 600;
   transition: background 0.18s, color 0.18s;
+}
+
+.asset-type-dropdown .dropdown-item:first-child {
+  border-radius: 7px 7px 0 0;
+}
+
+.asset-type-dropdown .dropdown-item:last-child {
+  border-radius: 0 0 7px 7px;
 }
 
 .asset-type-dropdown .dropdown-item:hover {

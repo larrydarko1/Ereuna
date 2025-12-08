@@ -27,7 +27,7 @@
       </div>
       <div class="nav-title">
         <h1>Docs</h1>
-        <span class="nav-version">v3.9.2</span>
+        <span class="nav-version">2025.248</span>
       </div>
     </div>
 
@@ -45,7 +45,7 @@
       >
         {{ item }}
       </p>
-      <span class="version">Ereuna v3.9.2</span>
+      <span class="version">Ereuna 2025.248</span>
     </div>
     
     <div class="side2" :class="{ hidden: isMobile && mobileView !== 'submenu' }">
@@ -229,132 +229,206 @@ function getComponentName(item: string) {
 <style scoped lang="scss">
 @use '../style.scss' as *;
 
-.main {
-  height: 100vh;    // Fill vertical space
-  overflow-y: auto; // Enable vertical scroll only
-  overflow-x: wrap; // Prevent horizontal scroll
-  box-sizing: border-box;
+.documentation {
+  background: $base1;
+  height: 100vh;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 280px 320px 1fr;
+  grid-template-rows: 1fr;
+  gap: 0;
+  overflow: hidden;
 }
 
 .side1 {
-  background: $base2;
-  flex-direction: column;
-  height: 100vh;
-  position: relative;
-  z-index: 5000;
-  flex: 0 0 15%;
-}
-
-.side1 p {
-  font-size: 1.5rem;
-  color: $text2;
-  text-align: left;
-  padding-left: 2rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  cursor: pointer;
-  margin: 1rem;
-  border-radius: 10px;
-}
-
-.side1 p.active {
-  color: $text1;
-  background-color: $base4;
-}
-
-.side1 span {
-  position: absolute;
-  bottom: 1%;
-  left: 30%;
-}
-
-.side1 p:hover {
-  color: $text1;
-  background-color: $base4;
-}
-
-.side1 p.active {
-  color: $text1;
-  background-color: $base1;
-}
-
-.side2 {
-  background: $base1;
-  flex-direction: column;
-  height: 100vh;
-  min-width: 300px;
-  position: relative;
-  overflow-y: scroll;
-  z-index: 1000;
-  flex: 0 0 25%;
-}
-
-.side2 p {
-  font-size: 1.3rem;
-  color: $text2;
-  text-align: left;
-  padding-left: 2rem;
-  padding-right: 2rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  cursor: pointer;
-  margin: 2rem;
-  border-radius: 10px;
-}
-
-.side2 p.bold {
-  font-weight: bold;
-}
-
-.side2 p:hover {
-  color: $text1;
-  background-color: $base2;
-}
-
-.side2 p.active {
-  color: $text1;
-  background-color: $base2;
-}
-
-.documentation {
-  background: $base1;
-  height: 100%;
-  width: 100%;
+  background: linear-gradient(135deg, $base2 0%, $base1 100%);
   display: flex;
+  flex-direction: column;
+  position: relative;
+  border-right: 1px solid $base3;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 5000;
 }
 
-.icon {
-  height: 50px;
+.side1 .icon {
+  height: auto;
+  width: auto;
+  max-width: 200px;
   margin: 20px;
   cursor: pointer;
 }
 
+.side1 p {
+  font-size: 1rem;
+  font-weight: 500;
+  color: $text2;
+  text-align: left;
+  padding: 12px 20px;
+  margin: 4px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  
+  &:hover {
+    color: $text1;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  &.active {
+    color: $text4;
+    background: linear-gradient(135deg, $accent1 0%, $accent2 100%);
+    box-shadow: 0 4px 12px rgba($accent1, 0.3);
+    font-weight: 600;
+  }
+}
+
+.side1 .version {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  font-size: 0.8rem;
+  color: $text3;
+  text-align: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  backdrop-filter: blur(10px);
+}
+
+.side2 {
+  background: $base1;
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-right: 1px solid $base3;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $base3;
+    border-radius: 3px;
+    
+    &:hover {
+      background: $accent1;
+    }
+  }
+}
+
+.side2 p {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: $text2;
+  text-align: left;
+  padding: 10px 20px;
+  margin: 2px 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  
+  &.bold {
+    font-weight: 600;
+    color: $text1;
+  }
+  
+  &:hover {
+    color: $text1;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  &.active {
+    color: $text1;
+    background: linear-gradient(135deg, rgba($accent1, 0.1) 0%, rgba($accent2, 0.1) 100%);
+    font-weight: 500;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+}
+
 .main {
-  padding: 3rem;
-  overflow-y: scroll;
-  flex: 0 0 60%;
-  background: $base4;
+  background: linear-gradient(135deg, $base4 0%, $base1 100%);
+  padding: 32px 40px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $base3;
+    border-radius: 4px;
+    
+    &:hover {
+      background: $accent1;
+    }
+  }
+  
+  // Add subtle pattern overlay for depth
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 600px; // After sidebars
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.01) 0%, transparent 50%);
+    background-size: 400px 400px;
+    background-repeat: no-repeat;
+    background-position: center;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  // Ensure content is above the overlay
+  & > * {
+    position: relative;
+    z-index: 2;
+  }
 }
 
 //mobile version
 @media (max-width: 768px) {
   .documentation {
+    display: flex;
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
+    grid-template-columns: none;
+    gap: 0;
   }
 
   .mobile-nav {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    padding: 1rem;
-    background: $base4;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, $base4 0%, $base2 100%);
     align-items: center;
-    border-bottom: 1px solid $base2;
+    border-bottom: 1px solid $base3;
     position: sticky;
     top: 0;
     z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     
     .nav-top {
       display: flex;
@@ -367,8 +441,9 @@ function getComponentName(item: string) {
         height: 40px;
         width: auto;
         cursor: pointer;
-        opacity: 0.8;
-        transition: opacity 0.3s ease;
+        opacity: 0.9;
+        transition: opacity 0.2s ease;
+        
         &:hover {
           opacity: 1;
         }
@@ -376,19 +451,20 @@ function getComponentName(item: string) {
       
       .nav-buttons {
         display: flex;
-        gap: 0.75rem;
+        gap: 0.5rem;
+        
         button {
-          font-size: 1.1rem;
+          font-size: 0.9rem;
           font-weight: 600;
           background: $base2;
           color: $text2;
           border: 1px solid $base3;
           border-radius: 8px;
-          padding: 0.875rem 1.25rem;
+          padding: 0.75rem 1rem;
           cursor: pointer;
-          transition: all 0.15s ease;
+          transition: all 0.2s ease;
           flex: 1;
-          max-width: 100px;
+          max-width: 80px;
           
           /* Reset all default button styles */
           outline: none;
@@ -402,12 +478,13 @@ function getComponentName(item: string) {
           box-shadow: none;
           
           &.active {
-            background: $accent1 !important;
+            background: linear-gradient(135deg, $accent1 0%, $accent2 100%) !important;
             color: $base4 !important;
             border-color: $accent1 !important;
+            box-shadow: 0 4px 12px rgba($accent1, 0.3);
           }
           
-          &:hover {
+          &:hover:not(.active) {
             background: $base3;
             color: $text1;
           }
@@ -420,11 +497,12 @@ function getComponentName(item: string) {
           &:active {
             background: $base2;
             color: $text2;
+            transform: translateY(0);
           }
           
           &.active:hover,
           &.active:focus {
-            background: $accent1 !important;
+            background: linear-gradient(135deg, $accent1 0%, $accent2 100%) !important;
             color: $base4 !important;
           }
         }
@@ -438,18 +516,23 @@ function getComponentName(item: string) {
       gap: 0.5rem;
       
       h1 {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         font-weight: 700;
         color: $text1;
         margin: 0;
         line-height: 1;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
       }
       
       .nav-version {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         color: $text2;
         font-weight: 500;
         opacity: 0.8;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 2px 8px;
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
       }
     }
   }
@@ -466,28 +549,69 @@ function getComponentName(item: string) {
     padding: 0;
     margin: 0;
     flex: none;
+    border-right: none;
+    box-shadow: none;
   }
 
   .side1 {
-    background: $base2;
-    height: calc(100vh - 80px);
+    background: linear-gradient(135deg, $base2 0%, $base1 100%);
+    height: calc(100vh - 120px);
     overflow-y: auto;
     padding: 1rem 0;
+    
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: $base3;
+      border-radius: 3px;
+    }
   }
 
   .side2 {
     background: $base1;
-    height: calc(100vh - 80px);
+    height: calc(100vh - 120px);
     overflow-y: auto;
     padding: 1rem 0;
+    
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: $base3;
+      border-radius: 3px;
+    }
   }
 
   .main {
-    padding: 1rem;
+    padding: 1.5rem;
     overflow-y: auto;
-    height: calc(100vh - 80px);
-    background: $base4;
+    height: calc(100vh - 120px);
+    background: linear-gradient(135deg, $base4 0%, $base1 100%);
     flex: 1;
+    
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: $base3;
+      border-radius: 3px;
+    }
   }
 
   .side1.hidden,
@@ -497,21 +621,26 @@ function getComponentName(item: string) {
   }
 
   .side1 p {
-    font-size: 1.6rem;
+    font-size: 1.1rem;
     font-weight: 600;
     padding: 1rem 1.5rem;
-    margin: 0.5rem 1rem;
+    margin: 0.25rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
   }
 
   .side2 p {
-    font-size: 1.5rem;
+    font-size: 1rem;
     font-weight: 500;
-    padding: 0.75rem 1.5rem;
-    margin: 0.25rem 1rem;
+    padding: 0.875rem 1.5rem;
+    margin: 0.125rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
   }
 
-  .icon {
+  .side1 .icon {
     height: 40px;
+    width: auto;
     margin: 1rem;
   }
 

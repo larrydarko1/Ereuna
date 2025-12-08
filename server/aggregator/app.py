@@ -152,11 +152,9 @@ async def startup():
     app.state.flush_task = asyncio.create_task(flush_daily_weekly_candles_at_market_close(daily_collection, weekly_collection))
 
     # organizer task to run Daily() 3 hours after market close (automatically handles DST)
+    # Runs every day (including weekends) to support crypto data updates
     async def schedule_organizer_daily():
         from datetime import datetime, timedelta, timezone
-
-        def is_trading_day(dt):
-            return dt.weekday() < 5
         
         def get_organizer_hour_utc():
             """Calculate organizer run time: 3 hours after market close (4 PM ET + 3hrs = 7 PM ET)"""
@@ -176,9 +174,8 @@ async def startup():
             # If we've already passed organizer time today, schedule for tomorrow
             if now >= next_run:
                 next_run += timedelta(days=1)
-            # Skip to next trading day if next_run falls on weekend
-            while not is_trading_day(next_run):
-                next_run += timedelta(days=1)
+            # No longer skipping weekends - Daily() now runs every day for crypto updates
+            # Daily() internally checks if it's a weekday to decide whether to fetch stock prices
             wait = (next_run - now).total_seconds()
             if wait > 0:
                 await asyncio.sleep(wait)

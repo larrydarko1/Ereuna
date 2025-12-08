@@ -299,14 +299,33 @@
 
       <div class="portfolio-charts">
         <div class="portfolio-linechart-container card" aria-label="Portfolio total value over time chart">
-          <div class="linechart-fixed-height">
-            <Line :data="lineData" :options="lineOptions" />
+          <div class="chart-inner-wrapper">
+            <h3 style="color: var(--accent1); margin-bottom: 12px; font-size: 1rem;">Portfolio Value</h3>
+            <div class="linechart-fixed-height">
+              <template v-if="portfolioValueHistory.length === 0">
+                <div class="no-data-message" style="display:flex; align-items: center; justify-content: center; height: 100%; color: var(--text2);">
+                  <strong>No Closed Trades Yet</strong>
+                </div>
+              </template>
+              <template v-else>
+                <Line :data="lineData" :options="lineOptions" />
+              </template>
+            </div>
           </div>
         </div>
         <div class="portfolio-bar-chart-container card" aria-label="Trade returns bar chart">
-          <h3 style="color: var(--accent1); margin-bottom: 12px;">Trade Returns (%)</h3>
-          <div class="linechart-fixed-height">
-            <Bar :data="tradeReturnsChartData" :options="(tradeReturnsChartOptions as any)" />
+          <div class="chart-inner-wrapper">
+            <h3 style="color: var(--accent1); margin-bottom: 12px; font-size: 1rem;">Trade Returns (%)</h3>
+            <div class="linechart-fixed-height">
+              <template v-if="!portfolioSummary?.tradeReturnsChart || !Array.isArray(portfolioSummary.tradeReturnsChart.labels) || portfolioSummary.tradeReturnsChart.labels.length === 0">
+                <div class="no-data-message" style="display:flex; align-items: center; justify-content: center; height: 100%; color: var(--text2);">
+                  <strong>No Closed Trades Yet</strong>
+                </div>
+              </template>
+              <template v-else>
+                <Bar :data="tradeReturnsChartData" :options="(tradeReturnsChartOptions as any)" />
+              </template>
+            </div>
           </div>
         </div>
       </div>
@@ -409,28 +428,30 @@
       </div>
       <div class="portfolio-main-flex">
         <div class="portfolio-pie-container card" aria-label="Portfolio allocation pie chart">
-          <template v-if="(portfolioSummary?.positionsCount !== undefined ? portfolioSummary.positionsCount <= 100 : portfolio.length <= 100)">
-            <template v-if="portfolio.length === 0 && cash === 0">
-              <div class="no-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; height: 350px; color: var(--text2); background: var(--base2);">
-                <strong>No Positions Available</strong>
-              </div>
+          <div class="chart-inner-wrapper pie-chart-wrapper">
+            <template v-if="(portfolioSummary?.positionsCount !== undefined ? portfolioSummary.positionsCount <= 100 : portfolio.length <= 100)">
+              <template v-if="portfolio.length === 0 && cash === 0">
+                <div class="no-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; color: var(--text2);">
+                  <strong>No Positions Available</strong>
+                </div>
+              </template>
+              <template v-else>
+                <Pie :data="pieChartData" :options="pieOptions" />
+              </template>
             </template>
             <template v-else>
-              <Pie :data="pieChartData" :options="pieOptions" />
+              <div class="too-many-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; color: var(--text2);">
+                <strong>Too many positions to display pie chart.</strong><br>
+                Please reduce the number of positions to view allocation breakdown.
+              </div>
             </template>
-          </template>
-          <template v-else>
-            <div class="too-many-positions-message" style="display:flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; height: 350px ;color: var(--text2); background: var(--base2);">
-              <strong>Too many positions to display pie chart.</strong><br>
-              Please reduce the number of positions to view allocation breakdown.
-            </div>
-          </template>
+          </div>
         </div>
         <div class="portfolio-table-container card scrollable-table">
-    <table class="portfolio-table" aria-label="Portfolio Positions Table">
+          <table class="portfolio-table-header" aria-label="Portfolio Positions Table Header">
             <thead>
               <tr>
-                <th>% of Portfolio</th>
+                <th>% Portfolio</th>
                 <th>Symbol</th>
                 <th>Type</th>
                 <th>Shares</th>
@@ -442,7 +463,10 @@
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody>
+          </table>
+          <div class="portfolio-table-body-wrapper">
+            <table class="portfolio-table" aria-label="Portfolio Positions Table">
+              <tbody>
               <!-- Cash row always at the top -->
               <tr class="cash-row">
                 <td>{{ getPercOfCash() }}%</td>
@@ -522,6 +546,7 @@
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
       </div>
       
@@ -1470,6 +1495,7 @@ const tradeReturnsChartData = computed(() => {
         backgroundColor: chart.bins.map((b: { count: number; positive: boolean }) => b.positive ? `rgba(${getVar('--positive').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ')}, 0.7)` : `rgba(${getVar('--negative').replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ')}, 0.7)`),
         borderColor: chart.bins.map((b: { count: number; positive: boolean }) => b.positive ? getVar('--positive') : getVar('--negative')),
         borderWidth: 1,
+        borderRadius: 4,
       }
     ]
   };
@@ -1609,7 +1635,7 @@ function handleTransactionHistoryScroll() {
 
 function setupPortfolioScroll() {
   nextTick(() => {
-    portfolioTableContainer = document.querySelector('.portfolio-table-container');
+    portfolioTableContainer = document.querySelector('.portfolio-table-body-wrapper');
     if (portfolioTableContainer) {
       portfolioTableContainer.addEventListener('scroll', handlePortfolioScroll);
     }
@@ -2394,17 +2420,87 @@ const monthlyPLDollarChartOptions = computed(() => ({
 
 .portfolio-pie-container {
   flex: 1 1 0;
-  height: 400px;
+  padding: 6px;
+  border-radius: 8px;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
+  
+  .pie-chart-wrapper {
+    height: 100%;
+    padding: 20px;
+  }
 }
 
 .portfolio-table-container {
-  overflow-x: auto;
   flex: 2 1 0;
-  overflow-y: auto;
   margin-left: 5px;
+  height: 310px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.portfolio-table-header {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--text1);
+  table-layout: fixed;
+
+  thead {
+    th {
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      color: var(--text2);
+      font-weight: 600;
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--base3);
+      background: var(--base1);
+      text-align: left;
+    }
+  }
+}
+
+.portfolio-table-body-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.portfolio-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--text1);
+  table-layout: fixed;
+
+  tbody {
+    tr {
+      transition: background-color 0.15s ease;
+      
+      &:hover {
+        background: var(--base2);
+      }
+    }
+  }
+
+  th,
+  td {
+    padding: 12px 16px;
+    text-align: left;
+  }
+
+  td {
+    border-bottom: 1px solid var(--base3);
+  }
+
+  .positive {
+    color: var(--positive);
+  }
+
+  .negative {
+    color: var(--negative);
+  }
 }
 
 .portfolio-history-container {
@@ -2442,37 +2538,6 @@ const monthlyPLDollarChartOptions = computed(() => ({
   padding: 4px 12px;
   border-radius: 12px;
   font-weight: bold;
-}
-
-.portfolio-table {
-  width: 100%;
-  border-collapse: collapse;
-  color: var(--text1);
-
-  th,
-  td {
-    padding: 12px 16px;
-    text-align: left;
-  }
-
-  th {
-    color: var(--accent1);
-    font-weight: 600;
-    border-bottom: 2px solid var(--base3);
-    background: var(--base2);
-  }
-
-  td {
-    border-bottom: 1px solid var(--base3);
-  }
-
-  .positive {
-    color: var(--positive);
-  }
-
-  .negative {
-    color: var(--negative);
-  }
 }
 
 .history-table {
@@ -2709,33 +2774,45 @@ const monthlyPLDollarChartOptions = computed(() => ({
 
 
 .portfolio-linechart-container,
-
 .portfolio-bar-chart-container {
-  display: block;
-  height: 210px; /* Reduced height for desktop */
-  min-height: 120px;
-  canvas {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    height: 100% !important;
-    display: block;
-    box-sizing: border-box;
-  }
+  border-radius: 8px;
+  padding: 6px;
+  overflow: hidden;
 }
 
 .portfolio-linechart-container {
   margin-bottom: 5px;
 }
 
-.linechart-fixed-height {
+.chart-inner-wrapper {
+padding: 0px;
+  background: var(--base1);
+  border-radius: 6px;
   width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.linechart-fixed-height canvas {
-  width: 100% !important;
-  height: auto !important;
-  max-height: 190px;
+.linechart-fixed-height {
+  width: 100%;
+  max-width: 100%;
+  height: 180px;
+  position: relative;
+  overflow: hidden;
+  
+  canvas {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    max-height: 180px !important;
+    display: block;
+    box-sizing: border-box;
+  }
 }
 
 .reset-modal-overlay {
@@ -2824,6 +2901,14 @@ const monthlyPLDollarChartOptions = computed(() => ({
     height: auto;
     max-height: 350px;
   }
+  
+  .portfolio-pie-container {
+    padding: 4px;
+    
+    .chart-inner-wrapper {
+      padding: 12px;
+    }
+  }
   .portfolio-table-container {
     margin-top: 10px;
     max-height: 300px;
@@ -2841,7 +2926,19 @@ const monthlyPLDollarChartOptions = computed(() => ({
     font-size: 0.95em;
   }
   .portfolio-linechart-container, .portfolio-bar-chart-container {
-    padding: 8px 2px;
+    padding: 4px;
+  }
+  
+  .chart-inner-wrapper {
+    padding: 12px;
+  }
+  
+  .linechart-fixed-height {
+    height: 160px;
+    
+    canvas {
+      max-height: 160px !important;
+    }
   }
   .reset-modal {
     min-width: 90vw;

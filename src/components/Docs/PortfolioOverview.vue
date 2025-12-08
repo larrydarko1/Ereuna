@@ -5,7 +5,7 @@
   <p>The Portfolio section allows users to simulate up to 10 different portfolios. You can manually simulate trades and positions (including commissions), add cash, set base values for each portfolio, and export or import portfolios.</p>
   <p>The section is structured as follows:</p>
   <p>1. <strong>Header Section:</strong> Contains buttons to switch between portfolios and a menu for additional options.</p>
-  <p>2. <strong>Benchmark Section:</strong> Since patch v3.9.2, you can now select up to 5 benchmarks for each portfolio.</p>
+  <p>2. <strong>Benchmark Section:</strong> Since patch 2025.248, you can now select up to 5 benchmarks for each portfolio.</p>
   <p>3. <strong>Summary Section:</strong> Displays key statistics such as:</p>
   <ul>
     <li><strong>Base Value:</strong> The initial amount of capital set for the portfolio.</li>
