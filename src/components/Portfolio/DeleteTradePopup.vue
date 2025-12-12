@@ -33,11 +33,11 @@
         </div>
         <div class="detail-row">
           <span class="label">Shares:</span>
-          <span class="value">{{ trade.Shares }}</span>
+          <span class="value">{{ trade.Action === 'Cash Deposit' || trade.Action === 'Cash Withdrawal' ? '-' : trade.Shares }}</span>
         </div>
         <div class="detail-row">
           <span class="label">Price:</span>
-          <span class="value">${{ Number(trade.Price).toFixed(2) }}</span>
+          <span class="value">{{ trade.Action === 'Cash Deposit' || trade.Action === 'Cash Withdrawal' ? '-' : '$' + Number(trade.Price).toFixed(2) }}</span>
         </div>
         <div class="detail-row">
           <span class="label">Total:</span>

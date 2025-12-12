@@ -15,6 +15,12 @@
     :aiData="aiData"
     :Symbol="assetInfo?.Symbol"
   />
+  <SignalsPopup
+    v-if="showSignalsPopup"
+    @close="showSignalsPopup = false"
+    :signals="todaySignals"
+    :Symbol="assetInfo?.Symbol"
+  />
   <div class="mainchart-dashboard">
                                <div class="chart-container">
                                   <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
@@ -62,7 +68,16 @@
     </button>
   </div>
   <div style="display: flex; gap: 3px; justify-content: flex-end;">
-    <button class="navbt2" @click="showAIPopup = true" v-if="hasAIData">
+    <button class="navbt2" @click="showSignalsPopup = true" v-if="hasSignals" title="Trading Signals">
+      <svg class="chart-type-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g stroke-width="0"></g>
+        <g stroke-linecap="round" stroke-linejoin="round"></g>
+        <g>
+          <path d="M13 3L13 10L21 10C21 13.866 17.866 17 14 17H13V21M11 21L11 14L3 14C3 10.134 6.13401 7 10 7H11V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </g>
+      </svg>
+    </button>
+    <button class="navbt2" @click="showAIPopup = true" v-if="hasAIData" title="AI Analysis">
       <svg class="chart-type-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
         <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -71,7 +86,7 @@
         </g>
       </svg>
     </button>
-    <button class="navbt2" @click="showEditChart = true">
+    <button class="navbt2" @click="showEditChart = true" title="Chart Settings">
       <svg class="chart-type-icon" fill="currentColor" viewBox="0 0 32 32" enable-background="new 0 0 32 32" id="Glyph" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
         <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -149,6 +164,7 @@ import {
 } from 'lightweight-charts';
 import EditChart from '@/components/charts/EditChart.vue';
 import AIPopup from '@/components/charts/AIPopup.vue';
+import SignalsPopup from '@/components/charts/SignalsPopup.vue';
 
 // --- Chart Data Interfaces ---
 interface OHLCData {
@@ -189,6 +205,7 @@ interface ChartDataResult {
 
 const showEditChart = ref(false);
 const showAIPopup = ref(false);
+const showSignalsPopup = ref(false);
 const imgError = ref(false);
 let isLoadingMore: boolean = false;
 let allDataLoaded: boolean = false;
@@ -210,6 +227,16 @@ const hasAIData = computed(() => {
 const aiData = computed(() => {
   if (!hasAIData.value || !props.assetInfo?.AI) return null;
   return props.assetInfo.AI[0];
+});
+
+const hasSignals = computed(() => {
+  return props.assetInfo?.Signals && Array.isArray(props.assetInfo.Signals) && props.assetInfo.Signals.length > 0;
+});
+
+const todaySignals = computed(() => {
+  if (!hasSignals.value || !props.assetInfo?.Signals) return null;
+  const today = new Date().toISOString().split('T')[0];
+  return props.assetInfo.Signals.filter((signal: any) => signal.date === today);
 });
 
 

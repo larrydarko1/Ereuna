@@ -401,12 +401,6 @@ export default function (app: any, deps: any) {
                     const collection = db.collection('AssetInfo');
                     const data: any = await collection.findOne({ Symbol: ticker });
                     if (!data || !data.splits) {
-                        logger.warn({
-                            msg: 'No splits data found',
-                            ticker,
-                            context: 'GET /:ticker/splitsdate',
-                            statusCode: 404,
-                        });
                         return res.status(404).json({ message: 'No splits data found for this ticker' });
                     }
                     const splits: any[] = Array.isArray(data.splits) ? [...data.splits].reverse() : [];
@@ -465,12 +459,6 @@ export default function (app: any, deps: any) {
                     const collection = db.collection('AssetInfo');
                     const data: any = await collection.findOne({ Symbol: ticker });
                     if (!data || !data.dividends) {
-                        logger.warn({
-                            msg: 'No dividend data found',
-                            ticker,
-                            context: 'GET /:ticker/dividendsdate',
-                            statusCode: 404,
-                        });
                         return res.status(404).json({ message: 'No dividend data found for this ticker' });
                     }
                     // Lazy loading: send only first 5 unless ?all=true
@@ -825,13 +813,6 @@ export default function (app: any, deps: any) {
                     ];
 
                     const results = await collection.aggregate(pipeline).toArray();
-
-                    logger.info({
-                        msg: 'Asset search completed',
-                        query,
-                        resultsCount: results.length,
-                        context: 'GET /search/assets'
-                    });
 
                     return { results };
                 },

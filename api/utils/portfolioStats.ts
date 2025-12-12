@@ -11,6 +11,8 @@ export interface Trade {
     Timestamp?: string;
 }
 
+import { calculateDividendTransactions } from './dividends.js';
+
 export interface Position {
     Symbol: string;
     Shares: number;
@@ -83,6 +85,32 @@ export async function updatePortfolioStats(
     const cash: number = portfolioDoc && typeof portfolioDoc.cash === 'number' ? portfolioDoc.cash : 0.0;
     const baseValue: number = portfolioDoc && typeof portfolioDoc.BaseValue === 'number' ? portfolioDoc.BaseValue : 0.0;
 
+    // Calculate and save dividend transactions (this will update the Trades collection)
+    try {
+        const nonDividendTrades = trades.filter(tx => tx.Action !== 'Dividend');
+        const dividendTransactions = await calculateDividendTransactions(db, username, portfolioNumber, nonDividendTrades);
+
+        // Remove old dividends and insert new ones
+        await db.collection('Trades').deleteMany({
+            Username: username,
+            PortfolioNumber: portfolioNumber,
+            Action: 'Dividend'
+        });
+
+        if (dividendTransactions.length > 0) {
+            await db.collection('Trades').insertMany(dividendTransactions);
+        }
+
+        // Reload trades to include new dividend transactions
+        const allTrades: Trade[] = await db.collection('Trades').find({ Username: username, PortfolioNumber: portfolioNumber }).toArray();
+        // Update the trades array to include dividends for calculations below
+        trades.length = 0;
+        trades.push(...allTrades);
+    } catch (error) {
+        console.error('Error calculating dividends:', error);
+        // Continue with portfolio stats calculation even if dividend calculation fails
+    }
+
     // --- Portfolio Value History Calculation ---
     const txs: Trade[] = trades.filter(tx => tx.Date).sort((a, b) => {
         const dateCompare = new Date(a.Date).getTime() - new Date(b.Date).getTime();
@@ -124,6 +152,8 @@ export async function updatePortfolioStats(
             runningCash += tx.Total;
         } else if (tx.Action === 'Cash Withdrawal' && typeof tx.Total === 'number') {
             runningCash += tx.Total;  // Total is negative for withdrawals
+        } else if (tx.Action === 'Dividend' && typeof tx.Total === 'number') {
+            runningCash += tx.Total;  // Dividends add to cash
         }
 
         let positionsValue: number = 0;
@@ -426,7 +456,7 @@ export async function updatePortfolioStats(
         sortinoRatio: sortinoRatio !== null ? Number(sortinoRatio.toFixed(2)) : null,
         biggestWinner,
         biggestLoser,
-        tradeReturnsChart // <-- add chart data here
+        tradeReturnsChart
     };
     await db.collection('Portfolios').updateOne(
         { Username: username, Number: portfolioNumber },

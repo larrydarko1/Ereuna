@@ -485,7 +485,7 @@ const keyFeatures = computed(() => {
   
   return [
     "€14.99 + VAT per month - significantly cheaper than competitors",
-    "Access to 300M+ financial documents and filings",
+    "Access to 450M+ financial documents and filings",
     "Coverage of 60,000+ US stocks, ETFs, mutual funds, and cryptocurrencies",
     "Portfolio tracking and management tools",
     "Clean, focused interface designed for efficiency",

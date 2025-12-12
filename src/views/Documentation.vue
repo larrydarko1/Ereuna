@@ -270,6 +270,7 @@ function getComponentName(item: string) {
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
+  font-weight: bold;
   
   &:hover {
     color: $text1;
@@ -280,7 +281,6 @@ function getComponentName(item: string) {
     color: $text4;
     background: linear-gradient(135deg, $accent1 0%, $accent2 100%);
     box-shadow: 0 4px 12px rgba($accent1, 0.3);
-    font-weight: 600;
   }
 }
 
