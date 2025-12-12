@@ -10,8 +10,8 @@ __pycache__
 logs
 *.log
 *.pyc
-db/mongodb-init/dump
-db/mongodb-init/dump/**
+db
+db/**
 server/.cache
 *.sqlite
 /.vscode

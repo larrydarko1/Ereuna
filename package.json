@@ -1,7 +1,7 @@
 {
   "name": "ereuna",
   "private": true,
-  "version": "2025.248",
+  "version": "2025.250",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,7 +13,7 @@
     "redisstart": "brew services start redis",
     "redisstop": "brew services stop redis",
     "redis": "redis-server",
-    "docker": "docker compose -f docker/docker-compose.dev.yml up --build -d",
+    "docker:dev": "docker compose -f docker/docker-compose.dev.yml up --build -d",
     "docker:prod": "docker compose -f docker/docker-compose.prod.yml up --build -d",
     "dockerstop": "docker compose -f docker/docker-compose.dev.yml down --remove-orphans --rmi all && docker system prune -f",
     "dockerstop:prod": "docker compose -f docker/docker-compose.prod.yml down",
@@ -28,6 +28,7 @@
     "assert": "^2.1.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
+    "fancy-canvas": "^2.1.0",
     "browserify-zlib": "^0.2.0",
     "chart.js": "^4.5.0",
     "chartjs-plugin-annotation": "^3.1.0",
@@ -46,7 +47,6 @@
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
     "jsrsasign": "^11.1.0",
-    "lightweight-charts": "^4.1.6",
     "mongodb": "^6.8.0",
     "mongosh": "^2.3.3",
     "node": "^20.15.1",

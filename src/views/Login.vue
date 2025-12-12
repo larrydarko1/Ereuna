@@ -442,6 +442,7 @@ async function verifyMfa() {
   justify-content: center;
   width: 300px;
   margin: 10px;
+  opacity: 0.80;
 }
 
 .toggle-password {
