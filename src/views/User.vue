@@ -286,7 +286,6 @@ watchEffect(() => {
   border-radius: 5px;
   transition: background-color 0.3s ease-in-out, transform 0.14s ease, box-shadow 0.14s ease;
   opacity: 0.80;
-  border: 1px solid rgba(0,0,0,0.04);
 }
 
 .menu:hover {

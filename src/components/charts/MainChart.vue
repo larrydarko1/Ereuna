@@ -160,8 +160,10 @@ import {
   CrosshairMode,
   IChartApi,
   Time,
-  IPriceLine
-} from 'lightweight-charts';
+  IPriceLine,
+  MouseEventParams,
+  LogicalRange
+} from '@/lib/lightweight-charts';
 import EditChart from '@/components/charts/EditChart.vue';
 import AIPopup from '@/components/charts/AIPopup.vue';
 import SignalsPopup from '@/components/charts/SignalsPopup.vue';
@@ -579,7 +581,7 @@ onMounted(async () => {
   window.addEventListener('resize', updateChartSize);
   
   // Add crosshair subscription once
-  chart.subscribeCrosshairMove((param) => {
+  chart.subscribeCrosshairMove((param: MouseEventParams<Time>) => {
     if (!param || !param.time) {
       crosshairOhlc.value = null;
       return;
@@ -747,8 +749,7 @@ watch(
   updateChartSize();
   isLoading1.value = false;
 
-  chart.timeScale().subscribeVisibleLogicalRangeChange(async (range) => {
-    // range: LogicalRange | null
+  chart.timeScale().subscribeVisibleLogicalRangeChange(async (range: LogicalRange | null) => {
     if (isLoadingMore || allDataLoaded) return;
     // Enable lazy loading for all timeframes
     if (range && typeof range.from === 'number' && range.from < 20) {
