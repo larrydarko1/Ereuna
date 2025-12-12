@@ -31,7 +31,7 @@
           </p>
           <div class="mission-stats">
             <div class="stat-item">
-              <div class="stat-number">300M+</div>
+              <div class="stat-number">450M+</div>
               <div class="stat-label">Documents</div>
             </div>
             <div class="stat-item">

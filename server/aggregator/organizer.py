@@ -44,6 +44,7 @@ def async_retry_on_disconnect(max_retries=3, delay=2):
 
 try:
     from server.aggregator.delist import Delist, scanDelisted, prune_intraday_collections
+    from server.aggregator.signal_analyzer import run_signal_analysis
     from server.aggregator.helper import (
         maintenanceMode,
         getMonday,
@@ -66,6 +67,7 @@ except Exception:
     if str(workspace_root) not in sys.path:
         sys.path.insert(0, str(workspace_root))
     from server.aggregator.delist import Delist, scanDelisted, prune_intraday_collections
+    from server.aggregator.signal_analyzer import run_signal_analysis
     from server.aggregator.helper import (
         maintenanceMode,
         getMonday,
@@ -519,6 +521,10 @@ async def getCryptoPrice():
     daily_collection = db["OHCLVData"]
     asset_info_collection = db["AssetInfo"]
     intraday_1m_collection = db["OHCLVData1m"]
+    intraday_5m_collection = db["OHCLVData5m"]
+    intraday_15m_collection = db["OHCLVData15m"]
+    intraday_30m_collection = db["OHCLVData30m"]
+    intraday_1hr_collection = db["OHCLVData1hr"]
 
     # Get crypto symbols from AssetInfo collection (symbols with AssetType='Crypto' and not delisted)
     crypto_symbols = [doc['Symbol'] async for doc in asset_info_collection.find({
@@ -534,15 +540,15 @@ async def getCryptoPrice():
     BATCH_SIZE = 5
     total_batches = (len(crypto_symbols) + BATCH_SIZE - 1) // BATCH_SIZE
     
-    # Only fetch COMPLETED candles - crypto trades 24/7 so today's candle is incomplete
-    # Fetch from 2 days ago to yesterday to ensure we have complete daily candles
+    # Fetch 5-minute data for yesterday (completed day) to build all timeframes (including daily)
     today = dt.datetime.now()
     yesterday = today - dt.timedelta(days=1)
-    two_days_ago = today - dt.timedelta(days=2)
+    start_of_yesterday = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_of_yesterday = yesterday.replace(hour=23, minute=59, second=59, microsecond=999999)
     
-    print(f"Fetching crypto prices for {len(crypto_symbols)} assets in {total_batches} batches...")
+    print(f"Fetching crypto 5m data for {len(crypto_symbols)} assets from {yesterday.strftime('%Y-%m-%d')} in {total_batches} batches...")
     
-    all_documents = []
+    all_intraday_5m_documents = []
     processed_batches = 0
     
     def print_batch_progress(processed, total, bar_length=50):
@@ -558,9 +564,8 @@ async def getCryptoPrice():
         batch_symbols = crypto_symbols[i:i + BATCH_SIZE]
         tickers_param = ','.join([s.lower() for s in batch_symbols])
         
-        # Fetch crypto prices (daily resolution) - only completed candles up to yesterday
-        # endDate is exclusive, so we use today to get up to (but not including) today
-        url = f'https://api.tiingo.com/tiingo/crypto/prices?tickers={tickers_param}&startDate={two_days_ago.strftime("%Y-%m-%d")}&endDate={today.strftime("%Y-%m-%d")}&resampleFreq=1day&token={api_key}'
+        # Fetch 5-minute candles for yesterday
+        url = f'https://api.tiingo.com/tiingo/crypto/prices?tickers={tickers_param}&startDate={start_of_yesterday.strftime("%Y-%m-%d")}&resampleFreq=5min&token={api_key}'
         
         try:
             response = requests.get(url, timeout=30)
@@ -585,14 +590,14 @@ async def getCryptoPrice():
                             else:
                                 continue
                             
-                            # Skip today's candle if it somehow got included (incomplete candle)
-                            if timestamp.date() >= today.date():
+                            # Only include yesterday's completed data
+                            if timestamp.date() != yesterday.date():
                                 continue
                             
-                            # Create document matching stock OHLCV structure
-                            crypto_doc = {
+                            # Create 5m intraday document
+                            intraday_doc = {
                                 'tickerID': ticker,
-                                'timestamp': timestamp.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None),
+                                'timestamp': timestamp.replace(tzinfo=None),
                                 'open': float(candle.get('open', 0)),
                                 'high': float(candle.get('high', 0)),
                                 'low': float(candle.get('low', 0)),
@@ -600,7 +605,7 @@ async def getCryptoPrice():
                                 'volume': float(candle.get('volume', 0))
                             }
                             
-                            all_documents.append(crypto_doc)
+                            all_intraday_5m_documents.append(intraday_doc)
             else:
                 pass  # Silently skip failed batches
                 
@@ -612,49 +617,152 @@ async def getCryptoPrice():
     
     print()  # New line after progress bar
     
-    # Insert all collected documents
-    if all_documents:
-        total_docs = len(all_documents)
-        print(f"Inserting {total_docs} crypto records...")
+    # Build all timeframes from 5m data
+    if all_intraday_5m_documents:
+        total_5m_docs = len(all_intraday_5m_documents)
+        print(f"Upserting {total_5m_docs} crypto 5m records...")
         
-        def print_insert_progress(completed, total, bar_length=50):
-            percentage = int(100 * completed / total) if total > 0 else 0
-            filled_length = int(bar_length * completed / total) if total > 0 else 0
-            bar = '█' * filled_length + '░' * (bar_length - filled_length)
-            print(f'\rCrypto Data: |{bar}| {percentage}%', end='', flush=True)
+        # Step 1: Bulk upsert all 5m documents first (much faster than per-ticker loop)
+        # Delete all 5m records for yesterday for all crypto tickers
+        await intraday_5m_collection.delete_many({
+            'tickerID': {'$in': crypto_symbols},
+            'timestamp': {'$gte': start_of_yesterday, '$lte': end_of_yesterday}
+        })
         
-        for idx, crypto_doc in enumerate(all_documents):
-            # Delete existing daily document with same tickerID and timestamp
+        # Bulk insert all 5m documents at once
+        if all_intraday_5m_documents:
+            await intraday_5m_collection.insert_many(all_intraday_5m_documents)
+        
+        print(f"Building higher timeframes using aggregation pipeline...")
+        
+        # Step 2: Build higher timeframes using MongoDB aggregation (like updateWeekly)
+        # This is much faster than pandas resampling per ticker
+        
+        # Helper function to build timeframe aggregation pipeline
+        def build_timeframe_pipeline(interval_minutes, match_filter):
+            # Calculate bucket size in milliseconds
+            bucket_ms = interval_minutes * 60 * 1000
+            
+            return [
+                {'$match': match_filter},
+                {'$sort': {'tickerID': 1, 'timestamp': 1}},
+                {'$group': {
+                    '_id': {
+                        'tickerID': '$tickerID',
+                        'bucket': {
+                            '$toDate': {
+                                '$multiply': [
+                                    {'$floor': {'$divide': [{'$toLong': '$timestamp'}, bucket_ms]}},
+                                    bucket_ms
+                                ]
+                            }
+                        }
+                    },
+                    'open': {'$first': '$open'},
+                    'high': {'$max': '$high'},
+                    'low': {'$min': '$low'},
+                    'close': {'$last': '$close'},
+                    'volume': {'$sum': '$volume'}
+                }},
+                {'$project': {
+                    '_id': 0,
+                    'tickerID': '$_id.tickerID',
+                    'timestamp': '$_id.bucket',
+                    'open': 1,
+                    'high': 1,
+                    'low': 1,
+                    'close': 1,
+                    'volume': 1
+                }}
+            ]
+        
+        # Common match filter for yesterday's data
+        match_filter = {
+            'tickerID': {'$in': crypto_symbols},
+            'timestamp': {'$gte': start_of_yesterday, '$lte': end_of_yesterday}
+        }
+        
+        # Build 15m timeframe
+        print("Building 15m candles...")
+        pipeline_15m = build_timeframe_pipeline(15, match_filter)
+        results_15m = [doc async for doc in intraday_5m_collection.aggregate(pipeline_15m)]
+        if results_15m:
+            await intraday_15m_collection.delete_many(match_filter)
+            await intraday_15m_collection.insert_many(results_15m)
+        
+        # Build 30m timeframe
+        print("Building 30m candles...")
+        pipeline_30m = build_timeframe_pipeline(30, match_filter)
+        results_30m = [doc async for doc in intraday_5m_collection.aggregate(pipeline_30m)]
+        if results_30m:
+            await intraday_30m_collection.delete_many(match_filter)
+            await intraday_30m_collection.insert_many(results_30m)
+        
+        # Build 1hr timeframe
+        print("Building 1hr candles...")
+        pipeline_1hr = build_timeframe_pipeline(60, match_filter)
+        results_1hr = [doc async for doc in intraday_5m_collection.aggregate(pipeline_1hr)]
+        if results_1hr:
+            await intraday_1hr_collection.delete_many(match_filter)
+            await intraday_1hr_collection.insert_many(results_1hr)
+        
+        # Build daily timeframe (1440 minutes = 24 hours)
+        print("Building daily candles...")
+        pipeline_daily = [
+            {'$match': match_filter},
+            {'$sort': {'tickerID': 1, 'timestamp': 1}},
+            {'$group': {
+                '_id': '$tickerID',
+                'open': {'$first': '$open'},
+                'high': {'$max': '$high'},
+                'low': {'$min': '$low'},
+                'close': {'$last': '$close'},
+                'volume': {'$sum': '$volume'}
+            }},
+            {'$project': {
+                '_id': 0,
+                'tickerID': '$_id',
+                'timestamp': start_of_yesterday.replace(hour=0, minute=0, second=0, microsecond=0),
+                'open': 1,
+                'high': 1,
+                'low': 1,
+                'close': 1,
+                'volume': 1
+            }}
+        ]
+        results_daily = [doc async for doc in intraday_5m_collection.aggregate(pipeline_daily)]
+        
+        if results_daily:
+            # Delete yesterday's daily candles for these tickers
             await daily_collection.delete_many({
-                'tickerID': crypto_doc['tickerID'],
-                'timestamp': crypto_doc['timestamp']
+                'tickerID': {'$in': crypto_symbols},
+                'timestamp': start_of_yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
             })
-            await daily_collection.insert_one(crypto_doc)
+            await daily_collection.insert_many(results_daily)
             
-            # Also upsert to 1m collection with 20:00:00 timestamp
-            timestamp_1m = crypto_doc['timestamp'].replace(hour=20, minute=0, second=0, microsecond=0)
-            intraday_1m_doc = {
-                'tickerID': crypto_doc['tickerID'],
-                'timestamp': timestamp_1m,
-                'open': crypto_doc['close'],
-                'high': crypto_doc['close'],
-                'low': crypto_doc['close'],
-                'close': crypto_doc['close'],
-                'volume': 0
-            }
+            # Also create 1m entries with 20:00:00 timestamp (mirror getPrice() behavior)
+            docs_1m = []
+            for doc in results_daily:
+                timestamp_1m = start_of_yesterday.replace(hour=20, minute=0, second=0, microsecond=0)
+                intraday_1m_doc = {
+                    'tickerID': doc['tickerID'],
+                    'timestamp': timestamp_1m,
+                    'open': doc['close'],
+                    'high': doc['close'],
+                    'low': doc['close'],
+                    'close': doc['close'],
+                    'volume': 0
+                }
+                docs_1m.append(intraday_1m_doc)
             
-            # Upsert to 1m collection
-            await intraday_1m_collection.delete_many({
-                'tickerID': intraday_1m_doc['tickerID'],
-                'timestamp': intraday_1m_doc['timestamp']
-            })
-            await intraday_1m_collection.insert_one(intraday_1m_doc)
-            
-            # Update progress every 10 documents or at the end
-            if (idx + 1) % 10 == 0 or (idx + 1) == total_docs:
-                print_insert_progress(idx + 1, total_docs)
+            if docs_1m:
+                await intraday_1m_collection.delete_many({
+                    'tickerID': {'$in': crypto_symbols},
+                    'timestamp': start_of_yesterday.replace(hour=20, minute=0, second=0, microsecond=0)
+                })
+                await intraday_1m_collection.insert_many(docs_1m)
         
-        print()  # New line after progress bar
+        print("All timeframes completed!")
         
 # Get Monday date of this week
 today = dt.date.today()
@@ -1923,7 +2031,7 @@ async def fetchNews():
     # Get only stocks and ETFs that are not delisted
     symbols = [doc['Symbol'] async for doc in asset_info_collection.find({
         'Delisted': False,
-        'AssetType': {'$in': ['Stock', 'ETF']}
+        'AssetType': {'$in': ['Stock', 'ETF', "Crypto"]}
     })]
     
     # Process in batches of 50 tickers to avoid URL length issues
@@ -2815,6 +2923,16 @@ async def Daily():
     end_time = time.time()
     print()  # Move to next line after progress bar
     print(f"✓ Completed in {(end_time - start_time)/60:.2f} minutes")
+    
+    # Analyze trading signals with progress tracking
+    print("\nAnalyzing trading signals...")
+    signals_start = time.time()
+    try:
+        await run_signal_analysis(db)
+    except Exception as e:
+        print(f"✗ Signal analysis failed: {e}")
+    signals_end = time.time()
+    print(f"✓ Signal analysis completed in {(signals_end - signals_start)/60:.2f} minutes")
     
     # Fetch news with progress tracking
     print("\nChecking and updating news...")

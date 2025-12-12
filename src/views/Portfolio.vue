@@ -681,20 +681,21 @@
                   <span v-if="tx.IsShort" class="short-badge-small" title="Short Position">
                     Short
                   </span>
-                  <span v-else-if="tx.Symbol && tx.Action !== 'Cash Deposit' && tx.Action !== 'Cash Withdrawal'" class="long-badge-small" title="Long Position">
+                  <span v-else-if="tx.Symbol && tx.Action !== 'Cash Deposit' && tx.Action !== 'Cash Withdrawal' && tx.Action !== 'Dividend'" class="long-badge-small" title="Long Position">
                     Long
                   </span>
-                  <span v-if="!tx.Symbol || tx.Action === 'Cash Deposit' || tx.Action === 'Cash Withdrawal'" class="neutral-text">-</span>
+                  <span v-if="!tx.Symbol || tx.Action === 'Cash Deposit' || tx.Action === 'Cash Withdrawal' || tx.Action === 'Dividend'" class="neutral-text">-</span>
                 </div>
               </td>
               <td class="number-col">{{ tx.Shares || '-' }}</td>
               <td class="number-col price-col">{{ isNaN(Number(tx.Price)) ? '-' : '$' + Number(tx.Price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
               <td class="number-col commission-col">{{ isNaN(Number(tx.Commission)) ? '-' : '$' + Number(tx.Commission).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</td>
-              <td class="number-col total-col" :class="tx.Action === 'Buy' || tx.Action === 'Cash Withdrawal' ? 'negative' : tx.Action === 'Sell' || tx.Action === 'Cash Deposit' ? 'positive' : ''">
+              <td class="number-col total-col" :class="tx.Action === 'Buy' || tx.Action === 'Cash Withdrawal' ? 'negative' : tx.Action === 'Sell' || tx.Action === 'Cash Deposit' || tx.Action === 'Dividend' ? 'positive' : ''">
                 ${{ Number(tx.Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
               </td>
               <td class="action-col-buttons">
                 <button 
+                  v-if="tx.Action !== 'Dividend' && tx.Action !== 'Cash Deposit' && tx.Action !== 'Cash Withdrawal'"
                   class="edit-trade-btn" 
                   @click="openEditTradeModal(tx)"
                   :title="`Edit this trade`"
@@ -706,6 +707,7 @@
                   </svg>
                 </button>
                 <button 
+                  v-if="tx.Action !== 'Dividend'"
                   class="delete-trade-btn" 
                   @click="openDeleteTradeModal(tx)"
                   :title="`Delete this trade`"
@@ -743,7 +745,8 @@ import {
   PointElement,
   LinearScale,
   CategoryScale,
-  BarElement 
+  BarElement,
+  Filler
 } from 'chart.js'
 import { useUserStore } from '@/store/store';
 import annotationPlugin from 'chartjs-plugin-annotation';
@@ -863,6 +866,7 @@ Chart.register(
   LinearScale,
   CategoryScale,
   BarElement,
+  Filler,
   annotationPlugin
 )
 
@@ -1010,14 +1014,14 @@ const lineData = computed(() => {
         label: 'Total Value (Positions + Cash)',
         data: history.map((h) => h.value),
         borderColor: accent1,
-        backgroundColor: accent1,
+        backgroundColor: `${accent1}33`, // 20% opacity for area fill
         tension: 0.4,
         fill: true,
         pointRadius: 0,
         pointHoverRadius: 6,
         pointHoverBorderWidth: 2,
         pointHoverBorderColor: accent1,
-        borderWidth: 2,
+        borderWidth: 2.5,
       }
     ]
   };
@@ -2627,7 +2631,8 @@ const monthlyPLDollarChartOptions = computed(() => ({
         border: 1px solid var(--sell-border);
       }
 
-      &.cash {
+      &.cash,
+      &.dividend {
         background: var(--cash-bg);
         color: var(--accent1);
         border: 1px solid var(--cash-border);
@@ -2766,6 +2771,7 @@ const monthlyPLDollarChartOptions = computed(() => ({
   gap: 4px;
   justify-content: center;
   align-items: center;
+  min-height: 44px;
 }
 
 .action-header {

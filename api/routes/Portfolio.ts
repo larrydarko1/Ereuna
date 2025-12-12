@@ -78,8 +78,8 @@ export default function (app: any, deps: any) {
         body('trade').isObject().withMessage('Trade must be an object'),
         body('trade.Symbol').isString().trim().notEmpty().withMessage('Symbol is required'),
         body('trade.Action').matches(/^(Buy|Sell)$/).withMessage('Action must be "Buy" or "Sell"'),
-        body('trade.Shares').isFloat({ min: 0.01 }).withMessage('Shares must be a positive number (min 0.01)'),
-        body('trade.Price').isFloat({ min: 0.01 }).withMessage('Price must be a positive number'),
+        body('trade.Shares').isFloat({ min: 0.00000001 }).withMessage('Shares must be a positive number (min 0.00000001)'),
+        body('trade.Price').isFloat({ min: 0.0000000001 }).withMessage('Price must be a positive number (min 0.0000000001)'),
         body('trade.Date').isISO8601().withMessage('Date must be a valid ISO date'),
         body('trade.Total').isFloat({ min: 0 }).withMessage('Total must be a number'),
         body('trade.Commission').optional().isFloat({ min: 0 }).withMessage('Commission must be a non-negative number'),
@@ -720,8 +720,8 @@ export default function (app: any, deps: any) {
         body('trade').isObject().withMessage('Trade must be an object'),
         body('trade.Symbol').isString().trim().notEmpty().withMessage('Symbol is required'),
         body('trade.Action').matches(/^(Buy|Sell)$/).withMessage('Action must be "Buy" or "Sell"'),
-        body('trade.Shares').isFloat({ min: 0.01 }).withMessage('Shares must be a positive number'),
-        body('trade.Price').isFloat({ min: 0.01 }).withMessage('Price must be a positive number'),
+        body('trade.Shares').isFloat({ min: 0.00000001 }).withMessage('Shares must be a positive number (min 0.00000001)'),
+        body('trade.Price').isFloat({ min: 0.0000000001 }).withMessage('Price must be a positive number (min 0.0000000001)'),
         body('trade.Date').isISO8601().withMessage('Date must be a valid ISO date'),
         body('trade.Total').isFloat({ min: 0 }).withMessage('Total must be a number'),
         body('trade.Commission').optional().isFloat({ min: 0 }).withMessage('Commission must be a non-negative number'),
@@ -1206,8 +1206,8 @@ export default function (app: any, deps: any) {
         query('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)'),
         body('trade').isObject().withMessage('Trade must be an object'),
         body('trade.Action').matches(/^(Buy|Sell)$/).withMessage('Action must be "Buy" or "Sell"'),
-        body('trade.Shares').isFloat({ min: 0.01 }).withMessage('Shares must be a positive number (min 0.01)'),
-        body('trade.Price').isFloat({ min: 0.01 }).withMessage('Price must be a positive number'),
+        body('trade.Shares').isFloat({ min: 0.00000001 }).withMessage('Shares must be a positive number (min 0.00000001)'),
+        body('trade.Price').isFloat({ min: 0.0000000001 }).withMessage('Price must be a positive number (min 0.0000000001)'),
         body('trade.Date').isISO8601().withMessage('Date must be a valid ISO date'),
         body('trade.Total').isFloat({ min: 0 }).withMessage('Total must be a number'),
         body('trade.Commission').optional().isFloat({ min: 0 }).withMessage('Commission must be a non-negative number'),
@@ -2379,6 +2379,63 @@ export default function (app: any, deps: any) {
             });
         } catch (error) {
             const errObj = handleError(error, 'POST /portfolio/benchmarks', { user: req.body?.username }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
+        }
+    });
+
+    // --- POST recalculate dividends for a specific portfolio ---
+    app.post('/portfolio/recalculate-dividends', validate([
+        validationSchemas.username(),
+        body('portfolio').isInt({ min: 0, max: 9 }).withMessage('Portfolio number required (0-9)')
+    ]), async (req: Request, res: Response) => {
+        try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'POST /portfolio/recalculate-dividends',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+
+            const { username, portfolio } = req.body as {
+                username?: string;
+                portfolio?: string | number;
+            };
+
+            if (!username || portfolio === undefined || portfolio === null) {
+                logger.warn({
+                    msg: 'Missing username or portfolio',
+                    context: 'POST /portfolio/recalculate-dividends',
+                    statusCode: 400
+                });
+                return res.status(400).json({ message: 'Username and portfolio are required' });
+            }
+
+            const sanitizedUser = sanitizeInput(username);
+            let portfolioStr: string = '';
+            if (typeof portfolio === 'string') {
+                portfolioStr = portfolio;
+            } else if (typeof portfolio === 'number') {
+                portfolioStr = portfolio.toString();
+            } else {
+                portfolioStr = String(portfolio);
+            }
+            const portfolioNumber = parseInt(portfolioStr, 10);
+
+            const db = await getDB();
+
+            // Trigger portfolio stats update which will recalculate dividends
+            await updatePortfolioStats(db, sanitizedUser, portfolioNumber);
+
+            return res.status(200).json({
+                message: 'Dividends recalculated successfully'
+            });
+        } catch (error) {
+            const errObj = handleError(error, 'POST /portfolio/recalculate-dividends', { user: req.body?.username }, 500);
             return res.status(errObj.statusCode || 500).json(errObj);
         }
     });
