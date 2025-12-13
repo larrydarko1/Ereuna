@@ -828,4 +828,279 @@ export default function (app: any, deps: any) {
         }
     });
 
+    /**
+     * Get chart drawings for a specific symbol and user
+     * GET /chartdrawings?user=username&symbol=AAPL
+     */
+    app.get('/chartdrawings', async (req: Request, res: Response) => {
+        try {
+            const user = sanitizeInput(req.query.user as string);
+            const symbol = sanitizeInput(req.query.symbol as string)?.toUpperCase();
+            const apiKey = req.header('x-api-key');
+
+            // Validate API key
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'GET /api/chartdrawings',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+
+            // Validate required parameters
+            if (!user || !symbol) {
+                logger.warn({
+                    msg: 'Missing required parameters',
+                    user: !!user,
+                    symbol: !!symbol,
+                    context: 'GET /api/chartdrawings',
+                    statusCode: 400
+                });
+                return res.status(400).json({ error: 'User and symbol parameters are required' });
+            }
+
+            // Validate user format
+            if (!/^[a-zA-Z0-9_]{3,25}$/.test(user)) {
+                logger.warn({
+                    msg: 'Invalid user format',
+                    context: 'GET /api/chartdrawings',
+                    statusCode: 400
+                });
+                return res.status(400).json({ error: 'Invalid username format' });
+            }
+
+            // Validate symbol format
+            if (!/^[A-Z0-9-:]{1,12}$/.test(symbol)) {
+                logger.warn({
+                    msg: 'Invalid symbol format',
+                    context: 'GET /api/chartdrawings',
+                    statusCode: 400
+                });
+                return res.status(400).json({ error: 'Invalid symbol format' });
+            }
+
+            const db = await getDB();
+            const drawingsCollection = db.collection('ChartDrawings');
+
+            const drawingDoc = await drawingsCollection.findOne({
+                user,
+                symbol,
+            });
+
+            // Return empty arrays if no drawings exist
+            if (!drawingDoc) {
+                return res.json({
+                    trendLines: [],
+                    boxes: [],
+                    textAnnotations: [],
+                    freehandPaths: [],
+                });
+            }
+
+            res.json({
+                trendLines: drawingDoc.trendLines || [],
+                boxes: drawingDoc.boxes || [],
+                textAnnotations: drawingDoc.textAnnotations || [],
+                freehandPaths: drawingDoc.freehandPaths || [],
+            });
+        } catch (error) {
+            const errObj = handleError(error, 'GET /api/chartdrawings', {
+                user: req.query.user,
+                symbol: req.query.symbol
+            }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
+        }
+    });
+
+    /**
+     * Save/update chart drawings for a specific symbol and user
+     * POST /chartdrawings
+     * Body: { user: string, symbol: string, trendLines: [], boxes: [], textAnnotations: [], freehandPaths: [] }
+     */
+    app.post('/chartdrawings', async (req: Request, res: Response) => {
+        try {
+            const user = sanitizeInput(req.body.user);
+            const symbol = sanitizeInput(req.body.symbol)?.toUpperCase();
+            const apiKey = req.header('x-api-key');
+
+            // Validate API key
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'POST /api/chartdrawings',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+
+            // Validate required parameters
+            if (!user || !symbol) {
+                logger.warn({
+                    msg: 'Missing required parameters',
+                    user: !!user,
+                    symbol: !!symbol,
+                    context: 'POST /api/chartdrawings',
+                    statusCode: 400
+                });
+                return res.status(400).json({ error: 'User and symbol are required' });
+            }
+
+            // Validate user format
+            if (!/^[a-zA-Z0-9_]{3,25}$/.test(user)) {
+                logger.warn({
+                    msg: 'Invalid user format',
+                    context: 'POST /api/chartdrawings',
+                    statusCode: 400
+                });
+                return res.status(400).json({ error: 'Invalid username format' });
+            }
+
+            // Validate symbol format
+            if (!/^[A-Z0-9-:]{1,12}$/.test(symbol)) {
+                logger.warn({
+                    msg: 'Invalid symbol format',
+                    context: 'POST /api/chartdrawings',
+                    statusCode: 400
+                });
+                return res.status(400).json({ error: 'Invalid symbol format' });
+            }
+
+            // Sanitize and validate drawing arrays
+            const sanitizeDrawingArray = (arr: any[], maxItems = 1000): any[] => {
+                if (!Array.isArray(arr)) return [];
+                return arr.slice(0, maxItems); // Limit number of drawings
+            };
+
+            const trendLines = sanitizeDrawingArray(req.body.trendLines);
+            const boxes = sanitizeDrawingArray(req.body.boxes);
+            const textAnnotations = sanitizeDrawingArray(req.body.textAnnotations);
+            const freehandPaths = sanitizeDrawingArray(req.body.freehandPaths);
+
+            // Check if all arrays are empty - if so, delete the document instead of saving empty data
+            const hasDrawings = trendLines.length > 0 || boxes.length > 0 ||
+                textAnnotations.length > 0 || freehandPaths.length > 0;
+
+            const db = await getDB();
+            const drawingsCollection = db.collection('ChartDrawings');
+
+            if (!hasDrawings) {
+                // Delete the document if it exists (don't store empty drawings)
+                await drawingsCollection.deleteOne({ user, symbol });
+                return res.json({
+                    success: true,
+                    message: 'Empty drawings - document removed',
+                });
+            }
+
+            // Upsert: update if exists, insert if doesn't
+            await drawingsCollection.updateOne(
+                { user, symbol },
+                {
+                    $set: {
+                        trendLines,
+                        boxes,
+                        textAnnotations,
+                        freehandPaths,
+                        updatedAt: new Date(),
+                    },
+                    $setOnInsert: {
+                        createdAt: new Date(),
+                    },
+                },
+                { upsert: true }
+            );
+
+            res.json({
+                success: true,
+                message: 'Drawings saved successfully',
+            });
+        } catch (error) {
+            const errObj = handleError(error, 'POST /api/chartdrawings', {
+                user: req.body.user,
+                symbol: req.body.symbol
+            }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
+        }
+    });
+
+    /**
+     * Clear all chart drawings for a specific symbol and user
+     * DELETE /chartdrawings?user=username&symbol=AAPL
+     */
+    app.delete('/chartdrawings', async (req: Request, res: Response) => {
+        try {
+            const user = sanitizeInput(req.query.user as string);
+            const symbol = sanitizeInput(req.query.symbol as string)?.toUpperCase();
+            const apiKey = req.header('x-api-key');
+
+            // Validate API key
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'DELETE /api/chartdrawings',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+
+            // Validate required parameters
+            if (!user || !symbol) {
+                logger.warn({
+                    msg: 'Missing required parameters',
+                    user: !!user,
+                    symbol: !!symbol,
+                    context: 'DELETE /api/chartdrawings',
+                    statusCode: 400
+                });
+                return res.status(400).json({ error: 'User and symbol parameters are required' });
+            }
+
+            // Validate user format
+            if (!/^[a-zA-Z0-9_]{3,25}$/.test(user)) {
+                logger.warn({
+                    msg: 'Invalid user format',
+                    context: 'DELETE /api/chartdrawings',
+                    statusCode: 400
+                });
+                return res.status(400).json({ error: 'Invalid username format' });
+            }
+
+            // Validate symbol format
+            if (!/^[A-Z0-9-:]{1,12}$/.test(symbol)) {
+                logger.warn({
+                    msg: 'Invalid symbol format',
+                    context: 'DELETE /api/chartdrawings',
+                    statusCode: 400
+                });
+                return res.status(400).json({ error: 'Invalid symbol format' });
+            }
+
+            const db = await getDB();
+            const drawingsCollection = db.collection('ChartDrawings');
+
+            await drawingsCollection.deleteOne({
+                user,
+                symbol,
+            });
+
+            res.json({
+                success: true,
+                message: 'Drawings cleared successfully',
+            });
+        } catch (error) {
+            const errObj = handleError(error, 'DELETE /api/chartdrawings', {
+                user: req.query.user,
+                symbol: req.query.symbol
+            }, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
+        }
+    });
+
 };
