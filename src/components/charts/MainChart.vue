@@ -21,6 +21,12 @@
     :signals="todaySignals"
     :Symbol="assetInfo?.Symbol"
   />
+  <ScreenshotPopup
+    v-if="showScreenshotPopup"
+    @close="showScreenshotPopup = false"
+    @export="handleExportScreenshot"
+    :chartInfo="screenshotChartInfo"
+  />
   <div class="mainchart-dashboard">
                                <div class="chart-container">
                                   <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
@@ -65,43 +71,6 @@
       @click="setChartView(type.label)"
     >
       {{ type.shortLabel }}
-    </button>
-  </div>
-  <div style="display: flex; gap: 3px; justify-content: flex-end;">
-    <button class="navbt2" @click="showSignalsPopup = true" v-if="hasSignals" title="Trading Signals">
-      <svg class="chart-type-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g stroke-width="0"></g>
-        <g stroke-linecap="round" stroke-linejoin="round"></g>
-        <g>
-          <path d="M13 3L13 10L21 10C21 13.866 17.866 17 14 17H13V21M11 21L11 14L3 14C3 10.134 6.13401 7 10 7H11V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-        </g>
-      </svg>
-    </button>
-    <button class="navbt2" @click="showAIPopup = true" v-if="hasAIData" title="AI Analysis">
-      <svg class="chart-type-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-        <g id="SVGRepo_iconCarrier">
-          <path d="M12 3C12 7.97056 16.0294 12 21 12C16.0294 12 12 16.0294 12 21C12 16.0294 7.97056 12 3 12C7.97056 12 12 7.97056 12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-        </g>
-      </svg>
-    </button>
-    <button 
-      class="navbt2" 
-      :class="{ 'ruler-active': isRulerActive }" 
-      @click="toggleRuler" 
-      title="Measure Tool"
-    >
-     <svg class="chart-type-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M2 15.6157C2 16.463 2.68179 17.1448 4.04537 18.5083L5.49167 19.9546C6.85525 21.3182 7.53704 22 8.38426 22C9.23148 22 9.91327 21.3182 11.2769 19.9546L19.9546 11.2769C21.3182 9.91327 22 9.23148 22 8.38426C22 7.53704 21.3182 6.85525 19.9546 5.49167L18.5083 4.04537C17.1448 2.68179 16.463 2 15.6157 2C14.8623 2 14.2396 2.53926 13.1519 3.61778C13.1817 3.63981 13.2103 3.66433 13.2373 3.69135L14.6515 5.10556C14.9444 5.39846 14.9444 5.87333 14.6515 6.16622C14.3586 6.45912 13.8837 6.45912 13.5908 6.16622L12.1766 4.75201C12.1494 4.7248 12.1247 4.69601 12.1026 4.66595L11.0299 5.73861C11.06 5.76077 11.0888 5.78545 11.116 5.81267L13.2373 7.93399C13.5302 8.22688 13.5302 8.70176 13.2373 8.99465C12.9444 9.28754 12.4695 9.28754 12.1766 8.99465L10.0553 6.87333C10.0281 6.84612 10.0034 6.81733 9.98125 6.78726L8.90859 7.85993C8.93865 7.88209 8.96744 7.90678 8.99465 7.93399L10.4089 9.3482C10.7018 9.6411 10.7018 10.116 10.4089 10.4089C10.116 10.7018 9.6411 10.7018 9.3482 10.4089L7.93399 8.99465C7.90678 8.96744 7.88209 8.93865 7.85993 8.90859L6.78727 9.98125C6.81733 10.0034 6.84612 10.0281 6.87333 10.0553L8.99465 12.1766C9.28754 12.4695 9.28754 12.9444 8.99465 13.2373C8.70176 13.5302 8.22688 13.5302 7.93399 13.2373L5.81267 11.116C5.78545 11.0888 5.76077 11.06 5.73861 11.0299L4.66595 12.1026C4.69601 12.1247 4.7248 12.1494 4.75201 12.1766L6.16622 13.5908C6.45912 13.8837 6.45912 14.3586 6.16622 14.6515C5.87333 14.9444 5.39846 14.9444 5.10556 14.6515L3.69135 13.2373C3.66433 13.2103 3.63981 13.1817 3.61778 13.1519C2.53926 14.2396 2 14.8623 2 15.6157Z" fill="currentColor"></path> </g></svg>
-    </button>
-    <button class="navbt2" @click="showEditChart = true" title="Chart Settings">
-      <svg class="chart-type-icon" fill="currentColor" viewBox="0 0 32 32" enable-background="new 0 0 32 32" id="Glyph" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-        <g id="SVGRepo_iconCarrier">
-          <path d="M27.526,18.036L27,17.732c-0.626-0.361-1-1.009-1-1.732s0.374-1.371,1-1.732l0.526-0.304 c1.436-0.83,1.927-2.662,1.098-4.098l-1-1.732c-0.827-1.433-2.666-1.925-4.098-1.098L23,7.339c-0.626,0.362-1.375,0.362-2,0 c-0.626-0.362-1-1.009-1-1.732V5c0-1.654-1.346-3-3-3h-2c-1.654,0-3,1.346-3,3v0.608c0,0.723-0.374,1.37-1,1.732 c-0.626,0.361-1.374,0.362-2,0L8.474,7.036C7.042,6.209,5.203,6.701,4.375,8.134l-1,1.732c-0.829,1.436-0.338,3.269,1.098,4.098 L5,14.268C5.626,14.629,6,15.277,6,16s-0.374,1.371-1,1.732l-0.526,0.304c-1.436,0.829-1.927,2.662-1.098,4.098l1,1.732 c0.828,1.433,2.667,1.925,4.098,1.098L9,24.661c0.626-0.363,1.374-0.361,2,0c0.626,0.362,1,1.009,1,1.732V27c0,1.654,1.346,3,3,3h2 c1.654,0,3-1.346,3-3v-0.608c0-0.723,0.374-1.37,1-1.732c0.625-0.361,1.374-0.362,2,0l0.526,0.304 c1.432,0.826,3.271,0.334,4.098-1.098l1-1.732C29.453,20.698,28.962,18.865,27.526,18.036z M16,21c-2.757,0-5-2.243-5-5s2.243-5,5-5 s5,2.243,5,5S18.757,21,16,21z" id="XMLID_273_"></path>
-        </g>
-      </svg>
     </button>
   </div>
 </div>
@@ -156,6 +125,107 @@
                                   <div id="wk-chart" ref="wkchart" style="width: 100%; height: 250px;"
                                     :class="{ 'hidden': isChartLoading1 || isLoading1 || data.length === 0 }"></div>
                                 </div>
+                                
+                                <!-- Chart Tools Toolbar -->
+                                <div class="chart-tools-toolbar">
+                                  <div class="toolbar-section">
+                                    <div class="toolbar-label">Toolbar</div>
+                                    <div class="toolbar-buttons">
+                                      <button 
+                                        class="tool-btn" 
+                                        :class="{ 'active': isRulerActive }" 
+                                        @click="toggleRuler" 
+                                        title="Measure Tool"
+                                      >
+                                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke-width="0"></g><g stroke-linecap="round" stroke-linejoin="round"></g><g> <path d="M2 15.6157C2 16.463 2.68179 17.1448 4.04537 18.5083L5.49167 19.9546C6.85525 21.3182 7.53704 22 8.38426 22C9.23148 22 9.91327 21.3182 11.2769 19.9546L19.9546 11.2769C21.3182 9.91327 22 9.23148 22 8.38426C22 7.53704 21.3182 6.85525 19.9546 5.49167L18.5083 4.04537C17.1448 2.68179 16.463 2 15.6157 2C14.8623 2 14.2396 2.53926 13.1519 3.61778C13.1817 3.63981 13.2103 3.66433 13.2373 3.69135L14.6515 5.10556C14.9444 5.39846 14.9444 5.87333 14.6515 6.16622C14.3586 6.45912 13.8837 6.45912 13.5908 6.16622L12.1766 4.75201C12.1494 4.7248 12.1247 4.69601 12.1026 4.66595L11.0299 5.73861C11.06 5.76077 11.0888 5.78545 11.116 5.81267L13.2373 7.93399C13.5302 8.22688 13.5302 8.70176 13.2373 8.99465C12.9444 9.28754 12.4695 9.28754 12.1766 8.99465L10.0553 6.87333C10.0281 6.84612 10.0034 6.81733 9.98125 6.78726L8.90859 7.85993C8.93865 7.88209 8.96744 7.90678 8.99465 7.93399L10.4089 9.3482C10.7018 9.6411 10.7018 10.116 10.4089 10.4089C10.116 10.7018 9.6411 10.7018 9.3482 10.4089L7.93399 8.99465C7.90678 8.96744 7.88209 8.93865 7.85993 8.90859L6.78727 9.98125C6.81733 10.0034 6.84612 10.0281 6.87333 10.0553L8.99465 12.1766C9.28754 12.4695 9.28754 12.9444 8.99465 13.2373C8.70176 13.5302 8.22688 13.5302 7.93399 13.2373L5.81267 11.116C5.78545 11.0888 5.76077 11.06 5.73861 11.0299L4.66595 12.1026C4.69601 12.1247 4.7248 12.1494 4.75201 12.1766L6.16622 13.5908C6.45912 13.8837 6.45912 14.3586 6.16622 14.6515C5.87333 14.9444 5.39846 14.9444 5.10556 14.6515L3.69135 13.2373C3.66433 13.2103 3.63981 13.1817 3.61778 13.1519C2.53926 14.2396 2 14.8623 2 15.6157Z" fill="currentColor"></path> </g></svg>
+                                      </button>
+                                      <button 
+                                        class="tool-btn" 
+                                        :class="{ 'active': isTrendlineActive }" 
+                                        @click="toggleTrendline" 
+                                        title="Trendline"
+                                      >
+                                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                          <path d="M4 20 L20 4" />
+                                        </svg>
+                                      </button>
+                                      <button 
+                                        class="tool-btn" 
+                                        :class="{ 'active': isBoxActive }" 
+                                        @click="toggleBox" 
+                                        title="Box (Support/Resistance)"
+                                      >
+                                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <rect x="3" y="3" width="18" height="18" />
+                                        </svg>
+                                      </button>
+                                      <button 
+                                        class="tool-btn" 
+                                        :class="{ 'active': isTextActive }" 
+                                        @click="toggleText" 
+                                        title="Text Annotation"
+                                      >
+                                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <path d="M4 7V4h16v3M9 20h6M12 4v16" />
+                                        </svg>
+                                      </button>
+                                      <button 
+                                        class="tool-btn" 
+                                        :class="{ 'active': isFreehandActive }" 
+                                        @click="toggleFreehand" 
+                                        title="Freehand Drawing"
+                                      >
+                                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <path d="M12 19l7-7 3 3-7 7-3-3z" />
+                                          <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+                                          <path d="M2 2l7.586 7.586" />
+                                          <circle cx="11" cy="11" r="2" />
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  
+                                  <div class="toolbar-divider"></div>
+                              
+                                  
+                                  <div class="toolbar-section">
+                                    <div class="toolbar-buttons">
+                                      <button class="tool-btn" @click="showSignalsPopup = true" v-if="hasSignals" title="Trading Signals">
+                                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <g stroke-width="0"></g>
+                                          <g stroke-linecap="round" stroke-linejoin="round"></g>
+                                          <g>
+                                            <path d="M13 3L13 10L21 10C21 13.866 17.866 17 14 17H13V21M11 21L11 14L3 14C3 10.134 6.13401 7 10 7H11V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                          </g>
+                                        </svg>
+                                      </button>
+                                      <button class="tool-btn" @click="showAIPopup = true" v-if="hasAIData" title="AI Analysis">
+                                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <g stroke-width="0"></g>
+                                          <g stroke-linecap="round" stroke-linejoin="round"></g>
+                                          <g>
+                                            <path d="M12 3C12 7.97056 16.0294 12 21 12C16.0294 12 12 16.0294 12 21C12 16.0294 7.97056 12 3 12C7.97056 12 12 7.97056 12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                          </g>
+                                        </svg>
+                                      </button>
+                                            <button class="tool-btn" @click="takeScreenshot" title="Take Screenshot (Download PNG)">
+                                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                          <circle cx="12" cy="13" r="4"></circle>
+                                        </svg>
+                                      </button>
+                                      <button class="tool-btn" @click="showEditChart = true" title="Chart Settings">
+                                        <svg class="tool-icon" fill="currentColor" viewBox="0 0 32 32" enable-background="new 0 0 32 32" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
+                                          <g stroke-width="0"></g>
+                                          <g stroke-linecap="round" stroke-linejoin="round"></g>
+                                          <g>
+                                            <path d="M27.526,18.036L27,17.732c-0.626-0.361-1-1.009-1-1.732s0.374-1.371,1-1.732l0.526-0.304 c1.436-0.83,1.927-2.662,1.098-4.098l-1-1.732c-0.827-1.433-2.666-1.925-4.098-1.098L23,7.339c-0.626,0.362-1.375,0.362-2,0 c-0.626-0.362-1-1.009-1-1.732V5c0-1.654-1.346-3-3-3h-2c-1.654,0-3,1.346-3,3v0.608c0,0.723-0.374,1.37-1,1.732 c-0.626,0.361-1.374,0.362-2,0L8.474,7.036C7.042,6.209,5.203,6.701,4.375,8.134l-1,1.732c-0.829,1.436-0.338,3.269,1.098,4.098 L5,14.268C5.626,14.629,6,15.277,6,16s-0.374,1.371-1,1.732l-0.526,0.304c-1.436,0.829-1.927,2.662-1.098,4.098l1,1.732 c0.828,1.433,2.667,1.925,4.098,1.098L9,24.661c0.626-0.363,1.374-0.361,2,0c0.626,0.362,1,1.009,1,1.732V27c0,1.654,1.346,3,3,3h2 c1.654,0,3-1.346,3-3v-0.608c0-0.723,0.374-1.37,1-1.732c0.625-0.361,1.374-0.362,2,0l0.526,0.304 c1.432,0.826,3.271,0.334,4.098-1.098l1-1.732C29.453,20.698,28.962,18.865,27.526,18.036z M16,21c-2.757,0-5-2.243-5-5s2.243-5,5-5 s5,2.243,5,5S18.757,21,16,21z"></path>
+                                          </g>
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
   </div>
 </template>
 
@@ -173,9 +243,15 @@ import {
   LogicalRange
 } from '@/lib/lightweight-charts';
 import { ChartRuler } from '@/lib/lightweight-charts/ruler';
+import { TrendLineManager } from '@/lib/lightweight-charts/trendline';
+import { BoxManager } from '@/lib/lightweight-charts/box';
+import { TextAnnotationManager } from '@/lib/lightweight-charts/text-annotation';
+import { FreehandManager } from '@/lib/lightweight-charts/freehand';
+import { ChartScreenshot, type ChartInfo } from '@/lib/lightweight-charts/screenshot';
 import EditChart from '@/components/charts/EditChart.vue';
 import AIPopup from '@/components/charts/AIPopup.vue';
 import SignalsPopup from '@/components/charts/SignalsPopup.vue';
+import ScreenshotPopup from '@/components/charts/ScreenshotPopup.vue';
 
 // --- Chart Data Interfaces ---
 interface OHLCData {
@@ -217,6 +293,8 @@ interface ChartDataResult {
 const showEditChart = ref(false);
 const showAIPopup = ref(false);
 const showSignalsPopup = ref(false);
+const showScreenshotPopup = ref(false);
+const screenshotChartInfo = ref<ChartInfo>({} as ChartInfo);
 const imgError = ref(false);
 let isLoadingMore: boolean = false;
 let allDataLoaded: boolean = false;
@@ -261,9 +339,47 @@ const data4 = ref<MAData[]>([]);
 const data5 = ref<MAData[]>([]);
 const data6 = ref<MAData[]>([]);
 const IntrinsicValue = ref<number | null>(null);
+const displayData = ref<OHLCData[]>([]); // Stores the actual data being displayed (could be Heikin-Ashi or regular OHLC)
 
 function isIntraday(timeframe: string): boolean {
   return ['intraday1m', 'intraday5m', 'intraday15m', 'intraday30m', 'intraday1hr'].includes(timeframe);
+}
+
+function calculateHeikinAshi(ohlcData: OHLCData[]): OHLCData[] {
+  if (ohlcData.length === 0) return [];
+  
+  const haData: OHLCData[] = [];
+  let prevHAOpen = ohlcData[0].open;
+  let prevHAClose = ohlcData[0].close;
+  
+  for (let i = 0; i < ohlcData.length; i++) {
+    const current = ohlcData[i];
+    
+    // HA Close = (Open + High + Low + Close) / 4
+    const haClose = (current.open + current.high + current.low + current.close) / 4;
+    
+    // HA Open = (Previous HA Open + Previous HA Close) / 2
+    const haOpen = i === 0 ? (current.open + current.close) / 2 : (prevHAOpen + prevHAClose) / 2;
+    
+    // HA High = Max(High, HA Open, HA Close)
+    const haHigh = Math.max(current.high, haOpen, haClose);
+    
+    // HA Low = Min(Low, HA Open, HA Close)
+    const haLow = Math.min(current.low, haOpen, haClose);
+    
+    haData.push({
+      time: current.time,
+      open: haOpen,
+      high: haHigh,
+      low: haLow,
+      close: haClose
+    });
+    
+    prevHAOpen = haOpen;
+    prevHAClose = haClose;
+  }
+  
+  return haData;
 }
 
 let ws: WebSocket | null = null;
@@ -283,7 +399,156 @@ function toggleRuler(): void {
   if (ruler) {
     ruler.toggle();
     isRulerActive.value = ruler.isRulerActive();
+    // Deactivate other tools when ruler is activated
+    if (isRulerActive.value) {
+      if (trendlineManager) {
+        trendlineManager.deactivate();
+        isTrendlineActive.value = false;
+      }
+      if (boxManager) {
+        boxManager.deactivate();
+        isBoxActive.value = false;
+      }
+      if (textAnnotationManager) {
+        textAnnotationManager.deactivate();
+        isTextActive.value = false;
+      }
+      if (freehandManager) {
+        freehandManager.deactivate();
+        isFreehandActive.value = false;
+      }
+    }
   }
+}
+
+function toggleTrendline(): void {
+  if (trendlineManager) {
+    trendlineManager.toggle();
+    isTrendlineActive.value = trendlineManager.isToolActive();
+    // Deactivate other tools when trendline is activated
+    if (isTrendlineActive.value) {
+      if (ruler) {
+        ruler.deactivate();
+        isRulerActive.value = false;
+      }
+      if (boxManager) {
+        boxManager.deactivate();
+        isBoxActive.value = false;
+      }
+      if (textAnnotationManager) {
+        textAnnotationManager.deactivate();
+        isTextActive.value = false;
+      }
+      if (freehandManager) {
+        freehandManager.deactivate();
+        isFreehandActive.value = false;
+      }
+    }
+  }
+}
+
+function toggleBox(): void {
+  if (boxManager) {
+    boxManager.toggle();
+    isBoxActive.value = boxManager.isToolActive();
+    // Deactivate other tools when box is activated
+    if (isBoxActive.value) {
+      if (ruler) {
+        ruler.deactivate();
+        isRulerActive.value = false;
+      }
+      if (trendlineManager) {
+        trendlineManager.deactivate();
+        isTrendlineActive.value = false;
+      }
+      if (textAnnotationManager) {
+        textAnnotationManager.deactivate();
+        isTextActive.value = false;
+      }
+      if (freehandManager) {
+        freehandManager.deactivate();
+        isFreehandActive.value = false;
+      }
+    }
+  }
+}
+
+function toggleText(): void {
+  if (textAnnotationManager) {
+    textAnnotationManager.toggle();
+    isTextActive.value = textAnnotationManager.isToolActive();
+    // Deactivate other tools when text is activated
+    if (isTextActive.value) {
+      if (ruler) {
+        ruler.deactivate();
+        isRulerActive.value = false;
+      }
+      if (trendlineManager) {
+        trendlineManager.deactivate();
+        isTrendlineActive.value = false;
+      }
+      if (boxManager) {
+        boxManager.deactivate();
+        isBoxActive.value = false;
+      }
+      if (freehandManager) {
+        freehandManager.deactivate();
+        isFreehandActive.value = false;
+      }
+    }
+  }
+}
+
+function toggleFreehand(): void {
+  if (freehandManager) {
+    freehandManager.toggle();
+    isFreehandActive.value = freehandManager.isToolActive();
+    // Deactivate other tools when freehand is activated
+    if (isFreehandActive.value) {
+      if (ruler) {
+        ruler.deactivate();
+        isRulerActive.value = false;
+      }
+      if (trendlineManager) {
+        trendlineManager.deactivate();
+        isTrendlineActive.value = false;
+      }
+      if (boxManager) {
+        boxManager.deactivate();
+        isBoxActive.value = false;
+      }
+      if (textAnnotationManager) {
+        textAnnotationManager.deactivate();
+        isTextActive.value = false;
+      }
+    }
+  }
+}
+
+function takeScreenshot(): void {
+  screenshotChartInfo.value = {
+    symbol: props.assetInfo?.Symbol || '',
+    name: props.assetInfo?.Name || '',
+    timeframe: chartTypes.find(t => t.value === selectedDataType.value)?.label || 'Daily Chart',
+    price: ohlcDisplay.value?.close || simplePriceDisplay.value?.price || '',
+    change: ohlcDisplay.value?.changeRaw || simplePriceDisplay.value?.changeRaw || '',
+    changePercent: ohlcDisplay.value?.changePct ? `${ohlcDisplay.value.changePct}%` : 
+                   simplePriceDisplay.value?.changePct ? `${simplePriceDisplay.value.changePct}%` : '',
+    date: new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  };
+  
+  showScreenshotPopup.value = true;
+}
+
+function handleExportScreenshot(config: any): void {
+  if (!screenshotManager) return;
+  
+  screenshotManager.takeScreenshot(screenshotChartInfo.value, config);
+  showScreenshotPopup.value = false;
 }
 
 async function fetchChartData(symbolParam?: string, timeframeParam?: string): Promise<void> {
@@ -411,6 +676,15 @@ let chart: IChartApi | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let ruler: ChartRuler | null = null;
 const isRulerActive = ref(false);
+let trendlineManager: TrendLineManager | null = null;
+const isTrendlineActive = ref(false);
+let boxManager: BoxManager | null = null;
+const isBoxActive = ref(false);
+let textAnnotationManager: TextAnnotationManager | null = null;
+const isTextActive = ref(false);
+let freehandManager: FreehandManager | null = null;
+const isFreehandActive = ref(false);
+let screenshotManager: ChartScreenshot | null = null;
 // Responsive resize: adjust chart width/height when container or window resizes
 function updateChartSize(): void {
   const chartDivLocal = wkchart.value as HTMLElement | null;
@@ -460,6 +734,22 @@ function updateMainSeries(): void {
         priceLineVisible: true,
       });
       mainSeries.setData(data.value);
+      break;
+    
+    case 'heikinashi':
+      mainSeries = c.addCandlestickSeries({
+        downColor: theme.negative,
+        upColor: theme.positive,
+        borderDownColor: theme.negative,
+        borderUpColor: theme.positive,
+        wickDownColor: theme.negative,
+        wickUpColor: theme.positive,
+        lastValueVisible: true,
+        priceLineVisible: true,
+      });
+      // Convert OHLC data to Heikin-Ashi
+      const heikinAshiData = calculateHeikinAshi(data.value);
+      mainSeries.setData(heikinAshiData);
       break;
     
     case 'line':
@@ -540,6 +830,26 @@ function updateMainSeries(): void {
   if (ruler) {
     ruler.setMainSeries(mainSeries);
   }
+  
+  // Update trendline manager with the new series reference
+  if (trendlineManager) {
+    trendlineManager.setMainSeries(mainSeries);
+  }
+  
+  // Update box manager with the new series reference
+  if (boxManager) {
+    boxManager.setMainSeries(mainSeries);
+  }
+  
+  // Update text annotation manager with the new series reference
+  if (textAnnotationManager) {
+    textAnnotationManager.setMainSeries(mainSeries);
+  }
+  
+  // Update freehand manager with the new series reference
+  if (freehandManager) {
+    freehandManager.setMainSeries(mainSeries);
+  }
 }
 
 // mounts chart (candlestick or bar) and volume
@@ -603,15 +913,56 @@ onMounted(async () => {
   }
   window.addEventListener('resize', updateChartSize);
   
+  // Add keyboard event listener for tool controls
+  const handleKeyPress = (event: KeyboardEvent) => {
+    if (event.key === 'Delete' || event.key === 'Backspace') {
+      if (trendlineManager && isTrendlineActive.value) {
+        trendlineManager.removeSelectedLine();
+      }
+      if (boxManager && isBoxActive.value) {
+        boxManager.removeSelectedBox();
+      }
+      if (textAnnotationManager && isTextActive.value) {
+        textAnnotationManager.removeSelectedAnnotation();
+      }
+      if (freehandManager && isFreehandActive.value) {
+        freehandManager.removeSelectedPath();
+      }
+    }
+    if (event.key === 'Escape') {
+      if (trendlineManager && isTrendlineActive.value) {
+        trendlineManager.deactivate();
+        isTrendlineActive.value = false;
+      }
+      if (boxManager && isBoxActive.value) {
+        boxManager.deactivate();
+        isBoxActive.value = false;
+      }
+      if (textAnnotationManager && isTextActive.value) {
+        textAnnotationManager.deactivate();
+        isTextActive.value = false;
+      }
+      if (freehandManager && isFreehandActive.value) {
+        freehandManager.deactivate();
+        isFreehandActive.value = false;
+      }
+      if (ruler && isRulerActive.value) {
+        ruler.deactivate();
+        isRulerActive.value = false;
+      }
+    }
+  };
+  window.addEventListener('keydown', handleKeyPress);
+  
   // Add crosshair subscription once
   chart.subscribeCrosshairMove((param: MouseEventParams<Time>) => {
     if (!param || !param.time) {
       crosshairOhlc.value = null;
       return;
     }
-    const idx = data.value.findIndex((d: OHLCData) => d.time === param.time);
+    const idx = displayData.value.findIndex((d: OHLCData) => d.time === param.time);
     if (idx !== -1) {
-      crosshairOhlc.value = { ...data.value[idx], index: idx };
+      crosshairOhlc.value = { ...displayData.value[idx], index: idx };
     } else {
       crosshairOhlc.value = null;
     }
@@ -633,9 +984,16 @@ onMounted(async () => {
         value: d.close
       }));
       mainSeries.setData(transformedData);
+      displayData.value = newData; // Store original data for legend
+    } else if (chartType.value === 'heikinashi') {
+      // For Heikin-Ashi, transform OHLC data
+      const heikinAshiData = calculateHeikinAshi(newData);
+      mainSeries.setData(heikinAshiData);
+      displayData.value = heikinAshiData; // Store Heikin-Ashi data for legend
     } else {
       // For candlestick and bar, use OHLC data as-is
       mainSeries.setData(newData);
+      displayData.value = newData; // Store original data for legend
     }
   });
 
@@ -755,7 +1113,7 @@ watch(
         lineWidth: 2,
         lineStyle: 2, // Dashed
         axisLabelVisible: true,
-        title: '✧ Intrinsic Value',
+        title: '✧ IV',
         // Removed invalid labelVisible option
       });
     }
@@ -770,6 +1128,21 @@ watch(
   
   // Initialize ruler with the main series
   ruler = new ChartRuler(chart, mainSeries);
+  
+  // Initialize trendline manager with the main series
+  trendlineManager = new TrendLineManager(chart, mainSeries);
+  
+  // Initialize box manager with the main series
+  boxManager = new BoxManager(chart, mainSeries);
+  
+  // Initialize text annotation manager with the main series
+  textAnnotationManager = new TextAnnotationManager(chart, mainSeries);
+  
+  // Initialize freehand manager with the main series
+  freehandManager = new FreehandManager(chart, mainSeries);
+  
+  // Initialize screenshot manager
+  screenshotManager = new ChartScreenshot(chart, 'wk-chart');
   
   // ensure initial sizing is correct
   updateChartSize();
@@ -878,6 +1251,26 @@ onUnmounted(() => {
     ruler.destroy();
     ruler = null;
   }
+  // Destroy trendline manager
+  if (trendlineManager) {
+    trendlineManager.destroy();
+    trendlineManager = null;
+  }
+  // Destroy box manager
+  if (boxManager) {
+    boxManager.destroy();
+    boxManager = null;
+  }
+  // Destroy text annotation manager
+  if (textAnnotationManager) {
+    textAnnotationManager.destroy();
+    textAnnotationManager = null;
+  }
+  // Destroy freehand manager
+  if (freehandManager) {
+    freehandManager.destroy();
+    freehandManager = null;
+  }
   // close websocket if open
   closeChartWS();
 });
@@ -890,6 +1283,22 @@ watch(() => props.selectedSymbol, (newSymbol, oldSymbol) => {
     if (ruler) {
       ruler.resetMeasurement();
     }
+    // Clear all trendlines when changing symbols
+    if (trendlineManager) {
+      trendlineManager.removeAllLines();
+    }
+    // Clear all boxes when changing symbols
+    if (boxManager) {
+      boxManager.removeAllBoxes();
+    }
+    // Clear all text annotations when changing symbols
+    if (textAnnotationManager) {
+      textAnnotationManager.removeAllAnnotations();
+    }
+    // Clear all freehand paths when changing symbols
+    if (freehandManager) {
+      freehandManager.removeAllPaths();
+    }
     fetchChartData(newSymbol, selectedDataType.value);
   }
 });
@@ -899,6 +1308,22 @@ watch(() => props.defaultSymbol, (newSymbol, oldSymbol) => {
     // Reset ruler measurement when changing symbols
     if (ruler) {
       ruler.resetMeasurement();
+    }
+    // Clear all trendlines when changing symbols
+    if (trendlineManager) {
+      trendlineManager.removeAllLines();
+    }
+    // Clear all boxes when changing symbols
+    if (boxManager) {
+      boxManager.removeAllBoxes();
+    }
+    // Clear all text annotations when changing symbols
+    if (textAnnotationManager) {
+      textAnnotationManager.removeAllAnnotations();
+    }
+    // Clear all freehand paths when changing symbols
+    if (freehandManager) {
+      freehandManager.removeAllPaths();
     }
     fetchChartData(newSymbol, selectedDataType.value);
   }
@@ -939,19 +1364,19 @@ interface OHLCDisplay {
   changePct: string;
 }
 const ohlcDisplay = computed<OHLCDisplay | null>(() => {
-  // Only show OHLC data for candlestick and bar charts
-  if (chartType.value !== 'candlestick' && chartType.value !== 'bar') return null;
+  // Only show OHLC data for candlestick, bar, and heikinashi charts
+  if (chartType.value !== 'candlestick' && chartType.value !== 'bar' && chartType.value !== 'heikinashi') return null;
   
   let idx = -1;
-  if (!data.value || data.value.length < 2) return null;
+  if (!displayData.value || displayData.value.length < 2) return null;
   if (crosshairOhlc.value && typeof crosshairOhlc.value.index === 'number') {
     idx = crosshairOhlc.value.index;
   } else {
-    idx = data.value.length - 1;
+    idx = displayData.value.length - 1;
   }
-  if (idx < 0 || idx >= data.value.length) return null;
-  const curr = data.value[idx];
-  const prev = idx > 0 ? data.value[idx - 1] : null;
+  if (idx < 0 || idx >= displayData.value.length) return null;
+  const curr = displayData.value[idx];
+  const prev = idx > 0 ? displayData.value[idx - 1] : null;
   if (!curr || !prev) return null;
   const open = curr.open?.toFixed(2) ?? '-';
   const high = curr.high?.toFixed(2) ?? '-';
@@ -1648,18 +2073,126 @@ font-weight: bold;
   background-color: transparent;
   color: var(--text1);
   font-weight: bold;
-  border-bottom: 1px solid var(--text1);
 }
 
 .navbt2.ruler-active {
   background: color-mix(in srgb, var(--text2) 15%, transparent);
   color: var(--text1);
-  border-bottom: solid 1px var(--text1);
 }
 
 .navbt2.ruler-active:hover {
   background: color-mix(in srgb, var(--text2) 25%, transparent);
   color: var(--text1);
+}
+
+.navbt2.trendline-active {
+  background: color-mix(in srgb, var(--text2) 15%, transparent);
+  color: var(--text1);
+}
+
+.navbt2.trendline-active:hover {
+  background: color-mix(in srgb, var(--text2) 25%, transparent);
+  color: var(--text1);
+}
+
+.navbt2.box-active {
+  background: color-mix(in srgb, var(--text2) 15%, transparent);
+  color: var(--text1);
+}
+
+.navbt2.box-active:hover {
+  background: color-mix(in srgb, var(--text2) 25%, transparent);
+  color: var(--text1);
+}
+
+.navbt2.text-active {
+  background: color-mix(in srgb, var(--text2) 15%, transparent);
+  color: var(--text1);
+}
+
+.navbt2.text-active:hover {
+  background: color-mix(in srgb, var(--text2) 25%, transparent);
+  color: var(--text1);
+}
+
+.navbt2.freehand-active {
+  background: color-mix(in srgb, var(--text2) 15%, transparent);
+  color: var(--text1);
+}
+
+.navbt2.freehand-active:hover {
+  background: color-mix(in srgb, var(--text2) 25%, transparent);
+  color: var(--text1);
+}
+
+/* Chart Tools Toolbar */
+.chart-tools-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 5px;
+  background: var(--base2);
+  border-top: 1px solid var(--base3);
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolbar-label {
+  font-size: 11px;
+  color: var(--text2);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-right: 12px;
+  border-right: 1px solid var(--base3);
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--base3);
+}
+
+.toolbar-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.tool-btn {
+  background-color: transparent;
+  color: var(--text2);
+  border: none;
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tool-btn:hover {
+  background: color-mix(in srgb, var(--text2) 10%, transparent);
+  color: var(--text1);
+}
+
+.tool-btn.active {
+  background: color-mix(in srgb, var(--text2) 20%, transparent);
+  color: var(--text1);
+}
+
+.tool-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
 </style>

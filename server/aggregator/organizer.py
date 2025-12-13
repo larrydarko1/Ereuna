@@ -2860,9 +2860,9 @@ async def update_market_stats():
     
 async def Daily():
     # Run getPrice and getCryptoPrice sequentially
-    # Check if today is a weekday (0=Monday, 6=Sunday)
+    # Check if today is Tuesday-Saturday (since code runs day after market data)
     today = datetime.now()
-    is_weekday = today.weekday() < 5  # 0-4 are Monday to Friday
+    is_weekday = 1 <= today.weekday() <= 5  # 1-5 are Tuesday to Saturday
     
     if is_weekday:
         print(f"Weekday detected ({today.strftime('%A')}): Running stock price updates...")

@@ -88,7 +88,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import ereunaLogo from '@/assets/icons/ereuna2.png';
+import ereunaLogoSvg from '@/assets/icons/ereuna.svg';
 import RenewPopup from './Renew.vue';
 import RefundPopup from './Refund.vue';
 import NotificationPopup from '@/components/NotificationPopup.vue';
@@ -115,6 +115,61 @@ const showRefund = ref(false);
 const notification = ref<InstanceType<typeof NotificationPopup> | null>(null);
 // Track per-receipt download/loading state to prevent double-clicks
 const downloading = ref<Record<string, boolean>>({});
+
+// Convert SVG to PNG for PDF embedding with fixed dark color for receipts (white background)
+async function embedSvgAsImage(pdfDoc: any, svgUrl: string): Promise<any> {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Fetch the SVG as text
+      const response = await fetch(svgUrl);
+      const svgText = await response.text();
+      
+      // Replace the fill color with our fixed dark color #16161e
+      const darkSvg = svgText.replace(/fill="#F0F2F5"/g, 'fill="#16161e"');
+      
+      // Create a blob and object URL from the modified SVG
+      const blob = new Blob([darkSvg], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          URL.revokeObjectURL(url);
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+        
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        canvas.toBlob(async (pngBlob) => {
+          URL.revokeObjectURL(url);
+          if (!pngBlob) {
+            reject(new Error('Could not convert canvas to blob'));
+            return;
+          }
+          const arrayBuffer = await pngBlob.arrayBuffer();
+          try {
+            const embeddedImage = await pdfDoc.embedPng(arrayBuffer);
+            resolve(embeddedImage);
+          } catch (err) {
+            reject(err);
+          }
+        }, 'image/png');
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load SVG image'));
+      };
+      img.src = url;
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
 
 const props = defineProps({
   user: {
@@ -322,9 +377,9 @@ async function downloadReceipt(receipt: Receipt) {
 
     // Try to add logo (non-fatal). Compute height from intrinsic image size so
     // the image keeps its aspect ratio when we specify a target width.
+    // Convert SVG to PNG for PDF embedding with fixed dark color
     try {
-      const logoBuf = await fetch(ereunaLogo).then(r => r.arrayBuffer());
-      const logoImg: any = await pdfDoc.embedPng(logoBuf);
+      const logoImg: any = await embedSvgAsImage(pdfDoc, ereunaLogoSvg);
   // Allow manual width via prop; fallback to 140 if not provided
   const logoWidth = Number(props.logoWidth ?? 140);
       // pdf-lib image objects expose width/height; fallback safely if not present
@@ -334,9 +389,8 @@ async function downloadReceipt(receipt: Receipt) {
       if (origW && origH) {
         logoHeight = Math.round(origH * (logoWidth / origW));
       }
-      // Preserve the visual top alignment from the original code. Original used
-      // y: pageHeight - 110 with height 50, so the top was at pageHeight - 60.
-      const logoTop = pageHeight - 60;
+      // Position the logo near the top of the page
+      const logoTop = pageHeight - 40;
       const logoY = logoTop - logoHeight;
       page.drawImage(logoImg, { x: 20, y: logoY, width: logoWidth, height: logoHeight });
     } catch (e) {

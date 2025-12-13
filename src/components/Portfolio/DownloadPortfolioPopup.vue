@@ -103,7 +103,7 @@ async function downloadPDF() {
     // Add logo
     const logoImg = await fetch(ereunaLogo).then(res => res.arrayBuffer());
     const logo = await pdfDoc.embedPng(logoImg);
-    page.drawImage(logo, { x: 30, y: 740, width: 160, height: 60 });
+    page.drawImage(logo, { x: 30, y: 720, width: 160, height: 90 });
 
     // Add title and date
     const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -347,63 +347,65 @@ async function downloadPDF() {
 
     // --- Positions Table ---
     const positions = exportData.value.portfolio || [];
-    const posExcluded = ['_id', 'Username', 'PortfolioNumber'];
-  let posHeaders = positions.length > 0 ? Object.keys(positions[0]).filter(h => !posExcluded.includes(h)) : [];
-  // Rename latestClose to Close in headers
+    const posExcluded = ['_id', 'Username', 'PortfolioNumber', 'latestClose', 'unrealizedPL'];
+    let posHeaders = positions.length > 0 ? Object.keys(positions[0]).filter(h => !posExcluded.includes(h)) : [];
+    // Rename headers for better readability
     posHeaders = posHeaders.map(h => {
-      if (h === 'latestClose') return 'Close';
-      if (h === 'currentValue') return 'Current Value';
-    if (h === 'unrealizedPL') return 'PL';
+      if (h === 'AvgPrice') return 'Avg Price';
+      if (h === 'IsShort') return 'Short';
+      if (h === 'currentValue') return 'Value';
       return h;
     });
     page.drawText('Positions', { x: 40, y: y, size: 13, font, color: accent1 });
-    y -= 32; // Increased margin between header and table
-    page.drawRectangle({ x: 40, y: y, width: 520, height: 22, color: base2 });
+    y -= 32;
+    page.drawRectangle({ x: 40, y: y, width: 520, height: 20, color: base2 });
     posHeaders.forEach((h, idx) => {
-      page.drawText(h, { x: 40 + 10 + idx * 90, y: y + 6, size: 11, font, color: text1 }); // Reduced column margin
+      page.drawText(h, { x: 40 + 8 + idx * 70, y: y + 5, size: 9, font, color: text1 });
     });
-    y -= 22;
+    y -= 20;
     let posRowsOnPage = 0;
     for (let i = 0; i < positions.length; i++) {
       if (y < 60) {
         page = pdfDoc.addPage([600, 800]);
         page.drawRectangle({ x: 0, y: 0, width: 600, height: 800, color: base1 });
         y = 770;
-        // No '(cont.)' header, just continue table
-        page.drawRectangle({ x: 40, y: y - 32, width: 520, height: 22, color: base2 });
+        page.drawRectangle({ x: 40, y: y - 32, width: 520, height: 20, color: base2 });
         posHeaders.forEach((h, idx) => {
-          page.drawText(h, { x: 40 + 10 + idx * 120, y: y - 32 + 6, size: 11, font, color: text1 });
+          page.drawText(h, { x: 40 + 8 + idx * 70, y: y - 32 + 5, size: 9, font, color: text1 });
         });
-        y -= 54;
+        y -= 52;
         posRowsOnPage = 0;
       }
       posHeaders.forEach((h, idx) => {
-        let value;
-        if (h === 'Close') {
-          value = positions[i]['latestClose'];
-        } else if (h === 'Current Value') {
-          value = positions[i]['currentValue'];
-          if (value !== undefined) {
-            value = parseFloat(value).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-          }
-        } else if (h === 'PL') {
-          value = positions[i]['unrealizedPL'];
-          if (value !== undefined) {
-            value = parseFloat(value).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
-          }
-        } else {
-          value = positions[i][h];
+        // Map display header back to actual field name
+        const fieldName = h === 'Avg Price' ? 'AvgPrice' : h === 'Short' ? 'IsShort' : h === 'Value' ? 'currentValue' : h;
+        let value = positions[i][fieldName];
+        
+        // Handle undefined values
+        if (value === undefined || value === null) {
+          value = '-';
+        } else if (fieldName === 'AvgPrice' && typeof value === 'number') {
+          // Format price with 2 decimals
+          value = value.toFixed(2);
+        } else if (fieldName === 'currentValue' && typeof value === 'number') {
+          // Format value with 2 decimals
+          value = value.toFixed(2);
+        } else if (fieldName === 'IsShort') {
+          // Convert boolean to readable text
+          value = value ? 'Yes' : 'No';
         }
-        page.drawText(String(value), { x: 40 + 10 + idx * 90, y: y + 6, size: 10, font, color: text2 });
+        
+        const displayValue = String(value);
+        page.drawText(displayValue, { x: 40 + 8 + idx * 70, y: y + 5, size: 8, font, color: text2 });
       });
-      y -= 22;
+      y -= 20;
       posRowsOnPage++;
     }
     y -= 30;
 
     // --- Trades Table ---
     const trades = exportData.value.transactionHistory || [];
-    const tradeExcluded = ['_id', 'Username', 'PortfolioNumber'];
+    const tradeExcluded = ['_id', 'Username', 'PortfolioNumber', 'Timestamp', 'IsShort'];
     let tradeHeaders = trades.length > 0 ? Object.keys(trades[0]).filter(h => !tradeExcluded.includes(h)) : [];
     // Rename Commission to Comm. and move Total to end
     tradeHeaders = tradeHeaders.map(h => h === 'Commission' ? 'Comm.' : h);
@@ -435,40 +437,51 @@ async function downloadPDF() {
       }
       tradeHeaders.forEach((h, idx) => {
         let value;
-        // Map header back to original key if needed
-        if (h === 'Comm.') {
-          value = trades[i]['Commission'];
-          if (value === undefined || value === null) value = '-';
-        } else if (h === 'Total') {
-          value = trades[i]['Total'];
+        // Get the raw value from the trade object
+        const rawValue = trades[i][h] ?? trades[i][h === 'Comm.' ? 'Commission' : h];
+        
+        // Handle missing/undefined values
+        if (rawValue === undefined || rawValue === null) {
+          value = '-';
         } else if (h === 'Date') {
-          // Format BSON date string to DD/MM/YYYY or trim if needed
-          let d = trades[i]['Date'];
-          if (d && typeof d === 'string') {
-            // Try to parse ISO string
-            const dateObj = new Date(d);
+          // Format date to DD/MM/YYYY
+          let d = rawValue;
+          if (typeof d === 'object' && d.$date) {
+            // Handle BSON date format { $date: "..." }
+            const dateObj = new Date(d.$date);
             if (!isNaN(dateObj.getTime())) {
               const day = String(dateObj.getDate()).padStart(2, '0');
               const month = String(dateObj.getMonth() + 1).padStart(2, '0');
               const year = dateObj.getFullYear();
               value = `${day}/${month}/${year}`;
             } else {
-              // Fallback: trim to first 10 chars and reformat
-              const trimmed = typeof d === 'string' ? d.slice(0, 10) : '';
-              const parts = trimmed.split('-');
-              if (parts.length === 3) {
-                value = `${parts[2]}/${parts[1]}/${parts[0]}`;
-              } else {
-                value = trimmed;
-              }
+              value = '-';
             }
+          } else if (typeof d === 'string') {
+            // Handle ISO string format - just slice first 10 chars and reformat
+            const dateStr = d.slice(0, 10); // Get YYYY-MM-DD
+            const parts = dateStr.split('-');
+            if (parts.length === 3 && parts[0].length === 4) {
+              value = `${parts[2]}/${parts[1]}/${parts[0]}`; // DD/MM/YYYY
+            } else {
+              value = '-';
+            }
+          } else if (d instanceof Date && !isNaN(d.getTime())) {
+            // Handle Date object
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            value = `${day}/${month}/${year}`;
           } else {
-            value = d;
+            value = '-';
           }
         } else {
-          value = trades[i][h];
+          value = rawValue;
         }
-        page.drawText(String(value), { x: 40 + 10 + idx * 80, y: y + 6, size: 10, font, color: text2 });
+        
+        // Ensure we never display 'undefined' or 'null' as text
+        const displayValue = (value === undefined || value === null || value === 'undefined' || value === 'null') ? '-' : String(value);
+        page.drawText(displayValue, { x: 40 + 10 + idx * 80, y: y + 6, size: 10, font, color: text2 });
       });
       y -= 22;
       tradeRowsOnPage++;
