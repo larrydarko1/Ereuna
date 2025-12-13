@@ -95,6 +95,7 @@
               <div v-if="chartTypeDropdownOpen" class="dropdown-list">
                 <div class="dropdown-item" @click.stop="selectChartType('candlestick')">Candlestick</div>
                 <div class="dropdown-item" @click.stop="selectChartType('bar')">Bar</div>
+                <div class="dropdown-item" @click.stop="selectChartType('heikinashi')">Heikin-Ashi</div>
                 <div class="dropdown-item" @click.stop="selectChartType('line')">Line</div>
                 <div class="dropdown-item" @click.stop="selectChartType('area')">Area</div>
                 <div class="dropdown-item" @click.stop="selectChartType('baseline')">Baseline</div>
@@ -161,6 +162,7 @@ const chartTypeLabel = computed(() => {
   const labels: Record<string, string> = {
     'candlestick': 'Candlestick',
     'bar': 'Bar',
+    'heikinashi': 'Heikin-Ashi',
     'line': 'Line',
     'area': 'Area',
     'baseline': 'Baseline'

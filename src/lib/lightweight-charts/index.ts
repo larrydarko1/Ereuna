@@ -19,6 +19,16 @@ export const customSeriesDefaultOptions: CustomSeriesOptions = {
 
 export { createChart, createChartEx, defaultHorzScaleBehavior } from './api/create-chart';
 export { ChartRuler } from './ruler';
+export { TrendLineManager } from './trendline';
+export type { TrendLine, TrendLinePoint } from './trendline';
+export { BoxManager } from './box';
+export type { Box, BoxPoint } from './box';
+export { TextAnnotationManager } from './text-annotation';
+export type { TextAnnotation, TextAnnotationPoint } from './text-annotation';
+export { FreehandManager } from './freehand';
+export type { FreehandPath, FreehandPoint } from './freehand';
+export { ChartScreenshot } from './screenshot';
+export type { ScreenshotConfig, ChartInfo } from './screenshot';
 
 // Export additional types needed by the components
 export type { IChartApi } from './api/create-chart';
