@@ -143,7 +143,7 @@
         <div class="footer">
           <div class="footer-main">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <img src="@/assets/icons/ereuna.png" alt="Ereuna Logo" class="icon" style="height: 40px; opacity: 0.7;" draggable="false" />
+              <img src="@/assets/icons/ereuna.png" alt="Ereuna Logo" class="icon" style="height: 60px; opacity: 0.7;" draggable="false" />
             </div>
             <div class="footer-links" style="display: flex; gap: 24px; align-items: center;">
               <a href="/documentation" style="text-decoration: none;">Docs</a>
@@ -575,8 +575,8 @@ function setupCardAnimations() {
 }
 
 .icon {
-    height: 60px; 
-    opacity: 0.50;
+    height: 80px; 
+    opacity: 0.8;
   }
 
   .navbar {

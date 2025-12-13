@@ -18,6 +18,7 @@ export const customSeriesDefaultOptions: CustomSeriesOptions = {
 };
 
 export { createChart, createChartEx, defaultHorzScaleBehavior } from './api/create-chart';
+export { ChartRuler } from './ruler';
 
 // Export additional types needed by the components
 export type { IChartApi } from './api/create-chart';

@@ -1,4 +1,5 @@
 import { isChrome } from './browsers';
+import { MouseEventButton } from './mouse-event-button';
 
 export function preventScrollByWheelClick(el: HTMLElement): void {
 	if (!isChrome()) {

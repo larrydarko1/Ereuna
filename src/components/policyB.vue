@@ -4,7 +4,6 @@
       <button class="modal-close" @click="close" aria-label="Close">&times;</button>
       <div style="display: flex;">
          <img class="icon" src="@/assets/icons/ereuna.png" alt="Owl Icon" draggable="false">
-      <h2 class="contract-header" style="margin-right: 1rem;">|</h2>
          <h2 class="contract-header">Terms of Service & Privacy Policy</h2>
       </div>
       <div class="modal-body">
@@ -115,7 +114,6 @@ const close = () => emit('close')
 }
 
 .contract-title {
-  margin-top: 2rem;
   font-size: 1.2rem;
   color: $accent3;
   font-weight: 600;
@@ -123,7 +121,6 @@ const close = () => emit('close')
 }
 
 .contract-header {
-  margin-top: 2rem;
   font-size: 1.5rem;
   color: $text1;
   font-weight: 600;
