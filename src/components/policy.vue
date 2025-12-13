@@ -5,7 +5,6 @@
       <div class="modal-header">
         <div style="display: flex;">
           <img class="icon" src="@/assets/icons/ereuna.png" alt="Owl Icon" draggable="false">
-          <h2 class="contract-header" style="margin-right: 1rem;">|</h2>
           <h2 class="contract-header">Open Beta Terms & Privacy Policy</h2>
         </div>
       </div>
@@ -124,7 +123,6 @@ const close = () => emit('close')
 }
 
 .contract-title {
-  margin-top: 2rem;
   font-size: 1.2rem;
   color: $accent3;
   font-weight: 600;
@@ -132,7 +130,8 @@ const close = () => emit('close')
 }
 
 .contract-header {
-  margin-top: 2rem;
+  margin-top: 2.3rem;
+  margin-left: 1rem;
   font-size: 1.5rem;
   color: $text1;
   font-weight: 600;

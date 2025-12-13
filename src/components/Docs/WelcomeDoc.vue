@@ -4,6 +4,15 @@
     <p>Use this documentation to learn how to navigate the application.</p>
 </div>
 <div class="section-separator"></div>
+<div class="disclaimer-section">
+    <div class="disclaimer-content">
+        <div class="disclaimer-text">
+            <h3>Active Development Notice</h3>
+            <p>This project is under heavy active development by a solo developer. Some screenshots in the documentation may be outdated, and new features might not be documented yet. Thank you for your patience!</p>
+        </div>
+    </div>
+</div>
+<div class="section-separator"></div>
 <div class="features-section">
     <h2>Upcoming Features</h2>
     <div class="features-grid">
@@ -117,6 +126,48 @@ onMounted(fetchFeatures);
     background: linear-gradient(90deg, transparent, $accent1, transparent);
     margin: 3rem 0;
     opacity: 0.6;
+}
+
+.disclaimer-section {
+    width: 100%;
+    margin: 2rem 0;
+}
+
+.disclaimer-content {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: rgba($accent1, 0.1);
+    border: 1px solid rgba($accent1, 0.3);
+    border-radius: 12px;
+    align-items: flex-start;
+}
+
+.disclaimer-text h3 {
+    color: $accent1;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.disclaimer-text p {
+    color: $text2;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .disclaimer-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .disclaimer-section {
+    width: 93%;
+}
+
+
 }
 
 .features-section {

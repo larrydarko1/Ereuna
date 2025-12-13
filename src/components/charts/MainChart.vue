@@ -86,6 +86,14 @@
         </g>
       </svg>
     </button>
+    <button 
+      class="navbt2" 
+      :class="{ 'ruler-active': isRulerActive }" 
+      @click="toggleRuler" 
+      title="Measure Tool"
+    >
+     <svg class="chart-type-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M2 15.6157C2 16.463 2.68179 17.1448 4.04537 18.5083L5.49167 19.9546C6.85525 21.3182 7.53704 22 8.38426 22C9.23148 22 9.91327 21.3182 11.2769 19.9546L19.9546 11.2769C21.3182 9.91327 22 9.23148 22 8.38426C22 7.53704 21.3182 6.85525 19.9546 5.49167L18.5083 4.04537C17.1448 2.68179 16.463 2 15.6157 2C14.8623 2 14.2396 2.53926 13.1519 3.61778C13.1817 3.63981 13.2103 3.66433 13.2373 3.69135L14.6515 5.10556C14.9444 5.39846 14.9444 5.87333 14.6515 6.16622C14.3586 6.45912 13.8837 6.45912 13.5908 6.16622L12.1766 4.75201C12.1494 4.7248 12.1247 4.69601 12.1026 4.66595L11.0299 5.73861C11.06 5.76077 11.0888 5.78545 11.116 5.81267L13.2373 7.93399C13.5302 8.22688 13.5302 8.70176 13.2373 8.99465C12.9444 9.28754 12.4695 9.28754 12.1766 8.99465L10.0553 6.87333C10.0281 6.84612 10.0034 6.81733 9.98125 6.78726L8.90859 7.85993C8.93865 7.88209 8.96744 7.90678 8.99465 7.93399L10.4089 9.3482C10.7018 9.6411 10.7018 10.116 10.4089 10.4089C10.116 10.7018 9.6411 10.7018 9.3482 10.4089L7.93399 8.99465C7.90678 8.96744 7.88209 8.93865 7.85993 8.90859L6.78727 9.98125C6.81733 10.0034 6.84612 10.0281 6.87333 10.0553L8.99465 12.1766C9.28754 12.4695 9.28754 12.9444 8.99465 13.2373C8.70176 13.5302 8.22688 13.5302 7.93399 13.2373L5.81267 11.116C5.78545 11.0888 5.76077 11.06 5.73861 11.0299L4.66595 12.1026C4.69601 12.1247 4.7248 12.1494 4.75201 12.1766L6.16622 13.5908C6.45912 13.8837 6.45912 14.3586 6.16622 14.6515C5.87333 14.9444 5.39846 14.9444 5.10556 14.6515L3.69135 13.2373C3.66433 13.2103 3.63981 13.1817 3.61778 13.1519C2.53926 14.2396 2 14.8623 2 15.6157Z" fill="currentColor"></path> </g></svg>
+    </button>
     <button class="navbt2" @click="showEditChart = true" title="Chart Settings">
       <svg class="chart-type-icon" fill="currentColor" viewBox="0 0 32 32" enable-background="new 0 0 32 32" id="Glyph" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -164,6 +172,7 @@ import {
   MouseEventParams,
   LogicalRange
 } from '@/lib/lightweight-charts';
+import { ChartRuler } from '@/lib/lightweight-charts/ruler';
 import EditChart from '@/components/charts/EditChart.vue';
 import AIPopup from '@/components/charts/AIPopup.vue';
 import SignalsPopup from '@/components/charts/SignalsPopup.vue';
@@ -267,6 +276,13 @@ function closeChartWS(): void {
   if (wsReconnectTimeout) {
     clearTimeout(wsReconnectTimeout);
     wsReconnectTimeout = null;
+  }
+}
+
+function toggleRuler(): void {
+  if (ruler) {
+    ruler.toggle();
+    isRulerActive.value = ruler.isRulerActive();
   }
 }
 
@@ -393,6 +409,8 @@ const theme = {
 const wkchart = ref(null);
 let chart: IChartApi | null = null;
 let resizeObserver: ResizeObserver | null = null;
+let ruler: ChartRuler | null = null;
+const isRulerActive = ref(false);
 // Responsive resize: adjust chart width/height when container or window resizes
 function updateChartSize(): void {
   const chartDivLocal = wkchart.value as HTMLElement | null;
@@ -516,6 +534,11 @@ function updateMainSeries(): void {
         priceLineVisible: true,
       });
       mainSeries.setData(data.value);
+  }
+  
+  // Update ruler with the new series reference
+  if (ruler) {
+    ruler.setMainSeries(mainSeries);
   }
 }
 
@@ -745,6 +768,9 @@ watch(
   // Initialize main series with current chart type
   updateMainSeries();
   
+  // Initialize ruler with the main series
+  ruler = new ChartRuler(chart, mainSeries);
+  
   // ensure initial sizing is correct
   updateChartSize();
   isLoading1.value = false;
@@ -847,6 +873,11 @@ onUnmounted(() => {
       // so to be safe, nothing to do here beyond removing window listener.
     }
   } catch (e) {}
+  // Destroy ruler
+  if (ruler) {
+    ruler.destroy();
+    ruler = null;
+  }
   // close websocket if open
   closeChartWS();
 });
@@ -855,12 +886,20 @@ onUnmounted(() => {
 // Watch for prop changes to selectedSymbol and update chart
 watch(() => props.selectedSymbol, (newSymbol, oldSymbol) => {
   if (newSymbol && newSymbol !== oldSymbol) {
+    // Reset ruler measurement when changing symbols (keep it active if it was)
+    if (ruler) {
+      ruler.resetMeasurement();
+    }
     fetchChartData(newSymbol, selectedDataType.value);
   }
 });
 
 watch(() => props.defaultSymbol, (newSymbol, oldSymbol) => {
   if (newSymbol && newSymbol !== oldSymbol) {
+    // Reset ruler measurement when changing symbols
+    if (ruler) {
+      ruler.resetMeasurement();
+    }
     fetchChartData(newSymbol, selectedDataType.value);
   }
 });
@@ -1610,6 +1649,17 @@ font-weight: bold;
   color: var(--text1);
   font-weight: bold;
   border-bottom: 1px solid var(--text1);
+}
+
+.navbt2.ruler-active {
+  background: color-mix(in srgb, var(--text2) 15%, transparent);
+  color: var(--text1);
+  border-bottom: solid 1px var(--text1);
+}
+
+.navbt2.ruler-active:hover {
+  background: color-mix(in srgb, var(--text2) 25%, transparent);
+  color: var(--text1);
 }
 
 </style>
