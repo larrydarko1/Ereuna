@@ -29,6 +29,7 @@ export { FreehandManager } from './freehand';
 export type { FreehandPath, FreehandPoint } from './freehand';
 export { ChartScreenshot } from './screenshot';
 export type { ScreenshotConfig, ChartInfo } from './screenshot';
+export { DrawingPersistence } from './drawing-persistence';
 
 // Export additional types needed by the components
 export type { IChartApi } from './api/create-chart';

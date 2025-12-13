@@ -35,12 +35,29 @@ export class TextAnnotationManager {
     private textInput: HTMLInputElement | null = null;
     private visibleRangeChangeHandler: (() => void) | null = null;
     private isEditingText: boolean = false;
+    private onChangeCallback: (() => void) | null = null;
 
     constructor(chart: IChartApi, mainSeries?: any) {
         this.chart = chart;
         this.mainSeries = mainSeries;
         this.setupCanvas();
         this.subscribeToChartEvents();
+    }
+
+    /**
+     * Set callback to be called when drawings change
+     */
+    public onChange(callback: () => void): void {
+        this.onChangeCallback = callback;
+    }
+
+    /**
+     * Trigger onChange callback if set
+     */
+    private triggerChange(): void {
+        if (this.onChangeCallback) {
+            this.onChangeCallback();
+        }
     }
 
     private subscribeToChartEvents(): void {
@@ -179,6 +196,7 @@ export class TextAnnotationManager {
                     this.annotations.push(newAnnotation);
                     this.selectedAnnotationId = newAnnotation.id;
                     this.draw();
+                    this.triggerChange(); // Trigger auto-save
                 }
             }, '', param.point!.x, param.point!.y);
         };
@@ -244,6 +262,7 @@ export class TextAnnotationManager {
             this.annotations = this.annotations.filter(a => a.id !== this.selectedAnnotationId);
             this.selectedAnnotationId = null;
             this.draw();
+            this.triggerChange(); // Trigger auto-save
         }
     }
 
@@ -251,6 +270,7 @@ export class TextAnnotationManager {
         this.annotations = [];
         this.selectedAnnotationId = null;
         this.draw();
+        this.triggerChange(); // Trigger auto-save
     }
 
     public editSelectedAnnotation(): void {

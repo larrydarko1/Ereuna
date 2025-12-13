@@ -214,6 +214,14 @@
                                           <circle cx="12" cy="13" r="4"></circle>
                                         </svg>
                                       </button>
+                                      <button class="tool-btn" @click="clearAllDrawings" title="Clear All Drawings" v-if="hasAnyDrawings">
+                                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <polyline points="3 6 5 6 21 6"></polyline>
+                                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                          <line x1="10" y1="11" x2="10" y2="17"></line>
+                                          <line x1="14" y1="11" x2="14" y2="17"></line>
+                                        </svg>
+                                      </button>
                                       <button class="tool-btn" @click="showEditChart = true" title="Chart Settings">
                                         <svg class="tool-icon" fill="currentColor" viewBox="0 0 32 32" enable-background="new 0 0 32 32" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
                                           <g stroke-width="0"></g>
@@ -248,6 +256,7 @@ import { BoxManager } from '@/lib/lightweight-charts/box';
 import { TextAnnotationManager } from '@/lib/lightweight-charts/text-annotation';
 import { FreehandManager } from '@/lib/lightweight-charts/freehand';
 import { ChartScreenshot, type ChartInfo } from '@/lib/lightweight-charts/screenshot';
+import { DrawingPersistence } from '@/lib/lightweight-charts/drawing-persistence';
 import EditChart from '@/components/charts/EditChart.vue';
 import AIPopup from '@/components/charts/AIPopup.vue';
 import SignalsPopup from '@/components/charts/SignalsPopup.vue';
@@ -298,6 +307,7 @@ const screenshotChartInfo = ref<ChartInfo>({} as ChartInfo);
 const imgError = ref(false);
 let isLoadingMore: boolean = false;
 let allDataLoaded: boolean = false;
+const hasAnyDrawings = ref(false);
 
 
 const props = defineProps<{
@@ -551,6 +561,15 @@ function handleExportScreenshot(config: any): void {
   showScreenshotPopup.value = false;
 }
 
+async function clearAllDrawings(): Promise<void> {
+  if (!drawingPersistence) return;
+  
+  if (confirm('Are you sure you want to clear all drawings for this symbol? This cannot be undone.')) {
+    await drawingPersistence.clearDrawings();
+    hasAnyDrawings.value = false;
+  }
+}
+
 async function fetchChartData(symbolParam?: string, timeframeParam?: string): Promise<void> {
   isChartLoading1.value = true;
   closeChartWS();
@@ -685,6 +704,8 @@ const isTextActive = ref(false);
 let freehandManager: FreehandManager | null = null;
 const isFreehandActive = ref(false);
 let screenshotManager: ChartScreenshot | null = null;
+let drawingPersistence: DrawingPersistence | null = null;
+
 // Responsive resize: adjust chart width/height when container or window resizes
 function updateChartSize(): void {
   const chartDivLocal = wkchart.value as HTMLElement | null;
@@ -849,6 +870,11 @@ function updateMainSeries(): void {
   // Update freehand manager with the new series reference
   if (freehandManager) {
     freehandManager.setMainSeries(mainSeries);
+  }
+  
+  // Update drawing persistence with new manager references
+  if (drawingPersistence) {
+    drawingPersistence.setManagers(trendlineManager!, boxManager!, textAnnotationManager!, freehandManager!);
   }
 }
 
@@ -1144,6 +1170,22 @@ watch(
   // Initialize screenshot manager
   screenshotManager = new ChartScreenshot(chart, 'wk-chart');
   
+  // Initialize drawing persistence
+  drawingPersistence = new DrawingPersistence(
+    props.user,
+    props.apiKey,
+    trendlineManager,
+    boxManager,
+    textAnnotationManager,
+    freehandManager
+  );
+  
+  // Set up onChange callbacks to trigger auto-save
+  trendlineManager.onChange(() => drawingPersistence?.autoSave());
+  boxManager.onChange(() => drawingPersistence?.autoSave());
+  textAnnotationManager.onChange(() => drawingPersistence?.autoSave());
+  freehandManager.onChange(() => drawingPersistence?.autoSave());
+  
   // ensure initial sizing is correct
   updateChartSize();
   isLoading1.value = false;
@@ -1232,9 +1274,50 @@ watch(
       isLoadingMore = false;
     }
   });
+  
+  // Set up periodic auto-save (every 30 seconds)
+  const autoSaveInterval = setInterval(() => {
+    if (drawingPersistence) {
+      const hasDrawings = drawingPersistence.hasDrawings();
+      hasAnyDrawings.value = hasDrawings;
+      if (hasDrawings) {
+        drawingPersistence.autoSave();
+      }
+    }
+  }, 30000); // 30 seconds
+  
+  // Store interval ID for cleanup
+  (window as any).__chartAutoSaveInterval = autoSaveInterval;
+  
+  // Load initial drawings after first symbol is set
+  nextTick(async () => {
+    const initialSymbol = props.selectedSymbol || props.defaultSymbol;
+    if (initialSymbol && drawingPersistence) {
+      drawingPersistence.setSymbol(initialSymbol);
+      await drawingPersistence.loadDrawings();
+    }
+  });
 });
 // cleanup listeners and observers
 onUnmounted(() => {
+  // Clear auto-save interval
+  if ((window as any).__chartAutoSaveInterval) {
+    clearInterval((window as any).__chartAutoSaveInterval);
+    delete (window as any).__chartAutoSaveInterval;
+  }
+  
+  // Clear status interval
+  if (statusInterval) {
+    clearInterval(statusInterval);
+    statusInterval = null;
+  }
+  
+  // Save drawings one last time before unmounting
+  if (drawingPersistence) {
+    drawingPersistence.autoSave();
+    drawingPersistence.destroy();
+  }
+  
   try {
     window.removeEventListener('resize', updateChartSize);
   } catch (e) {}
@@ -1275,57 +1358,50 @@ onUnmounted(() => {
   closeChartWS();
 });
 
-
 // Watch for prop changes to selectedSymbol and update chart
-watch(() => props.selectedSymbol, (newSymbol, oldSymbol) => {
+watch(() => props.selectedSymbol, async (newSymbol, oldSymbol) => {
   if (newSymbol && newSymbol !== oldSymbol) {
+    // Save drawings for old symbol before switching
+    if (oldSymbol && drawingPersistence) {
+      await drawingPersistence.autoSave();
+    }
+    
     // Reset ruler measurement when changing symbols (keep it active if it was)
     if (ruler) {
       ruler.resetMeasurement();
     }
-    // Clear all trendlines when changing symbols
-    if (trendlineManager) {
-      trendlineManager.removeAllLines();
+    
+    // Fetch chart data first
+    await fetchChartData(newSymbol, selectedDataType.value);
+    
+    // Then load drawings for new symbol
+    if (drawingPersistence) {
+      drawingPersistence.setSymbol(newSymbol);
+      await drawingPersistence.loadDrawings();
     }
-    // Clear all boxes when changing symbols
-    if (boxManager) {
-      boxManager.removeAllBoxes();
-    }
-    // Clear all text annotations when changing symbols
-    if (textAnnotationManager) {
-      textAnnotationManager.removeAllAnnotations();
-    }
-    // Clear all freehand paths when changing symbols
-    if (freehandManager) {
-      freehandManager.removeAllPaths();
-    }
-    fetchChartData(newSymbol, selectedDataType.value);
   }
 });
 
-watch(() => props.defaultSymbol, (newSymbol, oldSymbol) => {
+watch(() => props.defaultSymbol, async (newSymbol, oldSymbol) => {
   if (newSymbol && newSymbol !== oldSymbol) {
+    // Save drawings for old symbol before switching
+    if (oldSymbol && drawingPersistence) {
+      await drawingPersistence.autoSave();
+    }
+    
     // Reset ruler measurement when changing symbols
     if (ruler) {
       ruler.resetMeasurement();
     }
-    // Clear all trendlines when changing symbols
-    if (trendlineManager) {
-      trendlineManager.removeAllLines();
+    
+    // Fetch chart data first
+    await fetchChartData(newSymbol, selectedDataType.value);
+    
+    // Then load drawings for new symbol
+    if (drawingPersistence) {
+      drawingPersistence.setSymbol(newSymbol);
+      await drawingPersistence.loadDrawings();
     }
-    // Clear all boxes when changing symbols
-    if (boxManager) {
-      boxManager.removeAllBoxes();
-    }
-    // Clear all text annotations when changing symbols
-    if (textAnnotationManager) {
-      textAnnotationManager.removeAllAnnotations();
-    }
-    // Clear all freehand paths when changing symbols
-    if (freehandManager) {
-      freehandManager.removeAllPaths();
-    }
-    fetchChartData(newSymbol, selectedDataType.value);
   }
 });
 
@@ -1525,13 +1601,6 @@ onMounted(async () => {
   
   // Check market status every 5 seconds for more accurate updates
   statusInterval = setInterval(checkMarketStatus, 5000);
-  
-  onUnmounted(() => {
-    if (statusInterval) {
-      clearInterval(statusInterval);
-      statusInterval = null;
-    }
-  });
 });
 
 const isInHiddenList = (item: string): boolean => {

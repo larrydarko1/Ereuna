@@ -37,12 +37,29 @@ export class TrendLineManager {
     private defaultColor: string = '#2962FF';
     private defaultLineWidth: number = 1;
     private visibleRangeChangeHandler: (() => void) | null = null;
+    private onChangeCallback: (() => void) | null = null;
 
     constructor(chart: IChartApi, mainSeries?: any) {
         this.chart = chart;
         this.mainSeries = mainSeries;
         this.setupCanvas();
         this.subscribeToChartEvents();
+    }
+
+    /**
+     * Set callback to be called when drawings change
+     */
+    public onChange(callback: () => void): void {
+        this.onChangeCallback = callback;
+    }
+
+    /**
+     * Trigger onChange callback if set
+     */
+    private triggerChange(): void {
+        if (this.onChangeCallback) {
+            this.onChangeCallback();
+        }
     }
 
     private subscribeToChartEvents(): void {
@@ -193,6 +210,7 @@ export class TrendLineManager {
                 this.trendLines.push(newLine);
                 this.currentLine = { point1: null, point2: null };
                 this.selectedLineId = newLine.id;
+                this.triggerChange(); // Trigger auto-save
             }
 
             this.draw();
@@ -272,6 +290,7 @@ export class TrendLineManager {
             this.trendLines = this.trendLines.filter(l => l.id !== this.selectedLineId);
             this.selectedLineId = null;
             this.draw();
+            this.triggerChange(); // Trigger auto-save
         }
     }
 
@@ -280,6 +299,7 @@ export class TrendLineManager {
         this.selectedLineId = null;
         this.currentLine = { point1: null, point2: null };
         this.draw();
+        this.triggerChange(); // Trigger auto-save
     }
 
     public updateSelectedLineColor(color: string): void {

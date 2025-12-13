@@ -33,12 +33,29 @@ export class FreehandManager {
     private mouseUpHandler: (() => void) | null = null;
     private defaultLineWidth: number = 1.5;
     private visibleRangeChangeHandler: (() => void) | null = null;
+    private onChangeCallback: (() => void) | null = null;
 
     constructor(chart: IChartApi, mainSeries?: any) {
         this.chart = chart;
         this.mainSeries = mainSeries;
         this.setupCanvas();
         this.subscribeToChartEvents();
+    }
+
+    /**
+     * Set callback to be called when drawings change
+     */
+    public onChange(callback: () => void): void {
+        this.onChangeCallback = callback;
+    }
+
+    /**
+     * Trigger onChange callback if set
+     */
+    private triggerChange(): void {
+        if (this.onChangeCallback) {
+            this.onChangeCallback();
+        }
     }
 
     private subscribeToChartEvents(): void {
@@ -223,6 +240,7 @@ export class FreehandManager {
                     // Only save if we have more than one point
                     this.paths.push(this.currentPath);
                     this.selectedPathId = this.currentPath.id;
+                    this.triggerChange(); // Trigger auto-save
                 }
                 this.currentPath = null;
                 this.isDrawing = false;
@@ -340,6 +358,7 @@ export class FreehandManager {
             this.paths = this.paths.filter(p => p.id !== this.selectedPathId);
             this.selectedPathId = null;
             this.draw();
+            this.triggerChange(); // Trigger auto-save
         }
     }
 
@@ -348,6 +367,7 @@ export class FreehandManager {
         this.selectedPathId = null;
         this.currentPath = null;
         this.draw();
+        this.triggerChange(); // Trigger auto-save
     }
 
     private generateId(): string {
