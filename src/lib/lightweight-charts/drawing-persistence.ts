@@ -96,8 +96,6 @@ export class DrawingPersistence {
             if (this.freehandManager && data.freehandPaths) {
                 this.freehandManager.loadPaths(data.freehandPaths);
             }
-
-            console.log(`Loaded drawings for ${this.symbol}`);
         } catch (error) {
             console.error('Error loading drawings:', error);
         } finally {
@@ -154,8 +152,6 @@ export class DrawingPersistence {
             if (!response.ok) {
                 throw new Error('Failed to save drawings');
             }
-
-            console.log(`Auto-saved drawings for ${this.symbol}`);
         } catch (error) {
             console.error('Error auto-saving drawings:', error);
         }

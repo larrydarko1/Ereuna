@@ -27,6 +27,22 @@
     @export="handleExportScreenshot"
     :chartInfo="screenshotChartInfo"
   />
+  <div 
+    v-if="showMarkerPopup && markerPopupData" 
+    class="marker-popup" 
+    :style="{ left: markerPopupPosition.x + 'px', top: markerPopupPosition.y + 'px' }"
+  >
+    <div class="marker-popup-header">
+      <span class="marker-popup-title">{{ markerPopupData.title }}</span>
+      <button class="marker-popup-close" @click="showMarkerPopup = false">×</button>
+    </div>
+    <div class="marker-popup-content">
+      <div v-for="(value, key) in markerPopupData.data" :key="key" class="marker-popup-row">
+        <span class="marker-popup-label">{{ key }}:</span>
+        <span class="marker-popup-value">{{ value }}</span>
+      </div>
+    </div>
+  </div>
   <div class="mainchart-dashboard">
                                <div class="chart-container">
                                   <div class="loading-container1" v-if="isChartLoading1 || isLoading1">
@@ -248,7 +264,8 @@ import {
   Time,
   IPriceLine,
   MouseEventParams,
-  LogicalRange
+  LogicalRange,
+  SeriesMarker
 } from '@/lib/lightweight-charts';
 import { ChartRuler } from '@/lib/lightweight-charts/ruler';
 import { TrendLineManager } from '@/lib/lightweight-charts/trendline';
@@ -298,12 +315,32 @@ interface ChartDataResult {
   intrinsicValue?: number;
 }
 
+interface EarningsData {
+  fiscalDateEnding: string;
+  netIncome: number;
+}
+
+interface DividendData {
+  payment_date: string;
+  amount: string | number;
+  ex_dividend_date?: string;
+}
+
+interface SplitData {
+  effective_date: string;
+  split_factor: string;
+  split_ratio?: string;
+}
+
 
 const showEditChart = ref(false);
 const showAIPopup = ref(false);
 const showSignalsPopup = ref(false);
 const showScreenshotPopup = ref(false);
 const screenshotChartInfo = ref<ChartInfo>({} as ChartInfo);
+const showMarkerPopup = ref(false);
+const markerPopupData = ref<{ title: string; data: Record<string, any> } | null>(null);
+const markerPopupPosition = ref({ x: 0, y: 0 });
 const imgError = ref(false);
 let isLoadingMore: boolean = false;
 let allDataLoaded: boolean = false;
@@ -349,7 +386,55 @@ const data4 = ref<MAData[]>([]);
 const data5 = ref<MAData[]>([]);
 const data6 = ref<MAData[]>([]);
 const IntrinsicValue = ref<number | null>(null);
-const displayData = ref<OHLCData[]>([]); // Stores the actual data being displayed (could be Heikin-Ashi or regular OHLC)
+const displayData = ref<OHLCData[]>([]);
+
+// Earnings, Dividends, and Splits data for chart markers
+const dividendsData = ref<DividendData[]>([]);
+const splitsData = ref<SplitData[]>([]);
+
+// Fetch dividends data from API
+async function fetchDividendsData(symbol: string): Promise<void> {
+  try {
+    const response = await fetch(`/api/${symbol}/dividendsdate?all=true`, {
+      headers: {
+        'X-API-KEY': props.apiKey,
+      },
+    });
+    
+    if (!response.ok) {
+      dividendsData.value = [];
+      return;
+    }
+    
+    const dividends = await response.json();
+    dividendsData.value = Array.isArray(dividends) ? dividends : [];
+  } catch (error) {
+    console.error('Error fetching dividends data:', error);
+    dividendsData.value = [];
+  }
+}
+
+// Fetch splits data from API
+async function fetchSplitsData(symbol: string): Promise<void> {
+  try {
+    const response = await fetch(`/api/${symbol}/splitsdate?all=true`, {
+      headers: {
+        'X-API-KEY': props.apiKey,
+      },
+    });
+    
+    if (!response.ok) {
+      splitsData.value = [];
+      return;
+    }
+    
+    const splits = await response.json();
+    splitsData.value = Array.isArray(splits) ? splits : [];
+  } catch (error) {
+    console.error('Error fetching splits data:', error);
+    splitsData.value = [];
+  }
+}
 
 function isIntraday(timeframe: string): boolean {
   return ['intraday1m', 'intraday5m', 'intraday15m', 'intraday30m', 'intraday1hr'].includes(timeframe);
@@ -570,6 +655,121 @@ async function clearAllDrawings(): Promise<void> {
   }
 }
 
+// Generate chart markers from earnings, dividends, and splits data
+function generateMarkers(): SeriesMarker<Time>[] {
+  const markers: SeriesMarker<Time>[] = [];
+  
+  // Add earnings markers (E badge below bar, green/red based on performance)
+  if (props.assetInfo?.quarterlyFinancials && Array.isArray(props.assetInfo.quarterlyFinancials)) {
+    props.assetInfo.quarterlyFinancials.forEach((earning: any, index: number) => {
+      try {
+        const date = earning.fiscalDateEnding;
+        if (!date) return;
+        
+        // Determine color based on QoQ performance
+        const prevEarning = props.assetInfo?.quarterlyFinancials?.[index + 1];
+        let color = theme.text2; // neutral
+        if (prevEarning && earning.netIncome && prevEarning.netIncome) {
+          const change = ((earning.netIncome - prevEarning.netIncome) / Math.abs(prevEarning.netIncome)) * 100;
+          color = change > 0 ? theme.positive : theme.negative;
+        }
+        
+        // Ensure date is in YYYY-MM-DD format (lightweight-charts Time format)
+        const formattedDate = typeof date === 'string' ? date.split('T')[0] : date;
+        
+        markers.push({
+          time: formattedDate as Time,
+          position: 'aboveBar',
+          color: color,
+          shape: 'roundedSquare',
+          text: 'E',
+          textColor: theme.text3,
+          size: 2.5,
+          id: `earnings-${date}`,
+          originalTime: formattedDate
+        });
+      } catch (err) {
+        console.error('Error creating earnings marker:', err);
+      }
+    });
+  }
+  
+  // Add dividends markers (D badge below bar, blue color)
+  if (dividendsData.value && Array.isArray(dividendsData.value)) {
+    dividendsData.value.forEach((dividend: DividendData) => {
+      try {
+        const date = dividend.payment_date;
+        if (!date) return;
+        
+        // Ensure date is in YYYY-MM-DD format
+        const formattedDate = typeof date === 'string' ? date.split('T')[0] : date;
+        
+        markers.push({
+          time: formattedDate as Time,
+          position: 'aboveBar',
+          color: theme.accent3,
+          shape: 'roundedSquare',
+          text: 'D',
+          textColor: theme.text3,
+          size: 2.5,
+          id: `dividend-${date}`,
+          originalTime: formattedDate
+        });
+      } catch (err) {
+        console.error('Error creating dividend marker:', err);
+      }
+    });
+  }
+  
+  // Add splits markers (S badge above bar, orange color)
+  if (splitsData.value && Array.isArray(splitsData.value)) {
+    splitsData.value.forEach((split: SplitData) => {
+      try {
+        const date = split.effective_date;
+        if (!date) return;
+        
+        // Ensure date is in YYYY-MM-DD format
+        const formattedDate = typeof date === 'string' ? date.split('T')[0] : date;
+        
+        markers.push({
+          time: formattedDate as Time,
+          position: 'aboveBar',
+          color: theme.ma3,
+          shape: 'roundedSquare',
+          text: 'S',
+          textColor: theme.text3,
+          size: 2.5,
+          id: `split-${date}`,
+          originalTime: formattedDate
+        });
+      } catch (err) {
+        console.error('Error creating split marker:', err);
+      }
+    });
+  }
+  
+  // Sort markers by time
+  markers.sort((a, b) => {
+    const timeA = typeof a.time === 'string' ? new Date(a.time).getTime() : (a.time as any).timestamp || 0;
+    const timeB = typeof b.time === 'string' ? new Date(b.time).getTime() : (b.time as any).timestamp || 0;
+    return timeA - timeB;
+  });
+  
+  return markers;
+}
+
+// Update markers on the chart
+function updateChartMarkers(): void {
+  if (!volumeSeries) return;
+  
+  try {
+    const markers = generateMarkers();
+    volumeSeries.setMarkers(markers);
+  } catch (err) {
+    console.error('Error updating chart markers:', err);
+  }
+}
+
 async function fetchChartData(symbolParam?: string, timeframeParam?: string): Promise<void> {
   isChartLoading1.value = true;
   closeChartWS();
@@ -705,6 +905,7 @@ let freehandManager: FreehandManager | null = null;
 const isFreehandActive = ref(false);
 let screenshotManager: ChartScreenshot | null = null;
 let drawingPersistence: DrawingPersistence | null = null;
+let volumeSeries: any = null; // Volume histogram series for markers
 
 // Responsive resize: adjust chart width/height when container or window resizes
 function updateChartSize(): void {
@@ -876,6 +1077,11 @@ function updateMainSeries(): void {
   if (drawingPersistence) {
     drawingPersistence.setManagers(trendlineManager!, boxManager!, textAnnotationManager!, freehandManager!);
   }
+  
+  // Update markers after series is ready and data is set
+  nextTick(() => {
+    updateChartMarkers();
+  });
 }
 
 // mounts chart (candlestick or bar) and volume
@@ -925,6 +1131,73 @@ onMounted(async () => {
   });
 
   // Chart type toggle logic
+
+  // Add click handler for markers
+  chart.subscribeClick((param) => {
+    if (param.hoveredObjectId && typeof param.hoveredObjectId === 'string') {
+      const markerId = param.hoveredObjectId as string;
+      
+      // Parse marker type and date from ID
+      if (markerId.startsWith('earnings-')) {
+        const fullDate = markerId.replace('earnings-', '');
+        const date = fullDate.split('T')[0]; // Extract YYYY-MM-DD part
+        const earning = props.assetInfo?.quarterlyFinancials?.find((e: any) => 
+          e.fiscalDateEnding && e.fiscalDateEnding.split('T')[0] === date
+        );
+        if (earning) {
+          markerPopupData.value = {
+            title: 'Earnings Report',
+            data: {
+              'Date': date,
+              'Revenue': earning.totalRevenue ? `$${(earning.totalRevenue / 1e9).toFixed(2)}B` : 'N/A',
+              'Net Income': earning.netIncome ? `$${(earning.netIncome / 1e9).toFixed(2)}B` : 'N/A',
+              'EPS': earning.reportedEPS || 'N/A',
+            }
+          };
+        }
+      } else if (markerId.startsWith('dividend-')) {
+        const fullDate = markerId.replace('dividend-', '');
+        const date = fullDate.split('T')[0]; // Extract YYYY-MM-DD part
+        const dividend = dividendsData.value?.find((d: DividendData) => 
+          d.payment_date && d.payment_date.split('T')[0] === date
+        );
+        if (dividend) {
+          markerPopupData.value = {
+            title: 'Dividend Payment',
+            data: {
+              'Payment Date': date,
+              'Amount': `$${dividend.amount}`,
+            }
+          };
+        }
+      } else if (markerId.startsWith('split-')) {
+        const fullDate = markerId.replace('split-', '');
+        const date = fullDate.split('T')[0]; // Extract YYYY-MM-DD part
+        const split = splitsData.value?.find((s: SplitData) => 
+          s.effective_date && s.effective_date.split('T')[0] === date
+        );
+        if (split) {
+          markerPopupData.value = {
+            title: 'Stock Split',
+            data: {
+              'Effective Date': date,
+              'Ratio': split.split_factor || 'N/A',
+            }
+          };
+        }
+      }
+      
+      if (markerPopupData.value && param.point) {
+        markerPopupPosition.value = {
+          x: param.point.x + 20,
+          y: param.point.y - 80
+        };
+        showMarkerPopup.value = true;
+      }
+    } else {
+      showMarkerPopup.value = false;
+    }
+  });
 
   // Observe container size changes and window resize
   try {
@@ -998,7 +1271,20 @@ onMounted(async () => {
 
   watch(chartType, () => {
     updateMainSeries();
+    // Update markers after series change
+    nextTick(() => {
+      updateChartMarkers();
+    });
   });
+  
+  // Watch for assetInfo changes to update markers
+  watch(() => props.assetInfo, () => {
+    if (mainSeries) {
+      nextTick(() => {
+        updateChartMarkers();
+      });
+    }
+  }, { deep: true });
 
   watch(data, (newData: OHLCData[]) => {
     if (!mainSeries) return;
@@ -1021,9 +1307,14 @@ onMounted(async () => {
       mainSeries.setData(newData);
       displayData.value = newData; // Store original data for legend
     }
+    
+    // Update markers when data changes
+    nextTick(() => {
+      updateChartMarkers();
+    });
   });
 
-  const Histogram = chart.addHistogramSeries({
+  volumeSeries = chart.addHistogramSeries({
     color: theme.text1,
     lastValueVisible: false,
     priceLineVisible: false,
@@ -1065,7 +1356,7 @@ onMounted(async () => {
     crosshairMarkerVisible: false,
   });
 
-  Histogram.priceScale().applyOptions({
+  volumeSeries.priceScale().applyOptions({
     scaleMargins: {
       top: 0.9,
       bottom: 0,
@@ -1073,7 +1364,7 @@ onMounted(async () => {
   });
 
   watch(data2, (newData2: VolumeData[]) => {
-  Histogram.setData(newData2);
+  volumeSeries.setData(newData2);
   });
 
   watch(data3, (newData3: MAData[] | null) => {
@@ -1100,7 +1391,7 @@ onMounted(async () => {
         color,
       };
     });
-    Histogram.setData(relativeVolumeData);
+    volumeSeries.setData(relativeVolumeData);
   });
 
   function calculateAverageVolume(data: VolumeData[], index: number): number {
@@ -1115,10 +1406,15 @@ onMounted(async () => {
 // Watch for symbol changes and fetch chart data when a valid symbol is available
 watch(
   [() => props.selectedSymbol, () => props.defaultSymbol],
-  ([newSelected, newDefault]) => {
+  async ([newSelected, newDefault]) => {
     const symbol = newSelected || newDefault;
     if (symbol && typeof symbol === 'string' && symbol.trim() !== '') {
-      fetchChartData(symbol, selectedDataType.value);
+      await fetchChartData(symbol, selectedDataType.value);
+      // Fetch dividends and splits data for markers
+      await Promise.all([
+        fetchDividendsData(symbol),
+        fetchSplitsData(symbol)
+      ]);
       updateMainSeries();
     }
   },
@@ -1374,6 +1670,12 @@ watch(() => props.selectedSymbol, async (newSymbol, oldSymbol) => {
     // Fetch chart data first
     await fetchChartData(newSymbol, selectedDataType.value);
     
+    // Fetch dividends and splits data for markers
+    await Promise.all([
+      fetchDividendsData(newSymbol),
+      fetchSplitsData(newSymbol)
+    ]);
+    
     // Then load drawings for new symbol
     if (drawingPersistence) {
       drawingPersistence.setSymbol(newSymbol);
@@ -1397,11 +1699,26 @@ watch(() => props.defaultSymbol, async (newSymbol, oldSymbol) => {
     // Fetch chart data first
     await fetchChartData(newSymbol, selectedDataType.value);
     
+    // Fetch dividends and splits data for markers
+    await Promise.all([
+      fetchDividendsData(newSymbol),
+      fetchSplitsData(newSymbol)
+    ]);
+    
     // Then load drawings for new symbol
     if (drawingPersistence) {
       drawingPersistence.setSymbol(newSymbol);
       await drawingPersistence.loadDrawings();
     }
+  }
+});
+
+// Watch for dividends and splits data changes to update markers
+watch([dividendsData, splitsData], () => {
+  if (mainSeries) {
+    nextTick(() => {
+      updateChartMarkers();
+    });
   }
 });
 
@@ -2262,6 +2579,83 @@ font-weight: bold;
   width: 18px;
   height: 18px;
   display: block;
+}
+
+.marker-popup {
+  position: fixed;
+  background: var(--base2);
+  border: 1px solid var(--base3);
+  border-radius: 8px;
+  padding: 0;
+  z-index: 99999;
+  min-width: 200px;
+  max-width: 300px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  font-size: 13px;
+  pointer-events: auto;
+}
+
+.marker-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--base3);
+  background: var(--base1);
+  border-radius: 8px 8px 0 0;
+}
+
+.marker-popup-title {
+  font-weight: bold;
+  color: var(--text1);
+  font-size: 14px;
+}
+
+.marker-popup-close {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.marker-popup-close:hover {
+  background: var(--base3);
+  color: var(--text1);
+}
+
+.marker-popup-content {
+  padding: 12px;
+}
+
+.marker-popup-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  gap: 16px;
+}
+
+.marker-popup-row:not(:last-child) {
+  border-bottom: 1px solid color-mix(in srgb, var(--base3) 30%, transparent);
+}
+
+.marker-popup-label {
+  color: var(--text2);
+  font-weight: 500;
+}
+
+.marker-popup-value {
+  color: var(--text1);
+  font-weight: 600;
+  text-align: right;
 }
 
 </style>

@@ -266,6 +266,10 @@ export class PaneWidget implements IDestroyable, MouseEventHandlers {
 			return;
 		}
 		this._onMouseEvent();
+		const x = event.localX;
+		const y = event.localY;
+		const hitTest = this.hitTest(x, y);
+		this._model().setHoveredSource(hitTest && { source: hitTest.source, object: hitTest.object });
 		this._fireClickedDelegate(event);
 	}
 
