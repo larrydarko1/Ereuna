@@ -13,6 +13,7 @@ import { BitmapCoordinatesPaneRenderer } from './bitmap-coordinates-pane-rendere
 import { drawArrow, hitTestArrow } from './series-markers-arrow';
 import { drawCircle, hitTestCircle } from './series-markers-circle';
 import { drawSquare, hitTestSquare } from './series-markers-square';
+import { drawRoundedSquare, hitTestRoundedSquare } from './series-markers-roundedsquare';
 import { drawText, hitTestText } from './series-markers-text';
 import { BitmapShapeItemCoordinates } from './series-markers-utils';
 
@@ -32,6 +33,7 @@ export interface SeriesMarkerRendererDataItem extends TimedValue {
 	internalId: number;
 	externalId?: string;
 	text?: SeriesMarkerText;
+	textColor?: string;
 }
 
 export interface SeriesMarkerRendererData {
@@ -83,14 +85,16 @@ export class SeriesMarkersRenderer extends BitmapCoordinatesPaneRenderer {
 		}
 
 		ctx.textBaseline = 'middle';
-		ctx.font = this._font;
+		ctx.textAlign = 'center';
+		ctx.font = `bold ${this._font}`;
 
 		for (let i = this._data.visibleRange.from; i < this._data.visibleRange.to; i++) {
 			const item = this._data.items[i];
 			if (item.text !== undefined) {
 				item.text.width = this._textWidthCache.measureText(ctx, item.text.content);
 				item.text.height = this._fontSize;
-				item.text.x = item.x - item.text.width / 2 as Coordinate;
+				// Use item.x directly since textAlign is now 'center'
+				item.text.x = item.x as Coordinate;
 			}
 			drawItem(item, ctx, horizontalPixelRatio, verticalPixelRatio);
 		}
@@ -108,14 +112,24 @@ function bitmapShapeItemCoordinates(item: SeriesMarkerRendererDataItem, horizont
 }
 
 function drawItem(item: SeriesMarkerRendererDataItem, ctx: CanvasRenderingContext2D, horizontalPixelRatio: number, verticalPixelRatio: number): void {
+	// Draw shape first with the item color
 	ctx.fillStyle = item.color;
-
-	if (item.text !== undefined) {
-		drawText(ctx, item.text.content, item.text.x, item.text.y, horizontalPixelRatio, verticalPixelRatio);
-	}
-
 	drawShape(item, ctx, bitmapShapeItemCoordinates(item, horizontalPixelRatio, verticalPixelRatio));
+
+	// Then carve out the text from the shape to show the chart background
+	if (item.text !== undefined) {
+		// Use destination-out to cut out the text from the shape
+		ctx.globalCompositeOperation = 'destination-out';
+		ctx.fillStyle = 'rgba(0, 0, 0, 1)'; // Color doesn't matter, just opacity
+		ctx.globalAlpha = 1.0;
+		// Use item.y (the marker's y position) to center text vertically inside the shape
+		drawText(ctx, item.text.content, item.text.x, item.y, horizontalPixelRatio, verticalPixelRatio);
+		// Reset composite operation back to normal
+		ctx.globalCompositeOperation = 'source-over';
+		ctx.globalAlpha = 1.0;
+	}
 }
+
 
 function drawShape(item: SeriesMarkerRendererDataItem, ctx: CanvasRenderingContext2D, coordinates: BitmapShapeItemCoordinates): void {
 	if (item.size === 0) {
@@ -134,6 +148,9 @@ function drawShape(item: SeriesMarkerRendererDataItem, ctx: CanvasRenderingConte
 			return;
 		case 'square':
 			drawSquare(ctx, coordinates, item.size);
+			return;
+		case 'roundedSquare':
+			drawRoundedSquare(ctx, coordinates, item.size);
 			return;
 	}
 
@@ -162,5 +179,7 @@ function hitTestShape(item: SeriesMarkerRendererDataItem, x: Coordinate, y: Coor
 			return hitTestCircle(item.x, item.y, item.size, x, y);
 		case 'square':
 			return hitTestSquare(item.x, item.y, item.size, x, y);
+		case 'roundedSquare':
+			return hitTestRoundedSquare(item.x, item.y, item.size, x, y);
 	}
 }

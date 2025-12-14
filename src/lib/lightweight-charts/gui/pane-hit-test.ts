@@ -108,14 +108,14 @@ export function hitTestPane(
 	const sources = pane.orderedSources();
 	const bestPrimitiveHit = findBestPrimitiveHitTest(sources, x, y);
 	if (bestPrimitiveHit?.hit.zOrder === 'top') {
-        // a primitive hit on the 'top' layer will always beat the built-in hit tests
-        // (on normal layer) so we can return early here.
+		// a primitive hit on the 'top' layer will always beat the built-in hit tests
+		// (on normal layer) so we can return early here.
 		return convertPrimitiveHitResult(bestPrimitiveHit);
 	}
 	for (const source of sources) {
 		if (bestPrimitiveHit && bestPrimitiveHit.source === source && bestPrimitiveHit.hit.zOrder !== 'bottom' && !bestPrimitiveHit.hit.isBackground) {
-            // a primitive will be drawn above a built-in item like a series marker
-            // therefore it takes precedence here.
+			// a primitive will be drawn above a built-in item like a series marker
+			// therefore it takes precedence here.
 			return convertPrimitiveHitResult(bestPrimitiveHit);
 		}
 		const sourceResult = hitTestPaneView(source.paneViews(pane), x, y);
@@ -124,6 +124,7 @@ export function hitTestPane(
 				source: source,
 				view: sourceResult.view,
 				object: sourceResult.object,
+				cursorStyle: sourceResult.object?.externalId ? 'pointer' : undefined,
 			};
 		}
 		if (bestPrimitiveHit && bestPrimitiveHit.source === source && bestPrimitiveHit.hit.zOrder !== 'bottom' && bestPrimitiveHit.hit.isBackground) {
@@ -131,7 +132,7 @@ export function hitTestPane(
 		}
 	}
 	if (bestPrimitiveHit?.hit) {
-        // return primitive hits for the 'bottom' layer
+		// return primitive hits for the 'bottom' layer
 		return convertPrimitiveHitResult(bestPrimitiveHit);
 	}
 

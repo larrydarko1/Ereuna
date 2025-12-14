@@ -37,6 +37,7 @@ export type { MouseEventParams } from './api/ichart-api';
 export type { IPriceLine } from './api/iprice-line';
 export type { Time } from './model/horz-scale-behavior-time/types';
 export type { LogicalRange } from './model/time-data';
+export type { SeriesMarker, SeriesMarkerPosition, SeriesMarkerShape } from './model/series-markers';
 
 /**
  * Returns the current version as a string. For example `'3.3.0'`.
