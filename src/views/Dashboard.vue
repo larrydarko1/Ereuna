@@ -1,6 +1,6 @@
 <template>
   <Header />
-  <main class="dashboard" aria-label="Dashboard main content">
+  <main class="dashboard" :aria-label="t('dashboard.title')">
 
      <!-- Top Section: Date/Time & Market Status -->
     <section class="dashboard-top card" aria-label="Market status and date/time">
@@ -9,7 +9,7 @@
           <span class="date" aria-label="Current date">{{ currentDate }}</span>
           <span class="time" aria-label="Current time">{{ currentTime }}</span>
           <div class="dashboard-disclaimer">
-            <span class="disclaimer-label">Last update:</span>
+            <span class="disclaimer-label">{{ t('dashboard.lastUpdate') }}</span>
             <span class="disclaimer-value">{{ lastUpdateString }}</span>
           </div>
         </div>
@@ -18,35 +18,35 @@
       <div class="dashboard-top-center">
         <div class="outlook-pills">
           <div class="outlook-pill" @mouseenter="showTooltip('shortTerm')" @mouseleave="hideTooltip">
-            <span class="pill-label">Short Term</span>
+            <span class="pill-label">{{ t('dashboard.outlook.shortTerm') }}</span>
             <span class="pill-badge" :class="getOutlookClass(marketOutlook.shortTerm)">{{ formatOutlook(marketOutlook.shortTerm) }}</span>
             <div v-if="tooltipVisible === 'shortTerm'" class="outlook-tooltip">
-              <strong>Short Term Outlook (1-3 Months)</strong>
-              <p>Based on recent market momentum, technical indicators, and short-term trends.</p>
+              <strong>{{ t('dashboard.outlook.shortTermTooltipTitle') }}</strong>
+              <p>{{ t('dashboard.outlook.shortTermTooltipDesc') }}</p>
               <div class="tooltip-metric">
-                <span class="metric-label">{{ marketOutlook.shortTermPercent }}% of assets trending up</span>
+                <span class="metric-label">{{ marketOutlook.shortTermPercent }}% {{ t('dashboard.outlook.assetsUp') }}</span>
               </div>
             </div>
           </div>
           <div class="outlook-pill" @mouseenter="showTooltip('midTerm')" @mouseleave="hideTooltip">
-            <span class="pill-label">Mid Term</span>
+            <span class="pill-label">{{ t('dashboard.outlook.midTerm') }}</span>
             <span class="pill-badge" :class="getOutlookClass(marketOutlook.midTerm)">{{ formatOutlook(marketOutlook.midTerm) }}</span>
             <div v-if="tooltipVisible === 'midTerm'" class="outlook-tooltip">
-              <strong>Mid Term Outlook (3-6 Months)</strong>
-              <p>Reflects quarterly performance trends and medium-term market cycles.</p>
+              <strong>{{ t('dashboard.outlook.midTermTooltipTitle') }}</strong>
+              <p>{{ t('dashboard.outlook.midTermTooltipDesc') }}</p>
               <div class="tooltip-metric">
-                <span class="metric-label">{{ marketOutlook.midTermPercent }}% of assets trending up</span>
+                <span class="metric-label">{{ marketOutlook.midTermPercent }}% {{ t('dashboard.outlook.assetsUp') }}</span>
               </div>
             </div>
           </div>
           <div class="outlook-pill" @mouseenter="showTooltip('longTerm')" @mouseleave="hideTooltip">
-            <span class="pill-label">Long Term</span>
+            <span class="pill-label">{{ t('dashboard.outlook.longTerm') }}</span>
             <span class="pill-badge" :class="getOutlookClass(marketOutlook.longTerm)">{{ formatOutlook(marketOutlook.longTerm) }}</span>
             <div v-if="tooltipVisible === 'longTerm'" class="outlook-tooltip">
-              <strong>Long Term Outlook (6-12 Months)</strong>
-              <p>Indicates annual trends, fundamental strength, and sustained market direction.</p>
+              <strong>{{ t('dashboard.outlook.longTermTooltipTitle') }}</strong>
+              <p>{{ t('dashboard.outlook.longTermTooltipDesc') }}</p>
               <div class="tooltip-metric">
-                <span class="metric-label">{{ marketOutlook.longTermPercent }}% of assets trending up</span>
+                <span class="metric-label">{{ marketOutlook.longTermPercent }}% {{ t('dashboard.outlook.assetsUp') }}</span>
               </div>
             </div>
           </div>
@@ -56,7 +56,7 @@
       <div class="dashboard-top-right">
         <div class="breadth-compact">
           <div class="breadth-item" @mouseenter="showTooltip('advanceDecline')" @mouseleave="hideTooltip">
-            <h3>Advance/Decline</h3>
+            <h3>{{ t('dashboard.breadth.advanceDecline') }}</h3>
             <div class="meter-container">
               <div class="meter-segment bar-positive" :style="{ width: (advanceDecline.advancing * 100) + '%' }"></div>
               <div class="meter-segment bar-negative" :style="{ width: (advanceDecline.declining * 100) + '%' }"></div>
@@ -68,17 +68,17 @@
               <span class="meter-value neutral">{{ (advanceDecline.unchanged * 100).toFixed(1) }}%</span>
             </div>
             <div v-if="tooltipVisible === 'advanceDecline'" class="breadth-tooltip">
-              <strong>Advance/Decline Ratio</strong>
-              <p>Measures the proportion of assets that are advancing (green), declining (red), or unchanged (gray) in price today.</p>
+              <strong>{{ t('dashboard.breadth.advanceDeclineTitle') }}</strong>
+              <p>{{ t('dashboard.breadth.advanceDeclineDesc') }}</p>
               <ul>
-                <li><span class="positive">●</span> Advancing: Assets closing higher than previous close</li>
-                <li><span class="negative">●</span> Declining: Assets closing lower than previous close</li>
-                <li><span class="neutral">●</span> Unchanged: Assets with no price change</li>
+                <li><span class="positive">●</span> {{ t('dashboard.breadth.advancing') }}</li>
+                <li><span class="negative">●</span> {{ t('dashboard.breadth.declining') }}</li>
+                <li><span class="neutral">●</span> {{ t('dashboard.breadth.unchanged') }}</li>
               </ul>
             </div>
           </div>
           <div class="breadth-item" @mouseenter="showTooltip('newHighsLows')" @mouseleave="hideTooltip">
-            <h3>New Highs/Lows</h3>
+            <h3>{{ t('dashboard.breadth.newHighsLows') }}</h3>
             <div class="meter-container">
               <div class="meter-segment bar-positive" :style="{ width: (newHighsLows.newHighs * 100) + '%' }"></div>
               <div class="meter-segment bar-negative" :style="{ width: (newHighsLows.newLows * 100) + '%' }"></div>
@@ -90,12 +90,12 @@
               <span class="meter-value neutral">{{ (newHighsLows.neutral * 100).toFixed(1) }}%</span>
             </div>
             <div v-if="tooltipVisible === 'newHighsLows'" class="breadth-tooltip">
-              <strong>New Highs/Lows</strong>
-              <p>Shows the percentage of assets reaching new 52-week highs or lows today.</p>
+              <strong>{{ t('dashboard.breadth.newHighsLowsTitle') }}</strong>
+              <p>{{ t('dashboard.breadth.newHighsLowsDesc') }}</p>
               <ul>
-                <li><span class="positive">●</span> New Highs: Assets at their highest price in 52 weeks</li>
-                <li><span class="negative">●</span> New Lows: Assets at their lowest price in 52 weeks</li>
-                <li><span class="neutral">●</span> Neutral: Assets not at extremes</li>
+                <li><span class="positive">●</span> {{ t('dashboard.breadth.newHighs') }}</li>
+                <li><span class="negative">●</span> {{ t('dashboard.breadth.newLows') }}</li>
+                <li><span class="neutral">●</span> {{ t('dashboard.breadth.neutral') }}</li>
               </ul>
             </div>
           </div>
@@ -110,27 +110,25 @@
       <div class="wave"></div>
       <div class="wave"></div>
       <div class="infotop">
-        <span class="archie-title">Meet <span class="archie-name">Archie<svg class="archie-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <span class="archie-title">{{ t('dashboard.archie.meet') }} <span class="archie-name">{{ t('dashboard.archie.name') }}<svg class="archie-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
             <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
             <g id="SVGRepo_iconCarrier">
               <path d="M12 3C12 7.97056 16.0294 12 21 12C16.0294 12 12 16.0294 12 21C12 16.0294 7.97056 12 3 12C7.97056 12 12 7.97056 12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
             </g>
           </svg></span></span>
-        <div class="archie-tagline">Your Adaptive AI Trading Agent</div>
+        <div class="archie-tagline">{{ t('dashboard.archie.tagline') }}</div>
         <div class="archie-loader">
           <span class="loader-line"></span>
-          <span class="loader-text">Archie is in training...</span>
+          <span class="loader-text">{{ t('dashboard.archie.training') }}</span>
         </div>
         <p class="archie-desc">
-          Archie is powered by deep learning and trained on millions of financial documents.<br>
-          He recognizes patterns, adapts to your style, and suggests the best trading strategies for you.<br>
-          <span class="archie-highlight">Coming soon: AI-generated trades, market insights, and personalized
-            strategies.</span>
+          {{ t('dashboard.archie.description') }}<br>
+          {{ t('dashboard.archie.description2') }}<br>
+          <span class="archie-highlight">{{ t('dashboard.archie.comingSoon') }}</span>
         </p>
         <div class="archie-disclaimer">
-          <strong>Disclaimer:</strong> Archie is an experimental AI agent. All suggestions are for informational
-          purposes only and do not constitute legal financial advice. Use of Archie is optional; Ereuna assumes no responsibility for trading outcomes.
+          <strong>{{ t('dashboard.archie.disclaimer') }}</strong> {{ t('dashboard.archie.disclaimerText') }}
         </div>
       </div>
     </div>
@@ -140,22 +138,22 @@
     <!-- First Row: Market Indexes & SMA Distribution -->
     <div class="dashboard-row">
       <section class="market-indexes card" aria-label="Market Indexes">
-        <h2 id="market-indexes-heading">Market Indexes</h2>
+        <h2 id="market-indexes-heading">{{ t('dashboard.indexes.title') }}</h2>
         <table aria-labelledby="market-indexes-heading">
           <thead>
             <tr>
-              <th scope="col">ETF</th>
-              <th scope="col">Price</th>
-              <th scope="col">% Change</th>
-              <th scope="col">1M</th>
-              <th scope="col">1Q</th>
-              <th scope="col">1Y</th>
-              <th scope="col">YTD</th>
+              <th scope="col">{{ t('dashboard.indexes.etf') }}</th>
+              <th scope="col">{{ t('dashboard.indexes.price') }}</th>
+              <th scope="col">{{ t('dashboard.indexes.change') }}</th>
+              <th scope="col">{{ t('dashboard.indexes.oneMonth') }}</th>
+              <th scope="col">{{ t('dashboard.indexes.oneQuarter') }}</th>
+              <th scope="col">{{ t('dashboard.indexes.oneYear') }}</th>
+              <th scope="col">{{ t('dashboard.indexes.ytd') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="statsLoading">
-              <td colspan="7">Loading...</td>
+              <td colspan="7">{{ t('dashboard.loading') }}</td>
             </tr>
             <tr v-else-if="statsError">
               <td colspan="7">{{ statsError }}</td>
@@ -174,7 +172,7 @@
       </section>
       <section class="sma-distribution card" aria-label="SMA Distribution">
         <div class="sma-header">
-          <h2 id="sma-distribution-heading">SMA Distribution</h2>
+          <h2 id="sma-distribution-heading">{{ t('dashboard.sma.title') }}</h2>
           <div class="asset-type-dropdown" @click="toggleAssetDropdown">
             <div class="dropdown-selected">
               {{ assetTypeOptions.find(o => o.value === selectedAssetType)?.label }}
@@ -194,7 +192,7 @@
         </div>
         <div class="sma-bars" aria-labelledby="sma-distribution-heading">
           <div class="sma-bar" v-for="sma in smaData" :key="sma.period" :aria-label="`${sma.period} SMA distribution`">
-            <div class="sma-label">{{ sma.period }} SMA</div>
+            <div class="sma-label">{{ sma.period }} {{ t('dashboard.sma.sma') }}</div>
             <div class="bar-container" role="progressbar" :aria-valuenow="sma.abovePercent" aria-valuemin="0" aria-valuemax="100" :aria-label="`${sma.abovePercent}% above, ${sma.belowPercent}% below`">
               <div class="bar-positive" :style="{ width: sma.abovePercent + '%' }"></div>
               <div class="bar-negative" :style="{ width: sma.belowPercent + '%' }"></div>
@@ -211,10 +209,10 @@
     <!-- Second Row: Sectors & Movers/Volume/Sentiment -->
     <div class="dashboard-row2">
         <section class="movers-volume-sentiment card" aria-label="Quarter Sector and Industry Strength">
-          <h2 id="sector-strength-heading">Quarter Sector / Industry Strength</h2>
+          <h2 id="sector-strength-heading">{{ t('dashboard.sectors.title') }}</h2>
           <div class="sector-lists" aria-labelledby="sector-strength-heading">
           <div>
-            <h3>Strongest Sectors</h3>
+            <h3>{{ t('dashboard.sectors.strongestSectors') }}</h3>
             <ul>
               <li v-for="s in topSectors" :key="s.sector">
                 {{ s.sector }} <span class="positive">{{ s.avgReturnStr }}</span>
@@ -223,7 +221,7 @@
             </ul>
           </div>
           <div>
-            <h3>Weakest Sectors</h3>
+            <h3>{{ t('dashboard.sectors.weakestSectors') }}</h3>
             <ul>
               <li v-for="s in bottomSectors" :key="s.sector">
                 {{ s.sector }} <span class="negative">{{ s.avgReturnStr }}</span>
@@ -232,7 +230,7 @@
             </ul>
           </div>
           <div>
-            <h3>Strongest Industries</h3>
+            <h3>{{ t('dashboard.sectors.strongestIndustries') }}</h3>
             <ul>
               <li v-for="i in topIndustries" :key="i.industry">
                 {{ i.industry }} <span class="positive">{{ i.avgReturnStr }}</span>
@@ -241,7 +239,7 @@
             </ul>
           </div>
           <div>
-            <h3>Weakest Industries</h3>
+            <h3>{{ t('dashboard.sectors.weakestIndustries') }}</h3>
             <ul>
               <li v-for="i in bottomIndustries" :key="i.industry">
                 {{ i.industry }} <span class="negative">{{ i.avgReturnStr }}</span>
@@ -252,25 +250,25 @@
         </div>
       </section>
     <section class="sectors-movers card" aria-label="Daily Top Movers">
-      <h2 id="top-movers-heading">Daily Top Movers</h2>
+      <h2 id="top-movers-heading">{{ t('dashboard.movers.title') }}</h2>
       <div class="movers-volume" aria-labelledby="top-movers-heading">
           <div>
-            <h3>Top 10 Gainers</h3>
+            <h3>{{ t('dashboard.movers.topGainers') }}</h3>
             <ul>
-              <li v-if="statsLoading">Loading...</li>
+              <li v-if="statsLoading">{{ t('dashboard.loading') }}</li>
               <li v-else-if="statsError">{{ statsError }}</li>
-              <li v-else-if="!topGainers.length">No data</li>
+              <li v-else-if="!topGainers.length">{{ t('dashboard.noData') }}</li>
               <li v-else v-for="g in topGainers" :key="g.symbol">
                 {{ g.symbol }} <span class="positive">+{{ g.daily_return }}%</span>
               </li>
             </ul>
           </div>
           <div>
-            <h3>Top 10 Losers</h3>
+            <h3>{{ t('dashboard.movers.topLosers') }}</h3>
             <ul>
-              <li v-if="statsLoading">Loading...</li>
+              <li v-if="statsLoading">{{ t('dashboard.loading') }}</li>
               <li v-else-if="statsError">{{ statsError }}</li>
-              <li v-else-if="!topLosers.length">No data</li>
+              <li v-else-if="!topLosers.length">{{ t('dashboard.noData') }}</li>
               <li v-else v-for="l in topLosers" :key="l.symbol">
                 {{ l.symbol }} <span class="negative">{{ l.daily_return > 0 ? '+' : '' }}{{ l.daily_return }}%</span>
               </li>
@@ -291,18 +289,18 @@
               <path d="M12 3C12 7.97056 16.0294 12 21 12C16.0294 12 12 16.0294 12 21C12 16.0294 7.97056 12 3 12C7.97056 12 12 7.97056 12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
             </g>
           </svg>
-          <span class="archie-full"><span class="archie-text">Archie</span>'s</span> Intrinsic Value Analysis
-          <span class="beta-badge">BETA</span>
+          <span class="archie-full"><span class="archie-text">{{ t('dashboard.archie.name') }}</span>'s</span> {{ t('dashboard.valuation.title') }}
+          <span class="beta-badge">{{ t('dashboard.valuation.beta') }}</span>
         </h2>
         <div class="valuation-content" aria-labelledby="valuation-heading">
           <div class="valuation-column undervalued">
             <h3>
-              <span class="badge-undervalued">Top 10 Undervalued</span>
+              <span class="badge-undervalued">{{ t('dashboard.valuation.undervalued') }}</span>
             </h3>
             <div class="valuation-list">
-              <div v-if="statsLoading" class="loading-state">Loading...</div>
+              <div v-if="statsLoading" class="loading-state">{{ t('dashboard.loading') }}</div>
               <div v-else-if="statsError" class="error-state">{{ statsError }}</div>
-              <div v-else-if="!topUndervalued.length" class="empty-state">No data available</div>
+              <div v-else-if="!topUndervalued.length" class="empty-state">{{ t('dashboard.noDataAvailable') }}</div>
               <div v-else v-for="(stock, index) in topUndervalued" :key="stock.symbol" class="valuation-item">
                 <div class="stock-header">
                   <span class="ranking-number">#{{ index + 1 }}</span>
@@ -311,11 +309,11 @@
                 </div>
                 <div class="stock-prices">
                   <div class="price-row">
-                    <span class="price-label">Current:</span>
+                    <span class="price-label">{{ t('dashboard.valuation.current') }}</span>
                     <span class="price-value">${{ stock.currentPrice }}</span>
                   </div>
                   <div class="price-row">
-                    <span class="price-label">Intrinsic:</span>
+                    <span class="price-label">{{ t('dashboard.valuation.intrinsic') }}</span>
                     <span class="price-value intrinsic">${{ stock.intrinsicValue }}</span>
                   </div>
                 </div>
@@ -324,12 +322,12 @@
           </div>
           <div class="valuation-column overvalued">
             <h3>
-              <span class="badge-overvalued">Top 10 Overvalued</span>
+              <span class="badge-overvalued">{{ t('dashboard.valuation.overvalued') }}</span>
             </h3>
             <div class="valuation-list">
-              <div v-if="statsLoading" class="loading-state">Loading...</div>
+              <div v-if="statsLoading" class="loading-state">{{ t('dashboard.loading') }}</div>
               <div v-else-if="statsError" class="error-state">{{ statsError }}</div>
-              <div v-else-if="!topOvervalued.length" class="empty-state">No data available</div>
+              <div v-else-if="!topOvervalued.length" class="empty-state">{{ t('dashboard.noDataAvailable') }}</div>
               <div v-else v-for="(stock, index) in topOvervalued" :key="stock.symbol" class="valuation-item">
                 <div class="stock-header">
                   <span class="ranking-number">#{{ index + 1 }}</span>
@@ -338,11 +336,11 @@
                 </div>
                 <div class="stock-prices">
                   <div class="price-row">
-                    <span class="price-label">Current:</span>
+                    <span class="price-label">{{ t('dashboard.valuation.current') }}</span>
                     <span class="price-value">${{ stock.currentPrice }}</span>
                   </div>
                   <div class="price-row">
-                    <span class="price-label">Intrinsic:</span>
+                    <span class="price-label">{{ t('dashboard.valuation.intrinsic') }}</span>
                     <span class="price-value intrinsic">${{ stock.intrinsicValue }}</span>
                   </div>
                 </div>
@@ -351,8 +349,7 @@
           </div>
         </div>
         <div class="valuation-disclaimer">
-          <strong>Note:</strong> Intrinsic values are calculated using advanced AI algorithms. 
-          These are estimates and should not be considered as investment advice.
+          <strong>{{ t('dashboard.valuation.note') }}</strong> {{ t('dashboard.valuation.disclaimer') }}
         </div>
       </section>
     </div>
@@ -361,7 +358,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Header from '../components/Header.vue';
+
+const { t, locale } = useI18n();
 
 // --- TypeScript interfaces for API data ---
 interface IndexPerformance {
@@ -689,8 +689,8 @@ const currentTime = ref('');
 
 function updateDateTime() {
   const now = new Date();
-  currentDate.value = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  currentTime.value = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  currentDate.value = now.toLocaleDateString(locale.value, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  currentTime.value = now.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' });
 
   // Market status removed — we only update date/time here
 }

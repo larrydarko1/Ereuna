@@ -1,15 +1,15 @@
 <template>
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
-      <button class="close-x" @click="close" aria-label="Close">&times;</button>
-      <h2>Edit Trade</h2>
+      <button class="close-x" @click="close" :aria-label="t('portfolio.closeEditTrade')">&times;</button>
+      <h2>{{ t('portfolio.editTradeTitle') }}</h2>
       
       <div class="info-box">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M13 16H12V12H11M12 8H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <div>
-          Editing this trade will recalculate your entire portfolio from scratch to ensure accuracy.
+          {{ t('portfolio.editInfoText') }}
         </div>
       </div>
 
@@ -54,53 +54,53 @@
             </div>
           </div>
           <div class="input-flex-vertical" style="margin-left: 12px;">
-            <label for="edit-symbol">Symbol (locked)</label>
+            <label for="edit-symbol">{{ t('portfolio.symbolLocked') }}</label>
             <input id="edit-symbol" :value="localTrade.Symbol" readonly class="symbol-locked" />
           </div>
         </div>
 
         <div class="input-row">
-          <label>Action</label>
+          <label>{{ t('portfolio.tradeDetailAction') }}</label>
           <div style="display: flex; gap: 8px;">
             <button
               type="button"
               :class="['action-btn', localTrade.Action === 'Buy' ? 'active buy' : '']"
               @click="localTrade.Action = 'Buy'"
             >
-              Buy
+              {{ t('portfolio.buy') }}
             </button>
             <button
               type="button"
               :class="['action-btn', localTrade.Action === 'Sell' ? 'active sell' : '']"
               @click="localTrade.Action = 'Sell'"
             >
-              Sell
+              {{ t('portfolio.sell') }}
             </button>
           </div>
         </div>
 
         <div class="input-row">
-          <label>Position Type</label>
+          <label>{{ t('portfolio.positionType') }}</label>
           <div style="display: flex; gap: 8px;">
             <button
               type="button"
               :class="['position-type-btn', !localTrade.IsShort ? 'active' : '']"
               @click="localTrade.IsShort = false"
             >
-              Long
+              {{ t('portfolio.positionLong') }}
             </button>
             <button
               type="button"
               :class="['position-type-btn', localTrade.IsShort ? 'active' : '']"
               @click="localTrade.IsShort = true"
             >
-              Short
+              {{ t('portfolio.positionShort') }}
             </button>
           </div>
         </div>
 
         <div class="input-row">
-          <label for="edit-shares">Shares</label>
+          <label for="edit-shares">{{ t('portfolio.sharesLabel') }}</label>
           <input
             id="edit-shares"
             type="number"
@@ -110,12 +110,12 @@
             required
             @input="updateTotal"
           />
-          <small class="hint">Fractional shares supported (up to 8 decimals)</small>
+          <small class="hint">{{ t('portfolio.fractionalSharesHint') }}</small>
         </div>
 
         <div class="input-row input-row-flex">
           <div class="input-flex-vertical">
-            <label for="edit-price">Price</label>
+            <label for="edit-price">{{ t('portfolio.priceLabel') }}</label>
             <input
               id="edit-price"
               type="number"
@@ -127,7 +127,7 @@
             />
           </div>
           <div class="input-flex-vertical" style="margin-left: 12px;">
-            <label for="edit-commission">Commission</label>
+            <label for="edit-commission">{{ t('portfolio.commissionLabel') }}</label>
             <input
               id="edit-commission"
               type="number"
@@ -140,7 +140,7 @@
         </div>
 
         <div class="input-row">
-          <label for="edit-leverage">Leverage</label>
+          <label for="edit-leverage">{{ t('portfolio.leverageLabel') }}</label>
           <input
             id="edit-leverage"
             type="number"
@@ -149,23 +149,23 @@
             max="10"
             step="0.5"
           />
-          <small class="hint">Leverage multiplier (1x = no leverage, max 10x)</small>
+          <small class="hint">{{ t('portfolio.leverageHint') }}</small>
         </div>
 
         <div class="calculated-info">
           <div class="info-item">
-            <span class="info-label">Total:</span>
+            <span class="info-label">{{ t('portfolio.totalAmount') }}</span>
             <span class="info-value">${{ localTrade.Total?.toFixed(2) }}</span>
           </div>
           <div v-if="localTrade.Leverage && localTrade.Leverage > 1" class="info-item">
-            <span class="info-label">Leverage:</span>
+            <span class="info-label">{{ t('portfolio.leveragedAmount') }}</span>
             <span class="info-value leverage-highlight">{{ localTrade.Leverage }}x</span>
           </div>
         </div>
 
         <div v-if="loading" class="loading-state">
           <div class="loader"></div>
-          <span>Updating trade and recalculating portfolio...</span>
+          <span>{{ t('portfolio.updatingTrade') }}</span>
         </div>
 
         <div v-if="errorMsg" class="error-msg">
@@ -178,10 +178,10 @@
             class="save-btn" 
             :disabled="loading || !hasChanges"
           >
-            <span v-if="!loading">Save Changes</span>
-            <span v-else>Processing...</span>
+            <span v-if="!loading">{{ t('portfolio.saveChanges') }}</span>
+            <span v-else>{{ t('portfolio.processing') }}</span>
           </button>
-          <button type="button" class="cancel-btn" @click="close" :disabled="loading">Cancel</button>
+          <button type="button" class="cancel-btn" @click="close" :disabled="loading">{{ t('portfolio.cancel') }}</button>
         </div>
       </form>
     </div>
@@ -190,6 +190,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 type Trade = {
   _id?: string;
@@ -228,7 +231,15 @@ const showCalendar = ref(false)
 const currentMonth = ref(new Date().getMonth())
 const currentYear = ref(new Date().getFullYear())
 
-const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+const weekdays = computed(() => [
+  t('portfolio.weekdaySu'),
+  t('portfolio.weekdayMo'),
+  t('portfolio.weekdayTu'),
+  t('portfolio.weekdayWe'),
+  t('portfolio.weekdayTh'),
+  t('portfolio.weekdayFr'),
+  t('portfolio.weekdaySa')
+])
 
 // Create a local copy of the trade for editing
 const localTrade = ref<Trade>({
@@ -242,12 +253,38 @@ const localTrade = ref<Trade>({
 const formattedDate = computed(() => {
   if (!localTrade.value.Date) return ''
   const date = new Date(localTrade.value.Date + 'T00:00:00')
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const months = [
+    t('portfolio.monthJan'),
+    t('portfolio.monthFeb'),
+    t('portfolio.monthMar'),
+    t('portfolio.monthApr'),
+    t('portfolio.monthMay'),
+    t('portfolio.monthJun'),
+    t('portfolio.monthJul'),
+    t('portfolio.monthAug'),
+    t('portfolio.monthSep'),
+    t('portfolio.monthOct'),
+    t('portfolio.monthNov'),
+    t('portfolio.monthDec')
+  ]
   return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`
 })
 
 const currentMonthYear = computed(() => {
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const months = [
+    t('portfolio.monthJanuary'),
+    t('portfolio.monthFebruary'),
+    t('portfolio.monthMarch'),
+    t('portfolio.monthApril'),
+    t('portfolio.monthMayFull'),
+    t('portfolio.monthJune'),
+    t('portfolio.monthJuly'),
+    t('portfolio.monthAugust'),
+    t('portfolio.monthSeptember'),
+    t('portfolio.monthOctober'),
+    t('portfolio.monthNovember'),
+    t('portfolio.monthDecember')
+  ]
   return `${months[currentMonth.value]} ${currentYear.value}`
 })
 
@@ -383,13 +420,13 @@ watch([
 
 async function submitEdit() {
   if (!props.trade._id) {
-    errorMsg.value = 'Trade ID is missing. Cannot edit.'
+    errorMsg.value = t('portfolio.tradeIdMissing')
     emit('notify', errorMsg.value)
     return
   }
 
   if (!hasChanges.value) {
-    emit('notify', 'No changes detected.')
+    emit('notify', t('portfolio.noChangesDetected'))
     return
   }
 
@@ -420,14 +457,14 @@ async function submitEdit() {
 
     if (!response.ok) {
       const data = await response.json()
-      throw new Error(data.message || 'Failed to update trade')
+      throw new Error(data.message || t('portfolio.failedUpdateTrade'))
     }
 
-    emit('notify', 'Trade updated successfully! Portfolio recalculated.')
+    emit('notify', t('portfolio.tradeUpdatedSuccess'))
     emit('updated')
     close()
   } catch (error) {
-    errorMsg.value = error instanceof Error ? error.message : 'Failed to update trade'
+    errorMsg.value = error instanceof Error ? error.message : t('portfolio.failedUpdateTrade')
     emit('notify', errorMsg.value)
   } finally {
     loading.value = false

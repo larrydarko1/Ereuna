@@ -2,7 +2,7 @@
   <div :class="[ShowFundFamily ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Fund Family</span>
+        <span class="title">{{ t('params.fundFamily') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'fundFamily')" @mouseout="handleMouseOut($event)" aria-label="Show info for Fund Family parameter">
           <path
@@ -39,10 +39,10 @@
 
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); ShowFundFamily = false" aria-label="Reset Fund Family filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetFundFamily()" aria-label="Set Fund Family filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -52,6 +52,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
 import { getFundFamilies } from '@/constants/fundData';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:ShowFundFamily']);
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -113,7 +116,7 @@ async function SetFundFamily() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;

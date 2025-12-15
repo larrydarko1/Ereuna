@@ -1,28 +1,28 @@
 <template>
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
-      <button class="close-x" @click="close" aria-label="Close">&times;</button>
-      <h2>Rename Watchlist</h2>
+      <button class="close-x" @click="close" :aria-label="t('renameWatchlist.close')">&times;</button>
+      <h2>{{ t('renameWatchlist.title') }}</h2>
       <form @submit.prevent="UpdateWatchlist">
         <div class="input-row">
-          <label for="inputrename">Watchlist Name</label>
+          <label for="inputrename">{{ t('renameWatchlist.watchlistName') }}</label>
           <input
             id="inputrename"
-            placeholder="Enter Watchlist Name"
+            :placeholder="t('renameWatchlist.placeholder')"
             type="text"
             v-model="watchlistName"
             :class="{ 'input-error': watchlistName.length > 20 }"
             maxlength="20"
             required
-            aria-label="Watchlist Name Input"
+            :aria-label="t('renameWatchlist.watchlistNameInput')"
           />
           <div class="char-count" :class="{ error: watchlistName.length > 20 }">
-            {{ watchlistName.length }}/20
+            {{ t('renameWatchlist.characterCount', { count: watchlistName.length }) }}
           </div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn" aria-label="Submit Rename">Submit</button>
-          <button type="button" class="cancel-btn" @click="close" aria-label="Cancel Rename">Cancel</button>
+          <button type="submit" class="trade-btn" :aria-label="t('renameWatchlist.submitRename')">{{ t('renameWatchlist.submit') }}</button>
+          <button type="button" class="cancel-btn" @click="close" :aria-label="t('renameWatchlist.cancelRename')">{{ t('renameWatchlist.cancel') }}</button>
         </div>
       </form>
     </div>
@@ -30,7 +30,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 const emit = defineEmits(['close', 'notify'])
 
 const props = defineProps({
@@ -53,14 +56,14 @@ async function UpdateWatchlist() {
   const existingWatchlists = props.watchlist.tickers.map((watch: any) => watch.Name)
 
   if (existingWatchlists.includes(watchlistName.value)) {
-    emit('notify', 'Watchlist already exists')
+    emit('notify', t('renameWatchlist.alreadyExists'))
     return
   }
   if (!watchlistName.value) {
     return
   }
   if (watchlistName.value.length > 20) {
-    emit('notify', 'Watchlist name cannot exceed 20 characters.')
+    emit('notify', t('renameWatchlist.exceedsLimit'))
     return
   }
   try {

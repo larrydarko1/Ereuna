@@ -1,32 +1,32 @@
 <template>
   <div class="modal-backdrop" @click.self="$emit('close')" role="dialog" aria-modal="true" aria-labelledby="refund-title">
     <div class="modal-content">
-      <button class="close-x" @click="$emit('close')" aria-label="Close">&times;</button>
-      <h2 id="refund-title">Request Refund</h2>
+      <button class="close-x" @click="$emit('close')" :aria-label="t('common.close')">&times;</button>
+      <h2 id="refund-title">{{ t('refund.title') }}</h2>
       <div class="refund-section">
         <div>
           <div class="eligible-msg-block">
               <div class="disclaimer" style="margin-bottom:10px;">
-          <strong>Important:</strong> If you request a refund, your access will be immediately revoked and you will be logged out. You will not be able to log in again unless you renew your subscription.<br>
-          <span style="color:var(--text1);font-weight:600;">Please download all your receipts and any data you need before requesting a refund.</span>
+          <strong>{{ t('refund.important') }}</strong> {{ t('refund.importantText') }}<br>
+          <span style="color:var(--text1);font-weight:600;">{{ t('refund.downloadDataWarning') }}</span>
         </div>
             <p class="eligible-msg">
-              You are eligible for an automatic refund.
+              {{ t('refund.eligible') }}
             </p>
             <div class="refund-details">
-              <div><strong>Money left:</strong> <span class="refund-amount">{{ expirationDays !== null ? ((14.99 / 30) * expirationDays).toFixed(2) : '0.00' }}€</span></div>
-              <div><strong>Days left in subscription:</strong> <span class="refund-days">{{ daysLeft }}</span></div>
+              <div><strong>{{ t('refund.moneyLeft') }}:</strong> <span class="refund-amount">{{ expirationDays !== null ? ((14.99 / 30) * expirationDays).toFixed(2) : '0.00' }}€</span></div>
+              <div><strong>{{ t('refund.daysLeftInSubscription') }}:</strong> <span class="refund-days">{{ daysLeft }}</span></div>
             </div>
           </div>
         </div>
         <div class="disclaimer">
-          <strong>Disclaimer:</strong> VAT is not refundable. Automatic refunds are processed to your original payment method within 5 business days. If you encounter any issues, please contact support at contact@ereuna.io and provide your account name and receipt ID.
+          <strong>{{ t('refund.disclaimer') }}</strong> {{ t('refund.disclaimerText') }}
         </div>
         <button
           class="userbtn"
           :disabled="!eligible || isLoading"
           @click="handleRefund"
-          aria-label="Request Refund"
+          :aria-label="t('refund.requestButton')"
         >
           <span class="btn-content-row">
             <span v-if="isLoading" class="loader4">
@@ -34,8 +34,8 @@
                 <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
               </svg>
             </span>
-            <span v-if="!isLoading">Request Refund</span>
-            <span v-else style="margin-left: 8px;">Processing...</span>
+            <span v-if="!isLoading">{{ t('refund.requestButton') }}</span>
+            <span v-else style="margin-left: 8px;">{{ t('common.processing') }}</span>
           </span>
         </button>
       </div>
@@ -46,6 +46,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
 // LogOut function as provided by user
 async function LogOut() {
   try {
@@ -104,7 +108,7 @@ async function handleRefund() {
     });
     const result = await response.json();
     if (response.ok && result.success) {
-      showNotification('Refund request submitted! Staff will process your request soon.');
+      showNotification(t('refund.success'));
       setTimeout(() => {
         // @ts-ignore
         if (typeof $emit === 'function') $emit('close');
@@ -114,10 +118,10 @@ async function handleRefund() {
         }, 1200);
       }, 1800);
     } else {
-      showNotification(result.message || 'Refund request failed.');
+      showNotification(result.message || t('refund.failed'));
     }
   } catch (err) {
-    showNotification('Network or server error. Please try again.');
+    showNotification(t('errors.networkError'));
   } finally {
     isLoading.value = false;
   }

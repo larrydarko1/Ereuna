@@ -2,7 +2,7 @@
   <div :class="[showEVModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">EV (Enterprise Value) - 1000s</span>
+        <span class="title">{{ t('params.ev') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'ev')" @mouseout="handleMouseOut($event)" aria-label="Show info for EV parameter">
           <path
@@ -23,21 +23,21 @@
     <div class="content" v-if="showEVModel">
       <div class="input-group">
         <div class="input-wrapper">
-          <label class="input-label">Minimum</label>
-          <input class="input-field" id="left-ev" type="number" step="0.01" placeholder="0.00" aria-label="EV minimum">
+          <label class="input-label">{{ t('params.minimum') }}</label>
+          <input class="input-field" id="left-ev" type="number" step="0.01" placeholder="0.00" aria-label="Enterprise Value minimum">
         </div>
         <div class="input-wrapper">
-          <label class="input-label">Maximum</label>
-          <input class="input-field" id="right-ev" type="number" step="0.01" placeholder="0.00" aria-label="EV maximum">
+          <label class="input-label">{{ t('params.maximum') }}</label>
+          <input class="input-field" id="right-ev" type="number" step="0.01" placeholder="0.00" aria-label="Enterprise Value maximum">
         </div>
       </div>
       
       <div class="actions">
-        <button class="btn btn-secondary" @click="emit('reset'); emit('update:showEV', false)" aria-label="Reset EV filter">
-          Reset
+        <button class="btn btn-secondary" @click="emit('reset'); emit('update:showEV', false)" aria-label="Reset Enterprise Value filter">
+          {{ t('params.reset') }}
         </button>
-        <button class="btn btn-primary" @click="SetEV()" aria-label="Set EV filter">
-          Apply
+        <button class="btn btn-primary" @click="SetEV()" aria-label="Set Enterprise Value filter">
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -47,7 +47,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showEV']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -84,7 +86,7 @@ async function SetEV() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -92,7 +94,7 @@ async function SetEV() {
   const leftInput = document.getElementById('left-ev') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-ev') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -104,7 +106,7 @@ async function SetEV() {
   // If both missing or both invalid, error
   if ((leftEV === null && rightEV === null) ||
       (leftEV !== null && isNaN(leftEV) && rightEV !== null && isNaN(rightEV))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -113,7 +115,7 @@ async function SetEV() {
   // If both are present, validate order
   if (leftEV !== null && !isNaN(leftEV) && rightEV !== null && !isNaN(rightEV)) {
     if (leftEV >= rightEV) {
-      error.value = 'Min EV cannot be higher than or equal to max EV';
+      error.value = t('params.errorMinMaxEV');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

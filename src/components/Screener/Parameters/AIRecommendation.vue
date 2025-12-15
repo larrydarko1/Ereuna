@@ -2,7 +2,7 @@
   <div :class="[ShowAIRecommendation ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">AI Recommendation</span>
+        <span class="title">{{ t('params.aiRecommendation') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'ai-recommendation')" @mouseout="handleMouseOut($event)" aria-label="Show info for AI Recommendation parameter">
           <path
@@ -39,10 +39,10 @@
 
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); ShowAIRecommendation = false" aria-label="Reset AI Recommendation filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetAIRecommendation()" aria-label="Set AI Recommendation filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -51,6 +51,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:ShowAIRecommendation']);
 
@@ -127,7 +130,7 @@ async function SetAIRecommendation() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;

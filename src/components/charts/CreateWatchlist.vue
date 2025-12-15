@@ -1,28 +1,28 @@
 <template>
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
-      <button class="close-x" @click="close" aria-label="Close">&times;</button>
-      <h2>Create Watchlist</h2>
+      <button class="close-x" @click="close" :aria-label="t('createWatchlist.close')">&times;</button>
+      <h2>{{ t('createWatchlist.title') }}</h2>
       <form @submit.prevent="CreateWatchlist">
         <div class="input-row">
-          <label for="inputcreate">Watchlist Name</label>
+          <label for="inputcreate">{{ t('createWatchlist.watchlistName') }}</label>
           <input
             id="inputcreate"
-            placeholder="Enter Watchlist Name"
+            :placeholder="t('createWatchlist.placeholder')"
             type="text"
             v-model="watchlistName"
             :class="{ 'input-error': watchlistName.length > 20 }"
             maxlength="20"
             required
-            aria-label="Watchlist Name Input"
+            :aria-label="t('createWatchlist.watchlistNameInput')"
           />
           <div class="char-count" :class="{ error: watchlistName.length > 20 }">
-            {{ watchlistName.length }}/20
+            {{ t('createWatchlist.characterCount', { count: watchlistName.length }) }}
           </div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn" aria-label="Submit new watchlist">Submit</button>
-          <button type="button" class="cancel-btn" @click="close" aria-label="Cancel creation">Cancel</button>
+          <button type="submit" class="trade-btn" :aria-label="t('createWatchlist.submitWatchlist')">{{ t('createWatchlist.submit') }}</button>
+          <button type="button" class="cancel-btn" @click="close" :aria-label="t('createWatchlist.cancelCreation')">{{ t('createWatchlist.cancel') }}</button>
         </div>
       </form>
     </div>
@@ -30,6 +30,8 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
 import { ref } from 'vue'
 const emit = defineEmits(['close', 'notify'])
@@ -52,11 +54,11 @@ async function CreateWatchlist() {
   const existingWatchlists = props.watchlist?.tickers?.map((watch: { Name: string }) => watch.Name) ?? []
 
   if (existingWatchlists.includes(watchlistName.value)) {
-    emit('notify', 'Watchlist already exists')
+    emit('notify', t('createWatchlist.alreadyExists'))
     return
   }
   if (watchlistName.value.length > 20) {
-    emit('notify', 'Watchlist name cannot exceed 20 characters.')
+    emit('notify', t('createWatchlist.exceedsLimit'))
     return
   }
   try {
@@ -72,12 +74,12 @@ async function CreateWatchlist() {
     } else if (response.status === 400) {
       const errorData = await response.json()
       if (errorData.message === 'Maximum number of watchlists (20) has been reached') {
-        emit('notify', 'Maximum number of watchlists (20) has been reached')
+        emit('notify', t('createWatchlist.maxReached'))
       } else {
-        emit('notify', 'Failed to create watchlist')
+        emit('notify', t('createWatchlist.failed'))
       }
     } else {
-      emit('notify', 'Failed to create watchlist')
+      emit('notify', t('createWatchlist.failed'))
     }
   } catch (err) {
     emit('notify', (err as Error).message)

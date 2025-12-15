@@ -2,33 +2,33 @@
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
       <button class="close-x" @click="close" aria-label="Close">&times;</button>
-      <h2>Rename Screener</h2>
-      <form @submit.prevent="UpdateScreener" aria-label="Rename Screener Form">
+      <h2>{{ t('screenerComponents.renameScreener') }}</h2>
+      <form @submit.prevent="UpdateScreener" :aria-label="t('screenerComponents.renameScreener') + ' Form'">
         <div class="input-row">
-          <label for="inputrename">Screener Name</label>
+          <label for="inputrename">{{ t('screenerComponents.screenerName') }}</label>
           <input
             id="inputrename"
-            placeholder="Enter Screener Name"
+            :placeholder="t('screenerComponents.enterScreenerName')"
             type="text"
             v-model="screenerName"
             :class="{ 'input-error': screenerName.length > 20 }"
             maxlength="20"
             required
-            aria-label="Screener Name Input"
+            :aria-label="t('screenerComponents.screenerName') + ' Input'"
           />
           <div class="char-count" :class="{ error: screenerName.length > 20 }">
             {{ screenerName.length }}/20
           </div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn" :disabled="isLoading" aria-label="Submit Rename Screener">
+          <button type="submit" class="trade-btn" :disabled="isLoading" :aria-label="t('screenerComponents.submit') + ' Rename Screener'">
             <span v-if="isLoading" class="loader4">
               <svg class="spinner" viewBox="0 0 50 50">
                 <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
               </svg>
             </span>
-            <span v-if="!isLoading">Submit</span>
-            <span v-else style="margin-left: 8px;">Processing...</span>
+            <span v-if="!isLoading">{{ t('screenerComponents.submit') }}</span>
+            <span v-else style="margin-left: 8px;">{{ t('screenerComponents.processing') }}</span>
           </button>
           <button type="button" class="cancel-btn" @click="close" aria-label="Cancel">Cancel</button>
         </div>
@@ -39,6 +39,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   user: { type: String, required: true },
@@ -68,13 +71,13 @@ async function UpdateScreener() {
     const oldName = props.currentName
 
     if (newName.length > 20) {
-      emit('notify', 'Screener name cannot be longer than 20 characters')
+      emit('notify', t('screenerComponents.errorNameTooLong'))
       isLoading.value = false;
       return
     }
 
     if (newName === oldName) {
-      emit('notify', 'New screener name must be different from the current name')
+      emit('notify', t('screenerComponents.errorNameMustDiffer'))
       isLoading.value = false;
       return
     }
@@ -92,7 +95,7 @@ async function UpdateScreener() {
     try {
       responseData = await response.json();
     } catch (jsonErr) {
-      emit('notify', 'Server error: invalid response.');
+      emit('notify', t('screenerComponents.errorServerInvalidResponse'));
       isLoading.value = false;
       return;
     }
@@ -100,7 +103,7 @@ async function UpdateScreener() {
     if (response.ok) {
       emit('close')
     } else {
-      emit('notify', responseData?.message || 'Failed to rename screener')
+      emit('notify', responseData?.message || t('screenerComponents.errorRenameFailed'))
     }
   } catch (err) {
     let errorMsg = 'Unknown error';

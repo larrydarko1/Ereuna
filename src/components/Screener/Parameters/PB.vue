@@ -2,7 +2,7 @@
   <div :class="[showPBInputsModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">PB Ratio</span>
+        <span class="title">{{ t('params.pbRatio') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'pb')" @mouseout="handleMouseOut($event)" aria-label="Show info for PB Ratio parameter">
           <path
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showPBInputs']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -77,7 +79,7 @@ async function SetPBRatio() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -85,7 +87,7 @@ async function SetPBRatio() {
   const leftInput = document.getElementById('left-pb') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-pb') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -97,7 +99,7 @@ async function SetPBRatio() {
   // If both missing or both invalid, error
   if ((leftPB === null && rightPB === null) ||
       (leftPB !== null && isNaN(leftPB) && rightPB !== null && isNaN(rightPB))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -106,7 +108,7 @@ async function SetPBRatio() {
   // If both are present, validate order
   if (leftPB !== null && !isNaN(leftPB) && rightPB !== null && !isNaN(rightPB)) {
     if (leftPB >= rightPB) {
-      error.value = 'Min PB cannot be higher than or equal to max PB';
+      error.value = t('params.errorMinMaxPB');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

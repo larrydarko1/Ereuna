@@ -1,7 +1,7 @@
 <template>
-  <div class="watch-panel-editor-backdrop" @click.self="$emit('close')" role="dialog" aria-modal="true" aria-label="Edit Summary Fields">
+  <div class="watch-panel-editor-backdrop" @click.self="$emit('close')" role="dialog" aria-modal="true" :aria-label="t('summaryEditor.ariaLabel')">
     <div class="watch-panel-editor-modal" role="document">
-      <h2 id="summary-editor-title">Edit Summary Fields</h2>
+      <h2 id="summary-editor-title">{{ t('summaryEditor.title') }}</h2>
       <div class="sections-list" role="list" aria-labelledby="summary-editor-title">
         <div
           v-for="(field, index) in summaryFields"
@@ -20,30 +20,30 @@
               class="arrow-btn"
               :disabled="index === 0"
               @click="moveFieldUp(index)"
-              aria-label="Move field up"
+              :aria-label="t('summaryEditor.moveUp')"
             >▲</button>
             <button
               class="arrow-btn"
               :disabled="index === summaryFields.length - 1"
               @click="moveFieldDown(index)"
-              aria-label="Move field down"
+              :aria-label="t('summaryEditor.moveDown')"
             >▼</button>
           </span>
           <button
             class="hide-button"
             :class="{ 'hidden-button': field.hidden }"
             @click="toggleHidden(index)"
-            :aria-label="field.hidden ? 'Add field to summary' : 'Remove field from summary'"
+            :aria-label="field.hidden ? t('summaryEditor.addToSummary') : t('summaryEditor.removeFromSummary')"
           >
-            {{ field.hidden ? 'Add' : 'Remove' }}
+            {{ field.hidden ? t('summaryEditor.add') : t('summaryEditor.remove') }}
           </button>
           <span class="section-name">{{ field.name }}</span>
         </div>
       </div>
       <div class="nav-buttons">
-        <button class="nav-button" @click="$emit('close')" aria-label="Close editor">Close</button>
-        <button class="nav-button" @click="resetOrder" aria-label="Reset summary fields order">Reset</button>
-        <button class="nav-button" @click="updatePanel2" aria-label="Submit summary fields">Submit</button>
+        <button class="nav-button" @click="$emit('close')" :aria-label="t('summaryEditor.closeEditor')">{{ t('summaryEditor.close') }}</button>
+        <button class="nav-button" @click="resetOrder" :aria-label="t('summaryEditor.resetOrder')">{{ t('summaryEditor.reset') }}</button>
+        <button class="nav-button" @click="updatePanel2" :aria-label="t('summaryEditor.submitFields')">{{ t('summaryEditor.submit') }}</button>
       </div>
       <NotificationPopup v-if="errorMsg" :message="errorMsg" type="error" @close="errorMsg = ''" />
     </div>
@@ -52,8 +52,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useUserStore } from '@/store/store';
 import NotificationPopup from '@/components/NotificationPopup.vue';
+
+const { t } = useI18n();
 
 interface SummaryField {
   order: number;
@@ -67,57 +70,114 @@ const user = computed(() => userStore.getUser);
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 const emit = defineEmits(['close', 'updated', 'panel-updated']);
 
+// Function to get translated field name based on tag
+function getFieldName(tag: string): string {
+  const tagMap: Record<string, string> = {
+    'Symbol': t('summaryEditor.fields.symbol'),
+    'CompanyName': t('summaryEditor.fields.companyName'),
+    'AssetType': t('summaryEditor.fields.assetType'),
+    'Exchange': t('summaryEditor.fields.exchange'),
+    'ISIN': t('summaryEditor.fields.isin'),
+    'IPODate': t('summaryEditor.fields.ipoDate'),
+    'Sector': t('summaryEditor.fields.sector'),
+    'Industry': t('summaryEditor.fields.industry'),
+    'ReportedCurrency': t('summaryEditor.fields.reportedCurrency'),
+    'TechnicalScore1W': t('summaryEditor.fields.technicalScore1W'),
+    'TechnicalScore1M': t('summaryEditor.fields.technicalScore1M'),
+    'TechnicalScore4M': t('summaryEditor.fields.technicalScore4M'),
+    'MarketCap': t('summaryEditor.fields.marketCap'),
+    'SharesOutstanding': t('summaryEditor.fields.sharesOutstanding'),
+    'Location': t('summaryEditor.fields.location'),
+    'DividendDate': t('summaryEditor.fields.dividendDate'),
+    'DividendYieldTTM': t('summaryEditor.fields.dividendYieldTTM'),
+    'BookValue': t('summaryEditor.fields.bookValue'),
+    'PEGRatio': t('summaryEditor.fields.pegRatio'),
+    'PERatio': t('summaryEditor.fields.peRatio'),
+    'PSRatio': t('summaryEditor.fields.psRatio'),
+    'AllTimeHigh': t('summaryEditor.fields.allTimeHigh'),
+    'AllTimeLow': t('summaryEditor.fields.allTimeLow'),
+    'fiftytwoWeekHigh': t('summaryEditor.fields.fiftyTwoWeekHigh'),
+    'fiftytwoWeekLow': t('summaryEditor.fields.fiftyTwoWeekLow'),
+    'PercentageOff52wkHigh': t('summaryEditor.fields.percentageOff52wkHigh'),
+    'PercentageOff52wkLow': t('summaryEditor.fields.percentageOff52wkLow'),
+    'RSI': t('summaryEditor.fields.rsi'),
+    'Gap': t('summaryEditor.fields.gap'),
+    'ADV1W': t('summaryEditor.fields.adv1W'),
+    'ADV1M': t('summaryEditor.fields.adv1M'),
+    'ADV4M': t('summaryEditor.fields.adv4M'),
+    'ADV1Y': t('summaryEditor.fields.adv1Y'),
+    'RelativeVolume1W': t('summaryEditor.fields.relativeVolume1W'),
+    'RelativeVolume1M': t('summaryEditor.fields.relativeVolume1M'),
+    'RelativeVolume6M': t('summaryEditor.fields.relativeVolume6M'),
+    'RelativeVolume1Y': t('summaryEditor.fields.relativeVolume1Y'),
+    'AverageVolume1W': t('summaryEditor.fields.averageVolume1W'),
+    'AverageVolume1M': t('summaryEditor.fields.averageVolume1M'),
+    'AverageVolume6M': t('summaryEditor.fields.averageVolume6M'),
+    'AverageVolume1Y': t('summaryEditor.fields.averageVolume1Y'),
+    'FundCategory': t('summaryEditor.fields.fundCategory'),
+    'FundFamily': t('summaryEditor.fields.fundFamily'),
+    'NetExpenseRatio': t('summaryEditor.fields.netExpenseRatio'),
+    'IntrinsicValue': t('summaryEditor.fields.intrinsicValue'),
+    'CAGR': t('summaryEditor.fields.cagr'),
+    'CAGRYears': t('summaryEditor.fields.cagrYears'),
+    'CompanyWebsite': t('summaryEditor.fields.companyWebsite'),
+    'AIRecommendation': t('summaryEditor.fields.aiRecommendation'),
+    'Description': t('summaryEditor.fields.description'),
+  };
+  return tagMap[tag] || tag;
+}
+
 const initialFields: SummaryField[] = [
-  { order: 1, tag: 'Symbol', name: 'Symbol', hidden: false },
-  { order: 2, tag: 'CompanyName', name: 'Company Name', hidden: false },
-  { order: 3, tag: 'AssetType', name: 'Asset Type', hidden: false },
-  { order: 4, tag: 'Exchange', name: 'Exchange', hidden: false },
-  { order: 5, tag: 'ISIN', name: 'ISIN', hidden: false },
-  { order: 6, tag: 'IPODate', name: 'IPO Date', hidden: false },
-  { order: 7, tag: 'Sector', name: 'Sector', hidden: false },
-  { order: 8, tag: 'Industry', name: 'Industry', hidden: false },
-  { order: 9, tag: 'ReportedCurrency', name: 'Reported Currency', hidden: false },
-  { order: 10, tag: 'TechnicalScore1W', name: 'Technical Score (1W)', hidden: false },
-  { order: 11, tag: 'TechnicalScore1M', name: 'Technical Score (1M)', hidden: false },
-  { order: 12, tag: 'TechnicalScore4M', name: 'Technical Score (4M)', hidden: false },
-  { order: 13, tag: 'MarketCap', name: 'Market Cap', hidden: false },
-  { order: 14, tag: 'SharesOutstanding', name: 'Shares Outstanding', hidden: false },
-  { order: 15, tag: 'Location', name: 'Location', hidden: false },
-  { order: 16, tag: 'DividendDate', name: 'Dividend Date', hidden: false },
-  { order: 17, tag: 'DividendYieldTTM', name: 'Dividend Yield TTM', hidden: false },
-  { order: 18, tag: 'BookValue', name: 'Book Value', hidden: false },
-  { order: 19, tag: 'PEGRatio', name: 'PEG Ratio', hidden: false },
-  { order: 20, tag: 'PERatio', name: 'PE Ratio', hidden: false },
-  { order: 21, tag: 'PSRatio', name: 'PS Ratio', hidden: false },
-  { order: 22, tag: 'AllTimeHigh', name: 'All Time High', hidden: false },
-  { order: 23, tag: 'AllTimeLow', name: 'All Time Low', hidden: false },
-  { order: 24, tag: 'fiftytwoWeekHigh', name: '52wk High', hidden: false },
-  { order: 25, tag: 'fiftytwoWeekLow', name: '52wk Low', hidden: false },
-  { order: 26, tag: 'PercentageOff52wkHigh', name: 'Percentage off 52wk High', hidden: false },
-  { order: 27, tag: 'PercentageOff52wkLow', name: 'Percentage off 52wk Low', hidden: false },
-  { order: 28, tag: 'RSI', name: 'RSI', hidden: false },
-  { order: 29, tag: 'Gap', name: 'Gap (%)', hidden: false },
-  { order: 30, tag: 'ADV1W', name: 'ADV 1W', hidden: false },
-  { order: 31, tag: 'ADV1M', name: 'ADV 1M', hidden: false },
-  { order: 32, tag: 'ADV4M', name: 'ADV 4M', hidden: false },
-  { order: 33, tag: 'ADV1Y', name: 'ADV 1Y', hidden: false },
-  { order: 34, tag: 'RelativeVolume1W', name: 'Relative Volume 1W', hidden: false },
-  { order: 35, tag: 'RelativeVolume1M', name: 'Relative Volume 1M', hidden: false },
-  { order: 36, tag: 'RelativeVolume6M', name: 'Relative Volume 6M', hidden: false },
-  { order: 37, tag: 'RelativeVolume1Y', name: 'Relative Volume 1Y', hidden: false },
-  { order: 38, tag: 'AverageVolume1W', name: 'Average Volume 1W', hidden: false },
-  { order: 39, tag: 'AverageVolume1M', name: 'Average Volume 1M', hidden: false },
-  { order: 40, tag: 'AverageVolume6M', name: 'Average Volume 6M', hidden: false },
-  { order: 41, tag: 'AverageVolume1Y', name: 'Average Volume 1Y', hidden: false },
-  { order: 42, tag: 'FundCategory', name: 'Fund Category', hidden: false },
-  { order: 43, tag: 'FundFamily', name: 'Fund Family', hidden: false },
-  { order: 44, tag: 'NetExpenseRatio', name: 'Net Expense Ratio', hidden: false },
-  { order: 45, tag: 'IntrinsicValue', name: 'Intrinsic Value', hidden: false },
-  { order: 46, tag: 'CAGR', name: 'CAGR', hidden: false },
-  { order: 47, tag: 'CAGRYears', name: 'CAGR Years', hidden: false },
-  { order: 48, tag: 'CompanyWebsite', name: 'Website', hidden: false },
-  { order: 49, tag: 'AIRecommendation', name: 'AI Recommendation', hidden: false },
-  { order: 50, tag: 'Description', name: 'Description', hidden: false },
+  { order: 1, tag: 'Symbol', name: getFieldName('Symbol'), hidden: false },
+  { order: 2, tag: 'CompanyName', name: getFieldName('CompanyName'), hidden: false },
+  { order: 3, tag: 'AssetType', name: getFieldName('AssetType'), hidden: false },
+  { order: 4, tag: 'Exchange', name: getFieldName('Exchange'), hidden: false },
+  { order: 5, tag: 'ISIN', name: getFieldName('ISIN'), hidden: false },
+  { order: 6, tag: 'IPODate', name: getFieldName('IPODate'), hidden: false },
+  { order: 7, tag: 'Sector', name: getFieldName('Sector'), hidden: false },
+  { order: 8, tag: 'Industry', name: getFieldName('Industry'), hidden: false },
+  { order: 9, tag: 'ReportedCurrency', name: getFieldName('ReportedCurrency'), hidden: false },
+  { order: 10, tag: 'TechnicalScore1W', name: getFieldName('TechnicalScore1W'), hidden: false },
+  { order: 11, tag: 'TechnicalScore1M', name: getFieldName('TechnicalScore1M'), hidden: false },
+  { order: 12, tag: 'TechnicalScore4M', name: getFieldName('TechnicalScore4M'), hidden: false },
+  { order: 13, tag: 'MarketCap', name: getFieldName('MarketCap'), hidden: false },
+  { order: 14, tag: 'SharesOutstanding', name: getFieldName('SharesOutstanding'), hidden: false },
+  { order: 15, tag: 'Location', name: getFieldName('Location'), hidden: false },
+  { order: 16, tag: 'DividendDate', name: getFieldName('DividendDate'), hidden: false },
+  { order: 17, tag: 'DividendYieldTTM', name: getFieldName('DividendYieldTTM'), hidden: false },
+  { order: 18, tag: 'BookValue', name: getFieldName('BookValue'), hidden: false },
+  { order: 19, tag: 'PEGRatio', name: getFieldName('PEGRatio'), hidden: false },
+  { order: 20, tag: 'PERatio', name: getFieldName('PERatio'), hidden: false },
+  { order: 21, tag: 'PSRatio', name: getFieldName('PSRatio'), hidden: false },
+  { order: 22, tag: 'AllTimeHigh', name: getFieldName('AllTimeHigh'), hidden: false },
+  { order: 23, tag: 'AllTimeLow', name: getFieldName('AllTimeLow'), hidden: false },
+  { order: 24, tag: 'fiftytwoWeekHigh', name: getFieldName('fiftytwoWeekHigh'), hidden: false },
+  { order: 25, tag: 'fiftytwoWeekLow', name: getFieldName('fiftytwoWeekLow'), hidden: false },
+  { order: 26, tag: 'PercentageOff52wkHigh', name: getFieldName('PercentageOff52wkHigh'), hidden: false },
+  { order: 27, tag: 'PercentageOff52wkLow', name: getFieldName('PercentageOff52wkLow'), hidden: false },
+  { order: 28, tag: 'RSI', name: getFieldName('RSI'), hidden: false },
+  { order: 29, tag: 'Gap', name: getFieldName('Gap'), hidden: false },
+  { order: 30, tag: 'ADV1W', name: getFieldName('ADV1W'), hidden: false },
+  { order: 31, tag: 'ADV1M', name: getFieldName('ADV1M'), hidden: false },
+  { order: 32, tag: 'ADV4M', name: getFieldName('ADV4M'), hidden: false },
+  { order: 33, tag: 'ADV1Y', name: getFieldName('ADV1Y'), hidden: false },
+  { order: 34, tag: 'RelativeVolume1W', name: getFieldName('RelativeVolume1W'), hidden: false },
+  { order: 35, tag: 'RelativeVolume1M', name: getFieldName('RelativeVolume1M'), hidden: false },
+  { order: 36, tag: 'RelativeVolume6M', name: getFieldName('RelativeVolume6M'), hidden: false },
+  { order: 37, tag: 'RelativeVolume1Y', name: getFieldName('RelativeVolume1Y'), hidden: false },
+  { order: 38, tag: 'AverageVolume1W', name: getFieldName('AverageVolume1W'), hidden: false },
+  { order: 39, tag: 'AverageVolume1M', name: getFieldName('AverageVolume1M'), hidden: false },
+  { order: 40, tag: 'AverageVolume6M', name: getFieldName('AverageVolume6M'), hidden: false },
+  { order: 41, tag: 'AverageVolume1Y', name: getFieldName('AverageVolume1Y'), hidden: false },
+  { order: 42, tag: 'FundCategory', name: getFieldName('FundCategory'), hidden: false },
+  { order: 43, tag: 'FundFamily', name: getFieldName('FundFamily'), hidden: false },
+  { order: 44, tag: 'NetExpenseRatio', name: getFieldName('NetExpenseRatio'), hidden: false },
+  { order: 45, tag: 'IntrinsicValue', name: getFieldName('IntrinsicValue'), hidden: false },
+  { order: 46, tag: 'CAGR', name: getFieldName('CAGR'), hidden: false },
+  { order: 47, tag: 'CAGRYears', name: getFieldName('CAGRYears'), hidden: false },
+  { order: 48, tag: 'CompanyWebsite', name: getFieldName('CompanyWebsite'), hidden: false },
+  { order: 49, tag: 'AIRecommendation', name: getFieldName('AIRecommendation'), hidden: false },
+  { order: 50, tag: 'Description', name: getFieldName('Description'), hidden: false },
 ];
 
 
@@ -163,7 +223,7 @@ const errorMsg = ref('');
 async function updatePanel2() {
   try {
     if (!user.value?.Username || user.value.Username.trim().length === 0) {
-      errorMsg.value = 'User not logged in. Please log in to save changes.';
+      errorMsg.value = t('summaryEditor.errorNotLoggedIn');
       return;
     }
 
@@ -196,7 +256,7 @@ async function updatePanel2() {
     // Emit event to inform parent that panel was updated
     emit('panel-updated');
   } catch (error) {
-    errorMsg.value = 'Error updating summary fields. Please try again.';
+    errorMsg.value = t('summaryEditor.errorUpdating');
   }
 }
 
@@ -216,8 +276,11 @@ async function fetchPanel2() {
     if (newPanel.panel2 && Array.isArray(newPanel.panel2) && newPanel.panel2.length) {
       // Create a map for quick lookup of user-saved fields
       const userMap = new Map(newPanel.panel2.map((f: any) => [f.tag, f]));
-      // Start with user-saved fields
-      const merged = [...newPanel.panel2];
+      // Start with user-saved fields and translate names
+      const merged = newPanel.panel2.map((field: any) => ({
+        ...field,
+        name: getFieldName(field.tag)
+      }));
       // Add any new fields from initialFields that aren't in user-saved data
       initialFields.forEach((field) => {
         if (!userMap.has(field.tag)) {
@@ -225,13 +288,13 @@ async function fetchPanel2() {
         }
       });
       // Sort by order (user order if present, else default)
-      merged.sort((a, b) => a.order - b.order);
+      merged.sort((a: SummaryField, b: SummaryField) => a.order - b.order);
       summaryFields.value = merged;
     } else {
       summaryFields.value = initialFields.map(field => ({ ...field }));
     }
   } catch (error) {
-    errorMsg.value = 'Error loading summary fields.';
+    errorMsg.value = t('summaryEditor.errorLoading');
     summaryFields.value = initialFields.map(field => ({ ...field }));
   }
 }

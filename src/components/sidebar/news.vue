@@ -15,17 +15,20 @@
         <h3 class="news-msg-title">{{ news.title }}</h3>
         <p class="news-msg">{{ news.source }}</p>
         <p class="news-msg">{{ news.description }}</p>
-        <a :href="news.url" target="_blank" rel="noopener noreferrer">Read More</a>
+        <a :href="news.url" target="_blank" rel="noopener noreferrer">{{ t('sidebar.readMore') }}</a>
       </div>
     </div>
     <div v-else>
-      <p class="no-data">No news available.</p>
+      <p class="no-data">{{ t('sidebar.noNewsAvailable') }}</p>
     </div>
   </div>
   </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface NewsItem {
   publishedDate: string;

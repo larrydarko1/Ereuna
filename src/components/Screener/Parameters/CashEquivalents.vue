@@ -2,7 +2,7 @@
   <div :class="[showCashEquivalentsModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Cash & Equivalents (1000s)</span>
+        <span class="title">{{ t('params.cashEquivalents') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'casheq')" @mouseout="handleMouseOut($event)" aria-label="Show info for Cash & Equivalents parameter">
           <path
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showCashEquivalents']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -82,7 +84,7 @@ async function SetCashEquivalents() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -90,7 +92,7 @@ async function SetCashEquivalents() {
   const leftInput = document.getElementById('left-ce') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-ce') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -102,7 +104,7 @@ async function SetCashEquivalents() {
   // If both missing or both invalid, error
   if ((leftCash === null && rightCash === null) ||
       (leftCash !== null && isNaN(leftCash) && rightCash !== null && isNaN(rightCash))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -111,7 +113,7 @@ async function SetCashEquivalents() {
   // If both are present, validate order
   if (leftCash !== null && !isNaN(leftCash) && rightCash !== null && !isNaN(rightCash)) {
     if (leftCash >= rightCash) {
-      error.value = 'Min cash & equivalents cannot be higher than or equal to max cash & equivalents';
+      error.value = t('params.errorMinMaxCashEquivalents');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

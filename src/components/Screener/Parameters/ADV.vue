@@ -2,7 +2,7 @@
   <div :class="[showADVModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Average Daily Volatility (ADV)</span>
+        <span class="title">{{ t('params.adv') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'adv')" @mouseout="handleMouseOut($event)" aria-label="Show info for ADV parameter">
           <path
@@ -23,56 +23,56 @@
     <div class="content" v-if="showADVModel">
       <div class="adv-sections">
         <div class="adv-section">
-          <h4 class="section-title">ADV (1W)</h4>
+          <h4 class="section-title">{{ t('tooltips.adv1W') }}</h4>
           <div class="input-group">
             <div class="input-wrapper">
-              <label class="input-label">Min (%)</label>
+              <label class="input-label">{{ t('params.min') }} (%)</label>
               <input class="input-field" type="number" step="0.01" placeholder="0.00" id="ADV1Winput1" aria-label="ADV 1W minimum">
             </div>
             <div class="input-wrapper">
-              <label class="input-label">Max (%)</label>
+              <label class="input-label">{{ t('params.max') }} (%)</label>
               <input class="input-field" type="number" step="0.01" placeholder="0.00" id="ADV1Winput2" aria-label="ADV 1W maximum">
             </div>
           </div>
         </div>
         
         <div class="adv-section">
-          <h4 class="section-title">ADV (1M)</h4>
+          <h4 class="section-title">{{ t('tooltips.adv1M') }}</h4>
           <div class="input-group">
             <div class="input-wrapper">
-              <label class="input-label">Min (%)</label>
+              <label class="input-label">{{ t('params.min') }} (%)</label>
               <input class="input-field" type="number" step="0.01" placeholder="0.00" id="ADV1Minput1" aria-label="ADV 1M minimum">
             </div>
             <div class="input-wrapper">
-              <label class="input-label">Max (%)</label>
+              <label class="input-label">{{ t('params.max') }} (%)</label>
               <input class="input-field" type="number" step="0.01" placeholder="0.00" id="ADV1Minput2" aria-label="ADV 1M maximum">
             </div>
           </div>
         </div>
         
         <div class="adv-section">
-          <h4 class="section-title">ADV (4M)</h4>
+          <h4 class="section-title">{{ t('tooltips.adv4M') }}</h4>
           <div class="input-group">
             <div class="input-wrapper">
-              <label class="input-label">Min (%)</label>
+              <label class="input-label">{{ t('params.min') }} (%)</label>
               <input class="input-field" type="number" step="0.01" placeholder="0.00" id="ADV4Minput1" aria-label="ADV 4M minimum">
             </div>
             <div class="input-wrapper">
-              <label class="input-label">Max (%)</label>
+              <label class="input-label">{{ t('params.max') }} (%)</label>
               <input class="input-field" type="number" step="0.01" placeholder="0.00" id="ADV4Minput2" aria-label="ADV 4M maximum">
             </div>
           </div>
         </div>
         
         <div class="adv-section">
-          <h4 class="section-title">ADV (1Y)</h4>
+          <h4 class="section-title">{{ t('tooltips.adv1Y') }}</h4>
           <div class="input-group">
             <div class="input-wrapper">
-              <label class="input-label">Min (%)</label>
+              <label class="input-label">{{ t('params.min') }} (%)</label>
               <input class="input-field" type="number" step="0.01" placeholder="0.00" id="ADV1Yinput1" aria-label="ADV 1Y minimum">
             </div>
             <div class="input-wrapper">
-              <label class="input-label">Max (%)</label>
+              <label class="input-label">{{ t('params.max') }} (%)</label>
               <input class="input-field" type="number" step="0.01" placeholder="0.00" id="ADV1Yinput2" aria-label="ADV 1Y maximum">
             </div>
           </div>
@@ -81,10 +81,10 @@
       
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); emit('update:showADV', false)" aria-label="Reset ADV filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetADV()" aria-label="Set ADV filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -92,7 +92,9 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 import { ref, computed } from 'vue';
 
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showADV']);
@@ -125,7 +127,7 @@ async function SetADV() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     return;
   }

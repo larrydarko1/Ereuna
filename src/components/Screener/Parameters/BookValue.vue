@@ -2,7 +2,7 @@
   <div :class="[showBookValueModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Book Value (1000s)</span>
+        <span class="title">{{ t('params.bookValue') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'book-value')" @mouseout="handleMouseOut($event)" aria-label="Show info for Book Value parameter">
           <path
@@ -23,21 +23,21 @@
     <div class="content" v-if="showBookValueModel">
       <div class="input-group">
         <div class="input-wrapper">
-          <label class="input-label">Minimum</label>
-          <input class="input-field" id="left-bv" type="number" step="0.01" placeholder="0.00" aria-label="Book Value minimum">
+          <label class="input-label">{{ t('params.minimum') }}</label>
+          <input class="input-field" id="left-bookvalue" type="number" step="0.01" placeholder="0.00" aria-label="Book Value minimum">
         </div>
         <div class="input-wrapper">
-          <label class="input-label">Maximum</label>
-          <input class="input-field" id="right-bv" type="number" step="0.01" placeholder="0.00" aria-label="Book Value maximum">
+          <label class="input-label">{{ t('params.maximum') }}</label>
+          <input class="input-field" id="right-bookvalue" type="number" step="0.01" placeholder="0.00" aria-label="Book Value maximum">
         </div>
       </div>
       
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); emit('update:showBookValue', false)" aria-label="Reset Book Value filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetBookValue()" aria-label="Set Book Value filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showBookValue']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -83,15 +85,15 @@ async function SetBookValue() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
   }
-  const leftInput = document.getElementById('left-bv') as HTMLInputElement | null;
-  const rightInput = document.getElementById('right-bv') as HTMLInputElement | null;
+  const leftInput = document.getElementById('left-bookvalue') as HTMLInputElement | null;
+  const rightInput = document.getElementById('right-bookvalue') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -103,7 +105,7 @@ async function SetBookValue() {
   // If both missing or both invalid, error
   if ((leftBookValue === null && rightBookValue === null) ||
       (leftBookValue !== null && isNaN(leftBookValue) && rightBookValue !== null && isNaN(rightBookValue))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -112,7 +114,7 @@ async function SetBookValue() {
   // If both are present, validate order
   if (leftBookValue !== null && !isNaN(leftBookValue) && rightBookValue !== null && !isNaN(rightBookValue)) {
     if (leftBookValue >= rightBookValue) {
-      error.value = 'Min book value cannot be higher than or equal to max book value';
+      error.value = t('params.errorMinMaxValue');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

@@ -1,15 +1,15 @@
 <template>
   <div>
     <div class="subscription-meter">
-  <h1 class="subscription-title">Subscription Status</h1>
+  <h1 class="subscription-title">{{ t('subscription.title') }}</h1>
       <div class="meter-labels">
-        <span><strong>Username:</strong> {{ user }}</span>
-        <span><strong>Subscription Days left:</strong> {{ expirationDays !== null ? expirationDays : 'Loading...' }}</span>
-  <span><strong>Money left:</strong> {{ expirationDays !== null ? ((14.99 / 30) * expirationDays).toFixed(2) : '0.00' }}€</span>
+        <span><strong>{{ t('subscription.username') }}:</strong> {{ user }}</span>
+        <span><strong>{{ t('subscription.daysLeft') }}:</strong> {{ expirationDays !== null ? expirationDays : t('common.loading') }}</span>
+  <span><strong>{{ t('subscription.moneyLeft') }}:</strong> {{ expirationDays !== null ? ((14.99 / 30) * expirationDays).toFixed(2) : '0.00' }}€</span>
       </div>
       <div class="subscription-actions" style="margin-top: 18px;">
-  <button class="userbtn" @click="showRenew = true" aria-label="Renew Subscription">Renew</button>
-  <button class="userbtn refund-btn" @click="handleRefundClick" aria-label="Request Refund">Ask for Refund</button>
+  <button class="userbtn" @click="showRenew = true" :aria-label="t('subscription.renew')">{{ t('subscription.renew') }}</button>
+  <button class="userbtn refund-btn" @click="handleRefundClick" :aria-label="t('subscription.askForRefund')">{{ t('subscription.askForRefund') }}</button>
       </div>
       <RenewPopup 
         v-if="showRenew" 
@@ -31,17 +31,17 @@
   <NotificationPopup ref="notification" role="alert" aria-live="polite" />
     </div>
     <div class="receipts">
-      <h1>Receipts</h1>
+      <h1>{{ t('receipts.title') }}</h1>
       <div class="receipt-header">
-        <p class="receipt-header-date" style="flex:1; font-weight: bold;">Payment Date</p>
-        <p class="receipt-header-amount" style="flex:1; font-weight: bold;">Amount</p>
-        <p class="receipt-header-method" style="flex:1; font-weight: bold;">Paid with</p>
-        <p class="receipt-header-plan" style="flex:1; font-weight: bold;">Subscription Plan</p>
-        <p class="receipt-header-download" style="flex:1; font-weight: bold;">Download</p>
+        <p class="receipt-header-date" style="flex:1; font-weight: bold;">{{ t('receipts.paymentDate') }}</p>
+        <p class="receipt-header-amount" style="flex:1; font-weight: bold;">{{ t('receipts.amount') }}</p>
+        <p class="receipt-header-method" style="flex:1; font-weight: bold;">{{ t('receipts.paidWith') }}</p>
+        <p class="receipt-header-plan" style="flex:1; font-weight: bold;">{{ t('receipts.subscriptionPlan') }}</p>
+        <p class="receipt-header-download" style="flex:1; font-weight: bold;">{{ t('receipts.download') }}</p>
       </div>
-      <div v-if="loading">Loading receipts...</div>
+      <div v-if="loading">{{ t('receipts.loading') }}</div>
       <div style="background-color: var(--base2); padding: 3px;" v-if="receipts.length === 0">
-        <p>No receipts found</p>
+        <p>{{ t('receipts.noReceipts') }}</p>
       </div>
       <div v-else>
   <div v-for="receipt in receipts" :key="(receipt as Receipt)._id" class="receipt-item">
@@ -79,7 +79,7 @@
         </div>
       </div>
        <div class="mobile-download-info">
-        To download receipts, please use the desktop version.
+        {{ t('receipts.downloadDesktopOnly') }}
       </div>
     </div>
   </div>
@@ -87,11 +87,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import ereunaLogoSvg from '@/assets/icons/ereuna.svg';
 import RenewPopup from './Renew.vue';
 import RefundPopup from './Refund.vue';
 import NotificationPopup from '@/components/NotificationPopup.vue';
+
+const { t } = useI18n();
 
 interface Receipt {
   _id: string;
@@ -292,18 +295,18 @@ const formatShortDate = (dateString: string) => {
 
 // Shorten method label for mobile
 const formatMethod = (method: string) => {
-  if (method.toLowerCase().includes('credit')) return 'Card';
-  if (method.toLowerCase().includes('crypto')) return 'Crypto';
+  if (method.toLowerCase().includes('credit')) return t('receipts.paymentMethod.card');
+  if (method.toLowerCase().includes('crypto')) return t('receipts.paymentMethod.crypto');
   return method;
 };
 
 // Shorten subscription plan for mobile
 const formatShortSubscription = (subscriptionValue: number) => {
-  return (subscriptionValue === 1 ? '1M'
-    : subscriptionValue === 4 ? '4M'
-    : subscriptionValue === 6 ? '6M'
-    : subscriptionValue === 12 ? '1Y'
-    : 'Unknown');
+  return (subscriptionValue === 1 ? t('subscription.duration.oneMonthShort')
+    : subscriptionValue === 4 ? t('subscription.duration.fourMonthsShort')
+    : subscriptionValue === 6 ? t('subscription.duration.sixMonthsShort')
+    : subscriptionValue === 12 ? t('subscription.duration.oneYearShort')
+    : t('subscription.duration.unknown'));
 };
 
 // Refund eligibility logic
@@ -340,7 +343,7 @@ const refundProps = computed(() => {
 function handleRefundClick() {
   if (!isRefundEligible.value) {
     if (notification.value) {
-      notification.value.show('Automatic refunds are inactive after 14 days of purchase. For custom support, contact assistance.');
+      notification.value.show(t('refund.notEligible'));
     }
     return;
   }
@@ -436,10 +439,10 @@ async function downloadReceipt(receipt: Receipt) {
 
     // Utility to convert subscription numeric values to human-friendly labels
     function subscriptionFullLabel(value: number) {
-      return value === 1 ? '1 Month'
-        : value === 4 ? '4 Months'
-        : value === 6 ? '6 Months'
-        : value === 12 ? '1 Year'
+      return value === 1 ? t('subscription.duration.oneMonth')
+        : value === 4 ? t('subscription.duration.fourMonths')
+        : value === 6 ? t('subscription.duration.sixMonths')
+        : value === 12 ? t('subscription.duration.oneYear')
         : String(value);
     }
 
@@ -501,11 +504,11 @@ async function downloadReceipt(receipt: Receipt) {
 
     // Payment details
     let detailY = totalsY - 40;
-    page.drawText(`Payment method: ${formatMethod(receipt.Method)}`, { x: tableX, y: detailY, size: 10, font, color: muted });
+    page.drawText(`${t('subscription.paymentMethod')}: ${formatMethod(receipt.Method)}`, { x: tableX, y: detailY, size: 10, font, color: muted });
     detailY -= 14;
-    page.drawText(`Payment intent: ${receipt.PaymentIntentId || '-'}`, { x: tableX, y: detailY, size: 10, font, color: muted });
+    page.drawText(`${t('subscription.paymentIntent')}: ${receipt.PaymentIntentId || '-'}`, { x: tableX, y: detailY, size: 10, font, color: muted });
     detailY -= 14;
-    page.drawText(`Country: ${receipt.Country || '-'}`, { x: tableX, y: detailY, size: 10, font, color: muted });
+    page.drawText(`${t('subscription.country')}: ${receipt.Country || '-'}`, { x: tableX, y: detailY, size: 10, font, color: muted });
 
     // Compute layout bounds so long IDs don't overflow the page. We'll place metadata in the
     // central/right area and wrap lines if necessary instead of truncating.
@@ -538,8 +541,8 @@ async function downloadReceipt(receipt: Receipt) {
     // Refund instructions and footer (use wrapped lines)
     const footerY = 80;
     const footerLines = [
-      'Automatic refunds available within 14 days of purchase. For manual refund requests, provide the Receipt # and Payment Intent ID to support.',
-      'This receipt is proof of payment. For support send an email to contact@ereuna.io. Ereuna is not a financial institution and does not provide financial advice.'
+      t('receipts.pdfFooter.refundInfo'),
+      t('receipts.pdfFooter.disclaimer')
     ];
     let fy = footerY + 10;
     // draw from bottom up to keep spacing consistent
@@ -571,7 +574,7 @@ async function downloadReceipt(receipt: Receipt) {
     link.click();
     document.body.removeChild(link);
   } catch (err) {
-    if (notification.value) notification.value.show('Failed to generate receipt PDF');
+    if (notification.value) notification.value.show(t('receipts.downloadFailed'));
   }
 }
 </script>

@@ -2,11 +2,11 @@
   <div class="earn-container">
     <div v-if="displayedEarningsItems.length > 0" id="Earntable">
       <div class="earn-header">
-        <div class="earn-cell" style="flex: 0 0 20%;">Reported</div>
-        <div class="earn-cell" style="flex: 0 0 40%;">Earnings</div>
-        <div class="earn-cell" style="flex: 0 0 20%;">Chg (%)</div>
-        <div class="earn-cell" style="flex: 0 0 10%;">QoQ</div>
-        <div class="earn-cell" style="flex: 0 0 10%;">YoY</div>
+        <div class="earn-cell" style="flex: 0 0 20%;">{{ t('sidebar.earningsReported') }}</div>
+        <div class="earn-cell" style="flex: 0 0 40%;">{{ t('sidebar.earningsColumn') }}</div>
+        <div class="earn-cell" style="flex: 0 0 20%;">{{ t('sidebar.earningsChange') }}</div>
+        <div class="earn-cell" style="flex: 0 0 10%;">{{ t('sidebar.earningsQoQ') }}</div>
+        <div class="earn-cell" style="flex: 0 0 10%;">{{ t('sidebar.earningsYoY') }}</div>
       </div>
       <div class="earn-body">
         <div
@@ -76,19 +76,23 @@
       </div>
     </div>
     <div v-if="displayedEarningsItems.length === 0" class="no-data">
-      No Quarterly earnings data available
+      {{ t('sidebar.noEarningsData') }}
     </div>
     <button
       v-if="showEarningsButton"
       @click="toggleEarnings"
       class="toggle-btn"
     >
-      {{ showAllEarnings ? 'Show Less' : 'Show All' }}
+      {{ showAllEarnings ? t('sidebar.showLess') : t('sidebar.showAll') }}
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface QuarterlyReport {
   fiscalDateEnding: string;
@@ -98,8 +102,6 @@ interface QuarterlyReport {
 interface AssetInfo {
   quarterlyFinancials?: QuarterlyReport[];
 }
-
-import { ref, computed, watch } from 'vue';
 const props = defineProps<{ 
   formatDate?: (date: string) => string;
   assetInfo?: AssetInfo;

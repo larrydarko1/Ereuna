@@ -1,11 +1,11 @@
 <template>
 		<div class="modal-backdrop" @click.self="close" role="dialog" aria-modal="true" aria-labelledby="base-value-title">
 			<div class="modal-content">
-				<button class="close-x" @click="close" aria-label="Close Set Base Value Modal">&times;</button>
-				<h2 id="base-value-title">Set Base Value</h2>
-				<form @submit.prevent="submitBaseValue" aria-label="Set Base Value Form">
+				<button class="close-x" @click="close" :aria-label="t('portfolio.closeBaseValueModal')">&times;</button>
+				<h2 id="base-value-title">{{ t('portfolio.setBaseValueTitle') }}</h2>
+				<form @submit.prevent="submitBaseValue" :aria-label="t('portfolio.setBaseValueForm')">
 					<div class="input-row">
-						<label for="amount">Base Value</label>
+						<label for="amount">{{ t('portfolio.baseValueLabel') }}</label>
 						<input
 							id="amount"
 							type="number"
@@ -13,24 +13,24 @@
 							min="0.01"
 							step="0.01"
 							required
-							placeholder="e.g. 1000"
+							:placeholder="t('portfolio.amountPlaceholder')"
 							aria-required="true"
-							aria-label="Base Value Amount"
+							:aria-label="t('portfolio.baseValueAmount')"
 						/>
 					</div>
 					<div class="modal-actions">
-						<button type="submit" class="trade-btn" :disabled="isLoading" aria-label="Set Base Value">
+						<button type="submit" class="trade-btn" :disabled="isLoading" :aria-label="t('portfolio.set')">
 							<span class="btn-content-row">
 								<span v-if="isLoading" class="loader4">
 									<svg class="spinner" viewBox="0 0 50 50">
 										<circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
 									</svg>
 								</span>
-								<span v-if="!isLoading">Set</span>
-								<span v-else style="margin-left: 8px;">Processing...</span>
+								<span v-if="!isLoading">{{ t('portfolio.set') }}</span>
+								<span v-else style="margin-left: 8px;">{{ t('portfolio.processing') }}</span>
 							</span>
 						</button>
-						<button type="button" class="cancel-btn" @click="close" aria-label="Cancel Set Base Value">Cancel</button>
+						<button type="button" class="cancel-btn" @click="close" :aria-label="t('portfolio.cancelSetBaseValue')">{{ t('portfolio.cancel') }}</button>
 					</div>
 					<div v-if="error" style="color: var(--negative); margin-top: 12px;" role="alert" aria-live="polite">{{ error }}</div>
 				</form>
@@ -40,6 +40,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 const emit = defineEmits(['close', 'base-value-updated', 'notify'])
 const props = defineProps({
 	user: String,
@@ -60,7 +63,7 @@ const showNotification = (msg: string) => {
 async function submitBaseValue() {
 	error.value = ''
 	if (!amount.value || amount.value <= 0) {
-		error.value = 'Please enter a valid amount.'
+		error.value = t('portfolio.validAmountError')
 		showNotification(error.value)
 		return
 	}
@@ -80,7 +83,7 @@ async function submitBaseValue() {
 		})
 		if (!response.ok) throw new Error('Failed to set base value')
 		emit('base-value-updated')
-		showNotification('Base value set successfully!')
+		showNotification(t('portfolio.baseValueSetSuccess'))
 		close()
 	} catch (err) {
 		error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error'

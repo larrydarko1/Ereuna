@@ -1,7 +1,7 @@
 <template>
-  <div class="watch-panel-editor-backdrop" @click.self="$emit('close')" role="dialog" aria-modal="true" aria-label="Edit Watch Panel Sections">
+  <div class="watch-panel-editor-backdrop" @click.self="$emit('close')" role="dialog" aria-modal="true" :aria-label="t('panelEditor.ariaLabel')">
     <div class="watch-panel-editor-modal" role="document">
-      <h2 id="panel-editor-title">Edit Panel Sections</h2>
+      <h2 id="panel-editor-title">{{ t('panelEditor.title') }}</h2>
       <div class="sections-list" role="list" aria-labelledby="panel-editor-title">
         <div
           v-for="(section, index) in sections"
@@ -20,38 +20,38 @@
               class="arrow-btn"
               :disabled="index === 0"
               @click="moveSectionUp(index)"
-              aria-label="Move section up"
+              :aria-label="t('panelEditor.moveUp')"
             >▲</button>
             <button
               class="arrow-btn"
               :disabled="index === sections.length - 1"
               @click="moveSectionDown(index)"
-              aria-label="Move section down"
+              :aria-label="t('panelEditor.moveDown')"
             >▼</button>
           </span>
           <button
             class="hide-button"
             :class="{ 'hidden-button': section.hidden }"
             @click="toggleHidden(index)"
-            :aria-label="section.hidden ? 'Add section to panel' : 'Remove section from panel'"
+            :aria-label="section.hidden ? t('panelEditor.addToPanel') : t('panelEditor.removeFromPanel')"
           >
-            {{ section.hidden ? 'Add' : 'Remove' }}
+            {{ section.hidden ? t('panelEditor.add') : t('panelEditor.remove') }}
           </button>
           <span class="section-name">{{ section.name }}</span>
           <button
             v-if="section.tag === 'Summary'"
             class="edit-summary-btn"
             @click="showEditSummary = true"
-            aria-label="Edit summary fields"
+            :aria-label="t('panelEditor.editSummaryFields')"
           >
-            Edit Summary
+            {{ t('panelEditor.editSummary') }}
           </button>
         </div>
       </div>
       <div class="nav-buttons">
-        <button class="nav-button" @click="$emit('close')" aria-label="Close editor">Close</button>
-        <button class="nav-button" @click="resetOrder" aria-label="Reset panel sections order">Reset</button>
-        <button class="nav-button" @click="updatePanel" aria-label="Submit panel sections">Submit</button>
+        <button class="nav-button" @click="$emit('close')" :aria-label="t('panelEditor.closeEditor')">{{ t('panelEditor.close') }}</button>
+        <button class="nav-button" @click="resetOrder" :aria-label="t('panelEditor.resetOrder')">{{ t('panelEditor.reset') }}</button>
+        <button class="nav-button" @click="updatePanel" :aria-label="t('panelEditor.submitPanel')">{{ t('panelEditor.submit') }}</button>
       </div>
       <Panel2 v-if="showEditSummary" @close="showEditSummary = false" @panel-updated="onPanelUpdated" />
       <NotificationPopup v-if="errorMsg" :message="errorMsg" type="error" @close="errorMsg = ''" />
@@ -62,9 +62,12 @@
 <script setup lang="ts">
 
 import { ref, onMounted, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useUserStore } from '@/store/store';
 import Panel2 from '@/components/charts/panel2.vue';
 import NotificationPopup from '@/components/NotificationPopup.vue';
+
+const { t } = useI18n();
 
 interface PanelSection {
   order: number;
@@ -87,6 +90,22 @@ const sections = ref<PanelSection[]>([]); // Start empty, fill from backend
 const showEditSummary = ref<boolean>(false);
 const errorMsg = ref('');
 
+// Function to get translated section name based on tag
+function getSectionName(tag: string): string {
+  const tagMap: Record<string, string> = {
+    'Summary': t('panelEditor.sections.summary'),
+    'EpsTable': t('panelEditor.sections.epsTable'),
+    'EarnTable': t('panelEditor.sections.earnTable'),
+    'SalesTable': t('panelEditor.sections.salesTable'),
+    'DividendsTable': t('panelEditor.sections.dividendsTable'),
+    'SplitsTable': t('panelEditor.sections.splitsTable'),
+    'Financials': t('panelEditor.sections.financials'),
+    'Notes': t('panelEditor.sections.notes'),
+    'News': t('panelEditor.sections.news'),
+  };
+  return tagMap[tag] || tag;
+}
+
 async function fetchPanel() {
   try {
     const headers = { 'X-API-KEY': apiKey };
@@ -96,20 +115,23 @@ async function fetchPanel() {
     const newPanel = await response.json();
     // Defensive: fallback to default if empty
     sections.value = (newPanel.panel && newPanel.panel.length)
-      ? newPanel.panel as PanelSection[]
+      ? (newPanel.panel as PanelSection[]).map((section: PanelSection) => ({
+          ...section,
+          name: getSectionName(section.tag)
+        }))
       : [
-          { order: 1, tag: 'Summary', name: 'Summary', hidden: false },
-          { order: 2, tag: 'EpsTable', name: 'EPS Growth Table', hidden: false },
-          { order: 3, tag: 'EarnTable', name: 'Earnings Growth Table', hidden: false },
-          { order: 4, tag: 'SalesTable', name: 'Sales Growth Table', hidden: false },
-          { order: 5, tag: 'DividendsTable', name: 'Dividend Table', hidden: false },
-          { order: 6, tag: 'SplitsTable', name: 'Split Table', hidden: false },
-          { order: 7, tag: 'Financials', name: 'Financial Statements', hidden: false },
-          { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
-          { order: 9, tag: 'News', name: 'News', hidden: false },
+          { order: 1, tag: 'Summary', name: getSectionName('Summary'), hidden: false },
+          { order: 2, tag: 'EpsTable', name: getSectionName('EpsTable'), hidden: false },
+          { order: 3, tag: 'EarnTable', name: getSectionName('EarnTable'), hidden: false },
+          { order: 4, tag: 'SalesTable', name: getSectionName('SalesTable'), hidden: false },
+          { order: 5, tag: 'DividendsTable', name: getSectionName('DividendsTable'), hidden: false },
+          { order: 6, tag: 'SplitsTable', name: getSectionName('SplitsTable'), hidden: false },
+          { order: 7, tag: 'Financials', name: getSectionName('Financials'), hidden: false },
+          { order: 8, tag: 'Notes', name: getSectionName('Notes'), hidden: false },
+          { order: 9, tag: 'News', name: getSectionName('News'), hidden: false },
         ];
   } catch (error) {
-    errorMsg.value = 'Error loading panel data.';
+    errorMsg.value = t('panelEditor.errorLoading');
   }
 }
 
@@ -118,15 +140,15 @@ onMounted(() => {
 });
 
 const originalOrder = ref<PanelSection[]>([
-  { order: 1, tag: 'Summary', name: 'Summary', hidden: false },
-  { order: 2, tag: 'EpsTable', name: 'EPS Growth Table', hidden: false },
-  { order: 3, tag: 'EarnTable', name: 'Earnings Growth Table', hidden: false },
-  { order: 4, tag: 'SalesTable', name: 'Sales Growth Table', hidden: false },
-  { order: 5, tag: 'DividendsTable', name: 'Dividend Table', hidden: false },
-  { order: 6, tag: 'SplitsTable', name: 'Split Table', hidden: false },
-  { order: 7, tag: 'Financials', name: 'Financial Statements', hidden: false },
-  { order: 8, tag: 'Notes', name: 'Notes', hidden: false },
-  { order: 9, tag: 'News', name: 'News', hidden: false },
+  { order: 1, tag: 'Summary', name: getSectionName('Summary'), hidden: false },
+  { order: 2, tag: 'EpsTable', name: getSectionName('EpsTable'), hidden: false },
+  { order: 3, tag: 'EarnTable', name: getSectionName('EarnTable'), hidden: false },
+  { order: 4, tag: 'SalesTable', name: getSectionName('SalesTable'), hidden: false },
+  { order: 5, tag: 'DividendsTable', name: getSectionName('DividendsTable'), hidden: false },
+  { order: 6, tag: 'SplitsTable', name: getSectionName('SplitsTable'), hidden: false },
+  { order: 7, tag: 'Financials', name: getSectionName('Financials'), hidden: false },
+  { order: 8, tag: 'Notes', name: getSectionName('Notes'), hidden: false },
+  { order: 9, tag: 'News', name: getSectionName('News'), hidden: false },
 ]);
 
 function dragStart(event: DragEvent, index: number) {
@@ -191,7 +213,7 @@ async function updatePanel() {
     emit('updated');
 
   } catch (error) {
-    errorMsg.value = 'Error updating panel. Please try again.';
+    errorMsg.value = t('panelEditor.errorUpdating');
   }
 }
 

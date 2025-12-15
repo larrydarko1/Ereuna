@@ -2,8 +2,8 @@
 <template>
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
-      <button class="close-x" @click="close" aria-label="Close">&times;</button>
-      <h2>Import Watchlist</h2>
+      <button class="close-x" @click="close" :aria-label="t('importWatchlist.close')">&times;</button>
+      <h2>{{ t('importWatchlist.title') }}</h2>
       <form>
         <div class="input-row">
           <input
@@ -12,23 +12,23 @@
             accept=".txt"
             @change="handleFileChange"
             required
-            aria-label="Select watchlist file (.txt)"
+            :aria-label="t('importWatchlist.selectFile')"
           />
           <div v-if="fileName" class="char-count">{{ fileName }}</div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn" @click="importWatchlist" :disabled="isLoading" aria-label="Import watchlist">
+          <button type="submit" class="trade-btn" @click="importWatchlist" :disabled="isLoading" :aria-label="t('importWatchlist.importAction')">
             <span class="btn-content-row">
               <span v-if="isLoading" class="loader4">
                 <svg class="spinner" viewBox="0 0 50 50">
                   <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
                 </svg>
               </span>
-              <span v-if="!isLoading">Import</span>
-              <span v-else style="margin-left: 8px;">Processing...</span>
+              <span v-if="!isLoading">{{ t('importWatchlist.import') }}</span>
+              <span v-else style="margin-left: 8px;">{{ t('importWatchlist.processing') }}</span>
             </span>
           </button>
-          <button type="button" class="cancel-btn" @click="close" :disabled="isLoading" aria-label="Cancel import">Cancel</button>
+          <button type="button" class="cancel-btn" @click="close" :disabled="isLoading" :aria-label="t('importWatchlist.cancelAction')">{{ t('importWatchlist.cancel') }}</button>
         </div>
       </form>
       <NotificationPopup ref="notification" role="alert" aria-live="polite" />
@@ -39,7 +39,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import NotificationPopup from '@/components/NotificationPopup.vue';
+
+const { t } = useI18n();
 
 const emit = defineEmits(['close', 'refresh']);
 
@@ -80,7 +83,7 @@ function handleFileChange(event: Event) {
     selectedFile.value = null;
     fileName.value = '';
     fileContent.value = '';
-    showNotification('Please select a valid .txt file');
+    showNotification(t('importWatchlist.validFileError'));
   }
 }
 
@@ -89,7 +92,7 @@ async function importWatchlist(e?: Event) {
   if (isLoading.value) return;
   isLoading.value = true;
   if (!selectedFile.value || !fileContent.value) {
-    showNotification('No file selected or file is empty');
+    showNotification(t('importWatchlist.noFileError'));
     isLoading.value = false;
     return;
   }
@@ -112,12 +115,12 @@ async function importWatchlist(e?: Event) {
     .filter((obj, i, arr) => obj && arr.findIndex(o => o && o.ticker === obj.ticker && o.exchange === obj.exchange) === i);
   // Limit to 100 symbols per import
   if (symbolObjs.length > 100) {
-    showNotification('Too many symbols (max 100 allowed)');
+    showNotification(t('importWatchlist.tooManySymbols'));
     isLoading.value = false;
     return;
   }
   if (symbolObjs.length === 0) {
-    showNotification('No valid symbols found in file');
+    showNotification(t('importWatchlist.noValidSymbols'));
     isLoading.value = false;
     return;
   }
@@ -138,10 +141,10 @@ async function importWatchlist(e?: Event) {
       body: JSON.stringify(payload)
     });
     if (response.ok) {
-      showNotification('Watchlist imported successfully');
+      showNotification(t('importWatchlist.importSuccess'));
       emit('refresh');
     } else {
-      showNotification('Failed to import watchlist');
+      showNotification(t('importWatchlist.importFailed'));
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

@@ -1,6 +1,6 @@
 <template>
   <div class="summary-row">
-    <div class="category">AI Recommendation</div>
+    <div class="category">{{ t('summary.aiRecommendation') }}</div>
     <div class="response" :class="recommendationClass">
       {{ aiRecommendation }}
     </div>
@@ -9,7 +9,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const props = defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
 
 const aiRecommendation = computed(() => {

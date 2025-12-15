@@ -2,7 +2,7 @@
   <div :class="[showPEInputsModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">PE Ratio</span>
+        <span class="title">{{ t('params.peRatio') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'pe')" @mouseout="handleMouseOut($event)" aria-label="Show info for PE Ratio parameter">
           <path
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showPEInputs']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -76,7 +78,7 @@ async function SetPE() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -84,7 +86,7 @@ async function SetPE() {
   const leftInput = document.getElementById('left-pe') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-pe') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -96,7 +98,7 @@ async function SetPE() {
   // If both missing or both invalid, error
   if ((leftPE === null && rightPE === null) ||
       (leftPE !== null && isNaN(leftPE) && rightPE !== null && isNaN(rightPE))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -105,7 +107,7 @@ async function SetPE() {
   // If both are present, validate order
   if (leftPE !== null && !isNaN(leftPE) && rightPE !== null && !isNaN(rightPE)) {
     if (leftPE >= rightPE) {
-      error.value = 'Min PE cannot be higher than or equal to max PE';
+      error.value = t('params.errorMinMaxPE');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

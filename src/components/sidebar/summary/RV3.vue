@@ -1,6 +1,6 @@
 <template>
  <div class="summary-row">
-              <div class="category">Relative Volume (6M)</div>
+              <div class="category">{{ t('summary.relativeVolume6M') }}</div>
                <div class="response">
                 {{ (assetInfo.RelVolume6M != null && !isNaN(assetInfo.RelVolume6M)) ?
                   (parseFloat(assetInfo.RelVolume6M)).toFixed(2) : '-' }}
@@ -9,6 +9,9 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
 </script>
 

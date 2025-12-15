@@ -2,13 +2,13 @@
   <div class="screenshot-overlay" @click.self="$emit('close')">
     <div class="screenshot-popup">
       <div class="popup-header">
-        <h2>Export Chart</h2>
+        <h2>{{ t('screenshotExport.title') }}</h2>
         <button class="close-btn" @click="$emit('close')">×</button>
       </div>
       
       <div class="popup-content">
         <div class="preview-section">
-          <div class="preview-label">Preview</div>
+          <div class="preview-label">{{ t('screenshotExport.previewLabel') }}</div>
           <div class="preview-box">
             <div class="preview-chart" :style="{ backgroundColor: config.backgroundColor }">
               <div class="preview-header">
@@ -29,7 +29,7 @@
                   <div class="preview-branding" :style="{ color: previewSecondaryColor }">Made by Ereuna -- ereuna.io</div>
                 </div>
               </div>
-              <div class="preview-chart-area">Chart</div>
+              <div class="preview-chart-area">{{ t('screenshotExport.chartPreview') }}</div>
             </div>
           </div>
         </div>
@@ -38,21 +38,21 @@
           <div class="option-group">
             <label class="option-label">
               <input type="checkbox" v-model="config.includeChartInfo" />
-              <span>Include Chart Information</span>
+              <span>{{ t('screenshotExport.includeChartInfo') }}</span>
             </label>
-            <p class="option-description">Show symbol, price, and date</p>
+            <p class="option-description">{{ t('screenshotExport.includeChartInfoDesc') }}</p>
           </div>
           
           <div class="option-group">
             <label class="option-label">
               <input type="checkbox" v-model="config.includeLogo" />
-              <span>Include Logo</span>
+              <span>{{ t('screenshotExport.includeLogo') }}</span>
             </label>
-            <p class="option-description">Show app branding</p>
+            <p class="option-description">{{ t('screenshotExport.includeLogoDesc') }}</p>
           </div>
           
           <div class="option-group">
-            <label class="option-label-full">Background Color</label>
+            <label class="option-label-full">{{ t('screenshotExport.backgroundColorLabel') }}</label>
             <div class="color-options">
               <button 
                 v-for="color in colorOptions" 
@@ -70,8 +70,8 @@
       </div>
       
       <div class="popup-footer">
-        <button class="btn-secondary" @click="$emit('close')">Cancel</button>
-        <button class="btn-primary" @click="handleExport">Download PNG</button>
+        <button class="btn-secondary" @click="$emit('close')">{{ t('screenshotExport.cancel') }}</button>
+        <button class="btn-primary" @click="handleExport">{{ t('screenshotExport.download') }}</button>
       </div>
     </div>
   </div>
@@ -79,7 +79,10 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { ScreenshotConfig, ChartInfo } from '@/lib/lightweight-charts/screenshot';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   chartInfo: ChartInfo;
@@ -100,10 +103,10 @@ const config = reactive<ScreenshotConfig>({
   watermarkOpacity: 0.8
 });
 
-const colorOptions = [
-  { name: 'Dark', value: '#1a1b26' },
-  { name: 'Light', value: '#ffffff' }
-];
+const colorOptions = computed(() => [
+  { name: t('screenshotExport.colorDark'), value: '#1a1b26' },
+  { name: t('screenshotExport.colorLight'), value: '#ffffff' }
+]);
 
 const isLightBackground = computed(() => {
   const color = config.backgroundColor;

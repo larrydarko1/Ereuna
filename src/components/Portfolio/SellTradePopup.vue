@@ -1,12 +1,12 @@
 <template>
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
-      <button class="close-x" @click="close" aria-label="Close">&times;</button>
-      <h2>{{ isShort ? 'Buy' : 'Sell' }} {{ symbol }}</h2>
+      <button class="close-x" @click="close" :aria-label="t('portfolio.close')">&times;</button>
+      <h2>{{ isShort ? t('portfolio.buyTitle') : t('portfolio.sellTitle') }} {{ symbol }}</h2>
       <form @submit.prevent="submitSell">
         <div class="input-row input-row-flex">
           <div class="input-flex-vertical">
-            <label for="date">Date</label>
+            <label for="date">{{ t('portfolio.date') }}</label>
             <div class="custom-date-picker">
               <input
                 id="date"
@@ -15,7 +15,7 @@
                 @click="toggleCalendar"
                 readonly
                 required
-                placeholder="Select a date"
+                :placeholder="t('portfolio.selectDate')"
                 class="date-input"
               />
               <div v-if="showCalendar" class="calendar-dropdown">
@@ -44,12 +44,12 @@
             </div>
           </div>
           <div class="input-flex-vertical" style="margin-left: 12px;">
-            <label for="symbol">Symbol</label>
+            <label for="symbol">{{ t('portfolio.tradeDetailSymbol') }}</label>
             <input id="symbol" :value="symbol" readonly />
           </div>
         </div>
         <div class="input-row">
-          <label for="shares">Shares</label>
+          <label for="shares">{{ t('portfolio.sharesLabel') }}</label>
           <input
             id="shares"
             type="number"
@@ -58,13 +58,13 @@
             min="0.00000001"
             step="any"
             required
-            :placeholder="`Max: ${maxShares}`"
+            :placeholder="`${t('portfolio.maxShares')} ${maxShares}`"
           />
-          <small class="hint">You own {{ maxShares }} shares (up to 8 decimals)</small>
+          <small class="hint">{{ t('portfolio.ownShares', { maxShares }) }}</small>
         </div>
         <div class="input-row input-row-flex">
           <div class="input-flex-vertical">
-            <label for="price">Price</label>
+            <label for="price">{{ t('portfolio.priceLabel') }}</label>
             <input
               id="price"
               type="number"
@@ -76,19 +76,19 @@
             />
           </div>
           <div class="input-flex-vertical" style="margin-left: 12px;">
-            <label for="commission">Commission <span style="font-weight:400; color:var(--text2); font-size:0.97em;">(optional)</span></label>
-            <input id="commission" type="number" v-model.number="sellCommission" min="0" step="any" placeholder="e.g. 1.50" />
+            <label for="commission">{{ t('portfolio.commissionLabel') }} <span style="font-weight:400; color:var(--text2); font-size:0.97em;">{{ t('portfolio.optional') }}</span></label>
+            <input id="commission" type="number" v-model.number="sellCommission" min="0" step="any" :placeholder="t('portfolio.commissionPlaceholder')" />
           </div>
         </div>
         <div class="input-row" style="margin-top: 8px;">
           <div>
-            <strong>Total:</strong> ${{ sellTotal.toFixed(2) }}
-            <span v-if="sellCommission"> (incl. ${{ sellCommission.toFixed(2) }} commission)</span>
+            <strong>{{ t('portfolio.tradeDetailTotal') }}:</strong> ${{ sellTotal.toFixed(2) }}
+            <span v-if="sellCommission"> {{ t('portfolio.includingCommission', { commission: sellCommission.toFixed(2) }) }}</span>
           </div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn">Submit</button>
-          <button type="button" class="cancel-btn" @click="close">Cancel</button>
+          <button type="submit" class="trade-btn">{{ t('portfolio.submit') }}</button>
+          <button type="button" class="cancel-btn" @click="close">{{ t('portfolio.cancel') }}</button>
         </div>
       </form>
     </div>
@@ -97,6 +97,10 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 const props = defineProps({
   symbol: String,
   maxShares: Number,
@@ -127,17 +131,35 @@ const showCalendar = ref(false)
 const currentMonth = ref(new Date().getMonth())
 const currentYear = ref(new Date().getFullYear())
 
-const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+const weekdays = computed(() => [
+  t('portfolio.weekdaySu'),
+  t('portfolio.weekdayMo'),
+  t('portfolio.weekdayTu'),
+  t('portfolio.weekdayWe'),
+  t('portfolio.weekdayTh'),
+  t('portfolio.weekdayFr'),
+  t('portfolio.weekdaySa')
+])
 
 const formattedDate = computed(() => {
   if (!sellDate.value) return ''
   const date = new Date(sellDate.value + 'T00:00:00')
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const months = [
+    t('portfolio.monthJan'), t('portfolio.monthFeb'), t('portfolio.monthMar'),
+    t('portfolio.monthApr'), t('portfolio.monthMay'), t('portfolio.monthJun'),
+    t('portfolio.monthJul'), t('portfolio.monthAug'), t('portfolio.monthSep'),
+    t('portfolio.monthOct'), t('portfolio.monthNov'), t('portfolio.monthDec')
+  ]
   return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`
 })
 
 const currentMonthYear = computed(() => {
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const months = [
+    t('portfolio.monthJanuary'), t('portfolio.monthFebruary'), t('portfolio.monthMarch'),
+    t('portfolio.monthApril'), t('portfolio.monthMay'), t('portfolio.monthJune'),
+    t('portfolio.monthJuly'), t('portfolio.monthAugust'), t('portfolio.monthSeptember'),
+    t('portfolio.monthOctober'), t('portfolio.monthNovember'), t('portfolio.monthDecember')
+  ]
   return `${months[currentMonth.value]} ${currentYear.value}`
 })
 
@@ -317,13 +339,13 @@ async function submitSell() {
       })
     })
     if (!response.ok) {
-      emit('notify', 'Failed to sell position')
-      throw new Error('Failed to sell position')
+      emit('notify', t('portfolio.failedSellPosition'))
+      throw new Error(t('portfolio.failedSellPosition'))
     }
     emit('sell', trade)
-    emit('notify', 'Trade added successfully!')
+    emit('notify', t('portfolio.tradeAddedSuccess'))
   } catch (error) {
-    emit('notify', 'Error selling position')
+    emit('notify', t('portfolio.errorSellingPosition'))
   } finally {
     loading.value = false
     close()

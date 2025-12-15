@@ -2,7 +2,7 @@
   <div :class="[showDebtToEquityRatioModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Debt to Equity Ratio</span>
+        <span class="title">{{ t('params.debtEquity') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'debt-equity')" @mouseout="handleMouseOut($event)" aria-label="Show info for Debt to Equity Ratio parameter">
           <path
@@ -23,21 +23,21 @@
     <div class="content" v-if="showDebtToEquityRatioModel">
       <div class="input-group">
         <div class="input-wrapper">
-          <label class="input-label">Minimum</label>
-          <input class="input-field" id="left-der" type="number" step="0.01" placeholder="0.00" aria-label="Debt to Equity Ratio minimum">
+          <label class="input-label">{{ t('params.minimum') }}</label>
+          <input class="input-field" id="left-debtequity" type="number" step="0.01" placeholder="0.00" aria-label="Debt Equity minimum">
         </div>
         <div class="input-wrapper">
-          <label class="input-label">Maximum</label>
-          <input class="input-field" id="right-der" type="number" step="0.01" placeholder="0.00" aria-label="Debt to Equity Ratio maximum">
+          <label class="input-label">{{ t('params.maximum') }}</label>
+          <input class="input-field" id="right-debtequity" type="number" step="0.01" placeholder="0.00" aria-label="Debt Equity maximum">
         </div>
       </div>
       
       <div class="actions">
-        <button class="btn btn-secondary" @click="emit('reset'); emit('update:showDebtToEquityRatio', false)" aria-label="Reset Debt to Equity Ratio filter">
-          Reset
+        <button class="btn btn-secondary" @click="emit('reset'); emit('update:showDebtToEquityRatio', false)" aria-label="Reset Debt Equity filter">
+          {{ t('params.reset') }}
         </button>
-        <button class="btn btn-primary" @click="SetDebtToEquityRatio()" aria-label="Set Debt to Equity Ratio filter">
-          Apply
+        <button class="btn btn-primary" @click="SetDebtToEquityRatio()" aria-label="Set Debt Equity filter">
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showDebtToEquityRatio']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -83,7 +85,7 @@ async function SetDebtToEquityRatio() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -91,7 +93,7 @@ async function SetDebtToEquityRatio() {
   const leftInput = document.getElementById('left-der') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-der') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -103,7 +105,7 @@ async function SetDebtToEquityRatio() {
   // If both missing or both invalid, error
   if ((leftRatio === null && rightRatio === null) ||
       (leftRatio !== null && isNaN(leftRatio) && rightRatio !== null && isNaN(rightRatio))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -112,7 +114,7 @@ async function SetDebtToEquityRatio() {
   // If both are present, validate order
   if (leftRatio !== null && !isNaN(leftRatio) && rightRatio !== null && !isNaN(rightRatio)) {
     if (leftRatio >= rightRatio) {
-      error.value = 'Min debt to equity ratio cannot be higher than or equal to max debt to equity ratio';
+      error.value = t('params.errorMinMaxDebtEquity');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

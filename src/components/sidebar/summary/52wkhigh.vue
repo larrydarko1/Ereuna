@@ -1,6 +1,6 @@
 <template>
 <div class="summary-row">
-              <div class="category">52Wk High</div>
+              <div class="category">{{ t('summary.fiftyTwoWeekHigh') }}</div>
                <div class="response">
                 {{ (assetInfo.fiftytwoWeekHigh != null && !isNaN(assetInfo.fiftytwoWeekHigh)) ?
                   (parseFloat(assetInfo.fiftytwoWeekHigh)).toFixed(2) : '-' }}
@@ -9,6 +9,9 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
 </script>
 

@@ -1,18 +1,20 @@
 <template>
   <div v-if="showPopup" class="overlay" role="dialog" aria-modal="true" aria-labelledby="popup-title" aria-describedby="popup-message">
     <div class="popup-container">
-      <h2 id="popup-title">Mobile Experience Notice</h2>
+      <h2 id="popup-title">{{ t('mobileNotice.title') }}</h2>
       <p id="popup-message">
-        This application is not fully optimized for mobile devices. For the best experience, please use a desktop computer.
+        {{ t('mobileNotice.message') }}
       </p>
-      <button class="close-btn" @click="closePopup" aria-label="Close popup">&times;</button>
+      <button class="close-btn" @click="closePopup" :aria-label="t('mobileNotice.close')">&times;</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const showPopup = ref(false);
 
 const closePopup = () => {

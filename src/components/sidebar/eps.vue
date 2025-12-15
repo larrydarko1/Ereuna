@@ -2,11 +2,11 @@
   <div class="eps-container">
     <div v-if="displayedEPSItems.length > 0" id="EPStable">
       <div class="eps-header">
-        <div class="eps-cell" style="flex: 0 0 20%;">Reported</div>
-        <div class="eps-cell" style="flex: 0 0 40%;">EPS</div>
-        <div class="eps-cell" style="flex: 0 0 20%;">Chg (%)</div>
-        <div class="eps-cell" style="flex: 0 0 10%;">QoQ</div>
-        <div class="eps-cell" style="flex: 0 0 10%;">YoY</div>
+        <div class="eps-cell" style="flex: 0 0 20%;">{{ t('sidebar.epsReported') }}</div>
+        <div class="eps-cell" style="flex: 0 0 40%;">{{ t('sidebar.epsColumn') }}</div>
+        <div class="eps-cell" style="flex: 0 0 20%;">{{ t('sidebar.epsChange') }}</div>
+        <div class="eps-cell" style="flex: 0 0 10%;">{{ t('sidebar.epsQoQ') }}</div>
+        <div class="eps-cell" style="flex: 0 0 10%;">{{ t('sidebar.epsYoY') }}</div>
       </div>
       <div class="eps-body">
         <div
@@ -84,21 +84,23 @@
       </div>
     </div>
     <div v-if="displayedEPSItems.length === 0" class="no-data">
-      No Quarterly EPS data available
+      {{ t('sidebar.noEpsData') }}
     </div>
     <button
   v-if="showEPSButton"
   @click="toggleEPS"
   class="toggle-btn"
 >
-  {{ showAllEPS ? 'Show Less' : 'Show All' }}
+  {{ showAllEPS ? t('sidebar.showLess') : t('sidebar.showAll') }}
 </button>
   </div>
 </template>
 
 <script setup lang="ts">
-
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface QuarterlyFinancial {
   fiscalDateEnding: string;

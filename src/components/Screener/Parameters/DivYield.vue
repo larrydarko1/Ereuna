@@ -2,7 +2,7 @@
   <div :class="[showDivYieldInputsModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Dividend Yield TTM (%)</span>
+        <span class="title">{{ t('params.divYield') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'div')" @mouseout="handleMouseOut($event)" aria-label="Show info for Dividend Yield parameter">
           <path
@@ -23,21 +23,21 @@
     <div class="content" v-if="showDivYieldInputsModel">
       <div class="input-group">
         <div class="input-wrapper">
-          <label class="input-label">Minimum</label>
+          <label class="input-label">{{ t('params.minimum') }}</label>
           <input class="input-field" id="left-divyield" type="number" step="0.01" placeholder="0.00" aria-label="Dividend Yield minimum">
         </div>
         <div class="input-wrapper">
-          <label class="input-label">Maximum</label>
+          <label class="input-label">{{ t('params.maximum') }}</label>
           <input class="input-field" id="right-divyield" type="number" step="0.01" placeholder="0.00" aria-label="Dividend Yield maximum">
         </div>
       </div>
       
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); emit('update:showDivYieldInputs', false)" aria-label="Reset Dividend Yield filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetDivYield()" aria-label="Set Dividend Yield filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showDivYieldInputs']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -75,14 +77,14 @@ function showNotification(msg: string) {
 async function SetDivYield() {
   error.value = '';
   if (!props.selectedScreener) {
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     return;
   }
   const leftInput = document.getElementById('left-divyield') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-divyield') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     return;
   }
@@ -93,7 +95,7 @@ async function SetDivYield() {
   // If both missing or both invalid, error
   if ((leftDiv === null && rightDiv === null) ||
       (leftDiv !== null && isNaN(leftDiv) && rightDiv !== null && isNaN(rightDiv))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -102,7 +104,7 @@ async function SetDivYield() {
   // If both are present, validate order
   if (leftDiv !== null && !isNaN(leftDiv) && rightDiv !== null && !isNaN(rightDiv)) {
     if (leftDiv >= rightDiv) {
-      error.value = 'Min dividend yield cannot be higher than or equal to max dividend yield';
+      error.value = t('params.errorMinMax');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

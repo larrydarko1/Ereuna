@@ -1,14 +1,14 @@
 <template>
   <div class="download-modal-overlay" @click="$emit('close')" aria-modal="true" role="dialog">
     <div class="download-modal" @click.stop>
-      <h3 id="download-title">Download Portfolio</h3>
-      <div class="download-options" role="group" aria-label="Download Options">
-        <button class="input" @click="downloadPDF" aria-label="Download portfolio as PDF">PDF (for presentation and sharing.)</button>
-        <button class="input" @click="exportPortfolioData" aria-label="Download portfolio as CSV">CSV (for import/export, data only.)</button>
+      <h3 id="download-title">{{ t('portfolio.downloadPortfolioTitle') }}</h3>
+      <div class="download-options" role="group" :aria-label="t('portfolio.downloadOptions')">
+        <button class="input" @click="downloadPDF" aria-label="Download portfolio as PDF">{{ t('portfolio.downloadPDF') }}</button>
+        <button class="input" @click="exportPortfolioData" aria-label="Download portfolio as CSV">{{ t('portfolio.downloadCSV') }}</button>
       </div>
       <div v-if="error" class="download-error" aria-live="polite">{{ error }}</div>
       <div class="download-actions">
-        <button class="trade-btn" @click="$emit('close')" aria-label="Cancel download">Cancel</button>
+        <button class="trade-btn" @click="$emit('close')" aria-label="Cancel download">{{ t('portfolio.cancel') }}</button>
       </div>
     </div>
   </div>
@@ -18,6 +18,9 @@
 import { ref, onMounted } from 'vue';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import ereunaLogo from '@/assets/icons/ereuna.png';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n()
 
 const props = defineProps({
   user: String,
@@ -77,7 +80,7 @@ onMounted(async () => {
       biggestLoser: data.biggestLoser ?? null,
     };
   } catch (e) {
-    error.value = 'Failed to load export data.';
+    error.value = t('portfolio.failedLoadExport');
   }
 });
 
@@ -567,7 +570,7 @@ async function downloadPDF() {
     link.click();
     document.body.removeChild(link);
   } catch (e) {
-    error.value = 'Failed to generate PDF.';
+    error.value = t('portfolio.failedGeneratePDF');
   }
 }
 

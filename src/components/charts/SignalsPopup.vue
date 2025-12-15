@@ -2,7 +2,7 @@
   <div class="modal-backdrop" @click.self="$emit('close')">
     <div class="modal-content">
       <div class="signals-title">
-              <button class="close-x" @click="$emit('close')" aria-label="Close">&times;</button>
+              <button class="close-x" @click="$emit('close')" :aria-label="t('tradingSignals.close')">&times;</button>
         <svg class="signals-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <g stroke-width="0"></g>
           <g stroke-linecap="round" stroke-linejoin="round"></g>
@@ -12,7 +12,7 @@
           </g>
         </svg>
                 <span class="symbol-badge">{{ Symbol }}</span>
-        <h2>Trading Signals</h2>
+        <h2>{{ t('tradingSignals.title') }}</h2>
       </div>
       
       <div class="signals-popup-content">
@@ -21,8 +21,8 @@
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" 
                   fill="currentColor" opacity="0.3"/>
           </svg>
-          <p>No signals detected for today</p>
-          <span class="no-signal-subtext">Check back tomorrow for new analysis</span>
+          <p>{{ t('tradingSignals.noSignals') }}</p>
+          <span class="no-signal-subtext">{{ t('tradingSignals.noSignalsSubtext') }}</span>
         </div>
 
         <div v-else class="signals-list">
@@ -44,7 +44,7 @@
                   <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                   <g id="SVGRepo_iconCarrier"> <title>triangle-filled</title> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="drop" fill="currentColor" transform="translate(32.000000, 42.666667)"> <path d="M246.312928,5.62892705 C252.927596,9.40873724 258.409564,14.8907053 262.189374,21.5053731 L444.667042,340.84129 C456.358134,361.300701 449.250007,387.363834 428.790595,399.054926 C422.34376,402.738832 415.04715,404.676552 407.622001,404.676552 L42.6666667,404.676552 C19.1025173,404.676552 7.10542736e-15,385.574034 7.10542736e-15,362.009885 C7.10542736e-15,354.584736 1.93772021,347.288125 5.62162594,340.84129 L188.099293,21.5053731 C199.790385,1.04596203 225.853517,-6.06216498 246.312928,5.62892705 Z" id="Combined-Shape"> </path> </g> </g> </g>
                 </svg>
-                {{ signal.type }}
+                {{ t(`tradingSignals.${signal.type.toLowerCase()}`) }}
               </div>
               <div class="signal-price">${{ signal.price?.toFixed(2) || 'N/A' }}</div>
             </div>
@@ -54,7 +54,7 @@
               <div class="signal-description">{{ signal.description }}</div>
               
               <div v-if="signal.indicator_value !== undefined" class="signal-indicator">
-                <span class="indicator-label">Value:</span>
+                <span class="indicator-label">{{ t('tradingSignals.indicatorLabel') }}</span>
                 <span class="indicator-value">{{ signal.indicator_value }}</span>
               </div>
             </div>
@@ -69,6 +69,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Signal {
   date: string;

@@ -1,12 +1,12 @@
 <template>
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
-      <button class="close-x" @click="close" aria-label="Close">&times;</button>
-      <h2>New Trade</h2>
+      <button class="close-x" @click="close" :aria-label="t('portfolio.close')">&times;</button>
+      <h2>{{ t('portfolio.newTradeTitle') }}</h2>
       <form @submit.prevent="submitTrade">
         <div class="input-row input-row-flex">
           <div class="input-flex-vertical">
-            <label for="date">Date</label>
+            <label for="date">{{ t('portfolio.date') }}</label>
             <div class="custom-date-picker">
               <input
                 id="date"
@@ -15,7 +15,7 @@
                 @click="toggleCalendar"
                 readonly
                 required
-                placeholder="Select a date"
+                :placeholder="t('portfolio.selectDate')"
                 class="date-input"
               />
               <div v-if="showCalendar" class="calendar-dropdown">
@@ -44,13 +44,13 @@
             </div>
           </div>
           <div class="input-flex-vertical" style="margin-left: 12px;">
-            <label for="symbol">Symbol</label>
-            <input id="symbol" v-model="symbol" required autocomplete="off" placeholder="e.g. AAPL" />
+            <label for="symbol">{{ t('portfolio.tradeDetailSymbol') }}</label>
+            <input id="symbol" v-model="symbol" required autocomplete="off" :placeholder="t('portfolio.symbolPlaceholder')" />
           </div>
         </div>
         <div class="input-row input-row-flex">
           <div class="input-flex-vertical">
-            <label>Position Type</label>
+            <label>{{ t('portfolio.positionType') }}</label>
             <div style="display: flex; gap: 8px;">
               <button
                 type="button"
@@ -58,7 +58,7 @@
                 @click="isShort = false"
                 aria-label="Buy/Long Position"
               >
-                Buy (Long)
+                {{ t('portfolio.buyLong') }}
               </button>
               <button
                 type="button"
@@ -66,13 +66,13 @@
                 @click="isShort = true"
                 aria-label="Short Position"
               >
-                Short
+                {{ t('portfolio.positionShort') }}
               </button>
             </div>
           </div>
         </div>
         <div class="input-row">
-          <label for="shares">Shares</label>
+          <label for="shares">{{ t('portfolio.sharesLabel') }}</label>
           <input
             id="shares"
             type="number"
@@ -80,49 +80,49 @@
             min="0.00000001"
             step="any"
             required
-            placeholder="e.g. 10.25 or 0.00001234"
+            :placeholder="t('portfolio.sharesPlaceholder')"
           />
-          <small class="hint">Fractional shares supported (up to 8 decimals)</small>
+          <small class="hint">{{ t('portfolio.fractionalSharesHint') }}</small>
         </div>
         <div class="input-row input-row-flex">
           <div class="input-flex-vertical">
-            <label for="price">Price</label>
-            <input id="price" type="number" v-model.number="price" min="0.0000000001" step="any" required placeholder="e.g. 185.00 or 0.0000043" />
+            <label for="price">{{ t('portfolio.priceLabel') }}</label>
+            <input id="price" type="number" v-model.number="price" min="0.0000000001" step="any" required :placeholder="t('portfolio.pricePlaceholder')" />
           </div>
           <div class="input-flex-vertical" style="margin-left: 12px;">
-            <label for="commission">Commission <span style="font-weight:400; color:var(--text2); font-size:0.97em;">(optional)</span></label>
-            <input id="commission" type="number" v-model.number="commission" min="0" step="any" placeholder="e.g. 1.50" />
+            <label for="commission">{{ t('portfolio.commissionLabel') }} <span style="font-weight:400; color:var(--text2); font-size:0.97em;">{{ t('portfolio.optional') }}</span></label>
+            <input id="commission" type="number" v-model.number="commission" min="0" step="any" :placeholder="t('portfolio.commissionPlaceholder')" />
           </div>
         </div>
         <div class="input-row input-row-flex">
           <div class="input-flex-vertical">
-            <label for="leverage">Leverage <span style="font-weight:400; color:var(--text2); font-size:0.97em;">(optional)</span></label>
-            <input id="leverage" type="number" v-model.number="leverage" min="1" max="10" step="0.5" placeholder="1x (none)" />
-            <small class="hint">Leverage multiplier (1x = no leverage, max 10x)</small>
+            <label for="leverage">{{ t('portfolio.leverageLabel') }} <span style="font-weight:400; color:var(--text2); font-size:0.97em;">{{ t('portfolio.optional') }}</span></label>
+            <input id="leverage" type="number" v-model.number="leverage" min="1" max="10" step="0.5" :placeholder="t('portfolio.leveragePlaceholder')" />
+            <small class="hint">{{ t('portfolio.leverageHint') }}</small>
           </div>
         </div>
         <div class="input-row" style="margin-top: 8px;">
           <div>
-            <strong>{{ isShort ? 'Short Value:' : 'Total Cost:' }}</strong> ${{ effectiveTotal.toFixed(2) }}
-            <span v-if="commission"> (incl. ${{ commission.toFixed(2) }} commission)</span>
+            <strong>{{ isShort ? t('portfolio.shortValue') : t('portfolio.totalCost') }}</strong> ${{ effectiveTotal.toFixed(2) }}
+            <span v-if="commission"> {{ t('portfolio.includingCommission', { commission: commission.toFixed(2) }) }}</span>
             <span v-if="leverage > 1" style="color: var(--accent2); margin-left: 8px;">
-              ({{ leverage }}x leverage applied)
+              {{ t('portfolio.leverageApplied', { leverage }) }}
             </span>
           </div>
           <div>
-            <strong>Cash Required:</strong> ${{ cashRequired.toFixed(2) }}
+            <strong>{{ t('portfolio.cashRequired') }}</strong> ${{ cashRequired.toFixed(2) }}
             <span v-if="leverage > 1" style="font-size: 0.9em; color: var(--text2);">
-              ({{ (100 / leverage).toFixed(1) }}% margin)
+              {{ t('portfolio.marginPercent', { percent: (100 / leverage).toFixed(1) }) }}
             </span>
           </div>
           <div>
-            <strong>Your Cash:</strong> ${{ props.cash?.toFixed(2) }}
+            <strong>{{ t('portfolio.yourCash') }}</strong> ${{ props.cash?.toFixed(2) }}
           </div>
         </div>
         <div v-if="insufficientCash" style="color: var(--negative); margin-top: 8px;">
-          Insufficient cash: You need ${{ cashRequired.toFixed(2) }}, but you only have ${{ props.cash?.toFixed(2) ?? '0.00' }}.
+          {{ t('portfolio.insufficientCashMessage', { required: cashRequired.toFixed(2), available: props.cash?.toFixed(2) ?? '0.00' }) }}
           <br>
-          <span style="font-size: 0.98em;">The trade will not be executed.</span>
+          <span style="font-size: 0.98em;">{{ t('portfolio.tradeNotExecuted') }}</span>
         </div>
         <div class="modal-actions">
           <button type="submit" class="trade-btn" :disabled="insufficientCash || isLoading" aria-label="Submit Trade">
@@ -145,6 +145,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 const emit = defineEmits(['close', 'trade', 'refresh-history', 'notify'])
 
 const props = defineProps({
@@ -173,17 +177,35 @@ const showCalendar = ref(false)
 const currentMonth = ref(new Date().getMonth())
 const currentYear = ref(new Date().getFullYear())
 
-const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+const weekdays = computed(() => [
+  t('portfolio.weekdaySu'),
+  t('portfolio.weekdayMo'),
+  t('portfolio.weekdayTu'),
+  t('portfolio.weekdayWe'),
+  t('portfolio.weekdayTh'),
+  t('portfolio.weekdayFr'),
+  t('portfolio.weekdaySa')
+])
 
 const formattedDate = computed(() => {
   if (!tradeDate.value) return ''
   const date = new Date(tradeDate.value + 'T00:00:00')
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const months = [
+    t('portfolio.monthJan'), t('portfolio.monthFeb'), t('portfolio.monthMar'),
+    t('portfolio.monthApr'), t('portfolio.monthMay'), t('portfolio.monthJun'),
+    t('portfolio.monthJul'), t('portfolio.monthAug'), t('portfolio.monthSep'),
+    t('portfolio.monthOct'), t('portfolio.monthNov'), t('portfolio.monthDec')
+  ]
   return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`
 })
 
 const currentMonthYear = computed(() => {
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const months = [
+    t('portfolio.monthJanuary'), t('portfolio.monthFebruary'), t('portfolio.monthMarch'),
+    t('portfolio.monthApril'), t('portfolio.monthMay'), t('portfolio.monthJune'),
+    t('portfolio.monthJuly'), t('portfolio.monthAugust'), t('portfolio.monthSeptember'),
+    t('portfolio.monthOctober'), t('portfolio.monthNovember'), t('portfolio.monthDecember')
+  ]
   return `${months[currentMonth.value]} ${currentYear.value}`
 })
 
@@ -313,12 +335,12 @@ const showNotification = (msg: string) => {
 async function submitTrade() {
   error.value = ''
   if (insufficientCash.value) {
-    error.value = 'Insufficient cash: You need $' + cashRequired.value.toFixed(2) + ', but you only have $' + (props.cash?.toFixed(2) ?? '0.00') + '.'
+    error.value = t('portfolio.insufficientCashMessage', { required: cashRequired.value.toFixed(2), available: props.cash?.toFixed(2) ?? '0.00' })
     showNotification(error.value)
     return
   }
   if (!symbol.value || !shares.value || !price.value) {
-    error.value = 'Please fill in all required fields.'
+    error.value = t('portfolio.fillAllFields')
     showNotification(error.value)
     return
   }
@@ -350,14 +372,14 @@ async function submitTrade() {
     })
 
     if (!response.ok) {
-      throw new Error('Failed to add trade')
+      throw new Error(t('portfolio.failedAddTrade'))
     }
 
     emit('refresh-history')
-    showNotification('Trade added successfully!')
+    showNotification(t('portfolio.tradeAddedSuccess'))
     close()
   } catch (err) {
-    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error'
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : t('portfolio.failedAddTrade')
     showNotification(error.value)
   } finally {
     isLoading.value = false

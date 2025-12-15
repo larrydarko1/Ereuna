@@ -3,6 +3,7 @@ import { createPinia } from 'pinia';
 import App from './App.vue';
 import router from './router';
 import authPlugin from './auth-plugin';
+import i18n from './i18n';
 import './style.scss';
 import { useMaintenanceStore } from './store/maintenance';
 import { useUserStore } from './store/store';
@@ -38,6 +39,9 @@ app.use(pinia);
 // Persist user session from token
 const userStore = useUserStore();
 userStore.loadUserFromToken();
+
+// Setup i18n with user's preferred language
+app.use(i18n);
 
 app.use(router);
 app.use(authPlugin);

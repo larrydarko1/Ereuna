@@ -1,5 +1,29 @@
 <template>
  <div>
+          <!-- Language Preference Section -->
+          <div class="userdiv">
+            <h2 class="section-title">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="24" height="24"
+                aria-hidden="true" focusable="false">
+                <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+              </svg>
+              {{ t('user.changeLanguage') }}
+            </h2>
+            <div style="display: flex; justify-content: center;">
+              <div class="solo-wrapper">
+                <select 
+                  class="userinput solo-input language-select" 
+                  v-model="selectedLanguage" 
+                  @change="changeLanguage"
+                  aria-label="Select Language">
+                  <option value="en">English</option>
+                  <option value="es">Español</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
           <div class="userdiv">
             <h2 class="section-title">
               <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="24" height="24"
@@ -7,16 +31,16 @@
                 <path
                   d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
               </svg>
-              Change Username
+              {{ t('user.changeUsername') }}
             </h2>
               <div style="display: flex; justify-content: center;">
                 <div class="solo-wrapper">
-                  <input class="userinput solo-input" type="text" maxlength="25" placeholder="Type New Username" v-model="newUsername"
-                    :class="{ 'error-input': usernameError }" aria-label="New Username" />
+                  <input class="userinput solo-input" type="text" maxlength="25" :placeholder="t('user.newUsername')" v-model="newUsername"
+                    :class="{ 'error-input': usernameError }" :aria-label="t('user.newUsername')" />
                 </div>
               </div>
             <br>
-            <button class="userbtn" @click="changeUsername()" :disabled="loading.username" aria-label="Change Username">
+            <button class="userbtn" @click="changeUsername()" :disabled="loading.username" :aria-label="t('user.changeUsername')">
               <span class="btn-content-row">
                 <span v-if="loading.username" class="loader4">
                   <svg class="spinner" viewBox="0 0 50 50">
@@ -30,8 +54,8 @@
                     />
                   </svg>
                 </span>
-                <span v-if="!loading.username">Change Username</span>
-                <span v-else style="margin-left: 8px;">Processing...</span>
+                <span v-if="!loading.username">{{ t('user.changeUsername') }}</span>
+                <span v-else style="margin-left: 8px;">{{ t('common.processing') }}</span>
               </span>
             </button>
           </div>
@@ -50,13 +74,13 @@
                   </path>
                 </g>
               </svg>
-              Change Password
+              {{ t('user.changePassword') }}
             </h2>
             <div class="changepassword">
               <div style="margin-right: 3px;">
                 <div style="position: relative;">
-                  <input class="userinput" placeholder="Type Old Password" :type="showOldPassword ? 'text' : 'password'"
-                    v-model="oldPassword" :class="{ 'error-input': oldPasswordError }" aria-label="Old Password"/>
+                  <input class="userinput" :placeholder="t('user.oldPassword')" :type="showOldPassword ? 'text' : 'password'"
+                    v-model="oldPassword" :class="{ 'error-input': oldPasswordError }" :aria-label="t('user.oldPassword')"/>
                   <button @click="showOldPassword = !showOldPassword" type="button" class="password-toggle">
                     <svg v-if="showOldPassword" class="toggle-icon" viewBox="0 0 48 48"
                       xmlns="http://www.w3.org/2000/svg" fill="currentColor">
@@ -90,8 +114,8 @@
               </div>
               <div style="margin-right: 3px;">
                 <div style="position: relative;">
-                  <input class="userinput" :type="showNewPassword ? 'text' : 'password'" placeholder="Type New Password"
-                    v-model="newPassword" :class="{ 'error-input': newPasswordError }" aria-label="New Password"/>
+                  <input class="userinput" :type="showNewPassword ? 'text' : 'password'" :placeholder="t('user.newPassword')"
+                    v-model="newPassword" :class="{ 'error-input': newPasswordError }" :aria-label="t('user.newPassword')"/>
                   <button @click="showNewPassword = !showNewPassword" type="button" class="password-toggle">
                     <svg v-if="showNewPassword" class="toggle-icon" viewBox="0 0 48 48"
                       xmlns="http://www.w3.org/2000/svg" fill="currentColor">
@@ -126,8 +150,8 @@
               <div style="margin-right: 3px;">
                 <div style="position: relative;">
                   <input class="userinput" :type="showConfirmPassword ? 'text' : 'password'"
-                    placeholder="Confirm New Password" v-model="confirmPassword"
-                    :class="{ 'error-input': confirmPasswordError }" aria-label="Confirm New Password"/>
+                    :placeholder="t('user.confirmPassword')" v-model="confirmPassword"
+                    :class="{ 'error-input': confirmPasswordError }" :aria-label="t('user.confirmPassword')"/>
                   <button @click="showConfirmPassword = !showConfirmPassword" type="button" class="password-toggle">
                     <svg v-if="showConfirmPassword" class="toggle-icon" viewBox="0 0 48 48"
                       xmlns="http://www.w3.org/2000/svg" fill="currentColor">
@@ -161,7 +185,7 @@
               </div>
             </div>
             <br>
-            <button class="userbtn" @click="changePassword()" :disabled="loading.password" aria-label="Change Password">
+            <button class="userbtn" @click="changePassword()" :disabled="loading.password" :aria-label="t('user.changePassword')">
               <span class="btn-content-row">
                 <span v-if="loading.password" class="loader4">
                   <svg class="spinner" viewBox="0 0 50 50">
@@ -175,8 +199,8 @@
                     />
                   </svg>
                 </span>
-                <span v-if="!loading.password">Change Password</span>
-                <span v-else style="margin-left: 8px;">Processing...</span>
+                <span v-if="!loading.password">{{ t('user.changePassword') }}</span>
+                <span v-else style="margin-left: 8px;">{{ t('common.processing') }}</span>
               </span>
             </button>
           </div>
@@ -196,12 +220,12 @@
                     fill="currentColor"></path>
                 </g>
               </svg>
-              Recovery / Authentication Key
+              {{ t('user.recoveryKey') }}
             </h2>
             <div style="position: relative;">
-              <p>To generate a new recovery key, type your password</p>
+              <p>{{ t('user.recoveryKeyInstruction') }}</p>
               <div class="solo-wrapper" style="position: relative;">
-                <input class="userinput solo-input" :type="showPswauth ? 'text' : 'password'" v-model="Pswauth" aria-label="Password for Recovery Key"/>
+                <input class="userinput solo-input" :type="showPswauth ? 'text' : 'password'" v-model="Pswauth" :aria-label="t('user.password')"/>
                 <button @click="showPswauth = !showPswauth" type="button" class="password-toggle3">
                   <svg v-if="showPswauth" class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"
                     fill="currentColor">
@@ -235,7 +259,7 @@
             </div>
             <br>
             <div>
-              <button class="userbtn" @click="GenerateNewKey()" :disabled="loading.key" aria-label="Generate New Recovery Key">
+              <button class="userbtn" @click="GenerateNewKey()" :disabled="loading.key" :aria-label="t('user.generateNewKey')">
                 <span class="btn-content-row">
                   <span v-if="loading.key" class="loader4">
                     <svg class="spinner" viewBox="0 0 50 50">
@@ -249,8 +273,8 @@
                       />
                     </svg>
                   </span>
-                  <span v-if="!loading.key">Generate New Key</span>
-                  <span v-else style="margin-left: 8px;">Processing...</span>
+                  <span v-if="!loading.key">{{ t('user.generateNewKey') }}</span>
+                  <span v-else style="margin-left: 8px;">{{ t('common.processing') }}</span>
                 </span>
               </button>
             </div>
@@ -268,11 +292,11 @@
                   </path>
                 </g>
               </svg>
-              Delete Account
+              {{ t('user.deleteAccount') }}
             </h2>
-            <p>To delete your account, type your Password</p>
+            <p>{{ t('user.deleteAccountInstruction') }}</p>
             <div class="solo-wrapper" style="position: relative;">
-              <input class="userinput solo-input" :type="showPswDelete ? 'text' : 'password'" v-model="PswDelete" aria-label="Password for Account Deletion"/>
+              <input class="userinput solo-input" :type="showPswDelete ? 'text' : 'password'" v-model="PswDelete" :aria-label="t('user.password')"/>
               <button @click="showPswDelete = !showPswDelete" type="button" class="password-toggle3">
                 <svg v-if="showPswDelete" class="toggle-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"
                   fill="currentColor">
@@ -304,18 +328,18 @@
               </button>
             </div>
             <div class="disclaimer">
-              <p><strong>Warning — this action is irreversible.</strong> Deleting your account will permanently remove your access and all associated data, including personal information, settings, and any content you have created or stored. This data cannot be recovered or restored.</p>
+              <p><strong>{{ t('user.deleteWarning') }}</strong> {{ t('user.deleteWarningDetails') }}</p>
 
-              <p><strong>Before you proceed, we strongly recommend:</strong></p>
+              <p><strong>{{ t('user.deleteRecommendation') }}</strong></p>
               <ul>
-                <li>Download any important documents (for example, receipts or invoices).</li>
-                <li>Request refunds for eligible purchases — refunds may be difficult or impossible to process after deletion.</li>
+                <li>{{ t('user.deleteRecommendation1') }}</li>
+                <li>{{ t('user.deleteRecommendation2') }}</li>
               </ul>
 
-              <p>Please review the above carefully. If you are unsure or wish to retain your data, do not proceed with deletion.</p>
+              <p>{{ t('user.deleteReview') }}</p>
             </div>
             <br>
-            <button class="userbtn" @click="deleteAccount()" :disabled="loading.delete" aria-label="Delete Account">
+            <button class="userbtn" @click="deleteAccount()" :disabled="loading.delete" :aria-label="t('user.deleteAccount')">
               <span class="btn-content-row">
                 <span v-if="loading.delete" class="loader4">
                   <svg class="spinner" viewBox="0 0 50 50">
@@ -329,8 +353,8 @@
                     />
                   </svg>
                 </span>
-                <span v-if="!loading.delete">Delete Account</span>
-                <span v-else style="margin-left: 8px;">Processing...</span>
+                <span v-if="!loading.delete">{{ t('user.deleteAccount') }}</span>
+                <span v-else style="margin-left: 8px;">{{ t('common.processing') }}</span>
               </span>
             </button>
           </div>
@@ -341,10 +365,18 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { ref } from 'vue';
-import { defineEmits } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useUserStore } from '../../store/store';
 
 // Notification system (assume a notification component is available)
 const emit = defineEmits(['notify']);
+
+// i18n and user store
+const { t } = useI18n();
+const userStore = useUserStore();
+
+// Language state
+const selectedLanguage = ref(userStore.currentLanguage || 'en');
 
 // Username change state
 const usernameError = ref(false);
@@ -391,6 +423,40 @@ const showConfirmPassword = ref(false);
 const showPswDelete = ref(false);
 const showPswauth = ref(false);
 
+// Language change function
+async function changeLanguage() {
+  const newLang = selectedLanguage.value;
+  
+  try {
+    // Update local state and localStorage immediately
+    userStore.setLanguage(newLang);
+    
+    // Send to backend to update user's language preference
+    const response = await fetch('/api/user/language', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': props.apiKey,
+      },
+      body: JSON.stringify({ 
+        user: props.user, 
+        language: newLang.charAt(0).toUpperCase() + newLang.slice(1) // Capitalize first letter
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.confirm || response.ok) {
+      emit('notify', t('messages.languageChanged'));
+    } else {
+      emit('notify', t('messages.languageSavedLocally'));
+    }
+  } catch (error) {
+    // Even if API fails, language is already changed locally
+    emit('notify', t('messages.languageSavedLocally'));
+  }
+}
+
 const loading = ref({
   username: false,
   password: false,
@@ -404,19 +470,19 @@ async function changePassword() {
   confirmPasswordError.value = false;
   if (oldPassword.value === '') {
     oldPasswordError.value = true;
-    emit('notify', 'Please enter your old password');
+    emit('notify', t('errors.oldPasswordRequired'));
     return;
   }
 
   if (newPassword.value === '') {
     newPasswordError.value = true;
-    emit('notify', 'Please enter a new password');
+    emit('notify', t('errors.newPasswordRequired'));
     return;
   }
 
   if (confirmPassword.value !== newPassword.value) {
     confirmPasswordError.value = true;
-    emit('notify', 'Passwords do not match');
+    emit('notify', t('errors.passwordsNotMatch'));
     return;
   }
   loading.value.password = true;
@@ -440,21 +506,21 @@ async function changePassword() {
         if (err.field === 'newPassword') newPasswordError.value = true;
         if (err.field === 'confirmPassword') confirmPasswordError.value = true;
       }
-      emit('notify', data.errors[0].message || 'Failed to change password');
+      emit('notify', data.errors[0].message || t('errors.passwordChangeFailed'));
     } else if (data.error === 'old_password_incorrect' || data.message === 'Current password is incorrect') {
       oldPasswordError.value = true;
-      emit('notify', 'Old password is incorrect');
+      emit('notify', t('errors.oldPasswordIncorrect'));
     } else if (data.message === 'New password must be different from the current password') {
       newPasswordError.value = true;
-      emit('notify', 'New password must be different from the current password');
+      emit('notify', t('errors.passwordMustBeDifferent'));
     } else if (data.confirm) {
-      emit('notify', 'Password changed successfully');
+      emit('notify', t('messages.passwordChanged'));
       // Password changed successfully
     } else {
-      emit('notify', 'Failed to change password');
+      emit('notify', t('errors.passwordChangeFailed'));
     }
   } catch (error) {
-    emit('notify', 'Failed to change password');
+    emit('notify', t('errors.passwordChangeFailed'));
   } finally {
     loading.value.password = false;
   }
@@ -466,13 +532,13 @@ async function changeUsername() {
   usernameError.value = false;
   if (newUsername.value === '') {
     usernameError.value = true;
-    emit('notify', 'Please enter a new username');
+    emit('notify', t('errors.usernameRequired'));
     return;
   }
 
   if (newUsername.value === props.user) {
     usernameError.value = true;
-    emit('notify', 'Current username and new username cannot be the same');
+    emit('notify', t('errors.usernameSameAsCurrent'));
     return;
   }
   loading.value.username = true;
@@ -493,23 +559,23 @@ async function changeUsername() {
       if (data.errors[0].field === 'newUsername') {
         usernameError.value = true;
       }
-      emit('notify', data.errors[0].message || 'Failed to change username');
+      emit('notify', data.errors[0].message || t('errors.usernameChangeFailed'));
     } else if (data.error === 'username_taken') {
       usernameError.value = true;
-      emit('notify', 'Username already taken');
+      emit('notify', t('errors.usernameTaken'));
     } else if (data.error === 'current username and new username cannot be the same') {
       usernameError.value = true;
-      emit('notify', 'Current username and new username cannot be the same');
+      emit('notify', t('errors.usernameSameAsCurrent'));
     } else if (data.confirm) {
-      emit('notify', 'Username changed successfully!');
+      emit('notify', t('messages.usernameChanged'));
       setTimeout(() => {
         LogOut();
       }, 3000);
     } else {
-      emit('notify', 'Failed to change username');
+      emit('notify', t('errors.usernameChangeFailed'));
     }
   } catch (error) {
-    emit('notify', 'Failed to change username');
+    emit('notify', t('errors.usernameChangeFailed'));
   } finally {
     loading.value.username = false;
   }
@@ -519,7 +585,7 @@ let PswDelete = ref('');
 
 async function deleteAccount() {
   if (PswDelete.value === '') {
-    emit('notify', 'Please enter your password');
+    emit('notify', t('errors.passwordRequired'));
     return;
   }
   loading.value.delete = true;
@@ -536,15 +602,15 @@ async function deleteAccount() {
     const data = await response.json();
 
     if (data.error === 'password_incorrect') {
-      emit('notify', 'Password is incorrect');
+      emit('notify', t('errors.passwordIncorrect'));
     } else if (data.confirm) {
-      emit('notify', 'Account deleted successfully!');
+      emit('notify', t('messages.accountDeleted'));
       await LogOut();
     } else {
-      emit('notify', 'Failed to delete account');
+      emit('notify', t('errors.accountDeleteFailed'));
     }
   } catch (error) {
-    emit('notify', 'Failed to delete account');
+    emit('notify', t('errors.accountDeleteFailed'));
   } finally {
     loading.value.delete = false;
   }
@@ -555,7 +621,7 @@ const Pswauth = ref('');
 async function GenerateNewKey() {
   // Validate password input
   if (!Pswauth.value.trim()) {
-    emit('notify', 'Please enter your password');
+    emit('notify', t('errors.passwordRequired'));
     return;
   }
   loading.value.key = true;
@@ -577,7 +643,7 @@ async function GenerateNewKey() {
 
     if (response.ok) {
       if (data.confirm) {
-        emit('notify', 'New key generated successfully!');
+        emit('notify', t('messages.keyGenerated'));
 
         // Trigger download of the raw key
         const rawAuthKey = data.rawAuthKey; // Raw key returned from the endpoint
@@ -598,7 +664,7 @@ async function GenerateNewKey() {
         Pswauth.value = '';
       } else {
         // Handle unexpected response
-        emit('notify', 'An unexpected error occurred');
+        emit('notify', t('errors.unexpectedError'));
       }
     } else {
       // Handle API errors
@@ -606,16 +672,16 @@ async function GenerateNewKey() {
       if (data.errors && Array.isArray(data.errors)) {
         const passwordError = data.errors.find((e: { field?: string }) => e.field === 'password');
         if (passwordError) {
-          emit('notify', 'Incorrect password. Please try again.');
+          emit('notify', t('errors.passwordIncorrect'));
         } else {
-          emit('notify', data.errors[0]?.message || 'An error occurred');
+          emit('notify', data.errors[0]?.message || t('errors.unexpectedError'));
         }
       } else {
-        emit('notify', data.message || 'An error occurred');
+        emit('notify', data.message || t('errors.unexpectedError'));
       }
     }
   } catch (error) {
-    emit('notify', 'Network error. Please try again.');
+    emit('notify', t('errors.networkError'));
   } finally {
     loading.value.key = false;
   }
@@ -844,6 +910,38 @@ p {
   color: var(--text2);
   line-height: 1.5;
   margin-bottom: 15px;
+  font-weight: 400;
+}
+
+.language-select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 18px;
+  padding-right: 45px !important;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.language-select:hover:not(:focus) {
+  background-color: var(--base3);
+  border-color: var(--base4);
+}
+
+.language-select:focus {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+.language-select option {
+  background-color: var(--base2);
+  color: var(--text1);
+  padding: 12px 15px;
+  font-size: 1rem;
   font-weight: 400;
 }
 

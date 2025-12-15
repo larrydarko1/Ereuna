@@ -2,14 +2,14 @@
   <body>
     <Header />
     <div class="mobilenav">
-      <button class="mnavbtn" :class="{ selected: selected === 'filters' }" @click="select('filters')" aria-label="Show filters panel">
-        Filters
+      <button class="mnavbtn" :class="{ selected: selected === 'filters' }" @click="select('filters')" :aria-label="t('screener.showFiltersPanel')">
+        {{ t('screener.mobileFilters') }}
       </button>
-      <button class="mnavbtn" :class="{ selected: selected === 'list' }" @click="select('list')" aria-label="Show results list panel">
-        List
+      <button class="mnavbtn" :class="{ selected: selected === 'list' }" @click="select('list')" :aria-label="t('screener.showResultsListPanel')">
+        {{ t('screener.mobileList') }}
       </button>
-      <button class="mnavbtn" :class="{ selected: selected === 'charts' }" @click="select('charts')" aria-label="Show charts panel">
-        Charts
+      <button class="mnavbtn" :class="{ selected: selected === 'charts' }" @click="select('charts')" :aria-label="t('screener.showChartsPanel')">
+        {{ t('screener.mobileCharts') }}
       </button>
     </div>
    <div style="display: flex;">
@@ -31,7 +31,7 @@
      </div>
          <div class="navmenu" style="margin-left: 2px;">
           <h1 class="results-count" :key="resultListLength">
-            RESULTS: {{ resultListLength }}
+            {{ t('screener.resultsCount') }} {{ resultListLength }}
             <span v-if="isLoadingResults" class="results-loader">
               <svg class="results-spinner" viewBox="0 0 50 50">
                 <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
@@ -39,66 +39,66 @@
             </span>
           </h1>
       <button class="edit-watch-panel-btn" :class="{ 'edit-watch-panel-btn2': showEditColumn }"
-        @click="showEditColumn = !showEditColumn" aria-label="Edit table columns">Edit Table</button>
+        @click="showEditColumn = !showEditColumn" :aria-label="t('screener.editTableColumns')">{{ t('screener.editTable') }}</button>
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
-            @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover title="Create New Screener" aria-label="Create new screener">
+            @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover :title="t('screener.createNewScreener')" :aria-label="t('screener.createNewScreener')">
            <svg class="img2" viewBox="0 0 512 512" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
   <g fill="var(--text1)" transform="translate(85.333333, 85.333333)">
     <path d="M170.67,0C264.92,0,341.33,76.41,341.33,170.67S264.92,341.33,170.67,341.33S0,264.92,0,170.67S76.41,0,170.67,0ZM170.67,42.67c-70.69,0-128,57.31-128,128s57.31,128,128,128s128-57.31,128-128S241.36,42.67,170.67,42.67ZM192,85.33v64h64v42.67h-64v64h-42.67v-64h-64v-42.67h64v-64H192Z"/>
   </g>
 </svg>
-            <label class=btnlabel>Create</label></button>
+            <label class=btnlabel>{{ t('screener.create') }}</label></button>
           <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }"
-            @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover title="Rename Current Screener" aria-label="Rename current screener">
+            @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover :title="t('screener.renameCurrentScreener')" :aria-label="t('screener.renameCurrentScreener')">
           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path>
   <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
   <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path>
 </svg>
-            <label class=btnlabel>Rename</label></button>
+            <label class=btnlabel>{{ t('screener.rename') }}</label></button>
          <!-- Replace your current Reset button with this: -->
-<button class="snavbtn" v-b-tooltip.hover title="Reset Screener" @click="showResetDialog = true" aria-label="Reset current screener">
+<button class="snavbtn" v-b-tooltip.hover :title="t('screener.resetScreener')" @click="showResetDialog = true" :aria-label="t('screener.resetScreener')">
   <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="20.48">
     <path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z"/>
   </svg>
-  <label class="btnlabel">Reset</label>
+  <label class="btnlabel">{{ t('screener.reset') }}</label>
 </button>
 <div v-if="showResetDialog" class="reset-modal-overlay">
   <div class="reset-modal">
-    <h3>Reset Screener</h3>
-    <p>Are you sure you want to reset the current screener? <br>This cannot be undone.</p>
+    <h3>{{ t('screener.resetDialogTitle') }}</h3>
+    <p>{{ t('screener.resetDialogMessage') }} <br>{{ t('screener.resetDialogWarning') }}</p>
     <div style="margin-top: 16px;">
-      <button class="trade-btn" @click="confirmResetScreener">Yes, Reset</button>
-      <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">Cancel</button>
+      <button class="trade-btn" @click="confirmResetScreener">{{ t('screener.yesReset') }}</button>
+      <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">{{ t('common.cancel') }}</button>
     </div>
     <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
   </div>
 </div>
           <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning }"
-            @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Results" aria-label="Autoplay results">
+            @click="AutoPlay()" v-b-tooltip.hover :title="t('screener.autoplayResults')" :aria-label="t('screener.autoplayResults')">
             <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
   <path fill="var(--text1)" fill-rule="evenodd"
     d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z">
   </path>
 </svg>
-            <label class=btnlabel>Autoplay</label></button>
+            <label class=btnlabel>{{ t('screener.autoplay') }}</label></button>
           <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'hidden' }" v-b-tooltip.hover
-            title="Hidden List" @click="showHiddenResults()" aria-label="Show hidden assets list">
+            :title="t('screener.hiddenList')" @click="showHiddenResults()" :aria-label="t('screener.hiddenList')">
           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path
     d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
     stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
-            <label class=btnlabel>Hidden Assets</label></button>
+            <label class=btnlabel>{{ t('screener.hiddenAssets') }}</label></button>
           <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'combined' }" v-b-tooltip.hover
-            title="Show Combined Screener Results" @click="showCombinedResults()" aria-label="Show combined screener results">
+            :title="t('screener.showCombinedResults')" @click="showCombinedResults()" :aria-label="t('screener.showCombinedResults')">
           <svg class="img2" fill="var(--text1)" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
   <path d="M8,8 L8,4.5 C8,3.11928813 9.11928813,2 10.5,2 L19.5,2 C20.8807119,2 22,3.11928813 22,4.5 L22,13.5 C22,14.8807119 20.8807119,16 19.5,16 L16,16 L16,19.5 C16,20.8807119 14.8807119,22 13.5,22 L4.5,22 C3.11928813,22 2,20.8807119 2,19.5 L2,10.5 C2,9.11928813 3.11928813,8 4.5,8 L8,8 Z M9,8.5 C9,8.77614237 8.77614237,9 8.5,9 L4.5,9 C3.67157288,9 3,9.67157288 3,10.5 L3,19.5 C3,20.3284271 3.67157288,21 4.5,21 L13.5,21 C14.3284271,21 15,20.3284271 15,19.5 L15,15.5 C15,15.2238576 15.2238576,15 15.5,15 L19.5,15 C20.3284271,15 21,14.3284271 21,13.5 L21,4.5 C21,3.67157288 20.3284271,3 19.5,3 L10.5,3 C9.67157288,3 9,3.67157288 9,4.5 L9,8.5 Z M13.5,9 C13.2238576,9 13,8.77614237 13,8.5 C13,8.22385763 13.2238576,8 13.5,8 C14.8807119,8 16,9.11928813 16,10.5 C16,10.7761424 15.7761424,11 15.5,11 C15.2238576,11 15,10.7761424 15,10.5 C15,9.67157288 14.3284271,9 13.5,9 Z M8,13.5 C8,13.2238576 8.22385763,13 8.5,13 C8.77614237,13 9,13.2238576 9,13.5 C9,14.3284271 9.67157288,15 10.5,15 C10.7761424,15 11,15.2238576 11,15.5 C11,15.7761424 10.7761424,16 10.5,16 C9.11928813,16 8,14.8807119 8,13.5 Z M12.5,16 C12.2238576,16 12,15.7761424 12,15.5 C12,15.2238576 12.2238576,15 12.5,15 L13.5,15 C13.7761424,15 14,15.2238576 14,15.5 C14,15.7761424 13.7761424,16 13.5,16 L12.5,16 Z M10.5,9 C10.2238576,9 10,8.77614237 10,8.5 C10,8.22385763 10.2238576,8 10.5,8 L11.5,8 C11.7761424,8 12,8.22385763 12,8.5 C12,8.77614237 11.7761424,9 11.5,9 L10.5,9 Z M8,10.5 C8,10.2238576 8.22385763,10 8.5,10 C8.77614237,10 9,10.2238576 9,10.5 L9,11.5 C9,11.7761424 8.77614237,12 8.5,12 C8.22385763,12 8,11.7761424 8,11.5 L8,10.5 Z M15,12.5 C15,12.2238576 15.2238576,12 15.5,12 C15.7761424,12 16,12.2238576 16,12.5 L16,13.5 C16,13.7761424 15.7761424,14 15.5,14 C15.2238576,14 15,13.7761424 15,13.5 L15,12.5 Z"/>
 </svg>
-            <label class=btnlabel>Multi-Screener</label>
+            <label class=btnlabel>{{ t('screener.multiScreener') }}</label>
           </button>
          <button @click="DownloadResults" class="snavbtn" style="cursor: pointer;" v-b-tooltip.hover
-  title="Download Results" aria-label="Download results"
+  :title="t('screener.downloadResults')" :aria-label="t('screener.downloadResults')"
   :disabled="downloadLoading">
   <label v-if="downloadLoading" class="loader4">
     <svg class="spinner" viewBox="0 0 50 50">
@@ -109,7 +109,7 @@
     <path d="M3 15C3 17.8284 3 19.2426 3.87868 20.1213C4.75736 21 6.17157 21 9 21H15C17.8284 21 19.2426 21 20.1213 20.1213C21 19.2426 21 17.8284 21 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M12 3V16M12 16L16 11.625M12 16L8 11.625" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>
-  <label class=btnlabel>{{ downloadLoading ? 'Downloading...' : 'Download Results' }}</label>
+  <label class=btnlabel>{{ downloadLoading ? t('screener.downloading') : t('screener.downloadResults') }}</label>
 </button>
         </div>
    </div>
@@ -672,47 +672,47 @@
   @notify="showNotification($event)"
 />
         <div class="navmenu-mobile">
-           <h1 class="results-count" :key="resultListLength">RESULTS: {{ resultListLength }}</h1>
+           <h1 class="results-count" :key="resultListLength">{{ t('screener.resultsCount') }} {{ resultListLength }}</h1>
           <button class="snavbtn" id="watchlistCreate" :class="{ 'snavbtnslct': showCreateScreener }"
-            @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover title="Create New Screener">
+            @click="showCreateScreener = !showCreateScreener" v-b-tooltip.hover :title="t('screener.createNewScreener')">
            <svg class="img2" viewBox="0 0 512 512" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
   <g fill="var(--text1)" transform="translate(85.333333, 85.333333)">
     <path d="M170.67,0C264.92,0,341.33,76.41,341.33,170.67S264.92,341.33,170.67,341.33S0,264.92,0,170.67S76.41,0,170.67,0ZM170.67,42.67c-70.69,0-128,57.31-128,128s57.31,128,128,128s128-57.31,128-128S241.36,42.67,170.67,42.67ZM192,85.33v64h64v42.67h-64v64h-42.67v-64h-64v-42.67h64v-64H192Z"/>
   </g>
 </svg></button>
           <button class="snavbtn" id="screenerModify" :class="{ 'snavbtnslct': showRenameScreener }"
-            @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover title="Rename Current Screener">
+            @click="showRenameScreener = !showRenameScreener" v-b-tooltip.hover :title="t('screener.renameCurrentScreener')">
           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"></path>
   <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"></path>
   <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"></path>
 </svg></button>
          <!-- Replace your current Reset button with this: -->
-<button class="snavbtn" v-b-tooltip.hover title="Reset Screener" @click="showResetDialog = true">
+<button class="snavbtn" v-b-tooltip.hover :title="t('screener.resetScreener')" @click="showResetDialog = true">
   <svg class="img2" fill="var(--text1)" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" stroke="var(--text1)" stroke-width="5">
     <path d="M64,256H34A222,222,0,0,1,430,118.15V85h30V190H355V160h67.27A192.21,192.21,0,0,0,256,64C150.13,64,64,150.13,64,256Zm384,0c0,105.87-86.13,192-192,192A192.21,192.21,0,0,1,89.73,352H157V322H52V427H82V393.85A222,222,0,0,0,478,256Z"/>
   </svg>
 </button>
 <div v-if="showResetDialog" class="reset-modal-overlay">
   <div class="reset-modal">
-    <h3>Reset Screener</h3>
-    <p>Are you sure you want to reset the current screener? <br>This cannot be undone.</p>
+    <h3>{{ t('screener.resetDialogTitle') }}</h3>
+    <p>{{ t('screener.resetDialogMessage') }} <br>{{ t('screener.resetDialogWarning') }}</p>
     <div style="margin-top: 16px;">
-      <button class="trade-btn" @click="confirmResetScreener">Yes, Reset</button>
-      <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">Cancel</button>
+      <button class="trade-btn" @click="confirmResetScreener">{{ t('screener.yesReset') }}</button>
+      <button class="trade-btn" style="margin-left: 12px; background: var(--base3); color: #fff;" @click="showResetDialog = false">{{ t('common.cancel') }}</button>
     </div>
     <div v-if="resetError" style="color: var(--negative); margin-top: 12px;">{{ resetError }}</div>
   </div>
 </div>
           <button id="watchlistAutoplay" class="snavbtn" :class="{ 'snavbtnslct': autoplayRunning }"
-            @click="AutoPlay()" v-b-tooltip.hover title="Autoplay Results">
+            @click="AutoPlay()" v-b-tooltip.hover :title="t('screener.autoplayResults')">
             <svg class="img2" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="var(--text1)">
   <path fill="var(--text1)" fill-rule="evenodd"
     d="M5.23331,0.493645 C6.8801,-0.113331 8.6808,-0.161915 10.3579,0.355379 C11.4019,0.6773972 12.361984,1.20757325 13.1838415,1.90671757 L13.4526,2.14597 L14.2929,1.30564 C14.8955087,0.703065739 15.9071843,1.0850774 15.994017,1.89911843 L16,2.01275 L16,6.00002 L12.0127,6.00002 C11.1605348,6.00002 10.7153321,5.01450817 11.2294893,4.37749065 L11.3056,4.29291 L12.0372,3.56137 C11.389,2.97184 10.6156,2.52782 9.76845,2.26653 C8.5106,1.87856 7.16008,1.915 5.92498,2.37023 C4.68989,2.82547 3.63877,3.67423 2.93361,4.78573 C2.22844,5.89723 1.90836,7.20978 2.02268,8.52112 C2.13701,9.83246 2.6794,11.0698 3.56627,12.0425 C4.45315,13.0152 5.63528,13.6693 6.93052,13.9039 C8.22576,14.1385 9.56221,13.9407 10.7339,13.3409 C11.9057,12.7412 12.8476,11.7727 13.4147,10.5848 C13.6526,10.0864 14.2495,9.8752 14.748,10.1131 C15.2464,10.351 15.4575,10.948 15.2196,11.4464 C14.4635,13.0302 13.2076,14.3215 11.6453,15.1213 C10.0829,15.921 8.30101,16.1847 6.57402,15.8719 C4.84704,15.559 3.27086,14.687 2.08836,13.39 C0.905861,12.0931 0.182675,10.4433 0.0302394,8.69483 C-0.122195,6.94637 0.304581,5.1963 1.2448,3.7143 C2.18503,2.2323 3.58652,1.10062 5.23331,0.493645 Z M6,5.46077 C6,5.09472714 6.37499031,4.86235811 6.69509872,5.0000726 L6.7678,5.03853 L10.7714,7.57776 C11.0528545,7.75626909 11.0784413,8.14585256 10.8481603,8.36273881 L10.7714,8.42224 L6.7678,10.9615 C6.45867857,11.1575214 6.06160816,10.965274 6.00646097,10.6211914 L6,10.5392 L6,5.46077 Z">
   </path>
 </svg></button>
           <button class="snavbtn" :class="{ 'snavbtnslct': listMode === 'hidden' }" v-b-tooltip.hover
-            title="Hidden List" @click="showHiddenResults()">
+            :title="t('screener.hiddenList')" @click="showHiddenResults()">
           <svg class="img2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
   <path
     d="M3.99989 4L19.9999 20M16.4999 16.7559C15.1473 17.4845 13.6185 17.9999 11.9999 17.9999C8.46924 17.9999 5.36624 15.5478 3.5868 13.7788C3.1171 13.3119 2.88229 13.0784 2.7328 12.6201C2.62619 12.2933 2.62616 11.7066 2.7328 11.3797C2.88233 10.9215 3.11763 10.6875 3.58827 10.2197C4.48515 9.32821 5.71801 8.26359 7.17219 7.42676M19.4999 14.6335C19.8329 14.3405 20.138 14.0523 20.4117 13.7803L20.4146 13.7772C20.8832 13.3114 21.1182 13.0779 21.2674 12.6206C21.374 12.2938 21.3738 11.7068 21.2672 11.38C21.1178 10.9219 20.8827 10.6877 20.4133 10.2211C18.6338 8.45208 15.5305 6 11.9999 6C11.6624 6 11.3288 6.02241 10.9999 6.06448M13.3228 13.5C12.9702 13.8112 12.5071 14 11.9999 14C10.8953 14 9.99989 13.1046 9.99989 12C9.99989 11.4605 10.2135 10.9711 10.5608 10.6113"
@@ -827,6 +827,7 @@ import Selector from '@/components/Screener/Selector.vue';
 import { computed, onMounted, ref, watch, nextTick, reactive, toRef } from 'vue';
 import { useUserStore } from '@/store/store';
 import NotificationPopup from '@/components/NotificationPopup.vue';
+import { useI18n } from 'vue-i18n';
 
 // popups 
 import CreateScreener from '@/components/Screener/CreateScreener.vue';
@@ -885,6 +886,7 @@ import Gap from '@/components/Screener/Parameters/Gap.vue';
 import IntrinsicValue from '@/components/Screener/Parameters/IntrinsicValue.vue';
 import CAGR from '@/components/Screener/Parameters/CAGR.vue';
 
+const { t } = useI18n();
 const apiKey = import.meta.env.VITE_EREUNA_KEY;
 const userStore = useUserStore();
 const user = computed(() => userStore.getUser);
@@ -2243,92 +2245,84 @@ function handleMouseOver(event: MouseEvent, id: string): void {
 function getTooltipText(id: string): string {
   switch (id) {
     case 'price':
-      return 'Price refers to the current market price of a stock, which is the amount of money an investor would need to pay to buy one share of the stock.';
+      return t('screener.tooltipPrice');
     case 'market-cap':
-      return 'Market capitalization (market cap) is the total value of all outstanding shares of a company\'s stock. It is calculated by multiplying the total number of shares outstanding by the current market price of one share. In this context, market cap is displayed in thousands (1000s).';
+      return t('screener.tooltipMarketCap');
     case 'ipo':
-      return 'IPO (Initial Public Offering) is the first public sale of a company\'s stock, allowing it to raise capital from public investors. IPO Date refers to the date when a company\'s stock first became available for public trading, marking its transition from a private to a publicly traded company.';
+      return t('screener.tooltipIPO');
     case 'sector':
-      return 'The sector refers to the industry or category that a company operates in. This can help investors understand the company\'s business model and potential risks and opportunities.';
+      return t('screener.tooltipSector');
     case 'exchange':
-      return 'Exchange refers to the stock exchange where a company\'s shares are listed and traded, such as the New York Stock Exchange (NYSE) or NASDAQ.';
+      return t('screener.tooltipExchange');
     case 'growth':
-      return 'This section calculates the growth rate of a company\'s Revenue, Earnings (Net Income), and Earnings Per Share (EPS) over time. The growth rates are calculated as a percentage change from the previous quarter (QoQ) and from the same quarter in the previous year (YoY).';
+      return t('screener.tooltipGrowth');
     case 'country':
-      return 'The country refers to the nation where a company is headquartered or primarily operates. This can be an important factor in evaluating a company\'s exposure to local economic and regulatory conditions.';
+      return t('screener.tooltipCountry');
     case 'pe':
-      return 'The price-to-earnings (P/E) ratio is a valuation metric that compares a company\'s current stock price to its earnings per share (EPS). This can help investors evaluate whether a company\'s stock is overvalued or undervalued.';
+      return t('screener.tooltipPE');
     case 'ps':
-      return 'The price-to-sales (P/S) ratio is a valuation metric that compares a company\'s current stock price to its revenue per share. This can help investors evaluate whether a company\'s stock is overvalued or undervalued.';
+      return t('screener.tooltipPS');
     case 'peg':
-      return 'The price-to-earnings growth (PEG) ratio is a valuation metric that compares a company\'s current stock price to its earnings per share (EPS) growth rate. This can help investors evaluate whether a company\'s stock is overvalued or undervalued.';
+      return t('screener.tooltipPEG');
     case 'eps':
-      return 'Earnings per share (EPS) is a measure of a company\'s profitability, calculated by dividing its net income by the number of outstanding shares.';
+      return t('screener.tooltipEPS');
     case 'pb':
-      return 'The price-to-book (P/B) ratio is a valuation metric that compares a company\'s current stock price to its book value per share. This can help investors evaluate whether a company\'s stock is overvalued or undervalued.';
+      return t('screener.tooltipPB');
     case 'div':
-      return 'Dividend Yield TTM (Trailing Twelve Months) is the ratio of the annual dividend payment per share to the stock\'s current price, expressed as a percentage. It represents the return on investment from dividend payments over the past 12 months.';
+      return t('screener.tooltipDiv');
     case 'fundFamily':
-      return 'Fund Family refers to the investment company or financial institution that manages and sponsors the mutual fund or ETF. Examples include Vanguard, Fidelity, BlackRock, etc. Filtering by fund family helps investors find funds managed by specific providers.';
+      return t('screener.tooltipFundFamily');
     case 'fundCategory':
-      return 'Fund Category classifies the mutual fund or ETF based on its investment strategy and asset allocation. Categories include equity funds, bond funds, balanced funds, sector-specific funds, etc. This helps investors identify funds that match their investment objectives and risk tolerance.';
+      return t('screener.tooltipFundCategory');
     case 'netExpenseRatio':
-      return 'Net Expense Ratio is the annual fee that a mutual fund or ETF charges its shareholders, expressed as a percentage of the fund\'s average net assets. It represents the total cost of owning the fund, including management fees, administrative costs, and other operational expenses, after any fee waivers or reimbursements. Lower expense ratios generally mean more of your investment returns stay in your pocket.';
+      return t('screener.tooltipNetExpenseRatio');
     case 'perf':
-      return 'Filter stocks by price performance, including: Change %, % off 52-week high/low, New all-time high/low, MA crossovers; Identify trending stocks and potential breakouts.';
+      return t('screener.tooltipPerf');
     case 'rs':
-      return 'A score that ranks a stock\'s technical performance relative to all assets in our database. It\'s based on a weighted average of percentage returns over 1 week, 1 month, and 1 quarter. The score ranges from 1 (worst) to 100 (best).';
+      return t('screener.tooltipRS');
     case 'volume':
-      return 'Volume metrics include Relative Volume, which measures a stock\'s trading volume compared to its average volume over a given period, and Average Volume (1000s), which represents the average number of shares traded per day, expressed in thousands. These metrics help you understand a stock\'s liquidity and trading activity.';
+      return t('screener.tooltipVolume');
     case 'adv':
-      return 'A measure of a stock\'s price fluctuation over a given period, calculated as the standard deviation of daily returns. It represents the average daily volatility of the stock\'s price, providing insight into the stock\'s risk and potential for price movements. The values are expressed as a percentage, with higher values indicating greater volatility.';
+      return t('screener.tooltipADV');
     case 'roe':
-      return 'Return on equity (ROE) is a measure of a company\'s profitability, calculated by dividing its net income by its total shareholder equity.';
+      return t('screener.tooltipROE');
     case 'roa':
-      return 'Return on assets (ROA) is a measure of a company\'s profitability, calculated by dividing its net income by its total assets.';
+      return t('screener.tooltipROA');
     case 'cagr':
-      return 'Compound Annual Growth Rate (CAGR) represents the annualized rate of return from the stock\'s first available trading price to its current price. It smooths out volatility to show the average yearly growth, making it easy to compare stocks with different IPO dates. For example, a CAGR of 28% means the stock has grown an average of 28% per year since its IPO.';
+      return t('screener.tooltipCAGR');
     case 'current-ratio':
-      return 'The current ratio is a liquidity metric that compares a company\'s current assets to its current liabilities.';
+      return t('screener.tooltipCurrentRatio');
     case 'current-assets':
-      return 'Current assets are a company\'s assets that are expected to be converted into cash within one year or within the company\'s normal operating cycle.';
+      return t('screener.tooltipCurrentAssets');
     case 'current-liabilities':
-      return 'Current liabilities are a company\'s debts or obligations that are due within one year or within the company\'s normal operating cycle.';
+      return t('screener.tooltipCurrentLiabilities');
     case 'current-debt':
-      return 'Current debt refers to a company\'s short-term debt obligations, such as accounts payable, short-term loans, and commercial paper.';
+      return t('screener.tooltipCurrentDebt');
     case 'casheq':
-      return 'Cash and equivalents (casheq) refers to a company\'s liquid assets, such as cash, cash equivalents, and short-term investments.';
+      return t('screener.tooltipCashEq');
     case 'fcf':
-      return 'Free cash flow (FCF) is a measure of a company\'s ability to generate cash from its operations, calculated by subtracting capital expenditures from operating cash flow.';
+      return t('screener.tooltipFCF');
     case 'profit-margin':
-      return 'Profit margin is a measure of a company\'s profitability, calculated by dividing its net income by its revenue.';
+      return t('screener.tooltipProfitMargin');
     case 'gross-margin':
-      return 'Gross margin is a measure of a company\'s profitability, calculated by dividing its gross profit by its revenue.';
+      return t('screener.tooltipGrossMargin');
     case 'debt-equity':
-      return 'The debt-to-equity ratio is a leverage metric that compares a company\'s total debt to its total shareholder equity.';
+      return t('screener.tooltipDebtEquity');
     case 'book-value':
-      return 'Book value is a company\'s total assets minus its total liabilities, which represents the company\'s net worth.';
+      return t('screener.tooltipBookValue');
     case 'ev':
-      return 'Enterprise value (EV) is a measure of a company\'s total value, calculated by adding its market capitalization to its total debt and subtracting its cash and equivalents.';
+      return t('screener.tooltipEV');
     case 'rsi':
-      return 'The relative strength index (RSI) is a technical indicator that measures a company\'s stock price momentum, ranging from 0 to 100.';
+      return t('screener.tooltipRSI');
     case 'gap':
-      return 'Gap % is a measure of the percentage change in a stock\'s price from the previous day\'s close to the current day\'s open. It is calculated as (Current Open - Previous Close) / Previous Close. A positive gap % indicates an upward price movement, while a negative gap % indicates a downward price movement.';
+      return t('screener.tooltipGap');
     case 'assetType':
-      return 'Category of the asset, in this case we support Stocks, ETFs, Mutual Funds, and Cryptocurrencies.';
+      return t('screener.tooltipAssetType');
     case 'iv':
-      return `Intrinsic Value (IV) estimates a stock's true worth using a Discounted Cash Flow (DCF) model. We calculate IV by:
-      1. Summing the last 20 quarters of Free Cash Flow (FCF) to get annual FCF for the past 5 years.
-      2. Calculating the 5-year Compound Annual Growth Rate (CAGR) of FCF.
-      3. Projecting FCF for the next 5 years using this CAGR.
-      4. Discounting these projected FCFs to present value at a 10% rate.
-      5. Adding a terminal value (using the Gordon Growth Model with a 2.5% growth rate) and discounting it.
-      6. Adding net cash (cash minus debt) from the latest quarter.
-      7. Dividing the total by shares outstanding to get IV per share.
-      This approach helps assess if a stock is undervalued or overvalued based on its future cash flow potential.`;
+      return t('screener.tooltipIV');
     case 'ai-recommendation':
-      return 'This filter displays assets with AI-generated investment recommendations, such as Strong Sell, Sell, Hold, Buy, or Strong Buy. These recommendations are produced by a proprietary algorithm that analyzes company financial statements. Please note that this is an experimental feature and should not be regarded as financial advice or a substitute for professional analysis.';
-      default:
+      return t('screener.tooltipAIRecommendation');
+    default:
       return '';
   }
 }

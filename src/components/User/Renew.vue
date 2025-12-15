@@ -1,22 +1,22 @@
 <template>
   <div class="modal-backdrop" @click.self="$emit('close')" role="dialog" aria-modal="true" aria-labelledby="renew-title">
     <div class="modal-content">
-      <button class="close-x" @click="$emit('close')" aria-label="Close">&times;</button>
-      <h2 id="renew-title">Renew Subscription</h2>
+      <button class="close-x" @click="$emit('close')" :aria-label="t('common.close')">&times;</button>
+      <h2 id="renew-title">{{ t('renew.title') }}</h2>
     <div class="subscription-section">
       <div class="duration-selection">
         <div class="duration-options">
           <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 1 }" @click="selectedDuration = 1">
-            1 Month
+            {{ t('subscription.duration.oneMonth') }}
           </div>
           <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 4 }" @click="selectedDuration = 4">
-            4 Months
+            {{ t('subscription.duration.fourMonths') }}
           </div>
           <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 6 }" @click="selectedDuration = 6">
-            6 Months
+            {{ t('subscription.duration.sixMonths') }}
           </div>
           <div class="duration-option" :class="{ 'selected-duration': selectedDuration === 12 }" @click="selectedDuration = 12">
-            1 Year
+            {{ t('subscription.duration.oneYear') }}
           </div>
         </div>
       </div>
@@ -42,10 +42,10 @@
             </div>
           </div>
         </div>
-        <p>Total: <span>€{{ calculateTotalPrice() }}</span></p>
+        <p>{{ t('renew.total') }}: <span>€{{ calculateTotalPrice() }}</span></p>
       </div>
     </div>
-  <button @click="handleRenewal" class="userbtn" :disabled="isLoading || vatLoadFailed" type="button" aria-label="Renew Subscription">
+  <button @click="handleRenewal" class="userbtn" :disabled="isLoading || vatLoadFailed" type="button" :aria-label="t('renew.renewButton')">
       <span class="btn-content-row">
         <span v-if="isLoading" class="loader4">
           <svg class="spinner" viewBox="0 0 50 50">
@@ -59,8 +59,8 @@
             />
           </svg>
         </span>
-        <span v-if="!isLoading">Renew</span>
-        <span v-else style="margin-left: 8px;">Processing...</span>
+        <span v-if="!isLoading">{{ t('renew.renewButton') }}</span>
+        <span v-else style="margin-left: 8px;">{{ t('renew.processing') }}</span>
       </span>
     </button>
   <NotificationPopup ref="notification" role="alert" aria-live="polite" />
@@ -70,8 +70,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { loadStripe } from '@stripe/stripe-js';
 import NotificationPopup from '@/components/NotificationPopup.vue';
+
+const { t } = useI18n();
 
 const props = defineProps({
   apiKey: { type: String, required: true },
@@ -149,7 +152,7 @@ async function fetchVatRates() {
     countries.value = (data.countries || []).sort((a: CountryVat, b: CountryVat) => a.name.localeCompare(b.name));
     vatLoadFailed.value = false;
   } catch (err) {
-    notification.value?.show('Could not load VAT rates. Renewal is temporarily disabled.');
+    notification.value?.show(t('renew.vatLoadFailed'));
     vatLoadFailed.value = true;
   }
 }
@@ -204,7 +207,7 @@ async function handleRenewal() {
   if (isLoading.value) return;
   isLoading.value = true;
   if (!stripe.value || !card.value) {
-    showNotification('Payment form not ready. Please wait for the payment form to load.');
+    showNotification(t('renew.paymentFormNotReady'));
     isLoading.value = false;
     return;
   }
@@ -218,12 +221,12 @@ async function handleRenewal() {
     paymentMethod = result.paymentMethod;
     pmError = result.error;
   } catch (err) {
-    showNotification('Unexpected error creating payment method.');
+    showNotification(t('errors.unexpectedError'));
     isLoading.value = false;
     return;
   }
   if (pmError || !paymentMethod) {
-    showNotification(pmError?.message || 'Payment method error.');
+    showNotification(pmError?.message || t('renew.paymentMethodError'));
     isLoading.value = false;
     return;
   }
@@ -247,20 +250,20 @@ async function handleRenewal() {
     try {
       result = await response.json();
     } catch (jsonErr) {
-      showNotification('Server error: invalid response.');
+      showNotification(t('renew.serverError'));
       isLoading.value = false;
       return;
     }
     if (response.ok && result.success) {
-      showNotification('Renewal and payment successful!');
+      showNotification(t('renew.success'));
       setTimeout(() => {
         window.location.reload();
       }, 3000);
     } else {
-      showNotification(result.message || 'Renewal or payment failed.');
+      showNotification(result.message || t('renew.failed'));
     }
   } catch (error) {
-    showNotification('Network or server error. Please check your connection.');
+    showNotification(t('renew.networkError'));
   } finally {
     isLoading.value = false;
   }

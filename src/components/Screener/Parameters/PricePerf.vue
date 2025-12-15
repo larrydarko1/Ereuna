@@ -2,7 +2,7 @@
   <div :class="[showPricePerfModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Price Performance</span>
+        <span class="title">{{ t('params.pricePerformance') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'perf')" @mouseout="handleMouseOut($event)" aria-label="Show info for Price Performance parameter">
           <path
@@ -22,18 +22,18 @@
     
     <div class="content" v-if="showPricePerfModel">
       <div class="perf-section">
-        <div class="section-title">Change %</div>
+        <div class="section-title">{{ t('params.changePercent') }}</div>
         <div class="input-group">
           <div class="input-wrapper">
-            <label class="input-label">Minimum</label>
+            <label class="input-label">{{ t('params.minimum') }}</label>
             <input class="input-field" id="changeperc1" type="number" step="0.01" placeholder="0.00" aria-label="Change Percent minimum">
           </div>
           <div class="input-wrapper">
-            <label class="input-label">Maximum</label>
+            <label class="input-label">{{ t('params.maximum') }}</label>
             <input class="input-field" id="changeperc2" type="number" step="0.01" placeholder="0.00" aria-label="Change Percent maximum">
           </div>
           <div class="input-wrapper">
-            <label class="input-label">Period</label>
+            <label class="input-label">{{ t('params.period') }}</label>
             <div class="dropdown-container">
               <div class="dropdown-btn" @click="toggleChangepercDropdown" aria-label="Select Change Percent period">
                 <span class="selected-value">{{ changepercDisplay }}</span>
@@ -57,52 +57,52 @@
       </div>
       
       <div class="perf-section">
-        <div class="section-title">% off 52weekhigh</div>
+        <div class="section-title">{{ t('params.percOff52WeekHigh') }}</div>
         <div class="input-group">
           <div class="input-wrapper">
-            <label class="input-label">Minimum</label>
+            <label class="input-label">{{ t('params.minimum') }}</label>
             <input class="input-field" id="weekhigh1" type="number" step="0.01" placeholder="0.00" aria-label="52 Week High minimum">
           </div>
           <div class="input-wrapper">
-            <label class="input-label">Maximum</label>
+            <label class="input-label">{{ t('params.maximum') }}</label>
             <input class="input-field" id="weekhigh2" type="number" step="0.01" placeholder="0.00" aria-label="52 Week High maximum">
           </div>
         </div>
       </div>
       
       <div class="perf-section">
-        <div class="section-title">% off 52weeklow</div>
+        <div class="section-title">{{ t('params.percOff52WeekLow') }}</div>
         <div class="input-group">
           <div class="input-wrapper">
-            <label class="input-label">Minimum</label>
+            <label class="input-label">{{ t('params.minimum') }}</label>
             <input class="input-field" id="weeklow1" type="number" step="0.01" placeholder="0.00" aria-label="52 Week Low minimum">
           </div>
           <div class="input-wrapper">
-            <label class="input-label">Maximum</label>
+            <label class="input-label">{{ t('params.maximum') }}</label>
             <input class="input-field" id="weeklow2" type="number" step="0.01" placeholder="0.00" aria-label="52 Week Low maximum">
           </div>
         </div>
       </div>
       
       <div class="perf-section">
-        <div class="section-title">All Time Records</div>
+        <div class="section-title">{{ t('params.allTimeRecords') }}</div>
         <div class="checkbox-group">
           <label class="custom-checkbox" :class="{ checked: allTimeHigh }" @click="toggleAllTimeHigh" aria-label="New All Time High">
             <span class="checkmark"></span>
-            New All Time High
+            {{ t('params.newAllTimeHigh') }}
           </label>
           <label class="custom-checkbox" :class="{ checked: allTimeLow }" @click="toggleAllTimeLow" aria-label="New All Time Low">
             <span class="checkmark"></span>
-            New All Time Low
+            {{ t('params.newAllTimeLow') }}
           </label>
         </div>
       </div>
       
       <div class="perf-section">
-        <div class="section-title">Moving Averages</div>
+        <div class="section-title">{{ t('params.movingAverages') }}</div>
         <div class="ma-group">
           <div class="ma-item">
-            <span class="ma-label">200 DMA</span>
+            <span class="ma-label">{{ t('params.ma200') }}</span>
             <div class="dropdown-container">
               <div class="dropdown-btn" @click="toggleMa200Dropdown" aria-label="Select 200 DMA">
                 <span class="selected-value">{{ ma200Display }}</span>
@@ -123,7 +123,7 @@
             </div>
           </div>
           <div class="ma-item">
-            <span class="ma-label">50 DMA</span>
+            <span class="ma-label">{{ t('params.ma50') }}</span>
             <div class="dropdown-container">
               <div class="dropdown-btn" @click="toggleMa50Dropdown" aria-label="Select 50 DMA">
                 <span class="selected-value">{{ ma50Display }}</span>
@@ -144,7 +144,7 @@
             </div>
           </div>
           <div class="ma-item">
-            <span class="ma-label">20 DMA</span>
+            <span class="ma-label">{{ t('params.ma20') }}</span>
             <div class="dropdown-container">
               <div class="dropdown-btn" @click="toggleMa20Dropdown" aria-label="Select 20 DMA">
                 <span class="selected-value">{{ ma20Display }}</span>
@@ -165,7 +165,7 @@
             </div>
           </div>
           <div class="ma-item">
-            <span class="ma-label">10 DMA</span>
+            <span class="ma-label">{{ t('params.ma10') }}</span>
             <div class="dropdown-container">
               <div class="dropdown-btn" @click="toggleMa10Dropdown" aria-label="Select 10 DMA">
                 <span class="selected-value">{{ ma10Display }}</span>
@@ -186,7 +186,7 @@
             </div>
           </div>
           <div class="ma-item">
-            <span class="ma-label">Price</span>
+            <span class="ma-label">{{ t('params.priceLabel') }}</span>
             <div class="dropdown-container">
               <div class="dropdown-btn" @click="togglePriceDropdown" aria-label="Select Price">
                 <span class="selected-value">{{ priceDisplay }}</span>
@@ -211,10 +211,10 @@
       
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); emit('update:showPricePerf', false)" aria-label="Reset Price Performance filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetPricePerformance()" aria-label="Set Price Performance filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -223,7 +223,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showPricePerf']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -249,75 +251,75 @@ const showPricePerfModel = computed({
   get: () => props.showPricePerf,
   set: (val: boolean) => emit('update:showPricePerf', val)
 });
-const changepercOptions = ref([
-  { display: '-', value: '-' },
-  { display: '1 Day', value: '1D' },
-  { display: '1 Week', value: '1W' },
-  { display: '1 Month', value: '1M' },
-  { display: '4 Months', value: '4M' },
-  { display: '6 Months', value: '6M' },
-  { display: '1 Year', value: '1Y' },
-  { display: 'Year to Date', value: 'YTD' }
+const changepercOptions = computed(() => [
+  { display: t('params.optionDash'), value: '-' },
+  { display: t('params.option1Day'), value: '1D' },
+  { display: t('params.option1Week'), value: '1W' },
+  { display: t('params.option1Month'), value: '1M' },
+  { display: t('params.option4Months'), value: '4M' },
+  { display: t('params.option6Months'), value: '6M' },
+  { display: t('params.option1Year'), value: '1Y' },
+  { display: t('params.optionYTD'), value: 'YTD' }
 ]);
 
-const ma200Options = ref([
-  { display: '-', value: '-' },
-  { display: 'Above 50DMA', value: 'abv50' },
-  { display: 'Above 20DMA', value: 'abv20' },
-  { display: 'Above 10DMA', value: 'abv10' },
-  { display: 'Above Price', value: 'abvPrice' },
-  { display: 'Below 50DMA', value: 'blw50' },
-  { display: 'Below 20DMA', value: 'blw20' },
-  { display: 'Below 10DMA', value: 'blw10' },
-  { display: 'Below Price', value: 'blwPrice' }
+const ma200Options = computed(() => [
+  { display: t('params.optionDash'), value: '-' },
+  { display: t('params.optionAbove50DMA'), value: 'abv50' },
+  { display: t('params.optionAbove20DMA'), value: 'abv20' },
+  { display: t('params.optionAbove10DMA'), value: 'abv10' },
+  { display: t('params.optionAbovePrice'), value: 'abvPrice' },
+  { display: t('params.optionBelow50DMA'), value: 'blw50' },
+  { display: t('params.optionBelow20DMA'), value: 'blw20' },
+  { display: t('params.optionBelow10DMA'), value: 'blw10' },
+  { display: t('params.optionBelowPrice'), value: 'blwPrice' }
 ]);
 
-const ma50Options = ref([
-  { display: '-', value: '-' },
-  { display: 'Above 200DMA', value: 'abv200' },
-  { display: 'Above 20DMA', value: 'abv20' },
-  { display: 'Above 10DMA', value: 'abv10' },
-  { display: 'Above Price', value: 'abvPrice' },
-  { display: 'Below 200DMA', value: 'blw200' },
-  { display: 'Below 20DMA', value: 'blw20' },
-  { display: 'Below 10DMA', value: 'blw10' },
-  { display: 'Below Price', value: 'blwPrice' }
+const ma50Options = computed(() => [
+  { display: t('params.optionDash'), value: '-' },
+  { display: t('params.optionAbove200DMA'), value: 'abv200' },
+  { display: t('params.optionAbove20DMA'), value: 'abv20' },
+  { display: t('params.optionAbove10DMA'), value: 'abv10' },
+  { display: t('params.optionAbovePrice'), value: 'abvPrice' },
+  { display: t('params.optionBelow200DMA'), value: 'blw200' },
+  { display: t('params.optionBelow20DMA'), value: 'blw20' },
+  { display: t('params.optionBelow10DMA'), value: 'blw10' },
+  { display: t('params.optionBelowPrice'), value: 'blwPrice' }
 ]);
 
-const ma20Options = ref([
-  { display: '-', value: '-' },
-  { display: 'Above 200DMA', value: 'abv200' },
-  { display: 'Above 50DMA', value: 'abv50' },
-  { display: 'Above 10DMA', value: 'abv10' },
-  { display: 'Above Price', value: 'abvPrice' },
-  { display: 'Below 200DMA', value: 'blw200' },
-  { display: 'Below 50DMA', value: 'blw50' },
-  { display: 'Below 10DMA', value: 'blw10' },
-  { display: 'Below Price', value: 'blwPrice' }
+const ma20Options = computed(() => [
+  { display: t('params.optionDash'), value: '-' },
+  { display: t('params.optionAbove200DMA'), value: 'abv200' },
+  { display: t('params.optionAbove50DMA'), value: 'abv50' },
+  { display: t('params.optionAbove10DMA'), value: 'abv10' },
+  { display: t('params.optionAbovePrice'), value: 'abvPrice' },
+  { display: t('params.optionBelow200DMA'), value: 'blw200' },
+  { display: t('params.optionBelow50DMA'), value: 'blw50' },
+  { display: t('params.optionBelow10DMA'), value: 'blw10' },
+  { display: t('params.optionBelowPrice'), value: 'blwPrice' }
 ]);
 
-const ma10Options = ref([
-  { display: '-', value: '-' },
-  { display: 'Above 200DMA', value: 'abv200' },
-  { display: 'Above 50DMA', value: 'abv50' },
-  { display: 'Above 20DMA', value: 'abv20' },
-  { display: 'Above Price', value: 'abvPrice' },
-  { display: 'Below 200DMA', value: 'blw200' },
-  { display: 'Below 50DMA', value: 'blw50' },
-  { display: 'Below 20DMA', value: 'blw20' },
-  { display: 'Below Price', value: 'blwPrice' }
+const ma10Options = computed(() => [
+  { display: t('params.optionDash'), value: '-' },
+  { display: t('params.optionAbove200DMA'), value: 'abv200' },
+  { display: t('params.optionAbove50DMA'), value: 'abv50' },
+  { display: t('params.optionAbove20DMA'), value: 'abv20' },
+  { display: t('params.optionAbovePrice'), value: 'abvPrice' },
+  { display: t('params.optionBelow200DMA'), value: 'blw200' },
+  { display: t('params.optionBelow50DMA'), value: 'blw50' },
+  { display: t('params.optionBelow20DMA'), value: 'blw20' },
+  { display: t('params.optionBelowPrice'), value: 'blwPrice' }
 ]);
 
-const priceOptions = ref([
-  { display: '-', value: '-' },
-  { display: 'Above 200DMA', value: 'abv200' },
-  { display: 'Above 50DMA', value: 'abv50' },
-  { display: 'Above 20DMA', value: 'abv20' },
-  { display: 'Above 10DMA', value: 'abv10' },
-  { display: 'Below 200DMA', value: 'blw200' },
-  { display: 'Below 50DMA', value: 'blw50' },
-  { display: 'Below 20DMA', value: 'blw20' },
-  { display: 'Below 10DMA', value: 'blw10' }
+const priceOptions = computed(() => [
+  { display: t('params.optionDash'), value: '-' },
+  { display: t('params.optionAbove200DMA'), value: 'abv200' },
+  { display: t('params.optionAbove50DMA'), value: 'abv50' },
+  { display: t('params.optionAbove20DMA'), value: 'abv20' },
+  { display: t('params.optionAbove10DMA'), value: 'abv10' },
+  { display: t('params.optionBelow200DMA'), value: 'blw200' },
+  { display: t('params.optionBelow50DMA'), value: 'blw50' },
+  { display: t('params.optionBelow20DMA'), value: 'blw20' },
+  { display: t('params.optionBelow10DMA'), value: 'blw10' }
 ]);
 
 const changepercSelect = ref('-');
@@ -327,12 +329,12 @@ const ma20Select = ref('-');
 const ma10Select = ref('-');
 const priceSelect = ref('-');
 
-const changepercDisplay = ref('-');
-const ma200Display = ref('-');
-const ma50Display = ref('-');
-const ma20Display = ref('-');
-const ma10Display = ref('-');
-const priceDisplay = ref('-');
+const changepercDisplay = ref(t('params.optionDash'));
+const ma200Display = ref(t('params.optionDash'));
+const ma50Display = ref(t('params.optionDash'));
+const ma20Display = ref(t('params.optionDash'));
+const ma10Display = ref(t('params.optionDash'));
+const priceDisplay = ref(t('params.optionDash'));
 
 const changepercDropdownOpen = ref<boolean>(false);
 const ma200DropdownOpen = ref<boolean>(false);
@@ -481,7 +483,7 @@ watch(() => props.initialSettings, (val) => {
 async function SetPricePerformance() {
   try {
     if (!props.selectedScreener) {
-      emit('notify', { message: 'Please select a screener', type: 'error' });
+      emit('notify', { message: t('params.errorSelectScreener'), type: 'error' });
       emit('fetchScreeners', props.selectedScreener);
       return;
     }
@@ -493,7 +495,7 @@ async function SetPricePerformance() {
     const weeklow1Input = document.getElementById('weeklow1') as HTMLInputElement | null;
     const weeklow2Input = document.getElementById('weeklow2') as HTMLInputElement | null;
     if (!changeperc1Input || !changeperc2Input || !weekhigh1Input || !weekhigh2Input || !weeklow1Input || !weeklow2Input) {
-      emit('notify', { message: 'Input elements not found', type: 'error' });
+      emit('notify', { message: t('params.errorInputNotFound'), type: 'error' });
       emit('fetchScreeners', props.selectedScreener);
       return;
     }
@@ -541,7 +543,7 @@ async function SetPricePerformance() {
       // If both present and valid, check order
       if (minVal !== null && !isNaN(minVal) && maxVal !== null && !isNaN(maxVal)) {
         if (minVal >= maxVal) {
-          emit('notify', { message: `Min cannot be higher than or equal to max for ${pair.label}`, type: 'error' });
+          emit('notify', { message: `${t('params.errorMinMax')} (${pair.label})`, type: 'error' });
           emit('fetchScreeners', props.selectedScreener);
           return;
         }
@@ -554,7 +556,7 @@ async function SetPricePerformance() {
         // - If a dropdown/checkbox has a value, we allow it (don't fail here)
         // - Otherwise, treat as an error
         if (!dropdownOrCheckboxHasValue) {
-          emit('notify', { message: `Please enter at least one valid number for ${pair.label}`, type: 'error' });
+          emit('notify', { message: `${t('params.errorEnterNumber')} (${pair.label})`, type: 'error' });
           emit('fetchScreeners', props.selectedScreener);
           return;
         }
@@ -562,7 +564,7 @@ async function SetPricePerformance() {
     }
     // If at least one numeric pair or any dropdown/checkbox has a value, ok
     if (!hasAnyValue && !dropdownOrCheckboxHasValue) {
-      emit('notify', { message: 'Please enter at least one valid value in any field (numbers, dropdowns, or checkboxes).', type: 'error' });
+      emit('notify', { message: t('params.errorEnterNumber'), type: 'error' });
       emit('fetchScreeners', props.selectedScreener);
       return;
     }
