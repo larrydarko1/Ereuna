@@ -8,7 +8,7 @@
             class="menu"
             :class="{ selected: selectedIndex === 0 }"
             role="menuitem"
-            aria-label="Account"
+            :aria-label="t('user.menu.account')"
             tabindex="0"
             @click="selectMenu(0, $event)"
             @keydown.enter="selectMenu(0, $event)"
@@ -18,13 +18,13 @@
               <path
                 d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
             </svg>
-            Account
+            {{ t('user.menu.account') }}
           </div>
           <div
             class="menu"
             :class="{ selected: selectedIndex === 1 }"
             role="menuitem"
-            aria-label="Subscription"
+            :aria-label="t('user.menu.subscription')"
             tabindex="0"
             @click="selectMenu(1, $event)"
             @keydown.enter="selectMenu(1, $event)"
@@ -34,13 +34,13 @@
               <path
                 d="M20 4H4c-1.1 0-2 .9-2 2v2h20V6c0-1.1-.9-2-2-2zM2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-6H2v6zm4-3h4v2H6v-2z" />
             </svg>
-            Subscription
+            {{ t('user.menu.subscription') }}
           </div>
           <div
             class="menu"
             :class="{ selected: selectedIndex === 2 }"
             role="menuitem"
-            aria-label="Themes"
+            :aria-label="t('user.menu.themes')"
             tabindex="0"
             @click="selectMenu(2, $event)"
             @keydown.enter="selectMenu(2, $event)"
@@ -73,13 +73,13 @@
                 </g>
               </g>
             </svg>
-            Themes
+            {{ t('user.menu.themes') }}
           </div>
           <div
             class="menu"
             :class="{ selected: selectedIndex === 3 }"
             role="menuitem"
-            aria-label="Security / 2FA"
+            :aria-label="t('user.menu.security2fa')"
             tabindex="0"
             @click="selectMenu(3, $event)"
             @keydown.enter="selectMenu(3, $event)"
@@ -94,7 +94,7 @@
                   d="M52,24h-4v-8c0-8.836-7.164-16-16-16S16,7.164,16,16v8h-4c-2.211,0-4,1.789-4,4v32c0,2.211,1.789,4,4,4h40 c2.211,0,4-1.789,4-4V28C56,25.789,54.211,24,52,24z M32,48c-2.211,0-4-1.789-4-4s1.789-4,4-4s4,1.789,4,4S34.211,48,32,48z M40,24 H24v-8c0-4.418,3.582-8,8-8s8,3.582,8,8V24z">
                 </path>
               </g>
-            </svg>Security / 2FA
+            </svg>{{ t('user.menu.security2fa') }}
           </div>
         </div>
       </div>
@@ -146,8 +146,11 @@
 import Header from '@/components/Header.vue'
 import { useUserStore } from '@/store/store';
 import { ref, computed, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import NotificationPopup from '@/components/NotificationPopup.vue';
 import Loader from '@/components/loader.vue';
+
+const { t } = useI18n();
 
 // Component Sections
 import TwoFA from '@/components/User/2FA.vue';

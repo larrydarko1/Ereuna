@@ -71,10 +71,10 @@
     <p class="name" ref="nameContainer" @mouseenter="handleNameMouseEnter" @mouseleave="handleNameMouseLeave"><span ref="nameSpan">{{ assetInfo?.Name }}</span></p>
   </div>
   <div v-if="!assetInfo?.Delisted && isInHiddenList(assetInfo?.Symbol)" class="badge-message">
-    <p>HIDDEN LIST</p>
+    <p>{{ t('mainChart.hiddenList') }}</p>
   </div>
   <div v-if="assetInfo?.Delisted === true" class="badge-message">
-    <p>DELISTED</p>
+    <p>{{ t('mainChart.delisted') }}</p>
   </div>
                                   </div>
 <div id="legend2">
@@ -126,7 +126,7 @@
     <span class="status-text">{{ marketStatusText }}</span>
   </div>
   <div v-if="isEODOnly" class="eod-only-badge">
-    <span class="eod-text">EOD Only</span>
+    <span class="eod-text">{{ t('mainChart.eodOnly') }}</span>
   </div>
 </div>
 <div id="legend4">
@@ -256,6 +256,9 @@
 <script setup lang="ts">
 import Loader from '@/components/loader.vue';
 import { onMounted, ref, watch, computed, onUnmounted, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 import {
   createChart,
   ColorType,
@@ -649,7 +652,7 @@ function handleExportScreenshot(config: any): void {
 async function clearAllDrawings(): Promise<void> {
   if (!drawingPersistence) return;
   
-  if (confirm('Are you sure you want to clear all drawings for this symbol? This cannot be undone.')) {
+  if (confirm(t('mainChart.clearDrawingsConfirm'))) {
     await drawingPersistence.clearDrawings();
     hasAnyDrawings.value = false;
   }
@@ -1938,10 +1941,10 @@ const marketStatusClass = computed<string>(() => {
 });
 
 const marketStatusText = computed<string>(() => {
-  if (marketStatus.value === 'open') return 'Market Open';
-  if (marketStatus.value === 'closed') return 'Market Close';
-  if (marketStatus.value === 'holiday') return 'Holiday | ' + currentHolidayName.value;
-  return 'Holiday';
+  if (marketStatus.value === 'open') return t('mainChart.marketOpen');
+  if (marketStatus.value === 'closed') return t('mainChart.marketClosed');
+  if (marketStatus.value === 'holiday') return t('mainChart.marketHoliday') + ' | ' + currentHolidayName.value;
+  return t('mainChart.marketHoliday');
 });
 
 // Computed property for EOD Only badge

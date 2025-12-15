@@ -1,8 +1,8 @@
 <template>
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
-      <button class="close-x" @click="close" aria-label="Close">&times;</button>
-      <h2>Edit Chart Settings</h2>
+      <button class="close-x" @click="close" :aria-label="t('editChart.close')">&times;</button>
+      <h2>{{ t('editChart.title') }}</h2>
       <form @submit.prevent="saveSettings">
         <div
           v-for="(indicator, idx) in indicators"
@@ -19,15 +19,15 @@
               @keydown.enter.space="toggleIndicatorVisibility(idx)"
               role="checkbox"
               :aria-checked="indicator.visible"
-              :aria-label="'Toggle visibility for indicator ' + (idx + 1)"
-              title="Toggle indicator visibility"
-            >
-              <span class="checkmark"></span>
-            </div>
+            :aria-label="t('editChart.toggleVisibility', { number: idx + 1 })"
+            :title="t('editChart.toggleVisibilityTitle')"
+          >
+            <span class="checkmark"></span>
           </div>
-          <div class="indicator-label">Indicator {{ idx + 1 }}</div>
+          </div>
+          <div class="indicator-label">{{ t('editChart.indicator', { number: idx + 1 }) }}</div>
           <div class="indicator-piece">
-            <div class="custom-dropdown" @click="toggleDropdown(idx)" :aria-label="'Select indicator type for indicator ' + (idx + 1)">
+            <div class="custom-dropdown" @click="toggleDropdown(idx)" :aria-label="t('editChart.selectIndicatorType', { number: idx + 1 })">
               <div class="selected-value">
                 {{ indicator.type }}
                 <span class="dropdown-arrow" :class="{ open: dropdownOpen === idx }">
@@ -51,10 +51,10 @@
               type="number"
               v-model.number="indicator.timeframe"
               min="1"
-              placeholder="Timeframe"
+              :placeholder="t('editChart.timeframe')"
               required
               class="indicator-input"
-              :aria-label="'Timeframe for indicator ' + (idx + 1)"
+              :aria-label="t('editChart.timeframeFor', { number: idx + 1 })"
             />
           </div>
         </div>
@@ -68,18 +68,18 @@
               @keydown.enter.space="showIntrinsicValue = !showIntrinsicValue"
               role="checkbox"
               :aria-checked="showIntrinsicValue"
-              aria-label="Toggle intrinsic value visibility"
-              title="Toggle intrinsic value visibility"
-            >
-              <span class="checkmark"></span>
-            </div>
+            :aria-label="t('editChart.toggleIntrinsicVisibility')"
+            :title="t('editChart.toggleIntrinsicVisibility')"
+          >
+            <span class="checkmark"></span>
           </div>
-          <div class="indicator-label">Intrinsic Value</div>
+          </div>
+          <div class="indicator-label">{{ t('editChart.intrinsicValue') }}</div>
         </div>
         <div class="indicator-row-compact indicator-module chart-type-row">
-          <div class="indicator-label" style="margin-left: 2rem;">Chart Type</div>
+          <div class="indicator-label" style="margin-left: 2rem;">{{ t('editChart.chartType') }}</div>
           <div class="indicator-piece">
-            <div class="custom-dropdown" @click="toggleChartTypeDropdown" :aria-label="'Select chart type'">
+            <div class="custom-dropdown" @click="toggleChartTypeDropdown" :aria-label="t('editChart.selectChartType')">
               <div class="selected-value">
                 {{ chartTypeLabel }}
                 <span class="dropdown-arrow" :class="{ open: chartTypeDropdownOpen }">
@@ -93,19 +93,19 @@
                 </span>
               </div>
               <div v-if="chartTypeDropdownOpen" class="dropdown-list">
-                <div class="dropdown-item" @click.stop="selectChartType('candlestick')">Candlestick</div>
-                <div class="dropdown-item" @click.stop="selectChartType('bar')">Bar</div>
-                <div class="dropdown-item" @click.stop="selectChartType('heikinashi')">Heikin-Ashi</div>
-                <div class="dropdown-item" @click.stop="selectChartType('line')">Line</div>
-                <div class="dropdown-item" @click.stop="selectChartType('area')">Area</div>
-                <div class="dropdown-item" @click.stop="selectChartType('baseline')">Baseline</div>
+                <div class="dropdown-item" @click.stop="selectChartType('candlestick')">{{ t('editChart.candlestick') }}</div>
+                <div class="dropdown-item" @click.stop="selectChartType('bar')">{{ t('editChart.bar') }}</div>
+                <div class="dropdown-item" @click.stop="selectChartType('heikinashi')">{{ t('editChart.heikinAshi') }}</div>
+                <div class="dropdown-item" @click.stop="selectChartType('line')">{{ t('editChart.line') }}</div>
+                <div class="dropdown-item" @click.stop="selectChartType('area')">{{ t('editChart.area') }}</div>
+                <div class="dropdown-item" @click.stop="selectChartType('baseline')">{{ t('editChart.baseline') }}</div>
               </div>
             </div>
           </div>
         </div>
         <div class="modal-actions">
-          <button type="button" class="cancel-btn" @click="close" aria-label="Cancel chart settings">Cancel</button>
-          <button type="submit" class="trade-btn" aria-label="Save chart settings">Save</button>
+          <button type="button" class="cancel-btn" @click="close" :aria-label="t('editChart.cancelSettings')">{{ t('editChart.cancel') }}</button>
+          <button type="submit" class="trade-btn" :aria-label="t('editChart.saveSettings')">{{ t('editChart.save') }}</button>
         </div>
       </form>
     </div>
@@ -114,6 +114,9 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 interface Indicator {
   type: string;
@@ -160,14 +163,14 @@ watch(() => props.chartType, (v) => {
 // Computed property for displaying chart type label
 const chartTypeLabel = computed(() => {
   const labels: Record<string, string> = {
-    'candlestick': 'Candlestick',
-    'bar': 'Bar',
-    'heikinashi': 'Heikin-Ashi',
-    'line': 'Line',
-    'area': 'Area',
-    'baseline': 'Baseline'
+    'candlestick': t('editChart.candlestick'),
+    'bar': t('editChart.bar'),
+    'heikinashi': t('editChart.heikinAshi'),
+    'line': t('editChart.line'),
+    'area': t('editChart.area'),
+    'baseline': t('editChart.baseline')
   }
-  return labels[chartType.value] || 'Candlestick'
+  return labels[chartType.value] || t('editChart.candlestick')
 })
 
 const dropdownOpen = ref<number | null>(null)

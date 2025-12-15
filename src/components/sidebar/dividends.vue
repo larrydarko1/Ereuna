@@ -2,8 +2,8 @@
   <div class="dividends-container">
     <div v-if="displayedDividendsItems.length > 0" id="DividendsTable">
       <div class="dividends-header">
-        <div class="dividends-cell" style="flex: 0 0 50%;">Reported</div>
-        <div class="dividends-cell" style="flex: 0 0 50%;">Dividends</div>
+        <div class="dividends-cell" style="flex: 0 0 50%;">{{ t('sidebar.dividendsReported') }}</div>
+        <div class="dividends-cell" style="flex: 0 0 50%;">{{ t('sidebar.dividendsColumn') }}</div>
       </div>
       <div class="dividends-body">
         <div
@@ -21,7 +21,7 @@
       </div>
     </div>
     <div v-if="displayedDividendsItems.length === 0" class="no-data">
-      No dividend data available
+      {{ t('sidebar.noDividendData') }}
     </div>
     <button
       v-if="showDividendsButton"
@@ -29,14 +29,17 @@
       class="toggle-btn"
       :disabled="loading"
     >
-      {{ showAllDividends ? 'Show Less' : 'Show All' }}
+      {{ showAllDividends ? t('sidebar.showLess') : t('sidebar.showAll') }}
     </button>
-    <div v-if="loading" class="loading-indicator">Loading...</div>
+    <div v-if="loading" class="loading-indicator">{{ t('sidebar.loading') }}</div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Dividend {
   payment_date: string;

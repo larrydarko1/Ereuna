@@ -3,8 +3,8 @@
     <div v-if="show" class="advanced-search-overlay" @click.self="closeSearch">
       <div class="advanced-search-popup" @click.stop>
         <div class="advanced-search-header">
-          <h3>Advanced Search</h3>
-          <button class="close-btn" @click="closeSearch" aria-label="Close search">
+          <h3>{{ t('advancedSearch.title') }}</h3>
+          <button class="close-btn" @click="closeSearch" :aria-label="t('advancedSearch.closeSearch')">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -17,7 +17,7 @@
             v-model="searchQuery"
             type="text"
             class="advanced-search-input"
-            placeholder="Search by company name, symbol, or ISIN..."
+            :placeholder="t('advancedSearch.searchPlaceholder')"
             @input="handleInput"
             @keydown.down.prevent="navigateDown"
             @keydown.up.prevent="navigateUp"
@@ -32,10 +32,10 @@
 
         <div class="search-results" v-if="searchQuery.length > 0">
           <div v-if="isLoading && results.length === 0" class="search-status">
-            Searching...
+            {{ t('advancedSearch.searching') }}
           </div>
           <div v-else-if="!isLoading && results.length === 0 && searchQuery.length > 0" class="search-status">
-            No results found for "{{ searchQuery }}"
+            {{ t('advancedSearch.noResults', { query: searchQuery }) }}
           </div>
           <div
             v-for="(result, index) in results"
@@ -65,9 +65,9 @@
         </div>
 
         <div class="search-hint" v-if="searchQuery.length === 0">
-          <p>Start typing to search across all assets...</p>
+          <p>{{ t('advancedSearch.startTyping') }}</p>
           <div class="keyboard-hints">
-            <kbd>↑</kbd> <kbd>↓</kbd> to navigate • <kbd>Enter</kbd> to select • <kbd>Esc</kbd> to close
+            <kbd>↑</kbd> <kbd>↓</kbd> <span v-html="t('advancedSearch.keyboardHint')"></span>
           </div>
         </div>
       </div>
@@ -77,6 +77,9 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface SearchResult {
   Symbol: string;

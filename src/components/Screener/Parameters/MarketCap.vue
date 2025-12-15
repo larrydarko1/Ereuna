@@ -2,7 +2,7 @@
   <div :class="[showMarketCapInputsModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Market Cap (1000s)</span>
+        <span class="title">{{ t('params.marketCap') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'market-cap')" @mouseout="handleMouseOut($event)" aria-label="Show info for Market Cap parameter">
           <path
@@ -23,21 +23,21 @@
     <div class="content" v-if="showMarketCapInputsModel">
       <div class="input-group">
         <div class="input-wrapper">
-          <label class="input-label">Minimum</label>
+          <label class="input-label">{{ t('params.minimum') }}</label>
           <input class="input-field" id="left-mc" type="number" step="0.01" placeholder="0.00" aria-label="Market Cap minimum">
         </div>
         <div class="input-wrapper">
-          <label class="input-label">Maximum</label>
+          <label class="input-label">{{ t('params.maximum') }}</label>
           <input class="input-field" id="right-mc" type="number" step="0.01" placeholder="0.00" aria-label="Market Cap maximum">
         </div>
       </div>
       
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); emit('update:showMarketCapInputs', false)" aria-label="Reset Market Cap filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetMarketCap()" aria-label="Set Market Cap filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showMarketCapInputs']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -82,7 +84,7 @@ async function SetMarketCap() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -90,7 +92,7 @@ async function SetMarketCap() {
   const leftInput = document.getElementById('left-mc') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-mc') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -102,7 +104,7 @@ async function SetMarketCap() {
   // If both missing or both invalid, error
   if ((leftPrice === null && rightPrice === null) ||
       (leftPrice !== null && isNaN(leftPrice) && rightPrice !== null && isNaN(rightPrice))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -111,7 +113,7 @@ async function SetMarketCap() {
   // If both are present, validate order
   if (leftPrice !== null && !isNaN(leftPrice) && rightPrice !== null && !isNaN(rightPrice)) {
     if (leftPrice >= rightPrice) {
-      error.value = 'Min market cap cannot be higher than or equal to max market cap';
+      error.value = t('params.errorMinMaxMarketCap');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

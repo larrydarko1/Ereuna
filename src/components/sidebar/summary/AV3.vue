@@ -1,11 +1,14 @@
 <template>
  <div class="summary-row">
-              <div class="category">Average Volume (6M)</div>
+              <div class="category">{{ t('summary.avgVolume6M') }}</div>
               <div class="response">{{ parseInt(assetInfo.AvgVolume6M).toLocaleString() }}</div>
             </div>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
 </script>
 

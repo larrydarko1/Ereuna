@@ -1,6 +1,6 @@
 <template>
  <div class="summary-row">
-              <div class="category">Book Value</div>
+              <div class="category">{{ t('summary.bookValue') }}</div>
               <div class="response">
                 {{ (assetInfo.BookValue != null && !isNaN(assetInfo.BookValue)) ? parseFloat(assetInfo.BookValue) : '-'
                 }}
@@ -9,6 +9,9 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
 </script>
 

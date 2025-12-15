@@ -1,78 +1,77 @@
 <template>
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
-      <button class="close-x" @click="close" aria-label="Close">&times;</button>
-      <h2>Delete Trade</h2>
+      <button class="close-x" @click="close" :aria-label="t('portfolio.closeDeleteTrade')">&times;</button>
+      <h2>{{ t('portfolio.deleteTradeTitle') }}</h2>
       
       <div class="warning-box">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <div>
-          <strong>Warning:</strong> Deleting this trade will recalculate your entire portfolio from scratch. 
-          This action cannot be undone...well, unless you re-add the trade manually. duh
+          <strong>{{ t('portfolio.deleteWarning') }}</strong> {{ t('portfolio.deleteWarningText') }}
         </div>
       </div>
 
       <div class="trade-details">
-        <h3>Trade Details</h3>
+        <h3>{{ t('portfolio.tradeDetails') }}</h3>
         <div class="detail-row">
-          <span class="label">Date:</span>
+          <span class="label">{{ t('portfolio.tradeDetailDate') }}</span>
           <span class="value">{{ formatDate(trade.Date) }}</span>
         </div>
         <div class="detail-row">
-          <span class="label">Symbol:</span>
+          <span class="label">{{ t('portfolio.tradeDetailSymbol') }}</span>
           <span class="value">{{ trade.Symbol }}</span>
         </div>
         <div class="detail-row">
-          <span class="label">Action:</span>
+          <span class="label">{{ t('portfolio.tradeDetailAction') }}</span>
           <span :class="['value', 'action-badge', trade.Action?.toLowerCase()]">
             {{ trade.Action }}
-            <span v-if="trade.IsShort" class="short-indicator">(Short)</span>
+            <span v-if="trade.IsShort" class="short-indicator">{{ t('portfolio.shortIndicator') }}</span>
           </span>
         </div>
         <div class="detail-row">
-          <span class="label">Shares:</span>
+          <span class="label">{{ t('portfolio.tradeDetailShares') }}</span>
           <span class="value">{{ trade.Action === 'Cash Deposit' || trade.Action === 'Cash Withdrawal' ? '-' : trade.Shares }}</span>
         </div>
         <div class="detail-row">
-          <span class="label">Price:</span>
+          <span class="label">{{ t('portfolio.tradeDetailPrice') }}</span>
           <span class="value">{{ trade.Action === 'Cash Deposit' || trade.Action === 'Cash Withdrawal' ? '-' : '$' + Number(trade.Price).toFixed(2) }}</span>
         </div>
         <div class="detail-row">
-          <span class="label">Total:</span>
+          <span class="label">{{ t('portfolio.tradeDetailTotal') }}</span>
           <span class="value">${{ Number(trade.Total).toFixed(2) }}</span>
         </div>
         <div v-if="trade.Leverage && trade.Leverage > 1" class="detail-row">
-          <span class="label">Leverage:</span>
+          <span class="label">{{ t('portfolio.tradeDetailLeverage') }}</span>
           <span class="value">{{ trade.Leverage }}x</span>
         </div>
       </div>
 
       <div class="impact-info">
-        <h3>Impact</h3>
+        <h3>{{ t('portfolio.impactTitle') }}</h3>
         <p>
           <template v-if="trade.Action === 'Buy' && !trade.IsShort">
-            This will <strong>remove or reduce</strong> the corresponding position and <strong>return cash</strong> used for purchase.
+            <span v-html="t('portfolio.impactBuyLong')"></span>
           </template>
           <template v-else-if="trade.Action === 'Sell' && !trade.IsShort">
-            This will <strong>restore</strong> the position that was sold and <strong>remove cash</strong> received from sale.
+            <span v-html="t('portfolio.impactSellLong')"></span>
           </template>
           <template v-else-if="trade.Action === 'Sell' && trade.IsShort">
-            This will <strong>remove or reduce</strong> the short position and <strong>return margin</strong>.
+            <span v-html="t('portfolio.impactSellShort')"></span>
           </template>
           <template v-else-if="trade.Action === 'Buy' && trade.IsShort">
-            This will <strong>restore</strong> the short position and <strong>remove cash</strong> used to close it.
+            <span v-html="t('portfolio.impactBuyShort')"></span>
           </template>
           <template v-else>
-            This will recalculate your portfolio state.
+            {{ t('portfolio.impactDefault') }}
           </template>
         </p>
       </div>
 
       <div v-if="loading" class="loading-state">
         <div class="loader"></div>
-        <span>Deleting trade and recalculating portfolio...</span>
+        <span>{{ t('portfolio.deletingTrade') }}</span>
       </div>
 
       <div v-if="errorMsg" class="error-msg">
@@ -86,10 +85,10 @@
           @click="confirmDelete"
           :disabled="loading"
         >
-          <span v-if="!loading">Delete Trade</span>
-          <span v-else>Processing...</span>
+          <span v-if="!loading">{{ t('portfolio.deleteTrade') }}</span>
+          <span v-else>{{ t('portfolio.processing') }}</span>
         </button>
-        <button type="button" class="cancel-btn" @click="close" :disabled="loading">Cancel</button>
+        <button type="button" class="cancel-btn" @click="close" :disabled="loading">{{ t('portfolio.cancel') }}</button>
       </div>
     </div>
   </div>
@@ -97,7 +96,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const props = defineProps({
   trade: {
     type: Object,
@@ -128,7 +129,7 @@ function formatDate(dateStr: string | undefined): string {
 
 async function confirmDelete() {
   if (!props.trade._id) {
-    errorMsg.value = 'Trade ID is missing. Cannot delete.'
+    errorMsg.value = t('portfolio.tradeIdMissing')
     emit('notify', errorMsg.value)
     return
   }
@@ -146,14 +147,14 @@ async function confirmDelete() {
 
     if (!response.ok) {
       const data = await response.json()
-      throw new Error(data.message || 'Failed to delete trade')
+      throw new Error(data.message || t('portfolio.failedDeleteTrade'))
     }
 
-    emit('notify', 'Trade deleted successfully! Portfolio recalculated.')
+    emit('notify', t('portfolio.tradeDeletedSuccess'))
     emit('deleted')
     close()
   } catch (error) {
-    errorMsg.value = error instanceof Error ? error.message : 'Failed to delete trade'
+    errorMsg.value = error instanceof Error ? error.message : t('portfolio.failedDeleteTrade')
     emit('notify', errorMsg.value)
   } finally {
     loading.value = false

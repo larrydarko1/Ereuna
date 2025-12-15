@@ -1,12 +1,12 @@
 <template>
   <div class="modal-backdrop" @click.self="close" role="dialog" aria-modal="true" aria-labelledby="withdraw-cash-title">
     <div class="modal-content">
-      <button class="close-x" @click="close" aria-label="Close Withdrawal Cash Modal">&times;</button>
-      <h2 id="withdraw-cash-title">Withdraw Cash</h2>
-      <form @submit.prevent="submitWithdrawal" aria-label="Withdraw Cash Form">
+      <button class="close-x" @click="close" :aria-label="t('portfolio.closeWithdrawal')">&times;</button>
+      <h2 id="withdraw-cash-title">{{ t('portfolio.withdrawCashTitle') }}</h2>
+      <form @submit.prevent="submitWithdrawal" :aria-label="t('portfolio.withdrawCashForm')">
         <div class="input-row input-row-flex">
           <div class="input-flex-vertical">
-            <label for="date">Date</label>
+            <label for="date">{{ t('portfolio.date') }}</label>
             <div class="custom-date-picker">
               <input
                 id="date"
@@ -15,10 +15,10 @@
                 @click="toggleCalendar"
                 readonly
                 required
-                placeholder="Select a date"
+                :placeholder="t('portfolio.selectDate')"
                 class="date-input"
                 aria-required="true"
-                aria-label="Withdrawal Date"
+                :aria-label="t('portfolio.withdrawalDate')"
               />
               <div v-if="showCalendar" class="calendar-dropdown">
                 <div class="calendar-header">
@@ -46,7 +46,7 @@
             </div>
           </div>
           <div class="input-flex-vertical" style="margin-left: 12px;">
-            <label for="amount">Amount</label>
+            <label for="amount">{{ t('portfolio.amount') }}</label>
             <input
               id="amount"
               type="number"
@@ -55,15 +55,15 @@
               step="0.01"
               :max="availableCash"
               required
-              placeholder="e.g. 500"
+              :placeholder="t('portfolio.amountPlaceholder')"
               aria-required="true"
-              aria-label="Withdrawal Amount"
+              :aria-label="t('portfolio.withdrawalAmount')"
             />
-            <small class="hint">Available cash: ${{ availableCash?.toFixed(2) ?? '0.00' }}</small>
+            <small class="hint">{{ t('portfolio.availableCash', { cash: availableCash?.toFixed(2) ?? '0.00' }) }}</small>
           </div>
         </div>
         <div v-if="insufficientCash" style="color: var(--negative); margin-top: 8px;">
-          Insufficient cash: You're trying to withdraw ${{ amount?.toFixed(2) ?? '0.00' }}, but you only have ${{ availableCash?.toFixed(2) ?? '0.00' }}.
+          {{ t('portfolio.insufficientCashWithdraw', { amount: amount?.toFixed(2) ?? '0.00', available: availableCash?.toFixed(2) ?? '0.00' }) }}
         </div>
         <br>
         <div class="modal-actions">
@@ -74,11 +74,11 @@
                   <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
                 </svg>
               </span>
-              <span v-if="!isLoading">Withdraw</span>
-              <span v-else style="margin-left: 8px;">Processing...</span>
+              <span v-if="!isLoading">{{ t('portfolio.withdraw') }}</span>
+              <span v-else style="margin-left: 8px;">{{ t('portfolio.processing') }}</span>
             </span>
           </button>
-          <button type="button" class="cancel-btn" @click="close" aria-label="Cancel Withdrawal">Cancel</button>
+          <button type="button" class="cancel-btn" @click="close" :aria-label="t('portfolio.cancelWithdrawal')">{{ t('portfolio.cancel') }}</button>
         </div>
         <div v-if="error" style="color: var(--negative); margin-top: 12px;" role="alert" aria-live="polite">{{ error }}</div>
       </form>
@@ -88,6 +88,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 const emit = defineEmits(['close', 'refresh', 'notify'])
 const props = defineProps({
   user: String,
@@ -110,17 +114,35 @@ const showCalendar = ref(false)
 const currentMonth = ref(new Date().getMonth())
 const currentYear = ref(new Date().getFullYear())
 
-const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+const weekdays = computed(() => [
+  t('portfolio.weekdaySu'),
+  t('portfolio.weekdayMo'),
+  t('portfolio.weekdayTu'),
+  t('portfolio.weekdayWe'),
+  t('portfolio.weekdayTh'),
+  t('portfolio.weekdayFr'),
+  t('portfolio.weekdaySa')
+])
 
 const formattedDate = computed(() => {
   if (!withdrawalDate.value) return ''
   const date = new Date(withdrawalDate.value + 'T00:00:00')
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const months = [
+    t('portfolio.monthJan'), t('portfolio.monthFeb'), t('portfolio.monthMar'),
+    t('portfolio.monthApr'), t('portfolio.monthMay'), t('portfolio.monthJun'),
+    t('portfolio.monthJul'), t('portfolio.monthAug'), t('portfolio.monthSep'),
+    t('portfolio.monthOct'), t('portfolio.monthNov'), t('portfolio.monthDec')
+  ]
   return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`
 })
 
 const currentMonthYear = computed(() => {
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const months = [
+    t('portfolio.monthJanuary'), t('portfolio.monthFebruary'), t('portfolio.monthMarch'),
+    t('portfolio.monthApril'), t('portfolio.monthMay'), t('portfolio.monthJune'),
+    t('portfolio.monthJuly'), t('portfolio.monthAugust'), t('portfolio.monthSeptember'),
+    t('portfolio.monthOctober'), t('portfolio.monthNovember'), t('portfolio.monthDecember')
+  ]
   return `${months[currentMonth.value]} ${currentYear.value}`
 })
 
@@ -236,12 +258,12 @@ const showNotification = (msg: string) => {
 async function submitWithdrawal() {
   error.value = ''
   if (!amount.value || amount.value <= 0) {
-    error.value = 'Please enter a valid amount.'
+    error.value = t('portfolio.validAmount')
     showNotification(error.value)
     return
   }
   if (insufficientCash.value) {
-    error.value = 'Insufficient cash balance.'
+    error.value = t('portfolio.insufficientBalance')
     showNotification(error.value)
     return
   }
@@ -260,12 +282,12 @@ async function submitWithdrawal() {
         date: withdrawalDate.value
       })
     })
-    if (!response.ok) throw new Error('Failed to withdraw cash')
+    if (!response.ok) throw new Error(t('portfolio.failedWithdraw'))
     emit('refresh')
-    showNotification('Cash withdrawn successfully!')
+    showNotification(t('portfolio.withdrawSuccess'))
     close()
   } catch (err) {
-    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : 'Unknown error'
+    error.value = typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : t('portfolio.failedWithdraw')
     showNotification(error.value)
   } finally {
     isLoading.value = false

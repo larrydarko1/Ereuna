@@ -2,7 +2,7 @@
   <div :class="[showProfitMarginModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Profit Margin</span>
+        <span class="title">{{ t('params.profitMargin') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'profit-margin')" @mouseout="handleMouseOut($event)" aria-label="Show info for Profit Margin parameter">
           <path
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showProfitMargin']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -83,7 +85,7 @@ async function SetProfitMargin() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -91,7 +93,7 @@ async function SetProfitMargin() {
   const leftInput = document.getElementById('left-pm') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-pm') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -103,7 +105,7 @@ async function SetProfitMargin() {
   // If both missing or both invalid, error
   if ((leftMargin === null && rightMargin === null) ||
       (leftMargin !== null && isNaN(leftMargin) && rightMargin !== null && isNaN(rightMargin))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -112,7 +114,7 @@ async function SetProfitMargin() {
   // If both are present, validate order
   if (leftMargin !== null && !isNaN(leftMargin) && rightMargin !== null && !isNaN(rightMargin)) {
     if (leftMargin >= rightMargin) {
-      error.value = 'Min profit margin cannot be higher than or equal to max profit margin';
+      error.value = t('params.errorMinMaxProfitMargin');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

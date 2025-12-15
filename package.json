@@ -28,7 +28,6 @@
     "assert": "^2.1.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
-    "fancy-canvas": "^2.1.0",
     "browserify-zlib": "^0.2.0",
     "chart.js": "^4.5.0",
     "chartjs-plugin-annotation": "^3.1.0",
@@ -41,6 +40,7 @@
     "express-prom-bundle": "^8.0.0",
     "express-rate-limit": "^7.4.1",
     "express-validator": "^7.2.0",
+    "fancy-canvas": "^2.1.0",
     "helmet": "^8.0.0",
     "https-browserify": "^1.0.0",
     "ioredis": "^5.8.2",
@@ -73,6 +73,7 @@
     "validator": "^13.12.0",
     "vue": "^3.5.12",
     "vue-chartjs": "^5.3.2",
+    "vue-i18n": "^9.14.5",
     "vue-router": "^4.4.5",
     "vuex": "^4.0.2"
   },

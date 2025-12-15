@@ -2,11 +2,11 @@
   <div class="sales-container">
     <div v-if="displayedSalesItems.length > 0" id="Salestable">
       <div class="sales-header">
-        <div class="sales-cell" style="flex: 0 0 20%;">Reported</div>
-        <div class="sales-cell" style="flex: 0 0 40%;">Sales</div>
-        <div class="sales-cell" style="flex: 0 0 20%;">Chg (%)</div>
-        <div class="sales-cell" style="flex: 0 0 10%;">QoQ</div>
-        <div class="sales-cell" style="flex: 0 0 10%;">YoY</div>
+        <div class="sales-cell" style="flex: 0 0 20%;">{{ t('sidebar.salesReported') }}</div>
+        <div class="sales-cell" style="flex: 0 0 40%;">{{ t('sidebar.salesColumn') }}</div>
+        <div class="sales-cell" style="flex: 0 0 20%;">{{ t('sidebar.salesChange') }}</div>
+        <div class="sales-cell" style="flex: 0 0 10%;">{{ t('sidebar.salesQoQ') }}</div>
+        <div class="sales-cell" style="flex: 0 0 10%;">{{ t('sidebar.salesYoY') }}</div>
       </div>
       <div class="sales-body">
         <div
@@ -76,20 +76,23 @@
       </div>
     </div>
     <div v-if="displayedSalesItems.length === 0" class="no-data">
-      No Quarterly sales data available
+      {{ t('sidebar.noSalesData') }}
     </div>
     <button
       v-if="showSalesButton"
       @click="toggleSales"
       class="toggle-btn"
     >
-      {{ showAllSales ? 'Show Less' : 'Show All' }}
+      {{ showAllSales ? t('sidebar.showLess') : t('sidebar.showAll') }}
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface QuarterlyReport {
   fiscalDateEnding: string;

@@ -2,7 +2,7 @@
   <div :class="[showVolumeModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Volume</span>
+        <span class="title">{{ t('params.volume') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'volume')" @mouseout="handleMouseOut($event)" aria-label="Show info for Volume parameter">
           <path
@@ -22,28 +22,28 @@
     
     <div class="content" v-if="showVolumeModel">
       <div class="volume-section">
-        <div class="section-title">Relative Volume</div>
+        <div class="section-title">{{ t('params.relativeVolume') }}</div>
         <div class="input-group">
           <div class="input-wrapper">
-            <label class="input-label">Minimum</label>
+            <label class="input-label">{{ t('params.minimum') }}</label>
             <input class="input-field" id="left-relvol" type="number" step="0.01" placeholder="0.00" aria-label="Relative Volume minimum">
           </div>
           <div class="input-wrapper">
-            <label class="input-label">Maximum</label>
+            <label class="input-label">{{ t('params.maximum') }}</label>
             <input class="input-field" id="right-relvol" type="number" step="0.01" placeholder="0.00" aria-label="Relative Volume maximum">
           </div>
           <div class="input-wrapper">
-            <label class="input-label">Period</label>
+            <label class="input-label">{{ t('params.period') }}</label>
             <div class="dropdown-container">
               <div class="dropdown-btn" @click="toggleRelVolDropdown" aria-label="Select Relative Volume period">
-                <span class="selected-value">{{ relVolSelect }}</span>
+                <span class="selected-value">{{ relVolSelectLabel }}</span>
                 <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
               <div class="dropdown-menu" v-show="relVolDropdownOpen">
-                <div v-for="(option, index) in relVolOptions" :key="index" @click="selectRelVolOption(option)" class="dropdown-item">
-                  {{ option }}
+                <div v-for="(option, index) in relVolOptionsData" :key="index" @click="selectRelVolOption(option.value)" class="dropdown-item">
+                  {{ option.label.value }}
                 </div>
               </div>
             </div>
@@ -52,28 +52,28 @@
       </div>
       
       <div class="volume-section">
-        <div class="section-title">Average Volume (1000s)</div>
+        <div class="section-title">{{ t('params.averageVolume') }}</div>
         <div class="input-group">
           <div class="input-wrapper">
-            <label class="input-label">Minimum</label>
+            <label class="input-label">{{ t('params.minimum') }}</label>
             <input class="input-field" id="left-avgvol" type="number" step="0.01" placeholder="0.00" aria-label="Average Volume minimum">
           </div>
           <div class="input-wrapper">
-            <label class="input-label">Maximum</label>
+            <label class="input-label">{{ t('params.maximum') }}</label>
             <input class="input-field" id="right-avgvol" type="number" step="0.01" placeholder="0.00" aria-label="Average Volume maximum">
           </div>
           <div class="input-wrapper">
-            <label class="input-label">Period</label>
+            <label class="input-label">{{ t('params.period') }}</label>
             <div class="dropdown-container">
               <div class="dropdown-btn" @click="toggleAvgVolDropdown" aria-label="Select Average Volume period">
-                <span class="selected-value">{{ avgVolSelect }}</span>
+                <span class="selected-value">{{ avgVolSelectLabel }}</span>
                 <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
               <div class="dropdown-menu" v-show="avgVolDropdownOpen">
-                <div v-for="(option, index) in avgVolOptions" :key="index" @click="selectAvgVolOption(option)" class="dropdown-item">
-                  {{ option }}
+                <div v-for="(option, index) in avgVolOptionsData" :key="index" @click="selectAvgVolOption(option.value)" class="dropdown-item">
+                  {{ option.label.value }}
                 </div>
               </div>
             </div>
@@ -83,10 +83,10 @@
       
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); emit('update:showVolume', false)" aria-label="Reset Volume filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetVolume()" aria-label="Set Volume filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -95,7 +95,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showVolume']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -121,21 +123,22 @@ const showVolumeModel = computed({
   set: (val: boolean) => emit('update:showVolume', val)
 });
 
-const relVolOptions = ref<string[]>([
-  '-',
-  '1W',
-  '1M',
-  '6M',
-  '1Y'
-]);
+// Keep API values constant (not translated)
+const relVolOptionsData = [
+  { value: '-', label: computed(() => t('params.optionDash')) },
+  { value: '1W', label: computed(() => t('params.option1W')) },
+  { value: '1M', label: computed(() => t('params.option1M')) },
+  { value: '6M', label: computed(() => t('params.option6M')) },
+  { value: '1Y', label: computed(() => t('params.option1Y')) }
+];
 
-const avgVolOptions = ref<string[]>([
-  '-',
-  '1W',
-  '1M',
-  '6M',
-  '1Y'
-]);
+const avgVolOptionsData = [
+  { value: '-', label: computed(() => t('params.optionDash')) },
+  { value: '1W', label: computed(() => t('params.option1W')) },
+  { value: '1M', label: computed(() => t('params.option1M')) },
+  { value: '6M', label: computed(() => t('params.option6M')) },
+  { value: '1Y', label: computed(() => t('params.option1Y')) }
+];
 
 const relVolSelect = ref<string>('-');
 const avgVolSelect = ref<string>('-');
@@ -143,13 +146,24 @@ const avgVolSelect = ref<string>('-');
 const relVolDropdownOpen = ref<boolean>(false);
 const avgVolDropdownOpen = ref<boolean>(false);
 
-function selectRelVolOption(option: string) {
-  relVolSelect.value = option;
+// Get display label for selected value
+const relVolSelectLabel = computed(() => {
+  const option = relVolOptionsData.find(opt => opt.value === relVolSelect.value);
+  return option ? option.label.value : '-';
+});
+
+const avgVolSelectLabel = computed(() => {
+  const option = avgVolOptionsData.find(opt => opt.value === avgVolSelect.value);
+  return option ? option.label.value : '-';
+});
+
+function selectRelVolOption(value: string) {
+  relVolSelect.value = value;
   relVolDropdownOpen.value = false;
 }
 
-function selectAvgVolOption(option: string) {
-  avgVolSelect.value = option;
+function selectAvgVolOption(value: string) {
+  avgVolSelect.value = value;
   avgVolDropdownOpen.value = false;
 }
 
@@ -174,8 +188,8 @@ function getInputValue(id: string): number {
 async function SetVolume() {
   try {
     if (!props.selectedScreener) {
-      emit('notify', 'Please select a screener');
-      throw new Error('Please select a screener');
+      emit('notify', t('params.errorSelectScreener'));
+      throw new Error(t('params.errorSelectScreener'));
     }
 
     const value1 = getInputValue('left-relvol');

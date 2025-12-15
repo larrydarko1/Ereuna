@@ -1,18 +1,15 @@
 <template>
-  <div id="chartdiv2" aria-label="Financial data notice" role="region">
-    <p class="disclaimer-text" aria-label="Financial data source and update info">
-      Real-time market data provided by IEX Cloud through Tiingo.com as of {{ currentDate }}. Real-time data is currently available only for major U.S. exchanges (NASDAQ and NYSE). 
-      End-of-day (EOD) data consolidation occurs daily, Monday through Friday, between 6:00 PM and 6:30 PM ET, subject to Tiingo's data availability. 
-      <strong>Important:</strong> Stock splits and corporate actions may display incorrect values (e.g., large percentage drops) during market hours until EOD consolidation completes. 
-      Historical data and split adjustments are applied during the nightly EOD update. Intraday volume data is not currently available through this feed — only aggregated and EOD volume values are provided. 
-      Any metrics or calculations not directly provided by Tiingo/IEX are derived internally using their core data. Fundamental or non-price data may be aggregated from multiple third-party providers; IEX and Tiingo currently provide price feeds only.
-      Data provided "as-is" for informational purposes only and should not be solely relied upon for investment decisions.
+  <div id="chartdiv2" :aria-label="t('notice.ariaLabel')" role="region">
+    <p class="disclaimer-text" :aria-label="t('notice.ariaDescription')" v-html="t('notice.disclaimer', { date: currentDate })">
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   apiKey: {

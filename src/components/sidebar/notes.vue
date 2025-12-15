@@ -13,19 +13,22 @@
           </svg>
         </button>
         <p class="note-msg-date">
-          Created: {{ formatDate(note.Date) }}
+          {{ t('sidebar.created') }} {{ formatDate(note.Date) }}
         </p>
         <p class="note-msg">{{ note.Message }}</p>
       </div>
     </div>
     <div v-else>
-     <p class="no-data">No notes available.</p>
+     <p class="no-data">{{ t('sidebar.noNotesAvailable') }}</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   symbol: {

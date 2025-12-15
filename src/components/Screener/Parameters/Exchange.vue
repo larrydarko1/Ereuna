@@ -2,7 +2,7 @@
   <div :class="[ShowExchangeModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Exchange</span>
+        <span class="title">{{ t('params.exchange') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'exchange')" @mouseout="handleMouseOut($event)" aria-label="Show info for Exchange parameter">
           <path
@@ -39,10 +39,10 @@
 
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); ShowExchangeModel = false" aria-label="Reset Exchange filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetExchange()" aria-label="Set Exchange filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -51,7 +51,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:ShowExchange']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -119,7 +121,7 @@ async function SetExchange() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;

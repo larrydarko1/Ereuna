@@ -2,7 +2,7 @@
   <div :class="[showPEGInputsModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">PEG Ratio</span>
+        <span class="title">{{ t('params.pegRatio') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'peg')" @mouseout="handleMouseOut($event)" aria-label="Show info for PEG Ratio parameter">
           <path
@@ -23,21 +23,21 @@
     <div class="content" v-if="showPEGInputsModel">
       <div class="input-group">
         <div class="input-wrapper">
-          <label class="input-label">Minimum</label>
+          <label class="input-label">{{ t('params.minimum') }}</label>
           <input class="input-field" id="left-peg" type="number" step="0.01" placeholder="0.00" aria-label="PEG Ratio minimum">
         </div>
         <div class="input-wrapper">
-          <label class="input-label">Maximum</label>
+          <label class="input-label">{{ t('params.maximum') }}</label>
           <input class="input-field" id="right-peg" type="number" step="0.01" placeholder="0.00" aria-label="PEG Ratio maximum">
         </div>
       </div>
       
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); emit('update:showPEGInputs', false)" aria-label="Reset PEG Ratio filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetPEG()" aria-label="Set PEG Ratio filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showPEGInputs']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -78,7 +80,7 @@ async function SetPEG() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -86,7 +88,7 @@ async function SetPEG() {
   const leftInput = document.getElementById('left-peg') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-peg') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -98,7 +100,7 @@ async function SetPEG() {
   // If both missing or both invalid, error
   if ((leftPEG === null && rightPEG === null) ||
       (leftPEG !== null && isNaN(leftPEG) && rightPEG !== null && isNaN(rightPEG))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -107,7 +109,7 @@ async function SetPEG() {
   // If both are present, validate order
   if (leftPEG !== null && !isNaN(leftPEG) && rightPEG !== null && !isNaN(rightPEG)) {
     if (leftPEG >= rightPEG) {
-      error.value = 'Min PEG cannot be higher than or equal to max PEG';
+      error.value = t('params.errorMinMaxPEG');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

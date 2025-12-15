@@ -2,7 +2,7 @@
   <div :class="[showRSscoreModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Technical Score</span>
+        <span class="title">{{ t('params.technicalScore') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'rs')" @mouseout="handleMouseOut($event)" aria-label="Show info about Technical Score">
           <path
@@ -23,42 +23,42 @@
     <div class="content" v-if="showRSscoreModel">
       <div class="score-sections">
         <div class="score-section">
-          <h4 class="section-title">Technical Score (1W)</h4>
+          <h4 class="section-title">{{ t('params.technicalScore1W') }}</h4>
           <div class="input-group">
             <div class="input-wrapper">
-              <label class="input-label">Min</label>
+              <label class="input-label">{{ t('params.min') }}</label>
               <input class="input-field" type="number" placeholder="1" id="RSscore1Winput1" min="1" max="100" aria-label="Technical Score 1W min">
             </div>
             <div class="input-wrapper">
-              <label class="input-label">Max</label>
+              <label class="input-label">{{ t('params.max') }}</label>
               <input class="input-field" type="number" placeholder="100" id="RSscore1Winput2" min="1" max="100" aria-label="Technical Score 1W max">
             </div>
           </div>
         </div>
         
         <div class="score-section">
-          <h4 class="section-title">Technical Score (1M)</h4>
+          <h4 class="section-title">{{ t('params.technicalScore1M') }}</h4>
           <div class="input-group">
             <div class="input-wrapper">
-              <label class="input-label">Min</label>
+              <label class="input-label">{{ t('params.min') }}</label>
               <input class="input-field" type="number" placeholder="1" id="RSscore1Minput1" min="1" max="100" aria-label="Technical Score 1M min">
             </div>
             <div class="input-wrapper">
-              <label class="input-label">Max</label>
+              <label class="input-label">{{ t('params.max') }}</label>
               <input class="input-field" type="number" placeholder="100" id="RSscore1Minput2" min="1" max="100" aria-label="Technical Score 1M max">
             </div>
           </div>
         </div>
         
         <div class="score-section">
-          <h4 class="section-title">Technical Score (4M)</h4>
+          <h4 class="section-title">{{ t('params.technicalScore4M') }}</h4>
           <div class="input-group">
             <div class="input-wrapper">
-              <label class="input-label">Min</label>
+              <label class="input-label">{{ t('params.min') }}</label>
               <input class="input-field" type="number" placeholder="1" id="RSscore4Minput1" min="1" max="100" aria-label="Technical Score 4M min">
             </div>
             <div class="input-wrapper">
-              <label class="input-label">Max</label>
+              <label class="input-label">{{ t('params.max') }}</label>
               <input class="input-field" type="number" placeholder="100" id="RSscore4Minput2" min="1" max="100" aria-label="Technical Score 4M max">
             </div>
           </div>
@@ -67,10 +67,10 @@
       
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); emit('update:showRSscore', false)" aria-label="Reset Technical Score">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetRSscore()" aria-label="Set Technical Score">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -79,7 +79,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showRSscore']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -109,8 +111,8 @@ const showRSscoreModel = computed({
 async function SetRSscore() {
   try {
     if (!props.selectedScreener) {
-      emit('notify', 'Please select a screener');
-      throw new Error('Please select a screener');
+      emit('notify', t('params.errorSelectScreener'));
+      throw new Error(t('params.errorSelectScreener'));
     }
 
     function getInputValue(id: string): number {

@@ -2,7 +2,7 @@
   <div :class="[showPSInputsModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">PS Ratio</span>
+        <span class="title">{{ t('params.psRatio') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'ps')" @mouseout="handleMouseOut($event)" aria-label="Show info for PS Ratio parameter">
           <path
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showPSInputs']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -79,7 +81,7 @@ async function SetPSRatio() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -87,7 +89,7 @@ async function SetPSRatio() {
   const leftInput = document.getElementById('left-ps') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-ps') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -99,7 +101,7 @@ async function SetPSRatio() {
   // If both missing or both invalid, error
   if ((leftPS === null && rightPS === null) ||
       (leftPS !== null && isNaN(leftPS) && rightPS !== null && isNaN(rightPS))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -108,7 +110,7 @@ async function SetPSRatio() {
   // If both are present, validate order
   if (leftPS !== null && !isNaN(leftPS) && rightPS !== null && !isNaN(rightPS)) {
     if (leftPS >= rightPS) {
-      error.value = 'Min PS cannot be higher than or equal to max PS';
+      error.value = t('params.errorMinMaxPS');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

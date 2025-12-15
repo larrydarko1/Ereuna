@@ -39,8 +39,11 @@
 
 <script setup lang="ts">
 import Loader from '@/components/loader.vue';
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { createChart, ColorType } from '@/lib/lightweight-charts';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface OHLC {
   time: string;
@@ -97,21 +100,21 @@ const selectedTimeframe = ref('weekly');
 const selectedChartType = ref('candlestick');
 const chartTypeDropdownOpen = ref(false);
 
-const timeframes = [
-  { label: '5m', value: 'intraday5m' },
-  { label: '15m', value: 'intraday15m' },
-  { label: '30m', value: 'intraday30m' },
-  { label: '1h', value: 'intraday1hr' },
-  { label: '1D', value: 'daily' },
-  { label: '1W', value: 'weekly' },
-];
+const timeframes = computed(() => [
+  { label: t('screenerComponents.timeframe5m'), value: 'intraday5m' },
+  { label: t('screenerComponents.timeframe15m'), value: 'intraday15m' },
+  { label: t('screenerComponents.timeframe30m'), value: 'intraday30m' },
+  { label: t('screenerComponents.timeframe1h'), value: 'intraday1hr' },
+  { label: t('screenerComponents.timeframe1D'), value: 'daily' },
+  { label: t('screenerComponents.timeframe1W'), value: 'weekly' },
+]);
 
-const chartTypeOptions = [
-  { label: 'Candlestick', value: 'candlestick' },
-  { label: 'Bar', value: 'bar' },
-  { label: 'Line', value: 'line' },
-  { label: 'Area', value: 'area' },
-];
+const chartTypeOptions = computed(() => [
+  { label: t('screenerComponents.chartCandlestick'), value: 'candlestick' },
+  { label: t('screenerComponents.chartBar'), value: 'bar' },
+  { label: t('screenerComponents.chartLine'), value: 'line' },
+  { label: t('screenerComponents.chartArea'), value: 'area' },
+]);
 
 function setTimeframe(tf: string) {
   selectedTimeframe.value = tf;

@@ -1,7 +1,7 @@
 <template>
   <div class="summary-container">
     <div class="summary-header">
-      <h1 class="summary-title">SUMMARY</h1>
+      <h1 class="summary-title">{{ t('screenerComponents.summaryTitle') }}</h1>
     </div>
     <div class="summary-content">
       <div class="summary-list" v-if="screenerSummary.length > 0">
@@ -12,7 +12,7 @@
         </div>
       </div>
       <div class="summary-empty" v-else>
-        <span>No summary data available</span>
+        <span>{{ t('screenerComponents.noSummaryData') }}</span>
       </div>
     </div>
   </div>
@@ -20,6 +20,9 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   apiKey: {
@@ -152,71 +155,83 @@ async function loadSummary(): Promise<void> {
     ];
 
     const attributeMapping: { [key: string]: string } = {
-      'MarketCap': 'Market Cap',
-      'PE': 'PE Ratio',
-      'PB': 'PB Ratio',
-      'PS': 'PS Ratio',
-      'DivYield': 'Dividend Yield (%)',
-      'EPSQoQ': 'EPS Growth QoQ (%)',
-      'EPSYoY': 'EPS Growth YoY (%)',
-      'EarningsQoQ': 'Earnings Growth QoQ (%)',
-      'EarningsYoY': 'Earnings Growth YoY (%)',
-      'RevQoQ': 'Revenue Growth QoQ (%)',
-      'RevYoY': 'Revenue Growth YoY (%)',
-      'AvgVolume1W': 'Average Volume (1W)',
-      'AvgVolume1M': 'Average Volume (1M)',
-      'AvgVolume6M': 'Average Volume (6M)',
-      'AvgVolume1Y': 'Average Volume (1Y)',
-      'RelVolume1W': 'Relative Volume (1W)',
-      'RelVolume1M': 'Relative Volume (1M)',
-      'RelVolume6M': 'Relative Volume (6M)',
-      'RelVolume1Y': 'Relative Volume (1Y)',
-      'RSScore1W': 'RS Score (1W)',
-      'RSScore1M': 'RS Score (1M)',
-      'RSScore4M': 'RS Score (4M)',
-      'NewHigh': 'New High',
-      'NewLow': 'New Low',
-      'PercOffWeekHigh': '% Off 52WeekHigh',
-      'PercOffWeekLow': '% Off 52WeekLow',
-      'changePerc': 'Change (%)',
-      'IPO': 'IPO',
-      'ADV1W': 'ADV (1W)',
-      'ADV1M': 'ADV (1M)',
-      'ADV4M': 'ADV (4M)',
-      'ADV1Y': 'ADV (1Y)',
-      'ROE': 'ROE',
-      'ROA': 'ROA',
-      'currentRatio': 'Current Ratio',
-      'assetsCurrent': 'Current Assets',
-      'liabilitiesCurrent': 'Current Liabilities',
-      'debtCurrent': 'Current Debt',
-      'cashAndEq': 'Cash and Equivalents',
-      'freeCashFlow': 'Free Cash Flow',
-      'profitMargin': 'Profit Margin',
-      'grossMargin': 'Gross Margin',
-      'debtEquity': 'Debt/Equity',
-      'bookVal': 'Book Value',
-      'EV': 'Enterprise Value',
-      'RSI': 'RSI',
-      'Gap': 'Gap %',
-      'AssetTypes': 'Asset Types',
-      'AIRecommendations': 'AI Recommendations',
-      'IV': 'Intrinsic Value',
-      'FundFamilies': 'Fund Families',
-      'FundCategories': 'Fund Categories',
-      'NetExpenseRatio': 'Net Expense Ratio %',
-      'CAGR': 'CAGR %'
+      'Price': t('screenerComponents.attrPrice'),
+      'MarketCap': t('screenerComponents.attrMarketCap'),
+      'Sectors': t('screenerComponents.attrSectors'),
+      'Exchanges': t('screenerComponents.attrExchanges'),
+      'Countries': t('screenerComponents.attrCountries'),
+      'AIRecommendations': t('screenerComponents.attrAIRecommendations'),
+      'PE': t('screenerComponents.attrPE'),
+      'PS': t('screenerComponents.attrPS'),
+      'ForwardPE': t('screenerComponents.attrForwardPE'),
+      'PEG': t('screenerComponents.attrPEG'),
+      'EPS': t('screenerComponents.attrEPS'),
+      'PB': t('screenerComponents.attrPB'),
+      'DivYield': t('screenerComponents.attrDivYieldPercent'),
+      'EPSQoQ': t('screenerComponents.attrEPSQoQ'),
+      'EPSYoY': t('screenerComponents.attrEPSYoY'),
+      'EarningsQoQ': t('screenerComponents.attrEarningsQoQ'),
+      'EarningsYoY': t('screenerComponents.attrEarningsYoY'),
+      'RevQoQ': t('screenerComponents.attrRevQoQ'),
+      'RevYoY': t('screenerComponents.attrRevYoY'),
+      'AvgVolume1W': t('screenerComponents.attrAvgVolume1W'),
+      'AvgVolume1M': t('screenerComponents.attrAvgVolume1M'),
+      'AvgVolume6M': t('screenerComponents.attrAvgVolume6M'),
+      'AvgVolume1Y': t('screenerComponents.attrAvgVolume1Y'),
+      'RelVolume1W': t('screenerComponents.attrRelVolume1W'),
+      'RelVolume1M': t('screenerComponents.attrRelVolume1M'),
+      'RelVolume6M': t('screenerComponents.attrRelVolume6M'),
+      'RelVolume1Y': t('screenerComponents.attrRelVolume1Y'),
+      'RSScore1W': t('screenerComponents.attrRSScore1W'),
+      'RSScore1M': t('screenerComponents.attrRSScore1M'),
+      'RSScore4M': t('screenerComponents.attrRSScore4M'),
+      'MA10': t('screenerComponents.attrMA10'),
+      'MA20': t('screenerComponents.attrMA20'),
+      'MA50': t('screenerComponents.attrMA50'),
+      'MA200': t('screenerComponents.attrMA200'),
+      'CurrentPrice': t('screenerComponents.attrCurrentPrice'),
+      'NewHigh': t('screenerComponents.attrNewHigh'),
+      'NewLow': t('screenerComponents.attrNewLow'),
+      'PercOffWeekHigh': t('screenerComponents.attrPercOffWeekHigh'),
+      'PercOffWeekLow': t('screenerComponents.attrPercOffWeekLow'),
+      'changePerc': t('screenerComponents.attrChangePerc'),
+      'IPO': t('screenerComponents.attrIPO'),
+      'ADV1W': t('screenerComponents.attrADV1W'),
+      'ADV1M': t('screenerComponents.attrADV1M'),
+      'ADV4M': t('screenerComponents.attrADV4M'),
+      'ADV1Y': t('screenerComponents.attrADV1Y'),
+      'ROE': t('screenerComponents.attrROE'),
+      'ROA': t('screenerComponents.attrROA'),
+      'currentRatio': t('screenerComponents.attrCurrentRatio'),
+      'assetsCurrent': t('screenerComponents.attrCurrentAssets'),
+      'liabilitiesCurrent': t('screenerComponents.attrCurrentLiabilities'),
+      'debtCurrent': t('screenerComponents.attrCurrentDebt'),
+      'cashAndEq': t('screenerComponents.attrCash'),
+      'freeCashFlow': t('screenerComponents.attrFreeCashFlow'),
+      'profitMargin': t('screenerComponents.attrProfitMargin'),
+      'grossMargin': t('screenerComponents.attrGrossMargin'),
+      'debtEquity': t('screenerComponents.attrDebtEquity'),
+      'bookVal': t('screenerComponents.attrBookValue'),
+      'EV': t('screenerComponents.attrEV'),
+      'RSI': t('screenerComponents.attrRSI'),
+      'Gap': t('screenerComponents.attrGap'),
+      'AssetTypes': t('screenerComponents.attrAssetTypes'),
+      'IV': t('screenerComponents.attrIntrinsicValue'),
+      'FundFamilies': t('screenerComponents.attrFundFamilies'),
+      'FundCategories': t('screenerComponents.attrFundCategories'),
+      'NetExpenseRatio': t('screenerComponents.attrNetExpenseRatioPercent'),
+      'CAGR': t('screenerComponents.attrCAGRPercent')
     };
 
     const valueMapping: { [key: string]: string } = {
-      'abv200': 'Above 200MA',
-      'abv50': 'Above 50MA',
-      'abv20': 'Above 20MA',
-      'abv10': 'Above 10MA',
-      'blw200': 'Below 200MA',
-      'blw50': 'Below 50MA',
-      'blw20': 'Below 20MA',
-      'blw10': 'Below 20MA',
+      'abv200': t('screenerComponents.valueAbove200MA'),
+      'abv50': t('screenerComponents.valueAbove50MA'),
+      'abv20': t('screenerComponents.valueAbove20MA'),
+      'abv10': t('screenerComponents.valueAbove10MA'),
+      'blw200': t('screenerComponents.valueBelow200MA'),
+      'blw50': t('screenerComponents.valueBelow50MA'),
+      'blw20': t('screenerComponents.valueBelow20MA'),
+      'blw10': t('screenerComponents.valueBelow10MA'),
     };
 
     const newScreenerSummary: { attribute: string; value: any }[] = [];

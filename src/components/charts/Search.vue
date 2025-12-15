@@ -4,18 +4,18 @@
       type="text"
       id="searchbar"
       name="search"
-      placeholder="Search Ticker / ISIN"
+      :placeholder="t('search.placeholder')"
       :value="modelValue"
       @input="onInput"
       @keydown.enter="onSearch"
-      aria-label="Search ticker or ISIN"
+      :aria-label="t('search.ariaLabel')"
     />
     <button
       class="wlbtn-advanced"
       @click="$emit('open-advanced-search')"
       v-b-tooltip.hover
-      title="Advanced Search"
-      aria-label="Open advanced search"
+      :title="t('search.advancedSearchTitle')"
+      :aria-label="t('search.advancedSearchAriaLabel')"
     >
       <svg height="15" width="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M3 7H21M3 12H21M3 17H21" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"/>
@@ -26,8 +26,8 @@
       id="searchBtn"
       @click="onSearch"
       v-b-tooltip.hover
-      title="Search Symbol"
-      aria-label="Search for ticker or ISIN"
+      :title="t('search.searchButtonTitle')"
+      :aria-label="t('search.searchButtonAriaLabel')"
     >
       <svg height="15" width="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path
@@ -43,6 +43,10 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
 const props = defineProps({
   modelValue: {
     type: String,

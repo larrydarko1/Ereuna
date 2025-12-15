@@ -2,7 +2,7 @@
   <div :class="[showCAGRModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">CAGR Since IPO</span>
+        <span class="title">{{ t('params.cagrSinceIpo') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'cagr')" @mouseout="handleMouseOut($event)" aria-label="Show info for CAGR parameter">
           <path
@@ -23,21 +23,21 @@
     <div class="content" v-if="showCAGRModel">
       <div class="input-group">
         <div class="input-wrapper">
-          <label class="input-label">Minimum</label>
+          <label class="input-label">{{ t('params.minimum') }}</label>
           <input class="input-field" id="left-cagr" type="number" step="0.01" placeholder="0.00" aria-label="CAGR minimum">
         </div>
         <div class="input-wrapper">
-          <label class="input-label">Maximum</label>
+          <label class="input-label">{{ t('params.maximum') }}</label>
           <input class="input-field" id="right-cagr" type="number" step="0.01" placeholder="0.00" aria-label="CAGR maximum">
         </div>
       </div>
       
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); emit('update:showCAGR', false)" aria-label="Reset CAGR filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetCAGR()" aria-label="Set CAGR filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showCAGR']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -83,14 +85,14 @@ async function SetCAGR() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     return;
   }
   const leftInput = document.getElementById('left-cagr') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-cagr') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     return;
   }
@@ -104,7 +106,7 @@ async function SetCAGR() {
   // If both missing or both invalid, error
   if ((leftCAGR === null && rightCAGR === null) ||
       (leftCAGR !== null && isNaN(leftCAGR) && rightCAGR !== null && isNaN(rightCAGR))) {
-    error.value = 'Please enter at least one valid percentage';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     return;
   }
@@ -112,7 +114,7 @@ async function SetCAGR() {
   // If both are present, validate order
   if (leftCAGR !== null && !isNaN(leftCAGR) && rightCAGR !== null && !isNaN(rightCAGR)) {
     if (leftCAGR >= rightCAGR) {
-      error.value = 'Min CAGR cannot be higher than or equal to max CAGR';
+      error.value = t('params.errorMinMax');
       showNotification(error.value);
       return;
     }

@@ -26,10 +26,10 @@
       :class="{ 'screener-no-screeners': !(ScreenersName && ScreenersName.length > 0) }"
       @click.stop="toggleDropdown"
       role="button"
-      aria-label="Selected screener: {{ selectedScreener ? selectedScreener : (ScreenersName && ScreenersName.length > 0 ? 'Choose a Screener...' : 'No screeners available.') }}"
+      :aria-label="'Selected screener: ' + (selectedScreener ? selectedScreener : (ScreenersName && ScreenersName.length > 0 ? t('screenerComponents.chooseScreener') : t('screenerComponents.noScreenersAvailable')))"
       tabindex="0"
     >
-      {{ selectedScreener ? selectedScreener : (ScreenersName && ScreenersName.length > 0 ? 'Choose a Screener...' : 'No screeners available.') }}
+      {{ selectedScreener ? selectedScreener : (ScreenersName && ScreenersName.length > 0 ? t('screenerComponents.chooseScreener') : t('screenerComponents.noScreenersAvailable')) }}
     </p>
     <div
       class="screener-dropdown-container"
@@ -67,6 +67,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Screener {
   Name: string;

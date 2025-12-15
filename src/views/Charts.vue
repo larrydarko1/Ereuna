@@ -9,14 +9,14 @@
   @notify="showNotification($event)"
 />
    <div class="mobilenav">
-      <button class="mnavbtn" :class="{ selected: selected === 'info' }" @click="select('info')" aria-label="Show info panel">
-        Info
+      <button class="mnavbtn" :class="{ selected: selected === 'info' }" @click="select('info')" :aria-label="t('chartsView.showInfoPanel')">
+        {{ t('chartsView.info') }}
       </button>
-      <button class="mnavbtn" :class="{ selected: selected === 'chart' }" @click="select('chart')" aria-label="Show chart panel">
-        Chart
+      <button class="mnavbtn" :class="{ selected: selected === 'chart' }" @click="select('chart')" :aria-label="t('chartsView.showChartPanel')">
+        {{ t('chartsView.chart') }}
       </button>
-      <button class="mnavbtn" :class="{ selected: selected === 'watchlists' }" @click="select('watchlists')" aria-label="Show watchlist panel">
-        Watchlist
+      <button class="mnavbtn" :class="{ selected: selected === 'watchlists' }" @click="select('watchlists')" :aria-label="t('chartsView.showWatchlistPanel')">
+        {{ t('chartsView.watchlist') }}
       </button>
     </div>
     <div id="main">
@@ -40,7 +40,7 @@
   <path d="M6 6L18 18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
     stroke="currentColor"></path>
 </svg>
-              {{ showPanel ? 'Close Popup' : 'Edit Panel' }}
+              {{ showPanel ? t('chartsView.closePopup') : t('chartsView.editPanel') }}
             </div>
             <transition name="fade">
               <Panel v-if="showPanel" @close="showPanel = false" @updated="fetchPanel"
@@ -124,6 +124,9 @@
 // main imports
 import { reactive, onMounted, ref, computed, nextTick } from 'vue';
 import { useUserStore } from '@/store/store';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // upper components
 import Header from '@/components/Header.vue'
@@ -194,7 +197,7 @@ const searchbarRef = ref<HTMLInputElement | null>(null);
 async function fetchUserDefaultSymbol() {
   try {
     if (!user.value?.Username) {
-      showNotification('User or username missing, not fetching default symbol');
+      showNotification(t('chartsView.userMissing'));
       return null;
     }
     const response = await fetch(`/api/${user.value.Username}/default-symbol`, {
@@ -222,7 +225,7 @@ onMounted(async () => {
   // Wait for user to be loaded
   await nextTick();
   if (!user.value || !user.value.Username) {
-    showNotification('User not loaded, skipping API calls in onMounted');
+    showNotification(t('chartsView.userNotLoaded'));
     return;
   }
   // Remove and fetch default symbol
@@ -240,7 +243,7 @@ onMounted(async () => {
 async function updateUserDefaultSymbol(symbol: string) {
   try {
     if (!user.value?.Username) {
-      showNotification('User or username missing, not updating default symbol');
+      showNotification(t('chartsView.userMissingUpdate'));
       return;
     }
     await fetch(`/api/${user.value.Username}/update-default-symbol`, {
@@ -278,7 +281,7 @@ async function searchTicker(providedSymbol: string, options: Record<string, any>
     });
 
     if (response.status === 404) {
-      showNotification('Ticker not Found');
+      showNotification(t('chartsView.tickerNotFound'));
       return;
     }
 

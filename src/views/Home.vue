@@ -97,7 +97,7 @@
       </div>
     </div>
     <div class="video-container">
-      <img class="hero-video" src="@/assets/videos/heroAnimation.gif" alt="Hero Animation" draggable="false">
+      <img class="hero-video" src="@/assets/images/heroAnimation.gif" alt="Hero Animation" draggable="false">
     </div>
   </div>
   <div class="sphere-gradient"></div>

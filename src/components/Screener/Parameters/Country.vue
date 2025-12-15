@@ -2,7 +2,7 @@
   <div :class="[ShowCountry ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Country</span>
+        <span class="title">{{ t('params.country') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'country')" @mouseout="handleMouseOut($event)" aria-label="Show info for Country parameter">
           <path
@@ -39,10 +39,10 @@
 
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); ShowCountry = false" aria-label="Reset Country filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetCountry()" aria-label="Set Country filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -51,7 +51,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:ShowCountry']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -120,7 +122,7 @@ async function SetCountry() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;

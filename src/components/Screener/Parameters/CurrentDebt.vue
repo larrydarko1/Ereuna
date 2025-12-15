@@ -2,7 +2,7 @@
   <div :class="[showCurrentDebtModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Current Debt (1000s)</span>
+        <span class="title">{{ t('params.currentDebt') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'current-debt')" @mouseout="handleMouseOut" aria-label="Show info for Current Debt parameter">
           <path
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showCurrentDebt']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -82,7 +84,7 @@ async function SetCurrentDebt() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -90,7 +92,7 @@ async function SetCurrentDebt() {
   const leftInput = document.getElementById('left-cd') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-cd') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -102,7 +104,7 @@ async function SetCurrentDebt() {
   // If both missing or both invalid, error
   if ((leftDebt === null && rightDebt === null) ||
       (leftDebt !== null && isNaN(leftDebt) && rightDebt !== null && isNaN(rightDebt))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -111,7 +113,7 @@ async function SetCurrentDebt() {
   // If both are present, validate order
   if (leftDebt !== null && !isNaN(leftDebt) && rightDebt !== null && !isNaN(rightDebt)) {
     if (leftDebt >= rightDebt) {
-      error.value = 'Min current debt cannot be higher than or equal to max current debt';
+      error.value = t('params.errorMinMaxCurrentDebt');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

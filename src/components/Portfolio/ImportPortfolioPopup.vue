@@ -1,13 +1,13 @@
 <template>
   <div class="import-modal-overlay" @click="$emit('close')" aria-label="Import Portfolio Modal Overlay">
     <div class="import-modal" @click.stop role="dialog" aria-modal="true" aria-labelledby="import-title">
-      <h3 id="import-title">Import Portfolio</h3>
-      <p>Select a CSV file exported from Ereuna to import your portfolio, transaction history, and cash.</p>
-      <input type="file" accept=".csv" @change="handleImportFile" aria-label="Select CSV file to import" />
+      <h3 id="import-title">{{ t('portfolio.importPortfolioTitle') }}</h3>
+      <p>{{ t('portfolio.importInstructions') }}</p>
+      <input type="file" accept=".csv" @change="handleImportFile" :aria-label="t('portfolio.selectFile')" />
       <div v-if="importError" class="import-error">{{ importError }}</div>
       <div class="import-actions">
-        <button class="trade-btn" :disabled="loading" @click="$emit('close')">Cancel</button>
-        <span v-if="loading" style="margin-left: 12px; color: var(--accent1); font-size: 1.1em;">Loading...</span>
+        <button class="trade-btn" :disabled="loading" @click="$emit('close')">{{ t('portfolio.cancel') }}</button>
+        <span v-if="loading" style="margin-left: 12px; color: var(--accent1); font-size: 1.1em;">{{ t('portfolio.loading') }}</span>
       </div>
     </div>
   </div>
@@ -15,6 +15,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   user: String,
@@ -53,8 +56,8 @@ async function handleImportFile(event: Event) {
   if (!file) return;
   // Security: limit file size to 1MB
   if (file.size > 1_000_000) {
-    emit('notify', 'File is too large.');
-    importError.value = 'File is too large.';
+    emit('notify', t('portfolio.fileTooLarge'));
+    importError.value = t('portfolio.fileTooLarge');
     return;
   }
   loading.value = true;
@@ -137,7 +140,7 @@ async function handleImportFile(event: Event) {
     for (const row of [...positions, ...trades]) {
       for (let v of Object.values(row)) {
         if (isDangerousCSVValue(v)) {
-          emit('notify', 'Potentially dangerous value detected in CSV.');
+          emit('notify', t('portfolio.dangerousValue'));
           loading.value = false;
           return;
         }
@@ -145,7 +148,7 @@ async function handleImportFile(event: Event) {
     }
     for (let v of Object.values(stats)) {
       if (isDangerousCSVValue(v)) {
-        emit('notify', 'Potentially dangerous value detected in CSV.');
+        emit('notify', t('portfolio.dangerousValue'));
         loading.value = false;
         return;
       }
@@ -169,17 +172,17 @@ async function handleImportFile(event: Event) {
       body: JSON.stringify(payload)
     });
     if (!response.ok) {
-      emit('notify', 'Failed to import portfolio');
-      importError.value = 'Failed to import portfolio';
+      emit('notify', t('portfolio.failedImport'));
+      importError.value = t('portfolio.failedImport');
       loading.value = false;
       return;
     }
   emit('imported');
   emit('import-success');
-  emit('notify', 'Portfolio imported successfully!');
+  emit('notify', t('portfolio.importSuccess'));
   emit('close');
   } catch (error) {
-    const msg = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : 'Import failed.';
+    const msg = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : t('portfolio.importFailed');
     emit('notify', msg);
     importError.value = msg;
     loading.value = false;

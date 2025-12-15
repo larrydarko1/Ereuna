@@ -2,8 +2,8 @@
   <div class="splits-container">
     <div v-if="displayedSplitsItems.length > 0" id="SplitsTable">
       <div class="splits-header">
-        <div class="splits-cell" style="flex: 0 0 50%;">Reported</div>
-        <div class="splits-cell" style="flex: 0 0 50%;">Split</div>
+        <div class="splits-cell" style="flex: 0 0 50%;">{{ t('sidebar.splitsReported') }}</div>
+        <div class="splits-cell" style="flex: 0 0 50%;">{{ t('sidebar.splitsColumn') }}</div>
       </div>
       <div class="splits-body">
         <div
@@ -21,7 +21,7 @@
       </div>
     </div>
     <div v-if="displayedSplitsItems.length === 0" class="no-data">
-      No splits data available
+      {{ t('sidebar.noSplitsData') }}
     </div>
     <button
       v-if="showSplitsButton"
@@ -29,13 +29,16 @@
       class="toggle-btn"
       :disabled="loading"
     >
-      {{ showAllSplits ? 'Show Less' : 'Show All' }}
+      {{ showAllSplits ? t('sidebar.showLess') : t('sidebar.showAll') }}
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   symbol: {

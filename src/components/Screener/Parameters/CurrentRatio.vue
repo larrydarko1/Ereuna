@@ -3,7 +3,7 @@
   <div :class="[showCurrentRatioModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Current Ratio</span>
+        <span class="title">{{ t('params.currentRatio') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'current-ratio')" @mouseout="handleMouseOut" aria-label="Show info for Current Ratio parameter">
           <path
@@ -24,21 +24,21 @@
     <div class="content" v-if="showCurrentRatioModel">
       <div class="input-group">
         <div class="input-wrapper">
-          <label class="input-label">Minimum</label>
-          <input class="input-field" id="left-current-ratio" type="number" step="0.01" placeholder="0.00" aria-label="Minimum Current Ratio">
+          <label class="input-label">{{ t('params.minimum') }}</label>
+          <input class="input-field" id="left-currentratio" type="number" step="0.01" placeholder="0.00" aria-label="Current Ratio minimum">
         </div>
         <div class="input-wrapper">
-          <label class="input-label">Maximum</label>
-          <input class="input-field" id="right-current-ratio" type="number" step="0.01" placeholder="0.00" aria-label="Maximum Current Ratio">
+          <label class="input-label">{{ t('params.maximum') }}</label>
+          <input class="input-field" id="right-currentratio" type="number" step="0.01" placeholder="0.00" aria-label="Current Ratio maximum">
         </div>
       </div>
       
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); emit('update:showCurrentRatio', false)" aria-label="Reset Current Ratio filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetCurrentRatio()" aria-label="Set Current Ratio filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -47,7 +47,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showCurrentRatio']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -77,7 +79,7 @@ async function SetCurrentRatio() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -85,7 +87,7 @@ async function SetCurrentRatio() {
   const leftInput = document.getElementById('left-current-ratio') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-current-ratio') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -97,7 +99,7 @@ async function SetCurrentRatio() {
   // If both missing or both invalid, error
   if ((leftCurrentRatio === null && rightCurrentRatio === null) ||
       (leftCurrentRatio !== null && isNaN(leftCurrentRatio) && rightCurrentRatio !== null && isNaN(rightCurrentRatio))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -106,7 +108,7 @@ async function SetCurrentRatio() {
   // If both are present, validate order
   if (leftCurrentRatio !== null && !isNaN(leftCurrentRatio) && rightCurrentRatio !== null && !isNaN(rightCurrentRatio)) {
     if (leftCurrentRatio >= rightCurrentRatio) {
-      error.value = 'Min Current Ratio cannot be higher than or equal to max Current Ratio';
+      error.value = t('params.errorMinMaxCurrentRatio');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

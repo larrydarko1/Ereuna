@@ -2,7 +2,7 @@
   <div :class="[showFreeCashFlowModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Free Cash Flow (1000s)</span>
+        <span class="title">{{ t('params.fcf') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'fcf')" @mouseout="handleMouseOut($event)" aria-label="Show info for Free Cash Flow parameter">
           <path
@@ -23,21 +23,21 @@
     <div class="content" v-if="showFreeCashFlowModel">
       <div class="input-group">
         <div class="input-wrapper">
-          <label class="input-label">Minimum</label>
+          <label class="input-label">{{ t('params.minimum') }}</label>
           <input class="input-field" id="left-fcf" type="number" step="0.01" placeholder="0.00" aria-label="Free Cash Flow minimum">
         </div>
         <div class="input-wrapper">
-          <label class="input-label">Maximum</label>
+          <label class="input-label">{{ t('params.maximum') }}</label>
           <input class="input-field" id="right-fcf" type="number" step="0.01" placeholder="0.00" aria-label="Free Cash Flow maximum">
         </div>
       </div>
       
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); emit('update:showFreeCashFlow', false)" aria-label="Reset Free Cash Flow filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetFreeCashFlow()" aria-label="Set Free Cash Flow filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showFreeCashFlow']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -82,7 +84,7 @@ async function SetFreeCashFlow() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -90,7 +92,7 @@ async function SetFreeCashFlow() {
   const leftInput = document.getElementById('left-fcf') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-fcf') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -102,7 +104,7 @@ async function SetFreeCashFlow() {
   // If both missing or both invalid, error
   if ((leftFCF === null && rightFCF === null) ||
       (leftFCF !== null && isNaN(leftFCF) && rightFCF !== null && isNaN(rightFCF))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -111,7 +113,7 @@ async function SetFreeCashFlow() {
   // If both are present, validate order
   if (leftFCF !== null && !isNaN(leftFCF) && rightFCF !== null && !isNaN(rightFCF)) {
     if (leftFCF >= rightFCF) {
-      error.value = 'Min free cash flow cannot be higher than or equal to max free cash flow';
+      error.value = t('params.errorMinMax');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

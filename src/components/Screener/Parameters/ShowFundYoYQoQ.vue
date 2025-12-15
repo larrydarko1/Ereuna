@@ -2,7 +2,7 @@
   <div :class="[showFundYoYQoQModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Revenue / Earnings / EPS Growth</span>
+        <span class="title">{{ t('params.revenueEarningsEpsGrowth') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'growth')" @mouseout="handleMouseOut($event)" aria-label="Show info about Revenue / Earnings / EPS Growth">
           <path
@@ -23,72 +23,72 @@
     <div class="content" v-if="showFundYoYQoQModel">
       <div class="growth-sections">
         <div class="growth-section">
-          <h4 class="section-title">Revenue Growth</h4>
+          <h4 class="section-title">{{ t('params.revenueGrowth') }}</h4>
           <div class="input-group">
             <div class="input-wrapper">
-              <label class="input-label">YoY Min</label>
+              <label class="input-label">{{ t('params.yoyMin') }}</label>
               <input class="input-field" id="left-RevYoY" type="number" step="0.01" placeholder="0.00" aria-label="Revenue Growth YoY min">
             </div>
             <div class="input-wrapper">
-              <label class="input-label">YoY Max</label>
+              <label class="input-label">{{ t('params.yoyMax') }}</label>
               <input class="input-field" id="right-RevYoY" type="number" step="0.01" placeholder="0.00" aria-label="Revenue Growth YoY max">
             </div>
           </div>
           <div class="input-group">
             <div class="input-wrapper">
-              <label class="input-label">QoQ Min</label>
+              <label class="input-label">{{ t('params.qoqMin') }}</label>
               <input class="input-field" id="left-RevQoQ" type="number" step="0.01" placeholder="0.00" aria-label="Revenue Growth QoQ min">
             </div>
             <div class="input-wrapper">
-              <label class="input-label">QoQ Max</label>
+              <label class="input-label">{{ t('params.qoqMax') }}</label>
               <input class="input-field" id="right-RevQoQ" type="number" step="0.01" placeholder="0.00" aria-label="Revenue Growth QoQ max">
             </div>
           </div>
         </div>
         
         <div class="growth-section">
-          <h4 class="section-title">Earnings Growth</h4>
+          <h4 class="section-title">{{ t('params.earningsGrowth') }}</h4>
           <div class="input-group">
             <div class="input-wrapper">
-              <label class="input-label">YoY Min</label>
+              <label class="input-label">{{ t('params.yoyMin') }}</label>
               <input class="input-field" id="left-EarningsYoY" type="number" step="0.01" placeholder="0.00" aria-label="Earnings Growth YoY min">
             </div>
             <div class="input-wrapper">
-              <label class="input-label">YoY Max</label>
+              <label class="input-label">{{ t('params.yoyMax') }}</label>
               <input class="input-field" id="right-EarningsYoY" type="number" step="0.01" placeholder="0.00" aria-label="Earnings Growth YoY max">
             </div>
           </div>
           <div class="input-group">
             <div class="input-wrapper">
-              <label class="input-label">QoQ Min</label>
+              <label class="input-label">{{ t('params.qoqMin') }}</label>
               <input class="input-field" id="left-EarningsQoQ" type="number" step="0.01" placeholder="0.00" aria-label="Earnings Growth QoQ min">
             </div>
             <div class="input-wrapper">
-              <label class="input-label">QoQ Max</label>
+              <label class="input-label">{{ t('params.qoqMax') }}</label>
               <input class="input-field" id="right-EarningsQoQ" type="number" step="0.01" placeholder="0.00" aria-label="Earnings Growth QoQ max">
             </div>
           </div>
         </div>
         
         <div class="growth-section">
-          <h4 class="section-title">EPS Growth</h4>
+          <h4 class="section-title">{{ t('params.epsGrowth') }}</h4>
           <div class="input-group">
             <div class="input-wrapper">
-              <label class="input-label">YoY Min</label>
+              <label class="input-label">{{ t('params.yoyMin') }}</label>
               <input class="input-field" id="left-EPSYoY" type="number" step="0.01" placeholder="0.00" aria-label="EPS Growth YoY min">
             </div>
             <div class="input-wrapper">
-              <label class="input-label">YoY Max</label>
+              <label class="input-label">{{ t('params.yoyMax') }}</label>
               <input class="input-field" id="right-EPSYoY" type="number" step="0.01" placeholder="0.00" aria-label="EPS Growth YoY max">
             </div>
           </div>
           <div class="input-group">
             <div class="input-wrapper">
-              <label class="input-label">QoQ Min</label>
+              <label class="input-label">{{ t('params.qoqMin') }}</label>
               <input class="input-field" id="left-EPSQoQ" type="number" step="0.01" placeholder="0.00" aria-label="EPS Growth QoQ min">
             </div>
             <div class="input-wrapper">
-              <label class="input-label">QoQ Max</label>
+              <label class="input-label">{{ t('params.qoqMax') }}</label>
               <input class="input-field" id="right-EPSQoQ" type="number" step="0.01" placeholder="0.00" aria-label="EPS Growth QoQ max">
             </div>
           </div>
@@ -97,10 +97,10 @@
       
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); emit('update:showFundYoYQoQ', false)" aria-label="Reset Revenue / Earnings / EPS Growth">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetFundamentalGrowth()" aria-label="Set Revenue / Earnings / EPS Growth">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -109,7 +109,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showFundYoYQoQ']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -139,11 +141,11 @@ function validatePair(min: string, max: string, label: string): string | null {
   const maxVal = max.trim() === '' ? null : parseFloat(max);
   if ((minVal === null && maxVal === null) ||
       (minVal !== null && isNaN(minVal) && maxVal !== null && isNaN(maxVal))) {
-    return `Please enter at least one valid number for ${label}`;
+    return `${t('params.errorEnterNumber')} (${label})`;
   }
   if (minVal !== null && !isNaN(minVal) && maxVal !== null && !isNaN(maxVal)) {
     if (minVal >= maxVal) {
-      return `Min cannot be higher than or equal to max for ${label}`;
+      return `${t('params.errorMinMax')} (${label})`;
     }
   }
   return null;
@@ -153,7 +155,7 @@ function validatePair(min: string, max: string, label: string): string | null {
 async function SetFundamentalGrowth() {
   try {
     if (!props.selectedScreener) {
-      showNotification('Please select a screener');
+      showNotification(t('params.errorSelectScreener'));
       return;
     }
 
@@ -183,7 +185,7 @@ async function SetFundamentalGrowth() {
       // If both present and valid, check order
       if (minVal !== null && !isNaN(minVal) && maxVal !== null && !isNaN(maxVal)) {
         if (minVal >= maxVal) {
-          showNotification(`Min cannot be higher than or equal to max for ${pair.label}`);
+          showNotification(`${t('params.errorMinMax')} (${pair.label})`);
           return;
         }
       }
@@ -192,13 +194,13 @@ async function SetFundamentalGrowth() {
         hasAnyValue = true;
       } else {
         // If both are present but both invalid, error for this pair
-        showNotification(`Please enter at least one valid number for ${pair.label}`);
+        showNotification(`${t('params.errorEnterNumber')} (${pair.label})`);
         return;
       }
     }
     // If no value in any pair, error
     if (!hasAnyValue) {
-      showNotification('Please enter at least one valid value in any field.');
+      showNotification(t('params.errorEnterNumber'));
       return;
     }
 

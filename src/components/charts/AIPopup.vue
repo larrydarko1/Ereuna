@@ -1,7 +1,7 @@
 <template>
   <div class="modal-backdrop" @click.self="$emit('close')">
     <div class="modal-content">
-      <button class="close-x" @click="$emit('close')" aria-label="Close">&times;</button>
+      <button class="close-x" @click="$emit('close')" :aria-label="t('aiPopup.close')">&times;</button>
       <div class="ai-title">
         <svg class="ai-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -10,26 +10,26 @@
             <path d="M12 3C12 7.97056 16.0294 12 21 12C16.0294 12 12 16.0294 12 21C12 16.0294 7.97056 12 3 12C7.97056 12 12 7.97056 12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
           </g>
         </svg>
-        <h2>Archie's Analysis</h2>
-        <span class="beta-badge">BETA</span>
+        <h2>{{ t('aiPopup.title') }}</h2>
+        <span class="beta-badge">{{ t('aiPopup.beta') }}</span>
       </div>
       
       <div class="ai-popup-content">
         
         <div class="ai-section">
-          <label>Recommendation</label>
+          <label>{{ t('aiPopup.recommendation') }}</label>
           <div class="ai-value recommendation" :class="getRecommendationClass(aiData?.Recommendation)">
             {{ aiData?.Recommendation || 'N/A' }}
           </div>
         </div>
         
         <div class="ai-section">
-          <label>Intrinsic Value</label>
+          <label>{{ t('aiPopup.intrinsicValue') }}</label>
           <div class="ai-value">{{ formatIntrinsicValue(aiData?.IntrinsicValue) }}</div>
         </div>
         
         <div class="ai-section full-width">
-          <label>Report</label>
+          <label>{{ t('aiPopup.report') }}</label>
           <div class="ai-report">
             <span ref="reportText">{{ displayedText }}</span>
             <span v-if="isTyping" class="cursor">|</span>
@@ -37,9 +37,9 @@
         </div>
         
         <div class="ai-section full-width">
-          <label>Disclaimer</label>
+          <label>{{ t('aiPopup.disclaimer') }}</label>
           <div class="ai-value disclaimer">
-            The AI analysis provided is based on advanced algorithms and is for informational purposes only. It does not constitute financial advice and may be subject to errors or inaccuracies.
+            {{ t('aiPopup.disclaimerText') }}
           </div>
         </div>
       </div>
@@ -49,6 +49,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface AIData {
   Report: string;
@@ -83,7 +86,7 @@ function getRecommendationClass(recommendation: string | undefined): string {
 }
 
 function formatIntrinsicValue(value: number | undefined): string {
-  if (value === undefined || value === null) return 'N/A';
+  if (value === undefined || value === null) return t('aiPopup.notAvailable');
   return `$${value.toFixed(2)}`;
 }
 
@@ -102,7 +105,7 @@ function formatDate(dateString: string | undefined): string {
 
 function startTypingAnimation() {
   if (!props.aiData?.Report || props.aiData.Report.trim() === '') {
-    displayedText.value = `If you're reading this, apparently I'm still not smart enough and can't seem to produce a coherent report on ${props.Symbol} and the dev had to put this message instead, sorry (-_-#)`;
+    displayedText.value = t('aiPopup.noReportMessage', { symbol: props.Symbol });
     isTyping.value = false;
     return;
   }

@@ -2,19 +2,19 @@
   <div class="benchmark-selector-modal-overlay" @click.self="$emit('close')">
     <div class="benchmark-selector-modal">
       <div class="modal-header">
-        <h3>Select Benchmarks</h3>
-        <button class="close-btn" @click="$emit('close')" aria-label="Close">×</button>
+        <h3>{{ t('portfolio.selectBenchmarksTitle') }}</h3>
+        <button class="close-btn" @click="$emit('close')" :aria-label="t('portfolio.closeBenchmarkSelector')">×</button>
       </div>
 
       <div class="modal-body">
-        <p class="info-text">Select up to 5 benchmark symbols to compare against your portfolio performance.</p>
+        <p class="info-text">{{ t('portfolio.benchmarkInfoText') }}</p>
         
         <div class="search-section">
           <div class="input-row">
             <input
               v-model="symbolInput"
               type="text"
-              placeholder="Enter benchmark symbol (e.g., SPY, QQQ, DIA)..."
+              :placeholder="t('portfolio.enterBenchmarkPlaceholder')"
               class="search-input"
               @keydown.enter="addSymbolFromInput"
               @input="symbolInput = symbolInput.toUpperCase()"
@@ -25,16 +25,16 @@
               @click="addSymbolFromInput"
               :disabled="!symbolInput.trim() || selectedBenchmarks.length >= 5"
             >
-              Add
+              {{ t('portfolio.addSymbol') }}
             </button>
           </div>
-          <p class="hint-text">Press Enter or click Add to add the symbol</p>
+          <p class="hint-text">{{ t('portfolio.pressEnterHint') }}</p>
         </div>
 
         <div class="selected-benchmarks">
-          <h4>Selected Benchmarks ({{ selectedBenchmarks.length }}/5)</h4>
+          <h4>{{ t('portfolio.selectedBenchmarks') }} ({{ selectedBenchmarks.length }}/5)</h4>
           <div v-if="selectedBenchmarks.length === 0" class="empty-state">
-            No benchmarks selected yet
+            {{ t('portfolio.noBenchmarksSelected') }}
           </div>
           <div v-else class="benchmark-chips">
             <div
@@ -46,7 +46,7 @@
               <button
                 class="remove-btn"
                 @click="removeBenchmark(index)"
-                aria-label="Remove benchmark"
+                :aria-label="t('portfolio.removeBenchmark')"
               >
                 ×
               </button>
@@ -60,9 +60,9 @@
       </div>
 
       <div class="modal-footer">
-        <button class="cancel-btn" @click="$emit('close')">Cancel</button>
+        <button class="cancel-btn" @click="$emit('close')">{{ t('portfolio.cancel') }}</button>
         <button class="save-btn" @click="saveBenchmarks" :disabled="saving">
-          {{ saving ? 'Saving...' : 'Save Benchmarks' }}
+          {{ saving ? t('portfolio.saving') : t('portfolio.saveBenchmarks') }}
         </button>
       </div>
     </div>
@@ -71,6 +71,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   user: string;
@@ -100,23 +103,23 @@ function addSymbolFromInput() {
   const symbol = symbolInput.value.trim().toUpperCase();
   
   if (!symbol) {
-    errorMessage.value = 'Please enter a symbol';
+    errorMessage.value = t('portfolio.enterSymbolError');
     return;
   }
 
   if (selectedBenchmarks.value.length >= 5) {
-    errorMessage.value = 'Maximum 5 benchmarks allowed';
+    errorMessage.value = t('portfolio.maxBenchmarksError');
     return;
   }
 
   if (selectedBenchmarks.value.includes(symbol)) {
-    errorMessage.value = 'Benchmark already selected';
+    errorMessage.value = t('portfolio.benchmarkAlreadySelected');
     return;
   }
 
   // Basic validation - alphanumeric only
   if (!/^[A-Z0-9]+$/.test(symbol)) {
-    errorMessage.value = 'Symbol can only contain letters and numbers';
+    errorMessage.value = t('portfolio.symbolAlphanumericError');
     return;
   }
 
@@ -155,11 +158,11 @@ async function saveBenchmarks() {
       throw new Error(errorData.message || 'Failed to save benchmarks');
     }
 
-    emit('notify', { text: 'Benchmarks saved successfully', type: 'success' });
+    emit('notify', { text: t('portfolio.benchmarksSavedSuccess'), type: 'success' });
     emit('saved', selectedBenchmarks.value);
     emit('close');
   } catch (error: any) {
-    errorMessage.value = error.message || 'Failed to save benchmarks';
+    errorMessage.value = error.message || t('portfolio.failedSaveBenchmarks');
     emit('notify', { text: errorMessage.value, type: 'error' });
   } finally {
     saving.value = false;

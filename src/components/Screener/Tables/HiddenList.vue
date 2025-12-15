@@ -4,7 +4,7 @@
       <div style="min-width: 50px;">
       </div>
       <div style="min-width: 0px;"></div>
-      <div class="ml-btsymbol">Ticker</div>
+      <div class="ml-btsymbol">{{ t('screenerComponents.ticker') }}</div>
       <div v-for="col in selectedAttributes" :key="String(col)" :style="getColumnStyle(String(col))">
         {{ getColumnLabel(String(col)) }}
       </div>
@@ -49,7 +49,7 @@
                   </g>
                 </g>
               </svg>
-              <p>Show Asset</p>
+              <p>{{ t('screenerComponents.showAsset') }}</p>
             </div>
             <div class="ml-nested-dropdown" style="display: flex; flex-direction: row; align-items: center; height: 14px;">
               <svg style="width: 15px; height: 15px; margin-right: 5px;" class="img" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="var(--text1)">
@@ -64,7 +64,7 @@
                   </g>
                 </g>
               </svg>
-              <p>Add to Watchlist</p>
+              <p>{{ t('screenerComponents.addToWatchlist') }}</p>
               <div class="ml-nested-dropdown-menu">
                 <div v-for="(ticker, index) in watchlist?.tickers ?? []" :key="index" class="ml-watchlist-item" @click.stop="toggleWatchlist(ticker, (asset as Asset).Symbol)">
                   <label :for="'watchlist-' + index" class="ml-checkbox-label">
@@ -92,6 +92,9 @@
 <script setup lang="ts">
 
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 type Asset = Record<string, any>;
 type Watchlist = {
@@ -190,8 +193,59 @@ const attributes = [
 ];
 
 function getColumnLabel(col: string): string {
-  const found = attributes.find(a => a.value === col);
-  return found ? found.label : col;
+  const labelMap: { [key: string]: string } = {
+    symbol: t('screenerComponents.attrSymbol'),
+    name: t('screenerComponents.attrName'),
+    isin: t('screenerComponents.attrISIN'),
+    market_cap: t('screenerComponents.attrMarketCap'),
+    price: t('screenerComponents.attrPrice'),
+    volume: t('screenerComponents.attrVolume'),
+    ipo: t('screenerComponents.attrIPO'),
+    assettype: t('screenerComponents.attrAssetType'),
+    pe_ratio: t('screenerComponents.attrPE'),
+    peg: t('screenerComponents.attrPEG'),
+    pb_ratio: t('screenerComponents.attrPB'),
+    ps_ratio: t('screenerComponents.attrPS'),
+    dividend_yield: t('screenerComponents.attrDividendYield'),
+    eps: t('screenerComponents.attrEPS'),
+    fcf: t('screenerComponents.attrFCF'),
+    cash: t('screenerComponents.attrCash'),
+    current_debt: t('screenerComponents.attrCurrentDebt'),
+    current_assets: t('screenerComponents.attrCurrentAssets'),
+    current_liabilities: t('screenerComponents.attrCurrentLiabilities'),
+    current_ratio: t('screenerComponents.attrCurrentRatio'),
+    roe: t('screenerComponents.attrROE'),
+    roa: t('screenerComponents.attrROA'),
+    currency: t('screenerComponents.attrCurrency'),
+    book_value: t('screenerComponents.attrBookValue'),
+    shares: t('screenerComponents.attrShares'),
+    sector: t('screenerComponents.attrSector'),
+    industry: t('screenerComponents.attrIndustry'),
+    exchange: t('screenerComponents.attrExchange'),
+    country: t('screenerComponents.attrCountry'),
+    rs_score1w: t('screenerComponents.attrRSScore1W'),
+    rs_score1m: t('screenerComponents.attrRSScore1M'),
+    rs_score4m: t('screenerComponents.attrRSScore4M'),
+    adv1w: t('screenerComponents.attrADV1W'),
+    adv1m: t('screenerComponents.attrADV1M'),
+    adv4m: t('screenerComponents.attrADV4M'),
+    adv1y: t('screenerComponents.attrADV1Y'),
+    perc_change: t('screenerComponents.attrPercChange'),
+    all_time_high: t('screenerComponents.attrAllTimeHigh'),
+    all_time_low: t('screenerComponents.attrAllTimeLow'),
+    high_52w: t('screenerComponents.attr52WHigh'),
+    low_52w: t('screenerComponents.attr52WLow'),
+    gap: t('screenerComponents.attrGap'),
+    ev: t('screenerComponents.attrEV'),
+    rsi: t('screenerComponents.attrRSI'),
+    intrinsic_value: t('screenerComponents.attrIntrinsicValue'),
+    cagr: t('screenerComponents.attrCAGR'),
+    fund_family: t('screenerComponents.attrFundFamily'),
+    fund_category: t('screenerComponents.attrFundCategory'),
+    net_expense_ratio: t('screenerComponents.attrNetExpenseRatio'),
+    ai_recommendation: t('screenerComponents.attrAIRecommendation'),
+  };
+  return labelMap[col] || col;
 }
 
 function getColumnValue(asset: Asset, col: string): string {

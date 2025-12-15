@@ -1,8 +1,8 @@
 <template>
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
-      <button class="close-x" @click="close" aria-label="Close">&times;</button>
-      <h2>New Note</h2>
+      <button class="close-x" @click="close" :aria-label="t('createNote.close')">&times;</button>
+      <h2>{{ t('createNote.title') }}</h2>
       <form @submit.prevent="sendNote">
         <div class="input-row">
           <textarea
@@ -10,19 +10,19 @@
             v-model="noteContent"
             :class="{ error: characterCount > 350 }"
             @input="onInputNote"
-            placeholder="Write notes here"
+            :placeholder="t('createNote.placeholder')"
             maxlength="350"
             rows="5"
             required
-            aria-label="Note content input"
+            :aria-label="t('createNote.noteContent')"
           ></textarea>
           <div class="char-count" :class="{ error: characterCount > 350 }">
-            {{ characterCount }}/350
+            {{ t('createNote.characterCount', { count: characterCount }) }}
           </div>
         </div>
         <div class="modal-actions">
-          <button type="submit" class="trade-btn" aria-label="Submit note">Submit</button>
-          <button type="button" class="cancel-btn" @click="close" aria-label="Cancel note creation">Cancel</button>
+          <button type="submit" class="trade-btn" :aria-label="t('createNote.submitNote')">{{ t('createNote.submit') }}</button>
+          <button type="button" class="cancel-btn" @click="close" :aria-label="t('createNote.cancelNote')">{{ t('createNote.cancel') }}</button>
         </div>
       </form>
     </div>
@@ -31,6 +31,10 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 const emit = defineEmits(['close', 'refresh-notes', 'notify'])
 
 const props = defineProps({
@@ -69,7 +73,7 @@ async function sendNote() {
   const symbol = (document.getElementById('searchbar') as HTMLInputElement | null)?.value || props.defaultSymbol
 
   if (characterCount.value > 350) {
-    showNotification('Note exceeds 350 character limit')
+    showNotification(t('createNote.exceedsLimit'))
     return
   }
 
@@ -89,9 +93,9 @@ async function sendNote() {
         close()
         if (props.searchNotes) await props.searchNotes(symbol)
       } else if (response.status === 400) {
-        showNotification('Maximum note limit (10) reached for this symbol')
+        showNotification(t('createNote.maxReached'))
       } else {
-        showNotification('Failed to create note')
+        showNotification(t('createNote.failed'))
       }
     } catch (err) {
       showNotification((err as Error).message)

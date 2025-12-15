@@ -2,7 +2,7 @@
   <div :class="[showIntrinsicValueModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Intrinsic Value</span>
+        <span class="title">{{ t('params.intrinsicValue') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'iv')" @mouseout="handleMouseOut($event)" aria-label="Show info for Intrinsic Value parameter">
           <path
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showIntrinsicValue']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -81,7 +83,7 @@ async function SetIntrinsicValue() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -89,7 +91,7 @@ async function SetIntrinsicValue() {
   const leftInput = document.getElementById('left-iv') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-iv') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -101,7 +103,7 @@ async function SetIntrinsicValue() {
   // If both missing or both invalid, error
   if ((leftIntrinsicValue === null && rightIntrinsicValue === null) ||
       (leftIntrinsicValue !== null && isNaN(leftIntrinsicValue) && rightIntrinsicValue !== null && isNaN(rightIntrinsicValue))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -110,7 +112,7 @@ async function SetIntrinsicValue() {
   // If both are present, validate order
   if (leftIntrinsicValue !== null && !isNaN(leftIntrinsicValue) && rightIntrinsicValue !== null && !isNaN(rightIntrinsicValue)) {
     if (leftIntrinsicValue >= rightIntrinsicValue) {
-      error.value = 'Min value cannot be higher than or equal to max value';
+      error.value = t('params.errorMinMaxValue');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;

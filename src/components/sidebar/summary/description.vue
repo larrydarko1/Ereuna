@@ -6,13 +6,16 @@
               </div>
             </div>
             <button @click="showAllDescription = !showAllDescription" class="toggle-btn">
-      {{ showAllDescription ? 'Show Less' : 'Show All' }}
+      {{ showAllDescription ? t('summary.showLess') : t('summary.showAll') }}
     </button>
 </template>
 
 <script setup lang="ts">
 
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface AssetInfo {
   Description?: string;

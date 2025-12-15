@@ -1,33 +1,35 @@
 <template>
   <div class="modal-backdrop" @click.self="close" role="dialog" aria-modal="true" aria-labelledby="watchpanel-title">
     <div class="modal-content">
-      <h2 id="watchpanel-title">Edit Watch Panel</h2>
+      <h2 id="watchpanel-title">{{ t('watchPanelEditor.title') }}</h2>
       <div class="symbol-input-row">
         <input
           v-model="newSymbol"
           @keyup.enter="addSymbol"
-          placeholder="Enter symbol (e.g. AAPL)"
-          aria-label="Enter symbol to add to watch panel"
+          :placeholder="t('watchPanelEditor.inputPlaceholder')"
+          :aria-label="t('watchPanelEditor.inputAriaLabel')"
         />
-        <button @click="addSymbol" :disabled="!newSymbol.trim()" aria-label="Add symbol to watch panel">Add</button>
+        <button @click="addSymbol" :disabled="!newSymbol.trim()" :aria-label="t('watchPanelEditor.addButtonAriaLabel')">{{ t('watchPanelEditor.addButton') }}</button>
       </div>
-      <div class="symbols-list" aria-label="Current watch panel symbols">
+      <div class="symbols-list" :aria-label="t('watchPanelEditor.symbolsListAriaLabel')">
         <div v-for="(symbol, idx) in symbols" :key="symbol.Symbol" class="symbol-item">
           <span>{{ symbol.Symbol }}</span>
-          <button @click="removeSymbol(idx)" aria-label="Remove symbol {{ symbol.Symbol }} from watch panel">Remove</button>
+          <button @click="removeSymbol(idx)" :aria-label="t('watchPanelEditor.removeButtonAriaLabel', { symbol: symbol.Symbol })">{{ t('watchPanelEditor.removeButton') }}</button>
         </div>
       </div>
       <slot></slot>
-      <button @click="close" aria-label="Close watch panel editor">Close</button>
+      <button @click="close" :aria-label="t('watchPanelEditor.closeButtonAriaLabel')">{{ t('watchPanelEditor.closeButton') }}</button>
       <NotificationPopup ref="notification" role="alert" aria-live="polite" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import NotificationPopup from '@/components/NotificationPopup.vue';
 
+const { t } = useI18n();
 const emit = defineEmits(['close', 'update'])
 const props = defineProps({
   apiKey: String,
@@ -60,7 +62,7 @@ const MAX_SYMBOLS = 20
 
 async function patchSymbols() {
   if (symbols.value.length > MAX_SYMBOLS) {
-    showNotification('Cannot add more than 20 symbols');
+    showNotification(t('watchPanelEditor.errorMaxSymbols'));
     return;
   }
   try {
@@ -74,7 +76,7 @@ async function patchSymbols() {
     })
 
     if (!response.ok) {
-      showNotification('Failed to update symbols.');
+      showNotification(t('watchPanelEditor.errorUpdateFailed'));
       return;
     }
 
@@ -83,7 +85,7 @@ async function patchSymbols() {
       await props.fetchWatchPanel()
     }
   } catch (error) {
-    showNotification('Failed to update symbols.');
+    showNotification(t('watchPanelEditor.errorUpdateFailed'));
   }
 }
 
@@ -96,9 +98,9 @@ async function addSymbol() {
   ) {
     if (!symbol) return;
     if (symbols.value.some((obj: WatchPanelTicker) => obj.Symbol === symbol)) {
-      showNotification('Symbol already in watch panel.');
+      showNotification(t('watchPanelEditor.errorAlreadyExists'));
     } else if (symbols.value.length >= MAX_SYMBOLS) {
-      showNotification('Cannot add more than 20 symbols.');
+      showNotification(t('watchPanelEditor.errorMaxSymbols'));
     }
     return;
   }

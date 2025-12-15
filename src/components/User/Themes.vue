@@ -23,7 +23,6 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from 'vue';
-import { defineEmits } from 'vue';
 import { useUserStore } from '@/store/store';
 
 const props = defineProps({

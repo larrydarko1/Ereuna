@@ -114,14 +114,14 @@
         </div>
       </div>
     </div>
-  <button class="navbtn" @click="addWatchlist" v-b-tooltip.hover title="Add ticker to watchlist" aria-label="Add symbol to watchlist">
+  <button class="navbtn" @click="addWatchlist" v-b-tooltip.hover :title="t('watchlistComponent.addTickerTitle')" :aria-label="t('watchlistComponent.addTickerAriaLabel')">
       <svg class="img" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M4 12H20M12 4V20" stroke="var(--text1)" stroke-width="1.944" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
-      <span>Add Symbol</span>
+      <span>{{ t('watchlistComponent.addTickerTitle') }}</span>
     </button>
     <div class="wlnav-dropdown">
-  <button class="dropdown-toggle wlbtn" v-b-tooltip.hover title="More Options" aria-label="Show more watchlist options">
+  <button class="dropdown-toggle wlbtn" v-b-tooltip.hover :title="t('watchlistComponent.moreOptionsTitle')" :aria-label="t('watchlistComponent.moreOptionsAriaLabel')">
         <svg class="img" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M8 12C9.10457 12 10 12.8954 10 14C10 15.1046 9.10457 16 8 16C6.89543 16 6 15.1046 6 14C6 12.8954 6.89543 12 8 12Z" fill="var(--text1)"></path>
           <path d="M8 6C9.10457 6 10 6.89543 10 8C10 9.10457 9.10457 10 8 10C6.89543 10 6 9.10457 6 8C6 6.89543 6.89543 6 8 6Z" fill="var(--text1)"></path>
@@ -146,30 +146,30 @@
                 />
               </g>
             </svg>
-            Create Note
+            {{ t('watchlistComponent.createWatchlist') }}
           </button>
-          <button class="dropdown-item" @click="showCreateWatchlistModal = true" v-b-tooltip.hover title="Create New Watchlist" aria-label="Create new watchlist">
+          <button class="dropdown-item" @click="showCreateWatchlistModal = true" v-b-tooltip.hover :title="t('watchlistComponent.createWatchlist')" :aria-label="t('watchlistComponent.createWatchlist')">
             <svg class="img4" viewBox="0 0 32.219 32.219" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">
               <path style="fill:var(--text1);"
                 d="M32.144,12.402c-0.493-1.545-3.213-1.898-6.09-2.277c-1.578-0.209-3.373-0.445-3.914-0.844 c-0.543-0.398-1.304-2.035-1.978-3.482C18.94,3.17,17.786,0.686,16.166,0.68l-0.03-0.003c-1.604,0.027-2.773,2.479-4.016,5.082 c-0.684,1.439-1.463,3.07-2.005,3.463c-0.551,0.394-2.342,0.613-3.927,0.803c-2.877,0.352-5.598,0.68-6.108,2.217 c-0.507,1.539,1.48,3.424,3.587,5.424c1.156,1.094,2.465,2.34,2.67,2.98c0.205,0.639-0.143,2.414-0.448,3.977 c-0.557,2.844-1.084,5.535,0.219,6.5c0.312,0.225,0.704,0.338,1.167,0.328c1.331-0.023,3.247-1.059,5.096-2.062 c1.387-0.758,2.961-1.611,3.661-1.621c0.675,0.002,2.255,0.881,3.647,1.654c1.891,1.051,3.852,2.139,5.185,2.119 c0.414-0.01,0.771-0.117,1.06-0.322c1.312-0.947,0.814-3.639,0.285-6.494c-0.289-1.564-0.615-3.344-0.409-3.982 c0.213-0.639,1.537-1.867,2.702-2.955C30.628,15.808,32.634,13.945,32.144,12.402z M21.473,19.355h-3.722v3.797h-3.237v-3.797 h-3.768v-3.238h3.768v-3.691h3.237v3.691h3.722V19.355z"
               />
             </svg>
-            New Watchlist
+            {{ t('watchlistComponent.createWatchlist') }}
           </button>
-          <button class="dropdown-item" @click="showRenameWatchlistModal = true" v-b-tooltip.hover title="Rename Watchlist" aria-label="Rename watchlist">
+          <button class="dropdown-item" @click="showRenameWatchlistModal = true" v-b-tooltip.hover :title="t('watchlistComponent.renameWatchlist')" :aria-label="t('watchlistComponent.renameWatchlist')">
             <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M9 5H14M14 5H19M14 5V19M9 19H14M14 19H19" stroke="var(--text1)" stroke-width="2"/>
               <path d="M11 9H4C2.89543 9 2 9.89543 2 11V15H11" stroke="var(--text1)" stroke-width="2"/>
               <path d="M17 15H20C21.1046 15 22 14.1046 22 13V9H17" stroke="var(--text1)" stroke-width="2"/>
             </svg>
-            Rename Watchlist
+            {{ t('watchlistComponent.renameWatchlist') }}
           </button>
-          <button class="dropdown-item" @click="exportWatchlist" v-b-tooltip.hover title="Export Watchlist" aria-label="Export watchlist">
+          <button class="dropdown-item" @click="exportWatchlist" v-b-tooltip.hover :title="t('watchlistComponent.exportWatchlist')" :aria-label="t('watchlistComponent.exportWatchlist')">
             <svg class="img4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 16V4M12 16L8 12M12 16L16 12" stroke="var(--text1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               <rect x="4" y="18" width="16" height="2" rx="1" fill="var(--text1)"/>
             </svg>
-            Export Watchlist
+            {{ t('watchlistComponent.exportWatchlist') }}
           </button>
         </div>
       </div>
@@ -331,9 +331,9 @@
                 <path d="M493.297,159.693c-12.477-30.878-31.231-59.828-56.199-84.792c-24.964-24.967-53.914-43.722-84.793-56.199 C321.426,6.222,288.617,0,255.823,0c-32.748,0-65.497,6.249-96.315,18.743c-30.814,12.491-59.695,31.244-84.607,56.159 c-24.915,24.912-43.668,53.793-56.158,84.607C6.25,190.325,0.001,223.073,0.001,255.823c0,32.794,6.222,65.602,18.701,96.484 c12.477,30.878,31.231,59.828,56.199,84.793c24.964,24.967,53.914,43.722,84.792,56.199c30.882,12.48,63.69,18.701,96.484,18.701 c32.748,0,65.497-6.249,96.314-18.743c30.814-12.49,59.695-31.242,84.607-56.158c24.917-24.913,43.67-53.794,56.16-84.608 c12.493-30.817,18.743-63.566,18.743-96.315C511.999,223.383,505.778,190.575,493.297,159.693z M461.611,339.661 c-10.821,26.683-27.019,51.648-48.659,73.291c-21.643,21.64-46.608,37.837-73.292,48.657 c-26.679,10.818-55.078,16.241-83.484,16.241c-28.477,0-56.947-5.405-83.688-16.213c-26.744-10.813-51.76-27.007-73.441-48.685 c-21.678-21.682-37.873-46.697-48.685-73.441C39.554,312.77,34.149,284.3,34.149,255.823c0-28.406,5.423-56.804,16.241-83.484 c10.821-26.683,27.018-51.648,48.659-73.291c21.643-21.64,46.608-37.837,73.291-48.659c26.679-10.818,55.078-16.241,83.484-16.241 c28.477,0,56.947,5.405,83.688,16.214c26.744,10.813,51.76,27.008,73.441,48.685c21.677,21.681,37.873,46.697,48.685,73.441 c10.808,26.741,16.214,55.211,16.214,83.688C477.852,284.583,472.429,312.981,461.611,339.661z"/>
                 <path d="M385.946,126.055c-6.524-6.525-17.102-6.525-23.626,0l-36.278,36.278c-7.82-5.861-16.298-10.691-25.249-14.389 c-14.036-5.803-29.225-8.832-44.792-8.83c-15.572-0.002-30.761,3.027-44.797,8.83c-14.037,5.799-26.917,14.372-37.901,25.36 c-11.376,11.375-19.956,24.598-25.656,38.689c-5.704,14.094-8.547,29.054-8.548,44.007c0,14.954,2.843,29.914,8.548,44.007 c3.693,9.131,8.603,17.892,14.691,26.027l-36.285,36.285c-6.524,6.524-6.524,17.102,0,23.627c6.525,6.524,17.102,6.524,23.627,0 l36.278-36.278c7.82,5.861,16.298,10.691,25.249,14.389c14.036,5.803,29.225,8.832,44.792,8.83 c15.572,0.002,30.761-3.027,44.797-8.83c14.037-5.799,26.917-14.372,37.901-25.359c11.376-11.375,19.955-24.599,25.656-38.689 c5.704-14.094,8.547-29.054,8.548-44.007c0-14.954-2.843-29.914-8.548-44.008c-3.693-9.131-8.603-17.892-14.691-26.027 l36.285-36.285C392.47,143.157,392.47,132.579,385.946,126.055z M178.621,287.472c-4.066-10.044-6.108-20.754-6.107-31.471 c0-10.717,2.042-21.428,6.107-31.472c4.07-10.047,10.146-19.431,18.31-27.599c7.908-7.906,17.06-13.98,27.036-18.106 c9.978-4.122,20.783-6.295,32.033-6.296c11.245,0.002,22.051,2.174,32.03,6.297c4.897,2.025,9.593,4.525,14.044,7.476 L186.305,302.069C183.229,297.418,180.669,292.53,178.621,287.472z M333.38,287.472c-4.07,10.047-10.146,19.431-18.31,27.599 c-7.908,7.906-17.06,13.98-27.036,18.106c-9.978,4.122-20.783,6.295-32.033,6.296c-11.245-0.002-22.05-2.174-32.03-6.297 c-4.897-2.025-9.593-4.526-14.044-7.476l115.769-115.769c3.076,4.651,5.636,9.539,7.684,14.597 c4.066,10.044,6.108,20.754,6.107,31.472C339.488,266.717,337.446,277.427,333.38,287.472z"/>
               </svg>
-              <p>This list is empty</p>
-              <button v-if="watchlist.tickers && watchlist.tickers.length > 0" class="import-btn" @click="showImportWatchlistModal = true" aria-label="Import watchlist">
-                Import Watchlist
+              <p>{{ t('watchlistComponent.emptyListMessage') }}</p>
+              <button v-if="watchlist.tickers && watchlist.tickers.length > 0" class="import-btn" @click="showImportWatchlistModal = true" :aria-label="t('watchlistComponent.importButtonText')">
+                {{ t('watchlistComponent.importButtonText') }}
               </button>
             </div>
           </div>
@@ -343,11 +343,14 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, nextTick, onMounted, onUnmounted, watch, type Ref, type ComputedRef } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Sortable from 'sortablejs';
 import CreateNote from '@/components/charts/CreateNote.vue';
 import CreateWatchlist from '@/components/charts/CreateWatchlist.vue';
 import RenameWatchlist from '@/components/charts/RenameWatchlist.vue';
 import ImportWatchlist from '@/components/charts/ImportWatchlist.vue';
+
+const { t } = useI18n();
 
 interface WatchlistTicker {
   Name: string;
@@ -652,7 +655,7 @@ async function addWatchlist() {
       if (!realwatchlist) return;
       const selectedWatchlistElement = realwatchlist.querySelector('div.selected');
       if (!selectedWatchlistElement) {
-        emit('notify', 'No watchlist selected');
+        emit('notify', t('watchlistComponent.errorNoWatchlistSelected'));
         return;
       }
       const watchlistNameElement = selectedWatchlistElement.querySelector('span.badge')?.previousSibling as HTMLElement | null;
@@ -672,13 +675,13 @@ async function addWatchlist() {
       });
       if (response.status === 404) {
         // Ticker not found
-        emit('notify', 'Ticker not found');
+        emit('notify', t('watchlistComponent.errorTickerNotFound'));
         return;
       }
 
       const assetData = await response.json();
       if (!assetData.Symbol) {
-        emit('notify', "Invalid data, symbol doesn't exist");
+        emit('notify', t('watchlistComponent.errorInvalidSymbol'));
         return;
       }
 
@@ -696,11 +699,11 @@ async function addWatchlist() {
       if (patchResponse.status === 400) {
         const errorResponse = await patchResponse.json();
         if (errorResponse.message === 'Maximum number of watchlists (20) has been reached') {
-          emit('notify', 'You have reached the maximum number of watchlists (20). Please delete a watchlist before adding a new one.');
+          emit('notify', t('watchlistComponent.errorMaxWatchlists'));
         } else if (errorResponse.message === 'Limit reached, cannot add more than 100 symbols per watchlist') {
-          emit('notify', 'Limit reached, cannot add more than 100 symbols per watchlist');
+          emit('notify', t('watchlistComponent.errorMaxSymbols'));
         } else {
-          emit('notify', 'Failed to add ticker to watchlist');
+          emit('notify', t('watchlistComponent.errorAddFailed'));
         }
         return;
       }
@@ -928,7 +931,7 @@ async function addtoWatchlist(ticker: WatchlistTicker, symbol: string, $event: {
     // Check for 400 response from the server
     if (response.status === 400) {
       const errorResponse = await response.json();
-      emit('notify', errorResponse.message || 'Limit reached, cannot add more than 100 symbols per watchlist');
+      emit('notify', errorResponse.message || t('watchlistComponent.errorMaxSymbols'));
       return; // Exit the function if there's a 400 error
     }
 

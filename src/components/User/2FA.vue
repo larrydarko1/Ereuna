@@ -1,8 +1,8 @@
 <template>
   <div class="twofa-container">
-    <h1 class="twofa-title">Two-Factor Authentication</h1>
+    <h1 class="twofa-title">{{ t('twoFactor.title') }}</h1>
     <p class="twofa-instruction">
-      To enable two-factor authentication, toggle the switch below. After scanning the generated QR code with your authenticator app, enter the 6-digit code from your app and click "Confirm 2FA" to complete setup.
+      {{ t('twoFactor.instruction') }}
     </p>
     <div class="twofa-toggle">
       <label>
@@ -10,9 +10,9 @@
           @click="toggleTwoFa()"
           role="switch"
           :aria-checked="isTwoFaEnabled ? 'true' : 'false'"
-          aria-label="Enable two-factor authentication toggle"
+          :aria-label="t('twoFactor.enable')"
         ></div>
-        <span class="twofa-toggle-label">Enable 2FA</span>
+        <span class="twofa-toggle-label">{{ t('twoFactor.enable') }}</span>
       </label>
     </div>
     <div v-if="isTwoFaEnabled">
@@ -22,7 +22,7 @@
       <br><br>
       <div v-if="showVerificationInput">
         <div class="twofa-row">
-          <input v-model="mfaCode" placeholder="Enter verification code" class="twofa-input" maxlength="6" inputmode="numeric" pattern="[0-9]*" />
+          <input v-model="mfaCode" :placeholder="t('twoFactor.enterCode')" class="twofa-input" maxlength="6" inputmode="numeric" pattern="[0-9]*" />
           <button class="twofa-btn" @click="confirmTwoFa" :disabled="loading">
             <span class="btn-content-row">
               <span v-if="loading" class="loader4">
@@ -37,8 +37,8 @@
                   />
                 </svg>
               </span>
-              <span v-if="!loading">Confirm 2FA</span>
-              <span v-else style="margin-left: 8px;">Processing...</span>
+              <span v-if="!loading">{{ t('twoFactor.confirmButton') }}</span>
+              <span v-else style="margin-left: 8px;">{{ t('common.processing') }}</span>
             </span>
           </button>
         </div>
@@ -50,7 +50,10 @@
 
 <script setup lang="ts">
 import QrcodeVue from 'qrcode.vue'
-import { ref, onMounted, defineEmits } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
   user: {
@@ -121,7 +124,7 @@ async function toggleTwoFa() {
           showVerificationInput.value = false;
           error.value = '';
         } else {
-          error.value = data.message || 'No QR code found.';
+          error.value = data.message || t('twoFactor.noQrCode');
         }
       } catch (err) {
         let errorMsg = 'Unknown error';
@@ -152,7 +155,7 @@ async function toggleTwoFa() {
         isTwoFaEnabled.value = true;
         error.value = '';
       } else {
-        error.value = data.message || 'Failed to initiate 2FA';
+        error.value = data.message || t('twoFactor.failedToInitiate');
       }
     } catch (err) {
       let errorMsg = 'Unknown error';
@@ -182,9 +185,9 @@ async function toggleTwoFa() {
         showVerificationInput.value = false;
         mfaCode.value = '';
         error.value = '';
-        emit('notify', 'Two-factor authentication disabled.');
+        emit('notify', t('twoFactor.disabled'));
       } else {
-        error.value = data.message || 'Failed to disable 2FA';
+        error.value = data.message || t('twoFactor.failedToDisable');
         emit('notify', error.value);
       }
     } catch (err) {
@@ -222,13 +225,13 @@ async function confirmTwoFa() {
     if (data.message === '2FA enabled') {
       showVerificationInput.value = false;
       error.value = '';
-      emit('notify', 'Two-factor authentication enabled!');
+      emit('notify', t('twoFactor.enabled'));
     } else {
-      error.value = data.message && typeof data.message === 'string' ? data.message : 'Verification failed';
+      error.value = data.message && typeof data.message === 'string' ? data.message : t('twoFactor.verificationFailed');
       emit('notify', error.value);
     }
   } catch (err) {
-    error.value = 'Something went wrong. Please try again.';
+    error.value = t('twoFactor.somethingWentWrong');
     emit('notify', error.value);
   } finally {
     loading.value = false;

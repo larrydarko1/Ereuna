@@ -1,8 +1,8 @@
 <template>
-  <div class="watch-panel-container" role="region" aria-label="Watch Panel">
-    <div class="watch-panel" style="display: flex; gap: 8px;" role="list" aria-label="Watch panel tickers">
+  <div class="watch-panel-container" role="region" :aria-label="t('watchPanel.ariaLabel')">
+    <div class="watch-panel" style="display: flex; gap: 8px;" role="list" :aria-label="t('watchPanel.tickersAriaLabel')">
       <template v-if="watchPanel.length > 0">
-        <div class="watch-panel-track" :class="{ 'scrolling': watchPanel.length > 12 }" role="listbox" aria-label="Ticker list">
+        <div class="watch-panel-track" :class="{ 'scrolling': watchPanel.length > 12 }" role="listbox" :aria-label="t('watchPanel.tickerListAriaLabel')">
           <template v-for="repeat in watchPanel.length > 12 ? 2 : 1">
             <button v-for="(ticker, i) in watchPanel" :key="repeat + '-' + i"
               :class="{ active: props.defaultSymbol === ticker.Symbol, 'index-btn': true }"
@@ -21,11 +21,11 @@
         </div>
       </template>
       <template v-else>
-        <span class="no-symbols" aria-live="polite">No Symbols in Watch Panel</span>
+        <span class="no-symbols" aria-live="polite">{{ t('watchPanel.noSymbols') }}</span>
       </template>
     </div>
-    <button class="edit-watch-panel-btn" @click="editWatchPanel = true;" aria-label="Edit watch panel">
-      Edit Watch Panel
+    <button class="edit-watch-panel-btn" @click="editWatchPanel = true;" :aria-label="t('watchPanel.editButtonAriaLabel')">
+      {{ t('watchPanel.editButton') }}
     </button>
     <slot></slot>
   </div>
@@ -43,8 +43,11 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import WatchPanelEditor from '@/components/charts/WatchPanelEditor.vue';
 import NotificationPopup from '@/components/NotificationPopup.vue';
+
+const { t } = useI18n();
 
 interface WatchPanelTicker {
   Symbol: string;
@@ -96,7 +99,7 @@ async function fetchWatchPanel() {
     });
 
     if (!response.ok) {
-      showNotification('Failed to load watch panel.');
+      showNotification(t('watchPanel.errorLoadFailed'));
       return;
     }
 
@@ -107,7 +110,7 @@ async function fetchWatchPanel() {
     if (typeof error === 'object' && error !== null && 'name' in error && (error as any).name === 'AbortError') {
       return;
     }
-    showNotification('Failed to load watch panel.');
+    showNotification(t('watchPanel.errorLoadFailed'));
   }
 }
 

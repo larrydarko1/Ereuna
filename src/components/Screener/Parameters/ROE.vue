@@ -2,7 +2,7 @@
   <div :class="[showROEModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">Return of Equity (ROE)</span>
+        <span class="title">{{ t('params.roe') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'roe')" @mouseout="handleMouseOut" aria-label="Show info for ROE parameter">
           <path
@@ -23,21 +23,21 @@
     <div class="content" v-if="showROEModel">
       <div class="input-group">
         <div class="input-wrapper">
-          <label class="input-label">Minimum</label>
+          <label class="input-label">{{ t('params.minimum') }}</label>
           <input class="input-field" id="left-roe" type="number" step="0.01" placeholder="0.00" aria-label="ROE minimum">
         </div>
         <div class="input-wrapper">
-          <label class="input-label">Maximum</label>
+          <label class="input-label">{{ t('params.maximum') }}</label>
           <input class="input-field" id="right-roe" type="number" step="0.01" placeholder="0.00" aria-label="ROE maximum">
         </div>
       </div>
       
       <div class="actions">
         <button class="btn btn-secondary" @click="emit('reset'); emit('update:showROE', false)" aria-label="Reset ROE filter">
-          Reset
+          {{ t('params.reset') }}
         </button>
         <button class="btn btn-primary" @click="SetROE()" aria-label="Set ROE filter">
-          Apply
+          {{ t('params.apply') }}
         </button>
       </div>
     </div>
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showROE']);
 
 function handleMouseOver(event: MouseEvent, type: string) {
@@ -83,14 +85,14 @@ async function SetROE() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     return;
   }
   const leftInput = document.getElementById('left-roe') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-roe') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     return;
   }
@@ -101,7 +103,7 @@ async function SetROE() {
   // If both missing or both invalid, error
   if ((leftROE === null && rightROE === null) ||
       (leftROE !== null && isNaN(leftROE) && rightROE !== null && isNaN(rightROE))) {
-    error.value = 'Please enter at least one valid number';
+    error.value = t('params.errorEnterNumber');
     showNotification(error.value);
     return;
   }
@@ -109,7 +111,7 @@ async function SetROE() {
   // If both are present, validate order
   if (leftROE !== null && !isNaN(leftROE) && rightROE !== null && !isNaN(rightROE)) {
     if (leftROE >= rightROE) {
-      error.value = 'Min ROE cannot be higher than or equal to max ROE';
+      error.value = t('params.errorMinMaxROE');
       showNotification(error.value);
       return;
     }

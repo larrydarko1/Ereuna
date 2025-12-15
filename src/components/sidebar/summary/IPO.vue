@@ -1,11 +1,14 @@
 <template>
  <div class="summary-row">
-              <div class="category">IPO Date</div>
+              <div class="category">{{ t('summary.ipoDate') }}</div>
               <div class="response">{{ displayIPODate(assetInfo.IPO) }}</div>
             </div>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 const props = defineProps(['assetInfo', 'formatDate', 'showAllDescription']);
 
 const displayIPODate = (date: any): string => {

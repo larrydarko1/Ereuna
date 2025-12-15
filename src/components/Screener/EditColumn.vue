@@ -2,10 +2,10 @@
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
   <button class="close-x" @click="close" aria-label="Close Edit Columns Modal">&times;</button>
-      <h2>Edit Columns</h2>
+      <h2>{{ t('screenerComponents.editColumns') }}</h2>
       <div class="attribute-section">
         <div class="available-attributes">
-          <div class="section-label">Available Attributes</div>
+          <div class="section-label">{{ t('screenerComponents.availableAttributes') }}</div>
           <div class="chips">
             <div
               v-for="attr in attributes"
@@ -20,8 +20,8 @@
           </div>
         </div>
         <div class="selected-attributes">
-          <div class="section-label">Selected Columns</div>
-          <div v-if="localSelected.length === 0" class="empty-selected">No columns selected.</div>
+          <div class="section-label">{{ t('screenerComponents.selectedColumns') }}</div>
+          <div v-if="localSelected.length === 0" class="empty-selected">{{ t('screenerComponents.emptySelectedColumns') }}</div>
           <div v-else class="selected-list">
             <div
               v-for="(attrValue, idx) in localSelected"
@@ -37,8 +37,8 @@
         </div>
       </div>
       <div class="modal-actions">
-  <button type="button" class="trade-btn" @click="submitEditColumn" aria-label="Save selected columns">Save</button>
-  <button type="button" class="reset-btn" @click="resetColumns" aria-label="Reset selected columns">Reset</button>
+  <button type="button" class="trade-btn" @click="submitEditColumn" :aria-label="t('screenerComponents.save') + ' selected columns'">{{ t('screenerComponents.save') }}</button>
+  <button type="button" class="reset-btn" @click="resetColumns" :aria-label="t('screenerComponents.reset') + ' selected columns'">{{ t('screenerComponents.reset') }}</button>
   <button type="button" class="cancel-btn" @click="close" aria-label="Cancel editing columns">Cancel</button>
       </div>
     </div>
@@ -46,7 +46,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 // Use popup notification pattern
 function notify(message: string) {
@@ -66,57 +69,57 @@ const props = defineProps({
 const emit = defineEmits(['close', 'insert', 'update-columns', 'reload-columns', 'notify'])
 
 // Define available attributes for the screener
-const attributes = [
-  { label: 'Price', value: 'price' },
-  { label: 'Market Cap', value: 'market_cap' },
-  { label: 'Volume', value: 'volume' },
-  { label: 'IPO Date', value: 'ipo' },
-  { label: 'Asset Type', value: 'assettype' },
-  { label: 'Sector', value: 'sector' },
-  { label: 'Exchange', value: 'exchange' },
-  { label: 'Country', value: 'country' },
-  { label: 'P/E Ratio', value: 'pe_ratio' },
-  { label: 'P/S Ratio', value: 'ps_ratio' },
-  { label: 'FCF', value: 'fcf' },
-  { label: 'Cash & Equivalents', value: 'cash' },
-  { label: 'Current Debt', value: 'current_debt' },
-  { label: 'Current Assets', value: 'current_assets' },
-  { label: 'Current Liabilities', value: 'current_liabilities' },
-  { label: 'Current Ratio', value: 'current_ratio' },
-  { label: 'ROE', value: 'roe' },
-  { label: 'ROA', value: 'roa' },
-  { label: 'PEG', value: 'peg' },
-  { label: 'EPS', value: 'eps' },
-  { label: 'P/B Ratio', value: 'pb_ratio' },
-  { label: 'Dividend Yield', value: 'dividend_yield' },
-  { label: 'Name', value: 'name' },
-  { label: 'Currency', value: 'currency' },
-  { label: 'Industry', value: 'industry' },
-  { label: 'Book Value', value: 'book_value' },
-  { label: 'Shares Outstanding', value: 'shares' },
-  { label: 'Technical Score (1W)', value: 'rs_score1w' },
-  { label: 'Technical Score (1M)', value: 'rs_score1m' },
-  { label: 'Technical Score (4M)', value: 'rs_score4m' },
-  { label: 'All Time High', value: 'all_time_high' },
-  { label: 'All Time Low', value: 'all_time_low' },
-  { label: '52W High', value: 'high_52w' },
-  { label: '52W Low', value: 'low_52w' },
-  { label: '% Change', value: 'perc_change' },
-  { label: 'ISIN', value: 'isin' },
-  { label: 'Gap', value: 'gap' },
-  { label: 'EV', value: 'ev' },
-  { label: 'ADV (1W)', value: 'adv1w' },
-  { label: 'ADV (1M)', value: 'adv1m' },
-  { label: 'ADV (4M)', value: 'adv4m' },
-  { label: 'ADV (1Y)', value: 'adv1y' },
-  { label: 'RSI', value: 'rsi' },
-  { label: 'Intrinsic Value', value: 'intrinsic_value' },
-  { label: 'CAGR', value: 'cagr' },
-  { label: 'Fund Family', value: 'fund_family' },
-  { label: 'Fund Category', value: 'fund_category' },
-  { label: 'Net Expense Ratio', value: 'net_expense_ratio' },
-  { label: 'AI Recommendation', value: 'ai_recommendation' },
-]
+const attributes = computed(() => [
+  { label: t('screenerComponents.attrPrice'), value: 'price' },
+  { label: t('screenerComponents.attrMarketCap'), value: 'market_cap' },
+  { label: t('screenerComponents.attrVolume'), value: 'volume' },
+  { label: t('screenerComponents.attrIPO'), value: 'ipo' },
+  { label: t('screenerComponents.attrAssetType'), value: 'assettype' },
+  { label: t('screenerComponents.attrSector'), value: 'sector' },
+  { label: t('screenerComponents.attrExchange'), value: 'exchange' },
+  { label: t('screenerComponents.attrCountry'), value: 'country' },
+  { label: t('screenerComponents.attrPE'), value: 'pe_ratio' },
+  { label: t('screenerComponents.attrPS'), value: 'ps_ratio' },
+  { label: t('screenerComponents.attrFCF'), value: 'fcf' },
+  { label: t('screenerComponents.attrCash'), value: 'cash' },
+  { label: t('screenerComponents.attrCurrentDebt'), value: 'current_debt' },
+  { label: t('screenerComponents.attrCurrentAssets'), value: 'current_assets' },
+  { label: t('screenerComponents.attrCurrentLiabilities'), value: 'current_liabilities' },
+  { label: t('screenerComponents.attrCurrentRatio'), value: 'current_ratio' },
+  { label: t('screenerComponents.attrROE'), value: 'roe' },
+  { label: t('screenerComponents.attrROA'), value: 'roa' },
+  { label: t('screenerComponents.attrPEG'), value: 'peg' },
+  { label: t('screenerComponents.attrEPS'), value: 'eps' },
+  { label: t('screenerComponents.attrPB'), value: 'pb_ratio' },
+  { label: t('screenerComponents.attrDividendYield'), value: 'dividend_yield' },
+  { label: t('screenerComponents.attrName'), value: 'name' },
+  { label: t('screenerComponents.attrCurrency'), value: 'currency' },
+  { label: t('screenerComponents.attrIndustry'), value: 'industry' },
+  { label: t('screenerComponents.attrBookValue'), value: 'book_value' },
+  { label: t('screenerComponents.attrShares'), value: 'shares' },
+  { label: t('screenerComponents.attrRSScore1W'), value: 'rs_score1w' },
+  { label: t('screenerComponents.attrRSScore1M'), value: 'rs_score1m' },
+  { label: t('screenerComponents.attrRSScore4M'), value: 'rs_score4m' },
+  { label: t('screenerComponents.attrAllTimeHigh'), value: 'all_time_high' },
+  { label: t('screenerComponents.attrAllTimeLow'), value: 'all_time_low' },
+  { label: t('screenerComponents.attr52WHigh'), value: 'high_52w' },
+  { label: t('screenerComponents.attr52WLow'), value: 'low_52w' },
+  { label: t('screenerComponents.attrPercChange'), value: 'perc_change' },
+  { label: t('screenerComponents.attrISIN'), value: 'isin' },
+  { label: t('screenerComponents.attrGap'), value: 'gap' },
+  { label: t('screenerComponents.attrEV'), value: 'ev' },
+  { label: t('screenerComponents.attrADV1W'), value: 'adv1w' },
+  { label: t('screenerComponents.attrADV1M'), value: 'adv1m' },
+  { label: t('screenerComponents.attrADV4M'), value: 'adv4m' },
+  { label: t('screenerComponents.attrADV1Y'), value: 'adv1y' },
+  { label: t('screenerComponents.attrRSI'), value: 'rsi' },
+  { label: t('screenerComponents.attrIntrinsicValue'), value: 'intrinsic_value' },
+  { label: t('screenerComponents.attrCAGR'), value: 'cagr' },
+  { label: t('screenerComponents.attrFundFamily'), value: 'fund_family' },
+  { label: t('screenerComponents.attrFundCategory'), value: 'fund_category' },
+  { label: t('screenerComponents.attrNetExpenseRatio'), value: 'net_expense_ratio' },
+  { label: t('screenerComponents.attrAIRecommendation'), value: 'ai_recommendation' },
+])
 // Close the modal
 function close() {
   emit('close')
@@ -159,14 +162,14 @@ function moveDown(idx: number) {
 
 // Get the label for a given attribute value
 function getLabel(attrValue: string): string {
-  const found = attributes.find(a => a.value === attrValue)
+  const found = attributes.value.find(a => a.value === attrValue)
   return found ? found.label : attrValue
 }
 
 // Submit the selected columns to the server
 async function submitEditColumn() {
   if (localSelected.value.length === 0) {
-    notify('Please select at least one column');
+    notify(t('screenerComponents.errorNoColumnsSelected'));
     return;
   }
   // Send PATCH request to update columns
@@ -193,7 +196,7 @@ async function submitEditColumn() {
       emit('reload-columns');
       emit('close');
     } else {
-      notify(responseData.message || 'Failed to update columns');
+      notify(responseData.message || t('screenerComponents.errorUpdateColumnsFailed'));
     }
   } catch (err) {
     let errorMsg = 'Unknown error';

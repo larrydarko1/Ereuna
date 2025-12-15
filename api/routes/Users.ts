@@ -1800,6 +1800,86 @@ export default function (app: any, deps: any) {
         }
     );
 
+    // Endpoint to update user's language preference
+    app.patch('/user/language',
+        validate([
+            validationSchemas.user('user'),
+            body('language')
+                .isString()
+                .trim()
+                .notEmpty()
+                .withMessage('Language is required')
+                .isLength({ min: 2, max: 20 })
+                .withMessage('Language must be between 2 and 20 characters')
+        ]),
+        async (req: Request, res: Response) => {
+            const { user, language } = req.body;
+            const sanitizedUsername = sanitizeInput(user);
+
+            try {
+                const apiKey = req.header('x-api-key');
+                const sanitizedKey = sanitizeInput(apiKey);
+                if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                    logger.warn({
+                        msg: 'Invalid API key',
+                        providedApiKey: !!sanitizedKey,
+                        context: 'PATCH /user/language',
+                        statusCode: 401
+                    });
+                    return res.status(401).json({ message: 'Unauthorized API Access' });
+                }
+
+                const sanitizedLanguage = sanitizeInput(language);
+
+                // Normalize language - capitalize first letter
+                const normalizedLanguage = sanitizedLanguage.charAt(0).toUpperCase() +
+                    sanitizedLanguage.slice(1).toLowerCase();
+
+                const db = await getDB();
+                const usersCollection = db.collection('Users');
+
+                const result = await usersCollection.updateOne(
+                    { Username: sanitizedUsername },
+                    { $set: { Language: normalizedLanguage } }
+                );
+
+                if (result.modifiedCount === 0 && result.matchedCount === 0) {
+                    logger.warn({
+                        msg: 'Language Update Failed',
+                        reason: 'User not found',
+                        username: sanitizedUsername,
+                        context: 'PATCH /user/language',
+                        statusCode: 404
+                    });
+                    return res.status(404).json({ message: 'User not found' });
+                }
+
+                logger.info({
+                    msg: 'User Language Updated',
+                    username: sanitizedUsername,
+                    newLanguage: normalizedLanguage,
+                    context: 'PATCH /user/language',
+                    statusCode: 200
+                });
+
+                return res.status(200).json({
+                    confirm: true,
+                    message: 'Language preference updated successfully',
+                    language: normalizedLanguage
+                });
+
+            } catch (error: any) {
+                handleError(
+                    error,
+                    'PATCH /user/language',
+                    { username: sanitizedUsername },
+                    500
+                );
+                return res.status(500).json({ message: 'Error updating language preference' });
+            }
+        }
+    );
+
     app.delete('/account-delete',
         validate([
             validationSchemas.user(),

@@ -2,7 +2,7 @@
   <div :class="[showIPOInputsModel ? 'param-card-expanded' : 'param-card']">
     <div class="header">
       <div class="title-section">
-        <span class="title">IPO Date</span>
+        <span class="title">{{ t('params.ipoDate') }}</span>
         <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
           @mouseover="handleMouseOver($event, 'ipo')" @mouseout="handleMouseOut($event)" aria-label="Show info for IPO Date parameter">
           <path
@@ -46,7 +46,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const emit = defineEmits(['fetchScreeners', 'handleMouseOver', 'handleMouseOut', 'reset', 'notify', 'update:showIPOInputs']);
 function handleMouseOver(event: MouseEvent, type: string) {
   emit('handleMouseOver', event, type);
@@ -82,7 +84,7 @@ async function SetIpoDate() {
   error.value = '';
   if (!props.selectedScreener) {
     emit('reset');
-    error.value = 'Please select a screener';
+    error.value = t('params.errorSelectScreener');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -90,7 +92,7 @@ async function SetIpoDate() {
   const leftInput = document.getElementById('left-ipo') as HTMLInputElement | null;
   const rightInput = document.getElementById('right-ipo') as HTMLInputElement | null;
   if (!leftInput || !rightInput) {
-    error.value = 'Input elements not found';
+    error.value = t('params.errorInputNotFound');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -101,7 +103,7 @@ async function SetIpoDate() {
   const rightDate = rightValue === '' ? null : rightValue;
   // If both missing, error
   if (leftDate === null && rightDate === null) {
-    error.value = 'Please enter at least one date';
+    error.value = t('params.errorEnterDate');
     showNotification(error.value);
     emit('fetchScreeners', props.selectedScreener);
     return;
@@ -111,13 +113,13 @@ async function SetIpoDate() {
     const leftTime = new Date(leftDate).getTime();
     const rightTime = new Date(rightDate).getTime();
     if (isNaN(leftTime) || isNaN(rightTime)) {
-      error.value = 'Please enter valid dates';
+      error.value = t('params.errorValidDates');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;
     }
     if (leftTime >= rightTime) {
-      error.value = 'Min IPO date cannot be later than or equal to max IPO date';
+      error.value = t('params.errorMinMaxIPO');
       showNotification(error.value);
       emit('fetchScreeners', props.selectedScreener);
       return;
