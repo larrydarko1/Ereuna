@@ -67,7 +67,7 @@ const close = () => emit('close')
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(30, 32, 38, 0.85); /* Dark overlay, DON'T modify */
+  background: var(--brand-glass);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,10 +81,10 @@ const close = () => emit('close')
 }
 
 .modal-content {
-  background: $base1;
-  color: $text2;
+  background: var(--brand-bg-secondary);
+  color: var(--brand-text-secondary);
   border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  box-shadow: none;
   max-width: 700px;
   width: 90vw;
   max-height: 80vh;
@@ -107,22 +107,22 @@ const close = () => emit('close')
   background: none;
   border: none;
   font-size: 2rem;
-  color: $text2;
+  color: var(--brand-text-secondary);
   cursor: pointer;
   transition: color 0.2s;
-  &:hover { color: $accent1; }
+  &:hover { color: var(--brand-primary); }
 }
 
 .contract-title {
   font-size: 1.2rem;
-  color: $accent3;
+  color: var(--brand-accent);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
 
 .contract-header {
   font-size: 1.5rem;
-  color: $text1;
+  color: var(--brand-text-primary);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -131,7 +131,7 @@ const close = () => emit('close')
   margin-top: 1.5rem;
   font-size: 1rem;
   line-height: 1.7;
-  color: $text2;
+  color: var(--brand-text-secondary);
   p { margin-bottom: 1.1rem; }
 }
 

@@ -274,11 +274,11 @@ async function handleRenewal() {
 .renewal-container {
   max-width: 1000px;
   margin: 3.5rem auto 2rem auto;
-  background: $base4;
+  background: var(--brand-bg-primary);
   border-radius: 1.5rem;
   box-shadow: 0 8px 32px rgba(30, 41, 59, 0.13), 0 2px 8px rgba(30, 41, 59, 0.10);
   padding: 2.5rem 1.5rem 2rem 1.5rem;
-  color: $text1;
+  color: var(--brand-text-primary);
   position: relative;
 }
 .expired-message {
@@ -286,20 +286,20 @@ async function handleRenewal() {
   margin-bottom: 2.2rem;
 }
 .expired-message h1 {
-  color: $accent1;
+  color: var(--brand-primary);
   font-size: 4rem;
   margin-bottom: 0.5rem;
   font-weight: 700;
 }
 .expired-message p {
-  color: $text2;
+  color: var(--brand-text-secondary);
   font-size: 2rem;
 }
 .subscription-section {
   margin-top: 1.2rem;
 }
 .subtitle {
-  color: $accent1;
+  color: var(--brand-primary);
   font-size: 2rem;
   margin-bottom: 2rem;
   text-align: center;
@@ -316,8 +316,8 @@ async function handleRenewal() {
   margin-top: 15px;
 }
 .duration-option {
-  background-color: $base2;
-  color: $text2;
+  background-color: var(--brand-bg-secondary);
+  color: var(--brand-text-secondary);
   border-radius: 7px;
   padding: 10px 18px;
   cursor: pointer;
@@ -325,30 +325,30 @@ async function handleRenewal() {
   text-align: center;
   flex: 1;
   min-width: 80px;
-  border: 1.5px solid $base3;
+  border: 1.5px solid var(--brand-glass-border);
   font-weight: 600;
 }
 .duration-option:hover {
-  background-color: $base3;
+  background-color: var(--brand-bg-card-hover);
 }
 .duration-option.selected-duration {
-  background-color: $accent1;
-  color: $text4;
-  border-color: $accent1;
+  background-color: var(--brand-primary);
+  color: #000000;
+  border-color: var(--brand-primary);
 }
 .total-price {
   margin-top: 30px;
   text-align: right;
   padding: 10px 0 0 0;
-  border-top: 1px solid $base2;
+  border-top: 1px solid var(--brand-bg-secondary);
 }
 .total-price p {
   font-size: 18px;
-  color: $text2;
+  color: var(--brand-text-secondary);
 }
 .total-price span {
   font-size: 22px;
-  color: $accent1;
+  color: var(--brand-primary);
   font-weight: 700;
   margin-left: 8px;
 }
@@ -356,17 +356,17 @@ async function handleRenewal() {
   margin-bottom: 1.1rem;
 }
 #card-element {
-  background: $base4;
+  background: var(--brand-bg-primary);
   border-radius: 8px;
   padding: 16px;
-  color: $text1;
-  border: 1.5px solid $base2;
+  color: var(--brand-text-primary);
+  border: 1.5px solid var(--brand-bg-secondary);
   margin-bottom: 10px;
   font-size: 1.1rem;
   transition: border 0.2s;
 }
 #card-element.StripeElement--focus {
-  border-color: $accent1;
+  border-color: var(--brand-primary);
 }
 .country-select {
   margin-top: 1rem;
@@ -378,11 +378,11 @@ async function handleRenewal() {
   user-select: none;
 }
 .country-select .dropdown-selected {
-  background: $base2;
-  color: $text1;
+  background: var(--brand-bg-secondary);
+  color: var(--brand-text-primary);
   border-radius: 7px;
   padding: 10px 12px;
-  border: 1.5px solid $base3;
+  border: 1.5px solid var(--brand-glass-border);
   font-size: 0.98rem;
   display: flex;
   justify-content: space-between;
@@ -391,7 +391,7 @@ async function handleRenewal() {
   transition: border-color 0.18s;
 }
 .country-select .dropdown-selected:focus {
-  border-color: $accent1;
+  border-color: var(--brand-primary);
 }
 .country-select .dropdown-arrow {
   margin-left: 6px;
@@ -406,8 +406,8 @@ async function handleRenewal() {
   top: 105%;
   left: 0;
   width: 100%;
-  background: $base2;
-  border: 1.5px solid $base3;
+  background: var(--brand-bg-secondary);
+  border: 1.5px solid var(--brand-glass-border);
   border-radius: 7px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   z-index: 10;
@@ -416,7 +416,7 @@ async function handleRenewal() {
 }
 .country-select .dropdown-item {
   padding: 10px 12px;
-  color: $text1;
+  color: var(--brand-text-primary);
   text-align: left;
   cursor: pointer;
   font-size: 0.98rem;
@@ -424,16 +424,16 @@ async function handleRenewal() {
   transition: background 0.18s, color 0.18s;
 }
 .country-select .dropdown-item:hover {
-  background: $accent1;
-  color: $text4;
+  background: var(--brand-primary);
+  color: #000000;
 }
 .userbtn {
-  background: $accent1;
+  background: var(--brand-primary);
   text-align: center;
   align-items: center;
   align-content: center;
   justify-content: center;
-  color: $text4;
+  color: #000000;
   border-radius: 10px;
   outline: none;
   border: none;
@@ -450,7 +450,7 @@ async function handleRenewal() {
   cursor: not-allowed;
 }
 .userbtn:hover:not(:disabled) {
-  background: $accent2;
+  background: var(--brand-secondary);
 }
 .btn-content-row {
   display: flex;

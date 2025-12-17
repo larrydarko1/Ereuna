@@ -122,7 +122,7 @@ onMounted(() => {
 
 .communications-page {
   min-height: 100vh;
-  background: var(--base4);
+  background: var(--brand-bg-primary);
   position: relative;
   overflow-x: hidden;
 }
@@ -158,9 +158,9 @@ onMounted(() => {
 .page-title {
   font-size: 2.5rem;
   font-weight: 700;
-  color: var(--text1);
+  color: var(--brand-text-primary);
   margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -168,7 +168,7 @@ onMounted(() => {
 
 .page-subtitle {
   font-size: 1.1rem;
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   margin: 0;
   font-weight: 400;
 }
@@ -176,10 +176,10 @@ onMounted(() => {
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
-  background: var(--base2);
+  background: var(--brand-bg-card);
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
 }
 
 .empty-icon {
@@ -189,14 +189,14 @@ onMounted(() => {
 }
 
 .empty-state h3 {
-  color: var(--text1);
+  color: var(--brand-text-primary);
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0 0 0.5rem 0;
 }
 
 .empty-state p {
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   font-size: 1rem;
   margin: 0;
 }
@@ -209,11 +209,11 @@ onMounted(() => {
 }
 
 .communication-card {
-  background: var(--base2);
+  background: var(--brand-bg-card);
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -225,7 +225,7 @@ onMounted(() => {
   top: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(90deg, var(--accent1), var(--accent2));
+  background: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary));
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -233,7 +233,7 @@ onMounted(() => {
 .communication-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-  border-color: var(--accent1);
+  border-color: var(--brand-primary);
 }
 
 .communication-card:hover::before {
@@ -249,16 +249,16 @@ onMounted(() => {
 
 .comm-date {
   font-size: 1rem;
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(var(--base4), 0.8);
+  background: var(--brand-glass);
   padding: 0.5rem 1rem;
   border-radius: 20px;
   backdrop-filter: blur(10px);
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
 }
 
 .date-icon {
@@ -274,13 +274,13 @@ onMounted(() => {
 .comm-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text1);
+  color: var(--brand-text-primary);
   margin: 0 0 1rem 0;
   line-height: 1.3;
 }
 
 .comm-message {
-  color: var(--text1);
+  color: var(--brand-text-primary);
   line-height: 1.7;
   font-size: 1rem;
   margin: 0;
@@ -413,7 +413,7 @@ onMounted(() => {
 
 /* Focus states for accessibility */
 .communication-card:focus-within {
-  outline: 2px solid var(--accent1);
+  outline: 2px solid var(--brand-primary);
   outline-offset: 4px;
 }
 </style>

@@ -17,7 +17,21 @@
                   @change="changeLanguage"
                   aria-label="Select Language">
                   <option value="en">English</option>
+                  <option value="zh">中文</option>
                   <option value="es">Español</option>
+                  <option value="ar">العربية</option>
+                  <option value="fr">Français</option>
+                  <option value="pt">Português</option>
+                  <option value="ru">Русский</option>
+                  <option value="de">Deutsch</option>
+                  <option value="jp">日本語</option>
+                  <option value="ko">한국어</option>
+                  <option value="it">Italiano</option>
+                  <option value="gr">Ελληνικά</option>
+                  <option value="he">עברית</option>
+                  <option value="mt">Malti</option>
+                  <option value="ep">Esperanto</option>
+                  <option value="la">Latina</option>
                 </select>
               </div>
             </div>

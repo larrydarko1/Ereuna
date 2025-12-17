@@ -227,10 +227,8 @@ function getComponentName(item: string) {
 </script>
 
 <style scoped lang="scss">
-@use '../style.scss' as *;
-
 .documentation {
-  background: $base1;
+  background: var(--brand-bg-primary);
   height: 100vh;
   width: 100%;
   display: grid;
@@ -241,11 +239,11 @@ function getComponentName(item: string) {
 }
 
 .side1 {
-  background: linear-gradient(135deg, $base2 0%, $base1 100%);
+  background: linear-gradient(135deg, var(--brand-bg-secondary) 0%, var(--brand-bg-primary) 100%);
   display: flex;
   flex-direction: column;
   position: relative;
-  border-right: 1px solid $base3;
+  border-right: 1px solid var(--brand-glass-border);
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
   z-index: 5000;
 }
@@ -261,7 +259,7 @@ function getComponentName(item: string) {
 .side1 p {
   font-size: 1rem;
   font-weight: 500;
-  color: $text2;
+  color: var(--brand-text-secondary);
   text-align: left;
   padding: 12px 20px;
   margin: 4px 12px;
@@ -273,14 +271,14 @@ function getComponentName(item: string) {
   font-weight: bold;
   
   &:hover {
-    color: $text1;
+    color: var(--brand-text-primary);
     background: rgba(255, 255, 255, 0.05);
   }
   
   &.active {
-    color: $text4;
-    background: linear-gradient(135deg, $accent1 0%, $accent2 100%);
-    box-shadow: 0 4px 12px rgba($accent1, 0.3);
+    color: var(--brand-bg-secondary);
+    background: linear-gradient(135deg, var(--brand-gradient-start) 0%, var(--brand-gradient-end) 100%);
+    box-shadow: 0 4px 12px rgba(122, 162, 247, 0.3);
   }
 }
 
@@ -290,7 +288,7 @@ function getComponentName(item: string) {
   left: 20px;
   right: 20px;
   font-size: 0.8rem;
-  color: $text3;
+  color: var(--brand-text-tertiary);
   text-align: center;
   padding: 8px 12px;
   background: rgba(255, 255, 255, 0.05);
@@ -299,12 +297,12 @@ function getComponentName(item: string) {
 }
 
 .side2 {
-  background: $base1;
+  background: var(--brand-bg-primary);
   padding-top: 1rem;
   display: flex;
   flex-direction: column;
   position: relative;
-  border-right: 1px solid $base3;
+  border-right: 1px solid var(--brand-glass-border);
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
   z-index: 1000;
   overflow-y: auto;
@@ -319,11 +317,11 @@ function getComponentName(item: string) {
   }
   
   &::-webkit-scrollbar-thumb {
-    background: $base3;
+    background: var(--brand-glass-border);
     border-radius: 3px;
     
     &:hover {
-      background: $accent1;
+      background: var(--brand-gradient-start);
     }
   }
 }
@@ -331,7 +329,7 @@ function getComponentName(item: string) {
 .side2 p {
   font-size: 0.95rem;
   font-weight: 400;
-  color: $text2;
+  color: var(--brand-text-secondary);
   text-align: left;
   padding: 10px 20px;
   margin: 2px 8px;
@@ -341,24 +339,24 @@ function getComponentName(item: string) {
   
   &.bold {
     font-weight: 600;
-    color: $text1;
+    color: var(--brand-text-primary);
   }
   
   &:hover {
-    color: $text1;
+    color: var(--brand-text-primary);
     background: rgba(255, 255, 255, 0.05);
   }
   
   &.active {
-    color: $text1;
-    background: linear-gradient(135deg, rgba($accent1, 0.1) 0%, rgba($accent2, 0.1) 100%);
+    color: var(--brand-text-primary);
+    background: linear-gradient(135deg, rgba(122, 162, 247, 0.1) 0%, rgba(137, 221, 255, 0.1) 100%);
     font-weight: 500;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 }
 
 .main {
-  background: linear-gradient(135deg, $base4 0%, $base1 100%);
+  background: linear-gradient(135deg, var(--brand-bg-card) 0%, var(--brand-bg-primary) 100%);
   padding: 32px 40px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -373,11 +371,11 @@ function getComponentName(item: string) {
   }
   
   &::-webkit-scrollbar-thumb {
-    background: $base3;
+    background: var(--brand-glass-border);
     border-radius: 4px;
     
     &:hover {
-      background: $accent1;
+      background: var(--brand-gradient-start);
     }
   }
   
@@ -422,9 +420,9 @@ function getComponentName(item: string) {
     flex-direction: column;
     gap: 1rem;
     padding: 1.5rem;
-    background: linear-gradient(135deg, $base4 0%, $base2 100%);
+    background: linear-gradient(135deg, var(--brand-bg-card) 0%, var(--brand-bg-secondary) 100%);
     align-items: center;
-    border-bottom: 1px solid $base3;
+    border-bottom: 1px solid var(--brand-glass-border);
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -456,9 +454,9 @@ function getComponentName(item: string) {
         button {
           font-size: 0.9rem;
           font-weight: 600;
-          background: $base2;
-          color: $text2;
-          border: 1px solid $base3;
+          background: var(--brand-bg-secondary);
+          color: var(--brand-text-secondary);
+          border: 1px solid var(--brand-glass-border);
           border-radius: 8px;
           padding: 0.75rem 1rem;
           cursor: pointer;
@@ -478,32 +476,32 @@ function getComponentName(item: string) {
           box-shadow: none;
           
           &.active {
-            background: linear-gradient(135deg, $accent1 0%, $accent2 100%) !important;
-            color: $base4 !important;
-            border-color: $accent1 !important;
-            box-shadow: 0 4px 12px rgba($accent1, 0.3);
+            background: linear-gradient(135deg, var(--brand-gradient-start) 0%, var(--brand-gradient-end) 100%) !important;
+            color: var(--brand-bg-card) !important;
+            border-color: var(--brand-gradient-start) !important;
+            box-shadow: 0 4px 12px rgba(122, 162, 247, 0.3);
           }
           
           &:hover:not(.active) {
-            background: $base3;
-            color: $text1;
+            background: var(--brand-glass-border);
+            color: var(--brand-text-primary);
           }
           
           &:focus {
-            background: $base3;
-            color: $text1;
+            background: var(--brand-glass-border);
+            color: var(--brand-text-primary);
           }
           
           &:active {
-            background: $base2;
-            color: $text2;
+            background: var(--brand-bg-secondary);
+            color: var(--brand-text-secondary);
             transform: translateY(0);
           }
           
           &.active:hover,
           &.active:focus {
-            background: linear-gradient(135deg, $accent1 0%, $accent2 100%) !important;
-            color: $base4 !important;
+            background: linear-gradient(135deg, var(--brand-gradient-start) 0%, var(--brand-gradient-end) 100%) !important;
+            color: var(--brand-bg-card) !important;
           }
         }
       }
@@ -518,7 +516,7 @@ function getComponentName(item: string) {
       h1 {
         font-size: 1.5rem;
         font-weight: 700;
-        color: $text1;
+        color: var(--brand-text-primary);
         margin: 0;
         line-height: 1;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -526,7 +524,7 @@ function getComponentName(item: string) {
       
       .nav-version {
         font-size: 0.85rem;
-        color: $text2;
+        color: var(--brand-text-secondary);
         font-weight: 500;
         opacity: 0.8;
         background: rgba(255, 255, 255, 0.1);
@@ -554,7 +552,7 @@ function getComponentName(item: string) {
   }
 
   .side1 {
-    background: linear-gradient(135deg, $base2 0%, $base1 100%);
+    background: linear-gradient(135deg, var(--brand-bg-secondary) 0%, var(--brand-bg-primary) 100%);
     height: calc(100vh - 120px);
     overflow-y: auto;
     padding: 1rem 0;
@@ -568,13 +566,13 @@ function getComponentName(item: string) {
     }
     
     &::-webkit-scrollbar-thumb {
-      background: $base3;
+      background: var(--brand-glass-border);
       border-radius: 3px;
     }
   }
 
   .side2 {
-    background: $base1;
+    background: var(--brand-bg-primary);
     height: calc(100vh - 120px);
     overflow-y: auto;
     padding: 1rem 0;
@@ -588,7 +586,7 @@ function getComponentName(item: string) {
     }
     
     &::-webkit-scrollbar-thumb {
-      background: $base3;
+      background: var(--brand-glass-border);
       border-radius: 3px;
     }
   }
@@ -597,7 +595,7 @@ function getComponentName(item: string) {
     padding: 1.5rem;
     overflow-y: auto;
     height: calc(100vh - 120px);
-    background: linear-gradient(135deg, $base4 0%, $base1 100%);
+    background: linear-gradient(135deg, var(--brand-bg-card) 0%, var(--brand-bg-primary) 100%);
     flex: 1;
     
     &::-webkit-scrollbar {
@@ -609,7 +607,7 @@ function getComponentName(item: string) {
     }
     
     &::-webkit-scrollbar-thumb {
-      background: $base3;
+      background: var(--brand-glass-border);
       border-radius: 3px;
     }
   }

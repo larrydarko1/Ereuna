@@ -454,7 +454,7 @@ async function verifyMfa() {
   border: none;
   cursor: pointer;
   font-size: 10px;
-  color: black;
+  color: var(--brand-text-primary);
   opacity: 0.60;
 }
 
@@ -473,7 +473,7 @@ async function verifyMfa() {
 
 .forgot-password span {
   margin-right: 5px;
-  color: $text2;
+  color: var(--brand-text-secondary);
   font-size: 1.2rem;
 }
 
@@ -492,7 +492,7 @@ async function verifyMfa() {
 .checkmark {
   width: 8px;
   height: 8px;
-  background-color: whitesmoke;
+  background-color: var(--brand-text-primary);
   border-radius: 50%;
   margin-right: 5px;
   display: inline-block;
@@ -500,20 +500,20 @@ async function verifyMfa() {
 }
 
 .custom-checkbox.checked .checkmark {
-  background-color: #8c8dfe;
-  border-color: #8c8dfe;
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
 }
 
 .label-text {
   opacity: 0.7;
   transition: opacity 0.3s;
-  color: whitesmoke;
+  color: var(--brand-text-primary);
   font-size: 12px;
 }
 
 .custom-checkbox.checked .label-text {
   opacity: 1;
-  color: whitesmoke;
+  color: var(--brand-text-primary);
 }
 
 .toggle-icon {
@@ -527,7 +527,7 @@ async function verifyMfa() {
   left: 50%;
   transform: translate(-50%, -50%);
   width: 300px;
-  background-color: $base2;
+  background-color: var(--brand-bg-secondary);
   border: none;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   padding: 20px;
@@ -539,8 +539,8 @@ async function verifyMfa() {
 .mfa-popup button {
   width: 90%;
   padding: 10px;
-  background-color: $accent1;
-  color: $text4;
+  background-color: var(--brand-primary);
+  color: var(--brand-bg-primary);
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -549,7 +549,7 @@ async function verifyMfa() {
 }
 
 .mfa-popup button:hover {
-  background-color: $accent2;
+  background-color: var(--brand-secondary);
 }
 
 .logo-container {
@@ -566,7 +566,7 @@ async function verifyMfa() {
 }
 
 .image-background{
-  background-color: $base4;
+  background-color: var(--brand-bg-primary);
   min-width: 600px;
   position: relative;
 }
@@ -576,7 +576,7 @@ async function verifyMfa() {
   bottom: 0;
   left: 0;
   margin: 10px;
-  color: $text2;
+  color: var(--brand-text-secondary);
   z-index: 100;
 }
 
@@ -587,7 +587,7 @@ async function verifyMfa() {
   transform: translate(-50%, -50%);
   text-align: center;
   font-size: 25px;
-  color: $text1;
+  color: var(--brand-text-primary);
   z-index: 100;
 }
 
@@ -598,7 +598,7 @@ async function verifyMfa() {
   transform: translate(-50%, -50%);
   text-align: center;
   font-size: 14px;
-  color: $text2;
+  color: var(--brand-text-secondary);
   z-index: 100;
 }
 
@@ -627,18 +627,18 @@ async function verifyMfa() {
 }
 
 p{
-  color: $text2;
+  color: var(--brand-text-secondary);
   font-size: 1.2rem;
 }
 
 .form-input {
   border: solid 2px transparent;
   border-radius: 5px;
-  background-color:$base2;
+  background-color: var(--brand-bg-secondary);
   padding: 1.5rem;
   font-size: 1.2rem;
   width: 400px;
-  color: $text2;
+  color: var(--brand-text-secondary);
   transition: border 150ms cubic-bezier(0.4,0,0.2,1);
 }
 
@@ -647,7 +647,7 @@ p{
   position: absolute;
   left: 30px;
   bottom: 45px;
-  color: $text2;
+  color: var(--brand-text-secondary);
   pointer-events: none;
   transform: translateY(1.5rem);
   transition: 150ms cubic-bezier(0.4,0,0.2,1);
@@ -655,25 +655,25 @@ p{
 
 .form-input:focus, .form-input:valid {
   outline: none;
-  border: 2px solid $accent1;
+  border: 2px solid var(--brand-primary);
 }
 
 .form-input:focus ~ label, .form-input:valid ~ label {
   transform: translateY(-50%) scale(0.8);
-  background-color: #212121;
+  background-color: var(--brand-bg-primary);
   padding: 0 .4em;
-  color: $accent1;
+  color: var(--brand-primary);
 }
 
 .userbtn {
-  background-color: $accent1;
+  background-color: var(--brand-primary);
   text-align: center;
   display: flex;
   flex-direction: row;
   align-items: center;
   align-content: center;
   justify-content: center;
-  color: $text4;
+  color: var(--brand-bg-primary);
   border-radius: 5px;
   outline: none;
   border: none;
@@ -687,7 +687,7 @@ p{
 }
 
 .userbtn:hover {
-  background-color: $accent2;
+  background-color: var(--brand-secondary);
 }
 
 .loader4 {
@@ -705,10 +705,9 @@ p{
 }
 
 .path {
-  stroke: linear-gradient(45deg, #000000, #121212);
+  stroke: var(--brand-text-primary);
   stroke-linecap: round;
   animation: dash 1.5s ease-in-out infinite;
-  stroke: #000000;
 }
 
 @keyframes rotate {
@@ -733,12 +732,12 @@ p{
 }
 
 a{
-  color: $accent1;
+  color: var(--brand-primary);
   font-size: 1.2rem;
 }
 
 a:hover{
-  color: $accent2;
+  color: var(--brand-secondary);
   cursor: pointer;
 }
 
@@ -770,27 +769,27 @@ a:hover{
   height: 36px;
   font-size: 28px;
   text-align: center;
-  border: 1px solid $text1;
+  border: 1px solid var(--brand-text-primary);
   border-radius: 8px;
-  background: $base1;
-  color: $text1;
+  background: var(--brand-bg-primary);
+  color: var(--brand-text-primary);
   outline: none;
   transition: border-color 0.2s;
 }
 .mfa-digit:focus {
-  border-color: $accent1;
+  border-color: var(--brand-primary);
 }
 
 .mfa-popup input {
   width: 90%;
   padding: 10px;
-  border: 1px solid $text1;
+  border: 1px solid var(--brand-text-primary);
   border-radius: 10px;
   box-shadow: none;
 }
 
 .mfa-popup input:focus {
-  border: 1px solid $accent1;
+  border: 1px solid var(--brand-primary);
   outline: none;
 }
 

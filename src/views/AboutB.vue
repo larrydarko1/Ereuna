@@ -110,44 +110,18 @@
         </div>
       </div>
     </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-      <div class="container">
-        <div class="cta-content">
-          <h2 class="cta-title">Ready to Start Your Journey?</h2>
-          <p class="cta-text">Join other traders and investors using Ereuna for market analysis</p>
-          <router-link to="/signup" class="cta-button">
-            Get Started Today
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </router-link>
-        </div>
-      </div>
-    </section>
   </div>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from 'vue'
 
-onMounted(() => {
-  // Add tokyo-night theme class to body for this page
-  document.body.classList.add('tokyo-night-theme')
-})
-
-onUnmounted(() => {
-  // Clean up theme class when leaving the page
-  document.body.classList.remove('tokyo-night-theme')
-})
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .mission-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--base4) 0%, var(--base1) 100%);
-  color: var(--text1);
+  background: linear-gradient(135deg, var(--brand-bg-primary) 0%, var(--brand-bg-secondary) 100%);
+  color: var(--brand-text-primary);
   position: relative;
   overflow-x: hidden;
 }
@@ -160,8 +134,8 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   background:
-    radial-gradient(circle at 20% 80%, rgba(122, 162, 247, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(187, 154, 247, 0.1) 0%, transparent 50%);
+    radial-gradient(circle at 20% 80%, rgba(125, 207, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(137, 221, 255, 0.1) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -176,12 +150,12 @@ onUnmounted(() => {
   font-weight: 600;
   text-align: center;
   margin-bottom: 3rem;
-  color: var(--text1);
+  color: var(--brand-text-primary);
 }
 
 .vision-section {
   padding: 5rem 2rem;
-  background: var(--base4);
+  background: var(--brand-bg-primary);
 }
 
 .vision-content {
@@ -201,7 +175,7 @@ onUnmounted(() => {
 .vision-text {
   font-size: 1.25rem;
   line-height: 1.7;
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   margin-bottom: 3rem;
 }
 
@@ -216,30 +190,30 @@ onUnmounted(() => {
 .stat-item {
   text-align: center;
   padding: 1.5rem;
-  background: var(--base2);
+  background: var(--brand-bg-secondary);
   border-radius: 12px;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
   min-width: 120px;
 }
 
 .stat-number {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--accent1);
+  color: var(--brand-primary);
   margin-bottom: 0.5rem;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
 .stat-label {
   font-size: 0.875rem;
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   font-weight: 500;
 }
 
 /* Timeline Section */
 .timeline-section {
   padding: 5rem 2rem;
-  background: var(--base1);
+  background: var(--brand-bg-secondary);
 }
 
 .timeline {
@@ -255,7 +229,7 @@ onUnmounted(() => {
   top: 0;
   bottom: 0;
   width: 2px;
-  background: linear-gradient(to bottom, var(--accent1), var(--accent2));
+  background: linear-gradient(to bottom, var(--brand-primary), var(--brand-secondary));
   transform: translateX(-50%);
   border-radius: 1px;
 }
@@ -306,46 +280,46 @@ onUnmounted(() => {
 .timeline-dot {
   width: 16px;
   height: 16px;
-  background: var(--accent1);
-  border: 3px solid var(--base4);
+  background: var(--brand-primary);
+  border: 3px solid var(--brand-bg-primary);
   border-radius: 50%;
   margin: 0 auto;
-  box-shadow: 0 0 0 4px rgba(122, 162, 247, 0.2);
+  box-shadow: 0 0 0 4px rgba(125, 207, 255, 0.2);
   transition: all 0.3s ease;
 }
 
 .timeline-item:hover .timeline-dot {
-  background: var(--accent2);
+  background: var(--brand-secondary);
   transform: scale(1.2);
-  box-shadow: 0 0 0 6px rgba(187, 154, 247, 0.3);
+  box-shadow: 0 0 0 6px rgba(137, 221, 255, 0.3);
 }
 
 .timeline-date {
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  background: var(--base2);
+  background: var(--brand-bg-secondary);
   padding: 0.5rem 1rem;
   border-radius: 20px;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
 }
 
 .timeline-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--brand-text-primary);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  background: var(--base2);
+  background: var(--brand-bg-secondary);
   padding: 0.75rem 1.5rem;
   border-radius: 12px;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
   transition: all 0.3s ease;
 }
 
 .timeline-item:hover .timeline-title {
-  background: var(--base3);
-  border-color: var(--accent1);
+  background: var(--brand-bg-card-hover);
+  border-color: var(--brand-primary);
 }
 
 /* Simple Navigation */
@@ -384,7 +358,7 @@ onUnmounted(() => {
 }
 
 .nav-link {
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   text-decoration: none;
   font-size: 1.3rem;
   font-weight: 500;
@@ -419,7 +393,7 @@ onUnmounted(() => {
 .nav-toggle-label span {
   display: block;
   height: 3px;
-  background: var(--text2);
+  background: var(--brand-text-secondary);
   border-radius: 2px;
   transition: all 0.3s ease;
   /* Set transform origin near the left edge for better rotation pivot */
@@ -452,17 +426,17 @@ onUnmounted(() => {
 .divider-line {
   width: 60px;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent1), transparent);
+  background: linear-gradient(90deg, transparent, var(--brand-primary), transparent);
   border-radius: 1px;
 }
 
 /* CTA Section */
 .cta-section {
   padding: 6rem 2rem;
-  background: linear-gradient(135deg, var(--base1) 0%, var(--base4) 100%);
+  background: linear-gradient(135deg, var(--brand-bg-secondary) 0%, var(--brand-bg-primary) 100%);
   position: relative;
   overflow: hidden;
-  border-top: 1px solid var(--base3);
+  border-top: 1px solid var(--brand-glass-border);
 }
 
 .cta-section::before {
@@ -473,8 +447,8 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   background:
-    radial-gradient(circle at 30% 20%, rgba(122, 162, 247, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 70% 80%, rgba(187, 154, 247, 0.08) 0%, transparent 50%);
+    radial-gradient(circle at 30% 20%, rgba(125, 207, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(137, 221, 255, 0.08) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -488,7 +462,7 @@ onUnmounted(() => {
 .cta-title {
   font-size: 3.2rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--text1), var(--accent1));
+  background: linear-gradient(135deg, var(--brand-text-primary), var(--brand-primary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -498,7 +472,7 @@ onUnmounted(() => {
 
 .cta-text {
   font-size: 1.3rem;
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   margin-bottom: 3rem;
   line-height: 1.6;
   opacity: 0.9;
@@ -508,15 +482,15 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  color: var(--base4);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  color: var(--brand-bg-primary);
   text-decoration: none;
   padding: 1.5rem 3rem;
   border-radius: 14px;
   font-size: 1.3rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(122, 162, 247, 0.5);
+  box-shadow: 0 10px 30px rgba(125, 207, 255, 0.5);
   border: none;
   cursor: pointer;
   position: relative;
@@ -540,7 +514,7 @@ onUnmounted(() => {
 
 .cta-button:hover {
   transform: translateY(-4px);
-  box-shadow: 0 15px 40px rgba(122, 162, 247, 0.7);
+  box-shadow: 0 15px 40px rgba(125, 207, 255, 0.7);
 }
 
 .cta-button:active {
@@ -630,211 +604,6 @@ onUnmounted(() => {
   }
 }
 
-/* Tokyo Night Theme Override */
-.tokyo-night-theme {
-  --accent1: #7aa2f7;
-  --accent2: #bb9af7;
-  --accent3: #7dcfff;
-  --text1: #c0caf5;
-  --text2: #a9b1d6;
-  --text3: #222222;
-  --base1: #1a1b26;
-  --base2: #24283b;
-  --base3: #414868;
-  --base4: #16161e;
-  --positive: #9ece6a;
-  --negative: #f7768e;
-  --volume: #ff9e64;
-  --ma4: #9ece6a;
-  --ma3: #e0af68;
-  --ma2: #7aa2f7;
-  --ma1: #bb9af7;
-}
-
-/* Simple Navigation */
-.simple-nav {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: transparent;
-  padding: 2.5rem 2rem;
-}
-
-.nav-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.nav-logo img {
-  height: 60px;
-  width: auto;
-  opacity: 0.7;
-  transition: opacity 0.3s ease;
-}
-
-.nav-logo:hover img {
-  opacity: 1;
-}
-
-.nav-links {
-  display: flex;
-  gap: 4rem;
-}
-
-.nav-link {
-  color: var(--text2);
-  text-decoration: none;
-  font-size: 1.3rem;
-  font-weight: 500;
-  opacity: 0.7;
-  transition: opacity 0.3s ease;
-}
-
-.nav-link:hover {
-  opacity: 1;
-}
-
-/* Hide the checkbox input */
-.nav-toggle {
-  display: none;
-}
-
-/* Label styling */
-.nav-toggle-label {
-  display: none;
-  flex-direction: column;
-  justify-content: space-around;
-  width: 25px;
-  height: 25px;
-  cursor: pointer;
-  margin-left: auto;
-  margin-right: 20px;
-  user-select: none;
-  gap: 5px;
-}
-
-/* The two bars */
-.nav-toggle-label span {
-  display: block;
-  height: 3px;
-  background: var(--text2);
-  border-radius: 2px;
-  transition: all 0.3s ease;
-  /* Set transform origin near the left edge for better rotation pivot */
-  transform-origin: 1.5px center;
-}
-
-/* Each bar full width */
-.nav-toggle-label span:nth-child(1),
-.nav-toggle-label span:nth-child(2) {
-  width: 25px;
-}
-
-/* Toggle to cross when checked */
-#nav-toggle:checked + .nav-toggle-label span:nth-child(1) {
-  transform: rotate(45deg);
-}
-
-#nav-toggle:checked + .nav-toggle-label span:nth-child(2) {
-  transform: rotate(-45deg);
-}
-
-/* CTA Section */
-.cta-section {
-  padding: 6rem 2rem;
-  background: linear-gradient(135deg, var(--base1) 0%, var(--base4) 100%);
-  position: relative;
-  overflow: hidden;
-  border-top: 1px solid var(--base3);
-}
-
-.cta-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(circle at 30% 20%, rgba(122, 162, 247, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 70% 80%, rgba(187, 154, 247, 0.08) 0%, transparent 50%);
-  pointer-events: none;
-}
-
-.cta-content {
-  max-width: 700px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
-}
-
-.cta-title {
-  font-size: 3.2rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--text1), var(--accent1));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 1.5rem;
-  line-height: 1.1;
-}
-
-.cta-text {
-  font-size: 1.3rem;
-  color: var(--text2);
-  margin-bottom: 3rem;
-  line-height: 1.6;
-  opacity: 0.9;
-}
-
-.cta-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  color: var(--base4);
-  text-decoration: none;
-  padding: 1.5rem 3rem;
-  border-radius: 14px;
-  font-size: 1.3rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(122, 162, 247, 0.5);
-  border: none;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-}
-
-.cta-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-  transition: left 0.5s ease;
-}
-
-.cta-button:hover::before {
-  left: 100%;
-}
-
-.cta-button:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 15px 40px rgba(122, 162, 247, 0.7);
-}
-
-.cta-button:active {
-  transform: translateY(-2px);
-}
-
 /* Mobile version */
 @media (max-width: 700px) {
   .nav-toggle-label {
@@ -845,7 +614,7 @@ onUnmounted(() => {
     position: absolute;
     top: 60px;
     right: 10px;
-    background-color: var(--base2);
+    background-color: var(--brand-bg-secondary);
     flex-direction: column;
     width: 120px;
     border-radius: 5px;
@@ -877,7 +646,7 @@ onUnmounted(() => {
     bottom: 0;
     width: 2px;
     height: 100%;
-    background: linear-gradient(to bottom, var(--accent1), var(--accent2));
+    background: linear-gradient(to bottom, var(--brand-primary), var(--brand-secondary));
     transform: translateX(-50%);
   }
 

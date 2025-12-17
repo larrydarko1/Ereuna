@@ -431,7 +431,7 @@ function initializeStripe() {
 }
 
 .path {
-  stroke: #000000;
+  stroke: var(--brand-text-primary);
   stroke-linecap: round;
   animation: dash 1.5s ease-in-out infinite;
 }
@@ -463,18 +463,18 @@ function initializeStripe() {
 }
 
 p {
-  color: $text2;
+  color: var(--brand-text-secondary);
   font-size: 1.2rem;
 }
 
 .input {
   border: solid 2px transparent;
   border-radius: 5px;
-  background-color: $base2;
+  background-color: var(--brand-bg-secondary);
   padding: 1.5rem;
   font-size: 1.2rem;
   width: 80%;
-  color: $text2;
+  color: var(--brand-text-secondary);
   transition: border 150ms cubic-bezier(0.4,0,0.2,1);
 }
 
@@ -483,7 +483,7 @@ p {
   left: 10%;
   padding-left: 1.5rem;
   bottom: 45px;
-  color: $text2;
+  color: var(--brand-text-secondary);
   pointer-events: none;
   transform: translateY(1.5rem);
   transition: 150ms cubic-bezier(0.4,0,0.2,1);
@@ -492,23 +492,23 @@ p {
 
 .input:focus, .input:valid {
   outline: none;
-  border: 2px solid $accent1;
+  border: 2px solid var(--brand-primary);
 }
 
 .input:focus ~ label, .input:valid ~ label {
   transform: translateY(-50%) scale(0.8);
-  background-color: $base1;
+  background-color: var(--brand-bg-primary);
   padding: 0 .4em;
-  color: $accent1;
+  color: var(--brand-primary);
 }
 
 .userbtn {
-  background-color: $accent1;
+  background-color: var(--brand-primary);
   text-align: center;
   align-items: center;
   align-content: center;
   justify-content: center;
-  color: $text4;
+  color: var(--brand-bg-primary);
   border-radius: 5px;
   outline: none;
   border: none;
@@ -522,7 +522,7 @@ p {
 }
 
 .userbtn:hover {
-  background-color: $accent2;
+  background-color: var(--brand-secondary);
 }
 
 .signup-form {
@@ -532,7 +532,7 @@ p {
   width: 80%;
   margin: 70px auto;
   text-align: center;
-  background-color: $base4;
+  background-color: var(--brand-bg-primary);
   z-index: 1000;
 }
 
@@ -546,7 +546,7 @@ p {
 .checkmark {
   width: 12px;
   height: 12px;
-  background-color: whitesmoke;
+  background-color: var(--brand-text-primary);
   border-radius: 50%;
   margin-right: 10px;
   display: inline-block;
@@ -554,14 +554,14 @@ p {
 }
 
 .custom-checkbox.checked .checkmark {
-  background-color: #8c8dfe;
-  border-color: #8c8dfe;
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
 }
 
 .label-text {
   opacity: 0.7;
   transition: opacity 0.3s;
-  color: $text2;
+  color: var(--brand-text-secondary);
   font-size: 1.1rem;
 }
 
@@ -578,7 +578,7 @@ p {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: $base2;
+  background-color: var(--brand-bg-secondary);
   padding: 30px;
   border-radius: 20px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
@@ -596,24 +596,24 @@ p {
 }
 
 .subtitle {
-  color: $text1;
+  color: var(--brand-text-primary);
   margin: 20px 0 10px;
   font-size: 2rem;
   cursor: default;
 }
 
 a {
-  color: $accent1;
+  color: var(--brand-primary);
   font-size: 1.2rem;
 }
 
 a:hover {
-  color: $accent2;
+  color: var(--brand-secondary);
   cursor: pointer;
 }
 
 h1 {
-  color: $text1;
+  color: var(--brand-text-primary);
   font-size: 20px;
 }
 
@@ -630,7 +630,7 @@ h1 {
 }
 
 .text {
-  color: $accent1;
+  color: var(--brand-primary);
   font-size: inherit;
 }
 
@@ -640,7 +640,7 @@ h1 {
 
 /* Subscription Section Styles */
 .subscription-section {
-  background-color: $base1;
+  background-color: var(--brand-bg-secondary);
   border-radius: 12px;
   padding: 20px;
   margin: 20px 0;
@@ -659,8 +659,8 @@ h1 {
 }
 
 .duration-option {
-  background-color: $base2;
-  color: $text2;
+  background-color: var(--brand-bg-card);
+  color: var(--brand-text-secondary);
   border-radius: 3px;
   padding: 10px 18px;
   cursor: pointer;
@@ -671,12 +671,12 @@ h1 {
 }
 
 .duration-option:hover {
-  background-color: $base3;
+  background-color: var(--brand-bg-card-hover);
 }
 
 .duration-option.selected-duration {
-  background-color: $accent1;
-  color: $text4;
+  background-color: var(--brand-primary);
+  color: var(--brand-bg-primary);
   font-weight: 500;
 }
 
@@ -684,17 +684,17 @@ h1 {
   margin-top: 30px;
   text-align: right;
   padding: 10px;
-  border-top: 1px solid $base2;
+  border-top: 1px solid var(--brand-bg-card);
 }
 
 .total-price p {
   font-size: 18px;
-  color: $text2;
+  color: var(--brand-text-secondary);
 }
 
 .total-price span {
   font-size: 22px;
-  color: $accent1;
+  color: var(--brand-primary);
   font-weight: 700;
   margin-left: 8px;
 }
@@ -708,11 +708,11 @@ h1 {
     user-select: none;
   }
   .dropdown-selected {
-    background: $base2;
-    color: $text1;
+    background: var(--brand-bg-secondary);
+    color: var(--brand-text-primary);
     border-radius: 5px;
     padding: 6px 10px;
-    border: 1px solid $base1;
+    border: 1px solid var(--brand-bg-primary);
     font-size: 0.95rem;
     display: flex;
     justify-content: space-between;
@@ -732,8 +732,8 @@ h1 {
     top: 105%;
     left: 0;
     width: 100%;
-    background: $base2;
-    border: 1px solid $base1;
+    background: var(--brand-bg-secondary);
+    border: 1px solid var(--brand-bg-primary);
     border-radius: 5px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.10);
     z-index: 10;
@@ -742,13 +742,13 @@ h1 {
   }
   .dropdown-item {
     padding: 6px 10px;
-    color: $text1;
+    color: var(--brand-text-primary);
     text-align: left;
     cursor: pointer;
     font-size: 0.95rem;
     &:hover {
-      background: $accent1;
-      color: $text4;
+      background: var(--brand-primary);
+      color: var(--brand-bg-primary);
     }
   }
 }
@@ -763,18 +763,18 @@ h1 {
     margin: 50px auto;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     text-align: center;
-    background-color: $base4;
+    background-color: var(--brand-bg-primary);
     z-index: 1000;
   }
 
   .input {
     border: solid 2px transparent;
     border-radius: 5px;
-    background-color: $base2;
+    background-color: var(--brand-bg-secondary);
     padding: 1.5rem;
     font-size: 1.2rem;
     width: 80%;
-    color: $text2;
+    color: var(--brand-text-secondary);
     transition: border 150ms cubic-bezier(0.4,0,0.2,1);
   }
 
@@ -787,7 +787,7 @@ h1 {
     left: 10%;
     padding-left: 1.5rem;
     bottom: 45px;
-    color: $text2;
+    color: var(--brand-text-secondary);
     pointer-events: none;
     transform: translateY(1.5rem);
     transition: 150ms cubic-bezier(0.4,0,0.2,1);

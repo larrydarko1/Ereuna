@@ -75,7 +75,7 @@ const close = () => emit('close')
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(30, 32, 38, 0.85); /* Dark overlay, DON'T modify */
+  background: var(--brand-glass);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -89,10 +89,10 @@ const close = () => emit('close')
 }
 
 .modal-content {
-  background: $base1;
-  color: $text2;
+  background: var(--brand-bg-secondary);
+  color: var(--brand-text-secondary);
   border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  box-shadow: none;
   max-width: 700px;
   width: 90vw;
   max-height: 80vh;
@@ -116,15 +116,15 @@ const close = () => emit('close')
   background: none;
   border: none;
   font-size: 2rem;
-  color: $text2;
+  color: var(--brand-text-secondary);
   cursor: pointer;
   transition: color 0.2s;
-  &:hover { color: $accent1; }
+  &:hover { color: var(--brand-primary); }
 }
 
 .contract-title {
   font-size: 1.2rem;
-  color: $accent3;
+  color: var(--brand-accent);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -133,7 +133,7 @@ const close = () => emit('close')
   margin-top: 2.3rem;
   margin-left: 1rem;
   font-size: 1.5rem;
-  color: $text1;
+  color: var(--brand-text-primary);
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -141,7 +141,7 @@ const close = () => emit('close')
 .modal-header {
   padding: 2.5rem 2rem 1rem 2rem;
   flex-shrink: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--brand-glass-border);
 }
 
 .modal-body {
@@ -150,7 +150,7 @@ const close = () => emit('close')
   padding: 1.5rem 2rem 2rem 2rem;
   font-size: 1rem;
   line-height: 1.7;
-  color: $text2;
+  color: var(--brand-text-secondary);
   
   p { margin-bottom: 1.1rem; }
   
@@ -160,16 +160,16 @@ const close = () => emit('close')
   }
   
   &::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--brand-bg-card);
     border-radius: 4px;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--brand-glass-border);
     border-radius: 4px;
     
     &:hover {
-      background: rgba(255, 255, 255, 0.3);
+      background: var(--brand-accent);
     }
   }
 }
