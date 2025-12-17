@@ -1913,14 +1913,31 @@ async function fetchHolidays() {
 
 let statusInterval: ReturnType<typeof setInterval> | null = null;
 
+function startMarketStatusCheck() {
+  checkMarketStatus();
+  
+  // Clear existing interval
+  if (statusInterval) {
+    clearInterval(statusInterval);
+    statusInterval = null;
+  }
+  
+  // Only set interval for non-crypto assets (crypto is always open)
+  if (!isCrypto.value) {
+    statusInterval = setInterval(checkMarketStatus, 5000);
+  }
+}
+
 onMounted(async () => {
   fetchHiddenList();
   fetchIndicatorList();
   await fetchHolidays();
-  checkMarketStatus();
-  
-  // Check market status every 5 seconds for more accurate updates
-  statusInterval = setInterval(checkMarketStatus, 5000);
+  startMarketStatusCheck();
+});
+
+// Restart status check when asset changes
+watch(() => props.assetInfo?.Exchange, () => {
+  startMarketStatusCheck();
 });
 
 const isInHiddenList = (item: string): boolean => {
@@ -1953,8 +1970,20 @@ const isEODOnly = computed<boolean>(() => {
   return exchange && exchange !== 'NASDAQ' && exchange !== 'NYSE';
 });
 
+// Computed property to check if asset is crypto
+const isCrypto = computed<boolean>(() => {
+  return props.assetInfo?.Exchange === 'CRYPTO';
+});
+
 // Function to check market status
 function checkMarketStatus(): void {
+  // Crypto markets are always open (24/7)
+  if (isCrypto.value) {
+    marketStatus.value = 'open';
+    currentHolidayName.value = '';
+    return;
+  }
+  
   currentHolidayName.value = '';
   // Get current time in US Eastern Time
   const nowET = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));

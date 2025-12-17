@@ -269,7 +269,7 @@ const formatDate = (dateString: string) => {
   border: 1px solid rgba(65, 72, 104, 0.3);
   border-radius: 6px;
   padding: 3rem;
-  color: var(--text1);
+  color: var(--brand-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.6;
   position: relative;
@@ -291,7 +291,7 @@ const formatDate = (dateString: string) => {
 }
 
 .post-category {
-  background-color: var(--accent1);
+  background-color: var(--brand-gradient-start);
   color: var(--base1);
   padding: 0.3rem 0.8rem;
   border-radius: 3px;
@@ -302,13 +302,13 @@ const formatDate = (dateString: string) => {
 }
 
 .post-date {
-  color: var(--text2);
+  color: var(--brand-text-secondary);
 }
 
 .post-title {
   font-size: 2.5rem;
   font-weight: 700;
-  color: var(--text1);
+  color: var(--brand-text-primary);
   margin: 0 0 1rem 0;
   line-height: 1.2;
 }
@@ -321,7 +321,7 @@ const formatDate = (dateString: string) => {
 
 .tag {
   background-color: var(--base3);
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   padding: 0.3rem 0.6rem;
   border-radius: 4px;
   font-size: 0.8rem;
@@ -349,31 +349,31 @@ const formatDate = (dateString: string) => {
 
 .post-body {
   font-size: 1.1rem;
-  color: var(--text1);
+  color: var(--brand-text-primary);
 }
 
 .post-body h2 {
   font-size: 1.8rem;
   font-weight: 600;
-  color: var(--accent1);
+  color: var(--brand-gradient-start);
   margin: 2rem 0 1rem 0;
 }
 
 .post-body h3 {
   font-size: 1.4rem;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--brand-text-primary);
   margin: 1.5rem 0 0.5rem 0;
 }
 
 .post-body p {
   margin-bottom: 1.5rem;
-  color: var(--text2);
+  color: var(--brand-text-secondary);
 }
 
 .post-body ul {
   margin: 1rem 0 1.5rem 1.5rem;
-  color: var(--text2);
+  color: var(--brand-text-secondary);
 }
 
 .post-body li {
@@ -381,7 +381,7 @@ const formatDate = (dateString: string) => {
 }
 
 .post-body strong {
-  color: var(--text1);
+  color: var(--brand-text-primary);
   font-weight: 600;
 }
 

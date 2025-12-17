@@ -40,7 +40,6 @@
 </script>
 
 <style scoped lang="scss">
-@use '@/style.scss' as *;
 
 .center-container {
     display: flex;
@@ -51,19 +50,19 @@
 .center-container h1 {
     text-align: center;
     font-size: 2rem;
-    color: $text1;
+    color: var(--brand-text-primary);
     margin-bottom: 2rem;
 }
 
 .center-container h2 {
     font-size: 1.8rem;
-    color: $text1;
+    color: var(--brand-text-primary);
     margin-bottom: 1rem;
     margin-top: 2rem;
 }
 
 .center-container p {
-    color: $text2;
+    color: var(--brand-text-secondary);
     font-size: 1.4rem;
     margin-bottom: 1rem;
     overflow-wrap: anywhere;
@@ -72,13 +71,13 @@
 .center-container p strong,
 .center-container b {
     font-size: inherit;
-    color: $text2;
+    color: var(--brand-text-secondary);
 }
 
 .center-container ul {
     margin-bottom: 1rem;
     font-size: 1.3rem;
-    color: $text2;
+    color: var(--brand-text-secondary);
     padding-left: 1.5rem;
 }
 

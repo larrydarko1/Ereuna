@@ -49,7 +49,10 @@
           </div>
         </div>
         <button @click="startQuiz" class="start-btn">
-          Start Quiz →
+          Start Quiz
+          <svg class="button-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9.71069 18.2929C10.1012 18.6834 10.7344 18.6834 11.1249 18.2929L16.0123 13.4006C16.7927 12.6195 16.7924 11.3537 16.0117 10.5729L11.1213 5.68254C10.7308 5.29202 10.0976 5.29202 9.70708 5.68254C9.31655 6.07307 9.31655 6.70623 9.70708 7.09676L13.8927 11.2824C14.2833 11.6729 14.2833 12.3061 13.8927 12.6966L9.71069 16.8787C9.32016 17.2692 9.32016 17.9023 9.71069 18.2929Z" fill="currentColor"></path>
+          </svg>
         </button>
       </div>
     </div>
@@ -95,14 +98,20 @@
           @click="previousQuestion"
           class="nav-btn prev-btn"
         >
-          ← Previous
+          <svg class="button-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform: rotate(180deg);">
+            <path d="M9.71069 18.2929C10.1012 18.6834 10.7344 18.6834 11.1249 18.2929L16.0123 13.4006C16.7927 12.6195 16.7924 11.3537 16.0117 10.5729L11.1213 5.68254C10.7308 5.29202 10.0976 5.29202 9.70708 5.68254C9.31655 6.07307 9.31655 6.70623 9.70708 7.09676L13.8927 11.2824C14.2833 11.6729 14.2833 12.3061 13.8927 12.6966L9.71069 16.8787C9.32016 17.2692 9.32016 17.9023 9.71069 18.2929Z" fill="currentColor"></path>
+          </svg>
+          Previous
         </button>
         <button
           v-if="canProceed"
           @click="nextQuestion"
           class="nav-btn next-btn"
         >
-          {{ currentQuestion === questions.length - 1 ? 'See Results' : 'Next →' }}
+          <span>{{ currentQuestion === questions.length - 1 ? 'See Results' : 'Next' }}</span>
+          <svg v-if="currentQuestion !== questions.length - 1" class="button-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9.71069 18.2929C10.1012 18.6834 10.7344 18.6834 11.1249 18.2929L16.0123 13.4006C16.7927 12.6195 16.7924 11.3537 16.0117 10.5729L11.1213 5.68254C10.7308 5.29202 10.0976 5.29202 9.70708 5.68254C9.31655 6.07307 9.31655 6.70623 9.70708 7.09676L13.8927 11.2824C14.2833 11.6729 14.2833 12.3061 13.8927 12.6966L9.71069 16.8787C9.32016 17.2692 9.32016 17.9023 9.71069 18.2929Z" fill="currentColor"></path>
+          </svg>
         </button>
       </div>
     </div>
@@ -138,7 +147,10 @@
         <div class="action-buttons">
           <button @click="resetQuiz" class="reset-btn">Retake Quiz</button>
           <router-link v-if="isGoodMatch" to="/signup" class="signup-btn">
-            Get Started →
+            Get Started
+            <svg class="button-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.71069 18.2929C10.1012 18.6834 10.7344 18.6834 11.1249 18.2929L16.0123 13.4006C16.7927 12.6195 16.7924 11.3537 16.0117 10.5729L11.1213 5.68254C10.7308 5.29202 10.0976 5.29202 9.70708 5.68254C9.31655 6.07307 9.31655 6.70623 9.70708 7.09676L13.8927 11.2824C14.2833 11.6729 14.2833 12.3061 13.8927 12.6966L9.71069 16.8787C9.32016 17.2692 9.32016 17.9023 9.71069 18.2929Z" fill="currentColor"></path>
+            </svg>
           </router-link>
           <router-link v-else to="/about" class="learn-more-btn">Learn More About Us</router-link>
         </div>
@@ -503,20 +515,13 @@ const resetQuiz = () => {
   showResults.value = false
 }
 
-onMounted(() => {
-  document.body.classList.add('tokyo-night-theme')
-})
-
-onUnmounted(() => {
-  document.body.classList.remove('tokyo-night-theme')
-})
 </script>
 
 <style scoped>
 .quiz-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--base4) 0%, var(--base1) 100%);
-  color: var(--text1);
+  background: linear-gradient(135deg, var(--brand-bg-primary) 0%, var(--brand-bg-secondary) 100%);
+  color: var(--brand-text-primary);
   position: relative;
   overflow-x: hidden;
   padding: 2rem;
@@ -530,8 +535,8 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   background:
-    radial-gradient(circle at 20% 80%, rgba(122, 162, 247, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(187, 154, 247, 0.1) 0%, transparent 50%);
+    radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--brand-primary) calc(var(--brand-sphere-opacity) * 100%), transparent) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--brand-secondary) calc(var(--brand-sphere-opacity) * 100%), transparent) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -571,7 +576,7 @@ onUnmounted(() => {
 }
 
 .nav-link {
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   text-decoration: none;
   font-size: 1.3rem;
   font-weight: 500;
@@ -603,7 +608,7 @@ onUnmounted(() => {
 .nav-toggle-label span {
   display: block;
   height: 3px;
-  background: var(--text2);
+  background: var(--brand-text-secondary);
   border-radius: 2px;
   transition: all 0.3s ease;
   transform-origin: 1.5px center;
@@ -636,7 +641,7 @@ onUnmounted(() => {
 .quiz-header h1 {
   font-size: 2.8rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--text1), var(--accent1));
+  background: linear-gradient(135deg, var(--brand-text-primary), var(--brand-primary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -645,7 +650,7 @@ onUnmounted(() => {
 }
 
 .quiz-header p {
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   font-size: 1.3rem;
   line-height: 1.6;
   opacity: 0.9;
@@ -661,12 +666,12 @@ onUnmounted(() => {
 }
 
 .start-card {
-  background: var(--base2);
+  background: var(--brand-bg-secondary);
   border-radius: 12px;
   padding: 3rem 2.5rem;
   max-width: 600px;
   width: 100%;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
   text-align: center;
 }
 
@@ -674,8 +679,8 @@ onUnmounted(() => {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  color: var(--base4);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  color: var(--brand-bg-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -696,21 +701,21 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   font-size: 1rem;
   padding: 0.75rem 1rem;
-  background: var(--base1);
+  background: var(--brand-bg-primary);
   border-radius: 8px;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
 }
 
 .info-item span {
-  color: var(--text1);
+  color: var(--brand-text-primary);
   font-size: 1.5rem;
 }
 
 .info-item svg {
-  color: var(--accent1);
+  color: var(--brand-primary);
   flex-shrink: 0;
 }
 
@@ -721,10 +726,14 @@ onUnmounted(() => {
   font-size: 1.5rem;
   font-weight: 600;
   cursor: pointer;
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  color: var(--base4);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  color: var(--brand-bg-primary);
   transition: all 0.2s ease;
   width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .start-btn:hover {
@@ -733,6 +742,12 @@ onUnmounted(() => {
 
 .start-btn:active {
   transform: scale(0.98);
+}
+
+.button-arrow {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
 }
 
 /* Quiz Content */
@@ -746,37 +761,37 @@ onUnmounted(() => {
 .progress-bar {
   width: 100%;
   height: 8px;
-  background: var(--base2);
+  background: var(--brand-bg-secondary);
   border-radius: 4px;
   margin-bottom: 2rem;
   overflow: hidden;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent1), var(--accent2));
+  background: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary));
   transition: width 0.4s ease;
 }
 
 .question-counter {
   text-align: center;
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   margin-bottom: 2rem;
   font-weight: 500;
   font-size: 1rem;
 }
 
 .question-card {
-  background: var(--base2);
+  background: var(--brand-bg-secondary);
   border-radius: 12px;
   padding: 2.5rem;
   margin-bottom: 2rem;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
 }
 
 .question-card h2 {
-  color: var(--text1);
+  color: var(--brand-text-primary);
   margin-bottom: 0.75rem;
   font-size: 1.5rem;
   line-height: 1.4;
@@ -784,7 +799,7 @@ onUnmounted(() => {
 }
 
 .question-subtitle {
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   font-size: 0.95rem;
   margin-bottom: 2rem;
   opacity: 0.85;
@@ -798,27 +813,27 @@ onUnmounted(() => {
 }
 
 .option {
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
   border-radius: 8px;
   padding: 1rem 1.25rem;
   cursor: pointer;
   transition: border-color 0.2s ease, background-color 0.2s ease;
-  background: var(--base1);
+  background: var(--brand-bg-primary);
   min-height: 20px; /* Fixed height to prevent size changes */
 }
 
 .option:hover {
-  border-color: var(--accent1);
-  background: var(--base2);
+  border-color: var(--brand-primary);
+  background: var(--brand-bg-secondary);
 }
 
 .option.selected {
-  border-color: var(--accent1);
-  background: var(--base2);
+  border-color: var(--brand-primary);
+  background: var(--brand-bg-secondary);
 }
 
 .option.multi-select.selected {
-  border-color: var(--accent2);
+  border-color: var(--brand-secondary);
 }
 
 .option-content {
@@ -834,30 +849,30 @@ onUnmounted(() => {
 .checkbox-box {
   width: 20px;
   height: 20px;
-  border: 2px solid var(--base3);
+  border: 2px solid var(--brand-glass-border);
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  background: var(--base1);
+  background: var(--brand-bg-primary);
 }
 
 .checkbox-box.checked {
-  background: var(--accent1);
-  border-color: var(--accent1);
-  color: var(--base4);
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: var(--brand-bg-primary);
 }
 
 .option-text {
   font-size: 1rem;
-  color: var(--text1);
+  color: var(--brand-text-primary);
   flex: 1;
   line-height: 1.4;
 }
 
 .checkmark {
-  color: var(--accent1);
+  color: var(--brand-primary);
   font-size: 1.25rem;
   font-weight: bold;
   flex-shrink: 0;
@@ -878,22 +893,25 @@ onUnmounted(() => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .prev-btn {
-  background: var(--base2);
-  color: var(--text2);
-  border: 1px solid var(--base3);
+  background: var(--brand-bg-secondary);
+  color: var(--brand-text-secondary);
+  border: 1px solid var(--brand-glass-border);
 }
 
 .prev-btn:hover {
-  background: var(--base3);
-  color: var(--text1);
+  background: var(--brand-bg-card-hover);
+  color: var(--brand-text-primary);
 }
 
 .next-btn {
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  color: var(--base4);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  color: var(--brand-bg-primary);
 }
 
 .next-btn:hover {
@@ -915,13 +933,13 @@ onUnmounted(() => {
 }
 
 .result-card {
-  background: var(--base2);
+  background: var(--brand-bg-secondary);
   border-radius: 12px;
   padding: 3rem 2.5rem;
   text-align: center;
   max-width: 700px;
   width: 100%;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
 }
 
 /* Compatibility Score */
@@ -950,28 +968,28 @@ onUnmounted(() => {
 }
 
 .score-value.excellent {
-  color: var(--positive);
+  color: #9ece6a;
 }
 
 .score-value.good {
-  color: var(--accent1);
+  color: var(--brand-primary);
 }
 
 .score-value.fair {
-  color: var(--ma1);
+  color: #e0af68;
 }
 
 .score-value.poor {
-  color: var(--negative);
+  color: #f7768e;
 }
 
 .score-bar {
   width: 100%;
   height: 12px;
-  background: var(--base2);
+  background: var(--brand-bg-secondary);
   border-radius: 6px;
   overflow: hidden;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
 }
 
 .score-fill {
@@ -981,23 +999,23 @@ onUnmounted(() => {
 }
 
 .score-fill.excellent {
-  background: var(--positive);
+  background: #9ece6a;
 }
 
 .score-fill.good {
-  background: var(--accent1);
+  background: var(--brand-primary);
 }
 
 .score-fill.fair {
-  background: var(--ma1);
+  background: #e0af68;
 }
 
 .score-fill.poor {
-  background: var(--negative);
+  background: #f7768e;
 }
 
 .result-card h2 {
-  color: var(--text1);
+  color: var(--brand-text-primary);
   margin-bottom: 1.25rem;
   font-size: 2rem;
   font-weight: 700;
@@ -1005,7 +1023,7 @@ onUnmounted(() => {
 }
 
 .result-description {
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   font-size: 1.1rem;
   line-height: 1.6;
   margin-bottom: 2rem;
@@ -1015,15 +1033,15 @@ onUnmounted(() => {
 .key-features {
   text-align: left;
   margin-bottom: 2rem;
-  background: var(--base1);
+  background: var(--brand-bg-primary);
   padding: 1.5rem;
   border-radius: 10px;
-  border: 1px solid var(--base3);
+  border: 1px solid var(--brand-glass-border);
 }
 
 .deal-breakers h4,
 .key-features h4 {
-  color: var(--text1);
+  color: var(--brand-text-primary);
   margin-bottom: 1rem;
   font-size: 1.1rem;
   font-weight: 600;
@@ -1038,7 +1056,7 @@ onUnmounted(() => {
 
 .deal-breakers li,
 .key-features li {
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   margin-bottom: 0.5rem;
   padding-left: 0;
   font-size: 1rem;
@@ -1069,18 +1087,18 @@ onUnmounted(() => {
 }
 
 .reset-btn {
-  background: var(--base3);
-  color: var(--text1);
-  border: 1px solid var(--base3);
+  background: var(--brand-bg-card);
+  color: var(--brand-text-primary);
+  border: 1px solid var(--brand-glass-border);
 }
 
 .reset-btn:hover {
-  background: var(--base4);
+  background: var(--brand-bg-card-hover);
 }
 
 .signup-btn {
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  color: var(--base4);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  color: var(--brand-bg-primary);
 }
 
 .signup-btn:hover {
@@ -1088,29 +1106,12 @@ onUnmounted(() => {
 }
 
 .learn-more-btn {
-  background: var(--accent3);
-  color: var(--base4);
+  background: var(--brand-accent);
+  color: var(--brand-bg-primary);
 }
 
 .learn-more-btn:hover {
   opacity: 0.9;
-}
-
-/* Tokyo Night Theme */
-.tokyo-night-theme {
-  --accent1: #7aa2f7;
-  --accent2: #bb9af7;
-  --accent3: #7dcfff;
-  --text1: #c0caf5;
-  --text2: #a9b1d6;
-  --text3: #222222;
-  --base1: #1a1b26;
-  --base2: #24283b;
-  --base3: #414868;
-  --base4: #16161e;
-  --positive: #9ece6a;
-  --negative: #f7768e;
-  --volume: #ff9e64;
 }
 
 /* Responsive Design */
@@ -1123,7 +1124,7 @@ onUnmounted(() => {
     position: absolute;
     top: 60px;
     right: 10px;
-    background-color: var(--base2);
+    background-color: var(--brand-bg-secondary);
     flex-direction: column;
     width: 120px;
     border-radius: 5px;

@@ -51,7 +51,6 @@
 </script>
 
 <style scoped lang="scss">
-@use '@/style.scss' as *;
 
 .center-container {
     display: flex;
@@ -62,12 +61,12 @@
 .center-container h1 {
     text-align: center;
     font-size: 2rem;
-    color: $text1;
+    color: var(--brand-text-primary);
     margin-bottom: 2rem;
 }
 
 .center-container p {
-    color: $text2;
+    color: var(--brand-text-secondary);
     font-size: 1.4rem;
     margin-bottom: 1rem;
     overflow-wrap: anywhere;
@@ -76,13 +75,13 @@
 .center-container p strong,
 .center-container b {
     font-size: inherit;
-    color: $text2;
+    color: var(--brand-text-secondary);
 }
 
 .center-container ul {
     margin-bottom: 1rem;
     font-size: 1.3rem;
-    color: $text2;
+    color: var(--brand-text-secondary);
     padding-left: 1.5rem;
 }
 
@@ -92,12 +91,12 @@
 }
 
 .center-container a {
-    color: $accent2;
+    color: var(--brand-gradient-end);
     font-size: inherit;
 }
 
 .disclaimer-box {
-    background: $base2;
+    background: var(--brand-bg-secondary);
     border-radius: 5px;
     padding: 1.5rem;
     margin: 0 0 2rem 0;
@@ -106,7 +105,7 @@
 
 .disclaimer-box h4 {
     font-size: 1.6rem;
-    color: $accent1;
+    color: var(--brand-gradient-start);
     margin-bottom: 1rem;
     margin-top: 0px;
     font-weight: bold;
@@ -115,7 +114,7 @@
 
 .disclaimer-box p {
     font-size: 1.4rem;
-    color: $text2;
+    color: var(--brand-text-secondary);
     margin: 0;
     line-height: 1.6;
     overflow-wrap: anywhere;

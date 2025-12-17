@@ -81,7 +81,6 @@ onMounted(fetchFeatures);
 </script>
 
 <style scoped lang="scss">
-@use '@/style.scss' as *;
 
 .center-container {
     display: flex;
@@ -94,13 +93,13 @@ onMounted(fetchFeatures);
 
 .center-container h1 {
     font-size: 2rem;
-    color: $accent1;
+    color: var(--brand-gradient-start);
     margin-bottom: 1rem;
 }
 
 .center-container p {
     font-size: 1.2rem;
-    color: $text2;
+    color: var(--brand-text-secondary);
     margin-bottom: 1rem;
     overflow-wrap: anywhere;
 }
@@ -123,7 +122,7 @@ onMounted(fetchFeatures);
 .section-separator {
     width: 100%;
     height: 1px;
-    background: linear-gradient(90deg, transparent, $accent1, transparent);
+    background: linear-gradient(90deg, transparent, var(--brand-gradient-start), transparent);
     margin: 3rem 0;
     opacity: 0.6;
 }
@@ -137,21 +136,21 @@ onMounted(fetchFeatures);
     display: flex;
     gap: 1.5rem;
     padding: 1.5rem;
-    background: rgba($accent1, 0.1);
-    border: 1px solid rgba($accent1, 0.3);
+    background: rgba(122, 162, 247, 0.1);
+    border: 1px solid rgba(122, 162, 247, 0.3);
     border-radius: 12px;
     align-items: flex-start;
 }
 
 .disclaimer-text h3 {
-    color: $accent1;
+    color: var(--brand-gradient-start);
     font-size: 1.2rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
 }
 
 .disclaimer-text p {
-    color: $text2;
+    color: var(--brand-text-secondary);
     font-size: 1rem;
     line-height: 1.6;
     margin: 0;
@@ -176,7 +175,7 @@ onMounted(fetchFeatures);
 }
 
 .features-section h2 {
-    color: $accent1;
+    color: var(--brand-gradient-start);
     margin-bottom: 2rem;
     font-size: 2.2rem;
     font-weight: 600;
@@ -190,8 +189,8 @@ onMounted(fetchFeatures);
 }
 
 .feature-badge {
-    background: $base2;
-    border: 1px solid $base1;
+    background: var(--brand-bg-secondary);
+    border: 1px solid var(--brand-bg-primary);
     border-radius: 12px;
     padding: 1.5rem;
     text-align: left;
@@ -200,7 +199,7 @@ onMounted(fetchFeatures);
 }
 
 .feature-badge h3 {
-    color: $text1;
+    color: var(--brand-text-primary);
     margin-bottom: 0.75rem;
     font-size: 1.2rem;
     font-weight: 600;
@@ -208,7 +207,7 @@ onMounted(fetchFeatures);
 }
 
 .feature-badge p {
-    color: $text2;
+    color: var(--brand-text-secondary);
     margin-bottom: 1rem;
     font-size: 0.95rem;
     line-height: 1.5;

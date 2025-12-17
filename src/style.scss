@@ -6,20 +6,45 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    // Brand palette for landing page - Dark Mode (default)
+    --brand-primary: #7aa2f7;
+    --brand-secondary: #89ddff;
+    --brand-accent: #7dcfff;
+    --brand-bg-primary: #0f1419;
+    --brand-bg-secondary: #1a1f2e;
+    --brand-bg-card: rgba(30, 41, 59, 0.5);
+    --brand-bg-card-hover: rgba(30, 41, 59, 0.7);
+    --brand-glass: rgba(17, 24, 39, 0.8);
+    --brand-glass-border: rgba(255, 255, 255, 0.1);
+    --brand-text-primary: rgba(255, 255, 255, 0.95);
+    --brand-text-secondary: rgba(255, 255, 255, 0.8);
+    --brand-text-tertiary: rgba(255, 255, 255, 0.7);
+    --brand-text-muted: rgba(255, 255, 255, 0.6);
+    --brand-gradient-start: #7aa2f7;
+    --brand-gradient-end: #89ddff;
+    --brand-sphere-opacity: 0.15;
 }
 
-// default theme for overall site / DON'T TOUCH THESE SASS ELEMENTS!!!
-$accent1: #8c8dfe;
-$accent2: #a9a5ff;
-$accent3: #cfcbff;
-$text1: #ffffff;
-$text2: #cad3f5;
-$text3: #a4adcb;
-$text4: #010B13;
-$base1: #1a1b26;
-$base2: #24283b;
-$base3: #414868;
-$base4: #16161e;
+// Light mode brand palette - Cal.com inspired
+.light-mode {
+    --brand-primary: #7aa2f7;
+    --brand-secondary: #89ddff;
+    --brand-accent: #7dcfff;
+    --brand-bg-primary: #f3f4f4;
+    --brand-bg-secondary: #ffffff;
+    --brand-bg-card: rgba(252, 252, 252, 0.9);
+    --brand-bg-card-hover: rgba(255, 255, 255, 1);
+    --brand-glass: rgba(255, 255, 255, 0.95);
+    --brand-glass-border: rgba(0, 0, 0, 0.1);
+    --brand-text-primary: #242424;
+    --brand-text-secondary: #292929;
+    --brand-text-tertiary: #898989;
+    --brand-text-muted: rgba(137, 137, 137, 0.8);
+    --brand-gradient-start: #7aa2f7;
+    --brand-gradient-end: #89ddff;
+    --brand-sphere-opacity: 0.06;
+}
 
 // THEMES for app proper
 .default {

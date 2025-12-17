@@ -19,7 +19,6 @@
 </script>
 
 <style scoped lang="scss">
-@use '@/style.scss' as *;
 
 .center-container {
     display: flex;
@@ -31,7 +30,7 @@
 
 .center-container h1 {
     font-size: 2.5rem;
-    color: $text1;
+    color: var(--brand-text-primary);
     margin-bottom: 1.5rem;
     text-align: center;
 }
@@ -40,21 +39,21 @@
 .center-container strong,
 .center-container b {
     font-size: 1.4rem;
-    color: $text2;
+    color: var(--brand-text-secondary);
     margin-bottom: 1rem;
     line-height: 1.6;
     overflow-wrap: anywhere;
 }
 
 .center-container a {
-    color: $accent2;
+    color: var(--brand-gradient-end);
     text-decoration: underline;
     font-size: 1.4rem;
     overflow-wrap: anywhere;
 }
 
 .disclaimer-box {
-    background: $base2;
+    background: var(--brand-bg-secondary);
     border-radius: 5px;
     padding: 1.5rem;
     margin: 0 0 2rem 0;
@@ -63,7 +62,7 @@
 
 .disclaimer-box h4 {
     font-size: 1.6rem;
-    color: $accent1;
+    color: var(--brand-gradient-start);
     margin-bottom: 1rem;
     margin-top: 0px;
     font-weight: bold;
@@ -72,7 +71,7 @@
 
 .disclaimer-box p {
     font-size: 1.4rem;
-    color: $text2;
+    color: var(--brand-text-secondary);
     margin: 0;
     line-height: 1.6;
     overflow-wrap: anywhere;

@@ -250,7 +250,7 @@ const changePassword = async (): Promise<void> => {
 .disclaimer {
   margin-top: 30px;
   font-size: 1rem;
-  color: $text2;
+  color: var(--brand-text-secondary);
   text-align: center;
   max-width: 500px;
   padding: 0 10px;
@@ -282,18 +282,18 @@ const changePassword = async (): Promise<void> => {
 .input {
   border: solid 2px transparent;
   border-radius: 5px;
-  background-color: $base2;
+  background-color: var(--brand-bg-secondary);
   padding: 1.5rem;
   font-size: 1.2rem;
   width: 500px;
-  color: $text2;
+  color: var(--brand-text-secondary);
   transition: border 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .input:focus,
 .input:valid {
   outline: none;
-  border: 2px solid $accent1;
+  border: 2px solid var(--brand-primary);
 }
 
 .recovery-label,
@@ -302,7 +302,7 @@ const changePassword = async (): Promise<void> => {
   position: absolute;
   left: 30px;
   bottom: 45px;
-  color: $text2;
+  color: var(--brand-text-secondary);
   pointer-events: none;
   transform: translateY(1.5rem);
   transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -311,28 +311,28 @@ const changePassword = async (): Promise<void> => {
 .input:focus + .recovery-label,
 .input:focus + .password-label {
   transform: translateY(-50%) scale(0.8);
-  background-color: $base2;
+  background-color: var(--brand-bg-secondary);
   padding: 0 0.4em;
-  color: $accent1;
+  color: var(--brand-primary);
 }
 
 .input:valid + .recovery-label,
 .input:valid + .password-label {
   transform: translateY(-50%) scale(0.8);
-  background-color: $base2;
+  background-color: var(--brand-bg-secondary);
   padding: 0 0.4em;
-  color: $accent1;
+  color: var(--brand-primary);
 }
 
 .userbtn {
-  background-color: $accent1;
+  background-color: var(--brand-primary);
   text-align: center;
   display: flex;
   flex-direction: row;
   align-items: center;
   align-content: center;
   justify-content: center;
-  color: $text4;
+  color: var(--brand-bg-primary);
   border-radius: 5px;
   outline: none;
   border: none;
@@ -346,7 +346,7 @@ const changePassword = async (): Promise<void> => {
 }
 
 .userbtn:hover {
-  background-color: $accent2;
+  background-color: var(--brand-secondary);
 }
 
 .error {
@@ -407,11 +407,11 @@ const changePassword = async (): Promise<void> => {
 .input {
   border: solid 2px transparent;
   border-radius: 5px;
-  background-color: $base2;
+  background-color: var(--brand-bg-secondary);
   padding: 1.5rem;
   font-size: 1.2rem;
   width: 300px;
-  color: $text1;
+  color: var(--brand-text-primary);
   transition: border 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 }
@@ -434,7 +434,7 @@ const changePassword = async (): Promise<void> => {
     height: 25px;
   }
   .path {
-    stroke: #000000;
+    stroke: var(--brand-text-primary);
     stroke-linecap: round;
     animation: dash 1.5s ease-in-out infinite;
   }

@@ -34,7 +34,12 @@
     </header>
     <main class="blog-main">
       <div v-if="selectedArticle" class="article-view">
-        <button class="back-button" @click="selectedArticle = null">← Back to Articles</button>
+        <button class="back-button" @click="selectedArticle = null">
+          <svg class="back-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" transform="scale(-1, 1)">
+            <path d="M9.71069 18.2929C10.1012 18.6834 10.7344 18.6834 11.1249 18.2929L16.0123 13.4006C16.7927 12.6195 16.7924 11.3537 16.0117 10.5729L11.1213 5.68254C10.7308 5.29202 10.0976 5.29202 9.70708 5.68254C9.31655 6.07307 9.31655 6.70623 9.70708 7.09676L13.8927 11.2824C14.2833 11.6729 14.2833 12.3061 13.8927 12.6966L9.71069 16.8787C9.32016 17.2692 9.32016 17.9023 9.71069 18.2929Z" fill="currentColor"></path>
+          </svg>
+          Back to Articles
+        </button>
         <component
           :is="selectedArticle.component"
           v-if="selectedArticle.component"
@@ -74,7 +79,12 @@
               </span>
             </div>
             <div class="article-footer">
-              <span class="read-more">Read more →</span>
+              <span class="read-more">
+                Read more 
+                <svg class="button-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9.71069 18.2929C10.1012 18.6834 10.7344 18.6834 11.1249 18.2929L16.0123 13.4006C16.7927 12.6195 16.7924 11.3537 16.0117 10.5729L11.1213 5.68254C10.7308 5.29202 10.0976 5.29202 9.70708 5.68254C9.31655 6.07307 9.31655 6.70623 9.70708 7.09676L13.8927 11.2824C14.2833 11.6729 14.2833 12.3061 13.8927 12.6966L9.71069 16.8787C9.32016 17.2692 9.32016 17.9023 9.71069 18.2929Z" fill="currentColor"></path>
+                </svg>
+              </span>
             </div>
           </div>
           <div class="article-image">
@@ -287,38 +297,18 @@ const handleImageError = (event: Event) => {
 </script>
 
 <style scoped>
-:root {
-  --accent1: #7aa2f7;
-  --accent2: #bb9af7;
-  --accent3: #7dcfff;
-  --text1: #c0caf5;
-  --text2: #a9b1d6;
-  --text3: #222222;
-  --base1: #1a1b26;
-  --base2: #24283b;
-  --base3: #414868;
-  --base4: #16161e;
-  --positive: #9ece6a;
-  --negative: #f7768e;
-  --volume: #708090;
-  --ma4: #9ece6a;
-  --ma3: #e0af68;
-  --ma2: #7aa2f7;
-  --ma1: #bb9af7;
-}
-
 .blog-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--base1) 0%, var(--base4) 50%, var(--base1) 100%);
-  color: var(--text1);
+  background: linear-gradient(135deg, var(--brand-bg-secondary) 0%, var(--brand-bg-primary) 50%, var(--brand-bg-secondary) 100%);
+  color: var(--brand-text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .blog-header {
-  background: rgba(36, 40, 59, 0.8);
+  background: var(--brand-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(65, 72, 104, 0.3);
+  border-bottom: 1px solid var(--brand-glass-border);
   padding: 0;
   position: sticky;
   top: 0;
@@ -354,10 +344,10 @@ const handleImageError = (event: Event) => {
 .search-input {
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 3rem;
-  border: 1px solid rgba(65, 72, 104, 0.4);
+  border: 1px solid var(--brand-glass-border);
   border-radius: 6px;
-  background-color: rgba(36, 40, 59, 0.6);
-  color: var(--text1);
+  background-color: var(--brand-glass);
+  color: var(--brand-text-primary);
   font-size: 0.9rem;
   outline: none;
   transition: all 0.2s ease;
@@ -366,11 +356,11 @@ const handleImageError = (event: Event) => {
 }
 
 .search-input:focus {
-  border-color: var(--accent1);
+  border-color: var(--brand-primary);
 }
 
 .search-input::placeholder {
-  color: var(--text2);
+  color: var(--brand-text-secondary);
 }
 
 .search-icon {
@@ -380,7 +370,7 @@ const handleImageError = (event: Event) => {
   transform: translateY(-50%);
   width: 1rem;
   height: 1rem;
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   pointer-events: none;
 }
 
@@ -399,7 +389,7 @@ const handleImageError = (event: Event) => {
 .blog-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--accent1);
+  color: var(--brand-primary);
   margin: 0;
 }
 
@@ -409,9 +399,9 @@ const handleImageError = (event: Event) => {
 }
 
 .nav-button {
-  background: rgba(65, 72, 104, 0.3);
-  border: 1px solid rgba(65, 72, 104, 0.2);
-  color: var(--text2);
+  background: var(--brand-bg-card);
+  border: 1px solid var(--brand-glass-border);
+  color: var(--brand-text-secondary);
   font-size: 0.9rem;
   font-weight: 500;
   padding: 0.5rem 1rem;
@@ -423,15 +413,15 @@ const handleImageError = (event: Event) => {
 }
 
 .nav-button:hover {
-  background: rgba(65, 72, 104, 0.5);
-  border-color: rgba(122, 162, 247, 0.3);
-  color: var(--text1);
+  background: var(--brand-bg-card-hover);
+  border-color: var(--brand-primary);
+  color: var(--brand-text-primary);
 }
 
 .nav-button.active {
-  background: var(--accent1);
-  border-color: var(--accent1);
-  color: var(--base1);
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #000000;
   box-shadow: 0 0 20px rgba(122, 162, 247, 0.3);
 }
 
@@ -450,18 +440,18 @@ const handleImageError = (event: Event) => {
 .no-articles {
   text-align: center;
   padding: 3rem 1rem;
-  color: var(--text2);
+  color: var(--brand-text-secondary);
 }
 
 .no-articles h2 {
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
-  color: var(--text1);
+  color: var(--brand-text-primary);
 }
 
 .article-card {
-  background-color: var(--base2);
-  border: 1px solid var(--base3);
+  background-color: var(--brand-bg-card);
+  border: 1px solid var(--brand-glass-border);
   border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
@@ -474,7 +464,7 @@ const handleImageError = (event: Event) => {
 .article-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  border-color: var(--accent1);
+  border-color: var(--brand-primary);
 }
 
 .article-content {
@@ -491,8 +481,8 @@ const handleImageError = (event: Event) => {
 }
 
 .article-category {
-  background-color: var(--accent1);
-  color: var(--base1);
+  background-color: var(--brand-primary);
+  color: #000000;
   padding: 0.2rem 0.6rem;
   border-radius: 3px;
   font-weight: 500;
@@ -502,19 +492,19 @@ const handleImageError = (event: Event) => {
 }
 
 .article-date {
-  color: var(--text2);
+  color: var(--brand-text-secondary);
 }
 
 .article-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text1);
+  color: var(--brand-text-primary);
   margin: 0 0 0.5rem 0;
   line-height: 1.3;
 }
 
 .article-excerpt {
-  color: var(--text2);
+  color: var(--brand-text-secondary);
   line-height: 1.5;
   margin: 0 0 1rem 0;
   font-size: 0.9rem;
@@ -528,8 +518,8 @@ const handleImageError = (event: Event) => {
 }
 
 .tag {
-  background-color: var(--base3);
-  color: var(--text2);
+  background-color: var(--brand-bg-card-hover);
+  color: var(--brand-text-secondary);
   padding: 0.25rem 0.5rem;
   border-radius: 3px;
   font-size: 0.75rem;
@@ -539,8 +529,8 @@ const handleImageError = (event: Event) => {
 }
 
 .tag:hover {
-  background-color: var(--accent1);
-  color: var(--base1);
+  background-color: var(--brand-primary);
+  color: #000000;
 }
 
 .article-footer {
@@ -550,19 +540,30 @@ const handleImageError = (event: Event) => {
 }
 
 .read-more {
-  color: var(--accent1);
+  color: var(--brand-primary);
   font-weight: 500;
   font-size: 0.85rem;
   transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.read-more .button-arrow {
+  transition: transform 0.2s ease;
 }
 
 .article-card:hover .read-more {
-  color: var(--accent2);
+  color: var(--brand-secondary);
+}
+
+.article-card:hover .read-more .button-arrow {
+  transform: translateX(4px);
 }
 
 .article-image {
   height: 100px;
-  background-color: var(--base3);
+  background-color: var(--brand-bg-card-hover);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -584,13 +585,13 @@ const handleImageError = (event: Event) => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: var(--accent1);
+  background-color: var(--brand-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
   font-weight: 700;
-  color: var(--base1);
+  color: #000000;
 }
 
 .article-view {
@@ -600,17 +601,28 @@ const handleImageError = (event: Event) => {
 .back-button {
   background: none;
   border: none;
-  color: var(--accent1);
+  color: var(--brand-primary);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   margin-bottom: 1rem;
   padding: 0.25rem 0;
   transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.back-button .back-arrow {
+  transition: transform 0.2s ease;
 }
 
 .back-button:hover {
-  color: var(--accent2);
+  color: var(--brand-secondary);
+}
+
+.back-button:hover .back-arrow {
+  transform: scale(-1, 1) translateX(4px);
 }
 
 @media (max-width: 768px) {
