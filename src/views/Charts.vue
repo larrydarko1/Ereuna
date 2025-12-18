@@ -398,6 +398,7 @@ const assetInfo = reactive({
   companyWebsite: '-',
   AI: [] as any[],
   Signals: [] as any[],
+  NextEarnings: null as any | null,
 });
 
 //takes date strings inside database and converts them into actual date, in italian format

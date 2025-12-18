@@ -134,7 +134,6 @@
     </div>
   </section>
   </div>
-
     <!-- First Row: Market Indexes & SMA Distribution -->
     <div class="dashboard-row">
       <section class="market-indexes card" aria-label="Market Indexes">
@@ -353,6 +352,66 @@
         </div>
       </section>
     </div>
+
+    <!-- Calendar Events Section - Compact Version -->
+    <div class="dashboard-row-calendar">
+      <section class="calendar-events-compact card" aria-label="Today's Calendar Events">
+        <h2 id="calendar-events-heading">
+          <svg class="section-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 7V11H16V7M8 2V6M16 2V6M3 10H21M21 10V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Today's Calendar Events
+          <span class="event-count-badge" v-if="!calendarLoading && todayEvents.length > 0">{{ todayEvents.length }}</span>
+        </h2>
+        <div v-if="calendarLoading" class="calendar-loading-compact">
+          <div class="loader-spinner-small"></div>
+          <span>Loading events...</span>
+        </div>
+        <div v-else-if="calendarError" class="calendar-error-compact">
+          {{ calendarError }}
+        </div>
+        <div v-else-if="!todayEvents.length" class="calendar-empty-compact">
+          No events scheduled for today
+        </div>
+        <div v-else class="calendar-table-wrapper">
+          <table class="calendar-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Symbol</th>
+                <th>Estimate</th>
+                <th>Fiscal Period</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="event in paginatedEvents" :key="event._id">
+                <td>
+                  <span class="event-type-badge" :class="`type-${event.type.toLowerCase()}`">
+                    {{ event.type }}
+                  </span>
+                </td>
+                <td class="symbol-cell">{{ event.symbol }}</td>
+                <td>{{ formatEstimate(event.estimate) }}</td>
+                <td>{{ formatFiscalQuarter(event.fiscalDateEnding) }}</td>
+                <td>{{ event.timeOfTheDay || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-if="todayEvents.length > itemsPerPage" class="calendar-pagination-compact">
+          <button @click="previousPage" :disabled="currentPage === 1" class="pagination-btn-compact">
+            ←
+          </button>
+          <span class="pagination-info-compact">
+            {{ currentPage }} / {{ totalPages }} <span class="page-detail">({{ todayEvents.length }} total)</span>
+          </span>
+          <button @click="nextPage" :disabled="currentPage === totalPages" class="pagination-btn-compact">
+            →
+          </button>
+        </div>
+      </section>
+    </div>
 </main>
 </template>
 
@@ -364,6 +423,18 @@ import Header from '../components/Header.vue';
 const { t, locale } = useI18n();
 
 // --- TypeScript interfaces for API data ---
+interface CalendarEvent {
+  _id: string;
+  symbol: string;
+  reportDate: string;
+  fiscalDateEnding: string;
+  estimate: number | null;
+  currency: string;
+  timeOfTheDay: string;
+  type: string;
+  lastUpdated: string;
+}
+
 interface IndexPerformance {
   lastPrice: number;
   '1D': number;
@@ -600,6 +671,78 @@ function hideTooltip() {
   tooltipVisible.value = null;
 }
 
+// --- Calendar Events State ---
+const todayEvents = ref<CalendarEvent[]>([]);
+const calendarLoading = ref(true);
+const calendarError = ref('');
+const currentPage = ref(1);
+const itemsPerPage = 10;
+
+const totalPages = computed(() => Math.ceil(todayEvents.value.length / itemsPerPage));
+
+const paginatedEvents = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  return todayEvents.value.slice(start, end);
+});
+
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+  }
+}
+
+function previousPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
+}
+
+function formatCalendarDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
+
+function formatEstimate(estimate: number | null): string {
+  if (estimate === null) return '-';
+  return estimate.toFixed(2);
+}
+
+function formatFiscalQuarter(dateString: string): string {
+  const date = new Date(dateString);
+  const month = date.getMonth();
+  const year = date.getFullYear();
+  const quarter = Math.floor(month / 3) + 1;
+  return `Q${quarter} ${year}`;
+}
+
+// --- Fetch Calendar Events ---
+async function fetchCalendarEvents() {
+  calendarLoading.value = true;
+  calendarError.value = '';
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const res = await fetch(`/api/calendar-events?date=${today}`, {
+      headers: {
+        'x-api-key': import.meta.env.VITE_EREUNA_KEY || ''
+      }
+    });
+    if (!res.ok) throw new Error('Failed to fetch calendar events');
+    const data = await res.json();
+    todayEvents.value = data.events || [];
+    currentPage.value = 1; // Reset to first page
+  } catch (err: any) {
+    calendarError.value = err.message || 'Failed to load calendar events';
+    console.error('Calendar fetch error:', err);
+  } finally {
+    calendarLoading.value = false;
+  }
+}
+
 // Expose to template
 defineExpose({ 
   topGainers, 
@@ -752,6 +895,7 @@ onMounted(() => {
     updateSmaData();
     updateIndexData();
   });
+  fetchCalendarEvents();
   // Update last update string every minute in case time zone changes
   setInterval(updateLastUpdateString, 60000);
 });
@@ -2219,6 +2363,214 @@ h2 {
   }
   .article-description {
     font-size: 0.8rem;
+  }
+}
+
+/* Calendar Events Section - Compact */
+.dashboard-row-calendar {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.calendar-events-compact {
+  padding: 16px;
+}
+
+.calendar-events-compact h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.2rem;
+  color: var(--text1);
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.section-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--text2);
+}
+
+.event-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--text2);
+  color: var(--base1);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+}
+
+.calendar-loading-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 30px;
+  color: var(--text2);
+  font-size: 0.9rem;
+}
+
+.calendar-error-compact {
+  text-align: center;
+  padding: 20px;
+  color: var(--negative);
+  font-size: 0.9rem;
+}
+
+.calendar-empty-compact {
+  text-align: center;
+  padding: 30px;
+  color: var(--text2);
+  font-size: 0.95rem;
+}
+
+.calendar-table-wrapper {
+  overflow-x: auto;
+  border-radius: 6px;
+  border: 1px solid var(--base3);
+}
+
+.calendar-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.calendar-table thead {
+  background: var(--base3);
+  border-bottom: 2px solid color-mix(in srgb, var(--text2) 20%, transparent);
+}
+
+.calendar-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text2);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calendar-table tbody tr {
+  border-bottom: 1px solid var(--base3);
+  transition: background 0.2s ease;
+}
+
+.calendar-table tbody tr:hover {
+  background: color-mix(in srgb, var(--base3) 40%, transparent);
+}
+
+.calendar-table td {
+  padding: 10px 12px;
+  color: var(--text1);
+}
+
+.symbol-cell {
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.3px;
+}
+
+.event-type-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.event-type-badge.type-earnings {
+  background: color-mix(in srgb, var(--accent1) 20%, transparent);
+  color: var(--accent1);
+  border: 1px solid color-mix(in srgb, var(--accent1) 40%, transparent);
+}
+
+.event-type-badge.type-dividend {
+  background: color-mix(in srgb, var(--accent3) 20%, transparent);
+  color: var(--accent3);
+  border: 1px solid color-mix(in srgb, var(--accent3) 40%, transparent);
+}
+
+.event-type-badge.type-split {
+  background: color-mix(in srgb, var(--ma3) 20%, transparent);
+  color: var(--ma3);
+  border: 1px solid color-mix(in srgb, var(--ma3) 40%, transparent);
+}
+
+.calendar-pagination-compact {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--base3);
+}
+
+.pagination-btn-compact {
+  background: var(--base3);
+  color: var(--text1);
+  border: 1px solid color-mix(in srgb, var(--text2) 15%, transparent);
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-btn-compact:hover:not(:disabled) {
+  background: var(--base2);
+  border-color: color-mix(in srgb, var(--text2) 30%, transparent);
+}
+
+.pagination-btn-compact:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pagination-info-compact {
+  color: var(--text2);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.page-detail {
+  color: var(--text2);
+  opacity: 0.7;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 1024px) {
+  .calendar-table {
+    font-size: 0.8rem;
+  }
+  
+  .calendar-table th,
+  .calendar-table td {
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-table-wrapper {
+    overflow-x: scroll;
+  }
+  
+  .calendar-table {
+    min-width: 600px;
   }
 }
 

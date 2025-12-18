@@ -181,4 +181,82 @@ export default function (app: any, deps: any) {
         }
     });
 
+    // --- GET calendar events for a specific date ---
+    app.get('/calendar-events', async (req: Request, res: Response) => {
+        try {
+            const apiKey = req.header('x-api-key');
+            const sanitizedKey = sanitizeInput(apiKey);
+            if (!sanitizedKey || sanitizedKey !== process.env.VITE_EREUNA_KEY) {
+                logger.warn({
+                    msg: 'Invalid API key',
+                    providedApiKey: !!sanitizedKey,
+                    context: 'GET /calendar-events',
+                    statusCode: 401
+                });
+                return res.status(401).json({ message: 'Unauthorized API Access' });
+            }
+
+            // Get date from query (format: YYYY-MM-DD)
+            const dateParam = req.query.date as string;
+            if (!dateParam) {
+                return res.status(400).json({ message: 'Date parameter is required (format: YYYY-MM-DD)' });
+            }
+
+            const sanitizedDate = sanitizeInput(dateParam);
+
+            // Parse date and create date range for the day
+            const targetDate = new Date(sanitizedDate);
+            if (isNaN(targetDate.getTime())) {
+                return res.status(400).json({ message: 'Invalid date format. Use YYYY-MM-DD' });
+            }
+
+            // Set to start of day UTC
+            targetDate.setUTCHours(0, 0, 0, 0);
+            const nextDay = new Date(targetDate);
+            nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+
+            // Use cache with date-specific key
+            const cacheKey = `calendar-events:${sanitizedDate}`;
+
+            const events = await withCache(
+                cacheKey,
+                async () => {
+                    const db = await getDB();
+                    const calendarCollection = db.collection('Calendar');
+
+                    // Query for all events on the target date (Earnings, Dividends, Splits)
+                    const results = await calendarCollection.find({
+                        reportDate: {
+                            $gte: targetDate,
+                            $lt: nextDay
+                        }
+                    })
+                        .sort({ type: 1, symbol: 1 })
+                        .toArray();
+
+                    return results;
+                },
+                300, // 5 minute TTL - calendar events can change during the day
+                'price'
+            );
+
+            // Group events by type
+            const eventsByType = {
+                Earnings: events.filter((e: any) => e.type === 'Earnings'),
+                Dividends: events.filter((e: any) => e.type === 'Dividend'),
+                Splits: events.filter((e: any) => e.type === 'Split')
+            };
+
+            return res.status(200).json({
+                date: sanitizedDate,
+                count: events.length,
+                events,
+                eventsByType
+            });
+        } catch (error) {
+            const errObj = handleError(error, 'GET /calendar-events', {}, 500);
+            return res.status(errObj.statusCode || 500).json(errObj);
+        }
+    });
+
 }

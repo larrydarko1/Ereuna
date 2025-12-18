@@ -125,6 +125,11 @@
     </svg>
     <span class="status-text">{{ marketStatusText }}</span>
   </div>
+  <!-- Earnings Countdown -->
+  <div v-if="nextEarnings && nextEarnings.reportDate" class="earnings-countdown-badge">
+    <span class="earnings-label">Earnings in:</span>
+    <span class="earnings-timer" :class="earningsUrgencyClass">{{ earningsCountdown }}</span>
+  </div>
   <div v-if="isEODOnly" class="eod-only-badge">
     <span class="eod-text">{{ t('mainChart.eodOnly') }}</span>
   </div>
@@ -350,6 +355,13 @@ let allDataLoaded: boolean = false;
 const hasAnyDrawings = ref(false);
 
 
+interface NextEarnings {
+  reportDate: string;
+  fiscalDateEnding: string;
+  estimate: number;
+  timeOfTheDay: string;
+}
+
 const props = defineProps<{
   apiKey: string;
   user: string;
@@ -378,7 +390,73 @@ const todaySignals = computed(() => {
   return props.assetInfo.Signals.filter((signal: any) => signal.date === today);
 });
 
+// Next Earnings computed properties
+const nextEarnings = computed<NextEarnings | null>(() => {
+  return props.assetInfo?.NextEarnings || null;
+});
 
+const earningsCountdown = ref<string>('');
+const earningsUrgencyClass = ref<string>('');
+
+function updateEarningsCountdown(): void {
+  if (!nextEarnings.value?.reportDate) {
+    earningsCountdown.value = '';
+    return;
+  }
+
+  const now = new Date().getTime();
+  const reportDate = new Date(nextEarnings.value.reportDate).getTime();
+  const distance = reportDate - now;
+
+  if (distance < 0) {
+    earningsCountdown.value = 'Past Due';
+    earningsUrgencyClass.value = 'urgency-past';
+    return;
+  }
+
+  const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+  // Set urgency class based on time remaining
+  if (days === 0 && hours < 24) {
+    earningsUrgencyClass.value = 'urgency-high';
+  } else if (days <= 7) {
+    earningsUrgencyClass.value = 'urgency-medium';
+  } else {
+    earningsUrgencyClass.value = 'urgency-low';
+  }
+
+  // Format countdown string - only show days
+  if (days > 0) {
+    earningsCountdown.value = `${days} day${days === 1 ? '' : 's'}`;
+  } else if (hours > 0) {
+    earningsCountdown.value = 'Today';
+  } else {
+    earningsCountdown.value = 'Today';
+  }
+}
+
+function formatEarningsDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+}
+
+// Update countdown every second
+let earningsInterval: number | null = null;
+
+function startEarningsCountdown(): void {
+  if (earningsInterval) {
+    clearInterval(earningsInterval);
+  }
+  updateEarningsCountdown();
+  earningsInterval = window.setInterval(updateEarningsCountdown, 1000);
+}
 
 const isChartLoading1 = ref<boolean>(false);
 const isLoading1 = ref<boolean>(false);
@@ -1611,6 +1689,12 @@ onUnmounted(() => {
     statusInterval = null;
   }
   
+  // Clear earnings countdown interval
+  if (earningsInterval) {
+    clearInterval(earningsInterval);
+    earningsInterval = null;
+  }
+  
   // Save drawings one last time before unmounting
   if (drawingPersistence) {
     drawingPersistence.autoSave();
@@ -1933,12 +2017,30 @@ onMounted(async () => {
   fetchIndicatorList();
   await fetchHolidays();
   startMarketStatusCheck();
+  
+  // Start earnings countdown if available
+  if (nextEarnings.value) {
+    startEarningsCountdown();
+  }
 });
 
 // Restart status check when asset changes
 watch(() => props.assetInfo?.Exchange, () => {
   startMarketStatusCheck();
 });
+
+// Watch for changes to NextEarnings data and restart countdown
+watch(() => props.assetInfo?.NextEarnings, (newValue) => {
+  if (newValue) {
+    startEarningsCountdown();
+  } else {
+    if (earningsInterval) {
+      clearInterval(earningsInterval);
+      earningsInterval = null;
+    }
+    earningsCountdown.value = '';
+  }
+}, { deep: true });
 
 const isInHiddenList = (item: string): boolean => {
   return hiddenList.value.includes(item);
@@ -2208,6 +2310,39 @@ h1 {
   flex-direction: column;
   display: flex;
   gap: 3px;
+}
+
+.earnings-countdown-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 2px 6px;
+  background-color: var(--text2);
+  border-radius: 3px;
+  opacity: 0.85;
+  gap: 4px;
+}
+
+.earnings-label {
+  color: var(--base1);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.earnings-timer {
+  color: var(--base1);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.earnings-timer.urgency-medium {
+  animation: fade-pulse 2s ease-in-out infinite;
+}
+
+.earnings-timer.urgency-high {
+  animation: fade-pulse 1.2s ease-in-out infinite;
 }
 
 #legend3 {
