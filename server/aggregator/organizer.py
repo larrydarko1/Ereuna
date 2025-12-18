@@ -58,6 +58,7 @@ try:
         clone_user_documents,
         update_asset_type_to_stock
     )
+    from server.aggregator.alphavantage_mapping_fixed import transform_to_db_structure
 except Exception:
     import sys
     import pathlib
@@ -81,10 +82,12 @@ except Exception:
         clone_user_documents,
         update_asset_type_to_stock
     )
+    from server.aggregator.alphavantage_mapping_fixed import transform_to_db_structure
 
 load_dotenv()
 mongo_uri = os.getenv('MONGODB_URI')
 api_key = os.getenv('TIINGO_KEY')
+alphavantage_key = os.getenv('ALPHAVANTAGE_KEY')
 
 # Configure MongoDB client with proper timeouts and pool settings
 mongo_client = motor.motor_asyncio.AsyncIOMotorClient(
@@ -1208,129 +1211,204 @@ async def getHistoricalPrice2(tickerID):
 
 #scan endpoints for financial statements updates and update symbol when it does
 async def checkAndUpdateFinancialUpdates():
+    """Fetch financial data from AlphaVantage and update database with new reports"""
     start_time = time.time()
     collection = db['AssetInfo']
+    
     # Only get symbols that are stocks and not delisted
     tickers = [doc['Symbol'] async for doc in collection.find({
         'AssetType': 'Stock',
         'Delisted': False
     })]
-    pass  # Print removed for clean output
+    
+    print(f"Checking financial updates for {len(tickers)} stocks...")
     new_tickers_data = {}
     
     total_tickers = len(tickers)
     processed = 0
+    errors = 0
     
-    def print_financials_progress(processed, total, bar_length=50):
+    def print_financials_progress(processed, total, errors, bar_length=50):
         """Print progress bar for financial updates"""
         percentage = int(100 * processed / total) if total > 0 else 0
         filled_length = int(bar_length * processed / total) if total > 0 else 0
         bar = '█' * filled_length + '░' * (bar_length - filled_length)
-        print(f'\r  Progress: |{bar}| {percentage}% ({processed}/{total} stocks)', end='', flush=True)
+        error_str = f" | {errors} errors" if errors > 0 else ""
+        print(f'\r  Progress: |{bar}| {percentage}% ({processed}/{total} stocks{error_str})', end='', flush=True)
     
-    print_financials_progress(0, total_tickers)
+    async def fetch_alphavantage_financials(symbol):
+        """Fetch and consolidate financial data from AlphaVantage's 3 endpoints"""
+        statements = ['INCOME_STATEMENT', 'BALANCE_SHEET', 'CASH_FLOW']
+        results = {}
+        
+        for statement_type in statements:
+            url = f'https://www.alphavantage.co/query?function={statement_type}&symbol={symbol}&apikey={alphavantage_key}'
+            
+            try:
+                response = requests.get(url, timeout=30)
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    # Check for API error messages
+                    if 'Error Message' in data or 'Note' in data:
+                        return None
+                    
+                    results[statement_type] = data
+                else:
+                    return None
+                    
+                # Rate limiting: 1 request per second (AlphaVantage free tier limit)
+                await asyncio.sleep(2)
+                
+            except Exception as e:
+                return None
+        
+        # Consolidate the 3 statements by fiscalDateEnding
+        if len(results) != 3:
+            return None
+            
+        consolidated = {
+            'AnnualFinancials': [],
+            'quarterlyFinancials': []
+        }
+        
+        # Merge annual reports
+        annual_dates = {}
+        for statement_type, data in results.items():
+            reports = data.get('annualReports', [])
+            for report in reports:
+                date = report.get('fiscalDateEnding')
+                if date:
+                    if date not in annual_dates:
+                        annual_dates[date] = {}
+                    annual_dates[date].update(report)
+        
+        # Convert to list and sort by date (newest first)
+        consolidated['AnnualFinancials'] = [annual_dates[date] for date in sorted(annual_dates.keys(), reverse=True)]
+        
+        # Merge quarterly reports
+        quarterly_dates = {}
+        for statement_type, data in results.items():
+            reports = data.get('quarterlyReports', [])
+            for report in reports:
+                date = report.get('fiscalDateEnding')
+                if date:
+                    if date not in quarterly_dates:
+                        quarterly_dates[date] = {}
+                    quarterly_dates[date].update(report)
+        
+        # Convert to list and sort by date (newest first)
+        consolidated['quarterlyFinancials'] = [quarterly_dates[date] for date in sorted(quarterly_dates.keys(), reverse=True)]
+        
+        return consolidated
+    
+    print_financials_progress(0, total_tickers, 0)
 
     for ticker in tickers:
-        processed += 1
-        pass  # Print removed for clean output
-        url = f'https://api.tiingo.com/tiingo/fundamentals/{ticker}/statements?token={api_key}'
-        response = requests.get(url)
-
-        if response.status_code == 200:
-            data = response.json()
-
-            # Find the document in MongoDB where Symbol matches the ticker (async)
+        try:
+            # Fetch consolidated financial data from AlphaVantage
+            alphavantage_data = await fetch_alphavantage_financials(ticker)
+            
+            if not alphavantage_data:
+                errors += 1
+                processed += 1
+                print_financials_progress(processed, total_tickers, errors)
+                continue
+            
+            # Find existing document in MongoDB
             result = await collection.find_one({'Symbol': ticker})
-
+            
             if result:
-                # Process the data
-                quarterly_financials_data = []
-                annual_financials_data = []
                 new_data_found = False
-
-                for statement in data:
-                    date_str = statement['date']
-                    date = datetime.strptime(date_str, '%Y-%m-%d')
-                    quarter = statement['quarter']
-
-                    financial_data = {
-                        'fiscalDateEnding': date,
-                        'reportedEPS': 0,
-                        'totalRevenue': 0,
-                        'netIncome': 0
-                    }
-
-                    if 'statementData' in statement and 'incomeStatement' in statement['statementData']:
-                        income_statement = statement['statementData']['incomeStatement']
-                        eps = next((item for item in income_statement if item['dataCode'] == 'eps'), None)
-                        revenue = next((item for item in income_statement if item['dataCode'] == 'revenue'), None)
-                        netinc = next((item for item in income_statement if item['dataCode'] == 'netinc'), None)
-
-                        if eps:
-                            financial_data['reportedEPS'] = eps['value'] or 0
-
-                        if revenue and netinc:
-                            financial_data['totalRevenue'] = revenue['value'] or 0
-                            financial_data['netIncome'] = netinc['value'] or 0
-
-                    if 'balanceSheet' in statement['statementData']:
-                        balance_sheet = statement['statementData']['balanceSheet']
-                        for item in balance_sheet:
-                            data_code = item['dataCode']
-                            value = item['value'] or 0
-                            financial_data[data_code] = value
-
-                    if 'cashFlow' in statement['statementData']:
-                        cash_flow = statement['statementData']['cashFlow']
-                        for item in cash_flow:
-                            data_code = item['dataCode']
-                            value = item['value'] or 0
-                            financial_data[data_code] = value
-
-                    if 'overview' in statement['statementData']:
-                        overview = statement['statementData']['overview']
-                        for item in overview:
-                            data_code = item['dataCode']
-                            value = item['value'] or 0
-                            financial_data[data_code] = value
-
-                    if quarter == 0:
-                        existing_annual_financials = result.get('AnnualFinancials', [])
-                        existing_annual_financials_dates = [item['fiscalDateEnding'] for item in existing_annual_financials]
-                        if date not in existing_annual_financials_dates:
+                annual_financials_to_add = []
+                quarterly_financials_to_add = []
+                
+                # Get existing dates
+                existing_annual_dates = set(
+                    str(item.get('fiscalDateEnding', '')).split('T')[0].split()[0] 
+                    for item in result.get('AnnualFinancials', [])
+                )
+                existing_quarterly_dates = set(
+                    str(item.get('fiscalDateEnding', '')).split('T')[0].split()[0]
+                    for item in result.get('quarterlyFinancials', [])
+                )
+                
+                # Process annual financials
+                for i, report in enumerate(alphavantage_data['AnnualFinancials']):
+                    date_str = report.get('fiscalDateEnding', '')
+                    if date_str and date_str not in existing_annual_dates:
+                        # Transform using mapping
+                        transformed = transform_to_db_structure(report, is_quarterly=False, prev_data=None)
+                        if transformed:
+                            annual_financials_to_add.append(transformed)
                             new_data_found = True
-                            pass  # Print removed for clean output
-                        annual_financials_data.append(financial_data)
-                    else:
-                        existing_quarterly_financials = result.get('quarterlyFinancials', [])
-                        existing_quarterly_financials_dates = [item['fiscalDateEnding'] for item in existing_quarterly_financials]
-                        if date not in existing_quarterly_financials_dates:
+                
+                # Process quarterly financials
+                for i, report in enumerate(alphavantage_data['quarterlyFinancials']):
+                    date_str = report.get('fiscalDateEnding', '')
+                    if date_str and date_str not in existing_quarterly_dates:
+                        # Get previous quarter data for QoQ calculations
+                        prev_data = None
+                        if i + 1 < len(alphavantage_data['quarterlyFinancials']):
+                            prev_data = alphavantage_data['quarterlyFinancials'][i + 1]
+                        
+                        # Transform using mapping
+                        transformed = transform_to_db_structure(report, is_quarterly=True, prev_data=prev_data)
+                        if transformed:
+                            quarterly_financials_to_add.append(transformed)
                             new_data_found = True
-                            pass  # Print removed for clean output
-                        quarterly_financials_data.append(financial_data)
-
+                
+                # If new data found, add to update queue
                 if new_data_found:
                     new_tickers_data[ticker] = {
-                        'quarterlyFinancials': quarterly_financials_data,
-                        'AnnualFinancials': annual_financials_data
+                        'annual_to_add': annual_financials_to_add,
+                        'quarterly_to_add': quarterly_financials_to_add
                     }
-            else:
-                pass  # Print removed for clean output
-        else:
-            pass  # Print removed for clean output
+                    
+        except Exception as e:
+            errors += 1
         
-        print_financials_progress(processed, total_tickers)
+        processed += 1
+        print_financials_progress(processed, total_tickers, errors)
     
     print()  # Move to next line after progress bar
-
-    #maintenanceMode(True)
-    # Update the quarterly and annual earnings and financial data in the MongoDB database (async)
-    for ticker, data in new_tickers_data.items():
-        pass  # Print removed for clean output
-        await collection.update_one({'Symbol': ticker}, {'$set': data})
-        pass  # Print removed for clean output
-
-    # These are assumed to be async, if not, remove await
+    
+    # Update database with new financial reports
+    if new_tickers_data:
+        print(f"Updating {len(new_tickers_data)} stocks with new financial data...")
+        
+        for ticker, data in new_tickers_data.items():
+            # Get existing document
+            doc = await collection.find_one({'Symbol': ticker})
+            if not doc:
+                continue
+            
+            # Merge new reports with existing and sort by date (newest first)
+            if data['annual_to_add']:
+                existing_annual = doc.get('AnnualFinancials', [])
+                all_annual = existing_annual + data['annual_to_add']
+                # Sort by fiscalDateEnding (newest first)
+                all_annual.sort(key=lambda x: x['fiscalDateEnding'], reverse=True)
+                await collection.update_one(
+                    {'Symbol': ticker},
+                    {'$set': {'AnnualFinancials': all_annual}}
+                )
+            
+            if data['quarterly_to_add']:
+                existing_quarterly = doc.get('quarterlyFinancials', [])
+                all_quarterly = existing_quarterly + data['quarterly_to_add']
+                # Sort by fiscalDateEnding (newest first)
+                all_quarterly.sort(key=lambda x: x['fiscalDateEnding'], reverse=True)
+                await collection.update_one(
+                    {'Symbol': ticker},
+                    {'$set': {'quarterlyFinancials': all_quarterly}}
+                )
+        
+        print(f"✓ Updated {len(new_tickers_data)} stocks with new financial reports in chronological order")
+    else:
+        print("No new financial data found")
+    
+    # Update derived fields
     if asyncio.iscoroutinefunction(update_eps_shares_dividend_date):
         await update_eps_shares_dividend_date()
     else:
@@ -1343,11 +1421,10 @@ async def checkAndUpdateFinancialUpdates():
         await calculate_YoY_changes()
     else:
         calculate_YoY_changes()
-    #maintenanceMode(False)
+    
     end_time = time.time()
-    execution_time_in_seconds = end_time - start_time
-    execution_time_in_minutes = execution_time_in_seconds / 60
-    pass  # Print removed for clean output
+    execution_time_in_minutes = (end_time - start_time) / 60
+    print(f"Financial updates completed in {execution_time_in_minutes:.2f} minutes")
 
 #updates assetinfo with recent ohclvdata 
 async def updateTimeSeries():
@@ -2450,9 +2527,9 @@ async def update_market_stats():
     symbol_map = {a["Symbol"]: a for a in assets}
 
     # --- Determine most recent trading timestamp (for filtering stale data) ---
-    # Get the most recent timestamp from a major index (SPY) as reference
+    # Get the most recent timestamp from a major index (BTCEUR) as reference
     spy_cursor = ohlcv_col.find(
-        {"tickerID": "SPY"},
+        {"tickerID": "BTCEUR"},
         {"timestamp": 1, "_id": 0}
     ).sort("timestamp", -1).limit(1)
     spy_docs = await spy_cursor.to_list(length=1)
@@ -2858,6 +2935,240 @@ async def update_market_stats():
         upsert=True
     )
     
+async def update_earnings_calendar():
+    """
+    Fetch earnings calendar from AlphaVantage and populate Calendar collection
+    Returns number of records inserted
+    """
+    print("\n" + "="*50)
+    print("Updating Earnings Calendar")
+    print("="*50)
+    
+    if not alphavantage_key:
+        print("✗ Error: ALPHAVANTAGE_KEY not found in environment variables")
+        return 0
+    
+    calendar_collection = db['Calendar']
+    
+    try:
+        # Fetch earnings calendar from AlphaVantage
+        print("Fetching earnings calendar from AlphaVantage...")
+        url = "https://www.alphavantage.co/query"
+        params = {
+            "function": "EARNINGS_CALENDAR",
+            "horizon": "6month",
+            "apikey": alphavantage_key
+        }
+        
+        response = requests.get(url, params=params, timeout=30)
+        response.raise_for_status()
+        
+        # Parse CSV response
+        import csv
+        from io import StringIO
+        
+        csv_data = list(csv.DictReader(StringIO(response.text)))
+        print(f"✓ Fetched {len(csv_data)} earnings records")
+        
+        if not csv_data:
+            print("✗ No earnings data received")
+            return 0
+        
+        # Clear existing earnings events in Calendar
+        print("Clearing existing earnings events...")
+        delete_result = await calendar_collection.delete_many({"type": "Earnings"})
+        print(f"✓ Removed {delete_result.deleted_count} old earnings records")
+        
+        # Prepare documents for insertion
+        documents = []
+        for record in csv_data:
+            # Skip records without required fields
+            if not record.get('symbol') or not record.get('reportDate'):
+                continue
+            
+            doc = {
+                "symbol": record['symbol'],
+                "reportDate": datetime.strptime(record['reportDate'], '%Y-%m-%d') if record['reportDate'] else None,
+                "fiscalDateEnding": datetime.strptime(record['fiscalDateEnding'], '%Y-%m-%d') if record.get('fiscalDateEnding') else None,
+                "estimate": float(record['estimate']) if record.get('estimate') and record['estimate'] != '' else None,
+                "currency": record.get('currency', 'USD'),
+                "timeOfTheDay": record.get('timeOfTheDay', ''),
+                "type": "Earnings",
+                "lastUpdated": datetime.now(timezone.utc)
+            }
+            documents.append(doc)
+        
+        # Bulk insert with batching
+        if documents:
+            batch_size = 1000
+            inserted_count = 0
+            
+            for i in range(0, len(documents), batch_size):
+                batch = documents[i:i + batch_size]
+                try:
+                    result = await calendar_collection.insert_many(batch, ordered=False)
+                    inserted_count += len(result.inserted_ids)
+                    print(f"  Inserted batch {i//batch_size + 1}/{(len(documents) + batch_size - 1)//batch_size}")
+                except Exception as e:
+                    print(f"✗ Error inserting batch: {e}")
+            
+            print(f"✓ Successfully inserted {inserted_count} earnings records into Calendar")
+            
+            # Create indexes for efficient querying
+            print("Creating indexes...")
+            await calendar_collection.create_index([("symbol", 1), ("reportDate", 1)])
+            await calendar_collection.create_index([("reportDate", 1)])
+            await calendar_collection.create_index([("type", 1)])
+            print("✓ Indexes created")
+            
+            return inserted_count
+        else:
+            print("✗ No valid documents to insert")
+            return 0
+            
+    except requests.exceptions.RequestException as e:
+        print(f"✗ Error fetching earnings calendar: {e}")
+        return 0
+    except Exception as e:
+        print(f"✗ Error updating earnings calendar: {e}")
+        import traceback
+        traceback.print_exc()
+        return 0
+
+
+@async_retry_on_disconnect(max_retries=3, delay=2)
+async def update_next_earnings_in_asset_info():
+    """
+    Update AssetInfo collection with next upcoming earnings date for each stock
+    Queries Calendar collection and updates NextEarnings field in AssetInfo
+    """
+    print("\n" + "="*50)
+    print("Updating Next Earnings in AssetInfo")
+    print("="*50)
+    
+    calendar_collection = db['Calendar']
+    asset_info_collection = db['AssetInfo']
+    
+    try:
+        # Get current date
+        now = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        # Get all unique symbols from Calendar with future earnings
+        print("Fetching symbols with upcoming earnings...")
+        pipeline = [
+            {"$match": {"type": "Earnings", "reportDate": {"$gte": now}}},
+            {"$group": {"_id": "$symbol"}}
+        ]
+        symbols_with_earnings = [doc['_id'] async for doc in calendar_collection.aggregate(pipeline)]
+        print(f"✓ Found {len(symbols_with_earnings)} symbols with upcoming earnings")
+        
+        if not symbols_with_earnings:
+            print("✗ No upcoming earnings found")
+            return 0
+        
+        # Process in batches
+        batch_size = 100
+        updated_count = 0
+        cleared_count = 0
+        
+        for i in range(0, len(symbols_with_earnings), batch_size):
+            batch_symbols = symbols_with_earnings[i:i + batch_size]
+            updates = []
+            
+            for symbol in batch_symbols:
+                # Find next upcoming earnings for this symbol
+                next_earning = await calendar_collection.find_one(
+                    {"symbol": symbol, "type": "Earnings", "reportDate": {"$gte": now}},
+                    sort=[("reportDate", 1)]
+                )
+                
+                if next_earning:
+                    # Prepare NextEarnings object
+                    next_earnings_data = {
+                        "reportDate": next_earning['reportDate'],
+                        "fiscalDateEnding": next_earning.get('fiscalDateEnding'),
+                        "estimate": next_earning.get('estimate'),
+                        "timeOfTheDay": next_earning.get('timeOfTheDay', '')
+                    }
+                    
+                    updates.append(
+                        UpdateOne(
+                            {"Symbol": symbol},
+                            {"$set": {"NextEarnings": next_earnings_data}},
+                            upsert=False
+                        )
+                    )
+            
+            # Execute batch update
+            if updates:
+                try:
+                    result = await asset_info_collection.bulk_write(updates, ordered=False)
+                    updated_count += result.modified_count
+                    print(f"  Updated batch {i//batch_size + 1}/{(len(symbols_with_earnings) + batch_size - 1)//batch_size}")
+                except Exception as e:
+                    print(f"✗ Error updating batch: {e}")
+        
+        # Clear NextEarnings for stocks with no upcoming earnings
+        print("Clearing NextEarnings for stocks with no upcoming earnings...")
+        clear_result = await asset_info_collection.update_many(
+            {"Symbol": {"$nin": symbols_with_earnings}, "NextEarnings": {"$exists": True}},
+            {"$unset": {"NextEarnings": ""}}
+        )
+        cleared_count = clear_result.modified_count
+        
+        print(f"✓ Updated {updated_count} stocks with next earnings")
+        print(f"✓ Cleared {cleared_count} stocks with no upcoming earnings")
+        
+        return updated_count
+        
+    except Exception as e:
+        print(f"✗ Error updating next earnings in AssetInfo: {e}")
+        import traceback
+        traceback.print_exc()
+        return 0
+
+
+async def sync_earnings_data():
+    """
+    Main orchestrator function to sync earnings calendar data
+    1. Fetches earnings from AlphaVantage and populates Calendar
+    2. Updates AssetInfo with next upcoming earnings for each stock
+    """
+    print("\n" + "="*60)
+    print("EARNINGS DATA SYNCHRONIZATION")
+    print("="*60)
+    
+    sync_start = time.time()
+    
+    try:
+        # Step 1: Update Calendar collection
+        calendar_count = await update_earnings_calendar()
+        
+        # Step 2: Update AssetInfo with next earnings
+        if calendar_count > 0:
+            asset_info_count = await update_next_earnings_in_asset_info()
+        else:
+            print("\n⚠ Skipping AssetInfo update due to empty Calendar")
+            asset_info_count = 0
+        
+        sync_end = time.time()
+        duration = (sync_end - sync_start) / 60
+        
+        print("\n" + "="*60)
+        print(f"✓ Earnings sync completed in {duration:.2f} minutes")
+        print(f"  - Calendar records: {calendar_count}")
+        print(f"  - AssetInfo updated: {asset_info_count}")
+        print("="*60)
+        
+        return {"calendar_records": calendar_count, "asset_info_updates": asset_info_count}
+        
+    except Exception as e:
+        print(f"\n✗ Earnings sync failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"calendar_records": 0, "asset_info_updates": 0}
+
+    
 async def Daily():
     # Run getPrice and getCryptoPrice sequentially
     # Check if today is Tuesday-Saturday (since code runs day after market data)
@@ -2934,10 +3245,17 @@ async def Daily():
     signals_end = time.time()
     print(f"✓ Signal analysis completed in {(signals_end - signals_start)/60:.2f} minutes")
     
+    # Update earnings calendar and next earnings with progress tracking
+    print("\nUpdating earnings calendar...")
+    earnings_start = time.time()
+    await sync_earnings_data()
+    earnings_end = time.time()
+    print(f"✓ Earnings calendar updated in {(earnings_end - earnings_start)/60:.2f} minutes")
+    
     # Fetch news with progress tracking
     print("\nChecking and updating news...")
     news_start = time.time()
-    #await fetchNews()
+    await fetchNews()
     news_end = time.time()
     print(f"✓ News updated in {(news_end - news_start)/60:.2f} minutes")
     
@@ -2950,5 +3268,4 @@ async def Daily():
         
 if __name__ == '__main__':  
     import motor.motor_asyncio
-    # Make sure db is defined as in your main code
     asyncio.run(Daily())

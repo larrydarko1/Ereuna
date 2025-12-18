@@ -759,7 +759,7 @@ onUnmounted(() => {
   /* Animación de los colores del gradiente */
   @keyframes animateGradient {
     0% {
-      stop-color: $accent1;
+      stop-color: var(--brand-primary);
     }
 
     50% {
@@ -767,7 +767,7 @@ onUnmounted(() => {
     }
 
     100% {
-      stop-color: $accent1;
+      stop-color: var(--brand-primary);
     }
   }
 
