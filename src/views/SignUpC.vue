@@ -80,7 +80,7 @@ const { currentTheme, toggleTheme } = usePublicTheme();
 .content {
   text-align: center;
   color: var(--brand-text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--brand-bg-primary);
   backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 6rem 4rem;
@@ -105,7 +105,6 @@ h2 {
   margin-bottom: 1.5rem;
   color: var(--brand-text-primary);
   line-height: 1.2;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

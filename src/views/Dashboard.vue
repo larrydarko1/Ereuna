@@ -352,66 +352,6 @@
         </div>
       </section>
     </div>
-
-    <!-- Calendar Events Section - Compact Version -->
-    <div class="dashboard-row-calendar">
-      <section class="calendar-events-compact card" aria-label="Today's Calendar Events">
-        <h2 id="calendar-events-heading">
-          <svg class="section-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 7V11H16V7M8 2V6M16 2V6M3 10H21M21 10V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Today's Calendar Events
-          <span class="event-count-badge" v-if="!calendarLoading && todayEvents.length > 0">{{ todayEvents.length }}</span>
-        </h2>
-        <div v-if="calendarLoading" class="calendar-loading-compact">
-          <div class="loader-spinner-small"></div>
-          <span>Loading events...</span>
-        </div>
-        <div v-else-if="calendarError" class="calendar-error-compact">
-          {{ calendarError }}
-        </div>
-        <div v-else-if="!todayEvents.length" class="calendar-empty-compact">
-          No events scheduled for today
-        </div>
-        <div v-else class="calendar-table-wrapper">
-          <table class="calendar-table">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Symbol</th>
-                <th>Estimate</th>
-                <th>Fiscal Period</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="event in paginatedEvents" :key="event._id">
-                <td>
-                  <span class="event-type-badge" :class="`type-${event.type.toLowerCase()}`">
-                    {{ event.type }}
-                  </span>
-                </td>
-                <td class="symbol-cell">{{ event.symbol }}</td>
-                <td>{{ formatEstimate(event.estimate) }}</td>
-                <td>{{ formatFiscalQuarter(event.fiscalDateEnding) }}</td>
-                <td>{{ event.timeOfTheDay || '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div v-if="todayEvents.length > itemsPerPage" class="calendar-pagination-compact">
-          <button @click="previousPage" :disabled="currentPage === 1" class="pagination-btn-compact">
-            ←
-          </button>
-          <span class="pagination-info-compact">
-            {{ currentPage }} / {{ totalPages }} <span class="page-detail">({{ todayEvents.length }} total)</span>
-          </span>
-          <button @click="nextPage" :disabled="currentPage === totalPages" class="pagination-btn-compact">
-            →
-          </button>
-        </div>
-      </section>
-    </div>
 </main>
 </template>
 
@@ -671,78 +611,6 @@ function hideTooltip() {
   tooltipVisible.value = null;
 }
 
-// --- Calendar Events State ---
-const todayEvents = ref<CalendarEvent[]>([]);
-const calendarLoading = ref(true);
-const calendarError = ref('');
-const currentPage = ref(1);
-const itemsPerPage = 10;
-
-const totalPages = computed(() => Math.ceil(todayEvents.value.length / itemsPerPage));
-
-const paginatedEvents = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return todayEvents.value.slice(start, end);
-});
-
-function nextPage() {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-  }
-}
-
-function previousPage() {
-  if (currentPage.value > 1) {
-    currentPage.value--;
-  }
-}
-
-function formatCalendarDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-}
-
-function formatEstimate(estimate: number | null): string {
-  if (estimate === null) return '-';
-  return estimate.toFixed(2);
-}
-
-function formatFiscalQuarter(dateString: string): string {
-  const date = new Date(dateString);
-  const month = date.getMonth();
-  const year = date.getFullYear();
-  const quarter = Math.floor(month / 3) + 1;
-  return `Q${quarter} ${year}`;
-}
-
-// --- Fetch Calendar Events ---
-async function fetchCalendarEvents() {
-  calendarLoading.value = true;
-  calendarError.value = '';
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    const res = await fetch(`/api/calendar-events?date=${today}`, {
-      headers: {
-        'x-api-key': import.meta.env.VITE_EREUNA_KEY || ''
-      }
-    });
-    if (!res.ok) throw new Error('Failed to fetch calendar events');
-    const data = await res.json();
-    todayEvents.value = data.events || [];
-    currentPage.value = 1; // Reset to first page
-  } catch (err: any) {
-    calendarError.value = err.message || 'Failed to load calendar events';
-    console.error('Calendar fetch error:', err);
-  } finally {
-    calendarLoading.value = false;
-  }
-}
-
 // Expose to template
 defineExpose({ 
   topGainers, 
@@ -895,7 +763,6 @@ onMounted(() => {
     updateSmaData();
     updateIndexData();
   });
-  fetchCalendarEvents();
   // Update last update string every minute in case time zone changes
   setInterval(updateLastUpdateString, 60000);
 });

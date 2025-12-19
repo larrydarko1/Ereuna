@@ -99,13 +99,13 @@ const config = reactive<ScreenshotConfig>({
   includeChartInfo: true,
   appName: 'Ereuna',
   websiteUrl: 'ereuna.io',
-  backgroundColor: '#1a1b26',
+  backgroundColor: '#0f1419',
   watermarkOpacity: 0.8
 });
 
 const colorOptions = computed(() => [
-  { name: t('screenshotExport.colorDark'), value: '#1a1b26' },
-  { name: t('screenshotExport.colorLight'), value: '#ffffff' }
+  { name: t('screenshotExport.colorDark'), value: '#0f1419' },
+  { name: t('screenshotExport.colorLight'), value: '#f3f4f4' }
 ]);
 
 const isLightBackground = computed(() => {
