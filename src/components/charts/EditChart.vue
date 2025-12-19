@@ -1,9 +1,12 @@
 <template>
   <div class="modal-backdrop" @click.self="close">
     <div class="modal-content">
-      <button class="close-x" @click="close" :aria-label="t('editChart.close')">&times;</button>
-      <h2>{{ t('editChart.title') }}</h2>
+      <div class="popup-header">
+        <h2>{{ t('editChart.title') }}</h2>
+        <button class="close-btn" @click="close" :aria-label="t('editChart.close')">×</button>
+      </div>
       <form @submit.prevent="saveSettings">
+        <div class="popup-body">
         <div
           v-for="(indicator, idx) in indicators"
           :key="idx"
@@ -27,7 +30,7 @@
           </div>
           <div class="indicator-label">{{ t('editChart.indicator', { number: idx + 1 }) }}</div>
           <div class="indicator-piece">
-            <div class="custom-dropdown" @click="toggleDropdown(idx)" :aria-label="t('editChart.selectIndicatorType', { number: idx + 1 })">
+            <div class="custom-dropdown" @click="toggleDropdown(idx, $event)" :aria-label="t('editChart.selectIndicatorType', { number: idx + 1 })">
               <div class="selected-value">
                 {{ indicator.type }}
                 <span class="dropdown-arrow" :class="{ open: dropdownOpen === idx }">
@@ -40,7 +43,7 @@
                   </svg>
                 </span>
               </div>
-              <div v-if="dropdownOpen === idx" class="dropdown-list">
+              <div v-if="dropdownOpen === idx" class="dropdown-list" :style="{ top: dropdownPosition.top + 'px', left: dropdownPosition.left + 'px' }">
                 <div class="dropdown-item" @click.stop="selectType(idx, 'SMA')">SMA</div>
                 <div class="dropdown-item" @click.stop="selectType(idx, 'EMA')">EMA</div>
               </div>
@@ -76,10 +79,64 @@
           </div>
           <div class="indicator-label">{{ t('editChart.intrinsicValue') }}</div>
         </div>
+        <div class="indicator-row-compact indicator-module markers-module" :class="{ 'indicator-hidden': !showMarkers.earnings }">
+          <div class="indicator-piece">
+            <div
+              class="custom-checkbox indicator-visibility"
+              :class="{ checked: showMarkers.earnings }"
+              @click="showMarkers.earnings = !showMarkers.earnings"
+              tabindex="0"
+              @keydown.enter.space="showMarkers.earnings = !showMarkers.earnings"
+              role="checkbox"
+              :aria-checked="showMarkers.earnings"
+            :aria-label="t('editChart.toggleEarningsVisibility')"
+            :title="t('editChart.toggleEarningsVisibility')"
+          >
+            <span class="checkmark"></span>
+          </div>
+          </div>
+          <div class="indicator-label">{{ t('editChart.earningsMarkers') }}</div>
+        </div>
+        <div class="indicator-row-compact indicator-module markers-module" :class="{ 'indicator-hidden': !showMarkers.dividends }">
+          <div class="indicator-piece">
+            <div
+              class="custom-checkbox indicator-visibility"
+              :class="{ checked: showMarkers.dividends }"
+              @click="showMarkers.dividends = !showMarkers.dividends"
+              tabindex="0"
+              @keydown.enter.space="showMarkers.dividends = !showMarkers.dividends"
+              role="checkbox"
+              :aria-checked="showMarkers.dividends"
+            :aria-label="t('editChart.toggleDividendsVisibility')"
+            :title="t('editChart.toggleDividendsVisibility')"
+          >
+            <span class="checkmark"></span>
+          </div>
+          </div>
+          <div class="indicator-label">{{ t('editChart.dividendsMarkers') }}</div>
+        </div>
+        <div class="indicator-row-compact indicator-module markers-module" :class="{ 'indicator-hidden': !showMarkers.splits }">
+          <div class="indicator-piece">
+            <div
+              class="custom-checkbox indicator-visibility"
+              :class="{ checked: showMarkers.splits }"
+              @click="showMarkers.splits = !showMarkers.splits"
+              tabindex="0"
+              @keydown.enter.space="showMarkers.splits = !showMarkers.splits"
+              role="checkbox"
+              :aria-checked="showMarkers.splits"
+            :aria-label="t('editChart.toggleSplitsVisibility')"
+            :title="t('editChart.toggleSplitsVisibility')"
+          >
+            <span class="checkmark"></span>
+          </div>
+          </div>
+          <div class="indicator-label">{{ t('editChart.splitsMarkers') }}</div>
+        </div>
         <div class="indicator-row-compact indicator-module chart-type-row">
           <div class="indicator-label" style="margin-left: 2rem;">{{ t('editChart.chartType') }}</div>
           <div class="indicator-piece">
-            <div class="custom-dropdown" @click="toggleChartTypeDropdown" :aria-label="t('editChart.selectChartType')">
+            <div class="custom-dropdown" @click="toggleChartTypeDropdown($event)" :aria-label="t('editChart.selectChartType')">
               <div class="selected-value">
                 {{ chartTypeLabel }}
                 <span class="dropdown-arrow" :class="{ open: chartTypeDropdownOpen }">
@@ -92,7 +149,7 @@
                   </svg>
                 </span>
               </div>
-              <div v-if="chartTypeDropdownOpen" class="dropdown-list">
+              <div v-if="chartTypeDropdownOpen" class="dropdown-list" :style="{ top: dropdownPosition.top + 'px', left: dropdownPosition.left + 'px' }">
                 <div class="dropdown-item" @click.stop="selectChartType('candlestick')">{{ t('editChart.candlestick') }}</div>
                 <div class="dropdown-item" @click.stop="selectChartType('bar')">{{ t('editChart.bar') }}</div>
                 <div class="dropdown-item" @click.stop="selectChartType('heikinashi')">{{ t('editChart.heikinAshi') }}</div>
@@ -103,9 +160,10 @@
             </div>
           </div>
         </div>
-        <div class="modal-actions">
-          <button type="button" class="cancel-btn" @click="close" :aria-label="t('editChart.cancelSettings')">{{ t('editChart.cancel') }}</button>
-          <button type="submit" class="trade-btn" :aria-label="t('editChart.saveSettings')">{{ t('editChart.save') }}</button>
+        </div>
+        <div class="popup-footer">
+          <button type="button" class="btn-secondary" @click="close" :aria-label="t('editChart.cancelSettings')">{{ t('editChart.cancel') }}</button>
+          <button type="submit" class="btn-primary" :aria-label="t('editChart.saveSettings')">{{ t('editChart.save') }}</button>
         </div>
       </form>
     </div>
@@ -131,6 +189,7 @@ const props = defineProps<{
   user: string;
   indicatorList: Indicator[];
   intrinsicVisible?: boolean;
+  markersVisible?: { earnings: boolean; dividends: boolean; splits: boolean };
   chartType?: string;
 }>()
 
@@ -154,6 +213,23 @@ watch(() => props.intrinsicVisible, (v) => {
   showIntrinsicValue.value = v ?? false
 }, { immediate: true })
 
+// Initialize markers visibility from the incoming prop
+const showMarkers = ref<{ earnings: boolean; dividends: boolean; splits: boolean }>({
+  earnings: props.markersVisible?.earnings ?? true,
+  dividends: props.markersVisible?.dividends ?? true,
+  splits: props.markersVisible?.splits ?? true
+})
+// Keep local ref in sync if parent updates the prop
+watch(() => props.markersVisible, (v) => {
+  if (v) {
+    showMarkers.value = {
+      earnings: v.earnings ?? true,
+      dividends: v.dividends ?? true,
+      splits: v.splits ?? true
+    }
+  }
+}, { immediate: true, deep: true })
+
 // Initialize chart type from props
 const chartType = ref<string>(props.chartType || 'candlestick')
 watch(() => props.chartType, (v) => {
@@ -175,14 +251,35 @@ const chartTypeLabel = computed(() => {
 
 const dropdownOpen = ref<number | null>(null)
 const chartTypeDropdownOpen = ref<boolean>(false)
+const dropdownPosition = ref<{ top: number; left: number }>({ top: 0, left: 0 })
 
-function toggleDropdown(idx: number) {
-  dropdownOpen.value = dropdownOpen.value === idx ? null : idx
+function toggleDropdown(idx: number, event: MouseEvent) {
+  if (dropdownOpen.value === idx) {
+    dropdownOpen.value = null
+  } else {
+    const target = event.currentTarget as HTMLElement
+    const rect = target.getBoundingClientRect()
+    dropdownPosition.value = {
+      top: rect.bottom + window.scrollY,
+      left: rect.left + window.scrollX
+    }
+    dropdownOpen.value = idx
+  }
   chartTypeDropdownOpen.value = false
 }
 
-function toggleChartTypeDropdown() {
-  chartTypeDropdownOpen.value = !chartTypeDropdownOpen.value
+function toggleChartTypeDropdown(event: MouseEvent) {
+  if (chartTypeDropdownOpen.value) {
+    chartTypeDropdownOpen.value = false
+  } else {
+    const target = event.currentTarget as HTMLElement
+    const rect = target.getBoundingClientRect()
+    dropdownPosition.value = {
+      top: rect.bottom + window.scrollY,
+      left: rect.left + window.scrollX
+    }
+    chartTypeDropdownOpen.value = true
+  }
   dropdownOpen.value = null
 }
 
@@ -205,6 +302,11 @@ async function postChartSettings() {
     })),
     intrinsicValue: {
       visible: showIntrinsicValue.value
+    },
+    markers: {
+      earnings: showMarkers.value.earnings,
+      dividends: showMarkers.value.dividends,
+      splits: showMarkers.value.splits
     },
     chartType: chartType.value
   }
@@ -239,319 +341,341 @@ function close() {
 </script>
 
 <style scoped>
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: var(--base2);
+  border-radius: 12px;
+  width: 95%;
+  max-width: 850px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--base3);
+}
+
+.popup-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--base3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.popup-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text1);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: var(--text2);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: var(--base3);
+  color: var(--text1);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.popup-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.popup-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--base3);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
 
 .indicator-row-compact {
   display: flex;
   align-items: center;
   padding: 8px 10px;
   background: var(--base1);
-  border-radius: 7px;
+  border-radius: 6px;
   border: 1px solid var(--base3);
-  transition: box-shadow 0.18s, border-color 0.18s, filter 0.2s, opacity 0.2s;
-  position: relative;
+  transition: all 0.2s;
+  gap: 6px;
 }
+
 .indicator-row-compact:hover {
   border-color: var(--accent1);
 }
 
 .chart-type-row {
+  grid-column: 1 / -1;
   justify-content: space-between;
 }
+
 
 .indicator-module {
   transition: filter 0.2s, opacity 0.2s;
 }
+
 .indicator-module.indicator-hidden {
   opacity: 0.5;
   filter: grayscale(0.7);
 }
+
 .indicator-label {
-  min-width: 110px;
-  font-size: 1.08rem;
-  color: var(--text2);
-  font-weight: 600;
-  padding: 0 18px 0 0;
-  letter-spacing: 0.01em;
-  transition: color 0.2s, text-decoration 0.2s;
+  flex: 1;
+  font-size: 13px;
+  color: var(--text1);
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 .indicator-module.indicator-hidden .indicator-label {
-  color: var(--text2);
   text-decoration: line-through;
+  color: var(--text2);
 }
+
 .indicator-piece {
   display: flex;
   align-items: center;
-  padding: 0 8px;
 }
-.indicator-piece:not(:last-child) {
-  margin-right: 0;
-}
+
 .indicator-visibility {
-  min-width: 32px;
-  padding: 5px 8px;
-  margin-left: 0;
+  padding: 4px;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
+
 .indicator-visibility .checkmark {
   margin-right: 0;
 }
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(24, 25, 38, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  backdrop-filter: blur(2px);
-}
-
-.modal-content {
-  position: relative;
-  background: var(--base2);
-  color: var(--text1);
-  border-radius: 18px;
-  padding: 36px 32px 28px 32px;
-  min-width: 340px;
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--accent4);
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  animation: popup-in 0.18s cubic-bezier(.4,1.4,.6,1) backwards;
-}
-
-@keyframes popup-in {
-  from { transform: translateY(30px) scale(0.98); opacity: 0; }
-  to   { transform: none; opacity: 1; }
-}
-
-.close-x {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  background: none;
-  border: none;
-  color: var(--text2);
-  font-size: 1.7rem;
-  cursor: pointer;
-  transition: color 0.15s;
-  line-height: 1;
-  padding: 0;
-}
-.close-x:hover {
-  color: var(--accent1);
-}
-
-h2 {
-  margin: 0 0 12px 0;
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--accent1);
-  letter-spacing: 0.01em;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.input-row {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-
-
-.indicator-row .indicator-controls {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
 
 .indicator-input {
-  padding: 10px 12px;
-  border-radius: 7px;
-  border: 1.5px solid var(--base3);
-  background: var(--base1);
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--base3);
+  background: var(--base2);
   color: var(--text1);
-  font-size: 1.08rem;
+  font-size: 13px;
   outline: none;
-  transition: border-color 0.18s;
-  width: 90px;
+  transition: border-color 0.2s;
+  width: 55px;
   box-sizing: border-box;
   appearance: textfield;
 }
-/* Remove number input arrows for Chrome, Safari, Edge */
+
 .indicator-input::-webkit-outer-spin-button,
 .indicator-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-/* Remove number input arrows for Firefox */
+
 .indicator-input[type=number] {
   -moz-appearance: textfield;
-    appearance: textfield;
+  appearance: textfield;
 }
 
-.indicator-visibility {
-  margin-left: 6px;
-  min-width: 70px;
-  padding: 5px 10px;
-}
-
-label {
-  font-size: 1rem;
-  color: var(--text2);
-  font-weight: 500;
-  letter-spacing: 0.01em;
-}
-
-input[type="number"] {
-  padding: 10px 12px;
-  border-radius: 7px;
-  border: 1.5px solid var(--base3);
-  background: var(--base1);
-  color: var(--text1);
-  font-size: 1.08rem;
-  outline: none;
-  transition: border-color 0.18s;
-  width: 90px;
-}
-input[type="number"]:focus {
+.indicator-input:focus {
   border-color: var(--accent1);
-  background: var(--base4);
 }
 
 .custom-dropdown {
   position: relative;
-  min-width: 110px;
+  min-width: 70px;
   cursor: pointer;
   user-select: none;
 }
+
 .selected-value {
-  background: var(--base1);
+  background: var(--base2);
   color: var(--text1);
   border-radius: 6px;
-  padding: 6px 12px;
-  border: 1.5px solid var(--base3);
-  font-size: 0.98rem;
+  padding: 6px 8px;
+  border: 1px solid var(--base3);
+  font-size: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: border-color 0.18s;
+  transition: border-color 0.2s;
 }
-.selected-value:focus {
+
+.selected-value:hover {
   border-color: var(--accent1);
 }
+
 .dropdown-arrow {
   display: flex;
   align-items: center;
   margin-left: 6px;
-  transition: transform 0.18s;
+  transition: transform 0.2s;
 }
+
 .dropdown-arrow.open {
   transform: rotate(180deg);
 }
+
 .dropdown-list {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
+  position: fixed;
   background: var(--base2);
-  border: 1.5px solid var(--base3);
-  border-radius: 7px;
-  z-index: 10;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  max-height: 150px;
+  border: 1px solid var(--base3);
+  border-radius: 6px;
+  z-index: 10001;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  max-height: 200px;
   overflow-y: auto;
-  padding: 0;
+  overflow-x: hidden;
+  padding: 4px;
+  white-space: nowrap;
+  width: fit-content;
+  min-width: 120px;
 }
+
 .dropdown-item {
-  padding: 10px 12px;
+  padding: 8px 12px;
   color: var(--text1);
-  text-align: left;
   cursor: pointer;
-  font-size: 0.98rem;
-  border-radius: 7px;
-  transition: background 0.18s, color 0.18s;
-  line-height: 1.2;
+  font-size: 13px;
+  border-radius: 0;
+  transition: background 0.2s;
+  white-space: nowrap;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
+
+.dropdown-item:first-child {
+  border-radius: 4px 4px 0 0;
+}
+
+.dropdown-item:last-child {
+  border-radius: 0 0 4px 4px;
+}
+
+.dropdown-item:first-child:last-child {
+  border-radius: 4px;
+}
+
 .dropdown-item:hover {
-  background: var(--accent1);
-  color: var(--text3);
+  background: var(--base3);
 }
+
 .custom-checkbox {
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 5px;
-  opacity: 0.7;
-  transition: opacity 0.3s;
-  font-size: 1rem;
-  color: var(--text2);
-  font-weight: 500;
-  letter-spacing: 0.01em;
   user-select: none;
 }
+
 .checkmark {
-  width: 16px;
-  height: 16px;
-  background-color: var(--text1);
-  border-radius: 50%;
-  margin-right: 8px;
+  width: 18px;
+  height: 18px;
+  background-color: var(--base2);
+  border-radius: 4px;
   display: inline-block;
-  transition: background-color 0.3s, border-color 0.3s;
-  border: 2px solid var(--accent1);
+  transition: background-color 0.2s, border-color 0.2s;
+  border: 2px solid var(--base3);
   box-sizing: border-box;
+  position: relative;
 }
+
 .custom-checkbox.checked .checkmark {
   background-color: var(--accent1);
   border-color: var(--accent1);
 }
 
-.custom-checkbox:focus {
-  outline: none;
-  box-shadow: none;
+.custom-checkbox.checked .checkmark::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text3);
+  font-size: 12px;
+  font-weight: bold;
 }
 
-.modal-actions {
-  display: flex;
-  gap: 16px;
-  margin-top: 8px;
-  justify-content: flex-end;
+.btn-secondary,
+.btn-primary {
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
 }
 
-.trade-btn {
+.btn-secondary {
+  background: var(--base3);
+  color: var(--text1);
+}
+
+.btn-secondary:hover {
+  background: var(--base4);
+}
+
+.btn-primary {
   background: var(--accent1);
   color: var(--text3);
-  border: none;
-  border-radius: 7px;
-  padding: 10px 24px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.18s;
-}
-.trade-btn:hover {
-  background: var(--accent2);
 }
 
-.cancel-btn {
-  background: transparent;
-  color: var(--text2);
-  border: 1.5px solid var(--base3);
-  border-radius: 7px;
-  padding: 10px 24px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: border-color 0.18s, color 0.18s;
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
-.cancel-btn:hover {
-  border-color: var(--accent1);
-  color: var(--accent1);
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-height: 95vh;
+  }
+  
+  .popup-body {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-type-row {
+    grid-column: 1;
+  }
 }
 
 </style>

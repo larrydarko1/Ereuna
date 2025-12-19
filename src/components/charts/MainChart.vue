@@ -7,6 +7,7 @@
     :user="props.user"
     :indicatorList="indicatorList"
     :intrinsicVisible="intrinsicVisible"
+    :markersVisible="markersVisible"
     :chartType="chartType"
   />
   <AIPopup
@@ -741,7 +742,7 @@ function generateMarkers(): SeriesMarker<Time>[] {
   const markers: SeriesMarker<Time>[] = [];
   
   // Add earnings markers (E badge below bar, green/red based on performance)
-  if (props.assetInfo?.quarterlyFinancials && Array.isArray(props.assetInfo.quarterlyFinancials)) {
+  if (markersVisible.value.earnings && props.assetInfo?.quarterlyFinancials && Array.isArray(props.assetInfo.quarterlyFinancials)) {
     props.assetInfo.quarterlyFinancials.forEach((earning: any, index: number) => {
       try {
         const date = earning.fiscalDateEnding;
@@ -776,7 +777,7 @@ function generateMarkers(): SeriesMarker<Time>[] {
   }
   
   // Add dividends markers (D badge below bar, blue color)
-  if (dividendsData.value && Array.isArray(dividendsData.value)) {
+  if (markersVisible.value.dividends && dividendsData.value && Array.isArray(dividendsData.value)) {
     dividendsData.value.forEach((dividend: DividendData) => {
       try {
         const date = dividend.payment_date;
@@ -803,7 +804,7 @@ function generateMarkers(): SeriesMarker<Time>[] {
   }
   
   // Add splits markers (S badge above bar, orange color)
-  if (splitsData.value && Array.isArray(splitsData.value)) {
+  if (markersVisible.value.splits && splitsData.value && Array.isArray(splitsData.value)) {
     splitsData.value.forEach((split: SplitData) => {
       try {
         const date = split.effective_date;
@@ -1897,6 +1898,11 @@ const simplePriceDisplay = computed<SimplePriceDisplay | null>(() => {
 const hiddenList = ref<string[]>([]); // stores hidden tickers for user (for hidden badge in chart)
 const indicatorList = ref<Indicator[]>([]); // stores in indicators settings for each user
 const intrinsicVisible = ref<boolean>(false);
+const markersVisible = ref<{ earnings: boolean; dividends: boolean; splits: boolean }>({
+  earnings: true,
+  dividends: true,
+  splits: true
+});
 const marketStatus = ref<'open' | 'closed' | 'holiday'>('closed');
 const currentHolidayName = ref<string>('');
 const holidays = ref<Array<{date: string, name: string}>>([]);
@@ -1939,6 +1945,15 @@ watch(() => props.assetInfo?.Name, () => {
   }
 });
 
+// Watch for marker visibility changes to update markers
+watch(markersVisible, () => {
+  if (mainSeries) {
+    nextTick(() => {
+      updateChartMarkers();
+    });
+  }
+}, { deep: true });
+
 async function fetchHiddenList() {
   try {
     const response = await fetch(`/api/${props.user}/hidden`, {
@@ -1968,6 +1983,14 @@ async function fetchIndicatorList() {
     timeframe: typeof ind.timeframe === 'string' ? Number(ind.timeframe) : ind.timeframe
   })) as Indicator[];
   intrinsicVisible.value = !!payload.intrinsicValueVisible;
+  // Set markers visibility from user settings
+  if (payload.markers && typeof payload.markers === 'object') {
+    markersVisible.value = {
+      earnings: payload.markers.earnings !== false,
+      dividends: payload.markers.dividends !== false,
+      splits: payload.markers.splits !== false
+    };
+  }
   // Set chart type from user settings
   if (payload.chartType) {
     chartType.value = payload.chartType;

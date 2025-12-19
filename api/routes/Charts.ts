@@ -557,7 +557,7 @@ export default function (app: any, deps: any) {
         if (!user) {
             return res.status(400).json({ message: 'Missing user query parameter' });
         }
-        const { indicators, intrinsicValue, chartType } = req.body;
+        const { indicators, intrinsicValue, markers, chartType } = req.body;
         if (!Array.isArray(indicators) || typeof intrinsicValue !== 'object') {
             return res.status(400).json({ message: 'Invalid payload' });
         }
@@ -570,7 +570,7 @@ export default function (app: any, deps: any) {
                 return res.status(404).json({ message: 'User not found' });
             }
             // Prepare the new ChartSettings array (replace or upsert)
-            const newSettings = { indicators, intrinsicValue, chartType: chartType || 'candlestick' };
+            const newSettings = { indicators, intrinsicValue, markers: markers || { earnings: true, dividends: true, splits: true }, chartType: chartType || 'candlestick' };
             // If ChartSettings exists, replace it; otherwise, create it
             await usersCollection.updateOne(
                 { Username: user },
@@ -615,12 +615,13 @@ export default function (app: any, deps: any) {
             const userDoc = await usersCollection.findOne({ Username: user });
             // If no ChartSettings exist for user, return defaults
             if (!userDoc || !userDoc.ChartSettings) {
-                return res.status(200).json({ indicators: [], intrinsicValueVisible: false, chartType: 'candlestick' });
+                return res.status(200).json({ indicators: [], intrinsicValueVisible: false, markers: { earnings: true, dividends: true, splits: true }, chartType: 'candlestick' });
             }
             const indicators = userDoc.ChartSettings.indicators || [];
             const intrinsicValueVisible = !!(userDoc.ChartSettings.intrinsicValue && userDoc.ChartSettings.intrinsicValue.visible);
+            const markers = userDoc.ChartSettings.markers || { earnings: true, dividends: true, splits: true };
             const chartType = userDoc.ChartSettings.chartType || 'candlestick';
-            return res.status(200).json({ indicators, intrinsicValueVisible, chartType });
+            return res.status(200).json({ indicators, intrinsicValueVisible, markers, chartType });
         } catch (error: any) {
             logger.error({
                 msg: 'Error retrieving chart indicators',
