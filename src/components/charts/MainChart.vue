@@ -28,6 +28,12 @@
     @export="handleExportScreenshot"
     :chartInfo="screenshotChartInfo"
   />
+  <PatternsPopup
+    v-if="showPatternsPopup"
+    @close="showPatternsPopup = false"
+    :patterns="detectedPatterns"
+    :Symbol="assetInfo?.Symbol || ''"
+  />
   <div 
     v-if="showMarkerPopup && markerPopupData" 
     class="marker-popup" 
@@ -230,6 +236,16 @@
                                           </g>
                                         </svg>
                                       </button>
+                                        <button 
+                                        class="tool-btn" 
+                                        :class="{ 'active': isPatternRecognitionActive }" 
+                                        @click="detectAndShowPatterns" 
+                                        title="Pattern Recognition"
+                                      >
+                                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                                        </svg>
+                                      </button>
                                             <button class="tool-btn" @click="takeScreenshot" title="Take Screenshot (Download PNG)">
                                         <svg class="tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                           <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
@@ -254,7 +270,115 @@
                                         </svg>
                                       </button>
                                     </div>
+                                    
+                                    <!-- Replay Section -->
+                                    <div class="toolbar-section">
+                                      <span class="toolbar-label">Replay</span>
+                                      <div class="toolbar-buttons">
+                                        <button 
+                                          v-if="!isReplayMode"
+                                          class="tool-btn" 
+                                          @click="openReplayPicker" 
+                                          :title="t('mainChart.startReplay')"
+                                          :disabled="isLoadingReplayData"
+                                        >
+                                          <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="23 4 23 10 17 10"></polyline>
+                                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                          </svg>
+                                        </button>
+                                        <button 
+                                          v-if="isReplayMode"
+                                          class="tool-btn active" 
+                                          @click="exitReplay" 
+                                          :title="t('mainChart.exitReplay')"
+                                        >
+                                          <svg class="tool-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                          </svg>
+                                        </button>
+                                      </div>
+                                    </div>
                                   </div>
+                                </div>
+                                
+                                <!-- Replay Date Picker Popup -->
+                                <div v-if="showReplayDatePicker" class="replay-date-picker-overlay" @click="showReplayDatePicker = false">
+                                  <div class="replay-date-picker-popup" @click.stop>
+                                    <div class="replay-date-picker-header">
+                                      <h3>{{ t('mainChart.selectReplayStartDate') }}</h3>
+                                      <button class="replay-date-picker-close" @click="showReplayDatePicker = false">×</button>
+                                    </div>
+                                    <div class="replay-date-picker-content">
+                                      <input 
+                                        type="date" 
+                                        v-model="replayStartDate"
+                                        :min="minReplayDate"
+                                        :max="maxReplayDate"
+                                        class="replay-date-input"
+                                      />
+                                      <div class="replay-date-presets">
+                                        <button @click="setReplayPreset(7)" class="replay-preset-btn">1 Week Ago</button>
+                                        <button @click="setReplayPreset(30)" class="replay-preset-btn">1 Month Ago</button>
+                                        <button @click="setReplayPreset(90)" class="replay-preset-btn">3 Months Ago</button>
+                                        <button @click="setReplayPreset(180)" class="replay-preset-btn">6 Months Ago</button>
+                                        <button @click="setReplayPreset(365)" class="replay-preset-btn">1 Year Ago</button>
+                                      </div>
+                                      <button @click="startReplayFromDate" class="replay-start-confirm-btn">Start Replay</button>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <!-- Compact Replay Controls -->
+                                <div v-if="isReplayMode" class="replay-controls-compact">
+                                  <div class="replay-controls-left">
+                                    <button class="replay-btn-compact" @click="replayStepBackward" :title="t('mainChart.stepBackward')">
+                                      <svg class="replay-icon-compact" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                                        <line x1="5" y1="19" x2="5" y2="5"></line>
+                                      </svg>
+                                    </button>
+                                    
+                                    <button class="replay-btn-compact replay-play-btn-compact" @click="toggleReplayPlayPause" :title="isReplayPlaying ? t('mainChart.pause') : t('mainChart.play')">
+                                      <svg v-if="!isReplayPlaying" class="replay-icon-compact" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                      </svg>
+                                      <svg v-else class="replay-icon-compact" viewBox="0 0 24 24" fill="currentColor">
+                                        <rect x="6" y="4" width="4" height="16"></rect>
+                                        <rect x="14" y="4" width="4" height="16"></rect>
+                                      </svg>
+                                    </button>
+                                    
+                                    <button class="replay-btn-compact" @click="replayStepForward" :title="t('mainChart.stepForward')">
+                                      <svg class="replay-icon-compact" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                                        <line x1="19" y1="5" x2="19" y2="19"></line>
+                                      </svg>
+                                    </button>
+                                    
+                                    <select class="replay-speed-compact" v-model="replaySpeed" @change="handleReplaySpeedChange" :title="t('mainChart.speed')">
+                                      <option :value="0.5">0.5x</option>
+                                      <option :value="1">1x</option>
+                                      <option :value="2">2x</option>
+                                      <option :value="5">5x</option>
+                                      <option :value="10">10x</option>
+                                    </select>
+                                  </div>
+                                  
+                                  <div class="replay-progress-wrapper">
+                                    <input 
+                                      type="range" 
+                                      class="replay-progress-compact"
+                                      :min="0" 
+                                      :max="100" 
+                                      step="0.1"
+                                      :value="replayProgress"
+                                      @input="handleReplayProgressChange"
+                                    />
+                                  </div>
+                                  
+                                  <span class="replay-date-compact">{{ replayDate }}</span>
                                 </div>
   </div>
 </template>
@@ -283,10 +407,14 @@ import { TextAnnotationManager } from '@/lib/lightweight-charts/text-annotation'
 import { FreehandManager } from '@/lib/lightweight-charts/freehand';
 import { ChartScreenshot, type ChartInfo } from '@/lib/lightweight-charts/screenshot';
 import { DrawingPersistence } from '@/lib/lightweight-charts/drawing-persistence';
+import { ReplayManager } from '@/lib/lightweight-charts/replay-manager';
+import { detectAllPatterns, type PatternMatch } from '@/lib/lightweight-charts/pattern-detection';
+import { PatternOverlayManager } from '@/lib/lightweight-charts/pattern-overlay';
 import EditChart from '@/components/charts/EditChart.vue';
 import AIPopup from '@/components/charts/AIPopup.vue';
 import SignalsPopup from '@/components/charts/SignalsPopup.vue';
 import ScreenshotPopup from '@/components/charts/ScreenshotPopup.vue';
+import PatternsPopup from '@/components/charts/PatternsPopup.vue';
 
 // --- Chart Data Interfaces ---
 interface OHLCData {
@@ -346,6 +474,7 @@ const showEditChart = ref(false);
 const showAIPopup = ref(false);
 const showSignalsPopup = ref(false);
 const showScreenshotPopup = ref(false);
+const showPatternsPopup = ref(false);
 const screenshotChartInfo = ref<ChartInfo>({} as ChartInfo);
 const showMarkerPopup = ref(false);
 const markerPopupData = ref<{ title: string; data: Record<string, any> } | null>(null);
@@ -355,6 +484,48 @@ let isLoadingMore: boolean = false;
 let allDataLoaded: boolean = false;
 const hasAnyDrawings = ref(false);
 
+// Replay feature state
+const replayManager = ref<ReplayManager | null>(null);
+const isReplayMode = ref(false);
+const isReplayPlaying = ref(false);
+const replayProgress = ref(0);
+const replayDate = ref<string>('');
+const replaySpeed = ref(1);
+const isLoadingReplayData = ref(false);
+const replayDataLoaded = ref(false);
+const fullHistoricalData = ref<OHLCData[]>([]);
+const fullVolumeData = ref<VolumeData[]>([]);
+const fullMA1Data = ref<MAData[]>([]);
+const fullMA2Data = ref<MAData[]>([]);
+const fullMA3Data = ref<MAData[]>([]);
+const fullMA4Data = ref<MAData[]>([]);
+const showReplayDatePicker = ref(false);
+const replayStartDate = ref<string>('');
+
+// Backup of normal data when entering replay mode
+const normalData = ref<OHLCData[]>([]);
+const normalVolumeData = ref<VolumeData[]>([]);
+const normalMA1Data = ref<MAData[]>([]);
+const normalMA2Data = ref<MAData[]>([]);
+const normalMA3Data = ref<MAData[]>([]);
+const normalMA4Data = ref<MAData[]>([]);
+
+// Computed properties for min/max replay dates
+const minReplayDate = computed(() => {
+  if (fullHistoricalData.value.length === 0) return '';
+  const firstBar = fullHistoricalData.value[0];
+  const timestamp = typeof firstBar.time === 'number' ? firstBar.time : 
+                    typeof firstBar.time === 'string' ? Math.floor(new Date(firstBar.time).getTime() / 1000) : 0;
+  return new Date(timestamp * 1000).toISOString().split('T')[0];
+});
+
+const maxReplayDate = computed(() => {
+  if (fullHistoricalData.value.length === 0) return '';
+  const lastBar = fullHistoricalData.value[fullHistoricalData.value.length - 1];
+  const timestamp = typeof lastBar.time === 'number' ? lastBar.time : 
+                    typeof lastBar.time === 'string' ? Math.floor(new Date(lastBar.time).getTime() / 1000) : 0;
+  return new Date(timestamp * 1000).toISOString().split('T')[0];
+});
 
 interface NextEarnings {
   reportDate: string;
@@ -467,6 +638,111 @@ const data3 = ref<MAData[]>([]);
 const data4 = ref<MAData[]>([]);
 const data5 = ref<MAData[]>([]);
 const data6 = ref<MAData[]>([]);
+
+// Computed property for data displayed on chart (respects replay mode)
+const visibleOHLCData = computed<OHLCData[]>(() => {
+  if (!isReplayMode.value || !replayManager.value) {
+    return data.value;
+  }
+  const state = replayManager.value.getState();
+  return fullHistoricalData.value.slice(0, state.currentIndex + 1);
+});
+
+const visibleVolumeData = computed<VolumeData[]>(() => {
+  if (!isReplayMode.value || !replayManager.value) {
+    return data2.value;
+  }
+  const state = replayManager.value.getState();
+  return fullVolumeData.value.slice(0, state.currentIndex + 1);
+});
+
+const visibleMA1Data = computed<MAData[]>(() => {
+  if (!isReplayMode.value || !replayManager.value) {
+    return data3.value;
+  }
+  const state = replayManager.value.getState();
+  const visibleData = fullHistoricalData.value.slice(0, state.currentIndex + 1);
+  
+  // Get the time of the last visible bar
+  if (visibleData.length === 0) return [];
+  const lastVisibleTime = visibleData[visibleData.length - 1].time;
+  
+  // Filter MA data to only include points up to the last visible time
+  return fullMA1Data.value.filter(ma => {
+    // Handle different time formats
+    const maTime = typeof ma.time === 'number' ? ma.time :
+                   typeof ma.time === 'string' ? ma.time : 
+                   (ma.time as any).timestamp || ma.time;
+    const visTime = typeof lastVisibleTime === 'number' ? lastVisibleTime :
+                    typeof lastVisibleTime === 'string' ? lastVisibleTime :
+                    (lastVisibleTime as any).timestamp || lastVisibleTime;
+    return maTime <= visTime;
+  });
+});
+
+const visibleMA2Data = computed<MAData[]>(() => {
+  if (!isReplayMode.value || !replayManager.value) {
+    return data4.value;
+  }
+  const state = replayManager.value.getState();
+  const visibleData = fullHistoricalData.value.slice(0, state.currentIndex + 1);
+  
+  if (visibleData.length === 0) return [];
+  const lastVisibleTime = visibleData[visibleData.length - 1].time;
+  
+  return fullMA2Data.value.filter(ma => {
+    const maTime = typeof ma.time === 'number' ? ma.time :
+                   typeof ma.time === 'string' ? ma.time : 
+                   (ma.time as any).timestamp || ma.time;
+    const visTime = typeof lastVisibleTime === 'number' ? lastVisibleTime :
+                    typeof lastVisibleTime === 'string' ? lastVisibleTime :
+                    (lastVisibleTime as any).timestamp || lastVisibleTime;
+    return maTime <= visTime;
+  });
+});
+
+const visibleMA3Data = computed<MAData[]>(() => {
+  if (!isReplayMode.value || !replayManager.value) {
+    return data5.value;
+  }
+  const state = replayManager.value.getState();
+  const visibleData = fullHistoricalData.value.slice(0, state.currentIndex + 1);
+  
+  if (visibleData.length === 0) return [];
+  const lastVisibleTime = visibleData[visibleData.length - 1].time;
+  
+  return fullMA3Data.value.filter(ma => {
+    const maTime = typeof ma.time === 'number' ? ma.time :
+                   typeof ma.time === 'string' ? ma.time : 
+                   (ma.time as any).timestamp || ma.time;
+    const visTime = typeof lastVisibleTime === 'number' ? lastVisibleTime :
+                    typeof lastVisibleTime === 'string' ? lastVisibleTime :
+                    (lastVisibleTime as any).timestamp || lastVisibleTime;
+    return maTime <= visTime;
+  });
+});
+
+const visibleMA4Data = computed<MAData[]>(() => {
+  if (!isReplayMode.value || !replayManager.value) {
+    return data6.value;
+  }
+  const state = replayManager.value.getState();
+  const visibleData = fullHistoricalData.value.slice(0, state.currentIndex + 1);
+  
+  if (visibleData.length === 0) return [];
+  const lastVisibleTime = visibleData[visibleData.length - 1].time;
+  
+  return fullMA4Data.value.filter(ma => {
+    const maTime = typeof ma.time === 'number' ? ma.time :
+                   typeof ma.time === 'string' ? ma.time : 
+                   (ma.time as any).timestamp || ma.time;
+    const visTime = typeof lastVisibleTime === 'number' ? lastVisibleTime :
+                    typeof lastVisibleTime === 'string' ? lastVisibleTime :
+                    (lastVisibleTime as any).timestamp || lastVisibleTime;
+    return maTime <= visTime;
+  });
+});
+
 const IntrinsicValue = ref<number | null>(null);
 const displayData = ref<OHLCData[]>([]);
 
@@ -491,7 +767,6 @@ async function fetchDividendsData(symbol: string): Promise<void> {
     const dividends = await response.json();
     dividendsData.value = Array.isArray(dividends) ? dividends : [];
   } catch (error) {
-    console.error('Error fetching dividends data:', error);
     dividendsData.value = [];
   }
 }
@@ -513,7 +788,6 @@ async function fetchSplitsData(symbol: string): Promise<void> {
     const splits = await response.json();
     splitsData.value = Array.isArray(splits) ? splits : [];
   } catch (error) {
-    console.error('Error fetching splits data:', error);
     splitsData.value = [];
   }
 }
@@ -702,6 +976,140 @@ function toggleFreehand(): void {
   }
 }
 
+function togglePatternRecognition(): void {
+  if (!chart || !mainSeries) return;
+  
+  if (isPatternRecognitionActive.value) {
+    // Deactivate: clear patterns
+    if (patternOverlayManager) {
+      patternOverlayManager.clearPatterns();
+    }
+    isPatternRecognitionActive.value = false;
+    detectedPatterns.value = [];
+  } else {
+    // Activate: detect and display patterns
+    isPatternRecognitionActive.value = true;
+    
+    // Get current chart data (use visible data in replay mode)
+    const chartData = isReplayMode.value ? visibleOHLCData.value : data.value;
+    
+    if (chartData.length < 20) {
+      isPatternRecognitionActive.value = false;
+      return;
+    }
+    
+    // Convert chart data to detection format
+    const detectionData = chartData.map(bar => ({
+      time: typeof bar.time === 'string' 
+        ? new Date(bar.time).getTime() / 1000 
+        : typeof bar.time === 'object' && 'year' in bar.time
+          ? new Date(bar.time.year, bar.time.month - 1, bar.time.day).getTime() / 1000
+          : bar.time as number,
+      open: bar.open,
+      high: bar.high,
+      low: bar.low,
+      close: bar.close
+    }));
+    
+    // Detect patterns
+    const patterns = detectAllPatterns(detectionData, {
+      minBarsForPivot: 5,
+      tolerance: 0.025,
+      enabledPatterns: [
+        'doubleTop',
+        'doubleBottom',
+        'headAndShoulders',
+        'inverseHeadAndShoulders',
+        'ascendingTriangle',
+        'descendingTriangle',
+        'symmetricTriangle',
+        'bullishFlag',
+        'bearishFlag'
+      ]
+    });
+    
+    detectedPatterns.value = patterns;
+    
+    // Display patterns on chart
+    if (!patternOverlayManager) {
+      patternOverlayManager = new PatternOverlayManager(chart, mainSeries);
+    }
+    
+    patternOverlayManager.displayPatterns(patterns);
+    patternOverlayManager.finalize();
+    
+    // Show popup if patterns were found
+    if (patterns.length > 0) {
+      showPatternsPopup.value = true;
+    }
+  }
+}
+
+function detectAndShowPatterns(): void {
+  if (!chart || !mainSeries) return;
+  
+  // Get current chart data (use visible data in replay mode)
+  const chartData = isReplayMode.value ? visibleOHLCData.value : data.value;
+  
+  if (chartData.length < 20) {
+    return;
+  }
+  
+  // Convert chart data to detection format
+  const detectionData = chartData.map(bar => ({
+    time: typeof bar.time === 'string' 
+      ? new Date(bar.time).getTime() / 1000 
+      : typeof bar.time === 'object' && 'year' in bar.time
+        ? new Date(bar.time.year, bar.time.month - 1, bar.time.day).getTime() / 1000
+        : bar.time as number,
+    open: bar.open,
+    high: bar.high,
+    low: bar.low,
+    close: bar.close
+  }));
+  
+  // Detect patterns
+  const patterns = detectAllPatterns(detectionData, {
+    minBarsForPivot: 5,
+    tolerance: 0.025,
+    enabledPatterns: [
+      'doubleTop',
+      'doubleBottom',
+      'headAndShoulders',
+      'inverseHeadAndShoulders',
+      'ascendingTriangle',
+      'descendingTriangle',
+      'symmetricTriangle',
+      'bullishFlag',
+      'bearishFlag'
+    ]
+  });
+  
+  detectedPatterns.value = patterns;
+  
+  // Toggle visual overlays on chart
+  if (isPatternRecognitionActive.value) {
+    // Turn off overlays
+    if (patternOverlayManager) {
+      patternOverlayManager.clearPatterns();
+    }
+    isPatternRecognitionActive.value = false;
+  } else {
+    // Turn on overlays
+    isPatternRecognitionActive.value = true;
+    
+    if (!patternOverlayManager) {
+      patternOverlayManager = new PatternOverlayManager(chart, mainSeries);
+    }
+    
+    patternOverlayManager.displayPatterns(patterns);
+    patternOverlayManager.finalize();
+  }
+  
+  // Always show popup
+  showPatternsPopup.value = true;
+}
+
 function takeScreenshot(): void {
   screenshotChartInfo.value = {
     symbol: props.assetInfo?.Symbol || '',
@@ -733,8 +1141,239 @@ async function clearAllDrawings(): Promise<void> {
   
   if (confirm(t('mainChart.clearDrawingsConfirm'))) {
     await drawingPersistence.clearDrawings();
+    
+    // Also clear pattern recognition if active
+    if (isPatternRecognitionActive.value && patternOverlayManager) {
+      patternOverlayManager.clearPatterns();
+      isPatternRecognitionActive.value = false;
+      detectedPatterns.value = [];
+    }
+    
     hasAnyDrawings.value = false;
   }
+}
+
+// Replay control functions
+function startReplay(): void {
+  if (fullHistoricalData.value.length === 0) return;
+  
+  // Close websocket when starting replay
+  closeChartWS();
+  
+  // Initialize replay manager if needed
+  if (!replayManager.value) {
+    replayManager.value = new ReplayManager(fullHistoricalData.value);
+  }
+  
+  // Subscribe to replay updates
+  replayManager.value.onChange((index: number, dateString: string) => {
+    replayProgress.value = replayManager.value?.getProgress() || 0;
+    replayDate.value = dateString;
+    isReplayPlaying.value = replayManager.value?.getState().isPlaying || false;
+  });
+  
+  // Start replay from 50% back in history by default
+  const startIndex = Math.floor(fullHistoricalData.value.length * 0.5);
+  replayManager.value.startReplay(startIndex);
+  isReplayMode.value = true;
+  replayProgress.value = replayManager.value.getProgress();
+  replayDate.value = replayManager.value.getCurrentDateString();
+}
+
+// Fetch ALL historical data for replay mode
+async function fetchReplayData(): Promise<void> {
+  const symbol = props.selectedSymbol || props.defaultSymbol;
+  if (!symbol) return;
+  
+  const timeframe = selectedDataType.value || 'daily';
+  const user = encodeURIComponent(props.user);
+  const url = `/api/${symbol}/chartdata?timeframe=${timeframe}&user=${user}&replay=true`;
+  
+  isLoadingReplayData.value = true;
+  
+  try {
+    const response = await fetch(url, { headers: { 'X-API-KEY': props.apiKey } });
+    
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    
+    const result = await response.json();
+    
+    const transform = isIntraday(timeframe)
+      ? (arr: any[]) => (arr || [])
+          .map((item: any) => ({ ...item, time: Math.floor(new Date(item.time).getTime() / 1000) }))
+          .sort((a: any, b: any) => a.time - b.time)
+          .filter((item: any, idx: number, arr: any[]) => idx === 0 || item.time !== arr[idx - 1].time)
+      : (arr: any[]) => (arr || [])
+          .sort((a: any, b: any) => (a.time > b.time ? 1 : a.time < b.time ? -1 : 0))
+          .filter((item: any, idx: number, arr: any[]) => idx === 0 || item.time !== arr[idx - 1].time);
+    
+    fullHistoricalData.value = transform(result.ohlc) as OHLCData[];
+    fullVolumeData.value = transform(result.volume) as VolumeData[];
+    fullMA1Data.value = transform(result.MA1) as MAData[];
+    fullMA2Data.value = transform(result.MA2) as MAData[];
+    fullMA3Data.value = transform(result.MA3) as MAData[];
+    fullMA4Data.value = transform(result.MA4) as MAData[];
+    
+    replayDataLoaded.value = true;
+    
+    if (fullHistoricalData.value.length > 0) {
+      const first = fullHistoricalData.value[0].time;
+      const last = fullHistoricalData.value[fullHistoricalData.value.length - 1].time;
+      const firstDate = typeof first === 'number' ? new Date(first * 1000) : new Date(first as string);
+      const lastDate = typeof last === 'number' ? new Date(last * 1000) : new Date(last as string);
+    }
+  } catch (error) {
+    replayDataLoaded.value = false;
+  } finally {
+    isLoadingReplayData.value = false;
+  }
+}
+
+// Open replay picker
+async function openReplayPicker(): Promise<void> {
+  await fetchReplayData();
+  if (replayDataLoaded.value && fullHistoricalData.value.length > 0) {
+    showReplayDatePicker.value = true;
+  }
+}
+
+function startReplayFromDate(): void {
+  if (fullHistoricalData.value.length === 0 || !replayStartDate.value) return;
+  
+  // Close websocket
+  closeChartWS();
+  
+  // Backup current data
+  normalData.value = [...data.value];
+  normalVolumeData.value = [...data2.value];
+  normalMA1Data.value = [...data3.value];
+  normalMA2Data.value = [...data4.value];
+  normalMA3Data.value = [...data5.value];
+  normalMA4Data.value = [...data6.value];
+  
+  // Hide drawings
+  const chartContainer = document.querySelector('#wk-chart');
+  if (chartContainer) {
+    const canvases = chartContainer.querySelectorAll('canvas');
+    canvases.forEach((canvas: Element) => {
+      const c = canvas as HTMLCanvasElement;
+      if (c.style.position === 'absolute' && c.style.zIndex && parseInt(c.style.zIndex) > 1) {
+        c.style.display = 'none';
+      }
+    });
+  }
+  
+  // Initialize replay manager
+  if (!replayManager.value) {
+    replayManager.value = new ReplayManager(fullHistoricalData.value);
+  } else {
+    replayManager.value.setFullData(fullHistoricalData.value);
+  }
+  
+  replayManager.value.onChange((index: number, dateString: string) => {
+    replayProgress.value = replayManager.value?.getProgress() || 0;
+    replayDate.value = dateString;
+    isReplayPlaying.value = replayManager.value?.getState().isPlaying || false;
+    
+    // Swap dataset to replay data sliced at current index
+    const currentIndex = replayManager.value?.getState().currentIndex || 0;
+    data.value = fullHistoricalData.value.slice(0, currentIndex + 1);
+    data2.value = fullVolumeData.value.slice(0, currentIndex + 1);
+    data3.value = fullMA1Data.value.slice(0, currentIndex + 1);
+    data4.value = fullMA2Data.value.slice(0, currentIndex + 1);
+    data5.value = fullMA3Data.value.slice(0, currentIndex + 1);
+    data6.value = fullMA4Data.value.slice(0, currentIndex + 1);
+  });
+  
+  // Start from selected date
+  const selectedDate = new Date(replayStartDate.value);
+  replayManager.value.startReplayFromDate(selectedDate);
+  
+  // Initial data swap
+  const currentIndex = replayManager.value.getState().currentIndex;
+  data.value = fullHistoricalData.value.slice(0, currentIndex + 1);
+  data2.value = fullVolumeData.value.slice(0, currentIndex + 1);
+  data3.value = fullMA1Data.value.slice(0, currentIndex + 1);
+  data4.value = fullMA2Data.value.slice(0, currentIndex + 1);
+  data5.value = fullMA3Data.value.slice(0, currentIndex + 1);
+  data6.value = fullMA4Data.value.slice(0, currentIndex + 1);
+  
+  isReplayMode.value = true;
+  replayProgress.value = replayManager.value.getProgress();
+  replayDate.value = replayManager.value.getCurrentDateString();
+  showReplayDatePicker.value = false;
+}
+
+function setReplayPreset(daysAgo: number): void {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  replayStartDate.value = date.toISOString().split('T')[0];
+}
+
+function exitReplay(): void {
+  if (replayManager.value) {
+    replayManager.value.exitReplay();
+  }
+  
+  // Restore backed up data
+  if (normalData.value.length > 0) {
+    data.value = [...normalData.value];
+    data2.value = [...normalVolumeData.value];
+    data3.value = [...normalMA1Data.value];
+    data4.value = [...normalMA2Data.value];
+    data5.value = [...normalMA3Data.value];
+    data6.value = [...normalMA4Data.value];
+  }
+  
+  // Show drawings
+  const chartContainer = document.querySelector('#wk-chart');
+  if (chartContainer) {
+    const canvases = chartContainer.querySelectorAll('canvas');
+    canvases.forEach((canvas: Element) => {
+      const c = canvas as HTMLCanvasElement;
+      if (c.style.position === 'absolute' && c.style.zIndex && parseInt(c.style.zIndex) > 1) {
+        c.style.display = '';
+      }
+    });
+  }
+  
+  isReplayMode.value = false;
+  isReplayPlaying.value = false;
+  replayProgress.value = 0;
+  replayDate.value = '';
+  
+  // Reconnect websocket
+  if (props.selectedSymbol || props.defaultSymbol) {
+    fetchChartData();
+  }
+}
+
+function toggleReplayPlayPause(): void {
+  if (!replayManager.value) return;
+  replayManager.value.togglePlayPause();
+  isReplayPlaying.value = replayManager.value.getState().isPlaying;
+}
+
+function replayStepForward(): void {
+  if (!replayManager.value) return;
+  replayManager.value.stepForward();
+}
+
+function replayStepBackward(): void {
+  if (!replayManager.value) return;
+  replayManager.value.stepBackward();
+}
+
+function handleReplaySpeedChange(): void {
+  if (!replayManager.value) return;
+  replayManager.value.setSpeed(replaySpeed.value);
+}
+
+function handleReplayProgressChange(event: Event): void {
+  if (!replayManager.value) return;
+  const target = event.target as HTMLInputElement;
+  const progress = parseFloat(target.value);
+  replayManager.value.seekByProgress(progress);
 }
 
 // Generate chart markers from earnings, dividends, and splits data
@@ -883,6 +1522,20 @@ async function fetchChartData(symbolParam?: string, timeframeParam?: string): Pr
     data5.value = transform(result.MA3) as MAData[];
     data6.value = transform(result.MA4) as MAData[];
     IntrinsicValue.value = result.intrinsicValue ?? null;
+    
+    // Store full historical data for replay (only copy, don't interfere with original data)
+    fullHistoricalData.value = [...(transform(result.ohlc) as OHLCData[])];
+    fullVolumeData.value = [...(transform(result.volume) as VolumeData[])];
+    fullMA1Data.value = [...(transform(result.MA1) as MAData[])];
+    fullMA2Data.value = [...(transform(result.MA2) as MAData[])];
+    fullMA3Data.value = [...(transform(result.MA3) as MAData[])];
+    fullMA4Data.value = [...(transform(result.MA4) as MAData[])];
+    
+    // Update replay manager if in replay mode
+    if (replayManager.value) {
+      replayManager.value.setFullData(fullHistoricalData.value);
+    }
+    
     isChartLoading1.value = false;
   }
   try {
@@ -988,6 +1641,9 @@ const isFreehandActive = ref(false);
 let screenshotManager: ChartScreenshot | null = null;
 let drawingPersistence: DrawingPersistence | null = null;
 let volumeSeries: any = null; // Volume histogram series for markers
+let patternOverlayManager: PatternOverlayManager | null = null;
+const isPatternRecognitionActive = ref(false);
+const detectedPatterns = ref<PatternMatch[]>([]);
 
 // Responsive resize: adjust chart width/height when container or window resizes
 function updateChartSize(): void {
@@ -1369,6 +2025,9 @@ onMounted(async () => {
   }, { deep: true });
 
   watch(data, (newData: OHLCData[]) => {
+    // Skip update if in replay mode - use visibleOHLCData watcher instead
+    if (isReplayMode.value) return;
+    
     if (!mainSeries) return;
     
     // For line, area, and baseline charts, transform OHLC to value-based data
@@ -1391,6 +2050,33 @@ onMounted(async () => {
     }
     
     // Update markers when data changes
+    nextTick(() => {
+      updateChartMarkers();
+    });
+  });
+  
+  // Watch visible OHLC data for replay mode
+  watch(visibleOHLCData, (newData: OHLCData[]) => {
+    if (!mainSeries || !isReplayMode.value) return;
+    
+    // For line, area, and baseline charts, transform OHLC to value-based data
+    if (chartType.value === 'line' || chartType.value === 'area' || chartType.value === 'baseline') {
+      const transformedData = newData.map((d: OHLCData) => ({
+        time: d.time,
+        value: d.close
+      }));
+      mainSeries.setData(transformedData);
+      displayData.value = newData;
+    } else if (chartType.value === 'heikinashi') {
+      const heikinAshiData = calculateHeikinAshi(newData);
+      mainSeries.setData(heikinAshiData);
+      displayData.value = heikinAshiData;
+    } else {
+      mainSeries.setData(newData);
+      displayData.value = newData;
+    }
+    
+    // Update markers when replay data changes
     nextTick(() => {
       updateChartMarkers();
     });
@@ -1445,24 +2131,8 @@ onMounted(async () => {
     }
   });
 
-  watch(data2, (newData2: VolumeData[]) => {
-  volumeSeries.setData(newData2);
-  });
-
-  watch(data3, (newData3: MAData[] | null) => {
-  MaSeries1.setData(newData3 ?? []);
-  });
-  watch(data4, (newData4: MAData[] | null) => {
-  MaSeries2.setData(newData4 ?? []);
-  });
-  watch(data5, (newData5: MAData[] | null) => {
-  MaSeries3.setData(newData5 ?? []);
-  });
-  watch(data6, (newData6: MAData[] | null) => {
-  MaSeries4.setData(newData6 ?? []);
-  });
-
-  watch(data2, (newData2: VolumeData[]) => {
+  // Watch visible volume data (respects replay mode)
+  watch(visibleVolumeData, (newData2: VolumeData[]) => {
     const relativeVolumeData: VolumeData[] = newData2.map((dataPoint: VolumeData, index: number) => {
       const averageVolume = calculateAverageVolume(newData2, index);
       const relativeVolume = dataPoint.value / averageVolume;
@@ -1474,6 +2144,20 @@ onMounted(async () => {
       };
     });
     volumeSeries.setData(relativeVolumeData);
+  });
+
+  // Watch visible MA data (respects replay mode)
+  watch(visibleMA1Data, (newData3: MAData[]) => {
+    MaSeries1.setData(newData3);
+  });
+  watch(visibleMA2Data, (newData4: MAData[]) => {
+    MaSeries2.setData(newData4);
+  });
+  watch(visibleMA3Data, (newData5: MAData[]) => {
+    MaSeries3.setData(newData5);
+  });
+  watch(visibleMA4Data, (newData6: MAData[]) => {
+    MaSeries4.setData(newData6);
   });
 
   function calculateAverageVolume(data: VolumeData[], index: number): number {
@@ -1657,7 +2341,7 @@ watch(
   const autoSaveInterval = setInterval(() => {
     if (drawingPersistence) {
       const hasDrawings = drawingPersistence.hasDrawings();
-      hasAnyDrawings.value = hasDrawings;
+      hasAnyDrawings.value = hasDrawings || isPatternRecognitionActive.value;
       if (hasDrawings) {
         drawingPersistence.autoSave();
       }
@@ -1700,6 +2384,12 @@ onUnmounted(() => {
   if (drawingPersistence) {
     drawingPersistence.autoSave();
     drawingPersistence.destroy();
+  }
+  
+  // Destroy replay manager
+  if (replayManager.value) {
+    replayManager.value.destroy();
+    replayManager.value = null;
   }
   
   try {
@@ -1755,6 +2445,16 @@ watch(() => props.selectedSymbol, async (newSymbol, oldSymbol) => {
       ruler.resetMeasurement();
     }
     
+    // Reset pattern recognition state
+    showPatternsPopup.value = false;
+    detectedPatterns.value = [];
+    isPatternRecognitionActive.value = false;
+    
+    // Clear pattern overlays from chart
+    if (patternOverlayManager) {
+      patternOverlayManager.clearPatterns();
+    }
+    
     // Fetch chart data first
     await fetchChartData(newSymbol, selectedDataType.value);
     
@@ -1782,6 +2482,16 @@ watch(() => props.defaultSymbol, async (newSymbol, oldSymbol) => {
     // Reset ruler measurement when changing symbols
     if (ruler) {
       ruler.resetMeasurement();
+    }
+    
+    // Reset pattern recognition state
+    showPatternsPopup.value = false;
+    detectedPatterns.value = [];
+    isPatternRecognitionActive.value = false;
+    
+    // Clear pattern overlays from chart
+    if (patternOverlayManager) {
+      patternOverlayManager.clearPatterns();
     }
     
     // Fetch chart data first
@@ -2847,5 +3557,364 @@ font-weight: bold;
   font-weight: 600;
   text-align: right;
 }
+
+/* Replay Controls */
+.replay-controls-compact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: var(--base2);
+  border-top: 1px solid var(--base3);
+  border-bottom: 1px solid var(--base3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
+}
+
+.replay-controls-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.replay-btn-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  min-width: 28px;
+  height: 28px;
+  background: var(--base3);
+  border: 1px solid var(--base4);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--text1);
+}
+
+.replay-btn-compact:hover {
+  background: var(--accent2);
+  border-color: var(--accent1);
+  transform: scale(1.05);
+}
+
+.replay-btn-compact:active {
+  transform: scale(0.98);
+}
+
+.replay-play-btn-compact {
+  background: color-mix(in srgb, var(--accent1) 15%, var(--base3));
+  border-color: var(--accent1);
+}
+
+.replay-play-btn-compact:hover {
+  background: var(--accent1);
+}
+
+.replay-icon-compact {
+  width: 14px;
+  height: 14px;
+}
+
+.replay-speed-compact {
+  padding: 4px 6px;
+  background: var(--base3);
+  border: 1px solid var(--base4);
+  border-radius: 4px;
+  color: var(--text1);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-width: 50px;
+  height: 28px;
+}
+
+.replay-speed-compact:hover {
+  background: var(--accent2);
+  border-color: var(--accent1);
+}
+
+.replay-speed-compact:focus {
+  outline: none;
+  border-color: var(--accent1);
+}
+
+.replay-progress-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  min-width: 200px;
+}
+
+.replay-progress-compact {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--base4);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.replay-progress-compact::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--accent1);
+  border: 1px solid var(--text1);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.replay-progress-compact::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  background: var(--positive);
+}
+
+.replay-progress-compact::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--accent1);
+  border: 1px solid var(--text1);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.replay-progress-compact::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  background: var(--positive);
+}
+
+.replay-date-compact {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text1);
+  background: var(--base3);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--base4);
+  min-width: 140px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Old replay controls - hidden/removed */
+.replay-controls {
+  display: none;
+}
+
+.replay-start-container {
+  display: none;
+}
+
+.replay-start-btn {
+  display: none;
+}
+
+/* Replay Date Picker */
+.replay-date-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.replay-date-picker-popup {
+  background: var(--base2);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--base3);
+}
+
+.replay-date-picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--base3);
+}
+
+.replay-date-picker-header h3 {
+  margin: 0;
+  color: var(--text1);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.replay-date-picker-close {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 32px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.replay-date-picker-close:hover {
+  background: var(--base3);
+  color: var(--text1);
+}
+
+.replay-loading {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.replay-loader {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--base3);
+  border-top-color: var(--accent1);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.replay-loading p {
+  color: var(--text2);
+  font-size: 14px;
+  margin: 0;
+}
+
+.replay-date-picker-content {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.replay-data-info {
+  padding: 10px 14px;
+  background: var(--base1);
+  border-radius: 6px;
+  text-align: center;
+  border: 1px solid var(--base3);
+}
+
+.replay-data-info span {
+  color: var(--text1);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.replay-date-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--base1);
+  border: 1px solid var(--base3);
+  border-radius: 6px;
+  color: var(--text1);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.replay-date-input:hover {
+  border-color: var(--accent1);
+}
+
+.replay-date-input:focus {
+  outline: none;
+  border-color: var(--accent1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent1) 20%, transparent);
+}
+
+.replay-date-presets {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.replay-preset-btn {
+  padding: 8px 14px;
+  background: var(--base1);
+  border: 1px solid var(--base3);
+  border-radius: 6px;
+  color: var(--text1);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.replay-preset-btn:hover {
+  background: var(--base3);
+  border-color: var(--accent1);
+  transform: translateY(-1px);
+}
+
+.replay-preset-btn:active {
+  transform: translateY(0);
+}
+
+.replay-start-confirm-btn {
+  width: 100%;
+  padding: 10px 20px;
+  background: var(--accent1);
+  border: none;
+  border-radius: 6px;
+  color: var(--text3);
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 4px;
+}
+
+.replay-start-confirm-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.replay-start-confirm-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .replay-date-picker-popup {
+    width: 95%;
+    max-width: none;
+  }
+  
+  .replay-date-presets {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 </style>

@@ -899,6 +899,16 @@ export default {
         marketHoliday: 'Αργία',
         eodOnly: 'Μόνο EOD',
         clearDrawingsConfirm: 'Είστε σίγουροι ότι θέλετε να διαγράψετε όλα τα σχέδια; Δεν μπορεί να αναιρεθεί.',
+        // Replay controls
+        startReplay: 'Έναρξη Λειτουργίας Επανάληψης',
+        selectReplayStartDate: 'Επιλογή Ημερομηνίας Έναρξης',
+        exitReplay: 'Έξοδος Επανάληψης',
+        play: 'Αναπαραγωγή',
+        pause: 'Παύση',
+        stepForward: 'Βήμα Εμπρός',
+        stepBackward: 'Βήμα Πίσω',
+        speed: 'Ταχύτητα Αναπαραγωγής',
+        seekPosition: 'Αναζήτηση Θέσης',
     },
 
     // Notice
@@ -1066,6 +1076,14 @@ export default {
         indicatorLabel: 'Αξία:',
         buy: 'ΑΓΟΡΑ',
         sell: 'ΠΩΛΗΣΗ',
+    },
+
+    // Pattern Recognition
+    patterns: {
+        title: 'Ανιχνευμένα Μοτίβα',
+        close: 'Κλείσιμο',
+        noPatterns: 'Δεν ανιχνεύθηκαν μοτίβα',
+        noPatternsSubtext: 'Δοκιμάστε να αναλύσετε με περισσότερα δεδομένα ή διαφορετικά χρονικά πλαίσια',
     },
 
     // Watchlist Component

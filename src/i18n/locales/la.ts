@@ -899,6 +899,16 @@ export default {
         marketHoliday: 'Festum',
         eodOnly: 'EOD Solum',
         clearDrawingsConfirm: 'Certusne es te velle purgare omnes picturas pro hoc symbolo? Hoc revocari non potest.',
+        // Replay controls
+        startReplay: 'Incipe Modum Replicandi',
+        selectReplayStartDate: 'Elige Diem Initii Replicandi',
+        exitReplay: 'Exi Replicando',
+        play: 'Lege',
+        pause: 'Pausa',
+        stepForward: 'Gradus Prorsum',
+        stepBackward: 'Gradus Retro',
+        speed: 'Celeritas Legendi',
+        seekPosition: 'Quaere Positum',
     },
 
     // Notice
@@ -1066,6 +1076,14 @@ export default {
         indicatorLabel: 'Valor:',
         buy: 'EMERE',
         sell: 'VENDERE',
+    },
+
+    // Pattern Recognition
+    patterns: {
+        title: 'Formae Detectae',
+        close: 'Claudere',
+        noPatterns: 'Nullae formae detectae',
+        noPatternsSubtext: 'Tempta analysare cum pluribus datis vel diversis temporibus',
     },
 
     // Watchlist Component

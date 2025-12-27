@@ -899,6 +899,16 @@ export default {
         marketHoliday: 'Выходной',
         eodOnly: 'Только EOD',
         clearDrawingsConfirm: 'Вы уверены, что хотите очистить все рисунки для этого символа? Это действие нельзя отменить.',
+        // Replay controls
+        startReplay: 'Запустить Режим Повтора',
+        selectReplayStartDate: 'Выбрать Дату Начала Повтора',
+        exitReplay: 'Выйти из Повтора',
+        play: 'Воспроизвести',
+        pause: 'Пауза',
+        stepForward: 'Шаг Вперёд',
+        stepBackward: 'Шаг Назад',
+        speed: 'Скорость Воспроизведения',
+        seekPosition: 'Перейти к Позиции',
     },
 
     // Notice
@@ -1066,6 +1076,14 @@ export default {
         indicatorLabel: 'Значение:',
         buy: 'ПОКУПКА',
         sell: 'ПРОДАЖА',
+    },
+
+    // Pattern Recognition
+    patterns: {
+        title: 'Обнаруженные Паттерны',
+        close: 'Закрыть',
+        noPatterns: 'Паттерны не обнаружены',
+        noPatternsSubtext: 'Попробуйте проанализировать с большим количеством данных или другими таймфреймами',
     },
 
     // Watchlist Component

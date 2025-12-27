@@ -65,7 +65,6 @@
   :apiKey="apiKey"
   @close="showPopup = false"
 />
-          <div class="results"></div>
         </div>
       </div>
       <div id="center" :class="{ 'hidden-mobile': selected !== 'chart' }">
@@ -607,6 +606,7 @@ function getSidebarProps(tag: string) {
 
 #main {
   display: flex;
+  min-height: 800px;
   height: 100%;
 }
 

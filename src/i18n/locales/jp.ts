@@ -899,6 +899,16 @@ export default {
         marketHoliday: '休場',
         eodOnly: '終値のみ',
         clearDrawingsConfirm: 'このシンボルの描画をすべて消去しますか？この操作は元に戻せません。',
+        // Replay controls
+        startReplay: 'リプレイモードを開始',
+        selectReplayStartDate: 'リプレイ開始日を選択',
+        exitReplay: 'リプレイを終了',
+        play: '再生',
+        pause: '一時停止',
+        stepForward: '前に進む',
+        stepBackward: '後ろに戻る',
+        speed: '再生速度',
+        seekPosition: '位置を検索',
     },
 
     // Notice
@@ -1066,6 +1076,14 @@ export default {
         indicatorLabel: '値:',
         buy: '買い',
         sell: '売り',
+    },
+
+    // Pattern Recognition
+    patterns: {
+        title: '検出されたパターン',
+        close: '閉じる',
+        noPatterns: 'パターンが検出されませんでした',
+        noPatternsSubtext: 'より多くのデータや異なる時間枠で分析してみてください',
     },
 
     // Watchlist Component

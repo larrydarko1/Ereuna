@@ -629,7 +629,6 @@ function animateCounter(counter: Element) {
 .video-container {
   position: relative;
   padding: 5%;
-  margin-bottom: 18rem;
 }
 
 .hero-video {
@@ -723,7 +722,6 @@ function animateCounter(counter: Element) {
   z-index: 1;
   padding: 5%;
   width: 100%;
-    margin-bottom: 18rem;
 }
 
 .title {
@@ -852,7 +850,7 @@ function animateCounter(counter: Element) {
   border-radius: 16px;
   color: var(--brand-text-secondary);
   padding: 0px;
-  position: sticky;
+  position: fixed;
   top: 2%;
   left: 2%;
   right: 2%;
@@ -1850,15 +1848,13 @@ a.social {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-radius: 12px;
     color: var(--brand-text-primary);
     padding: 12px 20px;
-    position: sticky;
+    position: fixed;
     top: 2%;
     left: 2%;
     right: 2%;
     z-index: 1000;
-    opacity: 0.95;
   }
 
   .icon2{
@@ -1954,6 +1950,7 @@ a.social {
     flex-direction: column;
     align-items: center; /* Center content horizontally */
     margin-bottom: 10%;
+    padding-top: 80px;
   }
 
   .content {

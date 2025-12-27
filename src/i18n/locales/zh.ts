@@ -899,6 +899,16 @@ export default {
         marketHoliday: '假日',
         eodOnly: '仅日终数据',
         clearDrawingsConfirm: '您确定要清除此代码的所有绘图吗？此操作无法撤销。',
+        // Replay controls
+        startReplay: '开始重放模式',
+        selectReplayStartDate: '选择重放开始日期',
+        exitReplay: '退出重放',
+        play: '播放',
+        pause: '暂停',
+        stepForward: '向前一步',
+        stepBackward: '向后一步',
+        speed: '播放速度',
+        seekPosition: '寻找位置',
     },
 
     // Notice
@@ -1066,6 +1076,14 @@ export default {
         indicatorLabel: '数值：',
         buy: '买入',
         sell: '卖出',
+    },
+
+    // Pattern Recognition
+    patterns: {
+        title: '检测到的模式',
+        close: '关闭',
+        noPatterns: '未检测到模式',
+        noPatternsSubtext: '尝试使用更多数据或不同时间段进行分析',
     },
 
     // Watchlist Component

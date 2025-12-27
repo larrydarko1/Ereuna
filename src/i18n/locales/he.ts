@@ -899,6 +899,16 @@ export default {
         marketHoliday: 'חג',
         eodOnly: 'EOD בלבד',
         clearDrawingsConfirm: 'האם אתה בטוח שברצונך לנקות את כל השרטוטים עבור סמל זה? לא ניתן לבטל פעולה זו.',
+        // Replay controls
+        startReplay: 'התחל מצב שידור חוזר',
+        selectReplayStartDate: 'בחר תאריך התחלה לשידור חוזר',
+        exitReplay: 'צא משידור חוזר',
+        play: 'נגן',
+        pause: 'השהה',
+        stepForward: 'צעד קדימה',
+        stepBackward: 'צעד אחורה',
+        speed: 'מהירות ניגון',
+        seekPosition: 'חפש מיקום',
     },
 
     // Notice
@@ -1066,6 +1076,14 @@ export default {
         indicatorLabel: 'ערך:',
         buy: 'קנה',
         sell: 'מכור',
+    },
+
+    // Pattern Recognition
+    patterns: {
+        title: 'דפוסים שזוהו',
+        close: 'סגור',
+        noPatterns: 'לא זוהו דפוסים',
+        noPatternsSubtext: 'נסה לנתח עם יותר נתונים או מסגרות זמן שונות',
     },
 
     // Watchlist Component
