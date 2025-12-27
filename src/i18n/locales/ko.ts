@@ -899,6 +899,16 @@ export default {
         marketHoliday: '휴장일',
         eodOnly: 'EOD 만',
         clearDrawingsConfirm: '이 종목의 모든 그림을 지우시겠습니까? 이 작업은 취소할 수 없습니다.',
+        // Replay controls
+        startReplay: '리플레이 모드 시작',
+        selectReplayStartDate: '리플레이 시작 날짜 선택',
+        exitReplay: '리플레이 종료',
+        play: '재생',
+        pause: '일시정지',
+        stepForward: '다음 단계',
+        stepBackward: '이전 단계',
+        speed: '재생 속도',
+        seekPosition: '위치 찾기',
     },
 
     // Notice
@@ -1066,6 +1076,14 @@ export default {
         indicatorLabel: '값:',
         buy: '매수',
         sell: '매도',
+    },
+
+    // Pattern Recognition
+    patterns: {
+        title: '감지된 패턴',
+        close: '닫기',
+        noPatterns: '패턴이 감지되지 않았습니다',
+        noPatternsSubtext: '더 많은 데이터나 다른 기간으로 분석해 보세요',
     },
 
     // Watchlist Component

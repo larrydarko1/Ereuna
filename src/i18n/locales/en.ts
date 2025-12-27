@@ -899,6 +899,16 @@ export default {
         marketHoliday: 'Holiday',
         eodOnly: 'EOD Only',
         clearDrawingsConfirm: 'Are you sure you want to clear all drawings for this symbol? This cannot be undone.',
+        // Replay controls
+        startReplay: 'Start Replay Mode',
+        selectReplayStartDate: 'Select Replay Start Date',
+        exitReplay: 'Exit Replay',
+        play: 'Play',
+        pause: 'Pause',
+        stepForward: 'Step Forward',
+        stepBackward: 'Step Backward',
+        speed: 'Playback Speed',
+        seekPosition: 'Seek to Position',
     },
 
     // Notice
@@ -1066,6 +1076,14 @@ export default {
         indicatorLabel: 'Value:',
         buy: 'BUY',
         sell: 'SELL',
+    },
+
+    // Pattern Recognition
+    patterns: {
+        title: 'Detected Patterns',
+        close: 'Close',
+        noPatterns: 'No patterns detected',
+        noPatternsSubtext: 'Try analyzing with more data or different timeframes',
     },
 
     // Watchlist Component

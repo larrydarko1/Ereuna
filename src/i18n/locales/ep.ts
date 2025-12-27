@@ -899,6 +899,16 @@ export default {
         marketHoliday: 'Feriado',
         eodOnly: 'Nur EOD',
         clearDrawingsConfirm: 'Ĉu vi certas ke vi volas forigi ĉiujn desegnojn por ĉi tiu simbolo? Ĉi tio ne povas esti malfari.',
+        // Replay controls
+        startReplay: 'Ekigi Reĝistadon',
+        selectReplayStartDate: 'Elektu Komencan Daton de Reĝistado',
+        exitReplay: 'Eliri Reĝistado',
+        play: 'Ludi',
+        pause: 'Paŭzo',
+        stepForward: 'Paŝo Antaŭen',
+        stepBackward: 'Paŝo Malantaŭen',
+        speed: 'Ludrapideco',
+        seekPosition: 'Serĉi Pozicion',
     },
 
     // Notice
@@ -1066,6 +1076,14 @@ export default {
         indicatorLabel: 'Valoro:',
         buy: 'AĈETI',
         sell: 'VENDI',
+    },
+
+    // Pattern Recognition
+    patterns: {
+        title: 'Detektitaj Ŝablonoj',
+        close: 'Fermi',
+        noPatterns: 'Neniuj ŝablonoj detektitaj',
+        noPatternsSubtext: 'Provu analizi kun pli da datenoj aŭ malsamaj tempkadroj',
     },
 
     // Watchlist Component

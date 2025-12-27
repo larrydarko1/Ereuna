@@ -895,6 +895,16 @@ export default {
         marketHoliday: 'Festivo',
         eodOnly: 'Solo EOD',
         clearDrawingsConfirm: '¿Está seguro de que desea eliminar todos los dibujos de este símbolo? Esta acción no se puede deshacer.',
+        // Replay controls
+        startReplay: 'Iniciar Modo Repetición',
+        selectReplayStartDate: 'Seleccionar Fecha de Inicio de Repetición',
+        exitReplay: 'Salir de Repetición',
+        play: 'Reproducir',
+        pause: 'Pausar',
+        stepForward: 'Paso Adelante',
+        stepBackward: 'Paso Atrás',
+        speed: 'Velocidad de Reproducción',
+        seekPosition: 'Buscar Posición',
     },
 
     // Aviso
@@ -1062,6 +1072,14 @@ export default {
         indicatorLabel: 'Valor:',
         buy: 'COMPRA',
         sell: 'VENTA',
+    },
+
+    // Pattern Recognition
+    patterns: {
+        title: 'Patrones Detectados',
+        close: 'Cerrar',
+        noPatterns: 'No se detectaron patrones',
+        noPatternsSubtext: 'Intenta analizar con más datos o diferentes marcos de tiempo',
     },
 
     // Componente de Lista de Vigilancia

@@ -899,6 +899,16 @@ export default {
         marketHoliday: 'عطلة',
         eodOnly: 'نهاية اليوم فقط',
         clearDrawingsConfirm: 'هل أنت متأكد من أنك تريد مسح جميع الرسومات لهذا الرمز؟ لا يمكن التراجع عن هذا الإجراء.',
+        // Replay controls
+        startReplay: 'بدء وضع إعادة التشغيل',
+        selectReplayStartDate: 'حدد تاريخ بدء إعادة التشغيل',
+        exitReplay: 'إنهاء إعادة التشغيل',
+        play: 'تشغيل',
+        pause: 'إيقاف',
+        stepForward: 'خطوة للأمام',
+        stepBackward: 'خطوة للخلف',
+        speed: 'سرعة التشغيل',
+        seekPosition: 'بحث عن الموضع',
     },
 
     // Notice
@@ -1066,6 +1076,14 @@ export default {
         indicatorLabel: 'القيمة:',
         buy: 'شراء',
         sell: 'بيع',
+    },
+
+    // Pattern Recognition
+    patterns: {
+        title: 'الأنماط المكتشفة',
+        close: 'إغلاق',
+        noPatterns: 'لم يتم اكتشاف أنماط',
+        noPatternsSubtext: 'حاول التحليل بمزيد من البيانات أو أطر زمنية مختلفة',
     },
 
     // Watchlist Component

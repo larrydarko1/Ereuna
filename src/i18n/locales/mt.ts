@@ -899,6 +899,16 @@ export default {
         marketHoliday: 'Festa',
         eodOnly: 'EOD Biss',
         clearDrawingsConfirm: 'Żgur li trid tħassar id-drawjngs kollha għal dan is-simbolu? Dan ma jistax jiġi annullat.',
+        // Replay controls
+        startReplay: 'Ibda Modalità Replay',
+        selectReplayStartDate: 'Agħżel Data tal-Bidu tar-Replay',
+        exitReplay: 'Oħroġ mir-Replay',
+        play: 'Ipplejja',
+        pause: 'Pawsa',
+        stepForward: 'Pass ’il Quddiem',
+        stepBackward: 'Pass Lura',
+        speed: 'Veločità tal-Plejar',
+        seekPosition: 'Fittex Poziżjoni',
     },
 
     // Notice
@@ -1066,6 +1076,14 @@ export default {
         indicatorLabel: 'Valur:',
         buy: 'IXTRI',
         sell: 'BIEGĦ',
+    },
+
+    // Pattern Recognition
+    patterns: {
+        title: 'Mudelli Skoperti',
+        close: 'Agħlaq',
+        noPatterns: 'L-ebda mudell ma nstab',
+        noPatternsSubtext: 'Ipprova analizza b\'aktar data jew perijodi ta\' żmien differenti',
     },
 
     // Watchlist Component

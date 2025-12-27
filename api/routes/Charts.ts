@@ -190,7 +190,10 @@ export default function (app: any, deps: any) {
                     return res.status(400).json({ message: 'Invalid timeframe' });
             }
 
-            // Cap results for all timeframes (lazy loading)
+            // Check for replay mode - fetch ALL data without limits
+            const isReplayMode = req.query.replay === 'true';
+
+            // Cap results for all timeframes (lazy loading) - unless replay mode
             let arr: any[];
             let query: any = { tickerID: ticker };
             if (before) {
@@ -200,7 +203,12 @@ export default function (app: any, deps: any) {
                 }
             }
 
-            if (timeframe === 'daily') {
+            if (isReplayMode) {
+                // Replay: fetch ALL data, sorted ascending (oldest first)
+                arr = await coll.find(query)
+                    .sort({ timestamp: 1 })
+                    .toArray();
+            } else if (timeframe === 'daily') {
                 arr = await coll.find(query)
                     .sort({ timestamp: -1 })
                     .limit(1250)

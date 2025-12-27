@@ -547,12 +547,13 @@ async function verifyMfa() {
   transform: translate(-50%, -50%);
   width: 300px;
   background-color: var(--brand-bg-secondary);
-  border: none;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--brand-glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   padding: 20px;
   border-radius: 20px;
   z-index: 10000;
   text-align: center;
+  color: var(--brand-text-primary);
 }
 
 .mfa-popup button {
@@ -565,6 +566,7 @@ async function verifyMfa() {
   cursor: pointer;
   font-size: 1.5rem;
   font-weight: bold;
+  transition: background-color 0.3s ease;
 }
 
 .mfa-popup button:hover {
@@ -582,6 +584,7 @@ async function verifyMfa() {
   display: grid;
   grid-template-columns: 60% 40%;
   height: 100vh;
+  background-color: var(--brand-bg-primary);
 }
 
 .image-background{
@@ -638,6 +641,7 @@ async function verifyMfa() {
   top: 50%;
   left: 80%;
   transform: translate(-50%, -50%);
+  background-color: var(--brand-bg-primary);
 }
 
 .input-group {
@@ -657,7 +661,7 @@ p{
   padding: 1.5rem;
   font-size: 1.2rem;
   width: 400px;
-  color: var(--brand-text-secondary);
+  color: var(--brand-text-primary);
   transition: border 150ms cubic-bezier(0.4,0,0.2,1);
 }
 
@@ -666,7 +670,7 @@ p{
   position: absolute;
   left: 30px;
   bottom: 45px;
-  color: var(--brand-text-secondary);
+  color: var(--brand-text-tertiary);
   pointer-events: none;
   transform: translateY(1.5rem);
   transition: 150ms cubic-bezier(0.4,0,0.2,1);
@@ -705,6 +709,11 @@ p{
   font-weight: bold;
 }
 
+.userbtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .userbtn:hover {
   background-color: var(--brand-secondary);
 }
@@ -724,7 +733,7 @@ p{
 }
 
 .path {
-  stroke: var(--brand-text-primary);
+  stroke: var(--brand-bg-primary);
   stroke-linecap: round;
   animation: dash 1.5s ease-in-out infinite;
 }
@@ -788,9 +797,9 @@ a:hover{
   height: 36px;
   font-size: 28px;
   text-align: center;
-  border: 1px solid var(--brand-text-primary);
+  border: 2px solid var(--brand-glass-border);
   border-radius: 8px;
-  background: var(--brand-bg-primary);
+  background: var(--brand-bg-secondary);
   color: var(--brand-text-primary);
   outline: none;
   transition: border-color 0.2s;
@@ -802,103 +811,18 @@ a:hover{
 .mfa-popup input {
   width: 90%;
   padding: 10px;
-  border: 1px solid var(--brand-text-primary);
+  border: 2px solid var(--brand-glass-border);
   border-radius: 10px;
   box-shadow: none;
+  background-color: var(--brand-bg-secondary);
+  color: var(--brand-text-primary);
 }
 
 .mfa-popup input:focus {
-  border: 1px solid var(--brand-primary);
+  border: 2px solid var(--brand-primary);
   outline: none;
 }
-/* Light mode styles */
-.container.light-mode {
-  .image-background {
-    background-color: #f5f5f5;
-  }
-
-  .image-background .quote {
-    color: #1a1a1a;
-  }
-
-  .image-background .author {
-    color: #666666;
-  }
-
-  .form-input {
-    background-color: #ffffff;
-    color: #1a1a1a;
-    border-color: #e0e0e0;
-  }
-
-  .form-input:focus,
-  .form-input:valid {
-    border-color: #8c8dfe;
-  }
-
-  .user-label {
-    color: #666666;
-  }
-
-  .form-input:focus ~ .user-label,
-  .form-input:valid ~ .user-label {
-    background-color: #f5f5f5;
-    color: #8c8dfe;
-  }
-
-  p, .text {
-    color: #333333;
-  }
-
-  a {
-    color: #8c8dfe;
-  }
-
-  a:hover {
-    color: #6b6ce0;
-  }
-
-  .toggle-password {
-    color: #666666;
-  }
-
-  .checkmark {
-    background-color: #666666;
-  }
-
-  .custom-checkbox.checked .checkmark {
-    background-color: #8c8dfe;
-  }
-
-  .label-text {
-    color: #333333;
-  }
-
-  .mfa-popup {
-    background-color: #ffffff;
-    color: #1a1a1a;
-  }
-
-  .mfa-digit {
-    background-color: #f5f5f5;
-    color: #1a1a1a;
-    border-color: #cccccc;
-  }
-
-  .mfa-digit:focus {
-    border-color: #8c8dfe;
-  }
-
-  .mfa-popup input {
-    border-color: #cccccc;
-    background-color: #f5f5f5;
-    color: #1a1a1a;
-  }
-
-  .mfa-popup input:focus {
-    border-color: #8c8dfe;
-  }
-}
+/* Light mode - all colors now use CSS variables for proper reactive theming */
 /* Mobile version */
 @media (max-width: 1150px) {
   .container {

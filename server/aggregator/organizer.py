@@ -3255,7 +3255,7 @@ async def Daily():
     # Fetch news with progress tracking
     print("\nChecking and updating news...")
     news_start = time.time()
-    await fetchNews()
+    #await fetchNews()
     news_end = time.time()
     print(f"✓ News updated in {(news_end - news_start)/60:.2f} minutes")
     
