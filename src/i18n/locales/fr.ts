@@ -234,6 +234,7 @@ export default {
         deleteRecommendation1: 'Exporter toutes les données que vous souhaitez conserver',
         deleteRecommendation2: 'Annuler tous les abonnements actifs',
         deleteReview: 'Veuillez examiner attentivement cette décision avant de continuer.',
+        translationDisclaimer: 'Certaines traductions peuvent être inexactes car elles sont générées par IA.',
     },
 
     // Portfolio
@@ -1093,6 +1094,7 @@ export default {
         moreOptionsTitle: 'Plus d\'options',
         moreOptionsAriaLabel: 'Afficher plus d\'options de liste de suivi',
         createWatchlist: 'Créer une liste de suivi',
+        createNote: 'Créer une Note',
         renameWatchlist: 'Renommer la liste de suivi',
         deleteWatchlist: 'Supprimer la liste de suivi',
         importWatchlist: 'Importer une liste de suivi',

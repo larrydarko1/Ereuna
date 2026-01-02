@@ -234,6 +234,7 @@ export default {
         deleteRecommendation1: 'Exportar quaisquer dados que deseja manter',
         deleteRecommendation2: 'Cancelar quaisquer assinaturas ativas',
         deleteReview: 'Por favor, revise esta decisão cuidadosamente antes de prosseguir.',
+        translationDisclaimer: 'Algumas traduções podem ser imprecisas, pois são geradas por IA.',
     },
 
     // Portfolio
@@ -1093,6 +1094,7 @@ export default {
         moreOptionsTitle: 'Mais Opções',
         moreOptionsAriaLabel: 'Mostrar mais opções de lista',
         createWatchlist: 'Criar Lista de Observação',
+        createNote: 'Criar Nota',
         renameWatchlist: 'Renomear Lista',
         deleteWatchlist: 'Excluir Lista',
         importWatchlist: 'Importar Lista',

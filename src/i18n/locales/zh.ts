@@ -234,6 +234,7 @@ export default {
         deleteRecommendation1: '导出您希望保留的任何数据',
         deleteRecommendation2: '取消任何有效订阅',
         deleteReview: '继续之前请仔细审查此决定。',
+        translationDisclaimer: '某些翻译可能不准确，因为它们是由人工智能生成的。',
     },
 
     // Portfolio
@@ -1093,6 +1094,7 @@ export default {
         moreOptionsTitle: '更多选项',
         moreOptionsAriaLabel: '显示更多自选列表选项',
         createWatchlist: '创建自选列表',
+        createNote: '创建笔记',
         renameWatchlist: '重命名自选列表',
         deleteWatchlist: '删除自选列表',
         importWatchlist: '导入自选列表',

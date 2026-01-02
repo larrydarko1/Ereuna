@@ -39,12 +39,22 @@ export class BoxManager {
     private defaultBorderWidth: number = 1;
     private visibleRangeChangeHandler: (() => void) | null = null;
     private onChangeCallback: (() => void) | null = null;
+    private onActivateCallback: (() => void) | null = null;
+    private globalClickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
+    private keyDownHandler: ((event: KeyboardEvent) => void) | null = null;
 
     constructor(chart: IChartApi, mainSeries?: any) {
         this.chart = chart;
         this.mainSeries = mainSeries;
         this.setupCanvas();
         this.subscribeToChartEvents();
+
+        // Always listen for clicks to detect box selection
+        this.setupGlobalClickListener();
+
+        // Always listen for keyboard events (for deletion)
+        this.keyDownHandler = this.handleKeyDown.bind(this);
+        document.addEventListener('keydown', this.keyDownHandler);
     }
 
     /**
@@ -52,6 +62,13 @@ export class BoxManager {
      */
     public onChange(callback: () => void): void {
         this.onChangeCallback = callback;
+    }
+
+    /**
+     * Set callback to be called when tool should be auto-activated
+     */
+    public onActivate(callback: () => void): void {
+        this.onActivateCallback = callback;
     }
 
     /**
@@ -69,6 +86,43 @@ export class BoxManager {
             this.draw();
         };
         this.chart.timeScale().subscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
+    }
+
+    private setupGlobalClickListener(): void {
+        // This handler is always active to detect clicks on boxes
+        this.globalClickHandler = (param: MouseEventParams<Time>) => {
+            if (this.isActive) return; // Don't interfere when tool is already active
+            if (!param.point) return;
+
+            // Check if clicking on an existing box
+            const boxHit = this.hitTestBody(param.point.x, param.point.y);
+            if (boxHit) {
+                this.selectedBoxId = boxHit;
+                this.draw();
+                // Auto-activate the tool
+                if (this.onActivateCallback) {
+                    this.onActivateCallback();
+                }
+            }
+        };
+        this.chart.subscribeClick(this.globalClickHandler);
+    }
+
+    private handleKeyDown(event: KeyboardEvent): void {
+        // Check if Backspace or Delete key was pressed
+        if (event.key === 'Backspace' || event.key === 'Delete') {
+            // Don't delete if user is typing in an input field
+            const target = event.target as HTMLElement;
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+                return;
+            }
+
+            // Delete the selected box if there is one
+            if (this.selectedBoxId) {
+                event.preventDefault();
+                this.removeSelectedBox();
+            }
+        }
     }
 
     public setMainSeries(series: any): void {
@@ -222,7 +276,7 @@ export class BoxManager {
 
                 this.boxes.push(newBox);
                 this.currentBox = { point1: null, point2: null };
-                this.selectedBoxId = newBox.id;
+                this.selectedBoxId = null; // Don't keep it selected after creation
                 this.triggerChange(); // Trigger auto-save
             }
 
@@ -487,8 +541,8 @@ export class BoxManager {
         ctx.lineWidth = isSelected ? borderWidth + 1 : borderWidth;
         ctx.strokeRect(x, y, width, height);
 
-        // Draw corner handles if selected
-        if (isSelected && !box.locked) {
+        // Draw corner handles only if selected AND actively being dragged/edited
+        if (isSelected && !box.locked && this.isDragging) {
             const x1 = Math.min(point1.x, point2.x);
             const y1 = Math.min(point1.y, point2.y);
             const x2 = Math.max(point1.x, point2.x);
@@ -548,6 +602,18 @@ export class BoxManager {
         if (this.visibleRangeChangeHandler) {
             this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
             this.visibleRangeChangeHandler = null;
+        }
+
+        // Remove global click handler
+        if (this.globalClickHandler) {
+            this.chart.unsubscribeClick(this.globalClickHandler);
+            this.globalClickHandler = null;
+        }
+
+        // Remove keyboard handler
+        if (this.keyDownHandler) {
+            document.removeEventListener('keydown', this.keyDownHandler);
+            this.keyDownHandler = null;
         }
 
         if (this.canvas && this.canvas.parentElement) {

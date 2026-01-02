@@ -1,46 +1,54 @@
 <template>
   <div class="doc-content">
-    <h1>Notes</h1>
+    <h1>Monthly Performance Analysis</h1>
     
     <section>
       <h2>Overview</h2>
+            <img src="/docs/monthly-analysis.png" alt="Monthly Performance Analysis Overview" class="image" />
       <p>
-        Notes created for specific symbols are displayed in a table within the left panel of the <strong>Charts</strong> section.
-      </p>
-      <img class="img" src="/docs/note.png" alt="Creating and managing notes for symbols">
-    </section>
-
-    <section>
-      <h2>Creating Notes</h2>
-       <img class="img" src="/docs/note2.png" alt="Creating and managing notes for symbols">
-      <p>
-        To create a note, navigate to the dropdown menu in the top right corner of the Charts section and select 
-        the 'Create Note' option. A popup will appear where you can enter your note. After submitting, the new note 
-        will be visible in the left panel.
+        The Monthly Performance Analysis section provides a detailed breakdown of your portfolio's 
+        performance on a month-by-month basis since portfolio inception (the date of your first cash deposit).
       </p>
     </section>
 
     <section>
-      <h2>Managing Notes</h2>
-      <ul>
-        <li><strong>Delete:</strong> To delete a note, click the X button in the top right corner of the note you wish to remove</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Important Notes</h2>
+      <h2>Layout</h2>
       <div class="note-box">
-        <h3>Symbol-Specific</h3>
+        <h3>Left Side - Monthly Cards</h3>
         <p>
-          Notes are tied to specific symbols and will only appear when viewing that particular symbol in the Charts section.
+          The left side displays cards tracking each month since portfolio inception. Each card represents 
+          a single month and shows the performance data for that period.
         </p>
+      </div>
+
+      <div class="note-box">
+        <h3>Right Side - Charts</h3>
+        <p>
+          The right side contains two charts:
+        </p>
+        <ul>
+          <li><strong>Total P/L (%):</strong> Tracks month-by-month profit/loss percentages, showing snapshots of returns for each specific month</li>
+          <li><strong>Monthly Returns (%):</strong> Displays the returns each month had in a clear visual format</li>
+        </ul>
+      </div>
+
+      <div class="note-box">
+        <h3>Top Right - Performance Metrics</h3>
+        <p>
+          The top right corner shows three key metrics:
+        </p>
+        <ul>
+          <li><strong>Winning Months:</strong> Number of profitable months</li>
+          <li><strong>Losing Months:</strong> Number of unprofitable months</li>
+          <li><strong>Neutral Months:</strong> Number of months with no trades</li>
+        </ul>
       </div>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-// Documentation component for Notes feature
+// Documentation component for Monthly Performance Analysis feature
 </script>
 
 <style scoped>
@@ -92,21 +100,6 @@ p {
 ul {
   margin-left: 1.5rem;
   margin-bottom: 1rem;
-  list-style: none;
-  padding-left: 0;
-}
-
-ul > li {
-  position: relative;
-  padding-left: 1.5rem;
-}
-
-ul > li::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  color: var(--brand-gradient-start);
-  font-weight: 600;
 }
 
 li {
@@ -132,7 +125,16 @@ li {
 }
 
 .note-box p {
+  margin-bottom: 0.5rem;
+}
+
+.note-box p:last-child {
   margin-bottom: 0;
+}
+
+.note-box ul {
+  margin-bottom: 0;
+  margin-top: 0.5rem;
 }
 
 strong {
@@ -140,10 +142,12 @@ strong {
   font-weight: 600;
 }
 
-.img {
-  width: 100%;
-  margin: 1.5rem 0;
-  border-radius: 8px;
+.image {
+  display: block;
+  margin: 1.5rem auto;
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
   border: 1px solid var(--brand-glass-border);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }

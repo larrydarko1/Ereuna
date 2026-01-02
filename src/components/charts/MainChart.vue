@@ -210,6 +210,18 @@
                                           <circle cx="11" cy="11" r="2" />
                                         </svg>
                                       </button>
+                                      <button 
+                                        class="tool-btn" 
+                                        :class="{ 'active': isPriceLevelActive }" 
+                                        @click="togglePriceLevel" 
+                                        title="Price Level"
+                                      >
+                                        <svg class="tool-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                          <line x1="3" y1="12" x2="21" y2="12" />
+                                          <circle cx="3" cy="12" r="2" fill="currentColor" />
+                                          <circle cx="21" cy="12" r="2" fill="currentColor" />
+                                        </svg>
+                                      </button>
                                     </div>
                                   </div>
                                   
@@ -405,6 +417,7 @@ import { TrendLineManager } from '@/lib/lightweight-charts/trendline';
 import { BoxManager } from '@/lib/lightweight-charts/box';
 import { TextAnnotationManager } from '@/lib/lightweight-charts/text-annotation';
 import { FreehandManager } from '@/lib/lightweight-charts/freehand';
+import { PriceLevelManager } from '@/lib/lightweight-charts/price-level';
 import { ChartScreenshot, type ChartInfo } from '@/lib/lightweight-charts/screenshot';
 import { DrawingPersistence } from '@/lib/lightweight-charts/drawing-persistence';
 import { ReplayManager } from '@/lib/lightweight-charts/replay-manager';
@@ -972,6 +985,39 @@ function toggleFreehand(): void {
         textAnnotationManager.deactivate();
         isTextActive.value = false;
       }
+    }
+  }
+}
+
+function togglePriceLevel(): void {
+  if (priceLevelManager) {
+    if (isPriceLevelActive.value) {
+      priceLevelManager.deactivate();
+      isPriceLevelActive.value = false;
+    } else {
+      // Deactivate other drawing tools
+      if (ruler && isRulerActive.value) {
+        ruler.deactivate();
+        isRulerActive.value = false;
+      }
+      if (trendlineManager && isTrendlineActive.value) {
+        trendlineManager.deactivate();
+        isTrendlineActive.value = false;
+      }
+      if (boxManager && isBoxActive.value) {
+        boxManager.deactivate();
+        isBoxActive.value = false;
+      }
+      if (textAnnotationManager && isTextActive.value) {
+        textAnnotationManager.deactivate();
+        isTextActive.value = false;
+      }
+      if (freehandManager && isFreehandActive.value) {
+        freehandManager.deactivate();
+        isFreehandActive.value = false;
+      }
+      priceLevelManager.activate();
+      isPriceLevelActive.value = true;
     }
   }
 }
@@ -1638,6 +1684,8 @@ let textAnnotationManager: TextAnnotationManager | null = null;
 const isTextActive = ref(false);
 let freehandManager: FreehandManager | null = null;
 const isFreehandActive = ref(false);
+let priceLevelManager: PriceLevelManager | null = null;
+const isPriceLevelActive = ref(false);
 let screenshotManager: ChartScreenshot | null = null;
 let drawingPersistence: DrawingPersistence | null = null;
 let volumeSeries: any = null; // Volume histogram series for markers
@@ -1811,6 +1859,11 @@ function updateMainSeries(): void {
     freehandManager.setMainSeries(mainSeries);
   }
   
+  // Update price level manager with the new series reference
+  if (priceLevelManager) {
+    priceLevelManager.setMainSeries(mainSeries);
+  }
+  
   // Update drawing persistence with new manager references
   if (drawingPersistence) {
     drawingPersistence.setManagers(trendlineManager!, boxManager!, textAnnotationManager!, freehandManager!);
@@ -1942,6 +1995,10 @@ onMounted(async () => {
     if (window && 'ResizeObserver' in window) {
       resizeObserver = new ResizeObserver(() => {
         updateChartSize();
+        // Update price level positions when chart is resized
+        if (priceLevelManager) {
+          priceLevelManager.updatePositions();
+        }
       });
       if (chartDiv) resizeObserver.observe(chartDiv);
     }
@@ -1964,6 +2021,9 @@ onMounted(async () => {
       }
       if (freehandManager && isFreehandActive.value) {
         freehandManager.removeSelectedPath();
+      }
+      if (priceLevelManager && isPriceLevelActive.value) {
+        priceLevelManager.removeSelectedLevel();
       }
     }
     if (event.key === 'Escape') {
@@ -2229,6 +2289,11 @@ watch(
   // Initialize freehand manager with the main series
   freehandManager = new FreehandManager(chart, mainSeries);
   
+  // Initialize price level manager
+  if (wkchart.value) {
+    priceLevelManager = new PriceLevelManager(chart, mainSeries, wkchart.value);
+  }
+  
   // Initialize screenshot manager
   screenshotManager = new ChartScreenshot(chart, 'wk-chart');
   
@@ -2239,7 +2304,8 @@ watch(
     trendlineManager,
     boxManager,
     textAnnotationManager,
-    freehandManager
+    freehandManager,
+    priceLevelManager || undefined
   );
   
   // Set up onChange callbacks to trigger auto-save
@@ -2247,6 +2313,34 @@ watch(
   boxManager.onChange(() => drawingPersistence?.autoSave());
   textAnnotationManager.onChange(() => drawingPersistence?.autoSave());
   freehandManager.onChange(() => drawingPersistence?.autoSave());
+  if (priceLevelManager) {
+    priceLevelManager.onChange(() => drawingPersistence?.autoSave());
+  }
+  
+  // Set up onActivate callback to auto-activate tool when clicking on drawings
+  trendlineManager.onActivate(() => {
+    if (!isTrendlineActive.value) {
+      toggleTrendline();
+    }
+  });
+  
+  boxManager.onActivate(() => {
+    if (!isBoxActive.value) {
+      toggleBox();
+    }
+  });
+  
+  textAnnotationManager.onActivate(() => {
+    if (!isTextActive.value) {
+      toggleText();
+    }
+  });
+  
+  freehandManager.onActivate(() => {
+    if (!isFreehandActive.value) {
+      toggleFreehand();
+    }
+  });
   
   // ensure initial sizing is correct
   updateChartSize();
@@ -2334,6 +2428,13 @@ watch(
         console.error('Lazy load error:', err);
       }
       isLoadingMore = false;
+    }
+  });
+  
+  // Update price level positions when scrolling/zooming
+  chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
+    if (priceLevelManager) {
+      priceLevelManager.updatePositions();
     }
   });
   
@@ -2428,6 +2529,11 @@ onUnmounted(() => {
     freehandManager.destroy();
     freehandManager = null;
   }
+  // Destroy price level manager
+  if (priceLevelManager) {
+    priceLevelManager.destroy();
+    priceLevelManager = null;
+  }
   // close websocket if open
   closeChartWS();
 });
@@ -2438,6 +2544,11 @@ watch(() => props.selectedSymbol, async (newSymbol, oldSymbol) => {
     // Save drawings for old symbol before switching
     if (oldSymbol && drawingPersistence) {
       await drawingPersistence.autoSave();
+    }
+    
+    // Clear price levels from chart before switching symbols
+    if (priceLevelManager) {
+      priceLevelManager.clear();
     }
     
     // Reset ruler measurement when changing symbols (keep it active if it was)
@@ -2477,6 +2588,11 @@ watch(() => props.defaultSymbol, async (newSymbol, oldSymbol) => {
     // Save drawings for old symbol before switching
     if (oldSymbol && drawingPersistence) {
       await drawingPersistence.autoSave();
+    }
+    
+    // Clear price levels from chart before switching symbols
+    if (priceLevelManager) {
+      priceLevelManager.clear();
     }
     
     // Reset ruler measurement when changing symbols
@@ -3914,6 +4030,11 @@ font-weight: bold;
   .replay-date-presets {
     grid-template-columns: 1fr;
   }
+}
+
+/* Price Level Styles - Labels are created dynamically in price-level.ts */
+:deep(.price-level-label) {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 

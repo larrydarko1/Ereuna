@@ -2,6 +2,7 @@ import { TrendLineManager } from './trendline';
 import { BoxManager } from './box';
 import { TextAnnotationManager } from './text-annotation';
 import { FreehandManager } from './freehand';
+import { PriceLevelManager } from './price-level';
 
 /**
  * Simple auto-save manager that persists drawings per symbol
@@ -15,6 +16,7 @@ export class DrawingPersistence {
     private boxManager: BoxManager | null = null;
     private textAnnotationManager: TextAnnotationManager | null = null;
     private freehandManager: FreehandManager | null = null;
+    private priceLevelManager: PriceLevelManager | null = null;
     private saveTimeout: ReturnType<typeof setTimeout> | null = null;
     private isLoading: boolean = false;
 
@@ -24,7 +26,8 @@ export class DrawingPersistence {
         trendlineManager?: TrendLineManager,
         boxManager?: BoxManager,
         textAnnotationManager?: TextAnnotationManager,
-        freehandManager?: FreehandManager
+        freehandManager?: FreehandManager,
+        priceLevelManager?: PriceLevelManager
     ) {
         this.user = user;
         this.apiKey = apiKey;
@@ -32,6 +35,7 @@ export class DrawingPersistence {
         this.boxManager = boxManager || null;
         this.textAnnotationManager = textAnnotationManager || null;
         this.freehandManager = freehandManager || null;
+        this.priceLevelManager = priceLevelManager || null;
     }
 
     /**
@@ -48,12 +52,14 @@ export class DrawingPersistence {
         trendlineManager?: TrendLineManager,
         boxManager?: BoxManager,
         textAnnotationManager?: TextAnnotationManager,
-        freehandManager?: FreehandManager
+        freehandManager?: FreehandManager,
+        priceLevelManager?: PriceLevelManager
     ): void {
         if (trendlineManager) this.trendlineManager = trendlineManager;
         if (boxManager) this.boxManager = boxManager;
         if (textAnnotationManager) this.textAnnotationManager = textAnnotationManager;
         if (freehandManager) this.freehandManager = freehandManager;
+        if (priceLevelManager) this.priceLevelManager = priceLevelManager;
     }
 
     /**
@@ -95,6 +101,9 @@ export class DrawingPersistence {
             }
             if (this.freehandManager && data.freehandPaths) {
                 this.freehandManager.loadPaths(data.freehandPaths);
+            }
+            if (this.priceLevelManager && data.priceLevels) {
+                this.priceLevelManager.deserialize(data.priceLevels);
             }
         } catch (error) {
             console.error('Error loading drawings:', error);
@@ -138,6 +147,7 @@ export class DrawingPersistence {
                 boxes: this.boxManager?.getBoxes() || [],
                 textAnnotations: this.textAnnotationManager?.getAnnotations() || [],
                 freehandPaths: this.freehandManager?.getPaths() || [],
+                priceLevels: this.priceLevelManager?.serialize() || [],
             };
 
             const response = await fetch('/api/chartdrawings', {
@@ -180,6 +190,9 @@ export class DrawingPersistence {
             if (this.freehandManager) {
                 this.freehandManager.loadPaths([]);
             }
+            if (this.priceLevelManager) {
+                this.priceLevelManager.clear();
+            }
 
             // Clear on server
             const response = await fetch(
@@ -210,11 +223,13 @@ export class DrawingPersistence {
         const boxes = this.boxManager?.getBoxes() || [];
         const annotations = this.textAnnotationManager?.getAnnotations() || [];
         const paths = this.freehandManager?.getPaths() || [];
+        const priceLevels = this.priceLevelManager?.serialize() || [];
 
         return trendLines.length > 0 ||
             boxes.length > 0 ||
             annotations.length > 0 ||
-            paths.length > 0;
+            paths.length > 0 ||
+            priceLevels.length > 0;
     }
 
     /**

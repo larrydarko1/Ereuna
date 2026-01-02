@@ -232,6 +232,7 @@ export default {
         deleteRecommendation1: 'Exportar cualquier dato que desee conservar',
         deleteRecommendation2: 'Cancelar cualquier suscripción activa',
         deleteReview: 'Por favor revise esta decisión cuidadosamente antes de continuar.',
+        translationDisclaimer: 'Algunas traducciones pueden ser inexactas ya que son generadas por IA.',
     },
 
     // Portafolio
@@ -1089,6 +1090,7 @@ export default {
         moreOptionsTitle: 'Más Opciones',
         moreOptionsAriaLabel: 'Mostrar más opciones de lista de vigilancia',
         createWatchlist: 'Crear Lista de Vigilancia',
+        createNote: 'Crear Nota',
         renameWatchlist: 'Renombrar Lista de Vigilancia',
         deleteWatchlist: 'Eliminar Lista de Vigilancia',
         importWatchlist: 'Importar Lista de Vigilancia',

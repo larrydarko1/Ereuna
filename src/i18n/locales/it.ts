@@ -234,6 +234,7 @@ export default {
         deleteRecommendation1: 'Esportare tutti i dati che desideri conservare',
         deleteRecommendation2: 'Cancellare eventuali abbonamenti attivi',
         deleteReview: 'Si prega di rivedere attentamente questa decisione prima di procedere.',
+        translationDisclaimer: 'Alcune traduzioni potrebbero essere imprecise in quanto generate da IA.',
     },
 
     // Portfolio
@@ -1093,6 +1094,7 @@ export default {
         moreOptionsTitle: 'Altre Opzioni',
         moreOptionsAriaLabel: 'Mostra più opzioni lista di controllo',
         createWatchlist: 'Crea Lista di Controllo',
+        createNote: 'Crea Nota',
         renameWatchlist: 'Rinomina Lista di Controllo',
         deleteWatchlist: 'Elimina Lista di Controllo',
         importWatchlist: 'Importa Lista di Controllo',

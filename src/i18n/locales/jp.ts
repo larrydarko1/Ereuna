@@ -234,6 +234,7 @@ export default {
         deleteRecommendation1: '保持したいデータをエクスポートする',
         deleteRecommendation2: 'アクティブなサブスクリプションをキャンセルする',
         deleteReview: '続行する前に、この決定を慎重に見直してください。',
+        translationDisclaimer: 'AI生成のため、一部の翻訳は不正確な場合があります。',
     },
 
     // Portfolio
@@ -1093,6 +1094,7 @@ export default {
         moreOptionsTitle: 'その他のオプション',
         moreOptionsAriaLabel: 'ウォッチリストのオプションを表示',
         createWatchlist: 'ウォッチリストを作成',
+        createNote: 'ノートを作成',
         renameWatchlist: 'ウォッチリストの名前変更',
         deleteWatchlist: 'ウォッチリストを削除',
         importWatchlist: 'ウォッチリストをインポート',

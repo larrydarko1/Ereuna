@@ -234,6 +234,7 @@ export default {
         deleteRecommendation1: 'Экспортировать любые данные, которые вы хотите сохранить',
         deleteRecommendation2: 'Отменить все активные подписки',
         deleteReview: 'Пожалуйста, внимательно рассмотрите это решение перед продолжением.',
+        translationDisclaimer: 'Некоторые переводы могут быть неточными, так как они сгенерированы ИИ.',
     },
 
     // Portfolio
@@ -1093,6 +1094,7 @@ export default {
         moreOptionsTitle: 'Больше опций',
         moreOptionsAriaLabel: 'Показать больше опций списка наблюдения',
         createWatchlist: 'Создать список наблюдения',
+        createNote: 'Создать заметку',
         renameWatchlist: 'Переименовать список наблюдения',
         deleteWatchlist: 'Удалить список наблюдения',
         importWatchlist: 'Импортировать список наблюдения',

@@ -1,48 +1,47 @@
 <template>
   <div class="doc-content">
-    <h1>Dividend and Split Tables</h1>
+    <h1>Edit / Delete Transactions</h1>
     
     <section>
       <h2>Overview</h2>
       <p>
-        In the <strong>Charts</strong> section, the left side panel includes tables dedicated to 
-        <strong>Dividends</strong> and <strong>Splits</strong> for each company or asset.
-      </p>
-      <img class="img" src="/docs/divsplit-table.png" alt="Dividend and Split tables displaying historical data">
-    </section>
-
-    <section>
-      <h2>Dividend Table</h2>
-      <p>
-        The <strong>Dividend Table</strong> lists all dividend payment dates along with the corresponding dividend amounts, 
-        allowing you to quickly see how much the asset has paid out over time.
+        In the transaction history section, each row represents a transaction. You can edit and delete 
+        transactions using the action buttons found on the right side of each transaction in the Actions column.
       </p>
     </section>
 
     <section>
-      <h2>Split Table</h2>
-      <p>
-        The <strong>Split Table</strong> displays all split and reverse split events, showing the date and the split 
-        factor for each event. This helps you track how many times an asset has split or reverse split and the 
-        magnitude of each change.
-      </p>
-    </section>
-
-    <section>
-      <h2>Important Notes</h2>
+      <h2>Transaction Types</h2>
       <div class="note-box">
-        <h3>Historical Record</h3>
+        <h3>Trades</h3>
         <p>
-          These tables provide a clear historical record of dividend payments and stock splits, making it easy 
-          to analyze the asset's corporate actions over time.
+          Trades can be both edited and deleted. When editing a trade, you can modify almost everything 
+          except the symbol (changing the symbol would create an entirely new position).
         </p>
       </div>
 
       <div class="note-box">
-        <h3>Data Availability</h3>
+        <h3>Cash Transactions</h3>
         <p>
-          Only assets with dividend or split history will display these tables. If an asset has never paid 
-          dividends or had splits, the respective tables will not be shown.
+          Cash transactions can only be deleted. They cannot be edited.
+        </p>
+      </div>
+
+      <div class="note-box">
+        <h3>Dividends</h3>
+        <p>
+          Dividends cannot be deleted directly. They can only be removed by deleting the trade that 
+          had the stock which generated the dividend.
+        </p>
+      </div>
+    </section>
+    <section>
+      <h2>Portfolio Recalculation</h2>
+      <div class="note-box">
+        <h3>Automatic Updates</h3>
+        <p>
+          All changes are snowballing on the entire portfolio. When you edit or delete a transaction, 
+          the portfolio recalculates from scratch to maintain stability and ensure all values remain accurate.
         </p>
       </div>
     </section>
@@ -50,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-// Documentation component for Dividend and Split Tables feature
+// Documentation component for Edit / Delete Transactions feature
 </script>
 
 <style scoped>
@@ -121,13 +120,5 @@ p {
 strong {
   color: var(--brand-text-primary);
   font-weight: 600;
-}
-
-.img {
-  width: 100%;
-  margin: 1.5rem 0;
-  border-radius: 8px;
-  border: 1px solid var(--brand-glass-border);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 </style>
