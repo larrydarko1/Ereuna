@@ -38,12 +38,22 @@ export class TrendLineManager {
     private defaultLineWidth: number = 1;
     private visibleRangeChangeHandler: (() => void) | null = null;
     private onChangeCallback: (() => void) | null = null;
+    private onActivateCallback: (() => void) | null = null;
+    private globalClickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
+    private keyDownHandler: ((event: KeyboardEvent) => void) | null = null;
 
     constructor(chart: IChartApi, mainSeries?: any) {
         this.chart = chart;
         this.mainSeries = mainSeries;
         this.setupCanvas();
         this.subscribeToChartEvents();
+
+        // Always listen for clicks to detect trendline selection
+        this.setupGlobalClickListener();
+
+        // Always listen for keyboard events (for deletion)
+        this.keyDownHandler = this.handleKeyDown.bind(this);
+        document.addEventListener('keydown', this.keyDownHandler);
     }
 
     /**
@@ -51,6 +61,13 @@ export class TrendLineManager {
      */
     public onChange(callback: () => void): void {
         this.onChangeCallback = callback;
+    }
+
+    /**
+     * Set callback to be called when tool should be auto-activated
+     */
+    public onActivate(callback: () => void): void {
+        this.onActivateCallback = callback;
     }
 
     /**
@@ -68,6 +85,43 @@ export class TrendLineManager {
             this.draw();
         };
         this.chart.timeScale().subscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
+    }
+
+    private setupGlobalClickListener(): void {
+        // This handler is always active to detect clicks on trendlines
+        this.globalClickHandler = (param: MouseEventParams<Time>) => {
+            if (this.isActive) return; // Don't interfere when tool is already active
+            if (!param.point) return;
+
+            // Check if clicking on an existing line
+            const lineHit = this.hitTestLine(param.point.x, param.point.y);
+            if (lineHit) {
+                this.selectedLineId = lineHit;
+                this.draw();
+                // Auto-activate the tool
+                if (this.onActivateCallback) {
+                    this.onActivateCallback();
+                }
+            }
+        };
+        this.chart.subscribeClick(this.globalClickHandler);
+    }
+
+    private handleKeyDown(event: KeyboardEvent): void {
+        // Check if Backspace or Delete key was pressed
+        if (event.key === 'Backspace' || event.key === 'Delete') {
+            // Don't delete if user is typing in an input field
+            const target = event.target as HTMLElement;
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+                return;
+            }
+
+            // Delete the selected line if there is one
+            if (this.selectedLineId) {
+                event.preventDefault();
+                this.removeSelectedLine();
+            }
+        }
     }
 
     public setMainSeries(series: any): void {
@@ -209,7 +263,7 @@ export class TrendLineManager {
                 };
                 this.trendLines.push(newLine);
                 this.currentLine = { point1: null, point2: null };
-                this.selectedLineId = newLine.id;
+                this.selectedLineId = null; // Don't keep it selected after creation
                 this.triggerChange(); // Trigger auto-save
             }
 
@@ -528,8 +582,8 @@ export class TrendLineManager {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Draw control points if selected
-        if (isSelected && !line.locked) {
+        // Draw control points only if selected AND actively being dragged/edited
+        if (isSelected && !line.locked && this.isDragging) {
             this.drawControlPoint(point1.x, point1.y, color);
             this.drawControlPoint(point2.x, point2.y, color);
         }
@@ -577,6 +631,18 @@ export class TrendLineManager {
         if (this.visibleRangeChangeHandler) {
             this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
             this.visibleRangeChangeHandler = null;
+        }
+
+        // Remove global click handler
+        if (this.globalClickHandler) {
+            this.chart.unsubscribeClick(this.globalClickHandler);
+            this.globalClickHandler = null;
+        }
+
+        // Remove keyboard handler
+        if (this.keyDownHandler) {
+            document.removeEventListener('keydown', this.keyDownHandler);
+            this.keyDownHandler = null;
         }
 
         if (this.canvas && this.canvas.parentElement) {

@@ -234,6 +234,7 @@ export default {
         deleteRecommendation1: 'تصدير أي بيانات ترغب في الاحتفاظ بها',
         deleteRecommendation2: 'إلغاء أي اشتراكات نشطة',
         deleteReview: 'يرجى مراجعة هذا القرار بعناية قبل المتابعة.',
+        translationDisclaimer: 'قد تكون بعض الترجمات غير دقيقة لأنها مُولّدة بواسطة الذكاء الاصطناعي.',
     },
 
     // Portfolio
@@ -1093,6 +1094,7 @@ export default {
         moreOptionsTitle: 'المزيد من الخيارات',
         moreOptionsAriaLabel: 'إظهار المزيد من خيارات قائمة المراقبة',
         createWatchlist: 'إنشاء قائمة مراقبة',
+        createNote: 'إنشاء ملاحظة',
         renameWatchlist: 'إعادة تسمية قائمة المراقبة',
         deleteWatchlist: 'حذف قائمة المراقبة',
         importWatchlist: 'استيراد قائمة مراقبة',

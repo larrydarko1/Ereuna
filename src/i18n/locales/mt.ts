@@ -234,6 +234,7 @@ export default {
         deleteRecommendation1: 'Esporta kwalunkwe data li tixtieq iżżomm',
         deleteRecommendation2: 'Ikkanċella kwalunkwe abbonament attiv',
         deleteReview: 'Jekk jogħġbok irrevedi din id-deċiżjoni bir-reqqa qabel tkompli.',
+        translationDisclaimer: 'Xi traduzzjonijiet jistgħu ma jkunux preċiżi għax huma ġġenerati minn AI.',
     },
 
     // Portfolio
@@ -1093,6 +1094,7 @@ export default {
         moreOptionsTitle: 'Aktar Għażliet',
         moreOptionsAriaLabel: 'Uri aktar għażliet tal-watchlist',
         createWatchlist: 'Oħloq Watchlist',
+        createNote: 'Oħloq Nota',
         renameWatchlist: 'Semmi mill-ġdid Watchlist',
         deleteWatchlist: 'Ħassar Watchlist',
         importWatchlist: 'Importa Watchlist',

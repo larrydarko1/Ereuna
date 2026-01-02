@@ -1,45 +1,103 @@
 <template>
- <div class="center-container">
+  <div class="doc-content">
     <h1>Downloading Screener Results</h1>
-    <img src="/docs/download-list.gif" alt="">
-    <p>To download the results from your screener, locate the "Download Results" button in the menu and click on it. This will download a CSV table containing all the results from the current list.</p>
- </div>
+    
+    <section>
+      <img class="img" src="/docs/download-list.gif" alt="Downloading screener results demo">
+    </section>
+
+    <section>
+      <h2>How to Download Results</h2>
+      <p>
+        To download the results from your screener, locate the <strong>"Download Results"</strong> button in 
+        the menu and click on it. This will download a CSV table containing all the results from the current list.
+      </p>
+    </section>
+  </div>
 </template>
 
 <script setup lang="ts">
+// Documentation component for Downloading Screener Results
 </script>
 
-<style scoped lang="scss">
-
-.center-container {
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-    width: 100%;
-    padding: 2rem 0;
+<style scoped>
+.doc-content {
+  max-width: 900px;
+  color: var(--brand-text-primary);
+  line-height: 1.8;
 }
 
-.center-container h1 {
-    font-size: 2.5rem;
-    color: var(--brand-text-primary);
-    margin-bottom: 1.5rem;
-    text-align: center;
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--brand-text-primary);
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, var(--brand-gradient-start) 0%, var(--brand-gradient-end) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.center-container p,
-.center-container strong,
-.center-container b {
-    font-size: 1.4rem;
-    color: var(--brand-text-secondary);
-    margin-bottom: 1rem;
-    line-height: 1.6;
-    overflow-wrap: anywhere;
+h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--brand-text-primary);
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--brand-glass-border);
 }
 
-.center-container a {
-    color: var(--brand-gradient-end);
-    text-decoration: underline;
-    font-size: 1.4rem;
-    overflow-wrap: anywhere;
+h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--brand-text-primary);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+section {
+  margin-bottom: 2rem;
+}
+
+p {
+  font-size: 1rem;
+  color: var(--brand-text-secondary);
+  margin-bottom: 1rem;
+}
+
+ol, ul {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+li {
+  font-size: 1rem;
+  color: var(--brand-text-secondary);
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+strong {
+  color: var(--brand-text-primary);
+  font-weight: 600;
+}
+
+a {
+  color: var(--brand-gradient-end);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--brand-gradient-start);
+  text-decoration: underline;
+}
+
+.img {
+  width: 100%;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 </style>

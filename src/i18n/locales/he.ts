@@ -234,6 +234,7 @@ export default {
         deleteRecommendation1: 'ייצא כל נתון שברצונך לשמור',
         deleteRecommendation2: 'בטל כל מנוי פעיל',
         deleteReview: 'אנא בדוק החלטה זו בקפידה לפני המשך.',
+        translationDisclaimer: 'חלק מהתרגומים עשויים להיות לא מדויקים מכיוון שהם נוצרו על ידי בינה מלאכותית.',
     },
 
     // Portfolio
@@ -1093,6 +1094,7 @@ export default {
         moreOptionsTitle: 'אפשרויות נוספות',
         moreOptionsAriaLabel: 'הצג אפשרויות רשימת מעקב נוספות',
         createWatchlist: 'צור רשימת מעקב',
+        createNote: 'צור הערה',
         renameWatchlist: 'שנה שם רשימת מעקב',
         deleteWatchlist: 'מחק רשימת מעקב',
         importWatchlist: 'ייבא רשימת מעקב',

@@ -20,9 +20,18 @@
     "dbup": "mongodump --db=EreunaDB --out=db/dump",
     "websocket": "uvicorn server.websocket.websocket:app --host 0.0.0.0 --port 8000",
     "ingestor": "uvicorn server.ingestor.ingestor:app --host 0.0.0.0 --port 8001",
-    "aggregator": "uvicorn server.aggregator.app:app --host 0.0.0.0 --port 8002"
+    "aggregator": "uvicorn server.aggregator.app:app --host 0.0.0.0 --port 8002",
+    "mobile:sync": "npm run build && cap sync",
+    "mobile:ios": "cap open ios",
+    "mobile:android": "cap open android",
+    "mobile:run:ios": "cap run ios",
+    "mobile:run:android": "cap run android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
     "@stripe/stripe-js": "^5.0.0",
     "argon2": "^0.41.1",
     "assert": "^2.1.0",

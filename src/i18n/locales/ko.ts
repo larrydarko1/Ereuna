@@ -234,6 +234,7 @@ export default {
         deleteRecommendation1: '\ubcf4\uad00\ud558\ub824\ub294 \ub370\uc774\ud130 \ub0b4\ubcf4\ub0b4\uae30',
         deleteRecommendation2: '\ud65c\uc131 \uad6c\ub3c5 \ucde8\uc18c',
         deleteReview: '\uacc4\uc18d\ud558\uae30 \uc804\uc5d0 \uc774 \uacb0\uc815\uc744 \uc2e0\uc911\ud788 \uac80\ud1a0\ud558\uc2ed\uc2dc\uc624.',
+        translationDisclaimer: 'AI로 생성되었으며 일부 번역이 부정확할 수 있습니다.',
     },
 
     // Portfolio
@@ -1093,6 +1094,7 @@ export default {
         moreOptionsTitle: '더 보기',
         moreOptionsAriaLabel: '관심목록 옵션 더 보기',
         createWatchlist: '관심목록 만들기',
+        createNote: '노트 만들기',
         renameWatchlist: '관심목록 이름 변경',
         deleteWatchlist: '관심목록 삭제',
         importWatchlist: '관심목록 가져오기',

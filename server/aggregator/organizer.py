@@ -45,6 +45,7 @@ def async_retry_on_disconnect(max_retries=3, delay=2):
 try:
     from server.aggregator.delist import Delist, scanDelisted, prune_intraday_collections
     from server.aggregator.signal_analyzer import run_signal_analysis
+    from server.aggregator.financial_updater import checkAndUpdateFinancialUpdates
     from server.aggregator.helper import (
         maintenanceMode,
         getMonday,
@@ -1210,221 +1211,15 @@ async def getHistoricalPrice2(tickerID):
         pass  # Print removed for clean output
 
 #scan endpoints for financial statements updates and update symbol when it does
-async def checkAndUpdateFinancialUpdates():
-    """Fetch financial data from AlphaVantage and update database with new reports"""
-    start_time = time.time()
-    collection = db['AssetInfo']
-    
-    # Only get symbols that are stocks and not delisted
-    tickers = [doc['Symbol'] async for doc in collection.find({
-        'AssetType': 'Stock',
-        'Delisted': False
-    })]
-    
-    print(f"Checking financial updates for {len(tickers)} stocks...")
-    new_tickers_data = {}
-    
-    total_tickers = len(tickers)
-    processed = 0
-    errors = 0
-    
-    def print_financials_progress(processed, total, errors, bar_length=50):
-        """Print progress bar for financial updates"""
-        percentage = int(100 * processed / total) if total > 0 else 0
-        filled_length = int(bar_length * processed / total) if total > 0 else 0
-        bar = '█' * filled_length + '░' * (bar_length - filled_length)
-        error_str = f" | {errors} errors" if errors > 0 else ""
-        print(f'\r  Progress: |{bar}| {percentage}% ({processed}/{total} stocks{error_str})', end='', flush=True)
-    
-    async def fetch_alphavantage_financials(symbol):
-        """Fetch and consolidate financial data from AlphaVantage's 3 endpoints"""
-        statements = ['INCOME_STATEMENT', 'BALANCE_SHEET', 'CASH_FLOW']
-        results = {}
-        
-        for statement_type in statements:
-            url = f'https://www.alphavantage.co/query?function={statement_type}&symbol={symbol}&apikey={alphavantage_key}'
-            
-            try:
-                response = requests.get(url, timeout=30)
-                if response.status_code == 200:
-                    data = response.json()
-                    
-                    # Check for API error messages
-                    if 'Error Message' in data or 'Note' in data:
-                        return None
-                    
-                    results[statement_type] = data
-                else:
-                    return None
-                    
-                # Rate limiting: 1 request per second (AlphaVantage free tier limit)
-                await asyncio.sleep(2)
-                
-            except Exception as e:
-                return None
-        
-        # Consolidate the 3 statements by fiscalDateEnding
-        if len(results) != 3:
-            return None
-            
-        consolidated = {
-            'AnnualFinancials': [],
-            'quarterlyFinancials': []
-        }
-        
-        # Merge annual reports
-        annual_dates = {}
-        for statement_type, data in results.items():
-            reports = data.get('annualReports', [])
-            for report in reports:
-                date = report.get('fiscalDateEnding')
-                if date:
-                    if date not in annual_dates:
-                        annual_dates[date] = {}
-                    annual_dates[date].update(report)
-        
-        # Convert to list and sort by date (newest first)
-        consolidated['AnnualFinancials'] = [annual_dates[date] for date in sorted(annual_dates.keys(), reverse=True)]
-        
-        # Merge quarterly reports
-        quarterly_dates = {}
-        for statement_type, data in results.items():
-            reports = data.get('quarterlyReports', [])
-            for report in reports:
-                date = report.get('fiscalDateEnding')
-                if date:
-                    if date not in quarterly_dates:
-                        quarterly_dates[date] = {}
-                    quarterly_dates[date].update(report)
-        
-        # Convert to list and sort by date (newest first)
-        consolidated['quarterlyFinancials'] = [quarterly_dates[date] for date in sorted(quarterly_dates.keys(), reverse=True)]
-        
-        return consolidated
-    
-    print_financials_progress(0, total_tickers, 0)
-
-    for ticker in tickers:
-        try:
-            # Fetch consolidated financial data from AlphaVantage
-            alphavantage_data = await fetch_alphavantage_financials(ticker)
-            
-            if not alphavantage_data:
-                errors += 1
-                processed += 1
-                print_financials_progress(processed, total_tickers, errors)
-                continue
-            
-            # Find existing document in MongoDB
-            result = await collection.find_one({'Symbol': ticker})
-            
-            if result:
-                new_data_found = False
-                annual_financials_to_add = []
-                quarterly_financials_to_add = []
-                
-                # Get existing dates
-                existing_annual_dates = set(
-                    str(item.get('fiscalDateEnding', '')).split('T')[0].split()[0] 
-                    for item in result.get('AnnualFinancials', [])
-                )
-                existing_quarterly_dates = set(
-                    str(item.get('fiscalDateEnding', '')).split('T')[0].split()[0]
-                    for item in result.get('quarterlyFinancials', [])
-                )
-                
-                # Process annual financials
-                for i, report in enumerate(alphavantage_data['AnnualFinancials']):
-                    date_str = report.get('fiscalDateEnding', '')
-                    if date_str and date_str not in existing_annual_dates:
-                        # Transform using mapping
-                        transformed = transform_to_db_structure(report, is_quarterly=False, prev_data=None)
-                        if transformed:
-                            annual_financials_to_add.append(transformed)
-                            new_data_found = True
-                
-                # Process quarterly financials
-                for i, report in enumerate(alphavantage_data['quarterlyFinancials']):
-                    date_str = report.get('fiscalDateEnding', '')
-                    if date_str and date_str not in existing_quarterly_dates:
-                        # Get previous quarter data for QoQ calculations
-                        prev_data = None
-                        if i + 1 < len(alphavantage_data['quarterlyFinancials']):
-                            prev_data = alphavantage_data['quarterlyFinancials'][i + 1]
-                        
-                        # Transform using mapping
-                        transformed = transform_to_db_structure(report, is_quarterly=True, prev_data=prev_data)
-                        if transformed:
-                            quarterly_financials_to_add.append(transformed)
-                            new_data_found = True
-                
-                # If new data found, add to update queue
-                if new_data_found:
-                    new_tickers_data[ticker] = {
-                        'annual_to_add': annual_financials_to_add,
-                        'quarterly_to_add': quarterly_financials_to_add
-                    }
-                    
-        except Exception as e:
-            errors += 1
-        
-        processed += 1
-        print_financials_progress(processed, total_tickers, errors)
-    
-    print()  # Move to next line after progress bar
-    
-    # Update database with new financial reports
-    if new_tickers_data:
-        print(f"Updating {len(new_tickers_data)} stocks with new financial data...")
-        
-        for ticker, data in new_tickers_data.items():
-            # Get existing document
-            doc = await collection.find_one({'Symbol': ticker})
-            if not doc:
-                continue
-            
-            # Merge new reports with existing and sort by date (newest first)
-            if data['annual_to_add']:
-                existing_annual = doc.get('AnnualFinancials', [])
-                all_annual = existing_annual + data['annual_to_add']
-                # Sort by fiscalDateEnding (newest first)
-                all_annual.sort(key=lambda x: x['fiscalDateEnding'], reverse=True)
-                await collection.update_one(
-                    {'Symbol': ticker},
-                    {'$set': {'AnnualFinancials': all_annual}}
-                )
-            
-            if data['quarterly_to_add']:
-                existing_quarterly = doc.get('quarterlyFinancials', [])
-                all_quarterly = existing_quarterly + data['quarterly_to_add']
-                # Sort by fiscalDateEnding (newest first)
-                all_quarterly.sort(key=lambda x: x['fiscalDateEnding'], reverse=True)
-                await collection.update_one(
-                    {'Symbol': ticker},
-                    {'$set': {'quarterlyFinancials': all_quarterly}}
-                )
-        
-        print(f"✓ Updated {len(new_tickers_data)} stocks with new financial reports in chronological order")
-    else:
-        print("No new financial data found")
-    
-    # Update derived fields
-    if asyncio.iscoroutinefunction(update_eps_shares_dividend_date):
-        await update_eps_shares_dividend_date()
-    else:
-        update_eps_shares_dividend_date()
-    if asyncio.iscoroutinefunction(calculate_qoq_changes):
-        await calculate_qoq_changes()
-    else:
-        calculate_qoq_changes()
-    if asyncio.iscoroutinefunction(calculate_YoY_changes):
-        await calculate_YoY_changes()
-    else:
-        calculate_YoY_changes()
-    
-    end_time = time.time()
-    execution_time_in_minutes = (end_time - start_time) / 60
-    print(f"Financial updates completed in {execution_time_in_minutes:.2f} minutes")
+# NOTE: This function has been moved to financial_updater.py
+# It can be imported from: from server.aggregator.financial_updater import checkAndUpdateFinancialUpdates
+# Or run standalone: python server/aggregator/financial_updater.py
+"""
+async def checkAndUpdateFinancialUpdates(force_restart=False):
+    # Function moved to financial_updater.py for standalone execution
+    # See server/aggregator/financial_updater.py
+    pass
+"""
 
 #updates assetinfo with recent ohclvdata 
 async def updateTimeSeries():

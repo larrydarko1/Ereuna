@@ -11,8 +11,6 @@ import { useUserStore } from './store/store';
 // If your store is Vuex, you need to migrate it to Pinia for full TS support. If already Pinia, you don't need to use 'store' as a plugin.
 // import store from './store/store'; // Remove if using Pinia only
 
-
-
 // --- THEME PERSISTENCE LOGIC (run before app creation) ---
 const themes = [
     'default', 'ihatemyeyes', 'colorblind', 'catpuccin', 'black',

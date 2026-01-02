@@ -28,5 +28,13 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src') // Add alias for src directory
     }
   },
-  build: {},
+  build: {
+    outDir: 'dist',
+    // Ensure assets are properly referenced for mobile
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      }
+    }
+  },
 })

@@ -146,7 +146,7 @@
                 />
               </g>
             </svg>
-            {{ t('watchlistComponent.createWatchlist') }}
+            {{ t('watchlistComponent.createNote') }}
           </button>
           <button class="dropdown-item" @click="showCreateWatchlistModal = true" v-b-tooltip.hover :title="t('watchlistComponent.createWatchlist')" :aria-label="t('watchlistComponent.createWatchlist')">
             <svg class="img4" viewBox="0 0 32.219 32.219" fill="var(--text1)" xmlns="http://www.w3.org/2000/svg">

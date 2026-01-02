@@ -234,6 +234,7 @@ export default {
         deleteRecommendation1: 'Exportare omnia data quae vis servare',
         deleteRecommendation2: 'Rescindere omnes subscriptiones activas',
         deleteReview: 'Quaeso, perscrutare hanc decisionem diligenter antequam procedas.',
+        translationDisclaimer: 'Nonnullae translationes fortasse inaccuratae sunt quia ab AI generatae sunt.',
     },
 
     // Portfolio
@@ -1093,6 +1094,7 @@ export default {
         moreOptionsTitle: 'Plures Optiones',
         moreOptionsAriaLabel: 'Monstrare plures optiones custodiae',
         createWatchlist: 'Creare Custodiam',
+        createNote: 'Creare Notam',
         renameWatchlist: 'Renominare Custodiam',
         deleteWatchlist: 'Delere Custodiam',
         importWatchlist: 'Importare Custodiam',

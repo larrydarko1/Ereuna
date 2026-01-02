@@ -1,80 +1,115 @@
 <template>
-<div class="center-container">
-  <h1>News</h1>
-  <p>
-    In the left panel of the <b>Charts</b> section, you can now view the 5 most recent news articles related to the selected symbol.
-  </p>
-  <img class="img" src="/docs/news.png" alt="News Section Example">
-  <p>
-    Clicking on "Read More" for any article will redirect you to the full blog post containing the complete content.
-  </p>
-  <div class="disclaimer-box">
-    <p>Disclaimer: Ereuna and its creators take no responsibility for the safety or content of external news websites. Additionally, some articles may become unavailable over time.</p>
+  <div class="doc-content">
+    <h1>News</h1>
+    
+    <section>
+      <h2>Overview</h2>
+      <p>
+        In the left panel of the <strong>Charts</strong> section, you can view the 5 most recent news articles 
+        related to the selected symbol.
+      </p>
+      <img class="img" src="/docs/news.png" alt="News articles displayed in the Charts section">
+    </section>
+
+    <section>
+      <h2>How to Use</h2>
+      <p>
+        Clicking on "Read More" for any article will redirect you to the full blog post containing the complete content.
+      </p>
+    </section>
+
+    <section>
+      <h2>Important Notes</h2>
+      <div class="note-box">
+        <h3>Disclaimer</h3>
+        <p>
+          Ereuna and its creators take no responsibility for the safety or content of external news websites. 
+          Additionally, some articles may become unavailable over time.
+        </p>
+      </div>
+    </section>
   </div>
-</div>
 </template>
 
 <script setup lang="ts">
+// Documentation component for News feature
 </script>
 
-<style scoped lang="scss">
-
-.center-container {
-    display: flex;
-    flex-direction: column;
-    text-align: left;
+<style scoped>
+.doc-content {
+  max-width: 900px;
+  color: var(--brand-text-primary);
+  line-height: 1.8;
 }
 
-.center-container h1 {
-    text-align: center;
-    font-size: 2rem;
-    color: var(--brand-text-primary);
-    margin-bottom: 2rem;
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--brand-text-primary);
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, var(--brand-gradient-start) 0%, var(--brand-gradient-end) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.center-container p {
-    color: var(--brand-text-secondary);
-    font-size: 1.4rem;
-    margin-bottom: 1rem;
-    overflow-wrap: anywhere;
+h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--brand-text-primary);
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--brand-glass-border);
 }
 
-.center-container p strong,
-.center-container b {
-    font-size: inherit;
-    color: var(--brand-text-secondary);
+h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--brand-text-primary);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.center-container a {
-    color: var(--brand-gradient-end);
-    font-size: inherit;
+section {
+  margin-bottom: 2rem;
 }
 
-.disclaimer-box {
-    background: var(--brand-bg-secondary);
-    border-radius: 5px;
-    padding: 1.5rem;
-    margin: 0 0 2rem 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+p {
+  font-size: 1rem;
+  color: var(--brand-text-secondary);
+  margin-bottom: 1rem;
 }
 
-.disclaimer-box h4 {
-    font-size: 1.6rem;
-    color: var(--brand-gradient-start);
-    margin-bottom: 1rem;
-    margin-top: 0;
-    font-weight: bold;
-    overflow-wrap: anywhere;
+.note-box {
+  background: linear-gradient(135deg, rgba(122, 162, 247, 0.08) 0%, rgba(137, 221, 255, 0.08) 100%);
+  border: 1px solid var(--brand-glass-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.disclaimer-box p {
-    font-size: 1.4rem;
-    color: var(--brand-text-secondary);
-    margin: 0;
-    overflow-wrap: anywhere;
+.note-box h3 {
+  margin-top: 0;
+  color: var(--brand-gradient-start);
+  font-size: 1.1rem;
 }
+
+.note-box p {
+  margin-bottom: 0;
+}
+
+strong {
+  color: var(--brand-text-primary);
+  font-weight: 600;
+}
+
 .img {
-    width: 100%;
-    margin-bottom: 1rem;
+  width: 100%;
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  border: 1px solid var(--brand-glass-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 </style>

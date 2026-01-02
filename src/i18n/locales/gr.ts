@@ -234,6 +234,7 @@ export default {
         deleteRecommendation1: 'Εξαγωγή δεδομένων που θέλετε',
         deleteRecommendation2: 'Ακύρωση ενεργών συνδρομών',
         deleteReview: 'Εξετάστε προσεκτικά πριν συνεχίσετε.',
+        translationDisclaimer: 'Ορισμένες μεταφράσεις μπορεί να είναι ανακριβείς καθώς δημιουργούνται από τεχνητή νοημοσύνη.',
     },
 
     // Portfolio
@@ -1093,6 +1094,7 @@ export default {
         moreOptionsTitle: 'Περισσότερες Επιλογές',
         moreOptionsAriaLabel: 'Εμφάνιση επιλογών',
         createWatchlist: 'Δημιουργία Λίστας',
+        createNote: 'Δημιουργία Σημείωσης',
         renameWatchlist: 'Μετονομασία',
         deleteWatchlist: 'Διαγραφή',
         importWatchlist: 'Εισαγωγή',

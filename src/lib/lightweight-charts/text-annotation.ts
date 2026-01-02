@@ -36,12 +36,22 @@ export class TextAnnotationManager {
     private visibleRangeChangeHandler: (() => void) | null = null;
     private isEditingText: boolean = false;
     private onChangeCallback: (() => void) | null = null;
+    private onActivateCallback: (() => void) | null = null;
+    private globalClickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
+    private keyDownHandler: ((event: KeyboardEvent) => void) | null = null;
 
     constructor(chart: IChartApi, mainSeries?: any) {
         this.chart = chart;
         this.mainSeries = mainSeries;
         this.setupCanvas();
         this.subscribeToChartEvents();
+
+        // Always listen for clicks to detect annotation selection
+        this.setupGlobalClickListener();
+
+        // Always listen for keyboard events (for deletion)
+        this.keyDownHandler = this.handleKeyDown.bind(this);
+        document.addEventListener('keydown', this.keyDownHandler);
     }
 
     /**
@@ -49,6 +59,13 @@ export class TextAnnotationManager {
      */
     public onChange(callback: () => void): void {
         this.onChangeCallback = callback;
+    }
+
+    /**
+     * Set callback to be called when tool should be auto-activated
+     */
+    public onActivate(callback: () => void): void {
+        this.onActivateCallback = callback;
     }
 
     /**
@@ -66,6 +83,43 @@ export class TextAnnotationManager {
             this.draw();
         };
         this.chart.timeScale().subscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
+    }
+
+    private setupGlobalClickListener(): void {
+        // This handler is always active to detect clicks on annotations
+        this.globalClickHandler = (param: MouseEventParams<Time>) => {
+            if (this.isActive) return; // Don't interfere when tool is already active
+            if (!param.point) return;
+
+            // Check if clicking on an existing annotation
+            const annotationHit = this.hitTestAnnotation(param.point.x, param.point.y);
+            if (annotationHit) {
+                this.selectedAnnotationId = annotationHit;
+                this.draw();
+                // Auto-activate the tool
+                if (this.onActivateCallback) {
+                    this.onActivateCallback();
+                }
+            }
+        };
+        this.chart.subscribeClick(this.globalClickHandler);
+    }
+
+    private handleKeyDown(event: KeyboardEvent): void {
+        // Check if Backspace or Delete key was pressed
+        if (event.key === 'Backspace' || event.key === 'Delete') {
+            // Don't delete if user is typing in an input field
+            const target = event.target as HTMLElement;
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+                return;
+            }
+
+            // Delete the selected annotation if there is one
+            if (this.selectedAnnotationId) {
+                event.preventDefault();
+                this.removeSelectedAnnotation();
+            }
+        }
     }
 
     public setMainSeries(series: any): void {
@@ -194,7 +248,7 @@ export class TextAnnotationManager {
                     };
 
                     this.annotations.push(newAnnotation);
-                    this.selectedAnnotationId = newAnnotation.id;
+                    this.selectedAnnotationId = null; // Don't keep it selected after creation
                     this.draw();
                     this.triggerChange(); // Trigger auto-save
                 }
@@ -450,8 +504,8 @@ export class TextAnnotationManager {
         this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 4);
         ctx.fill();
 
-        // Draw border if selected
-        if (isSelected) {
+        // Draw border only if selected AND actively being dragged
+        if (isSelected && this.isDragging) {
             ctx.strokeStyle = textColor;
             ctx.lineWidth = 2;
             this.roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 4);
@@ -503,6 +557,18 @@ export class TextAnnotationManager {
         if (this.visibleRangeChangeHandler) {
             this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
             this.visibleRangeChangeHandler = null;
+        }
+
+        // Remove global click handler
+        if (this.globalClickHandler) {
+            this.chart.unsubscribeClick(this.globalClickHandler);
+            this.globalClickHandler = null;
+        }
+
+        // Remove keyboard handler
+        if (this.keyDownHandler) {
+            document.removeEventListener('keydown', this.keyDownHandler);
+            this.keyDownHandler = null;
         }
 
         if (this.canvas && this.canvas.parentElement) {

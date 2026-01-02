@@ -234,6 +234,7 @@ export default {
         deleteRecommendation1: 'Eksporti iujn ajn datumojn kiujn vi volas konservi',
         deleteRecommendation2: 'Nuligi iujn ajn aktivajn abonojn',
         deleteReview: 'Bonvolu kontroli ĉi tiun decidon zorge antaŭ daŭrigi.',
+        translationDisclaimer: 'Kelkaj tradukoj povas esti neprecizaj ĉar ili estas generitaj de AI.',
     },
 
     // Portfolio
@@ -1093,6 +1094,7 @@ export default {
         moreOptionsTitle: 'Pli da Opcioj',
         moreOptionsAriaLabel: 'Montri pli da atentlistaj opcioj',
         createWatchlist: 'Krei Atentliston',
+        createNote: 'Krei Noton',
         renameWatchlist: 'Alinomi Atentliston',
         deleteWatchlist: 'Forigi Atentliston',
         importWatchlist: 'Importi Atentliston',

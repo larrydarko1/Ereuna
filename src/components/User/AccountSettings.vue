@@ -10,31 +10,44 @@
               {{ t('user.changeLanguage') }}
             </h2>
             <div style="display: flex; justify-content: center;">
-              <div class="solo-wrapper">
-                <select 
-                  class="userinput solo-input language-select" 
-                  v-model="selectedLanguage" 
-                  @change="changeLanguage"
+              <div class="solo-wrapper" ref="languageSelectWrapper">
+                <div 
+                  class="custom-select"
+                  @click="toggleLanguageDropdown"
+                  tabindex="0"
+                  @keydown.enter="toggleLanguageDropdown"
+                  @keydown.space.prevent="toggleLanguageDropdown"
+                  @keydown.escape="showLanguageDropdown = false"
+                  role="button"
                   aria-label="Select Language">
-                  <option value="en">English</option>
-                  <option value="zh">中文</option>
-                  <option value="es">Español</option>
-                  <option value="ar">العربية</option>
-                  <option value="fr">Français</option>
-                  <option value="pt">Português</option>
-                  <option value="ru">Русский</option>
-                  <option value="de">Deutsch</option>
-                  <option value="jp">日本語</option>
-                  <option value="ko">한국어</option>
-                  <option value="it">Italiano</option>
-                  <option value="gr">Ελληνικά</option>
-                  <option value="he">עברית</option>
-                  <option value="mt">Malti</option>
-                  <option value="ep">Esperanto</option>
-                  <option value="la">Latina</option>
-                </select>
+                  <span class="selected-language">{{ getLanguageName(selectedLanguage) }}</span>
+                  <svg class="dropdown-arrow" :class="{ 'open': showLanguageDropdown }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+                <Teleport to="body">
+                  <div 
+                    v-if="showLanguageDropdown" 
+                    class="language-dropdown"
+                    :style="dropdownPosition"
+                    ref="languageDropdown">
+                    <div 
+                      v-for="lang in languages" 
+                      :key="lang.value"
+                      class="language-option"
+                      :class="{ 'selected': selectedLanguage === lang.value }"
+                      @click="selectLanguage(lang.value)"
+                      role="option"
+                      :aria-selected="selectedLanguage === lang.value">
+                      {{ lang.label }}
+                    </div>
+                  </div>
+                </Teleport>
               </div>
             </div>
+            <p class="translation-disclaimer">
+              {{ t('user.translationDisclaimer') }}
+            </p>
           </div>
         </div>
         <div>
@@ -378,7 +391,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { ref } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useUserStore } from '../../store/store';
 
@@ -391,6 +404,74 @@ const userStore = useUserStore();
 
 // Language state
 const selectedLanguage = ref(userStore.currentLanguage || 'en');
+const showLanguageDropdown = ref(false);
+const languageSelectWrapper = ref<HTMLElement | null>(null);
+const languageDropdown = ref<HTMLElement | null>(null);
+
+const languages = [
+  { value: 'en', label: 'English' },
+  { value: 'zh', label: '中文' },
+  { value: 'in', label: 'हिन्दी' },
+  { value: 'es', label: 'Español' },
+  { value: 'fr', label: 'Français' },
+  { value: 'ar', label: 'العربية' },
+  { value: 'pt', label: 'Português' },
+  { value: 'ru', label: 'Русский' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'tr', label: 'Türkçe' },
+  { value: 'jp', label: '日本語' },
+  { value: 'ko', label: '한국어' },
+  { value: 'it', label: 'Italiano' },
+  { value: 'gr', label: 'Ελληνικά' },
+  { value: 'he', label: 'עברית' },
+  { value: 'ep', label: 'Esperanto' },
+  { value: 'mt', label: 'Malti' },
+  { value: 'la', label: 'Latina' },
+];
+
+const dropdownPosition = computed(() => {
+  if (!languageSelectWrapper.value) return {};
+  const rect = languageSelectWrapper.value.getBoundingClientRect();
+  return {
+    position: 'fixed' as const,
+    top: `${rect.bottom + 4}px`,
+    left: `${rect.left}px`,
+    width: `${rect.width}px`
+  };
+});
+
+function getLanguageName(value: string): string {
+  return languages.find(lang => lang.value === value)?.label || 'English';
+}
+
+function toggleLanguageDropdown() {
+  showLanguageDropdown.value = !showLanguageDropdown.value;
+}
+
+function selectLanguage(value: string) {
+  selectedLanguage.value = value;
+  showLanguageDropdown.value = false;
+  changeLanguage();
+}
+
+// Click outside handler
+function handleClickOutside(event: MouseEvent) {
+  if (showLanguageDropdown.value && 
+      languageSelectWrapper.value && 
+      !languageSelectWrapper.value.contains(event.target as Node) &&
+      languageDropdown.value &&
+      !languageDropdown.value.contains(event.target as Node)) {
+    showLanguageDropdown.value = false;
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
 
 // Username change state
 const usernameError = ref(false);
@@ -850,7 +931,6 @@ async function GenerateNewKey() {
   margin: 0 auto;
   margin-bottom: 5px;
   margin-left: 5px;
-  overflow-x: hidden;
   color: var(--text1);
 }
 
@@ -927,36 +1007,116 @@ p {
   font-weight: 400;
 }
 
-.language-select {
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 15px center;
-  background-size: 18px;
-  padding-right: 45px !important;
+.translation-disclaimer {
   font-size: 1rem;
-  font-weight: 500;
-  text-align: left;
+  color: var(--text2);
+  text-align: center;
+  margin-top: 12px;
+  margin-bottom: 0;
+  font-style: italic;
+  opacity: 0.85;
+  line-height: 1.4;
 }
 
-.language-select:hover:not(:focus) {
+.solo-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.custom-select {
+  border-radius: 7px;
+  padding: 8px 40px 8px 10px;
+  border: 1.5px solid var(--base3);
+  background-color: var(--base1);
+  color: var(--text1);
+  font-size: 1rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  position: relative;
+}
+
+.custom-select:hover {
   background-color: var(--base3);
   border-color: var(--base4);
 }
 
-.language-select:focus {
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+.custom-select:focus {
+  border-color: var(--accent1);
+  background-color: var(--base4);
 }
 
-.language-select option {
-  background-color: var(--base2);
+.selected-language {
+  flex: 1;
+  font-weight: 500;
+}
+
+.dropdown-arrow {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+  color: var(--text2);
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.language-dropdown {
+  background: var(--base2);
+  border-radius: 12px;
+  border: 1.5px solid var(--base3);
+  padding: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  max-height: 300px;
+  overflow-y: auto;
+  animation: dropdown-appear 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes dropdown-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.language-option {
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.18s;
   color: var(--text1);
-  padding: 12px 15px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 400;
+}
+
+.language-option:hover {
+  background: var(--base3);
+  color: var(--accent1);
+}
+
+.language-option.selected {
+  background: var(--accent1);
+  color: var(--text3);
+  font-weight: 600;
+}
+
+.language-option.selected:hover {
+  background: var(--accent2);
 }
 
 @media (min-width: 1151px) {

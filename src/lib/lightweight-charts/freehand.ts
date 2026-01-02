@@ -34,12 +34,22 @@ export class FreehandManager {
     private defaultLineWidth: number = 1.5;
     private visibleRangeChangeHandler: (() => void) | null = null;
     private onChangeCallback: (() => void) | null = null;
+    private onActivateCallback: (() => void) | null = null;
+    private globalClickHandler: ((param: MouseEventParams<Time>) => void) | null = null;
+    private keyDownHandler: ((event: KeyboardEvent) => void) | null = null;
 
     constructor(chart: IChartApi, mainSeries?: any) {
         this.chart = chart;
         this.mainSeries = mainSeries;
         this.setupCanvas();
         this.subscribeToChartEvents();
+
+        // Always listen for clicks to detect path selection
+        this.setupGlobalClickListener();
+
+        // Always listen for keyboard events (for deletion)
+        this.keyDownHandler = this.handleKeyDown.bind(this);
+        document.addEventListener('keydown', this.keyDownHandler);
     }
 
     /**
@@ -47,6 +57,13 @@ export class FreehandManager {
      */
     public onChange(callback: () => void): void {
         this.onChangeCallback = callback;
+    }
+
+    /**
+     * Set callback to be called when tool should be auto-activated
+     */
+    public onActivate(callback: () => void): void {
+        this.onActivateCallback = callback;
     }
 
     /**
@@ -64,6 +81,43 @@ export class FreehandManager {
             this.draw();
         };
         this.chart.timeScale().subscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
+    }
+
+    private setupGlobalClickListener(): void {
+        // This handler is always active to detect clicks on paths
+        this.globalClickHandler = (param: MouseEventParams<Time>) => {
+            if (this.isActive) return; // Don't interfere when tool is already active
+            if (!param.point) return;
+
+            // Check if clicking on an existing path
+            const pathHit = this.hitTestPath(param.point.x, param.point.y);
+            if (pathHit) {
+                this.selectedPathId = pathHit;
+                this.draw();
+                // Auto-activate the tool
+                if (this.onActivateCallback) {
+                    this.onActivateCallback();
+                }
+            }
+        };
+        this.chart.subscribeClick(this.globalClickHandler);
+    }
+
+    private handleKeyDown(event: KeyboardEvent): void {
+        // Check if Backspace or Delete key was pressed
+        if (event.key === 'Backspace' || event.key === 'Delete') {
+            // Don't delete if user is typing in an input field
+            const target = event.target as HTMLElement;
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+                return;
+            }
+
+            // Delete the selected path if there is one
+            if (this.selectedPathId) {
+                event.preventDefault();
+                this.removeSelectedPath();
+            }
+        }
     }
 
     public setMainSeries(series: any): void {
@@ -239,7 +293,7 @@ export class FreehandManager {
                 if (this.currentPath.points.length > 1) {
                     // Only save if we have more than one point
                     this.paths.push(this.currentPath);
-                    this.selectedPathId = this.currentPath.id;
+                    this.selectedPathId = null; // Don't keep it selected after creation
                     this.triggerChange(); // Trigger auto-save
                 }
                 this.currentPath = null;
@@ -472,8 +526,8 @@ export class FreehandManager {
 
         ctx.stroke();
 
-        // If selected, draw small circles at endpoints
-        if (isSelected) {
+        // If selected AND actively dragging, draw small circles at endpoints
+        if (isSelected && this.isDragging) {
             ctx.fillStyle = color;
             const firstPoint = path.points[0];
             const lastPoint = path.points[path.points.length - 1];
@@ -503,6 +557,18 @@ export class FreehandManager {
         if (this.visibleRangeChangeHandler) {
             this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this.visibleRangeChangeHandler);
             this.visibleRangeChangeHandler = null;
+        }
+
+        // Remove global click handler
+        if (this.globalClickHandler) {
+            this.chart.unsubscribeClick(this.globalClickHandler);
+            this.globalClickHandler = null;
+        }
+
+        // Remove keyboard handler
+        if (this.keyDownHandler) {
+            document.removeEventListener('keydown', this.keyDownHandler);
+            this.keyDownHandler = null;
         }
 
         if (this.canvas && this.canvas.parentElement) {

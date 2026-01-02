@@ -906,6 +906,7 @@ export default function (app: any, deps: any) {
                     boxes: [],
                     textAnnotations: [],
                     freehandPaths: [],
+                    priceLevels: [],
                 });
             }
 
@@ -914,6 +915,7 @@ export default function (app: any, deps: any) {
                 boxes: drawingDoc.boxes || [],
                 textAnnotations: drawingDoc.textAnnotations || [],
                 freehandPaths: drawingDoc.freehandPaths || [],
+                priceLevels: drawingDoc.priceLevels || [],
             });
         } catch (error) {
             const errObj = handleError(error, 'GET /api/chartdrawings', {
@@ -989,10 +991,11 @@ export default function (app: any, deps: any) {
             const boxes = sanitizeDrawingArray(req.body.boxes);
             const textAnnotations = sanitizeDrawingArray(req.body.textAnnotations);
             const freehandPaths = sanitizeDrawingArray(req.body.freehandPaths);
+            const priceLevels = sanitizeDrawingArray(req.body.priceLevels);
 
             // Check if all arrays are empty - if so, delete the document instead of saving empty data
             const hasDrawings = trendLines.length > 0 || boxes.length > 0 ||
-                textAnnotations.length > 0 || freehandPaths.length > 0;
+                textAnnotations.length > 0 || freehandPaths.length > 0 || priceLevels.length > 0;
 
             const db = await getDB();
             const drawingsCollection = db.collection('ChartDrawings');
@@ -1015,6 +1018,7 @@ export default function (app: any, deps: any) {
                         boxes,
                         textAnnotations,
                         freehandPaths,
+                        priceLevels,
                         updatedAt: new Date(),
                     },
                     $setOnInsert: {
