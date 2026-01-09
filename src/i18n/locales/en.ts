@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: 'Import Watchlist',
         exportWatchlist: 'Export Watchlist',
         emptyListMessage: 'This watchlist is empty',
+        noWatchlistsMessage: 'No watchlists found. Create one to get started',
         emptyListSubtext: 'Add symbols to get started',
         importButtonText: 'Import Watchlist',
         sortBySymbol: 'Sort by symbol',

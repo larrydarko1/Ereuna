@@ -42,7 +42,7 @@
       </div>
       <div class="nav-title">
         <h1>Docs</h1>
-        <span class="nav-version">2026.1</span>
+        <span class="nav-version">2026.2</span>
       </div>
     </div>
 
@@ -60,7 +60,7 @@
       >
         {{ item }}
       </p>
-      <span class="version">Ereuna 2026.1</span>
+      <span class="version">Ereuna 2026.2</span>
     </div>
     
     <div class="side2" :class="{ hidden: isMobile && mobileView !== 'submenu' }">

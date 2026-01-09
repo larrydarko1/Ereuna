@@ -11,7 +11,7 @@ export function usePublicTheme() {
 
     // Apply theme to the element
     const applyTheme = (theme: PublicTheme, element?: Element | null) => {
-        const targetElement = element || document.querySelector('.landingPage, .communications-page, .quiz-container, .recovery-container, .beta-announcement, .mission-page');
+        const targetElement = element || document.querySelector('.landingPage, .communications-page, .quiz-container, .recovery-container, .beta-announcement, .mission-page, .signup-container');
 
         if (targetElement) {
             if (theme === 'light') {

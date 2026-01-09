@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: 'ウォッチリストをインポート',
         exportWatchlist: 'ウォッチリストをエクスポート',
         emptyListMessage: 'ウォッチリストが空です',
+        noWatchlistsMessage: 'ウォッチリストが見つかりません。作成して始めましょう',
         emptyListSubtext: 'シンボルを追加して始めましょう',
         importButtonText: 'ウォッチリストをインポート',
         sortBySymbol: 'シンボルで並べ替え',

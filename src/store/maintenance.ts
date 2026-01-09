@@ -5,6 +5,7 @@ const apiKey = import.meta.env.VITE_EREUNA_KEY; // Add apiKey
 export const useMaintenanceStore = defineStore('maintenance', {
     state: () => ({
         isUnderMaintenance: false,
+        maintenanceType: 'regular' as 'regular' | 'extraordinary',
         errorMessage: ''
     }),
     actions: {
@@ -22,6 +23,7 @@ export const useMaintenanceStore = defineStore('maintenance', {
 
                 const data = await response.json(); // Parse the response as JSON
                 this.isUnderMaintenance = data.maintenance;
+                this.maintenanceType = data.type || 'regular';
                 this.errorMessage = '';
             } catch (error) {
                 if (error instanceof Error) {

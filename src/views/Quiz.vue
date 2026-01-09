@@ -35,7 +35,7 @@
 
     <div class="quiz-header">
       <h1 style="padding-top: 100px;">Is Ereuna Right for You?</h1>
-      <p>Answer a few quick questions to see if our platform matches your investment style and needs.</p>
+      <p>Answer a few quick questions to see if this platform matches your investment style and needs.</p>
     </div>
 
     <!-- Start Screen -->
@@ -214,26 +214,26 @@ const questions: QuizQuestion[] = [
     filterKey: "investmentStyle",
     options: [
       { text: "Day Trading - I trade multiple times per day", value: "dayTrader", weight: 0 },
-      { text: "Swing Trading - I hold positions for days to weeks", value: "swingTrader", weight: 7 },
+      { text: "Swing Trading - I hold positions for days to weeks", value: "swingTrader", weight: 8 },
       { text: "Position Trading - I hold for weeks to months", value: "positionTrader", weight: 10 },
       { text: "Long-term Investing - I buy and hold for months to years", value: "longTerm", weight: 10 }
     ]
   },
   {
     question: "Which asset types are you interested in?",
-    subtitle: "Select all that apply - we support US-listed securities",
+    subtitle: "Select all that apply - we support US-listed securities and crypto",
     multiSelect: true,
     filterKey: "assetTypes",
     options: [
-      { text: "US Stocks", value: "usStocks", weight: 10 },
+      { text: "US Stocks (NYSE, NASDAQ, OTC)", value: "usStocks", weight: 10 },
       { text: "US ETFs", value: "usEtfs", weight: 10 },
       { text: "US Mutual Funds", value: "usMutualFunds", weight: 10 },
-      { text: "International stocks (US-listed ADRs are fine)", value: "international", weight: 7 },
-      { text: "Cryptocurrencies", value: "crypto", weight: 0 },
-      { text: "Forex / Currency Trading", value: "forex", weight: 0 },
+      { text: "US-listed ADRs (International stocks)", value: "international", weight: 10 },
+      { text: "Cryptocurrencies", value: "crypto", weight: 8 },
+      { text: "Forex / Currency Trading", value: "forex", weight: -5 },
       { text: "Futures & Derivatives", value: "futures", weight: 0 },
-      { text: "Non-US markets (Shanghai, Hong Kong, European exchanges)", value: "foreignMarkets", weight: 0 },
-      { text: "UCITS ETFs / European Mutual Funds", value: "ucits", weight: 0 }
+      { text: "Non-US exchanges (Shanghai, Hong Kong, European)", value: "foreignMarkets", weight: -5 },
+      { text: "UCITS ETFs / European Mutual Funds", value: "ucits", weight: -5 }
     ]
   },
   {
@@ -243,19 +243,19 @@ const questions: QuizQuestion[] = [
     filterKey: "chartingNeeds",
     options: [
       { text: "Basic price charts and simple moving averages are enough", value: "basic", weight: 10 },
-      { text: "Moderate - I need some technical indicators (RSI, MACD, Bollinger)", value: "moderate", weight: 8 },
-      { text: "Advanced - I need sophisticated indicators like TradingView", value: "advanced", weight: 3 },
+      { text: "Moderate - I need some technical indicators (RSI, MACD, Bollinger)", value: "moderate", weight: 9 },
+      { text: "Advanced - I need sophisticated indicators like TradingView", value: "advanced", weight: 2 },
       { text: "Professional - I need custom indicators and advanced drawing tools", value: "professional", weight: 0 }
     ]
   },
   {
     question: "Do you require real-time bid/ask (Level 2) data?",
-    subtitle: "Full TOPS order book data",
+    subtitle: "Full order book data for day trading",
     multiSelect: false,
     filterKey: "level2Data",
     options: [
-      { text: "Yes, absolutely essential for my trading", value: "required", weight: 0 },
-      { text: "Nice to have, but not critical", value: "niceToHave", weight: 5 },
+      { text: "Yes, absolutely essential for my trading", value: "required", weight: -5 },
+      { text: "Nice to have, but not critical", value: "niceToHave", weight: 6 },
       { text: "No, delayed quotes and last prices are sufficient", value: "notNeeded", weight: 10 }
     ]
   },
@@ -412,36 +412,38 @@ const analysisResult = computed(() => {
       const option = question.options[answer.single]
       userSelections[question.filterKey] = option.value
       
-      // Check for deal breakers - more lenient
+      // Check for deal breakers - more rigid filtering
       if (question.filterKey === 'investmentStyle' && option.value === 'dayTrader') {
-        dealBreakers.push("Our platform works best for swing, position, and long-term traders")
+        dealBreakers.push("Our platform is designed for swing traders, position traders, and long-term investors - not day trading")
       }
       if (question.filterKey === 'level2Data' && option.value === 'required') {
-        dealBreakers.push("We don't currently offer full TOPS (Level 2) bid/ask data")
+        dealBreakers.push("We don't offer real-time Level 2 order book data - this is typically needed for day trading")
       }
       if (question.filterKey === 'chartingNeeds' && option.value === 'professional') {
-        dealBreakers.push("We don't support custom indicators - our charting is more straightforward")
+        dealBreakers.push("Our charting tools are focused on essential indicators - we don't support custom indicators or professional drawing tools")
       }
     } else if (answer.multi) {
       const selectedValues = answer.multi.map(optIndex => question.options[optIndex].value)
       userSelections[question.filterKey] = selectedValues
       
-      // Check for deal breakers in multi-select - only hard blockers
+      // Check for deal breakers in multi-select - hard blockers only
       if (question.filterKey === 'assetTypes') {
         const hardBlockers = selectedValues.filter(v => 
-          ['crypto', 'forex', 'futures', 'foreignMarkets', 'ucits'].includes(v)
+          ['forex', 'foreignMarkets', 'ucits'].includes(v)
         )
+        const softBlockers = selectedValues.filter(v => v === 'futures')
+        
         if (hardBlockers.length > 0) {
           const blockerText = []
-          if (hardBlockers.includes('crypto')) blockerText.push('cryptocurrencies')
-          if (hardBlockers.includes('forex')) blockerText.push('forex')
-          if (hardBlockers.includes('futures')) blockerText.push('futures')
+          if (hardBlockers.includes('forex')) blockerText.push('forex/currency trading')
           if (hardBlockers.includes('foreignMarkets')) blockerText.push('non-US exchanges')
-          if (hardBlockers.includes('ucits')) blockerText.push('UCITS funds')
+          if (hardBlockers.includes('ucits')) blockerText.push('UCITS/European funds')
           
-          if (blockerText.length > 0) {
-            dealBreakers.push(`We currently don't support: ${blockerText.join(', ')}. We focus on US-listed securities.`)
-          }
+          dealBreakers.push(`We don't support: ${blockerText.join(', ')}. Our platform covers US stocks (NYSE, NASDAQ, OTC), US ETFs, US mutual funds, ADRs, and cryptocurrencies.`)
+        }
+        
+        if (softBlockers.length > 0) {
+          dealBreakers.push("We currently don't support futures and derivatives trading")
         }
       }
     }
@@ -466,15 +468,24 @@ const compatibilityScore = computed(() => {
 // Score class for styling
 const scoreClass = computed(() => {
   const score = compatibilityScore.value
-  if (score >= 80) return 'excellent'
-  if (score >= 65) return 'good'
-  if (score >= 50) return 'fair'
+  if (score >= 70) return 'excellent'
+  if (score >= 55) return 'good'
+  if (score >= 40) return 'fair'
   return 'poor'
 })
 
 const isGoodMatch = computed(() => {
-  // More lenient: 55%+ score and no more than 1 deal breaker
-  return compatibilityScore.value >= 55 && analysisResult.value.dealBreakers.length <= 1
+  // More rigid: 60%+ score and no hard deal breakers (forex, non-US markets, UCITS)
+  const hasSoftDealBreaker = analysisResult.value.dealBreakers.some(db => 
+    db.includes('swing traders') || db.includes('charting tools')
+  )
+  const hasHardDealBreaker = analysisResult.value.dealBreakers.some(db => 
+    db.includes("don't support:") || db.includes('Level 2')
+  )
+  
+  // Good match if score is 60%+ and no hard deal breakers, or 70%+ with only soft deal breakers
+  return (compatibilityScore.value >= 60 && !hasHardDealBreaker) || 
+         (compatibilityScore.value >= 70 && !hasHardDealBreaker && hasSoftDealBreaker)
 })
 
 const resultClass = computed(() => {
@@ -483,12 +494,18 @@ const resultClass = computed(() => {
 
 const resultTitle = computed(() => {
   const score = compatibilityScore.value
-  if (score >= 80) {
+  const hasHardDealBreakers = analysisResult.value.dealBreakers.some(db => 
+    db.includes("don't support:") || db.includes('day trading')
+  )
+  
+  if (hasHardDealBreakers) {
+    return "Ereuna Is Not the Right Fit ❌"
+  } else if (score >= 70) {
     return "Ereuna is an Excellent Fit! 🎯"
-  } else if (score >= 65) {
+  } else if (score >= 55) {
     return "Ereuna is a Great Match! ✓"
-  } else if (score >= 50) {
-    return "Ereuna Could Work For You"
+  } else if (score >= 40) {
+    return "Ereuna Might Work For You"
   } else {
     return "Ereuna May Not Be the Best Fit"
   }
@@ -496,14 +513,20 @@ const resultTitle = computed(() => {
 
 const resultDescription = computed(() => {
   const score = compatibilityScore.value
-  if (score >= 80) {
-    return "Based on your answers, Ereuna aligns excellently with your investment style and needs. You're looking for exactly what we offer: a cost-effective platform for fundamental research on US markets with essential features and no unnecessary complexity."
-  } else if (score >= 65) {
-    return "Ereuna appears to be a strong match for your needs. Our platform should cover most of what you're looking for in an investment research tool, with a focus on efficiency and value."
-  } else if (score >= 50) {
-    return "Ereuna could work for your needs, though some features you want might be limited. We recommend reviewing the details below to see if our current offering aligns with your priorities."
+  const hasHardDealBreakers = analysisResult.value.dealBreakers.some(db => 
+    db.includes("don't support:") || db.includes('day trading')
+  )
+  
+  if (hasHardDealBreakers) {
+    return "Based on your requirements, Ereuna doesn't offer the assets or features you need. Our platform is specifically designed for US equity markets (stocks, ETFs, mutual funds, ADRs) and cryptocurrencies, targeting swing traders, position traders, and long-term investors."
+  } else if (score >= 70) {
+    return "Perfect match! You're looking for exactly what we offer: an affordable, efficient platform for fundamental research and portfolio tracking focused on US markets. Our tools are designed for investors who prioritize value, simplicity, and comprehensive US market coverage without paying for expensive features they don't need."
+  } else if (score >= 55) {
+    return "Strong match! Ereuna should cover most of what you need for investment research. Our platform excels at fundamental analysis, document access, and portfolio tracking for US markets at a fraction of the cost of premium alternatives. Some advanced features may be limited, but our core offering is solid."
+  } else if (score >= 40) {
+    return "Ereuna could work for your needs, though some features you want might be limited or unavailable. We recommend reviewing the details below carefully to determine if our focus on essential tools and US markets aligns with your investment approach."
   } else {
-    return "Based on your requirements, there might be better alternatives that match your specific needs more closely. Consider the points below to make an informed decision."
+    return "Based on your requirements, there are likely better alternatives that match your specific needs more closely. Our platform is designed for a specific user profile - investors focused on US markets who value simplicity and cost-effectiveness over advanced trading features."
   }
 })
 
@@ -515,13 +538,14 @@ const keyFeatures = computed(() => {
   if (!isGoodMatch.value) return []
   
   return [
-    "€14.99 + VAT per month - significantly cheaper than competitors",
-    "Access to 450M+ financial documents and filings",
-    "Coverage of 60,000+ US stocks, ETFs, mutual funds, and cryptocurrencies",
-    "Portfolio tracking and management tools",
-    "Clean, focused interface designed for efficiency",
-    "Essential charting with key technical indicators",
-    "Fast fundamental research and screening tools"
+    "€14.99 + VAT per month - affordable compared to Bloomberg, FactSet, or multiple subscriptions",
+    "450M+ financial documents, SEC filings, and reports at your fingertips",
+    "60,000+ securities: US stocks (NYSE, NASDAQ, OTC), ETFs, mutual funds, ADRs, and crypto",
+    "Portfolio tracking and performance analysis tools",
+    "Streamlined interface focused on what matters: research and analysis, not complexity",
+    "Essential technical charting with commonly used indicators (MA, RSI, MACD, Bollinger)",
+    "Fast fundamental research, screening, and watchlist management",
+    "Built for position traders, swing traders, and long-term investors"
   ]
 })
 

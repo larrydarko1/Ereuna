@@ -122,6 +122,18 @@
               <div class="timeline-title">Second Invite-Only Beta</div>
             </div>
           </div>
+
+          <div class="timeline-item">
+            <div class="timeline-left">
+              <div class="timeline-date">07/01/2026</div>
+            </div>
+            <div class="timeline-center">
+              <div class="timeline-dot"></div>
+            </div>
+            <div class="timeline-right">
+              <div class="timeline-title">Public Beta Launch</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -266,6 +278,7 @@ const { currentTheme, toggleTheme } = usePublicTheme();
 .timeline-item:nth-child(3) { animation-delay: 0.3s; }
 .timeline-item:nth-child(4) { animation-delay: 0.4s; }
 .timeline-item:nth-child(5) { animation-delay: 0.5s; }
+.timeline-item:nth-child(6) { animation-delay: 0.6s; }
 
 @keyframes fadeInUp {
   from {

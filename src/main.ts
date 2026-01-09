@@ -47,6 +47,52 @@ app.use(authPlugin);
 
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router';
 
+// Helper function to load theme before redirecting authenticated users
+async function loadThemeBeforeRedirect(userStore: ReturnType<typeof useUserStore>) {
+    const themes = [
+        'default', 'ihatemyeyes', 'colorblind', 'catpuccin', 'black',
+        'nord', 'dracula', 'gruvbox', 'tokyo-night', 'solarized',
+        'synthwave', 'github-dark', 'everforest', 'ayu-dark', 'rose-pine',
+        'material', 'one-dark', 'night-owl', 'panda', 'monokai-pro',
+        'tomorrow-night', 'oceanic-next', 'palenight', 'cobalt', 'poimandres',
+        'github-light', 'neon', 'moonlight', 'nightfox', 'spacemacs',
+        'borland', 'amber', 'cyberpunk', 'matrix', 'sunset',
+        'deep-ocean', 'gotham', 'retro', 'spotify', 'autumn',
+        'noctis', 'iceberg', 'tango', 'horizon', 'railscasts',
+        'vscode-dark', 'slack-dark', 'mintty', 'atom-one', 'light-owl'
+    ];
+
+    let theme = localStorage.getItem('user-theme') || 'default';
+
+    // Try to fetch theme from server
+    if (userStore.user && userStore.user.Username) {
+        try {
+            const apiKey = import.meta.env.VITE_EREUNA_KEY;
+            const response = await fetch('/api/load-theme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-KEY': apiKey,
+                },
+                body: JSON.stringify({ username: userStore.user.Username }),
+            });
+            const data = await response.json();
+            if (data.theme) {
+                theme = data.theme;
+                localStorage.setItem('user-theme', theme);
+            }
+        } catch (err) {
+            // Fallback to localStorage/default
+        }
+    }
+
+    // Apply theme to document
+    const root = document.documentElement;
+    root.classList.remove(...themes);
+    root.classList.add(theme);
+    userStore.setTheme(theme);
+}
+
 router.beforeEach(async (
     to: RouteLocationNormalized,
     from: RouteLocationNormalized,
@@ -61,6 +107,8 @@ router.beforeEach(async (
 
     // If authenticated user tries to access auth pages, redirect to Dashboard
     if (token && authPages.includes(String(to.name))) {
+        // Load theme before redirecting to ensure proper theme application
+        await loadThemeBeforeRedirect(userStore);
         next({ name: 'Dashboard' });
         return;
     }

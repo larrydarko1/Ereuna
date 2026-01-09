@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: 'Импортировать список наблюдения',
         exportWatchlist: 'Экспортировать список наблюдения',
         emptyListMessage: 'Этот список наблюдения пуст',
+        noWatchlistsMessage: 'Списки наблюдения не найдены. Создайте один, чтобы начать',
         emptyListSubtext: 'Добавьте символы, чтобы начать',
         importButtonText: 'Импортировать список наблюдения',
         sortBySymbol: 'Сортировать по символу',

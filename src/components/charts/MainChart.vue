@@ -1426,12 +1426,32 @@ function handleReplayProgressChange(event: Event): void {
 function generateMarkers(): SeriesMarker<Time>[] {
   const markers: SeriesMarker<Time>[] = [];
   
+  // Get IPO date timestamp for filtering
+  let ipoTimestamp: number | null = null;
+  if (props.assetInfo?.IPO) {
+    try {
+      const ipoDate = new Date(props.assetInfo.IPO);
+      ipoTimestamp = ipoDate.getTime();
+    } catch (err) {
+      console.error('Error parsing IPO date:', err);
+    }
+  }
+  
   // Add earnings markers (E badge below bar, green/red based on performance)
   if (markersVisible.value.earnings && props.assetInfo?.quarterlyFinancials && Array.isArray(props.assetInfo.quarterlyFinancials)) {
     props.assetInfo.quarterlyFinancials.forEach((earning: any, index: number) => {
       try {
         const date = earning.fiscalDateEnding;
         if (!date) return;
+        
+        // Ensure date is in YYYY-MM-DD format (lightweight-charts Time format)
+        const formattedDate = typeof date === 'string' ? date.split('T')[0] : date;
+        
+        // Skip markers before IPO date
+        if (ipoTimestamp !== null) {
+          const markerTimestamp = new Date(formattedDate).getTime();
+          if (markerTimestamp < ipoTimestamp) return;
+        }
         
         // Determine color based on QoQ performance
         const prevEarning = props.assetInfo?.quarterlyFinancials?.[index + 1];
@@ -1440,9 +1460,6 @@ function generateMarkers(): SeriesMarker<Time>[] {
           const change = ((earning.netIncome - prevEarning.netIncome) / Math.abs(prevEarning.netIncome)) * 100;
           color = change > 0 ? theme.positive : theme.negative;
         }
-        
-        // Ensure date is in YYYY-MM-DD format (lightweight-charts Time format)
-        const formattedDate = typeof date === 'string' ? date.split('T')[0] : date;
         
         markers.push({
           time: formattedDate as Time,
@@ -1471,6 +1488,12 @@ function generateMarkers(): SeriesMarker<Time>[] {
         // Ensure date is in YYYY-MM-DD format
         const formattedDate = typeof date === 'string' ? date.split('T')[0] : date;
         
+        // Skip markers before IPO date
+        if (ipoTimestamp !== null) {
+          const markerTimestamp = new Date(formattedDate).getTime();
+          if (markerTimestamp < ipoTimestamp) return;
+        }
+        
         markers.push({
           time: formattedDate as Time,
           position: 'aboveBar',
@@ -1497,6 +1520,12 @@ function generateMarkers(): SeriesMarker<Time>[] {
         
         // Ensure date is in YYYY-MM-DD format
         const formattedDate = typeof date === 'string' ? date.split('T')[0] : date;
+        
+        // Skip markers before IPO date
+        if (ipoTimestamp !== null) {
+          const markerTimestamp = new Date(formattedDate).getTime();
+          if (markerTimestamp < ipoTimestamp) return;
+        }
         
         markers.push({
           time: formattedDate as Time,
@@ -2065,6 +2094,13 @@ onMounted(async () => {
     }
   });
   
+  // Subscribe to visible logical range changes to update price level positions when scrolling/zooming
+  chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
+    if (priceLevelManager) {
+      priceLevelManager.updatePositions();
+    }
+  });
+  
   // No initial fetch here; handled by watcher below
 
   watch(chartType, () => {
@@ -2112,6 +2148,14 @@ onMounted(async () => {
     // Update markers when data changes
     nextTick(() => {
       updateChartMarkers();
+      
+      // Update drawing positions after chart has rendered
+      // This ensures drawings snap to correct positions
+      setTimeout(() => {
+        if (priceLevelManager) {
+          priceLevelManager.updatePositions();
+        }
+      }, 100);
     });
   });
   
@@ -2242,6 +2286,22 @@ watch(
         fetchSplitsData(symbol)
       ]);
       updateMainSeries();
+      
+      // Load drawings after chart data is fully rendered
+      // Use multiple nextTick and setTimeout to ensure chart coordinate system is ready
+      await nextTick();
+      setTimeout(async () => {
+        if (drawingPersistence && chart) {
+          drawingPersistence.setSymbol(symbol, selectedDataType.value);
+          await drawingPersistence.loadDrawings();
+          
+          // Force update of drawing positions after loading
+          await nextTick();
+          if (priceLevelManager) {
+            priceLevelManager.updatePositions();
+          }
+        }
+      }, 150);
     }
   },
   { immediate: true }
@@ -2452,14 +2512,7 @@ watch(
   // Store interval ID for cleanup
   (window as any).__chartAutoSaveInterval = autoSaveInterval;
   
-  // Load initial drawings after first symbol is set
-  nextTick(async () => {
-    const initialSymbol = props.selectedSymbol || props.defaultSymbol;
-    if (initialSymbol && drawingPersistence) {
-      drawingPersistence.setSymbol(initialSymbol);
-      await drawingPersistence.loadDrawings();
-    }
-  });
+  // Initial drawings will be loaded by the symbol watcher with proper timing
 });
 // cleanup listeners and observers
 onUnmounted(() => {
@@ -2575,11 +2628,20 @@ watch(() => props.selectedSymbol, async (newSymbol, oldSymbol) => {
       fetchSplitsData(newSymbol)
     ]);
     
-    // Then load drawings for new symbol
-    if (drawingPersistence) {
-      drawingPersistence.setSymbol(newSymbol);
-      await drawingPersistence.loadDrawings();
-    }
+    // Load drawings for new symbol after chart has rendered
+    await nextTick();
+    setTimeout(async () => {
+      if (drawingPersistence && chart) {
+        drawingPersistence.setSymbol(newSymbol, selectedDataType.value);
+        await drawingPersistence.loadDrawings();
+        
+        // Force update of drawing positions
+        await nextTick();
+        if (priceLevelManager) {
+          priceLevelManager.updatePositions();
+        }
+      }
+    }, 150);
   }
 });
 
@@ -2619,11 +2681,20 @@ watch(() => props.defaultSymbol, async (newSymbol, oldSymbol) => {
       fetchSplitsData(newSymbol)
     ]);
     
-    // Then load drawings for new symbol
-    if (drawingPersistence) {
-      drawingPersistence.setSymbol(newSymbol);
-      await drawingPersistence.loadDrawings();
-    }
+    // Load drawings for new symbol after chart has rendered
+    await nextTick();
+    setTimeout(async () => {
+      if (drawingPersistence && chart) {
+        drawingPersistence.setSymbol(newSymbol, selectedDataType.value);
+        await drawingPersistence.loadDrawings();
+        
+        // Force update of drawing positions
+        await nextTick();
+        if (priceLevelManager) {
+          priceLevelManager.updatePositions();
+        }
+      }
+    }, 150);
   }
 });
 
@@ -2654,6 +2725,43 @@ function setChartView(label: string): void {
     fetchChartData(undefined, type.value);
   }
 }
+
+// Watch for timeframe changes to reload drawings
+watch(selectedDataType, async (newTimeframe, oldTimeframe) => {
+  if (newTimeframe !== oldTimeframe && drawingPersistence) {
+    const currentSymbol = props.selectedSymbol || props.defaultSymbol;
+    if (currentSymbol) {
+      // Save drawings for old timeframe
+      if (oldTimeframe) {
+        drawingPersistence.setSymbol(currentSymbol, oldTimeframe);
+        await drawingPersistence.autoSave();
+      }
+      
+      // Clear all drawings from chart
+      if (trendlineManager) trendlineManager.loadTrendLines([]);
+      if (boxManager) boxManager.loadBoxes([]);
+      if (textAnnotationManager) textAnnotationManager.loadAnnotations([]);
+      if (freehandManager) freehandManager.loadPaths([]);
+      if (priceLevelManager) priceLevelManager.clear();
+      
+      // Wait for chart to render new data with proper timing
+      await nextTick();
+      setTimeout(async () => {
+        if (drawingPersistence && chart) {
+          // Load drawings for new timeframe
+          drawingPersistence.setSymbol(currentSymbol, newTimeframe);
+          await drawingPersistence.loadDrawings();
+          
+          // Force update of drawing positions
+          await nextTick();
+          if (priceLevelManager) {
+            priceLevelManager.updatePositions();
+          }
+        }
+      }, 150);
+    }
+  }
+});
 
 // Crosshair OHLC tracking
 interface CrosshairOHLC extends OHLCData {

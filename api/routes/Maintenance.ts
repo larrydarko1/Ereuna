@@ -31,7 +31,11 @@ export default function (app: any, deps: any) {
                 const db = await getDB();
                 const systemSettings = db.collection('systemSettings');
                 const status = await systemSettings.findOne({ name: 'EreunaApp' });
-                return res.json({ maintenance: status ? status.maintenance : false, requestId });
+                return res.json({
+                    maintenance: status ? status.maintenance : false,
+                    type: status?.type || 'regular',
+                    requestId
+                });
             } catch (error) {
                 const errObj = handleError(error, 'GET /maintenance-status', { requestId }, 500);
                 return res.status(errObj.statusCode || 500).json({ ...errObj, requestId });
@@ -48,6 +52,10 @@ export default function (app: any, deps: any) {
                     return typeof booleanValue === 'boolean';
                 })
                 .withMessage('Maintenance status must be a valid boolean'),
+            body('type')
+                .optional()
+                .isIn(['regular', 'extraordinary'])
+                .withMessage('Type must be either "regular" or "extraordinary"'),
         ]),
         async (req: Request, res: Response) => {
             const requestId = crypto.randomBytes(16).toString('hex');
@@ -65,6 +73,9 @@ export default function (app: any, deps: any) {
                     return res.status(401).json({ message: 'Unauthorized API Access', requestId });
                 }
                 const maintenance = sanitizeInput(req.body.maintenance?.toString?.() ?? '').toLowerCase() === 'true';
+                const type = sanitizeInput(req.body.type?.toString?.() ?? 'regular');
+                const validType = ['regular', 'extraordinary'].includes(type) ? type : 'regular';
+
                 const db = await getDB();
                 const systemSettings = db.collection('systemSettings');
                 await systemSettings.updateOne(
@@ -72,6 +83,7 @@ export default function (app: any, deps: any) {
                     {
                         $set: {
                             maintenance,
+                            type: validType,
                             lastUpdated: new Date(),
                         },
                     }
@@ -79,6 +91,7 @@ export default function (app: any, deps: any) {
                 logger.info({
                     msg: 'Maintenance status updated',
                     maintenance,
+                    type: validType,
                     requestId,
                     context: 'POST /maintenance-status',
                 });

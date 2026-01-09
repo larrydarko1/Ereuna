@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: 'वॉचलिस्ट आयात करें',
         exportWatchlist: 'वॉचलिस्ट निर्यात करें',
         emptyListMessage: 'यह वॉचलिस्ट खाली है',
+        noWatchlistsMessage: 'कोई वॉचलिस्ट नहीं मिली। शुरू करने के लिए एक बनाएं',
         emptyListSubtext: 'शुरू करने के लिए प्रतीक जोड़ें',
         importButtonText: 'वॉचलिस्ट आयात करें',
         sortBySymbol: 'प्रतीक से क्रमबद्ध करें',

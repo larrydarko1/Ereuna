@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: 'Importa Lista di Controllo',
         exportWatchlist: 'Esporta Lista di Controllo',
         emptyListMessage: 'Questa lista di controllo è vuota',
+        noWatchlistsMessage: 'Nessuna lista trovata. Creane una per iniziare',
         emptyListSubtext: 'Aggiungi simboli per iniziare',
         importButtonText: 'Importa Lista di Controllo',
         sortBySymbol: 'Ordina per simbolo',

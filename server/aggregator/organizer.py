@@ -2939,12 +2939,12 @@ async def sync_earnings_data():
         # Step 1: Update Calendar collection
         calendar_count = await update_earnings_calendar()
         
-        # Step 2: Update AssetInfo with next earnings
-        if calendar_count > 0:
-            asset_info_count = await update_next_earnings_in_asset_info()
-        else:
-            print("\n⚠ Skipping AssetInfo update due to empty Calendar")
-            asset_info_count = 0
+        # Step 2: Update AssetInfo with next earnings (COMMENTED OUT FOR PRODUCTION)
+        # if calendar_count > 0:
+        #     asset_info_count = await update_next_earnings_in_asset_info()
+        # else:
+        #     print("\n⚠ Skipping AssetInfo update due to empty Calendar")
+        asset_info_count = 0
         
         sync_end = time.time()
         duration = (sync_end - sync_start) / 60
@@ -3050,7 +3050,7 @@ async def Daily():
     # Fetch news with progress tracking
     print("\nChecking and updating news...")
     news_start = time.time()
-    #await fetchNews()
+    await fetchNews()
     news_end = time.time()
     print(f"✓ News updated in {(news_end - news_start)/60:.2f} minutes")
     
