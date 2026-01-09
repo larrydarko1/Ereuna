@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: 'استيراد قائمة مراقبة',
         exportWatchlist: 'تصدير قائمة المراقبة',
         emptyListMessage: 'قائمة المراقبة هذه فارغة',
+        noWatchlistsMessage: 'لم يتم العثور على قوائم مراقبة. أنشئ واحدة للبدء',
         emptyListSubtext: 'أضف رموزاً للبدء',
         importButtonText: 'استيراد قائمة مراقبة',
         sortBySymbol: 'ترتيب حسب الرمز',

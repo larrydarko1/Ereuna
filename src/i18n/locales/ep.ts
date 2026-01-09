@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: 'Importi Atentliston',
         exportWatchlist: 'Eksporti Atentliston',
         emptyListMessage: 'Ĉi tiu atentlisto estas malplena',
+        noWatchlistsMessage: 'Neniuj atentlistoj trovitaj. Kreu unu por komenci',
         emptyListSubtext: 'Aldonu simbolojn por komenci',
         importButtonText: 'Importi Atentliston',
         sortBySymbol: 'Ordigi laŭ simbolo',

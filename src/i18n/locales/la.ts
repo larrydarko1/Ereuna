@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: 'Importare Custodiam',
         exportWatchlist: 'Exportare Custodiam',
         emptyListMessage: 'Haec custodia vacua est',
+        noWatchlistsMessage: 'Nullae custodiae inventae sunt. Crea unam ut incipias',
         emptyListSubtext: 'Adde symbola ad incipiendum',
         importButtonText: 'Importare Custodiam',
         sortBySymbol: 'Ordinare per symbolum',

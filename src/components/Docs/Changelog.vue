@@ -22,6 +22,10 @@ interface VersionChangelog {
 
 const changelog = ref<VersionChangelog[]>([
   {
+    version: '2026.2',
+    description: 'Bug & Security fixes',
+  },
+  {
     version: '2026.1',
     description: 'Added price-level markers feature in charts toolbox, added Hindi and Turkish as supported languages, small bug fixes.',
   },

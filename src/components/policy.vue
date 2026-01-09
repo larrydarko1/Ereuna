@@ -24,53 +24,88 @@
         </div>
       </div>
       <div class="modal-body">
-        <h2 class="contract-title">1. OPEN BETA INTRODUCTION</h2>
-        <p>Welcome to the Ereuna Open Beta. These Terms and Conditions and Privacy Policy ("Terms") govern your use of the Ereuna platform ("Platform") during the open beta period. By using the Platform, you ("User") agree to be bound by these Terms. This is a free beta program provided "AS IS" with no guarantees or warranties of any kind.</p>
+        <h2 class="contract-title">1. EXPERIMENTAL BETA TEST PROJECT</h2>
+        <p>Welcome to the Ereuna Public Beta. <strong>This is experimental software in active testing phase.</strong> These Terms and Conditions and Privacy Policy ("Terms") govern your use of the Ereuna platform ("Platform") during the public beta testing period.</p>
+        
+        <p><strong>By creating an account and using this Platform, you acknowledge and agree that:</strong></p>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+          <li>This is a <strong>testing platform</strong> to validate the concept and gather user feedback</li>
+          <li>This is <strong>NOT a production-ready commercial service</strong> with professional support or guarantees</li>
+          <li>Features may be incomplete, experimental, or subject to change without notice</li>
+          <li>Data accuracy, completeness, and availability are NOT guaranteed and should NOT be relied upon for actual investment decisions</li>
+          <li>The service may be modified, interrupted, suspended, or discontinued at any time</li>
+          <li>You are participating in testing experimental software and accept all associated risks</li>
+        </ul>
 
-        <h2 class="contract-title">2. FREE BETA - NO CHARGES</h2>
-        <p>The Platform is currently offered completely free of charge during the open beta period. There are no subscription fees, no payment requirements, and no strings attached. You will never be charged without your explicit consent. The beta program will continue until a predetermined user threshold is reached or until otherwise announced.</p>
+        <p>If the beta test proves successful, the Platform may transition to a formal commercial service with appropriate legal structure, professional support, and service guarantees. Until then, this remains an experimental test project provided free of charge "AS IS" with no warranties or guarantees of any kind.</p>
 
-        <h2 class="contract-title">3. RIGHT TO TRANSITION TO PAID SERVICE</h2>
-        <p>The Platform operator reserves the right to transition from the free open beta to a paid subscription service at any time. In such event, users will be notified at least one week (7 days) in advance through an announcement on the website. Users will have the choice to subscribe to the paid service or discontinue using the Platform. No charges will ever be forced upon users, and you are free to leave at any time without penalty.</p>
+        <h2 class="contract-title">2. FREE TESTING PERIOD - NO CHARGES</h2>
+        <p>The Platform is currently offered completely free of charge during the public beta testing period. There are no subscription fees, no payment requirements, and no strings attached. You will never be charged without your explicit consent. The beta testing period will continue until a user threshold is reached (target: 300 beta testers) or until otherwise announced. No payment information is collected or stored during this testing phase.</p>
 
-        <h2 class="contract-title">4. RIGHT TO INTERRUPT OR TERMINATE SERVICE</h2>
-        <p>The Platform operator reserves the absolute right to interrupt, suspend, or terminate the service at any time, for any reason, with or without notice. This includes but is not limited to technical issues, maintenance, data provider limitations, or the decision to discontinue the beta program. Users acknowledge and accept this risk by participating in the open beta.</p>
+        <h2 class="contract-title">3. POTENTIAL TRANSITION TO COMMERCIAL SERVICE</h2>
+        <p>The Platform operator reserves the right to transition from the free public beta to a paid commercial service at any time. In such event, users will be notified at least one week (7 days) in advance through an announcement on the Platform. Existing beta testers will have the choice to: (a) subscribe to the paid service at preferential beta tester rates, or (b) discontinue using the Platform and request account deletion. No charges will ever be imposed without your explicit consent, and you are free to discontinue use at any time without penalty.</p>
 
-        <h2 class="contract-title">5. DATA SOURCES AND LICENSING</h2>
-        <p>The Platform provides financial data aggregation services using data supplied by Tiingo.com under a valid licensing and distribution agreement. Core data, including End-of-Day (EOD) and financial data, is provided by Tiingo and their third-party providers. Additionally, the Platform includes internally calculated metrics and formulas derived from Tiingo's core data, as well as some manually reviewed and edited data points. The Platform operator makes no warranties regarding the accuracy, completeness, or timeliness of any data.</p>
+        <h2 class="contract-title">4. SERVICE AVAILABILITY AND TESTING NATURE</h2>
+        <p>As experimental beta software, the Platform operator reserves the absolute right to interrupt, suspend, modify, or terminate the service at any time, for any reason, with or without notice. This includes but is not limited to: technical issues, bugs, maintenance, security concerns, data provider limitations, cost constraints, or the decision to discontinue the testing program entirely. <strong>There are no uptime guarantees, service level agreements, or availability commitments during the beta testing phase.</strong> Users acknowledge and accept this risk by participating in the public beta test.</p>
 
-        <h2 class="contract-title">6. NO RESPONSIBILITY FOR DATA INTEGRITY</h2>
-        <p>THE PLATFORM OPERATOR ASSUMES NO RESPONSIBILITY WHATSOEVER FOR DATA INTEGRITY, ACCURACY, COMPLETENESS, OR AVAILABILITY. All data is provided "AS IS" without any warranties, express or implied. Users acknowledge that financial data may contain errors, omissions, or delays, and should not be relied upon for investment decisions. The Platform operator is not liable for any losses, damages, or consequences resulting from the use of or reliance on data provided through the Platform.</p>
+        <h2 class="contract-title">5. EXPERIMENTAL DATA AND SOURCES</h2>
+        <p>The Platform aggregates and processes financial data from various third-party data providers for testing and evaluation purposes. Data includes, but is not limited to, pricing information, market data, financial statements, and other related metrics. The Platform may also include internally calculated metrics and formulas derived from third-party source data, as well as manually reviewed and edited data points. <strong>This is test-grade data, not production-grade data.</strong> The specific data providers and sources may change at any time without notice as the testing progresses. The Platform operator makes no warranties regarding the accuracy, completeness, timeliness, or fitness for any purpose of any data provided through the Platform.</p>
 
-        <h2 class="contract-title">7. USER INFORMATION AND PRIVACY</h2>
-        <p>The Platform is committed to collecting the minimum amount of user information necessary to operate the service. Authentication is performed using username and password only. The Platform does not collect or store email addresses or phone numbers. Optional two-factor authentication (2FA) is available using an authenticator app. The Platform does not implement tracking systems beyond those necessary for user session authentication and minimal security logging. IP addresses and session fingerprints may be logged for security purposes. No user information is sold to third parties. No payment information is collected during the beta period.</p>
+        <h2 class="contract-title">6. NO RESPONSIBILITY FOR DATA INTEGRITY - TESTING ONLY</h2>
+        <p><strong>CRITICAL: DO NOT USE THIS PLATFORM FOR ACTUAL INVESTMENT DECISIONS.</strong> THE PLATFORM OPERATOR ASSUMES NO RESPONSIBILITY WHATSOEVER FOR DATA INTEGRITY, ACCURACY, COMPLETENESS, OR AVAILABILITY. All data is provided "AS IS" for testing and evaluation purposes only, without any warranties, express or implied. Users acknowledge that financial data may contain errors, omissions, delays, or inaccuracies inherent in experimental software, and <strong>should NOT be relied upon for any investment, trading, or financial decisions</strong>. The Platform operator is not liable for any losses, damages, or consequences resulting from the use of or reliance on data provided through the Platform. This is test data for a test platform.</p>
+
+        <h2 class="contract-title">7. MINIMAL USER DATA COLLECTION</h2>
+        <p>The Platform is committed to collecting the minimum amount of user information necessary to operate the testing service. <strong>Data collected:</strong> username, password (encrypted), optional two-factor authentication codes (through authenticator app only - no email or SMS), IP addresses for security logging, and session fingerprints for authentication. <strong>Data NOT collected:</strong> email addresses, phone numbers, payment information, personal identification documents, or tracking data beyond basic session management.</p>
+        
+        <p>The Platform does not implement analytics, advertising trackers, or third-party monitoring systems. IP addresses and session data may be logged for security purposes and retained for up to 18 months. <strong>No user information is sold, shared, or provided to third parties</strong> except as required by law. User-created content (watchlists, portfolios, notes) is stored to provide the service functionality and is deleted within 48 hours of account deletion, except for security logs which may be retained as noted above.</p>
+        
+        <p><strong>Note on support:</strong> While the Platform does not collect email addresses during registration, users may voluntarily contact support at contact@ereuna.io for technical assistance. Such communications are kept confidential and not added to marketing lists.</p>
 
         <h2 class="contract-title">8. PROHIBITED ACTIVITIES</h2>
         <p>Users are strictly prohibited from: (a) attempting to access the server, API, or backend services through unauthorized means; (b) reselling, redistributing, or commercializing data obtained from the Platform; (c) scraping, harvesting, or extracting data through automated means; (d) reverse engineering or attempting to circumvent security measures; (e) using the Platform for any illegal or unauthorized purposes. Violation of these terms may result in immediate termination of access without notice.</p>
-
-        <h2 class="contract-title">9. ACCOUNT SECURITY AND RECOVERY</h2>
+ <h2>(TESTING SCHEDULE)</h2>
+        <p><strong>Expected update schedule (subject to change during testing):</strong> End-of-Day (EOD) pricing data for assets with real-time data support is typically available at market close. For assets that only support EOD data, updates occur at the same time as calculated formulas and aggregated data, typically between 3-4 hours after US markets close on each business day, subject to data provider availability and processing time. Real-time data support is provided on a best-effort basis, with the exception of intraday volume data which requires a separate IEX custom agreement not currently in place.</p>
+        
+        <p><strong>Maintenance and downtime:</strong> Maintenance periods may occur at any time during which the Platform will be temporarily unavailable. During the beta testing phase, updates may be deployed without advance notice. <strong>No guarantees, commitments, or service level agreements are made regarding update schedules, data freshness, or platform availability.</strong> This is experimental software and schedules are subject to frequent change as testing progresses</p>
         <p>The Platform offers optional two-factor authentication using an authenticator app. Password recovery is available through a recovery code that can be generated and downloaded from the Account section after registration. It is solely the user's responsibility to securely store their recovery code. The Platform operator is not responsible for account access issues resulting from lost credentials or recovery codes.</p>
 
         <h2 class="contract-title">10. DATA UPDATES AND MAINTENANCE</h2>
-        <p>Basic End-of-Day (EOD) pricing data and real-time data are available at market close. Real-time data support is provided, with the exception of intraday volume data which requires a separate IEX custom agreement. Calculated formulas and aggregated data are typically updated between 3-4 hours after US markets close on each business day, subject to Tiingo data availability and processing time. Maintenance periods may occur during which the Platform will be temporarily unavailable. No guarantees are made regarding update schedules or platform availability during this beta period.</p>
+        <p>Given the experimental nature of this beta test, the Platform operator reserves the right to modify these Terms, features, functionality, or any aspect of the Platform at any time without advance notice. Users will be notified of material changes to these Terms through an announcement on the Platform. Continued use of the Platform after such notification constitutes acceptance of the modified Terms. If you do not agree to the modified Terms, you must discontinue use of the Platform and may request account deletion.</p>
 
-        <h2 class="contract-title">11. MODIFICATION OF TERMS</h2>
-        <p>The Platform operator reserves the right to modify these Terms at any time. Users will be notified of material changes through the Platform, and continued use of the Platform constitutes acceptance of the modified Terms. If you do not agree to the modified Terms, you must discontinue use of the Platform.</p>
+        <h2 class="contract-title">12. ACCOUNT DELETION AND DATA RETENTION</h2>
+        <p>Users can delete their account at any time through the Platform's account settings. Upon account deletion request, user-created content (watchlists, portfolios, notes, preferences) will be permanently deleted within 48 hours. Account credentials will be rendered inactive immediately. Security logs (IP addresses, login timestamps) may be retained for up to 18 months for security monitoring and legal compliance purposes, after which they will be permanently deleted. No other user data is retained after account deletion.</p>
 
-        <h2 class="contract-title">12. ACCOUNT CANCELLATION AND DATA DELETION</h2>
-        <p>Users can cancel their account at any time through the Platform's dashboard. Upon account cancellation, user data will be deleted within 48 hours, except for security logs which may be retained for up to 18 months for security and legal compliance purposes.</p>
-
-        <h2 class="contract-title">13. SUPPORT</h2>
-        <p>Limited support may be available during the open beta at contact@ereuna.io. Responses and support are provided on a best-effort basis with no guaranteed response times or resolution.</p>
+        <h2 class="contract-title">13. BETA TESTING SUPPORT AND FEEDBACK</h2>
+        <p>Limited technical support may be available during the beta testing period. Users may report bugs, issues, or provide feedback by voluntarily contacting contact@ereuna.io. Responses and support are provided on a best-effort basis with no guaranteed response times, resolution commitments, or support availability. <strong>This is not a commercial support service.</strong> Bug reports and feedback are appreciated and help improve the testing process, but users should not expect immediate or comprehensive support during the beta phase</p>
 
         <h2 class="contract-title">14. DISCLAIMER OF WARRANTIES</h2>
         <p>THE PLATFORM IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR UNINTERRUPTED ACCESS. THE PLATFORM OPERATOR MAKES NO WARRANTIES REGARDING THE ACCURACY, RELIABILITY, OR AVAILABILITY OF THE PLATFORM OR ITS DATA.</p>
 
         <h2 class="contract-title">15. LIMITATION OF LIABILITY</h2>
-        <p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE PLATFORM OPERATOR SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, CONSEQUENTIAL, SPECIAL, PUNITIVE, OR EXEMPLARY DAMAGES ARISING OUT OF OR RELATED TO YOUR USE OF THE PLATFORM, INCLUDING BUT NOT LIMITED TO LOSS OF PROFITS, DATA, BUSINESS OPPORTUNITIES, OR INVESTMENT LOSSES. THIS LIMITATION APPLIES REGARDLESS OF THE LEGAL THEORY UPON WHICH THE CLAIM IS BASED. YOU AGREE TO INDEMNIFY AND HOLD HARMLESS THE PLATFORM OPERATOR FROM ANY CLAIMS, DEMANDS, OR ACTIONS ARISING FROM YOUR USE OF THE PLATFORM.</p>
+        <p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, TOR ADVISORY RELATIONSHIP</p>
+        <p>Nothing in the Platform or these Terms creates any advisory, fiduciary, professional, or client relationship between the Platform operator and users. The Platform is an experimental data aggregation tool for testing purposes only and does not constitute investment advice, financial advice, trading recommendations, or professional guidance of any kind. Users should consult qualified financial professionals for investment decisions.</p>
 
-        <h2 class="contract-title">16. NO FIDUCIARY RELATIONSHIP</h2>
-        <p>Nothing in the Platform or these Terms creates any advisory, fiduciary, or professional relationship between the Platform operator and users. The Platform is for informational purposes only and does not constitute investment advice, financial advice, or recommendations of any kind.</p>
+        <h2 class="contract-title">17. AGE REQUIREMENT</h2>
+        <p>Users must be at least 18 years of age or the age of majority in their jurisdiction to create an account and use the Platform. By creating an account, you represent and warrant that you meet this age requirement.</p>
+
+        <h2 class="contract-title">18. GOVERNING LAW AND JURISDICTION</h2>
+        <p>These Terms shall be governed by and construed in accordance with the laws of Italy, without regard to conflict of law principles. Any disputes, claims, or controversies arising out of or relating to these Terms or the Platform shall be resolved in the courts of competent jurisdiction in Italy. Users consent to the personal jurisdiction and venue of such courts.</p>
+
+        <h2 class="contract-title">19. SEVERABILITY AND SURVIVAL</h2>
+        <p>If any provision of these Terms is found to be invalid, illegal, or unenforceable by a court of competent jurisdiction, the remaining provisions shall remain in full force and effect. The invalid provision shall be modified to the minimum extent necessary to make it valid and enforceable. Sections relating to disclaimers, limitations of liability, indemnification, and data deletion shall survive termination of your use of the Platform.</p>
+
+        <h2 class="contract-title">20. ENTIRE AGREEMENT</h2>
+        <p>These Terms constitute the entire agreement between you and the Platform operator regarding your use of the Platform and supersede any prior agreements, communications, or understandings, whether written or oral, relating to the subject matter herein.</p>
+
+        <p style="margin-top: 2rem; padding: 1rem; background: var(--brand-glass); border-radius: 6px;">
+          <strong>BY CREATING AN ACCOUNT AND USING THIS PLATFORM, YOU ACKNOWLEDGE THAT:</strong><br><br>
+          ✓ You have read, understood, and agree to be bound by these Terms<br>
+          ✓ This is experimental beta testing software, not a production service<br>
+          ✓ You are participating in testing and accept all associated risks<br>
+          ✓ Data should NOT be used for actual investment decisions<br>
+          ✓ The service may change, break, or shut down at any time<br>
+          ✓ You use this Platform entirely at your own risk with no warranties or guarantees
+        ns of any kind.</p>
 
         <p><strong>By using the Platform, you acknowledge that you have read, understood, and agree to be bound by these Terms. You further acknowledge that this is a free beta service provided without warranties or guarantees, and you use it entirely at your own risk.</strong></p>
       </div>

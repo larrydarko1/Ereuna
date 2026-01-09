@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: 'Importer une liste de suivi',
         exportWatchlist: 'Exporter la liste de suivi',
         emptyListMessage: 'Cette liste de suivi est vide',
+        noWatchlistsMessage: 'Aucune liste trouvée. Créez-en une pour commencer',
         emptyListSubtext: 'Ajoutez des symboles pour commencer',
         importButtonText: 'Importer une liste de suivi',
         sortBySymbol: 'Trier par symbole',

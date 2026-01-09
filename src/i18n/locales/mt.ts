@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: 'Importa Watchlist',
         exportWatchlist: 'Esporta Watchlist',
         emptyListMessage: 'Din il-watchlist hija vojta',
+        noWatchlistsMessage: 'L-ebda watchlists ma nstabu. Oħloq waħda biex tibda',
         emptyListSubtext: 'Żid simboli biex tibda',
         importButtonText: 'Importa Watchlist',
         sortBySymbol: 'Issortja skont is-simbolu',

@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: 'ייבא רשימת מעקב',
         exportWatchlist: 'ייצא רשימת מעקב',
         emptyListMessage: 'רשימת מעקב זו ריקה',
+        noWatchlistsMessage: 'לא נמצאו רשימות מעקב. צור אחת כדי להתחיל',
         emptyListSubtext: 'הוסף סמלים כדי להתחיל',
         importButtonText: 'ייבא רשימת מעקב',
         sortBySymbol: 'מיין לפי סמל',

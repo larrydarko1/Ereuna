@@ -258,9 +258,25 @@ export class PriceLevelManager {
         if (!level) return;
 
         const y = this.series.priceToCoordinate(level.data.price);
-        if (y === null) return;
 
-        // Position label on the left side of the chart
+        // Hide label if price is not visible or coordinate is invalid
+        if (y === null || isNaN(y) || y < 0) {
+            level.labelDiv.style.display = 'none';
+            return;
+        }
+
+        // Get chart container dimensions to check bounds
+        const containerRect = this.container.getBoundingClientRect();
+        const chartHeight = containerRect.height;
+
+        // Hide label if it's outside the visible chart bounds (with some padding)
+        if (y < 0 || y > chartHeight) {
+            level.labelDiv.style.display = 'none';
+            return;
+        }
+
+        // Show and position label
+        level.labelDiv.style.display = 'block';
         level.labelDiv.style.left = '10px';
         level.labelDiv.style.top = `${y - 10}px`;
     }
@@ -296,46 +312,53 @@ export class PriceLevelManager {
         dialog.style.transform = 'translate(-50%, -50%)';
         dialog.style.backgroundColor = 'var(--base2)';
         dialog.style.border = 'none';
-        dialog.style.borderRadius = '18px';
-        dialog.style.padding = '24px 28px 20px 28px';
+        dialog.style.borderRadius = '12px';
+        dialog.style.padding = '20px';
         dialog.style.zIndex = '10000';
-        dialog.style.minWidth = '340px';
+        dialog.style.width = '300px';
         dialog.style.boxShadow = '0 8px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 var(--accent4)';
         dialog.style.animation = 'popup-in 0.18s cubic-bezier(.4,1.4,.6,1) backwards';
 
         // Title
         const title = document.createElement('h3');
-        title.textContent = 'Price Level Settings';
-        title.style.margin = '0 0 16px 0';
+        title.textContent = 'Price Level';
+        title.style.margin = '0 0 14px 0';
         title.style.color = 'var(--accent1)';
-        title.style.fontSize = '1.25rem';
+        title.style.fontSize = '1.1rem';
         title.style.fontWeight = '700';
         title.style.letterSpacing = '0.01em';
         dialog.appendChild(title);
 
-        // Price input
+        // Create a grid container for inputs
+        const inputsGrid = document.createElement('div');
+        inputsGrid.style.display = 'grid';
+        inputsGrid.style.gridTemplateColumns = '1fr 1fr';
+        inputsGrid.style.gap = '10px';
+        inputsGrid.style.marginBottom = '14px';
+
+        // Price input container
+        const priceContainer = document.createElement('div');
         const priceLabel = document.createElement('label');
-        priceLabel.textContent = 'Price:';
+        priceLabel.textContent = 'Price';
         priceLabel.style.display = 'block';
         priceLabel.style.color = 'var(--text2)';
-        priceLabel.style.fontSize = '0.92rem';
+        priceLabel.style.fontSize = '0.8rem';
         priceLabel.style.fontWeight = '500';
-        priceLabel.style.letterSpacing = '0.01em';
-        priceLabel.style.marginBottom = '6px';
-        dialog.appendChild(priceLabel);
+        priceLabel.style.marginBottom = '4px';
+        priceContainer.appendChild(priceLabel);
 
         const priceInput = document.createElement('input');
         priceInput.type = 'number';
         priceInput.step = '0.01';
         priceInput.value = levelData.price.toString();
         priceInput.style.width = '100%';
-        priceInput.style.padding = '8px 10px';
-        priceInput.style.marginBottom = '12px';
+        priceInput.style.boxSizing = 'border-box';
+        priceInput.style.padding = '7px 8px';
         priceInput.style.backgroundColor = 'var(--base1)';
         priceInput.style.border = '1.5px solid var(--base3)';
-        priceInput.style.borderRadius = '7px';
+        priceInput.style.borderRadius = '6px';
         priceInput.style.color = 'var(--text1)';
-        priceInput.style.fontSize = '1rem';
+        priceInput.style.fontSize = '0.9rem';
         priceInput.style.outline = 'none';
         priceInput.style.transition = 'border-color 0.18s, background 0.18s';
         priceInput.addEventListener('focus', () => {
@@ -346,95 +369,29 @@ export class PriceLevelManager {
             priceInput.style.borderColor = 'var(--base3)';
             priceInput.style.backgroundColor = 'var(--base1)';
         });
-        dialog.appendChild(priceInput);
+        priceContainer.appendChild(priceInput);
+        inputsGrid.appendChild(priceContainer);
 
-        // Text input
-        const textLabel = document.createElement('label');
-        textLabel.textContent = 'Label:';
-        textLabel.style.display = 'block';
-        textLabel.style.color = 'var(--text2)';
-        textLabel.style.fontSize = '0.92rem';
-        textLabel.style.fontWeight = '500';
-        textLabel.style.letterSpacing = '0.01em';
-        textLabel.style.marginBottom = '6px';
-        dialog.appendChild(textLabel);
-
-        const textInput = document.createElement('input');
-        textInput.type = 'text';
-        textInput.value = levelData.text;
-        textInput.placeholder = 'e.g., Stop Loss, Buy Limit...';
-        textInput.style.width = '100%';
-        textInput.style.padding = '8px 10px';
-        textInput.style.marginBottom = '12px';
-        textInput.style.backgroundColor = 'var(--base1)';
-        textInput.style.border = '1.5px solid var(--base3)';
-        textInput.style.borderRadius = '7px';
-        textInput.style.color = 'var(--text1)';
-        textInput.style.fontSize = '1rem';
-        textInput.style.outline = 'none';
-        textInput.style.transition = 'border-color 0.18s, background 0.18s';
-        textInput.addEventListener('focus', () => {
-            textInput.style.borderColor = 'var(--accent1)';
-            textInput.style.backgroundColor = 'var(--base4)';
-        });
-        textInput.addEventListener('blur', () => {
-            textInput.style.borderColor = 'var(--base3)';
-            textInput.style.backgroundColor = 'var(--base1)';
-        });
-        dialog.appendChild(textInput);
-
-        // Color input
-        const colorLabel = document.createElement('label');
-        colorLabel.textContent = 'Color:';
-        colorLabel.style.display = 'block';
-        colorLabel.style.color = 'var(--text2)';
-        colorLabel.style.fontSize = '0.92rem';
-        colorLabel.style.fontWeight = '500';
-        colorLabel.style.letterSpacing = '0.01em';
-        colorLabel.style.marginBottom = '6px';
-        dialog.appendChild(colorLabel);
-
-        const colorInput = document.createElement('input');
-        colorInput.type = 'color';
-        colorInput.value = levelData.color;
-        colorInput.style.width = '100%';
-        colorInput.style.padding = '8px 10px';
-        colorInput.style.marginBottom = '12px';
-        colorInput.style.backgroundColor = 'var(--base1)';
-        colorInput.style.border = '1.5px solid var(--base3)';
-        colorInput.style.borderRadius = '7px';
-        colorInput.style.cursor = 'pointer';
-        colorInput.style.height = '40px';
-        colorInput.style.outline = 'none';
-        colorInput.style.transition = 'border-color 0.18s';
-        colorInput.addEventListener('focus', () => {
-            colorInput.style.borderColor = 'var(--accent1)';
-        });
-        colorInput.addEventListener('blur', () => {
-            colorInput.style.borderColor = 'var(--base3)';
-        });
-        dialog.appendChild(colorInput);
-
-        // Line style select
+        // Line style container
+        const lineStyleContainer = document.createElement('div');
         const lineStyleLabel = document.createElement('label');
-        lineStyleLabel.textContent = 'Line Style:';
+        lineStyleLabel.textContent = 'Style';
         lineStyleLabel.style.display = 'block';
         lineStyleLabel.style.color = 'var(--text2)';
-        lineStyleLabel.style.fontSize = '0.92rem';
+        lineStyleLabel.style.fontSize = '0.8rem';
         lineStyleLabel.style.fontWeight = '500';
-        lineStyleLabel.style.letterSpacing = '0.01em';
-        lineStyleLabel.style.marginBottom = '6px';
-        dialog.appendChild(lineStyleLabel);
+        lineStyleLabel.style.marginBottom = '4px';
+        lineStyleContainer.appendChild(lineStyleLabel);
 
         const lineStyleSelect = document.createElement('select');
         lineStyleSelect.style.width = '100%';
-        lineStyleSelect.style.padding = '8px 10px';
-        lineStyleSelect.style.marginBottom = '12px';
+        lineStyleSelect.style.boxSizing = 'border-box';
+        lineStyleSelect.style.padding = '7px 8px';
         lineStyleSelect.style.backgroundColor = 'var(--base1)';
         lineStyleSelect.style.border = '1.5px solid var(--base3)';
-        lineStyleSelect.style.borderRadius = '7px';
+        lineStyleSelect.style.borderRadius = '6px';
         lineStyleSelect.style.color = 'var(--text1)';
-        lineStyleSelect.style.fontSize = '1rem';
+        lineStyleSelect.style.fontSize = '0.9rem';
         lineStyleSelect.style.outline = 'none';
         lineStyleSelect.style.cursor = 'pointer';
         lineStyleSelect.style.transition = 'border-color 0.18s, background 0.18s';
@@ -463,25 +420,153 @@ export class PriceLevelManager {
         lineStyleSelect.appendChild(dashedOption);
 
         lineStyleSelect.value = levelData.lineStyle.toString();
-        dialog.appendChild(lineStyleSelect);
+        lineStyleContainer.appendChild(lineStyleSelect);
+        inputsGrid.appendChild(lineStyleContainer);
+
+        // Label input (full width)
+        const textContainer = document.createElement('div');
+        textContainer.style.gridColumn = '1 / -1'; // Span both columns
+        const textLabel = document.createElement('label');
+        textLabel.textContent = 'Label';
+        textLabel.style.display = 'block';
+        textLabel.style.color = 'var(--text2)';
+        textLabel.style.fontSize = '0.8rem';
+        textLabel.style.fontWeight = '500';
+        textLabel.style.marginBottom = '4px';
+        textContainer.appendChild(textLabel);
+
+        const textInput = document.createElement('input');
+        textInput.type = 'text';
+        textInput.value = levelData.text;
+        textInput.placeholder = 'Stop Loss, Target, etc.';
+        textInput.style.width = '100%';
+        textInput.style.boxSizing = 'border-box';
+        textInput.style.padding = '7px 8px';
+        textInput.style.backgroundColor = 'var(--base1)';
+        textInput.style.border = '1.5px solid var(--base3)';
+        textInput.style.borderRadius = '6px';
+        textInput.style.color = 'var(--text1)';
+        textInput.style.fontSize = '0.9rem';
+        textInput.style.outline = 'none';
+        textInput.style.transition = 'border-color 0.18s, background 0.18s';
+        textInput.addEventListener('focus', () => {
+            textInput.style.borderColor = 'var(--accent1)';
+            textInput.style.backgroundColor = 'var(--base4)';
+        });
+        textInput.addEventListener('blur', () => {
+            textInput.style.borderColor = 'var(--base3)';
+            textInput.style.backgroundColor = 'var(--base1)';
+        });
+        textContainer.appendChild(textInput);
+        inputsGrid.appendChild(textContainer);
+
+        // Color input (full width)
+        const colorContainer = document.createElement('div');
+        colorContainer.style.gridColumn = '1 / -1'; // Span both columns
+        const colorLabel = document.createElement('label');
+        colorLabel.textContent = 'Color';
+        colorLabel.style.display = 'block';
+        colorLabel.style.color = 'var(--text2)';
+        colorLabel.style.fontSize = '0.8rem';
+        colorLabel.style.fontWeight = '500';
+        colorLabel.style.marginBottom = '4px';
+        colorContainer.appendChild(colorLabel);
+
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = levelData.color;
+        colorInput.style.width = '100%';
+        colorInput.style.boxSizing = 'border-box';
+        colorInput.style.padding = '6px';
+        colorInput.style.backgroundColor = 'var(--base1)';
+        colorInput.style.border = '1.5px solid var(--base3)';
+        colorInput.style.borderRadius = '6px';
+        colorInput.style.cursor = 'pointer';
+        colorInput.style.height = '36px';
+        colorInput.style.outline = 'none';
+        colorInput.style.transition = 'border-color 0.18s';
+        colorInput.addEventListener('focus', () => {
+            colorInput.style.borderColor = 'var(--accent1)';
+        });
+        colorInput.addEventListener('blur', () => {
+            colorInput.style.borderColor = 'var(--base3)';
+        });
+        colorContainer.appendChild(colorInput);
+        inputsGrid.appendChild(colorContainer);
+
+        dialog.appendChild(inputsGrid);
 
         // Buttons container
         const buttonsDiv = document.createElement('div');
         buttonsDiv.style.display = 'flex';
-        buttonsDiv.style.gap = '12px';
-        buttonsDiv.style.marginTop = '8px';
+        buttonsDiv.style.gap = '8px';
+        buttonsDiv.style.marginTop = '4px';
         buttonsDiv.style.justifyContent = 'flex-end';
+
+        // Cancel button
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = 'Cancel';
+        cancelButton.style.flex = '1';
+        cancelButton.style.padding = '7px 14px';
+        cancelButton.style.backgroundColor = 'transparent';
+        cancelButton.style.color = 'var(--text2)';
+        cancelButton.style.border = '1.5px solid var(--base3)';
+        cancelButton.style.borderRadius = '6px';
+        cancelButton.style.cursor = 'pointer';
+        cancelButton.style.fontSize = '0.85rem';
+        cancelButton.style.fontWeight = '600';
+        cancelButton.style.transition = 'border-color 0.18s, color 0.18s';
+        cancelButton.addEventListener('mouseenter', () => {
+            cancelButton.style.borderColor = 'var(--accent1)';
+            cancelButton.style.color = 'var(--accent1)';
+        });
+        cancelButton.addEventListener('mouseleave', () => {
+            cancelButton.style.borderColor = 'var(--base3)';
+            cancelButton.style.color = 'var(--text2)';
+        });
+        cancelButton.addEventListener('click', () => {
+            this.closeInputDialog();
+        });
+        buttonsDiv.appendChild(cancelButton);
+
+        // Delete button (only show for existing levels)
+        if (this.levels.has(levelId)) {
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.style.flex = '1';
+            deleteButton.style.padding = '7px 14px';
+            deleteButton.style.backgroundColor = '#f23645';
+            deleteButton.style.color = '#ffffff';
+            deleteButton.style.border = 'none';
+            deleteButton.style.borderRadius = '6px';
+            deleteButton.style.cursor = 'pointer';
+            deleteButton.style.fontSize = '0.85rem';
+            deleteButton.style.fontWeight = '600';
+            deleteButton.style.transition = 'background 0.18s';
+            deleteButton.addEventListener('mouseenter', () => {
+                deleteButton.style.backgroundColor = '#d32f3f';
+            });
+            deleteButton.addEventListener('mouseleave', () => {
+                deleteButton.style.backgroundColor = '#f23645';
+            });
+            deleteButton.addEventListener('click', () => {
+                this.removePriceLevel(levelId);
+                this.closeInputDialog();
+            });
+            buttonsDiv.appendChild(deleteButton);
+        }
 
         // Save button
         const saveButton = document.createElement('button');
         saveButton.textContent = 'Save';
-        saveButton.style.padding = '8px 20px';
+        saveButton.style.flex = '1';
+        saveButton.style.padding = '7px 14px';
         saveButton.style.backgroundColor = 'var(--accent1)';
         saveButton.style.color = 'var(--text3)';
         saveButton.style.border = 'none';
-        saveButton.style.borderRadius = '7px';
+        saveButton.style.borderRadius = '6px';
         saveButton.style.cursor = 'pointer';
-        saveButton.style.fontSize = '0.95rem';
+        saveButton.style.fontSize = '0.85rem';
         saveButton.style.fontWeight = '600';
         saveButton.style.transition = 'background 0.18s';
         saveButton.addEventListener('mouseenter', () => {
@@ -517,57 +602,6 @@ export class PriceLevelManager {
             this.closeInputDialog();
         });
         buttonsDiv.appendChild(saveButton);
-
-        // Delete button (only show for existing levels)
-        if (this.levels.has(levelId)) {
-            const deleteButton = document.createElement('button');
-            deleteButton.textContent = 'Delete';
-            deleteButton.style.padding = '8px 20px';
-            deleteButton.style.backgroundColor = '#f23645';
-            deleteButton.style.color = '#ffffff';
-            deleteButton.style.border = 'none';
-            deleteButton.style.borderRadius = '7px';
-            deleteButton.style.cursor = 'pointer';
-            deleteButton.style.fontSize = '0.95rem';
-            deleteButton.style.fontWeight = '600';
-            deleteButton.style.transition = 'background 0.18s, transform 0.18s';
-            deleteButton.addEventListener('mouseenter', () => {
-                deleteButton.style.backgroundColor = '#d32f3f';
-            });
-            deleteButton.addEventListener('mouseleave', () => {
-                deleteButton.style.backgroundColor = '#f23645';
-            });
-            deleteButton.addEventListener('click', () => {
-                this.removePriceLevel(levelId);
-                this.closeInputDialog();
-            });
-            buttonsDiv.appendChild(deleteButton);
-        }
-
-        // Cancel button
-        const cancelButton = document.createElement('button');
-        cancelButton.textContent = 'Cancel';
-        cancelButton.style.padding = '8px 20px';
-        cancelButton.style.backgroundColor = 'transparent';
-        cancelButton.style.color = 'var(--text2)';
-        cancelButton.style.border = '1.5px solid var(--base3)';
-        cancelButton.style.borderRadius = '7px';
-        cancelButton.style.cursor = 'pointer';
-        cancelButton.style.fontSize = '0.95rem';
-        cancelButton.style.fontWeight = '600';
-        cancelButton.style.transition = 'border-color 0.18s, color 0.18s';
-        cancelButton.addEventListener('mouseenter', () => {
-            cancelButton.style.borderColor = 'var(--accent1)';
-            cancelButton.style.color = 'var(--accent1)';
-        });
-        cancelButton.addEventListener('mouseleave', () => {
-            cancelButton.style.borderColor = 'var(--base3)';
-            cancelButton.style.color = 'var(--text2)';
-        });
-        cancelButton.addEventListener('click', () => {
-            this.closeInputDialog();
-        });
-        buttonsDiv.appendChild(cancelButton);
 
         dialog.appendChild(buttonsDiv);
 

@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: 'Εισαγωγή',
         exportWatchlist: 'Εξαγωγή',
         emptyListMessage: 'Η λίστα είναι άδεια',
+        noWatchlistsMessage: 'Δεν βρέθηκαν λίστες παρακολούθησης. Δημιουργήστε μία για να ξεκινήσετε',
         emptyListSubtext: 'Προσθέστε σύμβολα',
         importButtonText: 'Εισαγωγή',
         sortBySymbol: 'Ταξινόμηση συμβόλου',

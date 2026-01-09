@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: 'İzleme Listesini İçe Aktar',
         exportWatchlist: 'İzleme Listesini Dışa Aktar',
         emptyListMessage: 'Bu izleme listesi boş',
+        noWatchlistsMessage: 'İzleme listesi bulunamadı. Başlamak için bir tane oluşturun',
         emptyListSubtext: 'Başlamak için sembol ekleyin',
         importButtonText: 'İzleme Listesini İçe Aktar',
         sortBySymbol: 'Sembole göre sırala',

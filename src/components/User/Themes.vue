@@ -38,7 +38,7 @@ const props = defineProps({
 
 const themes = [
   'default', 'ihatemyeyes', 'colorblind', 'catpuccin', 'black',
-  'nord', 'dracula', 'gruvbox', 'tokyo-night', 'solarized',
+  'nord', 'dracula', 'gruvbox', 'solarized',
   'synthwave', 'github-dark', 'everforest', 'ayu-dark', 'rose-pine',
   'material', 'one-dark', 'night-owl', 'panda', 'monokai-pro',
   'tomorrow-night', 'oceanic-next', 'palenight', 'cobalt', 'poimandres',
@@ -74,7 +74,6 @@ const themeDisplayNames: Record<string, string> = {
   nord: 'Nord',
   dracula: 'Dracula',
   gruvbox: 'Gruvbox',
-  'tokyo-night': 'Tokyo Night',
   solarized: 'Solarized Dark',
   synthwave: 'Synthwave',
   'github-dark': 'GitHub Dark',
@@ -120,9 +119,9 @@ const themeDisplayNames: Record<string, string> = {
 
 const themeColors: Record<string, Record<string, string>> = {
   default: {
-    accent1: '#8c8dfe',
-    accent2: '#a9a5ff',
-    accent3: '#cfcbff',
+   accent1: '#7aa2f7',
+    accent2: '#bb9af7',
+    accent3: '#7dcfff',
     text1: '#c0caf5',
     text2: '#a9b1d6',
     text3: '#222222',
@@ -130,13 +129,13 @@ const themeColors: Record<string, Record<string, string>> = {
     base2: '#24283b',
     base3: '#414868',
     base4: '#16161e',
-    positive: '#4caf50',
-    negative: '#90bff9',
-    volume: '#4d4d4d',
-    ma4: '#4caf50',
-    ma3: '#ffeb3b',
-    ma2: '#2862ff',
-    ma1: '#00bcd4'
+    positive: '#9ece6a',
+    negative: '#f7768e',
+    volume: '#ff9e64',
+    ma4: '#9ece6a',
+    ma3: '#e0af68',
+    ma2: '#7aa2f7',
+    ma1: '#bb9af7'
   },
   ihatemyeyes: {
     accent1: '#7aa2f7',
@@ -277,25 +276,6 @@ const themeColors: Record<string, Record<string, string>> = {
     ma3: '#fabd2f',
     ma2: '#83a598',
     ma1: '#d3869b'
-  },
-  'tokyo-night': {
-    accent1: '#7aa2f7',
-    accent2: '#bb9af7',
-    accent3: '#7dcfff',
-    text1: '#c0caf5',
-    text2: '#a9b1d6',
-    text3: '#222222',
-    base1: '#1a1b26',
-    base2: '#24283b',
-    base3: '#414868',
-    base4: '#16161e',
-    positive: '#9ece6a',
-    negative: '#f7768e',
-    volume: '#ff9e64',
-    ma4: '#9ece6a',
-    ma3: '#e0af68',
-    ma2: '#7aa2f7',
-    ma1: '#bb9af7'
   },
   solarized: {
     accent1: '#268bd2',

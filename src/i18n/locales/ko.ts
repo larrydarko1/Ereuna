@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: '관심목록 가져오기',
         exportWatchlist: '관심목록 내보내기',
         emptyListMessage: '이 관심목록은 비어있습니다',
+        noWatchlistsMessage: '관심목록을 찾을 수 없습니다. 하나를 만들어 시작하세요',
         emptyListSubtext: '시작하려면 심볼을 추가하세요',
         importButtonText: '관심목록 가져오기',
         sortBySymbol: '심볼별 정렬',

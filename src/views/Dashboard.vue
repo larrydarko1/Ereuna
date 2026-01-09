@@ -102,38 +102,6 @@
         </div>
       </div>
     </section>
-         <!-- Third Row: Placeholder for future widgets -->
-  <div class="dashboard-row3">
-    <section style="width: 100%; margin-bottom: 5px;">
-    <div class="e-card playing archie-card" style="width: 100%;">
-      <div class="wave"></div>
-      <div class="wave"></div>
-      <div class="wave"></div>
-      <div class="infotop">
-        <span class="archie-title">{{ t('dashboard.archie.meet') }} <span class="archie-name">{{ t('dashboard.archie.name') }}<svg class="archie-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-            <g id="SVGRepo_iconCarrier">
-              <path d="M12 3C12 7.97056 16.0294 12 21 12C16.0294 12 12 16.0294 12 21C12 16.0294 7.97056 12 3 12C7.97056 12 12 7.97056 12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-            </g>
-          </svg></span></span>
-        <div class="archie-tagline">{{ t('dashboard.archie.tagline') }}</div>
-        <div class="archie-loader">
-          <span class="loader-line"></span>
-          <span class="loader-text">{{ t('dashboard.archie.training') }}</span>
-        </div>
-        <p class="archie-desc">
-          {{ t('dashboard.archie.description') }}<br>
-          {{ t('dashboard.archie.description2') }}<br>
-          <span class="archie-highlight">{{ t('dashboard.archie.comingSoon') }}</span>
-        </p>
-        <div class="archie-disclaimer">
-          <strong>{{ t('dashboard.archie.disclaimer') }}</strong> {{ t('dashboard.archie.disclaimerText') }}
-        </div>
-      </div>
-    </div>
-  </section>
-  </div>
     <!-- First Row: Market Indexes & SMA Distribution -->
     <div class="dashboard-row">
       <section class="market-indexes card" aria-label="Market Indexes">
@@ -277,6 +245,39 @@
       </section>
     </div>
 
+          <!-- Third Row: Placeholder for future widgets -->
+  <div class="dashboard-row3">
+    <section style="width: 100%; margin-bottom: 5px;">
+    <div class="e-card playing archie-card" style="width: 100%;">
+      <div class="wave"></div>
+      <div class="wave"></div>
+      <div class="wave"></div>
+      <div class="infotop">
+        <span class="archie-title">{{ t('dashboard.archie.meet') }} <span class="archie-name">{{ t('dashboard.archie.name') }}<svg class="archie-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path d="M12 3C12 7.97056 16.0294 12 21 12C16.0294 12 12 16.0294 12 21C12 16.0294 7.97056 12 3 12C7.97056 12 12 7.97056 12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            </g>
+          </svg></span></span>
+        <div class="archie-tagline">{{ t('dashboard.archie.tagline') }}</div>
+        <div class="archie-loader">
+          <span class="loader-line"></span>
+          <span class="loader-text">{{ t('dashboard.archie.training') }}</span>
+        </div>
+        <p class="archie-desc">
+          {{ t('dashboard.archie.description') }}<br>
+          {{ t('dashboard.archie.description2') }}<br>
+          <span class="archie-highlight">{{ t('dashboard.archie.comingSoon') }}</span>
+        </p>
+        <div class="archie-disclaimer">
+          <strong>{{ t('dashboard.archie.disclaimer') }}</strong> {{ t('dashboard.archie.disclaimerText') }}
+        </div>
+      </div>
+    </div>
+  </section>
+  </div>
+  
     <!-- Third Row: Valuation Analysis -->
     <div class="dashboard-row-valuation">
       <section class="valuation-section card" aria-label="Stock Valuation Analysis">

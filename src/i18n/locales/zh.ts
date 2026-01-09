@@ -1100,6 +1100,7 @@ export default {
         importWatchlist: '导入自选列表',
         exportWatchlist: '导出自选列表',
         emptyListMessage: '此自选列表为空',
+        noWatchlistsMessage: '未找到自选列表。创建一个以开始',
         emptyListSubtext: '添加代码以开始',
         importButtonText: '导入自选列表',
         sortBySymbol: '按代码排序',

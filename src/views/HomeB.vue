@@ -60,8 +60,15 @@
 </div>
   <div class="hero">
     <div class="content">
+      <div class="beta-badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor"/>
+        </svg>
+        <span>PUBLIC BETA</span>
+      </div>
       <p style="cursor: default;" class="description">Unlock Smarter Investing with <span style="color: var(--brand-primary); font-size: inherit ;">Ereuna</span></p> 
       <p style="cursor: default;" class="call-to-action">Cut your research time and costs—invest with confidence.</p>
+      <p class="beta-disclaimer">⚠️ Experimental testing platform - Free during beta period</p>
       <br>
       <br>
       <div style="display: flex; flex-direction: row ;gap: 20px;">
@@ -154,7 +161,7 @@
             </div>
             <div class="sales-right">
               <h1 class="sales-big-text">Comprehensive Market Coverage</h1>
-              <p class="sales-subtext">With plans to add more financial instruments and expand our document database in the future.</p>
+              <p class="sales-subtext">With plans to add more financial instruments and expand in the future.</p>
             </div>
           </div>
 
@@ -170,7 +177,7 @@
     </div>
     <div class="quiz-cta-text">
       <h3>Not sure if <span style="color: var(--brand-primary); font-size: inherit;">Ereuna</span> is the right fit for you?</h3>
-      <p>Take our quick compatibility quiz to find out if our platform matches your investment needs and style.</p>
+      <p>Take a quick compatibility quiz to find out if the platform matches your investment needs and style.</p>
     </div>
     <button class="quiz-cta-button" @click="$router.push('/quiz')">
       Take the Quiz
@@ -591,6 +598,35 @@ function animateCounter(counter: Element) {
   height: 100%;
   background: linear-gradient(180deg, var(--brand-bg-primary) 0%, var(--brand-bg-secondary) 100%);
   color: var(--brand-text-primary);
+}
+
+.beta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--brand-text-secondary);
+  border: none;
+  border-radius: 16px;
+  color: var(--brand-bg-primary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.75rem;
+  cursor: default;
+}
+
+.beta-badge svg {
+  width: 12px;
+  height: 12px;
+  color: var(--brand-bg-primary);
+}
+
+.beta-disclaimer {
+  font-size: 0.85rem;
+  color: var(--brand-text-tertiary);
+  margin-top: 0.25rem;
+  font-weight: 500;
 }
 
 .department-card {
@@ -1487,7 +1523,7 @@ a.social {
 .quiz-cta-section {
   max-width: 900px;
   margin-top: 20rem;
-  margin-left: 20rem;
+  margin-left: auto;
   margin-right: auto;
   padding: 0 20px;
 }

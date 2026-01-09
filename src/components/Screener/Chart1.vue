@@ -39,7 +39,7 @@
 
 <script setup lang="ts">
 import Loader from '@/components/loader.vue';
-import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
+import { ref, onMounted, onUnmounted, watch, computed, nextTick } from 'vue';
 import { createChart, ColorType } from '@/lib/lightweight-charts';
 import { useI18n } from 'vue-i18n';
 
@@ -89,6 +89,7 @@ let isChartLoading1 = ref(false);
 let isLoading1 = ref(false);
 let isLoadingMore = false;
 let allDataLoaded = false;
+let chartReady = false; // NEW: Track if chart is fully initialized
 
 const emit = defineEmits<{ (e: 'symbol-selected', symbol: string): void }>();
 function onSymbolSelect(symbol: string) {
@@ -254,6 +255,13 @@ async function fetchChartDataWS(symbolParam: string | null): Promise<void> {
       return;
     }
     if (msg.type === 'init' || msg.type === 'update') {
+      // Only process data if chart is ready
+      if (!chartReady) {
+        console.warn('Chart1: Received websocket data before chart ready, delaying...');
+        setTimeout(() => chartWS?.onmessage?.(event), 100);
+        return;
+      }
+      
       const ohlc = msg.data.ohlc || [];
       const volume = msg.data.volume || [];
       const ma1 = msg.data.MA1 || [];
@@ -419,11 +427,18 @@ function updateMainSeries(): void {
 
 // mounts chart (including volume)
 onMounted(async () => {
+  // Wait for DOM to be fully rendered
+  await nextTick();
+  
+  // Add small delay to ensure layout is stable
+  await new Promise(resolve => setTimeout(resolve, 10));
+  
   const chartDiv = wkchart.value;
   if (!chartDiv) return;
   const rect = chartDiv.getBoundingClientRect();
-  const width = window.innerWidth <= 1150 ? 400 : rect.width;
-  const height = rect.height <= 1150 ? 250 : rect.width;
+  // Ensure minimum dimensions and use clientWidth for more accurate width
+  const width = Math.max(rect.width || chartDiv.clientWidth || 400, 300);
+  const height = 250;
   chart = createChart(chartDiv, {
     height: height,
     width: width,
@@ -523,7 +538,7 @@ onMounted(async () => {
   // No transformation needed - intraday has Unix timestamps, daily/weekly has date strings
 
   watch(data, (newData: OHLC[]) => {
-    if (!mainSeries || !newData.length) return;
+    if (!chartReady || !mainSeries || !newData.length) return;
     if (selectedChartType.value === 'line' || selectedChartType.value === 'area') {
       const lineData = newData.map((d: OHLC) => ({
         time: d.time,
@@ -536,29 +551,7 @@ onMounted(async () => {
   });
 
   watch(data2, (newData2: Volume[]) => {
-    if (newData2 && newData2.length) {
-      Histogram.setData(newData2);
-    }
-  });
-
-  watch(data3, (newData3: MA[] | null) => {
-    MaSeries1.setData(newData3 || []);
-  });
-
-  watch(data4, (newData4: MA[] | null) => {
-    MaSeries2.setData(newData4 || []);
-  });
-
-  watch(data5, (newData5: MA[] | null) => {
-    MaSeries3.setData(newData5 || []);
-  });
-
-  watch(data6, (newData6: MA[] | null) => {
-    MaSeries4.setData(newData6 || []);
-  });
-
-  watch(data2, (newData2: Volume[]) => {
-    if (!newData2 || !newData2.length) return;
+    if (!chartReady || !Histogram || !newData2 || !newData2.length) return;
     const relativeVolumeData = newData2.map((dataPoint: Volume, index: number) => {
       const averageVolume = calculateAverageVolume(newData2, index);
       const relativeVolume = dataPoint.value / averageVolume;
@@ -572,6 +565,26 @@ onMounted(async () => {
     Histogram.setData(relativeVolumeData as any);
   });
 
+  watch(data3, (newData3: MA[] | null) => {
+    if (!chartReady || !MaSeries1) return;
+    MaSeries1.setData(newData3 || []);
+  });
+
+  watch(data4, (newData4: MA[] | null) => {
+    if (!chartReady || !MaSeries2) return;
+    MaSeries2.setData(newData4 || []);
+  });
+
+  watch(data5, (newData5: MA[] | null) => {
+    if (!chartReady || !MaSeries3) return;
+    MaSeries3.setData(newData5 || []);
+  });
+
+  watch(data6, (newData6: MA[] | null) => {
+    if (!chartReady || !MaSeries4) return;
+    MaSeries4.setData(newData6 || []);
+  });
+
   function calculateAverageVolume(data: Volume[], index: number): number {
     const windowSize = 365; // adjust this value to change the window size for calculating average volume
     const start = Math.max(0, index - windowSize + 1);
@@ -580,6 +593,9 @@ onMounted(async () => {
     return sum / (end - start);
   }
 
+  // Mark chart as ready before fetching data
+  chartReady = true;
+  
   // Initial fetch
   await fetchChartData(props.selectedSymbol);
   isLoading1.value = false;

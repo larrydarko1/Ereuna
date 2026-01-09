@@ -13,7 +13,7 @@
             <div class="preview-chart" :style="{ backgroundColor: config.backgroundColor }">
               <div class="preview-header">
                 <div v-if="config.includeLogo" class="preview-logo">
-                  <img src="@/assets/icons/ereuna.svg" alt="Ereuna" class="preview-logo-img" :style="{ filter: logoFilter }" />
+                  <img :src="ereunaLogoSvg" alt="Ereuna" class="preview-logo-img" :style="{ filter: logoFilter }" />
                 </div>
                 <div v-if="config.includeChartInfo" class="preview-info">
                   <div class="preview-date-time" :style="{ color: previewSecondaryColor }">
@@ -81,6 +81,7 @@
 import { ref, reactive, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { ScreenshotConfig, ChartInfo } from '@/lib/lightweight-charts/screenshot';
+import ereunaLogoSvg from '@/assets/icons/ereuna.svg';
 
 const { t } = useI18n();
 

@@ -50,23 +50,7 @@
         viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        :class="{ 'dropdown-icon-hover': showDropdown }"
-        v-if="!showDropdown"
-      >
-        <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
-          d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z"
-          fill="var(--text1)"
-        />
-      </svg>
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        :class="{ 'dropdown-icon': showDropdown }"
-        v-else
-        style="transform: rotate(180deg);"
+        :class="{ 'dropdown-icon-open': showDropdown }"
       >
         <path
           fill-rule="evenodd"
@@ -223,13 +207,11 @@
               </svg>%
             </div>
           </div>
-        <div v-if="isLoading2" style="position: relative; height: 100%;">
-          <div style="position: absolute; top: 45%; left: 43%;">
-            <Loader />
-          </div>
-        </div>
         <div class="watchlist-container">
-          <div id="list" ref="watchlistContainer" tabindex="0" @keydown="handleKeydown" @click="handleClick">
+          <div v-if="isLoading2" class="loader-container">
+            <div class="loader-spinner"></div>
+          </div>
+          <div id="list" ref="watchlistContainer" tabindex="0" @keydown="handleKeydown" @click="handleClick" v-else>
             <div v-if="watchlist2.tickers && watchlist2.tickers.length > 0">
               <div ref="sortable">
                 <div v-for="(item, index) in watchlist2.tickers" :key="item.ticker"
@@ -331,10 +313,18 @@
                 <path d="M493.297,159.693c-12.477-30.878-31.231-59.828-56.199-84.792c-24.964-24.967-53.914-43.722-84.793-56.199 C321.426,6.222,288.617,0,255.823,0c-32.748,0-65.497,6.249-96.315,18.743c-30.814,12.491-59.695,31.244-84.607,56.159 c-24.915,24.912-43.668,53.793-56.158,84.607C6.25,190.325,0.001,223.073,0.001,255.823c0,32.794,6.222,65.602,18.701,96.484 c12.477,30.878,31.231,59.828,56.199,84.793c24.964,24.967,53.914,43.722,84.792,56.199c30.882,12.48,63.69,18.701,96.484,18.701 c32.748,0,65.497-6.249,96.314-18.743c30.814-12.49,59.695-31.242,84.607-56.158c24.917-24.913,43.67-53.794,56.16-84.608 c12.493-30.817,18.743-63.566,18.743-96.315C511.999,223.383,505.778,190.575,493.297,159.693z M461.611,339.661 c-10.821,26.683-27.019,51.648-48.659,73.291c-21.643,21.64-46.608,37.837-73.292,48.657 c-26.679,10.818-55.078,16.241-83.484,16.241c-28.477,0-56.947-5.405-83.688-16.213c-26.744-10.813-51.76-27.007-73.441-48.685 c-21.678-21.682-37.873-46.697-48.685-73.441C39.554,312.77,34.149,284.3,34.149,255.823c0-28.406,5.423-56.804,16.241-83.484 c10.821-26.683,27.018-51.648,48.659-73.291c21.643-21.64,46.608-37.837,73.291-48.659c26.679-10.818,55.078-16.241,83.484-16.241 c28.477,0,56.947,5.405,83.688,16.214c26.744,10.813,51.76,27.008,73.441,48.685c21.677,21.681,37.873,46.697,48.685,73.441 c10.808,26.741,16.214,55.211,16.214,83.688C477.852,284.583,472.429,312.981,461.611,339.661z"/>
                 <path d="M385.946,126.055c-6.524-6.525-17.102-6.525-23.626,0l-36.278,36.278c-7.82-5.861-16.298-10.691-25.249-14.389 c-14.036-5.803-29.225-8.832-44.792-8.83c-15.572-0.002-30.761,3.027-44.797,8.83c-14.037,5.799-26.917,14.372-37.901,25.36 c-11.376,11.375-19.956,24.598-25.656,38.689c-5.704,14.094-8.547,29.054-8.548,44.007c0,14.954,2.843,29.914,8.548,44.007 c3.693,9.131,8.603,17.892,14.691,26.027l-36.285,36.285c-6.524,6.524-6.524,17.102,0,23.627c6.525,6.524,17.102,6.524,23.627,0 l36.278-36.278c7.82,5.861,16.298,10.691,25.249,14.389c14.036,5.803,29.225,8.832,44.792,8.83 c15.572,0.002,30.761-3.027,44.797-8.83c14.037-5.799,26.917-14.372,37.901-25.359c11.376-11.375,19.955-24.599,25.656-38.689 c5.704-14.094,8.547-29.054,8.548-44.007c0-14.954-2.843-29.914-8.548-44.008c-3.693-9.131-8.603-17.892-14.691-26.027 l36.285-36.285C392.47,143.157,392.47,132.579,385.946,126.055z M178.621,287.472c-4.066-10.044-6.108-20.754-6.107-31.471 c0-10.717,2.042-21.428,6.107-31.472c4.07-10.047,10.146-19.431,18.31-27.599c7.908-7.906,17.06-13.98,27.036-18.106 c9.978-4.122,20.783-6.295,32.033-6.296c11.245,0.002,22.051,2.174,32.03,6.297c4.897,2.025,9.593,4.525,14.044,7.476 L186.305,302.069C183.229,297.418,180.669,292.53,178.621,287.472z M333.38,287.472c-4.07,10.047-10.146,19.431-18.31,27.599 c-7.908,7.906-17.06,13.98-27.036,18.106c-9.978,4.122-20.783,6.295-32.033,6.296c-11.245-0.002-22.05-2.174-32.03-6.297 c-4.897-2.025-9.593-4.526-14.044-7.476l115.769-115.769c3.076,4.651,5.636,9.539,7.684,14.597 c4.066,10.044,6.108,20.754,6.107,31.472C339.488,266.717,337.446,277.427,333.38,287.472z"/>
               </svg>
-              <p>{{ t('watchlistComponent.emptyListMessage') }}</p>
-              <button v-if="watchlist.tickers && watchlist.tickers.length > 0" class="import-btn" @click="showImportWatchlistModal = true" :aria-label="t('watchlistComponent.importButtonText')">
-                {{ t('watchlistComponent.importButtonText') }}
-              </button>
+              <template v-if="watchlist.tickers && watchlist.tickers.length > 0">
+                <p>{{ t('watchlistComponent.emptyListMessage') }}</p>
+                <button class="import-btn" @click="showImportWatchlistModal = true" :aria-label="t('watchlistComponent.importButtonText')">
+                  {{ t('watchlistComponent.importButtonText') }}
+                </button>
+              </template>
+              <template v-else>
+                <p>{{ t('watchlistComponent.noWatchlistsMessage') }}</p>
+                <button class="import-btn" @click="showCreateWatchlistModal = true" :aria-label="t('watchlistComponent.createWatchlist')">
+                  {{ t('watchlistComponent.createWatchlist') }}
+                </button>
+              </template>
             </div>
           </div>
           <div class="results2"></div>
@@ -498,6 +488,9 @@ const perc = reactive<PercMap>({});
 const selectedWatchlist = ref<WatchlistTicker | null>(JSON.parse(localStorage.getItem('selectedWatchlist') || 'null'));
 const CurrentWatchlistName: ComputedRef<string> = computed(() => selectedWatchlist.value?.Name || '');
 
+// Track which watchlists have been loaded to show loader only on first load
+const loadedWatchlists = new Set<string>();
+
 function updateSelectedWatchlist(watch: WatchlistTicker): void {
   selectedWatchlist.value = watch;
   localStorage.setItem('selectedWatchlist', JSON.stringify(watch));
@@ -537,24 +530,39 @@ async function getWatchlists() {
 }
 
 // generates the current watchlist tickers 
-async function filterWatchlist(watch?: WatchlistTicker): Promise<void> {
+async function filterWatchlist(watch?: WatchlistTicker, skipLoader = false): Promise<void> {
   if (watch) {
     updateSelectedWatchlist(watch);
   }
 
   try {
   if (!selectedWatchlist.value) return;
-  const response = await fetch(`/api/${props.user}/watchlists/${selectedWatchlist.value.Name}`, {
+  
+  const watchlistName = selectedWatchlist.value.Name;
+  const isFirstLoad = !loadedWatchlists.has(watchlistName);
+  
+  // Show loader only on first load and if not explicitly skipping
+  if (isFirstLoad && !skipLoader) {
+    isLoading2.value = true;
+  }
+  
+  const response = await fetch(`/api/${props.user}/watchlists/${watchlistName}`, {
       headers: {
         'X-API-KEY': props.apiKey,
       },
     });
     const data = await response.json();
   watchlist2.tickers = data;
-  isLoading2.value = true;
-  // Fetch data for all tickers in the updated watchlist at once
-  await fetchAllItemData(watchlist2.tickers.filter(Boolean));
-  isLoading2.value = false;
+  
+  // Mark this watchlist as loaded
+  loadedWatchlists.add(watchlistName);
+  
+  if (isFirstLoad && !skipLoader) {
+    // Fetch data for all tickers in the updated watchlist at once
+    await fetchAllItemData(watchlist2.tickers.filter(Boolean));
+    isLoading2.value = false;
+  }
+  
     await nextTick(() => {
       initializeWatchlistNavigation();
       initializeSortable(); // Reinitialize Sortable after data updates
@@ -633,7 +641,7 @@ async function deleteTicker(item: string) {
 
   // Refresh the watchlists after deletion
   await getWatchlists();
-  await filterWatchlist(selectedWatchlist.value ?? undefined);
+  await filterWatchlist(selectedWatchlist.value ?? undefined, true);
   await getFullWatchlists(props.user);
 }
 
@@ -685,6 +693,12 @@ async function addWatchlist() {
         return;
       }
 
+      // Check if the symbol is delisted
+      if (assetData.Delisted === true) {
+        emit('notify', 'Symbol is Delisted');
+        return;
+      }
+
       const patchData = { Name: selectedWatchlistName, symbol }; // Use the selected watchlist name
       const patchResponse = await fetch(`/api/${props.user}/watchlists/${patchData.Name}`, {
         method: 'PATCH',
@@ -710,7 +724,7 @@ async function addWatchlist() {
 
       const data = await patchResponse.json();
   await fetchAllItemData([{ ticker: symbol, exchange: assetData.Exchange || '' }]);
-      await filterWatchlist();
+      await filterWatchlist(undefined, true);
     }
   } catch (err) {
     error.value = (err instanceof Error ? err.message : String(err));
@@ -914,6 +928,29 @@ const toggleWatchlist = async (ticker: WatchlistTicker, symbol: string): Promise
 async function addtoWatchlist(ticker: WatchlistTicker, symbol: string, $event: { target: { checked: boolean } }): Promise<void> {
   const isChecked = $event.target.checked;
   const isAdding = isChecked;
+  
+  // Check if the symbol is delisted before adding
+  if (isAdding) {
+    try {
+      const assetResponse = await fetch(`/api/chart/${symbol}`, {
+        headers: {
+          'X-API-KEY': props.apiKey,
+        },
+      });
+      
+      if (assetResponse.ok) {
+        const assetData = await assetResponse.json();
+        if (assetData.Delisted === true) {
+          emit('notify', 'Symbol is Delisted');
+          return;
+        }
+      }
+    } catch (err) {
+      // If we can't check, continue with the operation
+      console.error('Error checking delisted status:', err);
+    }
+  }
+  
   try {
     const response = await fetch(`/api/watchlist/addticker/${isAdding ? 'true' : 'false'}`, {
       method: 'PATCH',
@@ -1239,6 +1276,20 @@ onUnmounted(() => {
   position: absolute;
   left: 0;
   margin: 3%;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdown-icon-open {
+  transform: translateY(1.5px);
+}
+
+.selected-value {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: 25px;
+  margin: 0;
 }
 
 .select-container {
@@ -1254,8 +1305,10 @@ onUnmounted(() => {
 .dropdown-container {
   position: absolute;
   top: 100%;
-  left: 0;
-  width: 100%;
+  left: 50%;
+  min-width: 220px;
+  width: max-content;
+  max-width: 400px;
 }
 
 .watchlist-dropdown-menu {
@@ -1263,7 +1316,7 @@ onUnmounted(() => {
   padding: 10px;
   border-radius: 7px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-  border: 1.5px solid var(--base2);
+  width: 100%;
 }
 
 .badge {
@@ -1282,6 +1335,11 @@ onUnmounted(() => {
   cursor: pointer;
   border-radius: 5px;
   transition: background 0.18s, color 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  white-space: nowrap;
+  gap: 10px;
 }
 
 .select-container .watchlist-dropdown-menu .watchlist-item:hover {
@@ -1577,6 +1635,29 @@ onUnmounted(() => {
   padding: 100px;
   height: 50px;
   border: none;
+}
+
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  width: 100%;
+}
+
+.loader-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--base3);
+  border-top-color: var(--accent1);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 </style>

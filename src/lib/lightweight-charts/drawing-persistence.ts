@@ -5,11 +5,12 @@ import { FreehandManager } from './freehand';
 import { PriceLevelManager } from './price-level';
 
 /**
- * Simple auto-save manager that persists drawings per symbol
+ * Simple auto-save manager that persists drawings per symbol and timeframe
  * Similar to TradingView's approach - transparent to the user
  */
 export class DrawingPersistence {
     private symbol: string = '';
+    private timeframe: string = '';
     private user: string = '';
     private apiKey: string = '';
     private trendlineManager: TrendLineManager | null = null;
@@ -39,10 +40,11 @@ export class DrawingPersistence {
     }
 
     /**
-     * Set the current symbol
+     * Set the current symbol and timeframe
      */
-    public setSymbol(symbol: string): void {
+    public setSymbol(symbol: string, timeframe: string = 'daily'): void {
         this.symbol = symbol;
+        this.timeframe = timeframe;
     }
 
     /**
@@ -63,11 +65,11 @@ export class DrawingPersistence {
     }
 
     /**
-     * Load drawings for the current symbol
+     * Load drawings for the current symbol and timeframe
      */
     public async loadDrawings(): Promise<void> {
-        if (!this.symbol || !this.user) {
-            console.warn('Cannot load drawings: symbol or user not set');
+        if (!this.symbol || !this.user || !this.timeframe) {
+            console.warn('Cannot load drawings: symbol, user, or timeframe not set');
             return;
         }
 
@@ -75,7 +77,7 @@ export class DrawingPersistence {
 
         try {
             const response = await fetch(
-                `/api/chartdrawings?user=${encodeURIComponent(this.user)}&symbol=${encodeURIComponent(this.symbol)}`,
+                `/api/chartdrawings?user=${encodeURIComponent(this.user)}&symbol=${encodeURIComponent(this.symbol)}&timeframe=${encodeURIComponent(this.timeframe)}`,
                 {
                     headers: {
                         'x-api-key': this.apiKey,
@@ -134,8 +136,8 @@ export class DrawingPersistence {
      * Save drawings immediately
      */
     private async saveNow(): Promise<void> {
-        if (!this.symbol || !this.user) {
-            console.warn('Cannot save drawings: symbol or user not set');
+        if (!this.symbol || !this.user || !this.timeframe) {
+            console.warn('Cannot save drawings: symbol, user, or timeframe not set');
             return;
         }
 
@@ -143,6 +145,7 @@ export class DrawingPersistence {
             const drawings = {
                 user: this.user,
                 symbol: this.symbol,
+                timeframe: this.timeframe,
                 trendLines: this.trendlineManager?.getTrendLines() || [],
                 boxes: this.boxManager?.getBoxes() || [],
                 textAnnotations: this.textAnnotationManager?.getAnnotations() || [],
@@ -168,11 +171,11 @@ export class DrawingPersistence {
     }
 
     /**
-     * Clear all drawings for current symbol
+     * Clear all drawings for current symbol and timeframe
      */
     public async clearDrawings(): Promise<void> {
-        if (!this.symbol || !this.user) {
-            console.warn('Cannot clear drawings: symbol or user not set');
+        if (!this.symbol || !this.user || !this.timeframe) {
+            console.warn('Cannot clear drawings: symbol, user, or timeframe not set');
             return;
         }
 
@@ -196,7 +199,7 @@ export class DrawingPersistence {
 
             // Clear on server
             const response = await fetch(
-                `/api/chartdrawings?user=${encodeURIComponent(this.user)}&symbol=${encodeURIComponent(this.symbol)}`,
+                `/api/chartdrawings?user=${encodeURIComponent(this.user)}&symbol=${encodeURIComponent(this.symbol)}&timeframe=${encodeURIComponent(this.timeframe)}`,
                 {
                     method: 'DELETE',
                     headers: {
@@ -209,7 +212,7 @@ export class DrawingPersistence {
                 throw new Error('Failed to clear drawings');
             }
 
-            console.log(`Cleared drawings for ${this.symbol}`);
+            console.log(`Cleared drawings for ${this.symbol} on ${this.timeframe}`);
         } catch (error) {
             console.error('Error clearing drawings:', error);
         }

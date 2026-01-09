@@ -1096,6 +1096,7 @@ export default {
         importWatchlist: 'Importar Lista de Vigilancia',
         exportWatchlist: 'Exportar Lista de Vigilancia',
         emptyListMessage: 'Esta lista de vigilancia está vacía',
+        noWatchlistsMessage: 'No se encontraron listas. Crea una para comenzar',
         emptyListSubtext: 'Agregue símbolos para comenzar',
         importButtonText: 'Importar Lista de Vigilancia',
         sortBySymbol: 'Ordenar por símbolo',

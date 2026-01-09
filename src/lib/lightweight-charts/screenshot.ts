@@ -380,7 +380,10 @@ export class ChartScreenshot {
                 resolve();
             };
             img.onerror = () => resolve(); // Fail gracefully
-            img.src = '/src/assets/icons/ereuna.svg';
+            // Import the logo dynamically to ensure it works in both dev and production
+            import('@/assets/icons/ereuna.svg').then(module => {
+                img.src = module.default;
+            }).catch(() => resolve());
         });
     }
 
