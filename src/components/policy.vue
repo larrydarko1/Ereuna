@@ -24,8 +24,8 @@
         </div>
       </div>
       <div class="modal-body">
-        <h2 class="contract-title">1. EXPERIMENTAL BETA TEST PROJECT</h2>
-        <p>Welcome to the Ereuna Public Beta. <strong>This is experimental software in active testing phase.</strong> These Terms and Conditions and Privacy Policy ("Terms") govern your use of the Ereuna platform ("Platform") during the public beta testing period.</p>
+        <h2 class="contract-title">1. EXPERIMENTAL BETA TEST PROJECT - NOT A COMMERCIAL SERVICE</h2>
+        <p>Welcome to the Ereuna Public Beta. <strong>This is experimental software in active testing phase operated by an individual as a personal project, not a registered business entity.</strong> These Terms and Conditions and Privacy Policy ("Terms") govern your use of the Ereuna platform ("Platform") during the public beta testing period. <strong>This is not a commercial service</strong> and is provided free of charge for testing and validation purposes only.</p>
         
         <p><strong>By creating an account and using this Platform, you acknowledge and agree that:</strong></p>
         <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
@@ -49,7 +49,15 @@
         <p>As experimental beta software, the Platform operator reserves the absolute right to interrupt, suspend, modify, or terminate the service at any time, for any reason, with or without notice. This includes but is not limited to: technical issues, bugs, maintenance, security concerns, data provider limitations, cost constraints, or the decision to discontinue the testing program entirely. <strong>There are no uptime guarantees, service level agreements, or availability commitments during the beta testing phase.</strong> Users acknowledge and accept this risk by participating in the public beta test.</p>
 
         <h2 class="contract-title">5. EXPERIMENTAL DATA AND SOURCES</h2>
-        <p>The Platform aggregates and processes financial data from various third-party data providers for testing and evaluation purposes. Data includes, but is not limited to, pricing information, market data, financial statements, and other related metrics. The Platform may also include internally calculated metrics and formulas derived from third-party source data, as well as manually reviewed and edited data points. <strong>This is test-grade data, not production-grade data.</strong> The specific data providers and sources may change at any time without notice as the testing progresses. The Platform operator makes no warranties regarding the accuracy, completeness, timeliness, or fitness for any purpose of any data provided through the Platform.</p>
+        <p>The Platform aggregates and processes financial data for testing and evaluation purposes. <strong>This is test-grade data, not production-grade data.</strong> The Platform operator makes no warranties regarding the accuracy, completeness, timeliness, or fitness for any purpose of any data provided through the Platform. Data sources and processing methods are as follows:</p>
+        
+        <p><strong>Market Data (Primary Source):</strong> End-of-Day (EOD) pricing and IEX Real-time Data are provided by <a href="https://www.tiingo.com" target="_blank" rel="noopener noreferrer" style="color: var(--brand-accent); text-decoration: underline;">Tiingo.com</a> under their data license agreement. This includes prices, volume, and related market metrics. This data is provided for personal research purposes only and may not be redistributed or used for commercial purposes.</p>
+        
+        <p><strong>Calculated Metrics:</strong> The Platform includes internally calculated financial metrics, ratios, and formulas that are derived from Tiingo's core market data. These calculations are performed by the Platform operator and may contain computational errors, formula mistakes, or incorrect assumptions. These calculated metrics are experimental and should not be relied upon for any investment decisions.</p>
+        
+        <p><strong>Financial Statements:</strong> Company financial statement data (balance sheets, income statements, cash flow statements) are manually aggregated and entered by the Platform operator from publicly available sources. This manual data entry process is subject to human error, transcription mistakes, outdated information, and incomplete coverage. Financial statement data should be independently verified before any use.</p>
+        
+        <p><strong>Data Accuracy Disclaimer:</strong> Given the experimental nature of this Platform, all data categories above may contain errors, omissions, delays, or inaccuracies. Data providers and processing methods may change at any time without notice as testing progresses. Users acknowledge and accept that all data is provided "AS IS" for testing purposes only.</p>
 
         <h2 class="contract-title">6. NO RESPONSIBILITY FOR DATA INTEGRITY - TESTING ONLY</h2>
         <p><strong>CRITICAL: DO NOT USE THIS PLATFORM FOR ACTUAL INVESTMENT DECISIONS.</strong> THE PLATFORM OPERATOR ASSUMES NO RESPONSIBILITY WHATSOEVER FOR DATA INTEGRITY, ACCURACY, COMPLETENESS, OR AVAILABILITY. All data is provided "AS IS" for testing and evaluation purposes only, without any warranties, express or implied. Users acknowledge that financial data may contain errors, omissions, delays, or inaccuracies inherent in experimental software, and <strong>should NOT be relied upon for any investment, trading, or financial decisions</strong>. The Platform operator is not liable for any losses, damages, or consequences resulting from the use of or reliance on data provided through the Platform. This is test data for a test platform.</p>
@@ -63,51 +71,65 @@
 
         <h2 class="contract-title">8. PROHIBITED ACTIVITIES</h2>
         <p>Users are strictly prohibited from: (a) attempting to access the server, API, or backend services through unauthorized means; (b) reselling, redistributing, or commercializing data obtained from the Platform; (c) scraping, harvesting, or extracting data through automated means; (d) reverse engineering or attempting to circumvent security measures; (e) using the Platform for any illegal or unauthorized purposes. Violation of these terms may result in immediate termination of access without notice.</p>
- <h2>(TESTING SCHEDULE)</h2>
-        <p><strong>Expected update schedule (subject to change during testing):</strong> End-of-Day (EOD) pricing data for assets with real-time data support is typically available at market close. For assets that only support EOD data, updates occur at the same time as calculated formulas and aggregated data, typically between 3-4 hours after US markets close on each business day, subject to data provider availability and processing time. Real-time data support is provided on a best-effort basis, with the exception of intraday volume data which requires a separate IEX custom agreement not currently in place.</p>
-        
-        <p><strong>Maintenance and downtime:</strong> Maintenance periods may occur at any time during which the Platform will be temporarily unavailable. During the beta testing phase, updates may be deployed without advance notice. <strong>No guarantees, commitments, or service level agreements are made regarding update schedules, data freshness, or platform availability.</strong> This is experimental software and schedules are subject to frequent change as testing progresses</p>
+
+        <h2 class="contract-title">9. SECURITY AND PASSWORD RECOVERY</h2>
         <p>The Platform offers optional two-factor authentication using an authenticator app. Password recovery is available through a recovery code that can be generated and downloaded from the Account section after registration. It is solely the user's responsibility to securely store their recovery code. The Platform operator is not responsible for account access issues resulting from lost credentials or recovery codes.</p>
 
         <h2 class="contract-title">10. DATA UPDATES AND MAINTENANCE</h2>
+        <p><strong>Expected update schedule (subject to change during testing):</strong> End-of-Day (EOD) pricing data for assets with real-time data support is typically available at market close. For assets that only support EOD data, updates occur at the same time as calculated formulas and aggregated data, typically between 3-4 hours after US markets close on each business day, subject to data provider availability and processing time. Real-time data support is provided on a best-effort basis, with the exception of intraday volume data which requires a separate IEX custom agreement not currently in place.</p>
+        
+        <p><strong>Maintenance and downtime:</strong> Maintenance periods may occur at any time during which the Platform will be temporarily unavailable. During the beta testing phase, updates may be deployed without advance notice. <strong>No guarantees, commitments, or service level agreements are made regarding update schedules, data freshness, or platform availability.</strong> This is experimental software and schedules are subject to frequent change as testing progresses.</p>
+
+        <h2 class="contract-title">11. MODIFICATIONS TO THESE TERMS</h2>
         <p>Given the experimental nature of this beta test, the Platform operator reserves the right to modify these Terms, features, functionality, or any aspect of the Platform at any time without advance notice. Users will be notified of material changes to these Terms through an announcement on the Platform. Continued use of the Platform after such notification constitutes acceptance of the modified Terms. If you do not agree to the modified Terms, you must discontinue use of the Platform and may request account deletion.</p>
 
         <h2 class="contract-title">12. ACCOUNT DELETION AND DATA RETENTION</h2>
         <p>Users can delete their account at any time through the Platform's account settings. Upon account deletion request, user-created content (watchlists, portfolios, notes, preferences) will be permanently deleted within 48 hours. Account credentials will be rendered inactive immediately. Security logs (IP addresses, login timestamps) may be retained for up to 18 months for security monitoring and legal compliance purposes, after which they will be permanently deleted. No other user data is retained after account deletion.</p>
 
         <h2 class="contract-title">13. BETA TESTING SUPPORT AND FEEDBACK</h2>
-        <p>Limited technical support may be available during the beta testing period. Users may report bugs, issues, or provide feedback by voluntarily contacting contact@ereuna.io. Responses and support are provided on a best-effort basis with no guaranteed response times, resolution commitments, or support availability. <strong>This is not a commercial support service.</strong> Bug reports and feedback are appreciated and help improve the testing process, but users should not expect immediate or comprehensive support during the beta phase</p>
+        <p>Limited technical support may be available during the beta testing period. Users may report bugs, issues, or provide feedback by voluntarily contacting contact@ereuna.io. Responses and support are provided on a best-effort basis with no guaranteed response times, resolution commitments, or support availability. <strong>This is not a commercial support service.</strong> Bug reports and feedback are appreciated and help improve the testing process, but users should not expect immediate or comprehensive support during the beta phase.</p>
 
         <h2 class="contract-title">14. DISCLAIMER OF WARRANTIES</h2>
         <p>THE PLATFORM IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR UNINTERRUPTED ACCESS. THE PLATFORM OPERATOR MAKES NO WARRANTIES REGARDING THE ACCURACY, RELIABILITY, OR AVAILABILITY OF THE PLATFORM OR ITS DATA.</p>
 
         <h2 class="contract-title">15. LIMITATION OF LIABILITY</h2>
-        <p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, TOR ADVISORY RELATIONSHIP</p>
+        <p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE PLATFORM OPERATOR SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, REVENUE, DATA, OR USE, WHETHER IN AN ACTION IN CONTRACT, TORT (INCLUDING NEGLIGENCE), OR OTHERWISE, ARISING OUT OF OR RELATED TO YOUR USE OF OR INABILITY TO USE THE PLATFORM, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.</p>
+        
+        <p>IN NO EVENT SHALL THE TOTAL LIABILITY OF THE PLATFORM OPERATOR FOR ALL CLAIMS ARISING OUT OF OR RELATING TO THESE TERMS OR THE PLATFORM EXCEED ZERO EUROS (€0), GIVEN THAT THIS IS A FREE TESTING SERVICE. SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OR LIMITATION OF INCIDENTAL OR CONSEQUENTIAL DAMAGES, SO THE ABOVE LIMITATIONS MAY NOT APPLY TO YOU.</p>
+        
+        <h2 class="contract-title">16. USER INDEMNIFICATION</h2>
+        <p>You agree to indemnify, defend, and hold harmless the Platform operator from and against any and all claims, liabilities, damages, losses, costs, expenses, or fees (including reasonable attorneys' fees) arising from: (a) your use or misuse of the Platform; (b) your violation of these Terms; (c) your violation of any rights of any third party; (d) any investment or financial decisions made based on data from the Platform; or (e) any content you submit or transmit through the Platform.</p>
+
+        <h2 class="contract-title">17. NO ADVISORY RELATIONSHIP</h2>
         <p>Nothing in the Platform or these Terms creates any advisory, fiduciary, professional, or client relationship between the Platform operator and users. The Platform is an experimental data aggregation tool for testing purposes only and does not constitute investment advice, financial advice, trading recommendations, or professional guidance of any kind. Users should consult qualified financial professionals for investment decisions.</p>
 
-        <h2 class="contract-title">17. AGE REQUIREMENT</h2>
+        <h2 class="contract-title">18. AGE REQUIREMENT</h2>
         <p>Users must be at least 18 years of age or the age of majority in their jurisdiction to create an account and use the Platform. By creating an account, you represent and warrant that you meet this age requirement.</p>
 
-        <h2 class="contract-title">18. GOVERNING LAW AND JURISDICTION</h2>
+        <h2 class="contract-title">19. GOVERNING LAW AND JURISDICTION</h2>
         <p>These Terms shall be governed by and construed in accordance with the laws of Italy, without regard to conflict of law principles. Any disputes, claims, or controversies arising out of or relating to these Terms or the Platform shall be resolved in the courts of competent jurisdiction in Italy. Users consent to the personal jurisdiction and venue of such courts.</p>
 
-        <h2 class="contract-title">19. SEVERABILITY AND SURVIVAL</h2>
+        <h2 class="contract-title">20. SEVERABILITY AND SURVIVAL</h2>
         <p>If any provision of these Terms is found to be invalid, illegal, or unenforceable by a court of competent jurisdiction, the remaining provisions shall remain in full force and effect. The invalid provision shall be modified to the minimum extent necessary to make it valid and enforceable. Sections relating to disclaimers, limitations of liability, indemnification, and data deletion shall survive termination of your use of the Platform.</p>
 
-        <h2 class="contract-title">20. ENTIRE AGREEMENT</h2>
+        <h2 class="contract-title">21. ENTIRE AGREEMENT</h2>
         <p>These Terms constitute the entire agreement between you and the Platform operator regarding your use of the Platform and supersede any prior agreements, communications, or understandings, whether written or oral, relating to the subject matter herein.</p>
 
         <p style="margin-top: 2rem; padding: 1rem; background: var(--brand-glass); border-radius: 6px;">
           <strong>BY CREATING AN ACCOUNT AND USING THIS PLATFORM, YOU ACKNOWLEDGE THAT:</strong><br><br>
           ✓ You have read, understood, and agree to be bound by these Terms<br>
-          ✓ This is experimental beta testing software, not a production service<br>
-          ✓ You are participating in testing and accept all associated risks<br>
-          ✓ Data should NOT be used for actual investment decisions<br>
-          ✓ The service may change, break, or shut down at any time<br>
-          ✓ You use this Platform entirely at your own risk with no warranties or guarantees
-        ns of any kind.</p>
+          ✓ This is experimental beta testing software, not a production commercial service<br>
+          ✓ You are participating in testing a personal project and accept all associated risks<br>
+          ✓ Data should NOT be used for actual investment or financial decisions<br>
+          ✓ The service may change, break, or shut down at any time without notice<br>
+          ✓ You use this Platform entirely at your own risk with zero liability to the operator<br>
+          ✓ You agree to indemnify and hold harmless the Platform operator from any claims<br>
+          ✓ This is a free service with no warranties, guarantees, or service commitments of any kind
+        </p>
 
-        <p><strong>By using the Platform, you acknowledge that you have read, understood, and agree to be bound by these Terms. You further acknowledge that this is a free beta service provided without warranties or guarantees, and you use it entirely at your own risk.</strong></p>
+        <p><strong>Last Updated:</strong> January 15, 2026</p>
+        
+        <p><em>If you do not agree to these Terms, you must not create an account or use the Platform. Your use of the Platform constitutes your acceptance of these Terms.</em></p>
       </div>
     </div>
   </div>

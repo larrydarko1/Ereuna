@@ -35,7 +35,7 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(400).json({ message: 'Invalid input' });
                 }
-                const ticker = symbolParam.toUpperCase();
+                const ticker = String(symbolParam).toUpperCase();
                 const sanitizedNote = sanitizeInput(note);
                 const sanitizedUsername = sanitizeInput(Username);
 
@@ -118,9 +118,9 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(400).json({ message: 'Invalid input' });
                 }
-                const ticker = symbolParam.toUpperCase();
+                const ticker = String(symbolParam).toUpperCase();
                 const sanitizedTicker = sanitizeInput(ticker);
-                const sanitizedUsername = sanitizeInput(userParam);
+                const sanitizedUsername = sanitizeInput(String(userParam));
 
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -166,8 +166,8 @@ export default function (app: any, deps: any) {
                     });
                     return res.status(400).json({ message: 'Invalid input' });
                 }
-                const ticker = symbolParam.toUpperCase();
-                const sanitizedUsername = sanitizeInput(userParam as string);
+                const ticker = String(symbolParam).toUpperCase();
+                const sanitizedUsername = sanitizeInput(String(userParam));
 
                 const apiKey = req.header('x-api-key');
                 const sanitizedKey = sanitizeInput(apiKey);
@@ -186,7 +186,7 @@ export default function (app: any, deps: any) {
 
                 // Find and delete the note with the given id, symbol, and Username
                 const result = await collection.findOneAndDelete({
-                    _id: new ObjectId(noteIdParam),
+                    _id: new ObjectId(String(noteIdParam)),
                     Symbol: ticker,
                     Username: sanitizedUsername
                 });

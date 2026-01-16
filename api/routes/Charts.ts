@@ -89,7 +89,7 @@ export default function (app: any, deps: any) {
 
     // Unified endpoint for all chart data (daily & weekly OHLC, volume, MAs)
     app.get('/:ticker/chartdata', validate(validationSets.chartData), async (req: Request, res: Response) => {
-        const ticker = sanitizeInput(req.params.ticker.toUpperCase());
+        const ticker = sanitizeInput(String(req.params.ticker).toUpperCase());
         const timeframe = req.query.timeframe || 'daily';
         const before = req.query.before;
         try {
@@ -515,7 +515,7 @@ export default function (app: any, deps: any) {
                 });
                 return res.status(401).json({ message: 'Unauthorized API Access' });
             }
-            const symbol = sanitizeInput(req.params.symbol.toUpperCase());
+            const symbol = sanitizeInput(String(req.params.symbol).toUpperCase());
             const db = await getDB();
             const assetInfoCollection = db.collection('AssetInfo');
             const doc: any = await assetInfoCollection.findOne(

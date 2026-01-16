@@ -963,7 +963,7 @@ export default function (app: any, deps: any) {
 
             // Verify trade exists and belongs to user
             const tradeToDelete = await tradesCollection.findOne({
-                _id: new ObjectId(tradeId),
+                _id: new ObjectId(String(tradeId)),
                 Username: sanitizedUser,
                 PortfolioNumber: portfolioNumber
             });
@@ -974,7 +974,7 @@ export default function (app: any, deps: any) {
 
             // Delete the trade
             await tradesCollection.deleteOne({
-                _id: new ObjectId(tradeId)
+                _id: new ObjectId(String(tradeId))
             });
 
             // Get portfolio document to restore initial state
@@ -1256,7 +1256,7 @@ export default function (app: any, deps: any) {
 
             // Verify trade exists and belongs to user
             const existingTrade = await tradesCollection.findOne({
-                _id: new ObjectId(tradeId),
+                _id: new ObjectId(String(tradeId)),
                 Username: sanitizedUser,
                 PortfolioNumber: portfolioNumber
             });
@@ -1279,7 +1279,7 @@ export default function (app: any, deps: any) {
 
             // Update the trade
             await tradesCollection.updateOne(
-                { _id: new ObjectId(tradeId) },
+                { _id: new ObjectId(String(tradeId)) },
                 { $set: processedTrade }
             );
 

@@ -914,7 +914,7 @@ export default {
 
     // Notice
     notice: {
-        disclaimer: '{date} 기준 Tiingo.com을 통해 IEX Cloud에서 제공하는 실시간 시장 데이터입니다. 실시간 데이터는 현재 미국 주요 거래소(NASDAQ 및 NYSE)만 이용 가능합니다. 장 마감(EOD) 데이터 통합은 Tiingo의 데이터 사용 가능성에 따라 월요일부터 금요일까지 매일 동부 표준시 오후 6:00에서 6:30 사이에 발생합니다. <strong>중요:</strong> 주식 분할 및 기업 행위는 EOD 통합이 완료될 때까지 장 중에 잘못된 값(예: 큰 하락률)을 표시할 수 있습니다. 과거 데이터 및 분할 조정은 야간 EOD 업데이트 중에 적용됩니다. 장중 거래량 데이터는 현재 이 피드를 통해 제공되지 않으며 집계 및 EOD 거래량 값만 제공됩니다. Tiingo/IEX에서 직접 제공하지 않는 모든 지표 또는 계산은 해당 핵심 데이터를 사용하여 내부적으로 파생됩니다. 기본 또는 비가격 데이터는 여러 제3자 공급자로부터 집계될 수 있으며, IEX와 Tiingo는 현재 가격 피드만 제공합니다. 데이터는 정보 제공 목적으로만 "현상 그대로" 제공되며 투자 결정에 단독으로 의존해서는 안 됩니다.',
+        disclaimer: '<strong>데이터 출처:</strong> 시장 데이터(EOD/IEX 실시간)는 <a href="https://www.tiingo.com" target="_blank" style="color: var(--text1); text-decoration: underline;">Tiingo.com</a>에서 {date} 기준 제공. 실시간 데이터는 미국 주요 거래소만 이용 가능(NASDAQ, NYSE). EOD 통합은 매일 18:00-18:30 ET, Tiingo 가용성에 따름. <strong>계산된 지표</strong>(비율, 공식)는 내부적으로 계산되며 오류를 포함할 수 있음. <strong>재무제표</strong>는 수동으로 입력되며 인적 오류 가능. <strong>테스트 등급 데이터만</strong> — 투자 결정용 아님. 주식 분할/기업 행위는 EOD 업데이트까지 잘못된 값 표시 가능. 장중 거래량 불가. 데이터는 테스트 목적으로만 "있는 그대로" 제공.',
         ariaLabel: '금융 데이터 공지',
         ariaDescription: '금융 데이터 출처 및 업데이트 정보',
     },

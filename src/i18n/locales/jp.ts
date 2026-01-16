@@ -914,7 +914,7 @@ export default {
 
     // Notice
     notice: {
-        disclaimer: 'リアルタイム市場データはTiingo.comを経由してIEX Cloudにより{date}時点で提供されています。リアルタイムデータは現在主要な米国取引所（NASDAQおよびNYSE）のみ利用可能です。終値（EOD）データ集約は月曜日から金曜日まで毎日米国東部時間午後6時00分から6時30分の間に行われます。<strong>重要:</strong> 株式分割や企業行動はEOD集約完了まで取引時間中に不正確な値を表示する可能性があります。過去データと分割調整は夜間のEOD更新時に適用されます。データは「現状のまま」情報提供目的でのみ提供され、投資判断には依存しないでください。',
+        disclaimer: '<strong>データソース：</strong>市場データ（EOD/IEXリアルタイム）は<a href="https://www.tiingo.com" target="_blank" style="color: var(--text1); text-decoration: underline;">Tiingo.com</a>から{date}時点で提供。リアルタイムデータは米国主要取引所のみ利用可能（NASDAQ、NYSE）。EOD集約は毎日18:00-18:30 ET、Tiingo利用可能性に依存。<strong>計算メトリクス</strong>（比率、式）は内部計算でエラーを含む可能性あり。<strong>財務諸表</strong>は手動入力で人的エラーの可能性あり。<strong>テストグレードデータのみ</strong>——投資判断には使用不可。株式分割/企業行動はEOD更新まで不正確な値を表示する可能性。日中出来高は利用不可。データは「現状のまま」テスト目的でのみ提供。',
         ariaLabel: '財務データの注意事項',
         ariaDescription: '財務データソースと更新情報',
     },

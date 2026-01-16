@@ -21,6 +21,10 @@ interface VersionChangelog {
 }
 
 const changelog = ref<VersionChangelog[]>([
+    {
+    version: '2026.3',
+    description: 'Bug fixes',
+  },
   {
     version: '2026.2',
     description: 'Bug & Security fixes',

@@ -914,7 +914,7 @@ export default {
 
     // Notice
     notice: {
-        disclaimer: '实时市场数据由IEX Cloud通过Tiingo.com提供，截至{date}。实时数据目前仅适用于美国主要交易所（纳斯达克和纽交所）。日终（EOD）数据整合每日进行，周一至周五，美东时间下午6:00至6:30之间，取决于Tiingo的数据可用性。<strong>重要提示：</strong>股票拆分和公司行动可能在市场交易时段显示不正确的值（例如大幅下跌），直到EOD整合完成。历史数据和拆分调整在夜间EOD更新期间应用。盘中成交量数据目前无法通过此源获得——仅提供汇总和EOD成交量值。任何非Tiingo/IEX直接提供的指标或计算均使用其核心数据内部推导。基本面或非价格数据可能从多个第三方提供商汇总；IEX和Tiingo目前仅提供价格源。数据按"原样"提供，仅供参考，不应单独作为投资决策的依据。',
+        disclaimer: '<strong>数据来源：</strong>市场数据（EOD/IEX实时）由<a href="https://www.tiingo.com" target="_blank" style="color: var(--text1); text-decoration: underline;">Tiingo.com</a>提供，截至{date}。实时数据仅适用于美国主要交易所（NASDAQ、NYSE）。EOD整合每日18:00-18:30 ET进行，取决于Tiingo可用性。<strong>计算指标</strong>（比率、公式）由内部计算，可能包含错误。<strong>财务报表</strong>手动输入，可能存在人为错误。<strong>仅测试级数据</strong>——不用于投资决策。股票拆分/公司行动可能显示不正确的值，直到EOD更新。盘中成交量不可用。数据按"原样"提供，仅用于测试目的。',
         ariaLabel: '财务数据通知',
         ariaDescription: '财务数据来源和更新信息',
     },

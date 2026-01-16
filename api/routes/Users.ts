@@ -2089,7 +2089,7 @@ export default function (app: any, deps: any) {
                 logger.error({
                     msg: 'Error Retrieving Receipts',
                     requestId,
-                    username: req.params.user ? req.params.user.substring(0, 3) + '...' : 'Unknown',
+                    username: req.params.user ? String(req.params.user).substring(0, 3) + '...' : 'Unknown',
                     error: error instanceof Error ? error.message : String(error),
                     context: 'GET /get-receipts/:user',
                     statusCode: errObj.statusCode || 500
@@ -2149,7 +2149,7 @@ export default function (app: any, deps: any) {
                 logger.error({
                     msg: 'Error Retrieving Default Symbol',
                     requestId,
-                    username: req.params.user ? req.params.user.substring(0, 3) + '...' : 'Unknown',
+                    username: req.params.user ? String(req.params.user).substring(0, 3) + '...' : 'Unknown',
                     error: error instanceof Error ? error.message : String(error),
                     context: 'GET /:user/default-symbol',
                     statusCode: errObj.statusCode || 500
@@ -2197,7 +2197,7 @@ export default function (app: any, deps: any) {
                         msg: 'Validation Failed',
                         requestId,
                         errors: errors.array(),
-                        username: req.params.user ? req.params.user.substring(0, 3) + '...' : 'Unknown',
+                        username: req.params.user ? String(req.params.user).substring(0, 3) + '...' : 'Unknown',
                         context: 'PATCH /:user/update-default-symbol',
                         statusCode: 400
                     });
@@ -2247,7 +2247,7 @@ export default function (app: any, deps: any) {
                 logger.error({
                     msg: 'Error Updating Default Symbol',
                     requestId,
-                    username: req.params.user ? req.params.user.substring(0, 3) + '...' : 'Unknown',
+                    username: req.params.user ? String(req.params.user).substring(0, 3) + '...' : 'Unknown',
                     error: error instanceof Error ? error.message : String(error),
                     context: 'PATCH /:user/update-default-symbol',
                     statusCode: errObj.statusCode || 500
@@ -2307,7 +2307,7 @@ export default function (app: any, deps: any) {
                 logger.error({
                     msg: 'Error Retrieving Hidden List',
                     requestId,
-                    username: req.params.user ? req.params.user.substring(0, 3) + '...' : 'Unknown',
+                    username: req.params.user ? String(req.params.user).substring(0, 3) + '...' : 'Unknown',
                     error: error instanceof Error ? error.message : String(error),
                     context: 'GET /:user/hidden',
                     statusCode: errObj.statusCode || 500
