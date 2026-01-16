@@ -68,7 +68,7 @@
       </div>
       <p style="cursor: default;" class="description">Unlock Smarter Investing with <span style="color: var(--brand-primary); font-size: inherit ;">Ereuna</span></p> 
       <p style="cursor: default;" class="call-to-action">Cut your research time and costs—invest with confidence.</p>
-      <p class="beta-disclaimer">⚠️ Experimental testing platform - Free during beta period</p>
+      <p class="beta-disclaimer">✨ Free Public Beta - All features unlocked, no payment required</p>
       <br>
       <br>
       <div style="display: flex; flex-direction: row ;gap: 20px;">

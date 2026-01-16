@@ -98,8 +98,8 @@
             <label class=btnlabel>{{ t('screener.multiScreener') }}</label>
           </button>
          <button @click="DownloadResults" class="snavbtn" style="cursor: pointer;" v-b-tooltip.hover
-  :title="t('screener.downloadResults')" :aria-label="t('screener.downloadResults')"
-  :disabled="downloadLoading">
+  :title="listMode === 'main' ? 'Export disabled for main table. Use filters to narrow results.' : t('screener.downloadResults')" :aria-label="t('screener.downloadResults')"
+  :disabled="downloadLoading || listMode === 'main'">
   <label v-if="downloadLoading" class="loader4">
     <svg class="spinner" viewBox="0 0 50 50">
       <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5" />
@@ -2346,17 +2346,31 @@ function select(option: string) {
 
 function arrayToCSV(data: Record<string, any>[]) {
   if (!data.length) return '';
+  
+  // Add Tiingo attribution header
+  const header = [
+    '# Data sourced from Tiingo.com',
+    '# For personal research use only',
+    ''
+  ].join('\n');
+  
   const keys = Object.keys(data[0]);
   const csvRows = [
     keys.join(','), // header row
     ...data.map((row: Record<string, any>) => keys.map(k => `"${(row[k] ?? '').toString().replace(/"/g, '""')}"`).join(','))
   ];
-  return csvRows.join('\n');
+  return header + csvRows.join('\n');
 }
 
 const downloadLoading = ref(false);
 
 async function DownloadResults() {
+  // Prevent export of main table (bulk data)
+  if (listMode.value === 'main') {
+    notification.value.show('Export disabled for main table. Please use filters to narrow your results.');
+    return;
+  }
+  
   downloadLoading.value = true;
   let data = [];
   let filename = 'results.csv';
@@ -2370,6 +2384,7 @@ async function DownloadResults() {
     let allResults: Record<string, any>[] = [];
     switch (listMode.value) {
       case 'main':
+        // Should not reach here due to guard above
         endpoint = `/api/${username}/screener/results/all`;
         filename = 'main_results.csv';
         break;
@@ -2766,6 +2781,17 @@ p {
 .snavbtn:hover,
 .snavbtn.active {
   background-color: var(--base3);
+}
+
+.snavbtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.snavbtn:disabled svg,
+.snavbtn:disabled .btnlabel {
+  opacity: 0.5;
 }
 
 .snavbtn.active span,

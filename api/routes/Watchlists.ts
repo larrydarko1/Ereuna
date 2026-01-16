@@ -1117,7 +1117,7 @@ export default function (app: any, deps: any) {
 
     // endpoint to get news for a ticker
     app.get('/:symbol/news', validate(validationSets.newsSearch), async (req: Request, res: Response) => {
-        const ticker = req.params.symbol.toUpperCase();
+        const ticker = String(req.params.symbol).toUpperCase();
         const sanitizedTicker = sanitizeInput(ticker);
         try {
             const apiKey = req.header('x-api-key');
