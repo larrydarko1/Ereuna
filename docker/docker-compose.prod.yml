@@ -43,7 +43,7 @@ services:
       traefik.http.routers.dashboard.tls.certresolver: "cloudflare"
       traefik.http.routers.dashboard.service: "api@internal"
       traefik.http.routers.dashboard.middlewares: "dashboard-auth"
-      traefik.http.middlewares.dashboard-auth.basicauth.users: "admin:$$apr1$$8kD7rHQr$$qVqH8E6vZWzK3mXZqKJYb/"
+      traefik.http.middlewares.dashboard-auth.basicauth.users: "${TRAEFIK_DASHBOARD_AUTH}"
 
   frontend:
     build:
@@ -202,7 +202,7 @@ services:
       - ../.env
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=REDACTED_PASSWORD
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_SERVER_HTTP_PORT=3000
       - GF_SERVER_PROTOCOL=http
       - GF_SERVER_DOMAIN=grafana.ereuna.io
