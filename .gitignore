@@ -27,3 +27,5 @@ __pycache__
 db/dump/
 Instuctions.md
 scripts/funds
+certs/
+*.pem
