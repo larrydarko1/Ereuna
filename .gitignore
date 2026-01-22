@@ -29,3 +29,6 @@ Instuctions.md
 scripts/funds
 certs/
 *.pem
+.EreunaWS
+*.EreunaWS
+server/.EreunaWS
