@@ -2,7 +2,7 @@
 
 **Copyright © 2024-2026 Lorenzo Mazzola**
 
-This software is publicly available as a **portfolio demonstration and proof of work**. 
+This repository is made publicly available **solely as a portfolio demonstration and proof of work**. It documents the technical skills and architecture developed during a startup project. Public availability does not grant any rights beyond those explicitly stated in this license. 
 
 ---
 
@@ -25,7 +25,14 @@ This work is licensed under the **Creative Commons Attribution-NonCommercial-Sha
 
 **Under the following terms:**
 - **Attribution** — You must give appropriate credit to Lorenzo Mazzola, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
-- **NonCommercial** — You may not use the material for commercial purposes. This includes, but is not limited to: selling, reselling, sublicensing, or redistributing the code for profit; operating financial services; providing trading platforms; offering market data services; or incorporating this software into commercial products or services.
+- **NonCommercial** — You may not use the material for commercial purposes. This includes, but is not limited to:
+  - Selling, reselling, sublicensing, or redistributing the code for profit
+  - Operating financial services or trading platforms
+  - Offering market data services or analytics platforms
+  - Incorporating this software into commercial products or services
+  - **Hosting as a SaaS (Software as a Service)** — Running this software to provide services to third parties, whether paid or monetized through ads, subscriptions, or data collection
+  - Using in any revenue-generating context, including internal business tools that provide commercial advantage
+  - Offering consulting, support, or implementation services based on this software
 - **ShareAlike** — If you remix, transform, or build upon the material, you must distribute your contributions under the same CC BY-NC-SA 4.0 license as the original.
 - **No additional restrictions** — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
 
@@ -34,9 +41,12 @@ This work is licensed under the **Creative Commons Attribution-NonCommercial-Sha
 You may **NOT**, without prior written permission:
 - Use the Software or any derivative works for **commercial purposes**
 - Use the Software in any **revenue-generating** product, service, or business operation
+- **Host or deploy as a SaaS** — Run this software to provide services to third parties
 - **Sell, rent, lease, or sublicense** the Software or derivative works
+- **Resell or repackage** the code, architecture, or substantial portions as tutorials, courses, templates, or boilerplates
 - **Redistribute** the Software or derivative works as a standalone product
 - **Remove or modify** copyright notices, attributions, or this license
+- **Claim authorship** or misrepresent the origin of this work
 
 ### Attribution Requirements
 
@@ -44,6 +54,10 @@ You may **NOT**, without prior written permission:
 - Modified versions must clearly indicate changes made and cannot misrepresent the original work
 - Attribution to Lorenzo Mazzola must be preserved in all derivative works
 - Removal of copyright notices or author attribution is strictly prohibited and may violate EU moral rights
+
+### Patent Rights
+
+No patent license is granted by this license. If you have patent claims that would be infringed by the Software, you may not use, modify, or distribute the Software without separate written permission. The author makes no representations about the patentability of any aspect of this Software.
 
 ### Commercial Use
 
