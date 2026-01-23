@@ -1,0 +1,83 @@
+{
+    "_id": {
+        "$oid": "66fe5b2a2237609691859362"
+    },
+    "Name": "MAIN WATCHLIST",
+    "UsernameID": "LarryDarko",
+    "List": [
+        {
+            "ticker": "SOFI",
+            "exchange": "NASDAQ"
+        },
+        {
+            "ticker": "PLTR",
+            "exchange": "NYSE"
+        },
+        {
+            "ticker": "TSLA",
+            "exchange": "NASDAQ"
+        },
+        {
+            "ticker": "NVDA",
+            "exchange": "NASDAQ"
+        },
+        {
+            "ticker": "HOOD",
+            "exchange": "NASDAQ"
+        },
+        {
+            "ticker": "NET",
+            "exchange": "NYSE"
+        },
+        {
+            "ticker": "APP",
+            "exchange": "NASDAQ"
+        },
+        {
+            "ticker": "U",
+            "exchange": "NYSE"
+        },
+        {
+            "ticker": "TWLO",
+            "exchange": "NYSE"
+        },
+        {
+            "ticker": "SNOW",
+            "exchange": "NYSE"
+        },
+        {
+            "ticker": "SNDK",
+            "exchange": "NASDAQ"
+        },
+        {
+            "ticker": "LMND",
+            "exchange": "NYSE"
+        },
+        {
+            "ticker": "LYFT",
+            "exchange": "NASDAQ"
+        },
+        {
+            "ticker": "TALK",
+            "exchange": "NASDAQ"
+        },
+        {
+            "ticker": "ACMR",
+            "exchange": "NASDAQ"
+        },
+        {
+            "ticker": "KRMN",
+            "exchange": "NYSE"
+        },
+        {
+            "ticker": "CRM",
+            "exchange": "NYSE"
+        }
+    ],
+    "createdAt": {
+        "$date": "2025-12-08T22:16:28.245Z"
+    },
+    "lastUpdated": {
+        "$date": "2025-12-08T22:21:38.678Z"
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "_id": "vat_rates",
+    "countries": [
+        {
+            "code": "AT",
+            "name": "Austria",
+            "vat": 0.2
+        },
+        {
+            "code": "BE",
+            "name": "Belgium",
+            "vat": 0.21
+        }
+    ],
+    "lastUpdated": {
+        "$date": "2025-09-22T09:47:47.339Z"
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "_id": {
+        "$oid": "68d516379a0d882e4520d6a1"
+    },
+    "UserID": {
+        "$oid": "68d4082a629b867e533e3e3a"
+    },
+    "Amount": 1769,
+    "Date": {
+        "$date": "2025-09-25T10:15:19.626Z"
+    },
+    "Method": "Credit Card",
+    "Subscription": 1,
+    "PROMOCODE": "None",
+    "VAT": 0.18,
+    "Country": "MT",
+    "PaymentIntentId": "pi_3SBCCpJ3BbJLPm9w1Q747TRl"
+}

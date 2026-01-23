@@ -1,0 +1,502 @@
+{
+    "_id": {
+        "$oid": "668e8391fa2ac99b25afaf53"
+    },
+    "Username": "LarryDarko",
+    "Hidden": [
+        "ARWR",
+        "AS",
+        "BHF",
+        "AAMAF",
+        "ABAT",
+        "ACUR",
+        "AHELF",
+        "ABTS",
+        "ADMNF",
+        "AERT",
+        "AEYGQ",
+        "AFJK",
+        "AGILQ"
+    ],
+    "Password": "$argon2id$v=19$m=65536,t=3,p=1$3W1l4z6sA3Lz/pgDO3Rhlg$ccCNN4Q1jO8v7bDcLHD7HulftZwHrsxCkBznVC7+tVc",
+    "Paid": true,
+    "Expires": {
+        "$date": "2026-12-31T00:00:00.000Z"
+    },
+    "defaultSymbol": "BTCEUR",
+    "MFA": false,
+    "qrCode": null,
+    "secret": null,
+    "LastPasswordChangeTime": {
+        "$date": "2025-05-27T08:42:27.972Z"
+    },
+    "HashedAuthKey": "$argon2id$v=19$m=65536,t=3,p=1$wGIrnlHRN32FuwaqbM5P7g$ssm8uIeAAfeJ2rFxQoliAUtZkbGbKQbndFZzOXHubxs",
+    "LastKeyGenerationTime": {
+        "$date": "2025-05-27T09:02:49.039Z"
+    },
+    "theme": "default",
+    "panel": [
+        {
+            "order": 1,
+            "tag": "Summary",
+            "name": "Resumen",
+            "hidden": false
+        },
+        {
+            "order": 2,
+            "tag": "EpsTable",
+            "name": "Tabla de Crecimiento de BPA",
+            "hidden": false
+        },
+        {
+            "order": 3,
+            "tag": "EarnTable",
+            "name": "Tabla de Crecimiento de Ganancias",
+            "hidden": false
+        },
+        {
+            "order": 4,
+            "tag": "SalesTable",
+            "name": "Tabla de Crecimiento de Ventas",
+            "hidden": false
+        },
+        {
+            "order": 5,
+            "tag": "DividendsTable",
+            "name": "Tabla de Dividendos",
+            "hidden": false
+        },
+        {
+            "order": 6,
+            "tag": "SplitsTable",
+            "name": "Tabla de Splits",
+            "hidden": false
+        },
+        {
+            "order": 7,
+            "tag": "Financials",
+            "name": "Estados Financieros",
+            "hidden": false
+        },
+        {
+            "order": 8,
+            "tag": "Notes",
+            "name": "Notas",
+            "hidden": false
+        },
+        {
+            "order": 9,
+            "tag": "News",
+            "name": "Noticias",
+            "hidden": false
+        }
+    ],
+    "panel2": [
+        {
+            "order": 1,
+            "tag": "Symbol",
+            "name": "Symbol",
+            "hidden": false
+        },
+        {
+            "order": 2,
+            "tag": "CompanyWebsite",
+            "name": "Website",
+            "hidden": false
+        },
+        {
+            "order": 3,
+            "tag": "CompanyName",
+            "name": "Company Name",
+            "hidden": false
+        },
+        {
+            "order": 4,
+            "tag": "AIRecommendation",
+            "name": "AI Recommendation",
+            "hidden": false
+        },
+        {
+            "order": 5,
+            "tag": "AssetType",
+            "name": "Asset Type",
+            "hidden": false
+        },
+        {
+            "order": 6,
+            "tag": "Exchange",
+            "name": "Exchange",
+            "hidden": false
+        },
+        {
+            "order": 7,
+            "tag": "ISIN",
+            "name": "ISIN",
+            "hidden": false
+        },
+        {
+            "order": 8,
+            "tag": "IPODate",
+            "name": "IPO Date",
+            "hidden": false
+        },
+        {
+            "order": 9,
+            "tag": "Sector",
+            "name": "Sector",
+            "hidden": false
+        },
+        {
+            "order": 10,
+            "tag": "Industry",
+            "name": "Industry",
+            "hidden": false
+        },
+        {
+            "order": 11,
+            "tag": "ReportedCurrency",
+            "name": "Reported Currency",
+            "hidden": false
+        },
+        {
+            "order": 12,
+            "tag": "TechnicalScore1W",
+            "name": "Technical Score (1W)",
+            "hidden": false
+        },
+        {
+            "order": 13,
+            "tag": "TechnicalScore1M",
+            "name": "Technical Score (1M)",
+            "hidden": false
+        },
+        {
+            "order": 14,
+            "tag": "TechnicalScore4M",
+            "name": "Technical Score (4M)",
+            "hidden": false
+        },
+        {
+            "order": 15,
+            "tag": "MarketCap",
+            "name": "Market Cap",
+            "hidden": false
+        },
+        {
+            "order": 16,
+            "tag": "SharesOutstanding",
+            "name": "Shares Outstanding",
+            "hidden": false
+        },
+        {
+            "order": 17,
+            "tag": "Location",
+            "name": "Location",
+            "hidden": false
+        },
+        {
+            "order": 18,
+            "tag": "DividendDate",
+            "name": "Dividend Date",
+            "hidden": false
+        },
+        {
+            "order": 19,
+            "tag": "DividendYieldTTM",
+            "name": "Dividend Yield TTM",
+            "hidden": false
+        },
+        {
+            "order": 20,
+            "tag": "BookValue",
+            "name": "Book Value",
+            "hidden": false
+        },
+        {
+            "order": 21,
+            "tag": "PEGRatio",
+            "name": "PEG Ratio",
+            "hidden": false
+        },
+        {
+            "order": 22,
+            "tag": "PERatio",
+            "name": "PE Ratio",
+            "hidden": false
+        },
+        {
+            "order": 23,
+            "tag": "PSRatio",
+            "name": "PS Ratio",
+            "hidden": false
+        },
+        {
+            "order": 24,
+            "tag": "AllTimeHigh",
+            "name": "All Time High",
+            "hidden": false
+        },
+        {
+            "order": 25,
+            "tag": "AllTimeLow",
+            "name": "All Time Low",
+            "hidden": false
+        },
+        {
+            "order": 26,
+            "tag": "fiftytwoWeekHigh",
+            "name": "52wk High",
+            "hidden": false
+        },
+        {
+            "order": 27,
+            "tag": "fiftytwoWeekLow",
+            "name": "52wk Low",
+            "hidden": false
+        },
+        {
+            "order": 28,
+            "tag": "PercentageOff52wkHigh",
+            "name": "Percentage off 52wk High",
+            "hidden": false
+        },
+        {
+            "order": 29,
+            "tag": "PercentageOff52wkLow",
+            "name": "Percentage off 52wk Low",
+            "hidden": false
+        },
+        {
+            "order": 30,
+            "tag": "RSI",
+            "name": "RSI",
+            "hidden": true
+        },
+        {
+            "order": 31,
+            "tag": "Gap",
+            "name": "Gap (%)",
+            "hidden": true
+        },
+        {
+            "order": 32,
+            "tag": "ADV1W",
+            "name": "ADV 1W",
+            "hidden": false
+        },
+        {
+            "order": 33,
+            "tag": "ADV1M",
+            "name": "ADV 1M",
+            "hidden": false
+        },
+        {
+            "order": 34,
+            "tag": "ADV4M",
+            "name": "ADV 4M",
+            "hidden": false
+        },
+        {
+            "order": 35,
+            "tag": "ADV1Y",
+            "name": "ADV 1Y",
+            "hidden": true
+        },
+        {
+            "order": 36,
+            "tag": "RelativeVolume1W",
+            "name": "Relative Volume 1W",
+            "hidden": true
+        },
+        {
+            "order": 37,
+            "tag": "RelativeVolume1M",
+            "name": "Relative Volume 1M",
+            "hidden": true
+        },
+        {
+            "order": 38,
+            "tag": "RelativeVolume6M",
+            "name": "Relative Volume 6M",
+            "hidden": true
+        },
+        {
+            "order": 39,
+            "tag": "RelativeVolume1Y",
+            "name": "Relative Volume 1Y",
+            "hidden": true
+        },
+        {
+            "order": 40,
+            "tag": "AverageVolume1W",
+            "name": "Average Volume 1W",
+            "hidden": true
+        },
+        {
+            "order": 41,
+            "tag": "AverageVolume1M",
+            "name": "Average Volume 1M",
+            "hidden": true
+        },
+        {
+            "order": 42,
+            "tag": "AverageVolume6M",
+            "name": "Average Volume 6M",
+            "hidden": true
+        },
+        {
+            "order": 43,
+            "tag": "AverageVolume1Y",
+            "name": "Average Volume 1Y",
+            "hidden": true
+        },
+        {
+            "order": 44,
+            "tag": "FundCategory",
+            "name": "Fund Category",
+            "hidden": true
+        },
+        {
+            "order": 45,
+            "tag": "FundFamily",
+            "name": "Fund Family",
+            "hidden": true
+        },
+        {
+            "order": 46,
+            "tag": "NetExpenseRatio",
+            "name": "Net Expense Ratio",
+            "hidden": true
+        },
+        {
+            "order": 47,
+            "tag": "IntrinsicValue",
+            "name": "Intrinsic Value",
+            "hidden": false
+        },
+        {
+            "order": 48,
+            "tag": "CAGR",
+            "name": "CAGR",
+            "hidden": false
+        },
+        {
+            "order": 49,
+            "tag": "CAGRYears",
+            "name": "CAGR Years",
+            "hidden": false
+        },
+        {
+            "order": 50,
+            "tag": "Description",
+            "name": "Description",
+            "hidden": false
+        }
+    ],
+    "LastLogin": {
+        "$date": "2026-01-22T13:19:33.501Z"
+    },
+    "WatchPanel": [
+        "SPY",
+        "QQQ",
+        "DIA",
+        "IWM",
+        "AAPL",
+        "MSFT",
+        "GOOGL",
+        "AMZN",
+        "NVDA",
+        "TSLA",
+        "META",
+        "NFLX",
+        "FFTY",
+        "ARKK",
+        "BTCEUR",
+        "ETHEUR"
+    ],
+    "Table": [
+        "name",
+        "price",
+        "volume",
+        "perc_change",
+        "rs_score1w",
+        "assettype",
+        "adv1w",
+        "intrinsic_value",
+        "market_cap",
+        "ipo",
+        "sector",
+        "exchange",
+        "country",
+        "pe_ratio",
+        "ps_ratio",
+        "current_assets",
+        "current_debt",
+        "cash",
+        "fcf",
+        "current_liabilities",
+        "current_ratio",
+        "roe",
+        "roa",
+        "peg",
+        "currency",
+        "dividend_yield",
+        "pb_ratio",
+        "eps",
+        "industry",
+        "book_value",
+        "shares",
+        "all_time_high",
+        "rs_score4m",
+        "rs_score1m",
+        "all_time_low",
+        "high_52w",
+        "low_52w",
+        "isin",
+        "adv1y",
+        "adv4m",
+        "adv1m",
+        "gap",
+        "ev",
+        "rsi",
+        "fund_family",
+        "fund_category",
+        "net_expense_ratio",
+        "cagr",
+        "ai_recommendation"
+    ],
+    "ChartSettings": {
+        "indicators": [
+            {
+                "type": "EMA",
+                "timeframe": 10,
+                "visible": true
+            },
+            {
+                "type": "EMA",
+                "timeframe": 20,
+                "visible": true
+            },
+            {
+                "type": "SMA",
+                "timeframe": 50,
+                "visible": true
+            },
+            {
+                "type": "SMA",
+                "timeframe": 200,
+                "visible": true
+            }
+        ],
+        "intrinsicValue": {
+            "visible": false
+        },
+        "markers": {
+            "earnings": false,
+            "dividends": false,
+            "splits": false
+        },
+        "chartType": "candlestick"
+    },
+    "Language": "En"
+}

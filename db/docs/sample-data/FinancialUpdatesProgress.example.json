@@ -1,0 +1,39 @@
+{
+    "_id": "failed_updates",
+    "symbols": [
+        "AIO",
+        "SKK"
+    ],
+    "failedUpdates": [
+        {
+            "symbol": "AIO",
+            "error": "API Error: Invalid API call. Please retry or visit the documentation (https://www.alphavantage.co/documentation/) for INCOME_STATEMENT.",
+            "failedAt": {
+                "$date": "2025-12-31T06:51:08.303Z"
+            },
+            "attempts": 4,
+            "lastError": "API Error: Invalid API call. Please retry or visit the documentation (https://www.alphavantage.co/documentation/) for INCOME_STATEMENT.",
+            "lastFailedAt": {
+                "$date": "2025-12-31T13:17:04.574Z"
+            }
+        },
+        {
+            "symbol": "SKK",
+            "error": "API Error: Invalid API call. Please retry or visit the documentation (https://www.alphavantage.co/documentation/) for INCOME_STATEMENT.",
+            "failedAt": {
+                "$date": "2025-12-31T06:51:08.303Z"
+            },
+            "attempts": 4,
+            "lastError": "API Error: Invalid API call. Please retry or visit the documentation (https://www.alphavantage.co/documentation/) for INCOME_STATEMENT.",
+            "lastFailedAt": {
+                "$date": "2025-12-31T13:17:04.574Z"
+            }
+        }
+    ],
+    "createdAt": {
+        "$date": "2025-12-31T06:51:08.304Z"
+    },
+    "lastUpdated": {
+        "$date": "2025-12-31T13:17:04.575Z"
+    }
+}

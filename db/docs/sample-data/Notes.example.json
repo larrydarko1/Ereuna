@@ -1,0 +1,11 @@
+{
+    "_id": {
+        "$oid": "67f5288a6a0654a66c687103"
+    },
+    "Symbol": "DASH",
+    "Message": "never gonna give you up",
+    "Username": "LarryDarko",
+    "Date": {
+        "$date": "2025-04-08T13:45:46.268Z"
+    }
+}

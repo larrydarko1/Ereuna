@@ -1,0 +1,60 @@
+{
+    "_id": "pending_financial_updates",
+    "symbols": [
+        "ALPS",
+        "ARBK",
+        "AXG",
+        "ECRTF",
+        "FLES"
+    ],
+    "pendingUpdates": [
+        {
+            "symbol": "ALPS",
+            "addedAt": {
+                "$date": "2026-01-01T15:52:47.072Z"
+            },
+            "attempts": 0,
+            "lastAttempt": null
+        },
+        {
+            "symbol": "ARBK",
+            "addedAt": {
+                "$date": "2026-01-01T15:52:47.072Z"
+            },
+            "attempts": 0,
+            "lastAttempt": null
+        },
+        {
+            "symbol": "AXG",
+            "addedAt": {
+                "$date": "2026-01-01T15:52:47.072Z"
+            },
+            "attempts": 1,
+            "lastAttempt": {
+                "$date": "2026-01-01T15:53:03.830Z"
+            }
+        },
+        {
+            "symbol": "ECRTF",
+            "addedAt": {
+                "$date": "2026-01-01T15:52:47.072Z"
+            },
+            "attempts": 0,
+            "lastAttempt": null
+        },
+        {
+            "symbol": "FLES",
+            "addedAt": {
+                "$date": "2026-01-01T15:52:47.072Z"
+            },
+            "attempts": 0,
+            "lastAttempt": null
+        }
+    ],
+    "createdAt": {
+        "$date": "2026-01-01T15:52:47.072Z"
+    },
+    "lastUpdated": {
+        "$date": "2026-01-01T15:53:03.830Z"
+    }
+}

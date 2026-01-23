@@ -1,0 +1,16 @@
+{
+    "timestamp": {
+        "$date": "1970-01-02T00:00:00.000Z"
+    },
+    "tickerID": "FL",
+    "high": 4.1616529278,
+    "_id": {
+        "$oid": "690284d2aeac12df8c68f205"
+    },
+    "open": 4.0933402299,
+    "close": 4.1475566568,
+    "divCash": 0,
+    "splitFactor": 1,
+    "low": 4.0391238031,
+    "volume": 45600
+}

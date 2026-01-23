@@ -1,0 +1,9 @@
+{
+    "_id": {
+        "$oid": "6733b7fdaa2eb4be7327eeb9"
+    },
+    "CODE": "SMITH50OFF",
+    "FullName": "John Smith",
+    "IBAN": "DE2510011001262651",
+    "TAXID": "TXN86N56G456"
+}

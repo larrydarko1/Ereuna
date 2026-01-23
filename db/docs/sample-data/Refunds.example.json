@@ -1,0 +1,26 @@
+{
+    "_id": {
+        "$oid": "68d52a4f9a0d882e4520d8b3"
+    },
+    "Username": "LarryDarko",
+    "UserID": {
+        "$oid": "68d4082a629b867e533e3e3a"
+    },
+    "Amount": 1769,
+    "PurchaseDate": {
+        "$date": "2025-09-25T10:15:19.626Z"
+    },
+    "RequestDate": {
+        "$date": "2025-10-05T14:30:45.123Z"
+    },
+    "MaxRefundDate": {
+        "$date": "2025-10-09T10:15:19.626Z"
+    },
+    "StaffDeadlineDate": {
+        "$date": "2025-10-12T14:30:45.123Z"
+    },
+    "PaymentIntentId": "pi_3SBCCpJ3BbJLPm9w1Q747TRl",
+    "Status": "pending",
+    "StaffNotes": "",
+    "ProcessedDate": null
+}

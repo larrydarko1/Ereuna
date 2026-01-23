@@ -1,0 +1,25 @@
+{
+    "_id": "Holidays",
+    "Holidays": [
+        {
+            "date": "2025-11-27",
+            "name": "Thanksgiving"
+        },
+        {
+            "date": "2025-12-25",
+            "name": "Christmas"
+        },
+        {
+            "date": "2026-01-01",
+            "name": "New Year's Day"
+        },
+        {
+            "date": "2026-01-19",
+            "name": "MLK Day"
+        },
+        {
+            "date": "2026-02-16",
+            "name": "Presidents Day"
+        }
+    ]
+}
