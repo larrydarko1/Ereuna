@@ -1,0 +1,12 @@
+{
+    "_id": {
+        "$oid": "692f227500e0d791bcd8aaf4"
+    },
+    "Username": "LarryDarko",
+    "PortfolioNumber": 9,
+    "Symbol": "TSLA",
+    "Shares": 1,
+    "AvgPrice": 340.69,
+    "Leverage": 1,
+    "IsShort": false
+}

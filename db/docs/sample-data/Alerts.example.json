@@ -1,0 +1,10 @@
+{
+    "_id": {
+        "$oid": "69693661ecb1c016a26e02f8"
+    },
+    "header": "Terms & Conditions Updated - January 15, 2026",
+    "message": "Terms & Conditions have been updated to better clarify data handling practices, liability protections, and the experimental nature of this free beta testing platform. You can review the updated Terms by clicking the link in the footer of the main page. Per Section 11 of the Terms, your continued use of Ereuna constitutes acceptance of these modifications. If you do not agree with the updated Terms, please discontinue use and request account deletion through your account settings.",
+    "publishedDate": {
+        "$date": "2026-01-15T22:00:52.858Z"
+    }
+}

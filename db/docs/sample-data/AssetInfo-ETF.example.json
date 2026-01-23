@@ -1,0 +1,102 @@
+{
+    "_id": {
+        "$oid": "684ff655b5e424c85fd41767"
+    },
+    "Symbol": "QQQ",
+    "AssetType": "ETF",
+    "Exchange": "NASDAQ",
+    "IPO": {
+        "$date": "1999-03-10T00:00:00.000Z"
+    },
+    "Gap": 0.7269422989550235,
+    "MarketCapitalization": 244020756000,
+    "PEGRatio": 0,
+    "PERatio": 0,
+    "PriceToBookRatio": 0,
+    "PriceToSalesRatioTTM": 0,
+    "RSI": 55.0404953423446,
+    "TimeSeries": {
+        "open": 622.35,
+        "high": 622.46,
+        "low": 617.78,
+        "close": 620.76,
+        "volume": 42254757
+    },
+    "DividendYield": 0.0034090024015058095,
+    "AvgVolume1M": 35986736,
+    "AvgVolume1W": 39612426,
+    "AvgVolume1Y": 44061460,
+    "AvgVolume6M": 37127539,
+    "RelVolume1M": 1.5,
+    "RelVolume1W": 1.4,
+    "RelVolume1Y": 1.2,
+    "RelVolume6M": 1.5,
+    "MA10": 621.15,
+    "MA100": 608.36,
+    "MA20": 620.49,
+    "MA200": 566.53,
+    "MA50": 616.04,
+    "percentage_change_1w": -0.5278024372528419,
+    "percentage_change_1m": -0.47318357261673155,
+    "percentage_change_4m": 3.4078896588754377,
+    "RSScore1W": 26,
+    "RSScore1M": 26,
+    "RSScore4M": 71,
+    "ADV1M": 2.1749104902698666,
+    "ADV1W": 1.7566703188448989,
+    "ADV1Y": 2.6772044826695858,
+    "ADV4M": 2.198469072659195,
+    "AlltimeHigh": 637.01,
+    "AlltimeLow": 16.7698228409,
+    "fiftytwoWeekHigh": 637.01,
+    "fiftytwoWeekLow": 402.39,
+    "percoff52WeekHigh": -0.025509803613758025,
+    "percoff52WeekLow": 0.5426824722284351,
+    "1mchange": -0.004754332446290751,
+    "1ychange": 0.13880730728126817,
+    "4mchange": 0.032955799312000954,
+    "6mchange": 0.08319270461478546,
+    "todaychange": 0.013338093074576536,
+    "weekchange": -0.016161485039267925,
+    "ytdchange": 0.005127539430129111,
+    "Name": "Invesco QQQ Trust",
+    "DividendDate": {
+        "$date": "2025-12-22T00:00:00.000Z"
+    },
+    "dividends": [
+        {
+            "payment_date": {
+                "$date": "2003-12-24T00:00:00.000Z"
+            },
+            "amount": 0.01358
+        }
+    ],
+    "EPSQoQ": 0,
+    "EarningsQoQ": 0,
+    "RevQoQ": 0,
+    "EPSYoY": 0,
+    "EarningsYoY": 0,
+    "RevYoY": 0,
+    "splits": [
+        {
+            "effective_date": {
+                "$date": "2000-03-20T00:00:00.000Z"
+            },
+            "split_factor": 2
+        }
+    ],
+    "AUM": {
+        "$numberLong": "385755185152"
+    },
+    "Currency": "USD",
+    "Description": "To maintain the correspondence between the composition and weights of the securities in the trust (the \"securities\") and the stocks in the NASDAQ-100 Index®, the adviser adjusts the securities from time to time to conform to periodic changes in the identity and/or relative weights of index securities. The composition and weighting of the securities portion of a portfolio deposit are also adjusted to conform to changes in the index.",
+    "FundCategory": "Large Growth",
+    "SharesOutstanding": 393100000,
+    "fundFamily": "Invesco",
+    "netExpenseRatio": 0.2,
+    "Delisted": false,
+    "CAGR": 0.1041,
+    "CAGRYears": 26.87,
+    "IntrinsicValue": 0,
+    "Signals": []
+}

@@ -1,0 +1,17 @@
+{
+    "_id": {
+        "$oid": "68bad7f259e0f7360fe104cd"
+    },
+    "Date": "2025-01-20T00:00:00.000Z",
+    "Symbol": "AAPL",
+    "Action": "Buy",
+    "Shares": 10,
+    "Price": 150.25,
+    "Total": 1502.5,
+    "Commission": 1,
+    "Leverage": 1,
+    "IsShort": false,
+    "Username": "LarryDarko",
+    "PortfolioNumber": 1,
+    "Timestamp": "2025-01-20T14:30:00.000Z"
+}

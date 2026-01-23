@@ -1,0 +1,379 @@
+{
+    "_id": {
+        "$oid": "672fe72dc0b08507a6fcb7b1"
+    },
+    "dividends": [
+        {
+            "payment_date": {
+                "$date": "1987-11-17T00:00:00.000Z"
+            },
+            "amount": 0.08
+        }
+    ],
+    "splits": [
+        {
+            "effective_date": {
+                "$date": "1987-06-16T00:00:00.000Z"
+            },
+            "split_factor": 2
+        }
+    ],
+    "Symbol": "AAPL",
+    "AssetType": "Stock",
+    "Name": "Apple Inc",
+    "Description": "Apple Inc. designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories worldwide. The company offers iPhone, a line of smartphones; Mac, a line of personal computers; iPad, a line of multi-purpose tablets; and wearables, home, and accessories comprising AirPods, Apple TV, Apple Watch, Beats products, and HomePod. It also provides AppleCare support and cloud services; and operates various platforms, including the App Store that allow customers to discover and download applications and digital content, such as books, music, video, games, and podcasts, as well as advertising services include third-party licensing arrangements and its own advertising platforms. In addition, the company offers various subscription-based services, such as Apple Arcade, a game subscription service; Apple Fitness+, a personalized fitness service; Apple Music, which offers users a curated listening experience with on-demand radio stations; Apple News+, a subscription news and magazine service; Apple TV+, which offers exclusive original content; Apple Card, a co-branded credit card; and Apple Pay, a cashless payment service, as well as licenses its intellectual property. The company serves consumers, and small and mid-sized businesses; and the education, enterprise, and government markets. It distributes third-party applications for its products through the App Store. The company also sells its products through its retail and online stores, and direct sales force; and third-party cellular network carriers, wholesalers, retailers, and resellers. Apple Inc. was founded in 1976 and is headquartered in Cupertino, California.",
+    "Exchange": "NASDAQ",
+    "Currency": "usd",
+    "Country": "USA",
+    "Sector": "Technology",
+    "Industry": "Consumer Electronics",
+    "Address": "One Apple Park Way, Cupertino, CA, 95014, United States",
+    "MarketCapitalization": 3685610856500,
+    "PERatio": 134.24324324324323,
+    "PEGRatio": 752.7210424710423,
+    "BookValue": 3.767,
+    "DividendYield": 0.0031092267312739755,
+    "EPS": 1.85,
+    "PriceToSalesRatioTTM": 35.96911030488162,
+    "PriceToBookRatio": 49.98590667001207,
+    "SharesOutstanding": {
+        "$numberLong": "14840390000"
+    },
+    "DividendDate": {
+        "$date": "2025-08-11T00:00:00.000Z"
+    },
+    "AvgVolume1M": 44984653,
+    "AvgVolume1W": 43465863,
+    "AvgVolume1Y": 51941513,
+    "AvgVolume6M": 52386690,
+    "RelVolume1M": 1,
+    "RelVolume1W": 1.1,
+    "RelVolume1Y": 0.9,
+    "RelVolume6M": 0.9,
+    "MA10": 256.81,
+    "MA100": 261.07,
+    "MA20": 263.9,
+    "MA200": 234.36,
+    "MA50": 270.6,
+    "EPSQoQ": 0.178343949044586,
+    "EarningsQoQ": 0.17205769394896306,
+    "RevQoQ": 0.08964651835467267,
+    "EPSYoY": 0.8877551020408164,
+    "EarningsYoY": 0.863870792616721,
+    "RevYoY": 0.07938480985989677,
+    "RSScore1W": 8,
+    "RSScore1M": 8,
+    "RSScore4M": 27,
+    "percoff52WeekHigh": -0.13952602037280856,
+    "percoff52WeekLow": 0.4695123315542868,
+    "AlltimeHigh": 288.62,
+    "AlltimeLow": 0.0378217748,
+    "1mchange": -0.09416515243286905,
+    "1ychange": 0.0989726682442964,
+    "4mchange": -0.03153644256006462,
+    "6mchange": 0.16184130829800125,
+    "todaychange": 0.003836058954169259,
+    "weekchange": -0.05410862103775492,
+    "ytdchange": -0.0943266707046234,
+    "IPO": {
+        "$date": "1980-12-12T00:00:00.000Z"
+    },
+    "ISIN": "US0378331005",
+    "TimeSeries": {
+        "open": 249.2,
+        "high": 251,
+        "low": 248.15,
+        "close": 248.35,
+        "volume": 39708340
+    },
+    "AnnualFinancials": [
+        {
+            "fiscalDateEnding": {
+                "$date": "2025-12-31T00:00:00.000Z"
+            },
+            "totalRevenue": {
+                "$numberLong": "416161000000"
+            },
+            "netIncome": {
+                "$numberLong": "112010000000"
+            },
+            "cashAndEq": {
+                "$numberLong": "35934000000"
+            },
+            "debtNonCurrent": {
+                "$numberLong": "78328000000"
+            },
+            "assetsCurrent": {
+                "$numberLong": "147957000000"
+            },
+            "equity": {
+                "$numberLong": "73733000000"
+            },
+            "investmentsNonCurrent": {
+                "$numberLong": "77723000000"
+            },
+            "acctRec": {
+                "$numberLong": "72957000000"
+            },
+            "totalAssets": {
+                "$numberLong": "359241000000"
+            },
+            "debtCurrent": {
+                "$numberLong": "20329000000"
+            },
+            "assetsNonCurrent": {
+                "$numberLong": "211284000000"
+            },
+            "sharesBasic": {
+                "$numberLong": "14840390000"
+            },
+            "debt": {
+                "$numberLong": "98657000000"
+            },
+            "taxLiabilities": 0,
+            "accoci": {
+                "$numberLong": "-5571000000"
+            },
+            "liabilitiesNonCurrent": {
+                "$numberLong": "119877000000"
+            },
+            "investmentsCurrent": {
+                "$numberLong": "18763000000"
+            },
+            "ppeq": {
+                "$numberLong": "49834000000"
+            },
+            "liabilitiesCurrent": {
+                "$numberLong": "165631000000"
+            },
+            "retainedEarnings": {
+                "$numberLong": "-14264000000"
+            },
+            "taxAssets": 0,
+            "intangibles": 0,
+            "totalLiabilities": {
+                "$numberLong": "285508000000"
+            },
+            "inventory": {
+                "$numberLong": "5718000000"
+            },
+            "investments": {
+                "$numberLong": "96486000000"
+            },
+            "acctPay": {
+                "$numberLong": "69860000000"
+            },
+            "deposits": 0,
+            "investmentsAcqDisposals": {
+                "$numberLong": "29390000000"
+            },
+            "payDiv": {
+                "$numberLong": "-15421000000"
+            },
+            "businessAcqDisposals": 0,
+            "capex": {
+                "$numberLong": "-12715000000"
+            },
+            "ncff": {
+                "$numberLong": "-120686000000"
+            },
+            "depamor": {
+                "$numberLong": "11698000000"
+            },
+            "ncf": {
+                "$numberLong": "5991000000"
+            },
+            "ncfo": {
+                "$numberLong": "111482000000"
+            },
+            "issrepayEquity": {
+                "$numberLong": "-90711000000"
+            },
+            "freeCashFlow": {
+                "$numberLong": "98767000000"
+            },
+            "ncfi": {
+                "$numberLong": "15195000000"
+            },
+            "ncfx": 0,
+            "shareFactor": 1,
+            "reportedEPS": 7.49
+        }
+    ],
+    "quarterlyFinancials": [
+        {
+            "fiscalDateEnding": {
+                "$date": "2025-09-30T00:00:00.000Z"
+            },
+            "totalRevenue": {
+                "$numberLong": "102466000000"
+            },
+            "netIncome": {
+                "$numberLong": "27466000000"
+            },
+            "debtNonCurrent": {
+                "$numberLong": "78328000000"
+            },
+            "taxLiabilities": 0,
+            "retainedEarnings": {
+                "$numberLong": "-14264000000"
+            },
+            "assetsNonCurrent": {
+                "$numberLong": "211284000000"
+            },
+            "equity": {
+                "$numberLong": "73733000000"
+            },
+            "debtCurrent": {
+                "$numberLong": "20329000000"
+            },
+            "sharesBasic": {
+                "$numberLong": "14840390000"
+            },
+            "debt": {
+                "$numberLong": "98657000000"
+            },
+            "inventory": {
+                "$numberLong": "5718000000"
+            },
+            "acctPay": {
+                "$numberLong": "69860000000"
+            },
+            "investments": {
+                "$numberLong": "96486000000"
+            },
+            "liabilitiesCurrent": {
+                "$numberLong": "165631000000"
+            },
+            "cashAndEq": {
+                "$numberLong": "35934000000"
+            },
+            "acctRec": {
+                "$numberLong": "72957000000"
+            },
+            "liabilitiesNonCurrent": {
+                "$numberLong": "119877000000"
+            },
+            "intangibles": 0,
+            "taxAssets": 0,
+            "deposits": 0,
+            "accoci": {
+                "$numberLong": "-5571000000"
+            },
+            "totalAssets": {
+                "$numberLong": "359241000000"
+            },
+            "investmentsNonCurrent": {
+                "$numberLong": "77723000000"
+            },
+            "assetsCurrent": {
+                "$numberLong": "147957000000"
+            },
+            "totalLiabilities": {
+                "$numberLong": "285508000000"
+            },
+            "investmentsCurrent": {
+                "$numberLong": "18763000000"
+            },
+            "ppeq": {
+                "$numberLong": "49834000000"
+            },
+            "freeCashFlow": {
+                "$numberLong": "26486000000"
+            },
+            "payDiv": {
+                "$numberLong": "-3862000000"
+            },
+            "ncf": -335000000,
+            "businessAcqDisposals": 0,
+            "ncfx": 0,
+            "issrepayEquity": {
+                "$numberLong": "-20132000000"
+            },
+            "ncfo": {
+                "$numberLong": "29728000000"
+            },
+            "investmentsAcqDisposals": 1160000000,
+            "ncfi": {
+                "$numberLong": "-2587000000"
+            },
+            "capex": {
+                "$numberLong": "-3242000000"
+            },
+            "ncff": {
+                "$numberLong": "-27476000000"
+            },
+            "depamor": {
+                "$numberLong": "3127000000"
+            },
+            "longTermDebtEquity": 1.0623194499071,
+            "roa": 0.327981177903655,
+            "shareFactor": 1,
+            "bookVal": {
+                "$numberLong": "73733000000"
+            },
+            "roe": 1.64046910298517,
+            "grossMargin": 0.471776003747585,
+            "revenueQoQ": 0.0793848098598968,
+            "currentRatio": 0.893292922218667,
+            "debtEquity": 1.33803046125887,
+            "rps": 6.90453552770513,
+            "profitMargin": 0.471776003747585,
+            "bvps": 4.96840042613435,
+            "epsQoQ": 0.887755102040817,
+            "reportedEPS": 1.85
+        }
+    ],
+    "EV": {
+        "$numberLong": "3778143863300"
+    },
+    "percentage_change_1w": -4.735343899061385,
+    "percentage_change_1m": -8.606118758534162,
+    "percentage_change_4m": -3.057230094731074,
+    "PriceToSalesRatio": 25.864717569348347,
+    "ADV1M": 4.320539739365458,
+    "ADV1W": 5.230012095011637,
+    "ADV1Y": 3.3914083195536313,
+    "ADV4M": 3.6962796295471945,
+    "Gap": 0.2826569755703568,
+    "RSI": 81.80009945300847,
+    "fiftytwoWeekHigh": 288.62,
+    "fiftytwoWeekLow": 169.0016440606,
+    "PriceTarget": 285,
+    "IntrinsicValue": 285,
+    "Delisted": false,
+    "CAGR": 0.1895,
+    "CAGRYears": 45.11,
+    "companyWebsite": "http://www.apple.com",
+    "AI": [
+        {
+            "Report": "Apple Inc. demonstrates consistent revenue growth, with 2025 Q3 revenue at $102.5B, reflecting strong product demand and ecosystem expansion. Net income remains robust, hovering around $27.5B, indicating efficient operations. Profit margin stability at 47% underscores cost control and pricing power. Asset base remains solid, with $359B in total assets, while debt levels are moderate at $98.7B, suggesting manageable leverage. Cash reserves are substantial at $35.9B, enabling flexibility in R&D, acquisitions, or shareholder returns. Return on equity (ROE) fluctuates between 1.37% and 1.64%, indicating moderate shareholder returns. Cash flow generation remains strong, supporting continued innovation and market leadership.",
+            "Model": "Qwen",
+            "Recommendation": "Hold",
+            "IntrinsicValue": 285,
+            "UpdatedAt": {
+                "$date": "2025-12-04T10:34:06.801Z"
+            }
+        }
+    ],
+    "Signals": [
+        {
+            "date": "2026-01-23",
+            "type": "BUY",
+            "strategy": "RSI_Oversold",
+            "indicator_value": 11.87,
+            "price": 248.35,
+            "description": "RSI at 11.87 (oversold < 30)"
+        }
+    ],
+    "NextEarnings": {
+        "reportDate": {
+            "$date": "2026-01-29T00:00:00.000Z"
+        },
+        "fiscalDateEnding": {
+            "$date": "2025-12-31T00:00:00.000Z"
+        },
+        "estimate": 2.65,
+        "timeOfTheDay": "post-market"
+    }
+}

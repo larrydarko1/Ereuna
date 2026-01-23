@@ -1,0 +1,60 @@
+{
+    "_id": {
+        "$oid": "69596428867ec420e98ee9bf"
+    },
+    "symbol": "SOFI",
+    "timeframe": "daily",
+    "user": "LarryDarko",
+    "boxes": [],
+    "createdAt": {
+        "$date": "2026-01-03T18:47:04.666Z"
+    },
+    "freehandPaths": [],
+    "priceLevels": [],
+    "textAnnotations": [],
+    "trendLines": [
+        {
+            "id": "tl_1767466023652_dlqk28hxh",
+            "point1": {
+                "time": "2025-11-13",
+                "price": 22.98926728869374,
+                "x": 484.0367102405829,
+                "y": 251.5
+            },
+            "point2": {
+                "time": "2026-01-02",
+                "price": 25.638004939626782,
+                "x": 559.8626174519843,
+                "y": 211.5
+            },
+            "color": "#a9b1d6",
+            "lineWidth": 1,
+            "lineStyle": "solid",
+            "locked": false,
+            "extended": false
+        },
+        {
+            "id": "tl_1767466028186_i8w232krd",
+            "point1": {
+                "time": "2025-11-07",
+                "price": 33.41251920965971,
+                "x": 474.8456911846555,
+                "y": 94.0929133858267
+            },
+            "point2": {
+                "time": "2026-01-02",
+                "price": 27.558339736553236,
+                "x": 559.8626174519843,
+                "y": 182.49999999999994
+            },
+            "color": "#a9b1d6",
+            "lineWidth": 1,
+            "lineStyle": "solid",
+            "locked": false,
+            "extended": false
+        }
+    ],
+    "updatedAt": {
+        "$date": "2026-01-18T13:09:24.159Z"
+    }
+}

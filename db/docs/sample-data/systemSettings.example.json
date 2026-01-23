@@ -1,0 +1,11 @@
+{
+    "_id": {
+        "$oid": "672360b5ca7a8a72ec2049f6"
+    },
+    "maintenance": false,
+    "name": "EreunaApp",
+    "lastUpdated": {
+        "$date": "2025-06-26T16:42:53.416Z"
+    },
+    "type": "regular"
+}

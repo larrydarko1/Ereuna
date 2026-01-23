@@ -1,0 +1,8 @@
+{
+    "_id": {
+        "$oid": "68e83932e146cb69de001a6d"
+    },
+    "Description": "Plans to add main cryptocurrencies as both payment methods and assets to analyse",
+    "Progress": "Planned",
+    "Title": "Add Crypto Asset Support"
+}

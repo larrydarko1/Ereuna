@@ -1,0 +1,80 @@
+{
+    "_id": {
+        "$oid": "66e6a3c08fff6459583767bb"
+    },
+    "Name": "almost leaders",
+    "UsernameID": "LarryDarko",
+    "Include": true,
+    "CreatedAt": {
+        "$date": "2024-09-15T10:30:00.000Z"
+    },
+    "Price": [
+        10,
+        500
+    ],
+    "MarketCap": [
+        1000000000,
+        {
+            "$numberLong": "99999999999999"
+        }
+    ],
+    "AvgVolume1M": [
+        1000000,
+        {
+            "$numberLong": "99999999999999"
+        }
+    ],
+    "RSScore1W": [
+        75,
+        100
+    ],
+    "RSScore1M": [
+        75,
+        100
+    ],
+    "RSScore4M": [
+        75,
+        100
+    ],
+    "AssetTypes": [
+        "Stock"
+    ],
+    "Sectors": [
+        "Technology",
+        "Healthcare"
+    ],
+    "Exchanges": [
+        "NASDAQ",
+        "NYSE"
+    ],
+    "Countries": [
+        "US"
+    ],
+    "PE": [
+        10,
+        30
+    ],
+    "ROE": [
+        15,
+        100
+    ],
+    "DivYield": [
+        2,
+        5
+    ],
+    "NewHigh": [
+        "52W",
+        "ATH"
+    ],
+    "MA200": [
+        "above"
+    ],
+    "changePerc": [
+        -5,
+        10,
+        [
+            "1D",
+            "1W"
+        ]
+    ]
+}

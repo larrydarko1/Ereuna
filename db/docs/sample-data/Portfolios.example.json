@@ -1,0 +1,378 @@
+{
+    "_id": {
+        "$oid": "686a4e269e37d9a428d5d4b2"
+    },
+    "Username": "LarryDarko",
+    "Number": 0,
+    "cash": 1120.5899999999997,
+    "BaseValue": 1000,
+    "avgGain": 16.14,
+    "avgGainAbs": 51.42,
+    "avgHoldTimeLosers": 9.9,
+    "avgHoldTimeWinners": 28.7,
+    "avgLoss": -5.09,
+    "avgLossAbs": 15.74,
+    "avgPositionSize": 32.17,
+    "biggestLoser": {
+        "ticker": "PLTR",
+        "amount": 40.6,
+        "tradeCount": 2
+    },
+    "biggestWinner": {
+        "ticker": "RDDT",
+        "amount": 128.88,
+        "tradeCount": 1
+    },
+    "breakevenCount": 1,
+    "breakevenPercent": 5.26,
+    "gainLossRatio": 3.17,
+    "loserCount": 12,
+    "loserPercent": 63.16,
+    "profitFactor": 1.63,
+    "realizedPL": 119.59,
+    "realizedPLPercent": 11.96,
+    "riskRewardRatio": 0.32,
+    "sortinoRatio": -0.02,
+    "winnerCount": 6,
+    "winnerPercent": 31.58,
+    "portfolioValueHistory": [
+        {
+            "date": "2025-01-01",
+            "value": 1000
+        },
+        {
+            "date": "2025-01-13",
+            "value": 1000
+        },
+        {
+            "date": "2025-01-14",
+            "value": 1000
+        },
+        {
+            "date": "2025-01-21",
+            "value": 1000
+        },
+        {
+            "date": "2025-01-27",
+            "value": 1006.78
+        },
+        {
+            "date": "2025-01-29",
+            "value": 1006.78
+        },
+        {
+            "date": "2025-02-04",
+            "value": 1017.1599999999999
+        },
+        {
+            "date": "2025-02-06",
+            "value": 1017.16
+        },
+        {
+            "date": "2025-02-11",
+            "value": 1003.5699999999998
+        },
+        {
+            "date": "2025-02-20",
+            "value": 1003.5699999999998
+        },
+        {
+            "date": "2025-02-21",
+            "value": 991.5699999999998
+        },
+        {
+            "date": "2025-02-24",
+            "value": 1010.42
+        },
+        {
+            "date": "2025-03-26",
+            "value": 1009.42
+        },
+        {
+            "date": "2025-03-27",
+            "value": 1009.4199999999998
+        },
+        {
+            "date": "2025-03-28",
+            "value": 1001.6499999999999
+        },
+        {
+            "date": "2025-03-31",
+            "value": 978.6199999999999
+        },
+        {
+            "date": "2025-06-25",
+            "value": 977.6199999999999
+        },
+        {
+            "date": "2025-07-07",
+            "value": 976.6199999999999
+        },
+        {
+            "date": "2025-08-01",
+            "value": 938.3899999999999
+        },
+        {
+            "date": "2025-08-05",
+            "value": 937.3899999999999
+        },
+        {
+            "date": "2025-08-12",
+            "value": 1066.27
+        },
+        {
+            "date": "2025-08-20",
+            "value": 1047.6499999999999
+        },
+        {
+            "date": "2025-08-28",
+            "value": 1046.6499999999999
+        },
+        {
+            "date": "2025-10-01",
+            "value": 1149.8499999999997
+        },
+        {
+            "date": "2025-11-05",
+            "value": 1148.8499999999997
+        },
+        {
+            "date": "2025-11-06",
+            "value": 1160.1899999999996
+        },
+        {
+            "date": "2025-11-07",
+            "value": 1145.2899999999997
+        },
+        {
+            "date": "2025-12-29",
+            "value": 1144.2899999999997
+        },
+        {
+            "date": "2026-01-02",
+            "value": 1120.5899999999997
+        }
+    ],
+    "tradeReturnsChart": {
+        "labels": [
+            "-8 to -6%",
+            "-6 to -4%",
+            "-4 to -2%",
+            "-2 to 0%",
+            "0 to 2%",
+            "2 to 4%",
+            "4 to 6%",
+            "6 to 8%",
+            "8 to 10%",
+            "10 to 12%",
+            "12 to 14%",
+            "14 to 16%",
+            "16 to 18%",
+            "18 to 20%",
+            "20 to 22%",
+            "22 to 24%",
+            "24 to 26%",
+            "26 to 28%",
+            "28 to 30%",
+            "30 to 32%",
+            "32 to 34%",
+            "34 to 36%",
+            "36 to 38%",
+            "38 to 40%",
+            "40 to 42%",
+            "42 to 44%"
+        ],
+        "bins": [
+            {
+                "min": -8,
+                "max": -6,
+                "range": "-8 to -6%",
+                "count": 4,
+                "positive": false
+            },
+            {
+                "min": -6,
+                "max": -4,
+                "range": "-6 to -4%",
+                "count": 6,
+                "positive": false
+            },
+            {
+                "min": -4,
+                "max": -2,
+                "range": "-4 to -2%",
+                "count": 2,
+                "positive": false
+            },
+            {
+                "min": -2,
+                "max": 0,
+                "range": "-2 to 0%",
+                "count": 0,
+                "positive": false
+            },
+            {
+                "min": 0,
+                "max": 2,
+                "range": "0 to 2%",
+                "count": 1,
+                "positive": true
+            },
+            {
+                "min": 2,
+                "max": 4,
+                "range": "2 to 4%",
+                "count": 2,
+                "positive": true
+            },
+            {
+                "min": 4,
+                "max": 6,
+                "range": "4 to 6%",
+                "count": 1,
+                "positive": true
+            },
+            {
+                "min": 6,
+                "max": 8,
+                "range": "6 to 8%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 8,
+                "max": 10,
+                "range": "8 to 10%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 10,
+                "max": 12,
+                "range": "10 to 12%",
+                "count": 1,
+                "positive": true
+            },
+            {
+                "min": 12,
+                "max": 14,
+                "range": "12 to 14%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 14,
+                "max": 16,
+                "range": "14 to 16%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 16,
+                "max": 18,
+                "range": "16 to 18%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 18,
+                "max": 20,
+                "range": "18 to 20%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 20,
+                "max": 22,
+                "range": "20 to 22%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 22,
+                "max": 24,
+                "range": "22 to 24%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 24,
+                "max": 26,
+                "range": "24 to 26%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 26,
+                "max": 28,
+                "range": "26 to 28%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 28,
+                "max": 30,
+                "range": "28 to 30%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 30,
+                "max": 32,
+                "range": "30 to 32%",
+                "count": 1,
+                "positive": true
+            },
+            {
+                "min": 32,
+                "max": 34,
+                "range": "32 to 34%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 34,
+                "max": 36,
+                "range": "34 to 36%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 36,
+                "max": 38,
+                "range": "36 to 38%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 38,
+                "max": 40,
+                "range": "38 to 40%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 40,
+                "max": 42,
+                "range": "40 to 42%",
+                "count": 0,
+                "positive": true
+            },
+            {
+                "min": 42,
+                "max": 44,
+                "range": "42 to 44%",
+                "count": 1,
+                "positive": true
+            }
+        ],
+        "medianBinIndex": 1
+    },
+    "benchmarks": [
+        "SPY",
+        "QQQ",
+        "DIA",
+        "IWM",
+        "EEM"
+    ]
+}

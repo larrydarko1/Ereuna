@@ -1,0 +1,1305 @@
+{
+    "_id": "marketStats",
+    "SMA10": {
+        "ALL": {
+            "up": 0.5378913443830571,
+            "down": 0.4621086556169429
+        },
+        "Stock": {
+            "up": 0.602767080302382,
+            "down": 0.39723291969761804
+        },
+        "ETF": {
+            "up": 0.6150943396226415,
+            "down": 0.3849056603773585
+        },
+        "Mutual Fund": {
+            "up": 0.6018318965517241,
+            "down": 0.39816810344827586
+        },
+        "OTC": {
+            "up": 0.3865865232521354,
+            "down": 0.6134134767478646
+        },
+        "PINK": {
+            "up": 0.40684693624410817,
+            "down": 0.5931530637558918
+        },
+        "Crypto": {
+            "up": 0.1724907063197026,
+            "down": 0.8275092936802974
+        }
+    },
+    "SMA20": {
+        "ALL": {
+            "up": 0.5978591160220994,
+            "down": 0.40214088397790054
+        },
+        "Stock": {
+            "up": 0.6464127799172729,
+            "down": 0.35358722008272714
+        },
+        "ETF": {
+            "up": 0.7091436865021771,
+            "down": 0.2908563134978229
+        },
+        "Mutual Fund": {
+            "up": 0.6601195141065831,
+            "down": 0.3398804858934169
+        },
+        "OTC": {
+            "up": 0.4324580828851629,
+            "down": 0.567541917114837
+        },
+        "PINK": {
+            "up": 0.4848672785909204,
+            "down": 0.5151327214090796
+        },
+        "Crypto": {
+            "up": 0.18066914498141265,
+            "down": 0.8193308550185874
+        }
+    },
+    "SMA200": {
+        "ALL": {
+            "up": 0.6767181421666864,
+            "down": 0.3232818578333137
+        },
+        "Stock": {
+            "up": 0.6072761194029851,
+            "down": 0.3927238805970149
+        },
+        "ETF": {
+            "up": 0.8363358778625954,
+            "down": 0.16366412213740458
+        },
+        "Mutual Fund": {
+            "up": 0.7769045630924898,
+            "down": 0.2230954369075102
+        },
+        "OTC": {
+            "up": 0.49720486682012494,
+            "down": 0.502795133179875
+        },
+        "PINK": {
+            "up": 0.5745669093648004,
+            "down": 0.4254330906351996
+        },
+        "Crypto": {
+            "up": 0.11326378539493294,
+            "down": 0.886736214605067
+        }
+    },
+    "SMA50": {
+        "ALL": {
+            "up": 0.5352209944751382,
+            "down": 0.4647790055248619
+        },
+        "Stock": {
+            "up": 0.613607188703466,
+            "down": 0.386392811296534
+        },
+        "ETF": {
+            "up": 0.7216255442670537,
+            "down": 0.2783744557329463
+        },
+        "Mutual Fund": {
+            "up": 0.48809757053291536,
+            "down": 0.5119024294670846
+        },
+        "OTC": {
+            "up": 0.5741853843720341,
+            "down": 0.42581461562796585
+        },
+        "PINK": {
+            "up": 0.5394443066236666,
+            "down": 0.4605556933763334
+        },
+        "Crypto": {
+            "up": 0.24758364312267658,
+            "down": 0.7524163568773234
+        }
+    },
+    "updatedAt": {
+        "$date": "2026-01-22T00:00:00.000Z"
+    },
+    "industryTierList": [
+        {
+            "industry": "Silver",
+            "average_return": 0.9751039901805993,
+            "count": 2
+        },
+        {
+            "industry": "Gold",
+            "average_return": 0.5252183713722176,
+            "count": 50
+        },
+        {
+            "industry": "Other Precious Metals & Mining",
+            "average_return": 0.49791810443984363,
+            "count": 12
+        },
+        {
+            "industry": "Aluminum",
+            "average_return": 0.49146875861750394,
+            "count": 4
+        },
+        {
+            "industry": "Copper",
+            "average_return": 0.4688578691627754,
+            "count": 6
+        },
+        {
+            "industry": "Semiconductor Equipment & Materials",
+            "average_return": 0.31373330675702615,
+            "count": 27
+        },
+        {
+            "industry": "Real Estate - Diversified",
+            "average_return": 0.2723880597014926,
+            "count": 5
+        },
+        {
+            "industry": "Trucking",
+            "average_return": 0.24815544005529214,
+            "count": 16
+        },
+        {
+            "industry": "Uranium",
+            "average_return": 0.24369739545364166,
+            "count": 10
+        },
+        {
+            "industry": "Oil & Gas Drilling",
+            "average_return": 0.2176165803108809,
+            "count": 9
+        },
+        {
+            "industry": "Tools & Accessories",
+            "average_return": 0.16162597114317434,
+            "count": 11
+        },
+        {
+            "industry": "Banks - Diversified",
+            "average_return": 0.15274855738188262,
+            "count": 20
+        },
+        {
+            "industry": "Oil & Gas Equipment & Services",
+            "average_return": 0.15240120432578497,
+            "count": 52
+        },
+        {
+            "industry": "Other Industrial Metals & Mining",
+            "average_return": 0.1459314362843971,
+            "count": 41
+        },
+        {
+            "industry": "Thermal Coal",
+            "average_return": 0.14570240742531174,
+            "count": 5
+        },
+        {
+            "industry": "Banks - Regional",
+            "average_return": 0.14190087576855284,
+            "count": 328
+        },
+        {
+            "industry": "Airlines",
+            "average_return": 0.14128061431915995,
+            "count": 16
+        },
+        {
+            "industry": "Coking Coal",
+            "average_return": 0.1280713483644101,
+            "count": 6
+        },
+        {
+            "industry": "Discount Stores",
+            "average_return": 0.1278836029482148,
+            "count": 9
+        },
+        {
+            "industry": "Marine Shipping",
+            "average_return": 0.12011173184357533,
+            "count": 43
+        },
+        {
+            "industry": "Beverages - Brewers",
+            "average_return": 0.1194027187430759,
+            "count": 6
+        },
+        {
+            "industry": "Business Equipment & Supplies",
+            "average_return": 0.11544060584111543,
+            "count": 4
+        },
+        {
+            "industry": "Banks—Regional",
+            "average_return": 0.1084337349397591,
+            "count": 5
+        },
+        {
+            "industry": "Steel",
+            "average_return": 0.10316613304873719,
+            "count": 27
+        },
+        {
+            "industry": "Financial Conglomerates",
+            "average_return": 0.09829129373474356,
+            "count": 3
+        },
+        {
+            "industry": "Aerospace & Defense",
+            "average_return": 0.09540281187234989,
+            "count": 69
+        },
+        {
+            "industry": "Drug Manufacturers - General",
+            "average_return": 0.09076849869141083,
+            "count": 19
+        },
+        {
+            "industry": "Chemicals",
+            "average_return": 0.08713431896822911,
+            "count": 17
+        },
+        {
+            "industry": "Lodging",
+            "average_return": 0.08542351973684213,
+            "count": 11
+        },
+        {
+            "industry": "Metal Fabrication",
+            "average_return": 0.08164884356191862,
+            "count": 18
+        },
+        {
+            "industry": "Building Materials",
+            "average_return": 0.07807568330649417,
+            "count": 18
+        },
+        {
+            "industry": "Farm Products",
+            "average_return": 0.07599517490952966,
+            "count": 19
+        },
+        {
+            "industry": "Department Stores",
+            "average_return": 0.07207803547101248,
+            "count": 4
+        },
+        {
+            "industry": "Leisure",
+            "average_return": 0.06787330316742084,
+            "count": 27
+        },
+        {
+            "industry": "Diagnostics & Research",
+            "average_return": 0.06742354031510654,
+            "count": 59
+        },
+        {
+            "industry": "REIT - Hotel & Motel",
+            "average_return": 0.06652881169010208,
+            "count": 16
+        },
+        {
+            "industry": "Specialty Industrial Machinery",
+            "average_return": 0.065296603993587,
+            "count": 83
+        },
+        {
+            "industry": "Semiconductors",
+            "average_return": 0.0633141361256544,
+            "count": 68
+        },
+        {
+            "industry": "Oil & Gas Midstream",
+            "average_return": 0.06017925736235592,
+            "count": 45
+        },
+        {
+            "industry": "Lumber & Wood Production",
+            "average_return": 0.059368780210406584,
+            "count": 5
+        },
+        {
+            "industry": "Medical Distribution",
+            "average_return": 0.059342346667279874,
+            "count": 8
+        },
+        {
+            "industry": "Electronic Components",
+            "average_return": 0.05925490933136132,
+            "count": 48
+        },
+        {
+            "industry": "Confectioners",
+            "average_return": 0.05842086726469036,
+            "count": 4
+        },
+        {
+            "industry": "Oil & Gas Integrated",
+            "average_return": 0.05812767487035732,
+            "count": 18
+        },
+        {
+            "industry": "Residential Construction",
+            "average_return": 0.05716065726968307,
+            "count": 23
+        },
+        {
+            "industry": "Railroads",
+            "average_return": 0.05539727761949984,
+            "count": 11
+        },
+        {
+            "industry": "Footwear & Accessories",
+            "average_return": 0.054941373534338256,
+            "count": 13
+        },
+        {
+            "industry": "Financial Data & Stock Exchanges",
+            "average_return": 0.054506793563780714,
+            "count": 10
+        },
+        {
+            "industry": "Farm & Heavy Construction Machinery",
+            "average_return": 0.05335289388299086,
+            "count": 24
+        },
+        {
+            "industry": "Airports & Air Services",
+            "average_return": 0.05244307141928646,
+            "count": 10
+        },
+        {
+            "industry": "Integrated Freight & Logistics",
+            "average_return": 0.0509615384615384,
+            "count": 29
+        },
+        {
+            "industry": "Specialty Chemicals",
+            "average_return": 0.04773735581188993,
+            "count": 61
+        },
+        {
+            "industry": "REIT - Healthcare Facilities",
+            "average_return": 0.047307952241495865,
+            "count": 17
+        },
+        {
+            "industry": "Food Distribution",
+            "average_return": 0.044383509572188826,
+            "count": 12
+        },
+        {
+            "industry": "Oil & Gas E&P",
+            "average_return": 0.04145225284134697,
+            "count": 76
+        },
+        {
+            "industry": "Utilities - Diversified",
+            "average_return": 0.040000000000000056,
+            "count": 11
+        },
+        {
+            "industry": "Home Improvement Retail",
+            "average_return": 0.03756224835770297,
+            "count": 8
+        },
+        {
+            "industry": "Furnishings Fixtures & Appliances",
+            "average_return": 0.03596847077145733,
+            "count": 30
+        },
+        {
+            "industry": "Conglomerates",
+            "average_return": 0.034116438833868085,
+            "count": 20
+        },
+        {
+            "industry": "Packaging & Containers",
+            "average_return": 0.03145483301474135,
+            "count": 22
+        },
+        {
+            "industry": "Industrial Distribution",
+            "average_return": 0.029275092936802975,
+            "count": 19
+        },
+        {
+            "industry": "Mortgage Finance",
+            "average_return": 0.028148322265969347,
+            "count": 12
+        },
+        {
+            "industry": "REIT - Mortgage",
+            "average_return": 0.02744739249771278,
+            "count": 43
+        },
+        {
+            "industry": "Paper & Paper Products",
+            "average_return": 0.027026571505857376,
+            "count": 8
+        },
+        {
+            "industry": "REIT - Specialty",
+            "average_return": 0.026374859708192977,
+            "count": 19
+        },
+        {
+            "industry": "Insurance - Reinsurance",
+            "average_return": 0.024758588156546718,
+            "count": 8
+        },
+        {
+            "industry": "Rental & Leasing Services",
+            "average_return": 0.024154589371980735,
+            "count": 25
+        },
+        {
+            "industry": "Apparel Retail",
+            "average_return": 0.021964328329268826,
+            "count": 34
+        },
+        {
+            "industry": "Utilities - Regulated Gas",
+            "average_return": 0.021831988609397286,
+            "count": 15
+        },
+        {
+            "industry": "Auto Parts",
+            "average_return": 0.018578334431992916,
+            "count": 48
+        },
+        {
+            "industry": "Insurance - Life",
+            "average_return": 0.015039577836411617,
+            "count": 21
+        },
+        {
+            "industry": "Telecom Services",
+            "average_return": 0.013626040878122612,
+            "count": 63
+        },
+        {
+            "industry": "Asset Management",
+            "average_return": 0.013034188034187995,
+            "count": 96
+        },
+        {
+            "industry": "Insurance - Specialty",
+            "average_return": 0.012936833484857534,
+            "count": 18
+        },
+        {
+            "industry": "Shell Companies",
+            "average_return": 0.007014028056112252,
+            "count": 275
+        },
+        {
+            "industry": "Utilities - Regulated Water",
+            "average_return": 0.005207558399047888,
+            "count": 13
+        },
+        {
+            "industry": "REIT - Retail",
+            "average_return": 0.005186721991701195,
+            "count": 27
+        },
+        {
+            "industry": "Communication Equipment",
+            "average_return": 0.004753509443095467,
+            "count": 64
+        },
+        {
+            "industry": "Insurance - Property & Casualty",
+            "average_return": 0.0026549541420601195,
+            "count": 42
+        },
+        {
+            "industry": "Waste Management",
+            "average_return": 0.0022600762240958614,
+            "count": 20
+        },
+        {
+            "industry": "REIT - Diversified",
+            "average_return": 0.0007062146892655217,
+            "count": 21
+        },
+        {
+            "industry": "Specialty Business Services",
+            "average_return": 0,
+            "count": 45
+        },
+        {
+            "industry": "Engineering & Construction",
+            "average_return": -0.0013966480446927076,
+            "count": 49
+        },
+        {
+            "industry": "Building Products & Equipment",
+            "average_return": -0.002154940200409469,
+            "count": 31
+        },
+        {
+            "industry": "Recreational Vehicles",
+            "average_return": -0.003792667509481613,
+            "count": 15
+        },
+        {
+            "industry": "Consulting Services",
+            "average_return": -0.0068493150684932076,
+            "count": 23
+        },
+        {
+            "industry": "REIT - Residential",
+            "average_return": -0.007345190425367061,
+            "count": 20
+        },
+        {
+            "industry": "Oil & Gas Refining & Marketing",
+            "average_return": -0.012235392739067083,
+            "count": 20
+        },
+        {
+            "industry": "Restaurants",
+            "average_return": -0.015332229925666588,
+            "count": 60
+        },
+        {
+            "industry": "Staffing & Employment Services",
+            "average_return": -0.015485792023543467,
+            "count": 26
+        },
+        {
+            "industry": "Auto & Truck Dealerships",
+            "average_return": -0.016619497802131577,
+            "count": 27
+        },
+        {
+            "industry": "Insurance - Diversified",
+            "average_return": -0.017556395598991942,
+            "count": 14
+        },
+        {
+            "industry": "REIT - Industrial",
+            "average_return": -0.018739352640545198,
+            "count": 17
+        },
+        {
+            "industry": "Utilities - Regulated Electric",
+            "average_return": -0.01954746380531799,
+            "count": 44
+        },
+        {
+            "industry": "Travel Services",
+            "average_return": -0.019697777101096225,
+            "count": 17
+        },
+        {
+            "industry": "Medical Devices",
+            "average_return": -0.027749999999999945,
+            "count": 140
+        },
+        {
+            "industry": "Solar",
+            "average_return": -0.029411764705882377,
+            "count": 21
+        },
+        {
+            "industry": "Scientific & Technical Instruments",
+            "average_return": -0.030075187969924838,
+            "count": 31
+        },
+        {
+            "industry": "Utilities - Renewable",
+            "average_return": -0.03125000000000003,
+            "count": 19
+        },
+        {
+            "industry": "Healthcare Plans",
+            "average_return": -0.03144980600032786,
+            "count": 11
+        },
+        {
+            "industry": "Beverages - Non-Alcoholic",
+            "average_return": -0.034472852628555095,
+            "count": 15
+        },
+        {
+            "industry": "Biotechnology",
+            "average_return": -0.03451783036578733,
+            "count": 610
+        },
+        {
+            "industry": "Information Technology Services",
+            "average_return": -0.03529411764705887,
+            "count": 69
+        },
+        {
+            "industry": "Publishing",
+            "average_return": -0.03973509933774838,
+            "count": 7
+        },
+        {
+            "industry": "Advertising Agencies",
+            "average_return": -0.04075235109717865,
+            "count": 37
+        },
+        {
+            "industry": "Tobacco",
+            "average_return": -0.04132231404958681,
+            "count": 11
+        },
+        {
+            "industry": "Specialty Retail",
+            "average_return": -0.04149503697804184,
+            "count": 46
+        },
+        {
+            "industry": "Entertainment",
+            "average_return": -0.04205974842767297,
+            "count": 55
+        },
+        {
+            "industry": "Beverages - Wineries & Distilleries",
+            "average_return": -0.04262914741705154,
+            "count": 13
+        },
+        {
+            "industry": "Apparel Manufacturing",
+            "average_return": -0.04408817635270544,
+            "count": 23
+        },
+        {
+            "industry": "Medical Care Facilities",
+            "average_return": -0.04545454545454549,
+            "count": 51
+        },
+        {
+            "industry": "Medical Instruments & Supplies",
+            "average_return": -0.046149659863945675,
+            "count": 55
+        },
+        {
+            "industry": "Electrical Equipment & Parts",
+            "average_return": -0.046232876712328695,
+            "count": 51
+        },
+        {
+            "industry": "Agricultural Inputs",
+            "average_return": -0.047361299052773975,
+            "count": 15
+        },
+        {
+            "industry": "Drug Manufacturers - Specialty & Generic",
+            "average_return": -0.04895104895104884,
+            "count": 77
+        },
+        {
+            "industry": "Household & Personal Products",
+            "average_return": -0.05089820359281435,
+            "count": 29
+        },
+        {
+            "industry": "Credit Services",
+            "average_return": -0.05340557275541792,
+            "count": 53
+        },
+        {
+            "industry": "Real Estate - Development",
+            "average_return": -0.05930840995483086,
+            "count": 12
+        },
+        {
+            "industry": "Security & Protection Services",
+            "average_return": -0.05949656750572077,
+            "count": 25
+        },
+        {
+            "industry": "Electronics & Computer Distribution",
+            "average_return": -0.06299339455453526,
+            "count": 9
+        },
+        {
+            "industry": "Capital Markets",
+            "average_return": -0.06834197580109026,
+            "count": 68
+        },
+        {
+            "industry": "Real Estate Services",
+            "average_return": -0.06849915221790731,
+            "count": 46
+        },
+        {
+            "industry": "Pharmaceutical Retailers",
+            "average_return": -0.07619047619047613,
+            "count": 9
+        },
+        {
+            "industry": "Gambling",
+            "average_return": -0.07644305772230883,
+            "count": 15
+        },
+        {
+            "industry": "Resorts & Casinos",
+            "average_return": -0.07720588235294132,
+            "count": 19
+        },
+        {
+            "industry": "Broadcasting",
+            "average_return": -0.07755102040816321,
+            "count": 15
+        },
+        {
+            "industry": "Grocery Stores",
+            "average_return": -0.0821398878556523,
+            "count": 12
+        },
+        {
+            "industry": "Luxury Goods",
+            "average_return": -0.10488088320743752,
+            "count": 13
+        },
+        {
+            "industry": "Packaged Foods",
+            "average_return": -0.1096480209903422,
+            "count": 70
+        },
+        {
+            "industry": "Textile Manufacturing",
+            "average_return": -0.11653292423884816,
+            "count": 4
+        },
+        {
+            "industry": "Internet Retail",
+            "average_return": -0.12280701754385973,
+            "count": 43
+        },
+        {
+            "industry": "Internet Content & Information",
+            "average_return": -0.13038548752834464,
+            "count": 67
+        },
+        {
+            "industry": "Insurance Brokers",
+            "average_return": -0.13522441434069765,
+            "count": 19
+        },
+        {
+            "industry": "Personal Services",
+            "average_return": -0.1433186867251684,
+            "count": 18
+        },
+        {
+            "industry": "Software - Infrastructure",
+            "average_return": -0.15221164655849184,
+            "count": 138
+        },
+        {
+            "industry": "Infrastructure Operations",
+            "average_return": -0.15593947154308888,
+            "count": 2
+        },
+        {
+            "industry": "Software - Application",
+            "average_return": -0.1678082191780821,
+            "count": 243
+        },
+        {
+            "industry": "Pollution & Treatment Controls",
+            "average_return": -0.16827743035815798,
+            "count": 17
+        },
+        {
+            "industry": "REIT - Office",
+            "average_return": -0.17028338013786065,
+            "count": 23
+        },
+        {
+            "industry": "Health Information Services",
+            "average_return": -0.1732768579129765,
+            "count": 55
+        },
+        {
+            "industry": "Consumer Electronics",
+            "average_return": -0.17993381879233938,
+            "count": 14
+        },
+        {
+            "industry": "Computer Hardware",
+            "average_return": -0.19316284383513493,
+            "count": 35
+        },
+        {
+            "industry": "Utilities - Independent Power Producers",
+            "average_return": -0.19538384345208226,
+            "count": 5
+        },
+        {
+            "industry": "Education & Training Services",
+            "average_return": -0.20309682825269215,
+            "count": 42
+        },
+        {
+            "industry": "Electronic Gaming & Multimedia",
+            "average_return": -0.28222222222222226,
+            "count": 27
+        },
+        {
+            "industry": "Auto Manufacturers",
+            "average_return": -0.30822444273635663,
+            "count": 37
+        },
+        {
+            "industry": "Furnishings",
+            "average_return": -0.6458181403614828,
+            "count": 2
+        }
+    ],
+    "sectorTierList": [
+        {
+            "sector": "Basic Materials",
+            "average_return": 0.705570248225917,
+            "count": 318
+        },
+        {
+            "sector": "Healthcare",
+            "average_return": 0.16595087780624018,
+            "count": 1084
+        },
+        {
+            "sector": "Communication Services",
+            "average_return": 0.1254695426941937,
+            "count": 258
+        },
+        {
+            "sector": "Energy",
+            "average_return": 0.08502519906210569,
+            "count": 220
+        },
+        {
+            "sector": "Industrials",
+            "average_return": 0.08260065980080146,
+            "count": 949
+        },
+        {
+            "sector": "Financial Services",
+            "average_return": 0.07135913243288289,
+            "count": 719
+        },
+        {
+            "sector": "Consumer Defensive",
+            "average_return": 0.04989691625680033,
+            "count": 251
+        },
+        {
+            "sector": "Consumer Cyclical",
+            "average_return": 0.037022790503584486,
+            "count": 555
+        },
+        {
+            "sector": "Real Estate",
+            "average_return": 0.01968997515076854,
+            "count": 266
+        },
+        {
+            "sector": "Technology",
+            "average_return": -0.009585992820226453,
+            "count": 768
+        },
+        {
+            "sector": "Utilities",
+            "average_return": -0.013550094902525947,
+            "count": 107
+        }
+    ],
+    "indexPerformance": {
+        "DIA": {
+            "lastPrice": 493.69,
+            "1D": 0.005888345558272181,
+            "1M": 0.02606255845370471,
+            "4M": 0.07457066364843391,
+            "1Y": 0.14097703640202472,
+            "YTD": 0.02080102557740422
+        },
+        "IWM": {
+            "lastPrice": 269.79,
+            "1D": 0.007468538780387617,
+            "1M": 0.07576059651501267,
+            "4M": 0.12746040369426231,
+            "1Y": 0.19932812853961582,
+            "YTD": 0.08445212637671846
+        },
+        "SPY": {
+            "lastPrice": 688.98,
+            "1D": 0.005223227312518297,
+            "1M": 0.012327539340865992,
+            "4M": 0.04700250740825175,
+            "1Y": 0.15641641828875377,
+            "YTD": 0.008504471800576811
+        },
+        "QQQ": {
+            "lastPrice": 620.76,
+            "1D": 0.0072694229895502345,
+            "1M": 0.0060124787294385165,
+            "4M": 0.04587805165703506,
+            "1Y": 0.1915235226281197,
+            "YTD": 0.012460855949895594
+        },
+        "EEM": {
+            "lastPrice": 58.7,
+            "1D": 0.007552351527634824,
+            "1M": 0.09270290394638876,
+            "4M": 0.11153190683582656,
+            "1Y": 0.3946305535756711,
+            "YTD": 0.04374110953058323
+        },
+        "EFA": {
+            "lastPrice": 99.42,
+            "1D": 0.003938200545289312,
+            "1M": 0.041483343808925294,
+            "4M": 0.08159268929503917,
+            "1Y": 0.29486845532690803,
+            "YTD": 0.024525968672712235
+        }
+    },
+    "top10DailyGainers": [
+        {
+            "symbol": "SXTP",
+            "daily_return": 152
+        },
+        {
+            "symbol": "TTOO",
+            "daily_return": 150
+        },
+        {
+            "symbol": "CAPTW",
+            "daily_return": 138.1
+        },
+        {
+            "symbol": "IOBT",
+            "daily_return": 131.21
+        },
+        {
+            "symbol": "PTIXW",
+            "daily_return": 119.17
+        },
+        {
+            "symbol": "SRAX",
+            "daily_return": 101
+        },
+        {
+            "symbol": "ECDAW",
+            "daily_return": 92.31
+        },
+        {
+            "symbol": "NAMM",
+            "daily_return": 83.63
+        },
+        {
+            "symbol": "NAMMW",
+            "daily_return": 78.69
+        },
+        {
+            "symbol": "ARBEW",
+            "daily_return": 75.78
+        }
+    ],
+    "top10DailyLosers": [
+        {
+            "symbol": "CTHR",
+            "daily_return": -64.29
+        },
+        {
+            "symbol": "ADNWW",
+            "daily_return": -57.14
+        },
+        {
+            "symbol": "ICCT",
+            "daily_return": -50
+        },
+        {
+            "symbol": "MYPSW",
+            "daily_return": -42.45
+        },
+        {
+            "symbol": "WINVR",
+            "daily_return": -40
+        },
+        {
+            "symbol": "RELIW",
+            "daily_return": -37.37
+        },
+        {
+            "symbol": "CISS",
+            "daily_return": -35.51
+        },
+        {
+            "symbol": "FSHPR",
+            "daily_return": -29.21
+        },
+        {
+            "symbol": "AIEV",
+            "daily_return": -28.75
+        },
+        {
+            "symbol": "JSPRW",
+            "daily_return": -28.55
+        }
+    ],
+    "SMA100": {
+        "ALL": {
+            "up": 0.5177471467422886,
+            "down": 0.48225285325771133
+        },
+        "Stock": {
+            "up": 0.5494650447017441,
+            "down": 0.4505349552982559
+        },
+        "ETF": {
+            "up": 0.699390243902439,
+            "down": 0.30060975609756097
+        },
+        "Mutual Fund": {
+            "up": 0.5072762016757313,
+            "down": 0.4927237983242687
+        },
+        "OTC": {
+            "up": 0.4533504328310356,
+            "down": 0.5466495671689644
+        },
+        "PINK": {
+            "up": 0.5311956251553567,
+            "down": 0.4688043748446433
+        },
+        "Crypto": {
+            "up": 0.14136904761904762,
+            "down": 0.8586309523809523
+        }
+    },
+    "SMA150": {
+        "ALL": {
+            "up": 0.6021777309448543,
+            "down": 0.3978222690551458
+        },
+        "Stock": {
+            "up": 0.5687225337172299,
+            "down": 0.43127746628277014
+        },
+        "ETF": {
+            "up": 0.7719512195121951,
+            "down": 0.2280487804878049
+        },
+        "Mutual Fund": {
+            "up": 0.6560493948155045,
+            "down": 0.3439506051844955
+        },
+        "OTC": {
+            "up": 0.4812275546849494,
+            "down": 0.5187724453150506
+        },
+        "PINK": {
+            "up": 0.550798801797304,
+            "down": 0.44920119820269594
+        },
+        "Crypto": {
+            "up": 0.11607142857142858,
+            "down": 0.8839285714285714
+        }
+    },
+    "SMA5": {
+        "ALL": {
+            "up": 0.5691298342541437,
+            "down": 0.43087016574585635
+        },
+        "Stock": {
+            "up": 0.6150335187562402,
+            "down": 0.3849664812437598
+        },
+        "ETF": {
+            "up": 0.73033381712627,
+            "down": 0.26966618287373006
+        },
+        "Mutual Fund": {
+            "up": 0.6940144984326019,
+            "down": 0.3059855015673981
+        },
+        "OTC": {
+            "up": 0.3236317621006011,
+            "down": 0.6763682378993989
+        },
+        "PINK": {
+            "up": 0.2986851897792111,
+            "down": 0.7013148102207889
+        },
+        "Crypto": {
+            "up": 0.21933085501858737,
+            "down": 0.7806691449814126
+        }
+    },
+    "top10Overvalued": [
+        {
+            "symbol": "JOB",
+            "current_price": 0.21,
+            "intrinsic_value": 0,
+            "valuation_ratio": -99.9
+        },
+        {
+            "symbol": "CMLS",
+            "current_price": 0.1,
+            "intrinsic_value": 0,
+            "valuation_ratio": -99.9
+        },
+        {
+            "symbol": "GEV",
+            "current_price": 667.89,
+            "intrinsic_value": 1,
+            "valuation_ratio": -99.85
+        },
+        {
+            "symbol": "DDS",
+            "current_price": 666.48,
+            "intrinsic_value": 1,
+            "valuation_ratio": -99.85
+        },
+        {
+            "symbol": "MLM",
+            "current_price": 641.14,
+            "intrinsic_value": 1,
+            "valuation_ratio": -99.84
+        },
+        {
+            "symbol": "META",
+            "current_price": 612.96,
+            "intrinsic_value": 1,
+            "valuation_ratio": -99.84
+        },
+        {
+            "symbol": "APP",
+            "current_price": 532.56,
+            "intrinsic_value": 1,
+            "valuation_ratio": -99.81
+        },
+        {
+            "symbol": "INTU",
+            "current_price": 524.92,
+            "intrinsic_value": 1,
+            "valuation_ratio": -99.81
+        },
+        {
+            "symbol": "MCO",
+            "current_price": 524.82,
+            "intrinsic_value": 1,
+            "valuation_ratio": -99.81
+        },
+        {
+            "symbol": "ULY",
+            "current_price": 2.35,
+            "intrinsic_value": 0.01,
+            "valuation_ratio": -99.79
+        }
+    ],
+    "top10Undervalued": [
+        {
+            "symbol": "ORGO",
+            "current_price": 3.84,
+            "intrinsic_value": 657,
+            "valuation_ratio": 17009.38
+        },
+        {
+            "symbol": "ACCL",
+            "current_price": 1.48,
+            "intrinsic_value": 148.9,
+            "valuation_ratio": 9960.81
+        },
+        {
+            "symbol": "ZJYL",
+            "current_price": 0.13,
+            "intrinsic_value": 12.5,
+            "valuation_ratio": 9515.38
+        },
+        {
+            "symbol": "S",
+            "current_price": 13.8,
+            "intrinsic_value": 1200,
+            "valuation_ratio": 8595.65
+        },
+        {
+            "symbol": "PTLO",
+            "current_price": 5.94,
+            "intrinsic_value": 442.5,
+            "valuation_ratio": 7349.49
+        },
+        {
+            "symbol": "FLD",
+            "current_price": 2.13,
+            "intrinsic_value": 125,
+            "valuation_ratio": 5768.54
+        },
+        {
+            "symbol": "ECDA",
+            "current_price": 0.01,
+            "intrinsic_value": 0.54,
+            "valuation_ratio": 5256
+        },
+        {
+            "symbol": "MTEN",
+            "current_price": 0.03,
+            "intrinsic_value": 1.49,
+            "valuation_ratio": 4866.33
+        },
+        {
+            "symbol": "HCAI",
+            "current_price": 0.32,
+            "intrinsic_value": 14.5,
+            "valuation_ratio": 4431.25
+        },
+        {
+            "symbol": "CART",
+            "current_price": 39,
+            "intrinsic_value": 1416,
+            "valuation_ratio": 3530.77
+        }
+    ],
+    "marketOutlook": {
+        "shortTerm": {
+            "outlook": "neutral",
+            "percentageUp": 56.83,
+            "smas": [
+                "SMA5",
+                "SMA10",
+                "SMA20"
+            ]
+        },
+        "midTerm": {
+            "outlook": "neutral",
+            "percentageUp": 52.65,
+            "smas": [
+                "SMA50",
+                "SMA100"
+            ]
+        },
+        "longTerm": {
+            "outlook": "neutral",
+            "percentageUp": 63.94,
+            "smas": [
+                "SMA150",
+                "SMA200"
+            ]
+        }
+    },
+    "advanceDecline": {
+        "advancing": 0.3709005155204563,
+        "declining": 0.21136338707908303,
+        "unchanged": 0.4177360974004607
+    },
+    "newHighsLows": {
+        "newHighs": 0.24525611495009322,
+        "newLows": 0.09328726554787758,
+        "neutral": 0.6614566195020292
+    }
+}
