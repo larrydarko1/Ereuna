@@ -32,3 +32,9 @@ certs/
 .EreunaWS
 *.EreunaWS
 server/.EreunaWS
+*.pem
+*.key
+*.crt
+*.cert
+docker/certs/
+acme.json
