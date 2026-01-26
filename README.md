@@ -145,23 +145,18 @@ Simply setup your VPS node, transfer the project folder (make sure you have db d
 Create a `.env` file in the root directory with:
 
 ```bash
-# Database
-MONGODB_URI=mongodb://localhost:27017/ereuna
+#payment processing (discountinued)
+STRIPE_SECRET_KEY=your_key_here 
+VITE_STRIPE_PUBLISHABLE_KEY=your_key_here
+
+MONGODB_URI=mongodb://localhost:27017/
+TIINGO_KEY=your_tiingo_premium_key_here
+VITE_EREUNA_KEY=frontend_key_for_validation_here
+GF_SECURITY_ADMIN_PASSWORD=grafana_password_here
+CLOUDFLARE_EMAIL=email@example.com
+CF_DNS_API_TOKEN=your_key_here
+
 REDIS_URL=redis://localhost:6379
-
-# API Keys
-TIINGO_API_KEY=your_tiingo_api_key_here
-STRIPE_SECRET_KEY=your_stripe_secret_key (if using payments)
-STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-
-# Cloudflare (for Traefik SSL)
-CLOUDFLARE_EMAIL=your@email.com
-CLOUDFLARE_API_TOKEN=your_cloudflare_api_token
-
-# Application
-NODE_ENV=production
-PORT=5500
-FRONTEND_PORT=3500
 ```
 
 **Cloudflare Setup for SSL/TLS:**
