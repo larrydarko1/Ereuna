@@ -388,7 +388,6 @@ WebSocket  - /ready endpoint
 - **Vite** - Next-generation frontend build tool
 - **TypeScript** - Type-safe JavaScript
 - **Pinia** - State management
-- **Vuex** - Legacy state management
 - **Vue Router** - Client-side routing
 - **Vue I18n** - Internationalization (17+ languages)
 - **TradingView Lightweight Charts** - Financial charting (It's a forked version with more features built on top of it)
@@ -396,34 +395,24 @@ WebSocket  - /ready endpoint
 - **Chartjs Plugin Annotation** - Chart annotations
 - **Sortable.js** - Drag-and-drop lists (for watchlist sorting mainly)
 - **QRCode.vue** - QR code generation 
-- **DOMPurify** - XSS sanitization
-- **JS Cookie** - Cookie management
 - **Stripe.js** - Payment integration
 
 ### Backend API (Node.js/TypeScript)
 - **Express** - Web framework
 - **MongoDB** - Database driver (v6.8.0)
-- **Mongosh** - MongoDB shell
-- **Redis & IORedis** - Caching clients
-- **Argon2, Bcrypt, Bcryptjs** - Password hashing
+- **IORedis** - Redis caching client
+- **Argon2** - Password hashing
 - **JWT (jsonwebtoken)** - Authentication tokens
 - **Helmet** - Security headers
 - **Express Rate Limit** - DDoS protection
 - **Express Validator** - Input validation
 - **Validator** - String validation
 - **CORS** - Cross-origin resource sharing
-- **Cookie Parser** - Cookie parsing
 - **Pino** - Structured logging
-- **Pino HTTP** - HTTP request logging
 - **Pino Pretty** - Log formatting
-- **Express Prom Bundle** - Prometheus metrics
-- **Prom Client** - Metrics collection
-- **Node Cron** - Task scheduling
 - **Dotenv** - Environment management
-- **Speakeasy & OTPAuth** - 2FA/TOTP
-- **QRCode** - QR code generation
+- **Speakeasy** - 2FA/TOTP
 - **PDF-lib** - PDF generation
-- **JSRsaSign** - Cryptographic operations
 - **Stripe** - Payment processing
 
 ### Python Services (Backend)
@@ -447,16 +436,6 @@ WebSocket  - /ready endpoint
 - **Promtail** - Log shipping
 - **Percona MongoDB Exporter** - Database metrics
 - **Redis Exporter** - Cache metrics
-
-### Browser Polyfills
-- **assert, buffer, process** - Node.js compatibility
-- **browserify-zlib** - Compression
-- **https-browserify** - HTTPS
-- **os-browserify** - OS utilities
-- **stream-browserify, stream-http** - Streams
-- **tty-browserify** - TTY
-- **url, util** - Node utilities
-- **readable-stream** - Stream implementation
 
 ### External APIs & Services
 - **Tiingo API** - Market data (EOD, real-time, fundamentals, crypto)
