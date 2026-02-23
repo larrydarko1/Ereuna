@@ -1,7 +1,7 @@
 {
   "name": "ereuna",
   "private": true,
-  "version": "2026.4",
+  "version": "2026.5",
   "type": "module",
   "description": "Web app for screening and researching financial markets",
   "author": "Lorenzo Mazzola",
