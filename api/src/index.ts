@@ -29,8 +29,15 @@ import { optionalAuth, requireAuth } from '@/middleware/auth.js';
 import { errorHandler } from '@/middleware/error-handler.js';
 import { requestId } from '@/middleware/request-id.js';
 import { sanitizeRequest } from '@/middleware/sanitizer.js';
+import { chartsRouter } from '@/routes/chart/index.js';
+import { marketRouter } from '@/routes/market/index.js';
+import { notesRouter } from '@/routes/note/index.js';
+import { systemRouter } from '@/routes/system/index.js';
+import { maintenanceGate } from '@/middleware/maintenance.js';
 import { accountRouter, authRouter, preferencesRouter } from '@/routes/identity/index.js';
+import { portfoliosRouter, tradesRouter } from '@/routes/portfolio/index.js';
 import { screenersRouter } from '@/routes/screener/index.js';
+import { watchlistsRouter } from '@/routes/watchlist/index.js';
 
 const app = express();
 const server = createServer(app);
@@ -96,9 +103,18 @@ app.use(sanitizeRequest);
 app.use(optionalAuth);
 
 app.use('/api/auth', strictLimiter, authRouter);
+app.use('/api/system', relaxedLimiter, systemRouter);
+app.use('/api', maintenanceGate);
 app.use('/api/account', standardLimiter, requireAuth, accountRouter);
 app.use('/api/preferences', standardLimiter, requireAuth, preferencesRouter);
 app.use('/api/screeners', relaxedLimiter, requireAuth, screenersRouter);
+app.use('/api/watchlists', standardLimiter, requireAuth, watchlistsRouter);
+app.use('/api/portfolios/:number/trades', standardLimiter, requireAuth, tradesRouter);
+app.use('/api/portfolios', standardLimiter, requireAuth, portfoliosRouter);
+app.use('/api/charts', relaxedLimiter, requireAuth, chartsRouter);
+app.use('/api/notes', standardLimiter, requireAuth, notesRouter);
+app.use('/api/market', relaxedLimiter, requireAuth, marketRouter);
+
 
 app.get('/healthz', async (_req: express.Request, res: express.Response) => {
     try {

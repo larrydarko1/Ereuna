@@ -71,7 +71,15 @@ export const config = {
         notesPerSymbol: 200,
         portfolioSlots: 10,
         benchmarksPerPortfolio: 5,
+        maxLeverage: 10,
+        maxCommission: 100_000,
+        tradesPerPortfolio: 1000,
+        positionsPerPortfolio: 500,
+        drawingsPerKind: 1000,
+        indicatorsPerChart: 12,
+        maxIndicatorPeriod: 400,
         importRows: 5000,
+        symbolsPerRequest: 50,
     },
 
     /** Cache TTLs in seconds. Price data is re-fetched far more often while the

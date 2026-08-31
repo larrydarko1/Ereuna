@@ -1,0 +1,87 @@
+/**
+ * market-overview — the ingestor's singleton documents and the reference index.
+ * Everything here is written by the Python ingestor and only read by the API,
+ * so all of it is cached hard: the shapes are the ingestor's, passed through
+ * rather than re-modelled, because inventing a schema for a document this API
+ * does not own would only go stale.
+ */
+import type { AssetInfoDoc, MarketStatsDoc } from '@ereuna/shared';
+import { AppError } from '@/lib/app-error.js';
+import { marketKey, withCache } from '@/lib/cache.js';
+import { getDb } from '@/lib/db.js';
+import { requireAsset } from '@/services/market/market-assets.js';
+
+/** One day. Holidays and the symbol index change on the ingestor's schedule, not ours. */
+const DAY_SECONDS = 86_400;
+
+export type SymbolExchange = {
+    symbol: string;
+    exchange: string | null;
+};
+
+export type Financials = {
+    symbol: string;
+    annual: Record<string, unknown>[];
+    quarterly: Record<string, unknown>[];
+};
+
+/**
+ * The market summary the dashboard opens with, including when it was last
+ * ingested — which is why there is no separate "last update" endpoint: the
+ * timestamp belongs to the document it describes.
+ */
+export async function marketStats(): Promise<MarketStatsDoc> {
+    return statsDocument('marketStats');
+}
+
+export async function holidays(): Promise<MarketStatsDoc> {
+    return statsDocument('Holidays');
+}
+
+/**
+ * Every symbol and the exchange it trades on.
+ * A full read of the reference collection, projected to two fields and cached
+ * for a day: the client needs the whole map to label a symbol offline, and
+ * fetching it per symbol would be thousands of round trips for static data.
+ */
+export async function symbolIndex(): Promise<SymbolExchange[]> {
+    return withCache(
+        marketKey('symbol-index'),
+        async () => {
+            const docs = await getDb()
+                .collection<AssetInfoDoc>('AssetInfo')
+                .find({ Delisted: { $ne: true } }, { projection: { _id: 0, Symbol: 1, Exchange: 1 } })
+                .sort({ Symbol: 1 })
+                .toArray();
+
+            return docs.map((doc) => ({ symbol: doc.Symbol, exchange: doc.Exchange ?? null }));
+        },
+        { ttl: DAY_SECONDS, dataType: 'static' },
+    );
+}
+
+/**
+ * Annual and quarterly financial statements for one symbol.
+ * A symbol with no statements returns empty lists rather than a 404: the asset
+ * exists, the ingestor simply has not covered it, and those are different
+ * answers to the caller.
+ */
+export async function financials(symbol: string): Promise<Financials> {
+    const asset = await requireAsset(symbol);
+    return {
+        symbol,
+        annual: asset.AnnualFinancials ?? [],
+        quarterly: asset.quarterlyFinancials ?? [],
+    };
+}
+
+async function statsDocument(id: string): Promise<MarketStatsDoc> {
+    const doc = await withCache(
+        marketKey('stats', id),
+        async () => getDb().collection<MarketStatsDoc>('Stats').findOne({ _id: id }),
+        { ttl: id === 'Holidays' ? DAY_SECONDS : undefined, dataType: id === 'Holidays' ? 'static' : 'price' },
+    );
+
+    if (doc === null) throw new AppError(404, 'NOT_FOUND', `Stats document ${id} has not been ingested`);
+    return doc;
+}

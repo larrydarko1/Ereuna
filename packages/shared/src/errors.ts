@@ -18,6 +18,7 @@ export const ERROR_CODES = [
     'RATE_LIMITED',
     'INTERNAL',
     'NOT_FOUND',
+    'FORBIDDEN',
 
     // Authentication
     'MISSING_TOKEN',
@@ -59,23 +60,21 @@ export const ERROR_CODES = [
 
     // Portfolio
     'PORTFOLIO_NOT_FOUND',
-    'POSITION_NOT_FOUND',
     'TRADE_NOT_FOUND',
-    'INSUFFICIENT_CASH',
+    'INSUFFICIENT_BUYING_POWER',
     'INSUFFICIENT_SHARES',
+    'POSITION_SIDE_CONFLICT',
     'INVALID_TRADE_DATE',
-    'IMPORT_FILE_INVALID',
-    'BENCHMARK_NOT_FOUND',
+    'BENCHMARK_LIMIT_REACHED',
+    'TRADE_LIMIT_REACHED',
+    'POSITION_LIMIT_REACHED',
 
-    // Notes and drawings
+    // Notes
     'NOTE_NOT_FOUND',
     'NOTE_LIMIT_REACHED',
-    'DRAWING_NOT_FOUND',
 
     // Market data
     'ASSET_NOT_FOUND',
-    'CHART_DATA_UNAVAILABLE',
-    'UNSUPPORTED_TIMEFRAME',
 
     // Maintenance
     'MAINTENANCE_MODE',

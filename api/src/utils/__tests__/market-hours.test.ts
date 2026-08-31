@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isMarketHours } from '@/utils/market-hours.js';
+import { isMarketHours, lastTradingDay } from '@/utils/market-hours.js';
 
 /**
  * The dates below straddle a US daylight-saving change on purpose: the previous
@@ -25,5 +25,24 @@ describe('isMarketHours', () => {
 
     it('is closed at the weekend', () => {
         expect(isMarketHours(new Date('2026-07-18T14:00:00Z'))).toBe(false);
+    });
+});
+
+describe('lastTradingDay', () => {
+    it('returns today on a weekday', () => {
+        expect(lastTradingDay(new Date('2026-03-10T15:00:00Z')).toISOString()).toBe('2026-03-10T00:00:00.000Z');
+    });
+
+    it('walks a Saturday back to Friday', () => {
+        expect(lastTradingDay(new Date('2026-03-14T15:00:00Z')).toISOString()).toBe('2026-03-13T00:00:00.000Z');
+    });
+
+    it('walks a Sunday back to Friday', () => {
+        expect(lastTradingDay(new Date('2026-03-15T15:00:00Z')).toISOString()).toBe('2026-03-13T00:00:00.000Z');
+    });
+
+    it('uses the New York date, so a late-evening UTC Saturday is still Friday', () => {
+        // 01:00Z Sunday is 20:00 Saturday in New York.
+        expect(lastTradingDay(new Date('2026-03-15T01:00:00Z')).toISOString()).toBe('2026-03-13T00:00:00.000Z');
     });
 });

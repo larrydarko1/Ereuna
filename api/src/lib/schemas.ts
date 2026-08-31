@@ -1,5 +1,6 @@
 /** Shared Zod schemas for request validation — the vocabulary route schemas are built from. */
 import { z } from 'zod';
+import { config } from '@/lib/config.js';
 
 export type PaginationQuerySchema = z.ZodObject<{
     page: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
@@ -55,7 +56,7 @@ export const portfolioNumberSchema = z.coerce
     .number('Portfolio must be a slot number')
     .int()
     .min(0, 'Portfolio must be a slot number')
-    .max(9, 'Portfolio must be a slot number');
+    .max(config.limits.portfolioSlots - 1, 'Portfolio must be a slot number');
 
 export const makePaginationQuery = ({ defaultLimit = 24, maxLimit = 100 } = {}): PaginationQuerySchema =>
     z.object({
@@ -70,3 +71,16 @@ export const makePaginationQuery = ({ defaultLimit = 24, maxLimit = 100 } = {}):
 
 /** Default pagination: page 1, limit 24, cap 100. */
 export const paginationQuery = makePaginationQuery();
+
+export const chartSettingsSchema = z.object({
+    indicators: z
+        .array(
+            z.object({
+                type: z.enum(['SMA', 'EMA']),
+                period: z.number().int().min(1).max(config.limits.maxIndicatorPeriod),
+                visible: z.boolean(),
+            }),
+        )
+        .max(config.limits.indicatorsPerChart),
+    intrinsicValue: z.boolean(),
+});

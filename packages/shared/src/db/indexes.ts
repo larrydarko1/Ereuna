@@ -115,6 +115,11 @@ export const INDEXES: IndexSpec[] = [
         why: 'Notes are listed newest-first for one symbol and one owner.',
     },
     {
+        collection: 'Notes',
+        keys: { userId: 1, createdAt: -1 },
+        why: 'The unfiltered notes listing, which spans every symbol a user has written about.',
+    },
+    {
         collection: 'ChartDrawings',
         keys: { userId: 1, symbol: 1, timeframe: 1 },
         options: { unique: true },

@@ -19,13 +19,24 @@ export type UserDoc = {
     theme: string | null;
     defaultSymbol: string;
     hiddenSymbols: string[]; // Symbols the user has hidden from screener results
-    chartSettings: Record<string, unknown> | null;
+    chartSettings: ChartSettings | null; // Null until the user first configures the chart
     panels: Record<string, unknown> | null; // Saved layouts for the two chart side panels and the watchlist panel
     screenerColumns: string[];
     createdAt: Date;
     updatedAt: Date;
     lastLoginAt: Date | null;
     passwordChangedAt: Date | null;
+};
+
+export type ChartSettings = {
+    indicators: ChartIndicator[];
+    intrinsicValue: boolean; // Whether to plot the asset's intrinsic value line
+};
+
+export type ChartIndicator = {
+    type: 'SMA' | 'EMA';
+    period: number; // Number of bars averaged
+    visible: boolean;
 };
 
 export type RefreshTokenDoc = {
@@ -65,27 +76,45 @@ export type WatchlistDoc = {
     updatedAt: Date;
 };
 
-export type TradeAction = 'buy' | 'sell';
+export type TradeAction = 'buy' | 'sell' | 'short' | 'cover' | 'deposit' | 'withdrawal';
+
+export type PositionSide = 'long' | 'short';
 
 export type TradeDoc = {
     userId: ObjectId;
     portfolioNumber: number;
-    symbol: string;
+    symbol: string | null; // null for deposits and withdrawals, which have no instrument
     action: TradeAction;
-    shares: number;
-    price: number;
-    total: number;
+    shares: number; // 0 for cash movements
+    price: number; // 0 for cash movements
+    total: number; // Always positive — the action's sign is carried by `action`, not by this
+    commission: number;
     tradeDate: Date;
-    createdAt: Date;
+    createdAt: Date; // Tiebreaker for two trades dated the same day: replay order is (tradeDate, createdAt)
 };
 
 export type PositionDoc = {
     userId: ObjectId;
     portfolioNumber: number;
     symbol: string;
-    shares: number;
-    avgPrice: number;
+    side: PositionSide;
+    shares: number; // Always positive — direction is carried by `side`, not by the sign
+    avgPrice: number; // Average entry price, excluding commission, which is expensed to cash
     updatedAt: Date;
+};
+
+/** One bar of the closed-trade return distribution — 2%-wide buckets. */
+export type ReturnBin = {
+    min: number;
+    max: number;
+    range: string;
+    count: number;
+    positive: boolean;
+};
+
+export type TradeReturnsChart = {
+    bins: ReturnBin[];
+    medianBinIndex: number; // -1 when there are no closed trades
 };
 
 export type PortfolioStatsSnapshot = {
@@ -104,12 +133,16 @@ export type PortfolioStatsSnapshot = {
     avgPositionSize: number;
     avgHoldTimeWinners: number;
     avgHoldTimeLosers: number;
-    gainLossRatio: number;
-    profitFactor: number;
-    riskRewardRatio: number;
-    sortinoRatio: number;
+    gainLossRatio: number | null;
+    profitFactor: number | null;
+    riskRewardRatio: number | null;
+    sortinoRatio: number | null;
+    totalCommission: number;
+    longCount: number;
+    shortCount: number;
     biggestWinner: TradeExtreme | null;
     biggestLoser: TradeExtreme | null;
+    tradeReturnsChart: TradeReturnsChart;
 };
 
 export type TradeExtreme = {
@@ -126,8 +159,10 @@ export type PortfolioValuePoint = {
 export type PortfolioDoc = {
     userId: ObjectId;
     number: number; // 0–9. A user gets a fixed set of portfolio slots.
-    cash: number;
+    cash: number; // May be negative: that is the margin loan
     baseValue: number;
+    leverage: number;
+    defaultCommission: number;
     benchmarks: string[];
     stats: PortfolioStatsSnapshot | null;
     valueHistory: PortfolioValuePoint[];
@@ -143,18 +178,69 @@ export type NoteDoc = {
     updatedAt: Date;
 };
 
+export type ChartDrawings = {
+    trendLines: unknown[];
+    boxes: unknown[];
+    textAnnotations: unknown[];
+    freehandPaths: unknown[];
+    priceLevels: unknown[];
+};
+
+export const DRAWING_KINDS = [
+    'trendLines',
+    'boxes',
+    'textAnnotations',
+    'freehandPaths',
+    'priceLevels',
+] as const satisfies readonly (keyof ChartDrawings)[];
+
 export type ChartDrawingDoc = {
     userId: ObjectId;
     symbol: string;
-    timeframe: string;
-    drawings: Record<string, unknown>;
+    timeframe: ChartTimeframe;
+    drawings: ChartDrawings;
     createdAt: Date;
     updatedAt: Date;
+};
+
+export const CHART_TIMEFRAMES = [
+    'daily',
+    'weekly',
+    'intraday1m',
+    'intraday5m',
+    'intraday15m',
+    'intraday30m',
+    'intraday1hr',
+] as const;
+
+export type ChartTimeframe = (typeof CHART_TIMEFRAMES)[number];
+
+export const OHLCV_COLLECTIONS = {
+    daily: 'OHCLVData',
+    weekly: 'OHCLVData2',
+    intraday1m: 'OHCLVData1m',
+    intraday5m: 'OHCLVData5m',
+    intraday15m: 'OHCLVData15m',
+    intraday30m: 'OHCLVData30m',
+    intraday1hr: 'OHCLVData1hr',
+} as const satisfies Record<ChartTimeframe, string>;
+
+/** Intraday bars carry a time-of-day; daily and weekly bars are dated only. */
+export function isIntraday(timeframe: ChartTimeframe): boolean {
+    return timeframe !== 'daily' && timeframe !== 'weekly';
+}
+
+export type CorporateAction = {
+    payment_date?: string;
+    date?: string;
+    amount?: number;
+    ratio?: number;
 };
 
 export type AssetInfoDoc = {
     Symbol: string;
     Name?: string;
+    ISIN?: string;
     AssetType?: string;
     Sector?: string;
     Industry?: string;
@@ -162,18 +248,66 @@ export type AssetInfoDoc = {
     Country?: string;
     Currency?: string;
     Delisted?: boolean;
+    MarketCapitalization?: number;
+    IntrinsicValue?: number;
+    dividends?: CorporateAction[];
+    splits?: CorporateAction[];
+    quarterlyIncome?: { fiscalDateEnding?: string }[];
     quarterlyFinancials?: Record<string, unknown>[];
+    AnnualFinancials?: Record<string, unknown>[];
     [field: string]: unknown;
 };
 
 export type OhlcvDoc = {
-    Symbol: string;
+    tickerID: string; // The ingestor's symbol field on the bar collections — not `Symbol`, which is AssetInfo's
     timestamp: Date;
     open: number;
     high: number;
     low: number;
     close: number;
     volume: number;
+};
+
+export type NewsDoc = {
+    title: string;
+    url: string;
+    source?: string;
+    summary?: string;
+    imageUrl?: string;
+    tickers: string[];
+    publishedDate: Date;
+};
+
+export const CALENDAR_EVENT_TYPES = ['Earnings', 'Dividend', 'Split'] as const;
+
+export type CalendarEventType = (typeof CALENDAR_EVENT_TYPES)[number];
+
+export type CalendarEventDoc = {
+    symbol: string;
+    type: CalendarEventType;
+    reportDate: Date;
+    [field: string]: unknown; // Per-type payload the ingestor attaches (estimate, amount, ratio)
+};
+
+export type MarketStatsDoc = {
+    _id: string;
+    updatedAt?: Date;
+    [field: string]: unknown;
+};
+
+/** An operator announcement, shown to every user. */
+export type AnnouncementDoc = {
+    title: string;
+    body: string;
+    publishedDate: Date;
+    [field: string]: unknown;
+};
+
+/** A documented feature, ordered newest-first by insertion. */
+export type DocFeatureDoc = {
+    title: string;
+    body: string;
+    [field: string]: unknown;
 };
 
 export type SystemSettingsDoc = {
