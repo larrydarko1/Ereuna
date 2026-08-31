@@ -211,7 +211,6 @@ export default {
         twoFactor: 'אימות דו-שלבי',
         menu: {
             account: 'חשבון',
-            subscription: 'מנוי',
             themes: 'ערכות נושא',
             security2fa: 'אבטחה / 2FA',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: 'פעולה זו היא קבועה ולא ניתן לבטלה. כל הנתונים שלך ימחקו לצמיתות.',
         deleteRecommendation: 'לפני מחיקת החשבון שלך, אנו ממליצים:',
         deleteRecommendation1: 'ייצא כל נתון שברצונך לשמור',
-        deleteRecommendation2: 'בטל כל מנוי פעיל',
         deleteReview: 'אנא בדוק החלטה זו בקפידה לפני המשך.',
         translationDisclaimer: 'חלק מהתרגומים עשויים להיות לא מדויקים מכיוון שהם נוצרו על ידי בינה מלאכותית.',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: 'שבועי',
         monthly: 'חודשי',
         yearly: 'שנתי',
-    },
-
-    // Subscription
-    subscription: {
-        title: 'סטטוס מנוי',
-        username: 'שם משתמש',
-        daysLeft: 'ימים נותרו במנוי',
-        moneyLeft: 'כסף נותר',
-        renew: 'חדש',
-        askForRefund: 'בקש החזר',
-        renewSubscription: 'חידוש מנוי',
-        requestRefund: 'בקשת החזר',
-        duration: {
-            oneMonth: 'חודש',
-            fourMonths: '4 חודשים',
-            sixMonths: '6 חודשים',
-            oneYear: 'שנה',
-            oneMonthShort: 'חודש',
-            fourMonthsShort: '4ח',
-            sixMonthsShort: '6ח',
-            oneYearShort: 'שנה',
-            unknown: 'לא ידוע',
-        },
-        total: 'סך הכל',
-        vat: 'מע"מ',
-        paymentMethod: 'אמצעי תשלום',
-        paymentIntent: 'כוונת תשלום',
-        country: 'מדינה',
-    },
-
-    // Receipts
-    receipts: {
-        title: 'קבלות',
-        paymentDate: 'תאריך תשלום',
-        amount: 'סכום',
-        paidWith: 'שולם באמצעות',
-        subscriptionPlan: 'תוכנית מנוי',
-        download: 'הורדה',
-        loading: 'טוען קבלות...',
-        noReceipts: 'לא נמצאו קבלות',
-        downloadDesktopOnly: 'להורדת קבלות, אנא השתמש בגרסת השולחן.',
-        downloadFailed: 'נכשלה יצירת PDF קבלה',
-        paymentMethod: {
-            card: 'כרטיס',
-            crypto: 'קריפטו',
-        },
-        pdfFooter: {
-            refundInfo: 'החזרים אוטומטיים זמינים תוך 14 יום מהרכישה. לבקשות החזר ידניות, ספק מס׳ קבלה ומזהה כוונת תשלום לתמיכה.',
-            disclaimer: 'קבלה זו היא אישור תשלום. לתמיכה שלח דוא"ל ל-contact@ereuna.io. Ereuna אינו מוסד פיננסי ואינו מספק ייעוץ פיננסי.',
-        },
-    },
-
-    // Refund
-    refund: {
-        title: 'בקשת החזר',
-        eligible: 'אתה זכאי להחזר אוטומטי.',
-        notEligible: 'החזרים אוטומטיים לא פעילים לאחר 14 יום מהרכישה. לתמיכה מותאם אישית, צור קשר עם שירות.',
-        moneyLeft: 'כסף נותר',
-        daysLeftInSubscription: 'ימים נותרו במנוי',
-        disclaimer: 'הבהרה:',
-        disclaimerText: 'מע"מ אינו בר החזר. החזרים אוטומטיים מעובדים לאמצעי התשלום המקוריים תוך 5 ימי עסקים. אם אתה נתקל בבעיה, אנא צור קשר עם תמיכה ב-contact@ereuna.io.',
-        important: 'חשוב:',
-        importantText: 'אם תבקש החזר, הגישה שלך תבוטל מייד ותתנתק. לא תוכל להתחבר שוב אלא אם תחדש את המנוי.',
-        downloadDataWarning: 'אנא הורד את כל הקבלות והנתונים שלך לפני בקשת החזר.',
-        requestButton: 'בקש החזר',
-        success: 'בקשת החזר נשלחה! צוות העובדים תטפל בבקשתך בקרוב.',
-        failed: 'בקשת החזר נכשלה.',
-    },
-
-    // Renew
-    renew: {
-        title: 'חידוש מנוי',
-        total: 'סך הכל',
-        selectDuration: 'בחר משך',
-        processing: 'מעבד...',
-        renewButton: 'חדש',
-        success: 'חידוש ותשלום הצליחו!',
-        failed: 'חידוש או תשלום נכשל.',
-        vatLoadFailed: 'לא ניתן לטעון שיעורי מע"מ. החידוש מושבת זמנית.',
-        paymentFormNotReady: 'טופס תשלום לא מוכן. אנא המתן לטעינת הטופס.',
-        paymentMethodError: 'שגיאת אמצעי תשלום.',
-        serverError: 'שגיאת שרת: תגובה לא חוקית.',
-        networkError: 'שגיאת רשת או שרת. אנא בדוק את החיבור שלך.',
     },
 
     // Two-Factor Authentication

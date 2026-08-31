@@ -1,6 +1,6 @@
 # Users Collection
 
-**Purpose**: Stores user account data, authentication credentials, subscription status, UI preferences, and application settings.
+**Purpose**: Stores user account data, authentication credentials, UI preferences, and application settings.
 
 ## Structure
 
@@ -19,11 +19,6 @@
 - `MFA`: Boolean - Whether MFA is enabled
 - `secret`: String or null - TOTP secret for MFA
 - `qrCode`: String or null - QR code data URL for MFA setup
-
-### Subscription Status
-
-- `Paid`: Boolean - Whether user has active subscription
-- `Expires`: Date - Subscription expiration date
 
 ### UI Preferences
 
@@ -83,6 +78,5 @@ Customizable panel layouts for different sections of the application.
 - Passwords hashed with Argon2id (memory-hard algorithm)
 - API keys also hashed with Argon2id for secure authentication
 - MFA secrets stored encrypted
-- Discontinued subscription-related fields remain for historical data
 
 **Note**: Developer is aware of potential security improvements (MFA secret encryption at rest, rate limiting, session management, password history). Current implementation prioritized for proof-of-work scope.

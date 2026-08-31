@@ -211,7 +211,6 @@ export default {
         twoFactor: 'Authentification à deux facteurs',
         menu: {
             account: 'Compte',
-            subscription: 'Abonnement',
             themes: 'Thèmes',
             security2fa: 'Sécurité / 2FA',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: 'Cette action est définitive et ne peut être annulée. Toutes vos données seront supprimées définitivement.',
         deleteRecommendation: 'Avant de supprimer votre compte, nous recommandons :',
         deleteRecommendation1: 'Exporter toutes les données que vous souhaitez conserver',
-        deleteRecommendation2: 'Annuler tous les abonnements actifs',
         deleteReview: 'Veuillez examiner attentivement cette décision avant de continuer.',
         translationDisclaimer: 'Certaines traductions peuvent être inexactes car elles sont générées par IA.',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: 'Hebdomadaire',
         monthly: 'Mensuel',
         yearly: 'Annuel',
-    },
-
-    // Subscription
-    subscription: {
-        title: 'Statut d\'abonnement',
-        username: 'Nom d\'utilisateur',
-        daysLeft: 'Jours d\'abonnement restants',
-        moneyLeft: 'Montant restant',
-        renew: 'Renouveler',
-        askForRefund: 'Demander un remboursement',
-        renewSubscription: 'Renouveler l\'abonnement',
-        requestRefund: 'Demander un remboursement',
-        duration: {
-            oneMonth: '1 Mois',
-            fourMonths: '4 Mois',
-            sixMonths: '6 Mois',
-            oneYear: '1 An',
-            oneMonthShort: '1M',
-            fourMonthsShort: '4M',
-            sixMonthsShort: '6M',
-            oneYearShort: '1A',
-            unknown: 'Inconnu',
-        },
-        total: 'Total',
-        vat: 'TVA',
-        paymentMethod: 'Mode de paiement',
-        paymentIntent: 'Intention de paiement',
-        country: 'Pays',
-    },
-
-    // Receipts
-    receipts: {
-        title: 'Reçus',
-        paymentDate: 'Date de paiement',
-        amount: 'Montant',
-        paidWith: 'Payé avec',
-        subscriptionPlan: 'Plan d\'abonnement',
-        download: 'Télécharger',
-        loading: 'Chargement des reçus...',
-        noReceipts: 'Aucun reçu trouvé',
-        downloadDesktopOnly: 'Pour télécharger les reçus, veuillez utiliser la version ordinateur.',
-        downloadFailed: 'Échec de la génération du PDF du reçu',
-        paymentMethod: {
-            card: 'Carte',
-            crypto: 'Crypto',
-        },
-        pdfFooter: {
-            refundInfo: 'Remboursements automatiques disponibles dans les 14 jours suivant l\'achat. Pour les demandes de remboursement manuel, fournissez le n° de reçu et l\'ID d\'intention de paiement au support.',
-            disclaimer: 'Ce reçu est une preuve de paiement. Pour l\'assistance, envoyez un e-mail à contact@ereuna.io. Ereuna n\'est pas une institution financière et ne fournit pas de conseils financiers.',
-        },
-    },
-
-    // Refund
-    refund: {
-        title: 'Demander un remboursement',
-        eligible: 'Vous êtes éligible à un remboursement automatique.',
-        notEligible: 'Les remboursements automatiques sont inactifs après 14 jours d\'achat. Pour une assistance personnalisée, contactez le support.',
-        moneyLeft: 'Montant restant',
-        daysLeftInSubscription: 'Jours restants dans l\'abonnement',
-        disclaimer: 'Avertissement :',
-        disclaimerText: 'La TVA n\'est pas remboursable. Les remboursements automatiques sont traités vers votre mode de paiement d\'origine dans un délai de 5 jours ouvrables. Si vous rencontrez des problèmes, veuillez contacter le support à contact@ereuna.io et fournir votre nom de compte et l\'ID du reçu.',
-        important: 'Important :',
-        importantText: 'Si vous demandez un remboursement, votre accès sera immédiatement révoqué et vous serez déconnecté. Vous ne pourrez plus vous connecter à moins de renouveler votre abonnement.',
-        downloadDataWarning: 'Veuillez télécharger tous vos reçus et toutes les données dont vous avez besoin avant de demander un remboursement.',
-        requestButton: 'Demander un remboursement',
-        success: 'Demande de remboursement soumise ! Le personnel traitera votre demande bientôt.',
-        failed: 'Échec de la demande de remboursement.',
-    },
-
-    // Renew
-    renew: {
-        title: 'Renouveler l\'abonnement',
-        total: 'Total',
-        selectDuration: 'Sélectionnez la durée',
-        processing: 'Traitement en cours...',
-        renewButton: 'Renouveler',
-        success: 'Renouvellement et paiement réussis !',
-        failed: 'Échec du renouvellement ou du paiement.',
-        vatLoadFailed: 'Impossible de charger les taux de TVA. Le renouvellement est temporairement désactivé.',
-        paymentFormNotReady: 'Formulaire de paiement non prêt. Veuillez attendre le chargement du formulaire de paiement.',
-        paymentMethodError: 'Erreur de mode de paiement.',
-        serverError: 'Erreur serveur : réponse invalide.',
-        networkError: 'Erreur réseau ou serveur. Veuillez vérifier votre connexion.',
     },
 
     // Two-Factor Authentication

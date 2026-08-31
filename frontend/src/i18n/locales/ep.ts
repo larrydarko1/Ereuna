@@ -211,7 +211,6 @@ export default {
         twoFactor: 'Dufaktora Aŭtentikigo',
         menu: {
             account: 'Konto',
-            subscription: 'Abono',
             themes: 'Temoj',
             security2fa: 'Sekureco / 2FA',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: 'Ĉi tiu ago estas permanenta kaj ne povas esti malfari. Ĉiuj viaj datumoj estos permanente forigi.',
         deleteRecommendation: 'Antaŭ forigi vian konton, ni rekomendas:',
         deleteRecommendation1: 'Eksporti iujn ajn datumojn kiujn vi volas konservi',
-        deleteRecommendation2: 'Nuligi iujn ajn aktivajn abonojn',
         deleteReview: 'Bonvolu kontroli ĉi tiun decidon zorge antaŭ daŭrigi.',
         translationDisclaimer: 'Kelkaj tradukoj povas esti neprecizaj ĉar ili estas generitaj de AI.',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: 'Ĉiusemajne',
         monthly: 'Ĉiumonate',
         yearly: 'Ĉiujare',
-    },
-
-    // Subscription
-    subscription: {
-        title: 'Abona Stato',
-        username: 'Salutnomo',
-        daysLeft: 'Abonaj Tagoj Restantaj',
-        moneyLeft: 'Mono Restanta',
-        renew: 'Renovigi',
-        askForRefund: 'Peti Remonon',
-        renewSubscription: 'Renovigi Abonon',
-        requestRefund: 'Peti Remonon',
-        duration: {
-            oneMonth: '1 Monato',
-            fourMonths: '4 Monatoj',
-            sixMonths: '6 Monatoj',
-            oneYear: '1 Jaro',
-            oneMonthShort: '1M',
-            fourMonthsShort: '4M',
-            sixMonthsShort: '6M',
-            oneYearShort: '1J',
-            unknown: 'Nekonata',
-        },
-        total: 'Totalo',
-        vat: 'VAT',
-        paymentMethod: 'Paga metodo',
-        paymentIntent: 'Paga intenco',
-        country: 'Lando',
-    },
-
-    // Receipts
-    receipts: {
-        title: 'Kvitancoj',
-        paymentDate: 'Paga Dato',
-        amount: 'Kvanto',
-        paidWith: 'Pagita per',
-        subscriptionPlan: 'Abona Plano',
-        download: 'Elŝuti',
-        loading: 'Ŝarĝanta kvitancojn...',
-        noReceipts: 'Neniuj kvitancoj trovitaj',
-        downloadDesktopOnly: 'Por elŝuti kvitancojn, bonvolu uzi la labortablan version.',
-        downloadFailed: 'Malsukcesis krei kvitancan PDF-on',
-        paymentMethod: {
-            card: 'Karto',
-            crypto: 'Kriptovaluto',
-        },
-        pdfFooter: {
-            refundInfo: 'Aŭtomataj remonoj disponeblas ene de 14 tagoj post aĉeto. Por manaj remon-petoj, provizu la Kvitancan # kaj Paga Intenco ID al subteno.',
-            disclaimer: 'Ĉi tiu kvitanco estas pruvo de pago. Por subteno sendu retpoŝton al contact@ereuna.io. Ereuna ne estas financa institucio kaj ne provizas financan konsilon.',
-        },
-    },
-
-    // Refund
-    refund: {
-        title: 'Peti Remonon',
-        eligible: 'Vi estas rajtigita por aŭtomata remono.',
-        notEligible: 'Aŭtomataj remonoj estas malaktivaj post 14 tagoj de aĉeto. Por propra subteno, kontaktu asiston.',
-        moneyLeft: 'Mono restanta',
-        daysLeftInSubscription: 'Tagoj restantaj en abono',
-        disclaimer: 'Malgarantio:',
-        disclaimerText: 'VAT ne estas remonebla. Aŭtomataj remonoj estas traktataj al via originala paga metodo ene de 5 labortagoj. Se vi renkontas iujn ajn problemojn, bonvolu kontakti subtenon ĉe contact@ereuna.io kaj provizi vian kontan nomon kaj kvitancan ID-on.',
-        important: 'Grava:',
-        importantText: 'Se vi petas remonon, via aliro estos tuj revokita kaj vi estos elsalutita. Vi ne povos ensaluti denove krom se vi renovigas vian abonon.',
-        downloadDataWarning: 'Bonvolu elŝuti ĉiujn viajn kvitancojn kaj iujn ajn datumojn kiujn vi bezonas antaŭ ol peti remonon.',
-        requestButton: 'Peti Remonon',
-        success: 'Remon-peto sendita! Personaro traktos vian peton baldaŭ.',
-        failed: 'Remon-peto malsukcesis.',
-    },
-
-    // Renew
-    renew: {
-        title: 'Renovigi Abonon',
-        total: 'Totalo',
-        selectDuration: 'Elektu Daŭron',
-        processing: 'Traktante...',
-        renewButton: 'Renovigi',
-        success: 'Renovigo kaj pago sukcesis!',
-        failed: 'Renovigo aŭ pago malsukcesis.',
-        vatLoadFailed: 'Ne povis ŝarĝi VAT-tarifojn. Renovigo estas provizore malŝaltita.',
-        paymentFormNotReady: 'Paga formularo ne preta. Bonvolu atendi ke la paga formularo ŝarĝu.',
-        paymentMethodError: 'Paga metoda eraro.',
-        serverError: 'Servila eraro: nevalida respondo.',
-        networkError: 'Reta aŭ servila eraro. Bonvolu kontroli vian konekton.',
     },
 
     // Two-Factor Authentication

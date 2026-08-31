@@ -36,3 +36,4 @@ aggregator/.EreunaWS
 *.cert
 docker/certs/
 acme.json
+todo.md

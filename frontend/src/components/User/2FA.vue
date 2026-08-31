@@ -368,7 +368,7 @@ async function confirmTwoFa() {
   margin-bottom: 8px;
 }
 
-/* Spinner and loader4 styles from Renew.vue */
+/* Spinner and loader4 styles */
 .btn-content-row {
   display: flex;
   flex-direction: row;

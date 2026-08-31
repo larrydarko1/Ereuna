@@ -101,7 +101,7 @@ router.beforeEach(async (
     const token = localStorage.getItem('token');
     const userStore = useUserStore();
     // List of public routes that do not require authentication
-    const publicPages = ['Login', 'SignUp', 'PaymentRenew', 'Recovery', 'Home', 'Documentation', 'Careers', 'Communications', 'About', 'Maintenance', 'Quiz', 'Blog'];
+    const publicPages = ['Login', 'SignUp', 'Recovery', 'Home', 'Documentation', 'Careers', 'Communications', 'About', 'Maintenance', 'Quiz', 'Blog'];
     // Auth pages that authenticated users shouldn't access
     const authPages = ['Login', 'SignUp', 'Recovery'];
 
@@ -120,21 +120,6 @@ router.beforeEach(async (
         });
         next({ name: 'Login' });
         return;
-    }
-
-    // If token exists, check subscription status
-    if (token && userStore.user && userStore.user.Expires) {
-        const expiresDate = new Date(userStore.user.Expires);
-        const now = new Date();
-        if (now > expiresDate && String(to.name) !== 'PaymentRenew') {
-            next({ name: 'PaymentRenew' });
-            return;
-        }
-        // Allow navigation to PaymentRenew if subscription is expired
-        if (now > expiresDate && String(to.name) === 'PaymentRenew') {
-            next();
-            return;
-        }
     }
 
     // At this point, user is authenticated or accessing public pages

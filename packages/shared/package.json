@@ -1,24 +1,42 @@
 {
     "name": "@ereuna/shared",
-    "version": "2026.6",
-    "description": "Cross-workspace contracts shared by the Ereuna api, frontend, and services — types, error codes, and schemas.",
+    "version": "2026.7",
+    "description": "Cross-workspace contracts shared by the Ereuna api and frontend — error codes, env schema fragments, collection types, and the screener filter registry.",
     "license": "UNLICENSED",
+    "author": "Lorenzo Mazzola",
     "type": "module",
     "main": "src/index.ts",
     "types": "src/index.ts",
     "exports": {
-        ".": "./src/index.ts"
+        ".": "./src/index.ts",
+        "./logger": "./src/logger.ts",
+        "./db/collections": "./src/db/collections.ts",
+        "./db/indexes": "./src/db/indexes.ts",
+        "./screener/filters": "./src/screener/filters.ts"
     },
-    "sideEffects": false,
     "imports": {
         "#*": "./src/*"
     },
+    "sideEffects": false,
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/larrydarko1/Ereuna.git"
+    },
     "scripts": {
-        "build": "tsc"
+        "build": "tsc",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "pino": "^10.3.1",
+        "zod": "^4.5.4"
     },
     "devDependencies": {
         "@types/node": "^24.3.1",
-        "typescript": "~5.9.2"
+        "pino-pretty": "^13.1.3",
+        "typescript": "~6.0.2"
+    },
+    "engines": {
+        "node": ">=24"
     },
     "private": true
 }

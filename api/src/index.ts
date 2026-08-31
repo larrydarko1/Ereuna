@@ -1,204 +1,149 @@
-import express, { Request, Response } from 'express';
+/**
+ * Entry point for the Ereuna API server.
+ * Startup sequence:
+ *  1. Load environment variables — must precede any module that reads config.
+ *  2. Register middleware, in this order (order is load-bearing):
+ *       helmet       — secure response headers
+ *       cors         — the single allowed frontend origin
+ *       json         — body parsing, with an explicit size cap
+ *       cookieParser — the httpOnly refresh cookie
+ *       requestId    — correlation id + request-scoped logger
+ *       sanitizer    — strips $-prefixed and dotted keys from body and query
+ *       optionalAuth — resolves the token BEFORE the limiters, so they key by user
+ *       rate limits  — applied per route group below
+ *  3. Connect to MongoDB and apply the index manifest.
+ *  4. Bind the port only once the database is up.
+ */
+import 'dotenv/config';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import { MongoClient, Db } from 'mongodb';
-import argon2 from 'argon2';
-import config from './utils/config.js';
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-import crypto from 'crypto';
+import express from 'express';
+import { createServer } from 'http';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import logger, { handleError } from './utils/logger.js';
-// TLS is handled by Traefik at the edge. Run the API as plain HTTP and let Traefik terminate TLS.
-import { validate, validationSchemas, validationSets, body, sanitizeInput, query, sanitizeUsername, sanitizeUsernameCanonical } from './utils/validationUtils.js';
-
-dotenv.config();
-
-// MongoDB Connection Pool
-let mongoClient: MongoClient | null = null;
-let db: Db | null = null;
-
-export async function getDB(): Promise<Db> {
-  if (!mongoClient || !db) {
-    const uri = process.env.MONGODB_URI;
-    if (!uri) {
-      throw new Error('MONGODB_URI is not defined');
-    }
-
-    mongoClient = new MongoClient(uri, {
-      maxPoolSize: 100,     // Max 100 concurrent connections (2 per user at peak)
-      minPoolSize: 20,      // Keep 20 connections ready
-      maxIdleTimeMS: 30000, // Close idle connections after 30s
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-
-    await mongoClient.connect();
-    db = mongoClient.db('EreunaDB');
-
-    logger.info('MongoDB connection pool initialized');
-
-    // Graceful shutdown
-    process.on('SIGINT', async () => {
-      if (mongoClient) {
-        await mongoClient.close();
-        logger.info('MongoDB connection pool closed');
-        process.exit(0);
-      }
-    });
-  }
-
-  return db;
-}
-
-// CORS and Rate Limiting
-// In production, requests come through nginx proxy so they appear same-origin
-// In development, frontend runs on :3500 and backend on :5500 (different ports = CORS needed)
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? [
-    'https://ereuna.io',
-    // For internal container-to-container communication if needed
-    'http://frontend:3500'
-  ]
-  : [
-    'http://localhost:3500',
-    'https://localhost:3500',
-    'http://localhost',
-    'https://localhost'
-  ];
-
-const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 50000, // Limit each IP to 50000 requests per window
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    error: 'Too many requests, please try again later',
-    status: 429 // Too Many Requests
-  }
-});
+import { config } from '@/lib/config.js';
+import { closeDb, connectDb, getDb } from '@/lib/db.js';
+import { logger } from '@/lib/logger.js';
+import { relaxedLimiter, standardLimiter, strictLimiter } from '@/lib/rate-limiters.js';
+import { closeRedis } from '@/lib/redis.js';
+import { optionalAuth, requireAuth } from '@/middleware/auth.js';
+import { errorHandler } from '@/middleware/error-handler.js';
+import { requestId } from '@/middleware/request-id.js';
+import { sanitizeRequest } from '@/middleware/sanitizer.js';
+import { accountRouter, authRouter, preferencesRouter } from '@/routes/identity/index.js';
+import { screenersRouter } from '@/routes/screener/index.js';
 
 const app = express();
-app.set('trust proxy', 1); // Trust the proxy (Traefik)
-const port = process.env.PORT || 5500;
-const uri = process.env.MONGODB_URI;
+const server = createServer(app);
 
-// Consolidated middleware
-app.use(limiter);
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(express.static('front-end'));
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-  crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", ...allowedOrigins.map(origin => origin.replace(/^https?:\/\//, ''))]
+/** A numeric hop count, never `true` — otherwise a client can spoof
+ *  X-Forwarded-For and defeat every req.ip-keyed control. */
+app.set('trust proxy', config.trustProxyHops);
+
+/**
+ * Protocol-attack timeouts. Both are set explicitly because the runtime
+ * defaults have moved across Node majors, and `0` means "never time out".
+ * 60 s of headers is what defeats slowloris; no legitimate client needs longer.
+ */
+server.headersTimeout = 60_000;
+server.requestTimeout = 120_000;
+
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                // No third-party scripts. No unsafe-inline, no eval.
+                scriptSrc: ["'self'"],
+                // Vue's dynamic :style bindings render as inline style
+                // attributes, which a nonce or hash cannot cover. Scoped to
+                // styles only — inline styles cannot execute JavaScript.
+                styleSrc: ["'self'", "'unsafe-inline'"],
+                imgSrc: ["'self'", 'data:', 'blob:'],
+                connectSrc: ["'self'", config.corsOrigin],
+                frameSrc: ["'none'"],
+                fontSrc: ["'self'"],
+                objectSrc: ["'none'"],
+                frameAncestors: ["'none'"],
+                baseUri: ["'self'"],
+                formAction: ["'self'"],
+            },
+        },
+        frameguard: { action: 'deny' },
+        referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+        noSniff: true,
+        strictTransportSecurity: {
+            maxAge: 31_536_000, // 1 year
+            includeSubDomains: true,
+            // Written explicitly rather than omitted: preload is hard to
+            // reverse and forces HTTPS on every future subdomain, so switching
+            // it on should be a reviewable one-line diff.
+            preload: false,
+        },
+    }),
+);
+
+// helmet has no Permissions-Policy support — set it directly.
+app.use((_req: express.Request, res: express.Response, next: express.NextFunction) => {
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+    next();
+});
+
+app.use(cors({ origin: config.corsOrigin, credentials: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(cookieParser());
+app.use(requestId);
+app.use(sanitizeRequest);
+app.use(optionalAuth);
+
+app.use('/api/auth', strictLimiter, authRouter);
+app.use('/api/account', standardLimiter, requireAuth, accountRouter);
+app.use('/api/preferences', standardLimiter, requireAuth, preferencesRouter);
+app.use('/api/screeners', relaxedLimiter, requireAuth, screenersRouter);
+
+app.get('/healthz', async (_req: express.Request, res: express.Response) => {
+    try {
+        await getDb().command({ ping: 1 });
+        res.json({ ok: true });
+    } catch {
+        // A kubelet probe, not a client-facing error — a bare ok/503, no AppError.
+        res.status(503).json({ ok: false });
     }
-  },
-  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
-}));
-
-const corsOptions = {
-  methods: ['GET', 'POST', 'DELETE', 'PATCH'],
-  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    if (origin && allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      // Use logger.error for unauthorized CORS requests
-      logger.error({
-        msg: 'Unauthorized CORS request',
-        origin: origin,
-        timestamp: new Date().toISOString()
-      });
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  optionsSuccessStatus: 200
-};
-
-// Brute Force Protection Middleware
-const bruteForceProtection = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 requests per windowMs
-  message: 'Too many login attempts, please try again later',
-  handler: (req: Request, res: Response) => {
-    // Use handleError for brute force attacks and log security event
-    logger.warn({
-      msg: 'Potential brute force attack',
-      ip: req.ip,
-      path: req.path
-    });
-    const errResponse = handleError('Too many requests, possible brute force', 'BruteForceProtection', {
-      ip: req.ip,
-      path: req.path
-    }, 429);
-    res.status(429).json({
-      status: 'error',
-      message: errResponse.message
-    });
-  }
 });
 
-// Apply CORS and Brute Force Protection (max 10 requests per minute)
-app.use(/^\/(login|signup-paywall|verify|recover|generate-key|download-key|retrieve-key|password-change|change-password2|change-username|account-delete|verify-mfa|twofa)(\/.*)?$/, cors(corsOptions), bruteForceProtection);
-
-// Initialize MongoDB connection pool on startup
-getDB().then(() => {
-  logger.info('MongoDB connection pool ready');
-}).catch((err) => {
-  logger.error(`Failed to initialize MongoDB: ${err.message}`);
-  process.exit(1);
+app.get('/livez', (_req: express.Request, res: express.Response) => {
+    res.json({ ok: true });
 });
 
-// Start HTTP server. Traefik will terminate TLS and forward requests to this service over the internal network.
-app.listen(port, () => {
-  console.log(`HTTP Server running on http://localhost:${port}`);
-});
-
-export default app;
-
-// Import Routes 
-import Users from './routes/Users.js';
-import Notes from './routes/Notes.js';
-import Charts from './routes/Charts.js';
-import Watchlists from './routes/Watchlists.js';
-import Screener from './routes/Screener.js';
-import Maintenance from './routes/Maintenance.js';
-import Portfolio from './routes/Portfolio.js';
-import Dashboard from './routes/Dashboard.js';
-
-Users(app, { validate, validationSchemas, sanitizeInput, sanitizeUsername, sanitizeUsernameCanonical, logger, crypto, MongoClient, uri, argon2, jwt, config, getDB });
-Notes(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri, getDB });
-Charts(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri, getDB });
-Watchlists(app, { validate, validationSchemas, validationSets, body, sanitizeInput, logger, MongoClient, uri, getDB });
-Screener(app, { validate, validationSchemas, validationSets, sanitizeInput, logger, MongoClient, uri, crypto, query, getDB });
-Maintenance(app, { validate, body, sanitizeInput, logger, MongoClient, uri, crypto, getDB });
-Portfolio(app, { validate, validationSchemas, body, query, sanitizeInput, logger, MongoClient, uri, getDB });
-Dashboard(app, { sanitizeInput, logger, MongoClient, uri, getDB });
-
-// Error-handling middleware (must be last before export)
-import type { ErrorRequestHandler } from 'express';
-const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-  const errResponse = handleError(err, 'Express Middleware', {
-    path: req.path,
-    method: req.method,
-    ip: req.ip
-  }, err.status || 500);
-  if (err.name === 'CorsError') {
-    res.status(403).json({
-      error: 'Access denied',
-      message: 'Origin not allowed'
-    });
-    return;
-  }
-  res.status(errResponse.statusCode).json({
-    error: 'Internal Server Error',
-    message: errResponse.message
-  });
-};
+// Must be registered after every route: Express finds it by its 4-arg signature.
 app.use(errorHandler);
+
+/**
+ * Startup is all-or-nothing. A half-booted server that accepts requests with no
+ * database behind it fails every one of them with a 500 that says nothing about
+ * the cause, so a failure here kills the process with a logged reason instead.
+ */
+const startup = connectDb().then(() => {
+    server.listen(config.port, () => logger.info({ port: config.port }, 'API listening'));
+});
+
+startup.catch((err: Error) => {
+    logger.fatal({ err }, 'API startup failed');
+    process.exit(1);
+});
+
+/**
+ * Graceful shutdown: stop accepting connections, then close Mongo and Redis so
+ * in-flight queries drain rather than being severed mid-write.
+ */
+for (const signal of ['SIGTERM', 'SIGINT'] as const) {
+    process.on(signal, () => {
+        logger.info({ signal }, 'Shutting down');
+        server.close(() => {
+            Promise.allSettled([closeDb(), closeRedis()])
+                .then(() => process.exit(0))
+                .catch(() => process.exit(1));
+        });
+    });
+}
+
+export { app };

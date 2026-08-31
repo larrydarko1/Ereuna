@@ -99,7 +99,7 @@ function close() {
 </script>
 
 <style scoped>
-/* Loader styles for button, copied from Renew.vue/addCash.vue */
+/* Loader styles for button, copied from addCash.vue */
 .btn-content-row {
 	display: flex;
 	flex-direction: row;

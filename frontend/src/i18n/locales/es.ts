@@ -209,7 +209,6 @@ export default {
         twoFactor: 'Autenticación de Dos Factores',
         menu: {
             account: 'Cuenta',
-            subscription: 'Suscripción',
             themes: 'Temas',
             security2fa: 'Seguridad / 2FA',
         },
@@ -230,7 +229,6 @@ export default {
         deleteWarningDetails: 'Esta acción es permanente y no se puede deshacer. Todos sus datos serán eliminados permanentemente.',
         deleteRecommendation: 'Antes de eliminar su cuenta, le recomendamos:',
         deleteRecommendation1: 'Exportar cualquier dato que desee conservar',
-        deleteRecommendation2: 'Cancelar cualquier suscripción activa',
         deleteReview: 'Por favor revise esta decisión cuidadosamente antes de continuar.',
         translationDisclaimer: 'Algunas traducciones pueden ser inexactas ya que son generadas por IA.',
     },
@@ -1724,89 +1722,6 @@ export default {
         weekly: 'Semanal',
         monthly: 'Mensual',
         yearly: 'Anual',
-    },
-
-    // Suscripción
-    subscription: {
-        title: 'Estado de Suscripción',
-        username: 'Nombre de Usuario',
-        daysLeft: 'Días restantes de suscripción',
-        moneyLeft: 'Dinero restante',
-        renew: 'Renovar',
-        askForRefund: 'Solicitar Reembolso',
-        renewSubscription: 'Renovar Suscripción',
-        requestRefund: 'Solicitar Reembolso',
-        duration: {
-            oneMonth: '1 Mes',
-            fourMonths: '4 Meses',
-            sixMonths: '6 Meses',
-            oneYear: '1 Año',
-            oneMonthShort: '1M',
-            fourMonthsShort: '4M',
-            sixMonthsShort: '6M',
-            oneYearShort: '1A',
-            unknown: 'Desconocido',
-        },
-        total: 'Total',
-        vat: 'IVA',
-        paymentMethod: 'Método de pago',
-        paymentIntent: 'Intención de pago',
-        country: 'País',
-    },
-
-    // Recibos
-    receipts: {
-        title: 'Recibos',
-        paymentDate: 'Fecha de Pago',
-        amount: 'Monto',
-        paidWith: 'Pagado con',
-        subscriptionPlan: 'Plan de Suscripción',
-        download: 'Descargar',
-        loading: 'Cargando recibos...',
-        noReceipts: 'No se encontraron recibos',
-        downloadDesktopOnly: 'Para descargar recibos, por favor use la versión de escritorio.',
-        downloadFailed: 'Error al generar el PDF del recibo',
-        paymentMethod: {
-            card: 'Tarjeta',
-            crypto: 'Cripto',
-        },
-        pdfFooter: {
-            refundInfo: 'Reembolsos automáticos disponibles dentro de los 14 días posteriores a la compra. Para solicitudes de reembolso manual, proporcione el número de recibo y el ID de intención de pago al soporte.',
-            disclaimer: 'Este recibo es prueba de pago. Para soporte envíe un correo electrónico a contact@ereuna.io. Ereuna no es una institución financiera y no proporciona asesoramiento financiero.',
-        },
-    },
-
-    // Reembolso
-    refund: {
-        title: 'Solicitar Reembolso',
-        eligible: 'Es elegible para un reembolso automático.',
-        notEligible: 'Los reembolsos automáticos están inactivos después de 14 días de la compra. Para soporte personalizado, contacte a asistencia.',
-        moneyLeft: 'Dinero restante',
-        daysLeftInSubscription: 'Días restantes en la suscripción',
-        disclaimer: 'Descargo de responsabilidad:',
-        disclaimerText: 'El IVA no es reembolsable. Los reembolsos automáticos se procesan a su método de pago original dentro de 5 días hábiles. Si encuentra algún problema, contacte al soporte en contact@ereuna.io y proporcione el nombre de su cuenta y el ID del recibo.',
-        important: 'Importante:',
-        importantText: 'Si solicita un reembolso, su acceso será revocado inmediatamente y será desconectado. No podrá iniciar sesión nuevamente a menos que renueve su suscripción.',
-        downloadDataWarning: 'Por favor descargue todos sus recibos y cualquier dato que necesite antes de solicitar un reembolso.',
-        requestButton: 'Solicitar Reembolso',
-        success: '¡Solicitud de reembolso enviada! El personal procesará su solicitud pronto.',
-        failed: 'Solicitud de reembolso fallida.',
-    },
-
-    // Renovar
-    renew: {
-        title: 'Renovar Suscripción',
-        total: 'Total',
-        selectDuration: 'Seleccionar Duración',
-        processing: 'Procesando...',
-        renewButton: 'Renovar',
-        success: '¡Renovación y pago exitosos!',
-        failed: 'La renovación o el pago fallaron.',
-        vatLoadFailed: 'No se pudieron cargar las tasas de IVA. La renovación está temporalmente deshabilitada.',
-        paymentFormNotReady: 'Formulario de pago no listo. Por favor espere a que se cargue el formulario de pago.',
-        paymentMethodError: 'Error en el método de pago.',
-        serverError: 'Error del servidor: respuesta inválida.',
-        networkError: 'Error de red o del servidor. Por favor verifique su conexión.',
     },
 
     // Autenticación de Dos Factores

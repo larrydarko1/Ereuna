@@ -211,7 +211,6 @@ export default {
         twoFactor: 'Two-Factor Authentication',
         menu: {
             account: 'Account',
-            subscription: 'Subscription',
             themes: 'Themes',
             security2fa: 'Security / 2FA',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: 'This action is permanent and cannot be undone. All your data will be permanently deleted.',
         deleteRecommendation: 'Before deleting your account, we recommend:',
         deleteRecommendation1: 'Export any data you wish to keep',
-        deleteRecommendation2: 'Cancel any active subscriptions',
         deleteReview: 'Please review this decision carefully before proceeding.',
         translationDisclaimer: 'Some translations may be inaccurate as they are AI-generated.',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: 'Weekly',
         monthly: 'Monthly',
         yearly: 'Yearly',
-    },
-
-    // Subscription
-    subscription: {
-        title: 'Subscription Status',
-        username: 'Username',
-        daysLeft: 'Subscription Days left',
-        moneyLeft: 'Money left',
-        renew: 'Renew',
-        askForRefund: 'Ask for Refund',
-        renewSubscription: 'Renew Subscription',
-        requestRefund: 'Request Refund',
-        duration: {
-            oneMonth: '1 Month',
-            fourMonths: '4 Months',
-            sixMonths: '6 Months',
-            oneYear: '1 Year',
-            oneMonthShort: '1M',
-            fourMonthsShort: '4M',
-            sixMonthsShort: '6M',
-            oneYearShort: '1Y',
-            unknown: 'Unknown',
-        },
-        total: 'Total',
-        vat: 'VAT',
-        paymentMethod: 'Payment method',
-        paymentIntent: 'Payment intent',
-        country: 'Country',
-    },
-
-    // Receipts
-    receipts: {
-        title: 'Receipts',
-        paymentDate: 'Payment Date',
-        amount: 'Amount',
-        paidWith: 'Paid with',
-        subscriptionPlan: 'Subscription Plan',
-        download: 'Download',
-        loading: 'Loading receipts...',
-        noReceipts: 'No receipts found',
-        downloadDesktopOnly: 'To download receipts, please use the desktop version.',
-        downloadFailed: 'Failed to generate receipt PDF',
-        paymentMethod: {
-            card: 'Card',
-            crypto: 'Crypto',
-        },
-        pdfFooter: {
-            refundInfo: 'Automatic refunds available within 14 days of purchase. For manual refund requests, provide the Receipt # and Payment Intent ID to support.',
-            disclaimer: 'This receipt is proof of payment. For support send an email to contact@ereuna.io. Ereuna is not a financial institution and does not provide financial advice.',
-        },
-    },
-
-    // Refund
-    refund: {
-        title: 'Request Refund',
-        eligible: 'You are eligible for an automatic refund.',
-        notEligible: 'Automatic refunds are inactive after 14 days of purchase. For custom support, contact assistance.',
-        moneyLeft: 'Money left',
-        daysLeftInSubscription: 'Days left in subscription',
-        disclaimer: 'Disclaimer:',
-        disclaimerText: 'VAT is not refundable. Automatic refunds are processed to your original payment method within 5 business days. If you encounter any issues, please contact support at contact@ereuna.io and provide your account name and receipt ID.',
-        important: 'Important:',
-        importantText: 'If you request a refund, your access will be immediately revoked and you will be logged out. You will not be able to log in again unless you renew your subscription.',
-        downloadDataWarning: 'Please download all your receipts and any data you need before requesting a refund.',
-        requestButton: 'Request Refund',
-        success: 'Refund request submitted! Staff will process your request soon.',
-        failed: 'Refund request failed.',
-    },
-
-    // Renew
-    renew: {
-        title: 'Renew Subscription',
-        total: 'Total',
-        selectDuration: 'Select Duration',
-        processing: 'Processing...',
-        renewButton: 'Renew',
-        success: 'Renewal and payment successful!',
-        failed: 'Renewal or payment failed.',
-        vatLoadFailed: 'Could not load VAT rates. Renewal is temporarily disabled.',
-        paymentFormNotReady: 'Payment form not ready. Please wait for the payment form to load.',
-        paymentMethodError: 'Payment method error.',
-        serverError: 'Server error: invalid response.',
-        networkError: 'Network or server error. Please check your connection.',
     },
 
     // Two-Factor Authentication

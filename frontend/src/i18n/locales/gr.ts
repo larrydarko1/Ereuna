@@ -211,7 +211,6 @@ export default {
         twoFactor: 'Έλεγχος Δύο Σταδίων',
         menu: {
             account: 'Λογαριασμός',
-            subscription: 'Συνδρομή',
             themes: 'Θέματα',
             security2fa: 'Ασφάλεια / 2FA',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: 'Αυτή η ενέργεια είναι μόνιμη. Όλα τα δεδομένα σας θα διαγραφούν οριστικά.',
         deleteRecommendation: 'Πριν διαγράψετε τον λογαριασμό, συνιστούμε:',
         deleteRecommendation1: 'Εξαγωγή δεδομένων που θέλετε',
-        deleteRecommendation2: 'Ακύρωση ενεργών συνδρομών',
         deleteReview: 'Εξετάστε προσεκτικά πριν συνεχίσετε.',
         translationDisclaimer: 'Ορισμένες μεταφράσεις μπορεί να είναι ανακριβείς καθώς δημιουργούνται από τεχνητή νοημοσύνη.',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: 'Εβδομαδιαία',
         monthly: 'Μηνιαία',
         yearly: 'Ετήσια',
-    },
-
-    // Subscription
-    subscription: {
-        title: 'Κατάσταση Συνδρομής',
-        username: 'Όνομα Χρήστη',
-        daysLeft: 'Ημέρες που απομένουν',
-        moneyLeft: 'Υπόλοιπο χρημάτων',
-        renew: 'Ανανέωση',
-        askForRefund: 'Αίτηση Επιστροφής',
-        renewSubscription: 'Ανανέωση Συνδρομής',
-        requestRefund: 'Αίτηση Επιστροφής Χρημάτων',
-        duration: {
-            oneMonth: '1 Μήνας',
-            fourMonths: '4 Μήνες',
-            sixMonths: '6 Μήνες',
-            oneYear: '1 Χρόνος',
-            oneMonthShort: '1Μ',
-            fourMonthsShort: '4Μ',
-            sixMonthsShort: '6Μ',
-            oneYearShort: '1Ετ',
-            unknown: 'Άγνωστο',
-        },
-        total: 'Σύνολο',
-        vat: 'ΦΠΑ',
-        paymentMethod: 'Μέθοδος πληρωμής',
-        paymentIntent: 'Πρόθεση πληρωμής',
-        country: 'Χώρα',
-    },
-
-    // Receipts
-    receipts: {
-        title: 'Αποδείξεις',
-        paymentDate: 'Ημερομηνία Πληρωμής',
-        amount: 'Ποσό',
-        paidWith: 'Πληρώθηκε με',
-        subscriptionPlan: 'Πρόγραμμα Συνδρομής',
-        download: 'Λήψη',
-        loading: 'Φόρτωση αποδείξεων...',
-        noReceipts: 'Δεν βρέθηκαν αποδείξεις',
-        downloadDesktopOnly: 'Για λήψη αποδείξεων, χρησιμοποιήστε την έκδοση desktop.',
-        downloadFailed: 'Αποτυχία δημιουργίας PDF',
-        paymentMethod: {
-            card: 'Κάρτα',
-            crypto: 'Crypto',
-        },
-        pdfFooter: {
-            refundInfo: 'Αυτόματες επιστροφές διαθέσιμες εντός 14 ημερών. Για χειροκίνητες αιτήσεις, παρέχετε τον αριθμό απόδειξης και Payment Intent ID.',
-            disclaimer: 'Αυτή η απόδειξη είναι απόδειξη πληρωμής. Για υποστήριξη: contact@ereuna.io. Η Ereuna δεν είναι χρηματοπιστωτικός οργανισμός.',
-        },
-    },
-
-    // Refund
-    refund: {
-        title: 'Αίτηση Επιστροφής',
-        eligible: 'Δικαιούστε αυτόματη επιστροφή.',
-        notEligible: 'Οι αυτόματες επιστροφές δεν είναι διαθέσιμες μετά από 14 ημέρες. Επικοινωνήστε με την υποστήριξη.',
-        moneyLeft: 'Υπόλοιπο χρημάτων',
-        daysLeftInSubscription: 'Ημέρες που απομένουν',
-        disclaimer: 'Αποποίηση ευθύνης:',
-        disclaimerText: 'Ο ΦΠΑ δεν επιστρέφεται. Οι αυτόματες επιστροφές επεξεργάζονται εντός 5 εργάσιμων ημερών. Για προβλήματα: contact@ereuna.io.',
-        important: 'Σημαντικό:',
-        importantText: 'Εάν ζητήσετε επιστροφή, η πρόσβασή σας θα ανακληθεί αμέσως και θα αποσυνδεθείτε. Δεν θα μπορείτε να συνδεθείτε ξανά εκτός αν ανανεώσετε.',
-        downloadDataWarning: 'Κατεβάστε όλες τις αποδείξεις και δεδομένα πριν την επιστροφή.',
-        requestButton: 'Αίτηση Επιστροφής',
-        success: 'Η αίτηση υποβλήθηκε! Θα επεξεργαστεί σύντομα.',
-        failed: 'Αποτυχία αίτησης επιστροφής.',
-    },
-
-    // Renew
-    renew: {
-        title: 'Ανανέωση Συνδρομής',
-        total: 'Σύνολο',
-        selectDuration: 'Επιλογή Διάρκειας',
-        processing: 'Επεξεργασία...',
-        renewButton: 'Ανανέωση',
-        success: 'Ανανέωση και πληρωμή επιτυχής!',
-        failed: 'Αποτυχία ανανέωσης ή πληρωμής.',
-        vatLoadFailed: 'Αδυναμία φόρτωσης ΦΠΑ. Η ανανέωση είναι προσωρινά απενεργοποιημένη.',
-        paymentFormNotReady: 'Η φόρμα πληρωμής δεν είναι έτοιμη. Περιμένετε.',
-        paymentMethodError: 'Σφάλμα μεθόδου πληρωμής.',
-        serverError: 'Σφάλμα διακομιστή: μη έγκυρη απάντηση.',
-        networkError: 'Σφάλμα δικτύου ή διακομιστή. Ελέγξτε τη σύνδεσή σας.',
     },
 
     // Two-Factor Authentication

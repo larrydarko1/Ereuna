@@ -211,7 +211,6 @@ export default {
         twoFactor: 'Authentificatio Duo-Factorialis',
         menu: {
             account: 'Ratio',
-            subscription: 'Subscriptio',
             themes: 'Themata',
             security2fa: 'Securitas / 2FA',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: 'Haec actio perpetua est nec revocari potest. Omnia data tua perpetuo deletabuntur.',
         deleteRecommendation: 'Antequam deles rationem tuam, commendamus:',
         deleteRecommendation1: 'Exportare omnia data quae vis servare',
-        deleteRecommendation2: 'Rescindere omnes subscriptiones activas',
         deleteReview: 'Quaeso, perscrutare hanc decisionem diligenter antequam procedas.',
         translationDisclaimer: 'Nonnullae translationes fortasse inaccuratae sunt quia ab AI generatae sunt.',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: 'Hebdomadaliter',
         monthly: 'Mensualiter',
         yearly: 'Annualiter',
-    },
-
-    // Subscription
-    subscription: {
-        title: 'Status Subscriptionis',
-        username: 'Nomen Usitoris',
-        daysLeft: 'Dies Subscriptionis Reliquae',
-        moneyLeft: 'Pecunia Reliqua',
-        renew: 'Renovare',
-        askForRefund: 'Petere Restitutionem',
-        renewSubscription: 'Renovare Subscriptionem',
-        requestRefund: 'Petere Restitutionem',
-        duration: {
-            oneMonth: '1 Mensis',
-            fourMonths: '4 Menses',
-            sixMonths: '6 Menses',
-            oneYear: '1 Annus',
-            oneMonthShort: '1M',
-            fourMonthsShort: '4M',
-            sixMonthsShort: '6M',
-            oneYearShort: '1A',
-            unknown: 'Ignotum',
-        },
-        total: 'Totale',
-        vat: 'VAT',
-        paymentMethod: 'Methodus Solutionis',
-        paymentIntent: 'Intentio Solutionis',
-        country: 'Patria',
-    },
-
-    // Receipts
-    receipts: {
-        title: 'Accepta',
-        paymentDate: 'Dies Solutionis',
-        amount: 'Summa',
-        paidWith: 'Solutum cum',
-        subscriptionPlan: 'Planum Subscriptionis',
-        download: 'Deponere',
-        loading: 'Onerante accepta...',
-        noReceipts: 'Nulla accepta inventa',
-        downloadDesktopOnly: 'Ad deponenda accepta, utere versione computatri mensae.',
-        downloadFailed: 'Malum generandi accepti PDF',
-        paymentMethod: {
-            card: 'Charta',
-            crypto: 'Crypto',
-        },
-        pdfFooter: {
-            refundInfo: 'Restitutiones automaticae disponibiles intra 14 dies emptionis. Pro petitionibus manualibus restitutionis, provide Acceptum # et ID Intentionis Solutionis ad auxilium.',
-            disclaimer: 'Hoc acceptum est probatio solutionis. Pro auxilio mitte epistulam ad contact@ereuna.io. Ereuna non est institutio pecuniaria nec praebet consilium pecuniarium.',
-        },
-    },
-
-    // Refund
-    refund: {
-        title: 'Petere Restitutionem',
-        eligible: 'Dignus es restitutione automatica.',
-        notEligible: 'Restitutiones automaticae inactivae sunt post 14 dies emptionis. Pro auxilio proprio, contacta assistentiam.',
-        moneyLeft: 'Pecunia reliqua',
-        daysLeftInSubscription: 'Dies reliquae in subscriptione',
-        disclaimer: 'Monitum:',
-        disclaimerText: 'VAT non est restituenda. Restitutiones automaticae tractantur ad methodum tuam originalem solutionis intra 5 dies negotiales. Si occurrunt difficultates, contacta auxilium ad contact@ereuna.io et provide nomen rationis tuae et ID accepti.',
-        important: 'Grave:',
-        importantText: 'Si petis restitutionem, accessus tuus statim revocabitur et egressus eris. Non poteris iterum intrare nisi renoves subscriptionem tuam.',
-        downloadDataWarning: 'Quaeso depone omnia accepta tua et quaevis data quae tibi opus sunt antequam petis restitutionem.',
-        requestButton: 'Petere Restitutionem',
-        success: 'Petitio restitutionis missa! Ministri tractabunt petitionem tuam mox.',
-        failed: 'Petitio restitutionis malum.',
-    },
-
-    // Renew
-    renew: {
-        title: 'Renovare Subscriptionem',
-        total: 'Totale',
-        selectDuration: 'Eligere Durationem',
-        processing: 'Tractante...',
-        renewButton: 'Renovare',
-        success: 'Renovatio et solutio cum successu!',
-        failed: 'Renovatio vel solutio malum.',
-        vatLoadFailed: 'Non potuit onerare rationes VAT. Renovatio temporaliter dishabilitata est.',
-        paymentFormNotReady: 'Forma solutionis non parata. Quaeso expecta formam solutionis onerari.',
-        paymentMethodError: 'Error methodi solutionis.',
-        serverError: 'Error servitoris: responsio invalida.',
-        networkError: 'Error retis vel servitoris. Quaeso verifica connexionem tuam.',
     },
 
     // Two-Factor Authentication

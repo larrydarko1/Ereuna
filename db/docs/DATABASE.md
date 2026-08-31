@@ -38,9 +38,7 @@ EreunaDB/
 └── Discontinued Collections
     ├── [Calendar](Calendar.md)                             # Earnings tracking (legacy)
     ├── [FinancialUpdatesProgress](FinancialUpdatesProgress.md)  # Failed API updates (legacy)
-    ├── [Agents](Agents.md)                                 # Unused affiliate program
-    ├── [Receipts](Receipts.md)                             # Payment receipts (legacy)
-    └── [Refunds](Refunds.md)                               # Refund tracking (legacy)
+    └── [Agents](Agents.md)                                 # Unused affiliate program
 ```
 ---
 

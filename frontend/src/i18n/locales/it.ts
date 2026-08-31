@@ -211,7 +211,6 @@ export default {
         twoFactor: 'Autenticazione a Due Fattori',
         menu: {
             account: 'Account',
-            subscription: 'Abbonamento',
             themes: 'Temi',
             security2fa: 'Sicurezza / 2FA',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: 'Questa azione \u00e8 permanente e non pu\u00f2 essere annullata. Tutti i tuoi dati saranno eliminati definitivamente.',
         deleteRecommendation: 'Prima di eliminare il tuo account, ti consigliamo di:',
         deleteRecommendation1: 'Esportare tutti i dati che desideri conservare',
-        deleteRecommendation2: 'Cancellare eventuali abbonamenti attivi',
         deleteReview: 'Si prega di rivedere attentamente questa decisione prima di procedere.',
         translationDisclaimer: 'Alcune traduzioni potrebbero essere imprecise in quanto generate da IA.',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: 'Settimanale',
         monthly: 'Mensile',
         yearly: 'Annuale',
-    },
-
-    // Subscription
-    subscription: {
-        title: 'Stato Abbonamento',
-        username: 'Nome Utente',
-        daysLeft: 'Giorni Abbonamento Rimanenti',
-        moneyLeft: 'Denaro Rimanente',
-        renew: 'Rinnova',
-        askForRefund: 'Richiedi Rimborso',
-        renewSubscription: 'Rinnova Abbonamento',
-        requestRefund: 'Richiedi Rimborso',
-        duration: {
-            oneMonth: '1 Mese',
-            fourMonths: '4 Mesi',
-            sixMonths: '6 Mesi',
-            oneYear: '1 Anno',
-            oneMonthShort: '1M',
-            fourMonthsShort: '4M',
-            sixMonthsShort: '6M',
-            oneYearShort: '1A',
-            unknown: 'Sconosciuto',
-        },
-        total: 'Totale',
-        vat: 'IVA',
-        paymentMethod: 'Metodo di pagamento',
-        paymentIntent: 'Intento di pagamento',
-        country: 'Paese',
-    },
-
-    // Receipts
-    receipts: {
-        title: 'Ricevute',
-        paymentDate: 'Data Pagamento',
-        amount: 'Importo',
-        paidWith: 'Pagato con',
-        subscriptionPlan: 'Piano Abbonamento',
-        download: 'Scarica',
-        loading: 'Caricamento ricevute...',
-        noReceipts: 'Nessuna ricevuta trovata',
-        downloadDesktopOnly: 'Per scaricare le ricevute, utilizzare la versione desktop.',
-        downloadFailed: 'Generazione PDF ricevuta non riuscita',
-        paymentMethod: {
-            card: 'Carta',
-            crypto: 'Crypto',
-        },
-        pdfFooter: {
-            refundInfo: 'Rimborsi automatici disponibili entro 14 giorni dall\'acquisto. Per richieste di rimborso manuali, fornire il n. ricevuta e l\'ID intento di pagamento al supporto.',
-            disclaimer: 'Questa ricevuta è la prova del pagamento. Per assistenza inviare un\'email a contact@ereuna.io. Ereuna non è un\'istituzione finanziaria e non fornisce consulenza finanziaria.',
-        },
-    },
-
-    // Refund
-    refund: {
-        title: 'Richiedi Rimborso',
-        eligible: 'Sei idoneo per un rimborso automatico.',
-        notEligible: 'I rimborsi automatici non sono attivi dopo 14 giorni dall\'acquisto. Per assistenza personalizzata, contattare il supporto.',
-        moneyLeft: 'Denaro rimanente',
-        daysLeftInSubscription: 'Giorni rimanenti nell\'abbonamento',
-        disclaimer: 'Disclaimer:',
-        disclaimerText: 'L\'IVA non è rimborsabile. I rimborsi automatici vengono elaborati con il metodo di pagamento originale entro 5 giorni lavorativi. In caso di problemi, contattare il supporto all\'indirizzo contact@ereuna.io fornendo il nome dell\'account e l\'ID della ricevuta.',
-        important: 'Importante:',
-        importantText: 'Se richiedi un rimborso, il tuo accesso sarà immediatamente revocato e verrai disconnesso. Non potrai accedere nuovamente a meno che tu non rinnovi il tuo abbonamento.',
-        downloadDataWarning: 'Scarica tutte le ricevute e i dati di cui hai bisogno prima di richiedere un rimborso.',
-        requestButton: 'Richiedi Rimborso',
-        success: 'Richiesta di rimborso inviata! Il personale elaborerà presto la tua richiesta.',
-        failed: 'Richiesta di rimborso non riuscita.',
-    },
-
-    // Renew
-    renew: {
-        title: 'Rinnova Abbonamento',
-        total: 'Totale',
-        selectDuration: 'Seleziona Durata',
-        processing: 'Elaborazione...',
-        renewButton: 'Rinnova',
-        success: 'Rinnovo e pagamento riusciti!',
-        failed: 'Rinnovo o pagamento non riuscito.',
-        vatLoadFailed: 'Impossibile caricare le aliquote IVA. Il rinnovo è temporaneamente disabilitato.',
-        paymentFormNotReady: 'Modulo di pagamento non pronto. Attendere il caricamento del modulo di pagamento.',
-        paymentMethodError: 'Errore metodo di pagamento.',
-        serverError: 'Errore del server: risposta non valida.',
-        networkError: 'Errore di rete o del server. Controlla la tua connessione.',
     },
 
     // Two-Factor Authentication

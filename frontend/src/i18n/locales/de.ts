@@ -211,7 +211,6 @@ export default {
         twoFactor: 'Zwei-Faktor-Authentifizierung',
         menu: {
             account: 'Konto',
-            subscription: 'Abonnement',
             themes: 'Themen',
             security2fa: 'Sicherheit / 2FA',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: 'Diese Aktion ist dauerhaft und kann nicht rückgängig gemacht werden. Alle Ihre Daten werden dauerhaft gelöscht.',
         deleteRecommendation: 'Bevor Sie Ihr Konto löschen, empfehlen wir:',
         deleteRecommendation1: 'Exportieren Sie alle Daten, die Sie behalten möchten',
-        deleteRecommendation2: 'Kündigen Sie alle aktiven Abonnements',
         deleteReview: 'Bitte überprüfen Sie diese Entscheidung sorgfältig, bevor Sie fortfahren.',
         translationDisclaimer: 'Einige Übersetzungen können ungenau sein, da sie KI-generiert sind.',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: 'Wöchentlich',
         monthly: 'Monatlich',
         yearly: 'Jährlich',
-    },
-
-    // Subscription
-    subscription: {
-        title: 'Abonnementstatus',
-        username: 'Benutzername',
-        daysLeft: 'Verbleibende Abonnementtage',
-        moneyLeft: 'Verbleibender Betrag',
-        renew: 'Verlängern',
-        askForRefund: 'Rückerstattung anfordern',
-        renewSubscription: 'Abonnement verlängern',
-        requestRefund: 'Rückerstattung anfordern',
-        duration: {
-            oneMonth: '1 Monat',
-            fourMonths: '4 Monate',
-            sixMonths: '6 Monate',
-            oneYear: '1 Jahr',
-            oneMonthShort: '1M',
-            fourMonthsShort: '4M',
-            sixMonthsShort: '6M',
-            oneYearShort: '1J',
-            unknown: 'Unbekannt',
-        },
-        total: 'Gesamt',
-        vat: 'MwSt.',
-        paymentMethod: 'Zahlungsmethode',
-        paymentIntent: 'Zahlungsabsicht',
-        country: 'Land',
-    },
-
-    // Receipts
-    receipts: {
-        title: 'Quittungen',
-        paymentDate: 'Zahlungsdatum',
-        amount: 'Betrag',
-        paidWith: 'Bezahlt mit',
-        subscriptionPlan: 'Abonnementplan',
-        download: 'Herunterladen',
-        loading: 'Quittungen werden geladen...',
-        noReceipts: 'Keine Quittungen gefunden',
-        downloadDesktopOnly: 'Um Quittungen herunterzuladen, verwenden Sie bitte die Desktop-Version.',
-        downloadFailed: 'Fehler beim Erstellen der Quittungs-PDF',
-        paymentMethod: {
-            card: 'Karte',
-            crypto: 'Krypto',
-        },
-        pdfFooter: {
-            refundInfo: 'Automatische Rückerstattungen sind innerhalb von 14 Tagen nach Kauf verfügbar. Für manuelle Rückerstattungsanfragen geben Sie die Quittungsnummer und Zahlungsabsichts-ID an den Support weiter.',
-            disclaimer: 'Diese Quittung ist ein Zahlungsnachweis. Für Support senden Sie eine E-Mail an contact@ereuna.io. Ereuna ist kein Finanzinstitut und bietet keine Finanzberatung an.',
-        },
-    },
-
-    // Refund
-    refund: {
-        title: 'Rückerstattung anfordern',
-        eligible: 'Sie sind für eine automatische Rückerstattung berechtigt.',
-        notEligible: 'Automatische Rückerstattungen sind nach 14 Tagen nach Kauf inaktiv. Für individuelle Unterstützung wenden Sie sich an den Support.',
-        moneyLeft: 'Verbleibender Betrag',
-        daysLeftInSubscription: 'Verbleibende Tage im Abonnement',
-        disclaimer: 'Haftungsausschluss:',
-        disclaimerText: 'MwSt. ist nicht erstattungsfähig. Automatische Rückerstattungen werden innerhalb von 5 Werktagen auf Ihre ursprüngliche Zahlungsmethode verarbeitet. Bei Problemen wenden Sie sich bitte an den Support unter contact@ereuna.io und geben Sie Ihren Kontonamen und die Quittungs-ID an.',
-        important: 'Wichtig:',
-        importantText: 'Wenn Sie eine Rückerstattung anfordern, wird Ihr Zugriff sofort widerrufen und Sie werden abgemeldet. Sie können sich erst wieder anmelden, wenn Sie Ihr Abonnement erneuern.',
-        downloadDataWarning: 'Bitte laden Sie alle Ihre Quittungen und alle Daten herunter, die Sie benötigen, bevor Sie eine Rückerstattung anfordern.',
-        requestButton: 'Rückerstattung anfordern',
-        success: 'Rückerstattungsanfrage eingereicht! Das Personal wird Ihre Anfrage bald bearbeiten.',
-        failed: 'Rückerstattungsanfrage fehlgeschlagen.',
-    },
-
-    // Renew
-    renew: {
-        title: 'Abonnement verlängern',
-        total: 'Gesamt',
-        selectDuration: 'Dauer auswählen',
-        processing: 'Wird verarbeitet...',
-        renewButton: 'Verlängern',
-        success: 'Verlängerung und Zahlung erfolgreich!',
-        failed: 'Verlängerung oder Zahlung fehlgeschlagen.',
-        vatLoadFailed: 'MwSt.-Sätze konnten nicht geladen werden. Verlängerung ist vorübergehend deaktiviert.',
-        paymentFormNotReady: 'Zahlungsformular nicht bereit. Bitte warten Sie, bis das Zahlungsformular geladen ist.',
-        paymentMethodError: 'Zahlungsmethodenfehler.',
-        serverError: 'Serverfehler: ungültige Antwort.',
-        networkError: 'Netzwerk- oder Serverfehler. Bitte überprüfen Sie Ihre Verbindung.',
     },
 
     // Two-Factor Authentication

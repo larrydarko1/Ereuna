@@ -211,7 +211,6 @@ export default {
         twoFactor: '双重认证',
         menu: {
             account: '账户',
-            subscription: '订阅',
             themes: '主题',
             security2fa: '安全/双重认证',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: '此操作是永久性的且无法撤销。您的所有数据将被永久删除。',
         deleteRecommendation: '在删除账户之前，我们建议：',
         deleteRecommendation1: '导出您希望保留的任何数据',
-        deleteRecommendation2: '取消任何有效订阅',
         deleteReview: '继续之前请仔细审查此决定。',
         translationDisclaimer: '某些翻译可能不准确，因为它们是由人工智能生成的。',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: '每周',
         monthly: '每月',
         yearly: '每年',
-    },
-
-    // Subscription
-    subscription: {
-        title: '订阅状态',
-        username: '用户名',
-        daysLeft: '订阅剩余天数',
-        moneyLeft: '剩余金额',
-        renew: '续费',
-        askForRefund: '请求退款',
-        renewSubscription: '续费订阅',
-        requestRefund: '请求退款',
-        duration: {
-            oneMonth: '1个月',
-            fourMonths: '4个月',
-            sixMonths: '6个月',
-            oneYear: '1年',
-            oneMonthShort: '1月',
-            fourMonthsShort: '4月',
-            sixMonthsShort: '6月',
-            oneYearShort: '1年',
-            unknown: '未知',
-        },
-        total: '总计',
-        vat: '增值税',
-        paymentMethod: '支付方式',
-        paymentIntent: '支付意图',
-        country: '国家',
-    },
-
-    // Receipts
-    receipts: {
-        title: '收据',
-        paymentDate: '支付日期',
-        amount: '金额',
-        paidWith: '支付方式',
-        subscriptionPlan: '订阅计划',
-        download: '下载',
-        loading: '加载收据中...',
-        noReceipts: '未找到收据',
-        downloadDesktopOnly: '要下载收据，请使用桌面版。',
-        downloadFailed: '生成收据PDF失败',
-        paymentMethod: {
-            card: '卡',
-            crypto: '加密货币',
-        },
-        pdfFooter: {
-            refundInfo: '购买14天内可以自动退款。如需手动退款请求，请向支持团队提供收据编号和支付意图ID。',
-            disclaimer: '此收据是支付凭证。如需支持，请发送邮件至contact@ereuna.io。Ereuna不是金融机构，不提供金融建议。',
-        },
-    },
-
-    // Refund
-    refund: {
-        title: '请求退款',
-        eligible: '您符合自动退款条件。',
-        notEligible: '购买14天后自动退款失效。如需定制支持，请联系客服。',
-        moneyLeft: '剩余金额',
-        daysLeftInSubscription: '订阅剩余天数',
-        disclaimer: '免责声明：',
-        disclaimerText: '增值税不可退还。自动退款将在5个工作日内退回至您的原始支付方式。如遇到任何问题，请联系支持团队contact@ereuna.io并提供您的账户名称和收据ID。',
-        important: '重要提示：',
-        importantText: '如果您请求退款，您的访问权将立即被撤销，您将被登出。除非您续费订阅，否则将无法再次登录。',
-        downloadDataWarning: '请在请求退款前下载所有收据和您需要的任何数据。',
-        requestButton: '请求退款',
-        success: '退款请求已提交！工作人员将快处理您的请求。',
-        failed: '退款请求失败。',
-    },
-
-    // Renew
-    renew: {
-        title: '续费订阅',
-        total: '总计',
-        selectDuration: '选择时长',
-        processing: '处理中...',
-        renewButton: '续费',
-        success: '续费和支付成功！',
-        failed: '续费或支付失败。',
-        vatLoadFailed: '无法加载增值税率。续费暂时禁用。',
-        paymentFormNotReady: '支付表单未就绪。请等待支付表单加载。',
-        paymentMethodError: '支付方式错误。',
-        serverError: '服务器错误：无效响应。',
-        networkError: '网络或服务器错误。请检查您的连接。',
     },
 
     // Two-Factor Authentication

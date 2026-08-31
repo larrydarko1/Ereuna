@@ -211,7 +211,6 @@ export default {
         twoFactor: 'Awtentikazzjoni b\'Żewġ Fatturi',
         menu: {
             account: 'Kont',
-            subscription: 'Abbonament',
             themes: 'Temi',
             security2fa: 'Sigurtà / 2FA',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: 'Din l-azzjoni hija permanenti u ma tistax tiġi annullata. Id-data kollha tiegħek se tiġi mħassra għal dejjem.',
         deleteRecommendation: 'Qabel ma tħassar il-kont tiegħek, nirrakkomandaw:',
         deleteRecommendation1: 'Esporta kwalunkwe data li tixtieq iżżomm',
-        deleteRecommendation2: 'Ikkanċella kwalunkwe abbonament attiv',
         deleteReview: 'Jekk jogħġbok irrevedi din id-deċiżjoni bir-reqqa qabel tkompli.',
         translationDisclaimer: 'Xi traduzzjonijiet jistgħu ma jkunux preċiżi għax huma ġġenerati minn AI.',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: 'Kull ġimgħa',
         monthly: 'Kull xahar',
         yearly: 'Kull sena',
-    },
-
-    // Subscription
-    subscription: {
-        title: 'Status tas-Subskrizzjoni',
-        username: 'Username',
-        daysLeft: 'Ġranet ta\' subskrizzjoni fdal',
-        moneyLeft: 'Flus fdal',
-        renew: 'Ġedded',
-        askForRefund: 'Itlob Rifond',
-        renewSubscription: 'Ġedded Subskrizzjoni',
-        requestRefund: 'Itlob Rifond',
-        duration: {
-            oneMonth: '1 Xahar',
-            fourMonths: '4 Xhur',
-            sixMonths: '6 Xhur',
-            oneYear: '1 Sena',
-            oneMonthShort: '1X',
-            fourMonthsShort: '4X',
-            sixMonthsShort: '6X',
-            oneYearShort: '1S',
-            unknown: 'Mhux magħruf',
-        },
-        total: 'Totali',
-        vat: 'VAT',
-        paymentMethod: 'Metodu ta\' ħlas',
-        paymentIntent: 'Intent tal-ħlas',
-        country: 'Pajjiż',
-    },
-
-    // Receipts
-    receipts: {
-        title: 'Irċivuti',
-        paymentDate: 'Data tal-Ħlas',
-        amount: 'Ammont',
-        paidWith: 'Ħallas bi',
-        subscriptionPlan: 'Pjan ta\' Subskrizzjoni',
-        download: 'Niżżel',
-        loading: 'Qed jitgħabbew irċivuti...',
-        noReceipts: 'Ebda rċivuti nstabu',
-        downloadDesktopOnly: 'Biex tniżżel irċivuti, jekk jogħġbok uża l-verżjoni tad-desktop.',
-        downloadFailed: 'Ma rnexxiex jiġġenera PDF tar-riċivuta',
-        paymentMethod: {
-            card: 'Karta',
-            crypto: 'Crypto',
-        },
-        pdfFooter: {
-            refundInfo: 'Rifondi awtomatiċi disponibbli fi żmien 14-il jum mix-xiri. Għal talbiet ta\' rifond manwali, ipprovdi r-Riċivuta # u l-ID tal-Intent tal-Ħlas lis-support.',
-            disclaimer: 'Din ir-riċivuta hija prova ta\' ħlas. Għal support ibgħat email għal contact@ereuna.io. Ereuna mhix istituzzjoni finanzjarja u ma tippro vdix parir finanzjarju.',
-        },
-    },
-
-    // Refund
-    refund: {
-        title: 'Itlob Rifond',
-        eligible: 'Int eleġibbli għal rifond awtomatiku.',
-        notEligible: 'Rifondi awtomatiċi huma inattivi wara 14-il jum mix-xiri. Għal support personalizzat, ikkuntattja l-assisten za.',
-        moneyLeft: 'Flus fdal',
-        daysLeftInSubscription: 'Ġranet fdal fis-subskrizzjoni',
-        disclaimer: 'Ċaħda:',
-        disclaimerText: 'VAT mhux rifondabbli. Rifondi awtomatiċi jitwettqu lill-metodu tal-ħlas oriġinali tiegħek fi żmien 5 ijiem tax-xogħol. Jekk tiltaqa\' ma\' xi problemi, jekk jogħġbok ikkuntattja s-support fuq contact@ereuna.io u pprovdi l-isem tal-kont tiegħek u l-ID tar-riċivuta.',
-        important: 'Importanti:',
-        importantText: 'Jekk titlob rifond, l-aċċess tiegħek se jiġi rrevokat immedjatament u se titħarġek. Ma tkunx tista\' tidħol mill-ġdid sakemm ma tġeddidx is-subskrizzjoni tiegħek.',
-        downloadDataWarning: 'Jekk jogħġbok niżżel ir-riċivuti kollha tiegħek u kwalunkwe data li għandek bżonn qabel ma titlob rifond.',
-        requestButton: 'Itlob Rifond',
-        success: 'Talba ta\' rifond issottomessa! L-istaff se jipproċessa t-talba tiegħek dalwaqt.',
-        failed: 'Talba ta\' rifond falliet.',
-    },
-
-    // Renew
-    renew: {
-        title: 'Ġedded Subskrizzjoni',
-        total: 'Totali',
-        selectDuration: 'Agħżel Tul',
-        processing: 'Qed jipproċessa...',
-        renewButton: 'Ġedded',
-        success: 'Ġġdid u ħlas b\'suċċess!',
-        failed: 'Ġġdid jew ħlas falla.',
-        vatLoadFailed: 'Ma setgħetx jitgħabbew ir-rati tal-VAT. Iġ-ġdid huwa temporanjament diżabbilitat.',
-        paymentFormNotReady: 'Formola tal-ħlas mhix lesta. Jekk jogħġbok stenna sakemm il-formola tal-ħlas titgħabba.',
-        paymentMethodError: 'Żball fil-metodu tal-ħlas.',
-        serverError: 'Żball tas-server: risposta invalida.',
-        networkError: 'Żball tan-network jew tas-server. Jekk jogħġbok iċċekkja l-konnessjoni tiegħek.',
     },
 
     // Two-Factor Authentication

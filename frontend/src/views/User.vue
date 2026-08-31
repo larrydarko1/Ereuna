@@ -20,24 +20,6 @@
             </svg>
             {{ t('user.menu.account') }}
           </div>
-          <!-- Subscription menu commented out for free beta
-          <div
-            class="menu"
-            :class="{ selected: selectedIndex === 1 }"
-            role="menuitem"
-            :aria-label="t('user.menu.subscription')"
-            tabindex="0"
-            @click="selectMenu(1, $event)"
-            @keydown.enter="selectMenu(1, $event)"
-          >
-            <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" width="20"
-              height="20" aria-hidden="true" focusable="false">
-              <path
-                d="M20 4H4c-1.1 0-2 .9-2 2v2h20V6c0-1.1-.9-2-2-2zM2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-6H2v6zm4-3h4v2H6v-2z" />
-            </svg>
-            {{ t('user.menu.subscription') }}
-          </div>
-          -->
           <div
             class="menu"
             :class="{ selected: selectedIndex === 2 }"
@@ -112,17 +94,6 @@
         />
         <Loader v-else />
       </div>
-      <!-- Subscription content commented out for free beta
-      <div v-if="selectedIndex === 1">
-        <Subscription
-          v-if="!loading.subscription"
-          :user="user?.Username ?? ''"
-          :apiKey="apiKey"
-          :formatDate="formatDate"
-        />
-        <Loader v-else />
-      </div>
-      -->
       <div v-if="selectedIndex === 2">
         <Themes
           v-if="!loading.themes"
@@ -159,7 +130,6 @@ const { t } = useI18n();
 // Component Sections
 import TwoFA from '@/components/User/2FA.vue';
 import Themes from '@/components/User/Themes.vue';
-// import Subscription from '@/components/User/Subscription.vue'; // Commented out for free beta
 import AccountSettings from '@/components/User/AccountSettings.vue';
 
 const userStore = useUserStore();
@@ -179,21 +149,19 @@ let selectedIndex = ref(0);
 // Loading and error state for each section
 const loading = ref({
   account: false,
-  // subscription: false, // Commented out for free beta
   themes: false,
   communications: false,
   twofa: false
 });
 const error = ref({
   account: '',
-  // subscription: '', // Commented out for free beta
   themes: '',
   communications: '',
   twofa: ''
 });
 
-type SectionKey = 'account' | 'themes' | 'twofa'; // 'subscription' removed for free beta
-const sectionKeys: SectionKey[] = ['account', 'themes', 'twofa']; // 'subscription' removed for free beta
+type SectionKey = 'account' | 'themes' | 'twofa';
+const sectionKeys: SectionKey[] = ['account', 'themes', 'twofa'];
 
 function selectMenu(index: number, event?: MouseEvent | KeyboardEvent) {
   selectedIndex.value = index;

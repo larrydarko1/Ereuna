@@ -211,7 +211,6 @@ export default {
         twoFactor: '2\ub2e8\uacc4 \uc778\uc99d',
         menu: {
             account: '\uacc4\uc815',
-            subscription: '\uad6c\ub3c5',
             themes: '\ud14c\ub9c8',
             security2fa: '\ubcf4\uc548 / 2FA',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: '\uc774 \uc791\uc5c5\uc740 \uc601\uad6c\uc801\uc774\uba70 \ucde8\uc18c\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4. \ubaa8\ub4e0 \ub370\uc774\ud130\uac00 \uc601\uad6c\uc801\uc73c\ub85c \uc0ad\uc81c\ub429\ub2c8\ub2e4.',
         deleteRecommendation: '\uacc4\uc815\uc744 \uc0ad\uc81c\ud558\uae30 \uc804\uc5d0 \ub2e4\uc74c\uc744 \uad8c\uc7a5\ud569\ub2c8\ub2e4:',
         deleteRecommendation1: '\ubcf4\uad00\ud558\ub824\ub294 \ub370\uc774\ud130 \ub0b4\ubcf4\ub0b4\uae30',
-        deleteRecommendation2: '\ud65c\uc131 \uad6c\ub3c5 \ucde8\uc18c',
         deleteReview: '\uacc4\uc18d\ud558\uae30 \uc804\uc5d0 \uc774 \uacb0\uc815\uc744 \uc2e0\uc911\ud788 \uac80\ud1a0\ud558\uc2ed\uc2dc\uc624.',
         translationDisclaimer: 'AI로 생성되었으며 일부 번역이 부정확할 수 있습니다.',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: '주간',
         monthly: '월간',
         yearly: '연간',
-    },
-
-    // Subscription
-    subscription: {
-        title: '구독 상태',
-        username: '사용자명',
-        daysLeft: '구독 남은 일수',
-        moneyLeft: '남은 금액',
-        renew: '갱신',
-        askForRefund: '환불 요청',
-        renewSubscription: '구독 갱신',
-        requestRefund: '환불 요청',
-        duration: {
-            oneMonth: '1개월',
-            fourMonths: '4개월',
-            sixMonths: '6개월',
-            oneYear: '1년',
-            oneMonthShort: '1M',
-            fourMonthsShort: '4M',
-            sixMonthsShort: '6M',
-            oneYearShort: '1Y',
-            unknown: '알 수 없음',
-        },
-        total: '합계',
-        vat: 'VAT',
-        paymentMethod: '결제 방법',
-        paymentIntent: '결제 의도',
-        country: '국가',
-    },
-
-    // Receipts
-    receipts: {
-        title: '영수증',
-        paymentDate: '결제 날짜',
-        amount: '금액',
-        paidWith: '결제 수단',
-        subscriptionPlan: '구독 플랜',
-        download: '다운로드',
-        loading: '영수증 로딩 중...',
-        noReceipts: '영수증을 찾을 수 없음',
-        downloadDesktopOnly: '영수증을 다운로드하려면 데스크톱 버전을 사용하세요.',
-        downloadFailed: '영수증 PDF 생성 실패',
-        paymentMethod: {
-            card: '카드',
-            crypto: '암호화폐',
-        },
-        pdfFooter: {
-            refundInfo: '구매 후 14일 이내에 자동 환불이 가능합니다. 수동 환불 요청의 경우 영수증 번호와 결제 의도 ID를 지원팀에 제공하세요.',
-            disclaimer: '이 영수증은 결제 증명입니다. 지원을 받으려면 contact@ereuna.io로 이메일을 보내주세요. Ereuna는 금융 기관이 아니며 금융 조언을 제공하지 않습니다.',
-        },
-    },
-
-    // Refund
-    refund: {
-        title: '환불 요청',
-        eligible: '자동 환불을 받을 수 있습니다.',
-        notEligible: '구매 후 14일이 지나면 자동 환불이 비활성화됩니다. 맞춤 지원이 필요하면 지원팀에 문의하세요.',
-        moneyLeft: '남은 금액',
-        daysLeftInSubscription: '구독 남은 일수',
-        disclaimer: '면책조항:',
-        disclaimerText: 'VAT는 환불되지 않습니다. 자동 환불은 영업일 기준 5일 이내에 원래 결제 수단으로 처리됩니다. 문제가 발생하면 contact@ereuna.io로 계정명과 영수증 ID를 제공하여 지원팀에 문의하세요.',
-        important: '중요:',
-        importantText: '환불을 요청하면 즉시 접근이 취소되고 로그아웃됩니다. 구독을 갱신하지 않는 한 다시 로그인할 수 없습니다.',
-        downloadDataWarning: '환불을 요청하기 전에 모든 영수증과 필요한 데이터를 다운로드하세요.',
-        requestButton: '환불 요청',
-        success: '환불 요청이 제출되었습니다! 직원이 곳 처리할 것입니다.',
-        failed: '환불 요청이 실패했습니다.',
-    },
-
-    // Renew
-    renew: {
-        title: '구독 갱신',
-        total: '합계',
-        selectDuration: '기간 선택',
-        processing: '처리 중...',
-        renewButton: '갱신',
-        success: '갱신 및 결제가 성공했습니다!',
-        failed: '갱신 또는 결제가 실패했습니다.',
-        vatLoadFailed: 'VAT 요율을 로드할 수 없습니다. 갱신이 일시적으로 비활성화되었습니다.',
-        paymentFormNotReady: '결제 양식이 준비되지 않았습니다. 결제 양식이 로드될 때까지 기다려주세요.',
-        paymentMethodError: '결제 수단 오류.',
-        serverError: '서버 오류: 유효하지 않은 응답.',
-        networkError: '네트워크 또는 서버 오류. 연결을 확인하세요.',
     },
 
     // Two-Factor Authentication

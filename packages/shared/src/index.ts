@@ -1,8 +1,12 @@
-// Contracts shared across the Ereuna workspaces (api, frontend, and the
-// Python services once they are ported to Node).
-//
-// Nothing lives here yet — this package exists so that the websocket work,
-// when it moves into `api`, has a home for the payload and event types that
-// both the API and the frontend need to agree on.
-
-export {};
+/**
+ * The Ereuna shared package — contracts that two workspaces must agree on.
+ * Everything re-exports through this barrel. Nothing framework-flavoured
+ * belongs here: the api imports it, so it must not pull in Vue or Express.
+ */
+export * from '#config/env.js';
+export * from '#config/redact.js';
+export * from '#db/collections.js';
+export * from '#db/indexes.js';
+export * from '#errors.js';
+export * from '#helpers.js';
+export * from '#screener/filters.js';

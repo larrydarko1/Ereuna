@@ -211,7 +211,6 @@ export default {
         twoFactor: 'المصادقة الثنائية',
         menu: {
             account: 'الحساب',
-            subscription: 'الاشتراك',
             themes: 'السمات',
             security2fa: 'الأمان / المصادقة الثنائية',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: 'هذا الإجراء دائم ولا يمكن التراجع عنه. سيتم حذف جميع بياناتك نهائياً.',
         deleteRecommendation: 'قبل حذف حسابك، نوصي بما يلي:',
         deleteRecommendation1: 'تصدير أي بيانات ترغب في الاحتفاظ بها',
-        deleteRecommendation2: 'إلغاء أي اشتراكات نشطة',
         deleteReview: 'يرجى مراجعة هذا القرار بعناية قبل المتابعة.',
         translationDisclaimer: 'قد تكون بعض الترجمات غير دقيقة لأنها مُولّدة بواسطة الذكاء الاصطناعي.',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: 'أسبوعي',
         monthly: 'شهري',
         yearly: 'سنوي',
-    },
-
-    // Subscription
-    subscription: {
-        title: 'حالة الاشتراك',
-        username: 'اسم المستخدم',
-        daysLeft: 'أيام الاشتراك المتبقية',
-        moneyLeft: 'المبلغ المتبقي',
-        renew: 'تجديد',
-        askForRefund: 'طلب استرداد',
-        renewSubscription: 'تجديد الاشتراك',
-        requestRefund: 'طلب استرداد',
-        duration: {
-            oneMonth: 'شهر واحد',
-            fourMonths: '4 أشهر',
-            sixMonths: '6 أشهر',
-            oneYear: 'سنة واحدة',
-            oneMonthShort: 'شهر',
-            fourMonthsShort: '4 أشهر',
-            sixMonthsShort: '6 أشهر',
-            oneYearShort: 'سنة',
-            unknown: 'غير معروف',
-        },
-        total: 'الإجمالي',
-        vat: 'ضريبة القيمة المضافة',
-        paymentMethod: 'طريقة الدفع',
-        paymentIntent: 'نية الدفع',
-        country: 'البلد',
-    },
-
-    // Receipts
-    receipts: {
-        title: 'الإيصالات',
-        paymentDate: 'تاريخ الدفع',
-        amount: 'المبلغ',
-        paidWith: 'مدفوع بواسطة',
-        subscriptionPlan: 'خطة الاشتراك',
-        download: 'تحميل',
-        loading: 'جاري تحميل الإيصالات...',
-        noReceipts: 'لم يتم العثور على إيصالات',
-        downloadDesktopOnly: 'لتحميل الإيصالات، يرجى استخدام النسخة المكتبية.',
-        downloadFailed: 'فشل في إنشاء PDF الإيصال',
-        paymentMethod: {
-            card: 'بطاقة',
-            crypto: 'عملة رقمية',
-        },
-        pdfFooter: {
-            refundInfo: 'الاستردادات التلقائية متاحة خلال 14 يوماً من الشراء. لطلبات الاسترداد اليدوية، قدم رقم الإيصال ومعرف نية الدفع للدعم.',
-            disclaimer: 'هذا الإيصال إثبات على الدفع. للدعم أرسل بريداً إلكترونياً إلى contact@ereuna.io. إيرونا ليست مؤسسة مالية ولا تقدم نصائح مالية.',
-        },
-    },
-
-    // Refund
-    refund: {
-        title: 'طلب استرداد',
-        eligible: 'أنت مؤهل للاسترداد التلقائي.',
-        notEligible: 'الاستردادات التلقائية غير نشطة بعد 14 يوماً من الشراء. للحصول على دعم مخصص، اتصل بالمساعدة.',
-        moneyLeft: 'المبلغ المتبقي',
-        daysLeftInSubscription: 'الأيام المتبقية في الاشتراك',
-        disclaimer: 'إخلاء المسؤولية:',
-        disclaimerText: 'ضريبة القيمة المضافة غير قابلة للاسترداد. تتم معالجة الاستردادات التلقائية إلى طريقة الدفع الأصلية خلال 5 أيام عمل. إذا واجهت أي مشاكل، يرجى الاتصال بالدعم على contact@ereuna.io وتقديم اسم حسابك ومعرف الإيصال.',
-        important: 'مهم:',
-        importantText: 'إذا طلبت استرداداً، سيتم إلغاء وصولك فوراً وسيتم تسجيل خروجك. لن تتمكن من تسجيل الدخول مرة أخرى إلا إذا جددت اشتراكك.',
-        downloadDataWarning: 'يرجى تحميل جميع إيصالاتك وأي بيانات تحتاجها قبل طلب الاسترداد.',
-        requestButton: 'طلب استرداد',
-        success: 'تم إرسال طلب الاسترداد! سيقوم الموظفون بمعالجة طلبك قريباً.',
-        failed: 'فشل طلب الاسترداد.',
-    },
-
-    // Renew
-    renew: {
-        title: 'تجديد الاشتراك',
-        total: 'الإجمالي',
-        selectDuration: 'اختر المدة',
-        processing: 'جاري المعالجة...',
-        renewButton: 'تجديد',
-        success: 'نجح التجديد والدفع!',
-        failed: 'فشل التجديد أو الدفع.',
-        vatLoadFailed: 'لم يتمكن من تحميل أسعار ضريبة القيمة المضافة. التجديد معطل مؤقتاً.',
-        paymentFormNotReady: 'نموذج الدفع غير جاهز. يرجى الانتظار لتحميل نموذج الدفع.',
-        paymentMethodError: 'خطأ في طريقة الدفع.',
-        serverError: 'خطأ في الخادم: استجابة غير صالحة.',
-        networkError: 'خطأ في الشبكة أو الخادم. يرجى التحقق من اتصالك.',
     },
 
     // Two-Factor Authentication

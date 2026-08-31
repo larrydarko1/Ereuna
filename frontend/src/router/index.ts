@@ -74,11 +74,6 @@ const routes = [
     component: () => import('../views/maintenance.vue')
   },
   {
-    path: '/renew-subscription',
-    name: 'PaymentRenew',
-    component: () => import('../views/PaymentRenew.vue')
-  },
-  {
     path: '/:catchAll(.*)', // Catch-all route
     name: 'NotFound',
     component: () => import('../views/HomeB.vue')

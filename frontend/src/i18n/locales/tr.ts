@@ -211,7 +211,6 @@ export default {
         twoFactor: 'İki Faktörlü Kimlik Doğrulama',
         menu: {
             account: 'Hesap',
-            subscription: 'Abonelik',
             themes: 'Temalar',
             security2fa: 'Güvenlik / 2FA',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: 'Bu işlem kalıcıdır ve geri alınamaz. Tüm verileriniz kalıcı olarak silinecektir.',
         deleteRecommendation: 'Hesabınızı silmeden önce şunları öneriyoruz:',
         deleteRecommendation1: 'Saklamak istediğiniz verileri dışa aktarın',
-        deleteRecommendation2: 'Aktif abonelikleri iptal edin',
         deleteReview: 'Lütfen devam etmeden önce bu kararı dikkatlice inceleyin.',
         translationDisclaimer: 'Bazı çeviriler AI tarafından oluşturulduğu için hatalı olabilir.',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: 'Haftalık',
         monthly: 'Aylık',
         yearly: 'Yıllık',
-    },
-
-    // Abonelik
-    subscription: {
-        title: 'Abonelik Durumu',
-        username: 'Kullanıcı Adı',
-        daysLeft: 'Kalan Abonelik Günleri',
-        moneyLeft: 'Kalan Bakiye',
-        renew: 'Yenile',
-        askForRefund: 'İade Talep Et',
-        renewSubscription: 'Aboneliği Yenile',
-        requestRefund: 'İade Talep Et',
-        duration: {
-            oneMonth: '1 Ay',
-            fourMonths: '4 Ay',
-            sixMonths: '6 Ay',
-            oneYear: '1 Yıl',
-            oneMonthShort: '1A',
-            fourMonthsShort: '4A',
-            sixMonthsShort: '6A',
-            oneYearShort: '1Y',
-            unknown: 'Bilinmiyor',
-        },
-        total: 'Toplam',
-        vat: 'KDV',
-        paymentMethod: 'Ödeme yöntemi',
-        paymentIntent: 'Ödeme niyeti',
-        country: 'Ülke',
-    },
-
-    // Makbuzlar
-    receipts: {
-        title: 'Makbuzlar',
-        paymentDate: 'Ödeme Tarihi',
-        amount: 'Tutar',
-        paidWith: 'Ödeme Yöntemi',
-        subscriptionPlan: 'Abonelik Planı',
-        download: 'İndir',
-        loading: 'Makbuzlar yükleniyor...',
-        noReceipts: 'Makbuz bulunamadı',
-        downloadDesktopOnly: 'Makbuzları indirmek için lütfen masaüstü sürümünü kullanın.',
-        downloadFailed: 'Makbuz PDF\'i oluşturulamadı',
-        paymentMethod: {
-            card: 'Kart',
-            crypto: 'Kripto',
-        },
-        pdfFooter: {
-            refundInfo: 'Satın alımdan sonraki 14 gün içinde otomatik iadeler kullanılabilir. Manuel iade talepleri için Makbuz # ve Ödeme Niyeti Kimliğini destek ekibine sağlayın.',
-            disclaimer: 'Bu makbuz ödeme kanıtıdır. Destek için contact@ereuna.io adresine e-posta gönderin. Ereuna bir finans kurumu değildir ve finansal tavsiye sağlamaz.',
-        },
-    },
-
-    // İade
-    refund: {
-        title: 'İade Talep Et',
-        eligible: 'Otomatik iade için uygunsunuz.',
-        notEligible: 'Satın alımdan 14 gün sonra otomatik iadeler devre dışıdır. Özel destek için yardım ekibiyle iletişime geçin.',
-        moneyLeft: 'Kalan Bakiye',
-        daysLeftInSubscription: 'Abonelikte kalan gün sayısı',
-        disclaimer: 'Sorumluluk Reddi:',
-        disclaimerText: 'KDV iade edilemez. Otomatik iadeler 5 iş günü içinde orijinal ödeme yönteminize işlenir. Herhangi bir sorunla karşılaşırsanız, lütfen contact@ereuna.io adresinden destek ekibiyle iletişime geçin ve hesap adınızı ve makbuz kimliğinizi sağlayın.',
-        important: 'Önemli:',
-        importantText: 'İade talep ederseniz, erişiminiz derhal iptal edilecek ve oturumunuz kapatılacaktır. Aboneliğinizi yenilemediğiniz sürece tekrar giriş yapamazsınız.',
-        downloadDataWarning: 'İade talebinde bulunmadan önce lütfen tüm makbuzlarınızı ve ihtiyacınız olan verileri indirin.',
-        requestButton: 'İade Talep Et',
-        success: 'İade talebi gönderildi! Personel talebinizi yakında işleyecek.',
-        failed: 'İade talebi başarısız oldu.',
-    },
-
-    // Yenileme
-    renew: {
-        title: 'Aboneliği Yenile',
-        total: 'Toplam',
-        selectDuration: 'Süre Seçin',
-        processing: 'İşleniyor...',
-        renewButton: 'Yenile',
-        success: 'Yenileme ve ödeme başarılı!',
-        failed: 'Yenileme veya ödeme başarısız oldu.',
-        vatLoadFailed: 'KDV oranları yüklenemedi. Yenileme geçici olarak devre dışı.',
-        paymentFormNotReady: 'Ödeme formu hazır değil. Lütfen ödeme formunun yüklenmesini bekleyin.',
-        paymentMethodError: 'Ödeme yöntemi hatası.',
-        serverError: 'Sunucu hatası: geçersiz yanıt.',
-        networkError: 'Ağ veya sunucu hatası. Lütfen bağlantınızı kontrol edin.',
     },
 
     // İki Faktörlü Kimlik Doğrulama

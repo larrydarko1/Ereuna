@@ -120,14 +120,11 @@ import CreateAccountDoc from '@/components/Docs/createAccount.vue'
 import RecoverPasswordDoc from '@/components/Docs/RecoverPassword.vue'
 import ArchieDoc from '@/components/Docs/archie.vue'
 import DashboardDoc from '@/components/Docs/dashboard.vue'
-import Renew from '@/components/Docs/Renew.vue'
-import Refund from '@/components/Docs/Refund.vue'
 import ChangeUsernameDoc from '@/components/Docs/ChangeUsername.vue'
 import ChangePasswordDoc from '@/components/Docs/ChangePassword.vue'
 import ChangeLanguageDoc from '@/components/Docs/ChangeLanguage.vue'
 import RecoveryKeyDoc from '@/components/Docs/RecoveryKey.vue'
 import DeleteAccountDoc from '@/components/Docs/DeleteAccount.vue'
-import SubscriptionDoc from '@/components/Docs/Subscriptions.vue'
 import ThemesDoc from '@/components/Docs/Themes.vue'
 import Security from '@/components/Docs/Security.vue'
 import PortfolioOverview from '@/components/Docs/PortfolioOverview.vue'
@@ -167,7 +164,7 @@ const side1Items = ['Introduction', 'Dashboard', 'Account', 'Portfolio', 'Charts
 const side2Items: Record<string, string[]> = {
   Introduction: ['Welcome', 'Changelog', 'Supported Tickers', 'Create Account', 'Recover Password'],
   Dashboard: ['Archie AI (In Development)', 'Dashboard Overview'],
-  Account: ['Change Username', 'Change Password', 'Change Language', 'Generate Recovery Key','Delete Account', 'Subscription', 'Renew Subscription', 'Ask For Refund', 'Themes', 'Security / 2FA'],
+  Account: ['Change Username', 'Change Password', 'Change Language', 'Generate Recovery Key','Delete Account', 'Themes', 'Security / 2FA'],
   Portfolio: [
   'Portfolio Overview',
   'Switching Portfolios',
@@ -212,9 +209,6 @@ const componentMap: Record<string, any> = {
   'Change Language': ChangeLanguageDoc,
   'Generate Recovery Key': RecoveryKeyDoc,
   'Delete Account': DeleteAccountDoc,
-  'Subscription': SubscriptionDoc,
-  'Renew Subscription': Renew,
-  'Ask For Refund': Refund,
   'Themes': ThemesDoc,
   'Security / 2FA': Security,
   'Portfolio Overview': PortfolioOverview,

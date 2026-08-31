@@ -145,10 +145,6 @@ Simply setup your VPS node, transfer the project folder (make sure you have db d
 Create a `.env` file in the root directory with:
 
 ```bash
-#payment processing (discountinued)
-STRIPE_SECRET_KEY=your_key_here 
-VITE_STRIPE_PUBLISHABLE_KEY=your_key_here
-
 MONGODB_URI=mongodb://localhost:27017/
 TIINGO_KEY=your_tiingo_premium_key_here
 VITE_EREUNA_KEY=frontend_key_for_validation_here
@@ -372,8 +368,7 @@ WebSocket  - /ready endpoint
 - **Chart.js** - Additional charting library (Portfolio Simulator)
 - **Chartjs Plugin Annotation** - Chart annotations
 - **Sortable.js** - Drag-and-drop lists (for watchlist sorting mainly)
-- **QRCode.vue** - QR code generation 
-- **Stripe.js** - Payment integration
+- **QRCode.vue** - QR code generation
 
 ### Backend API (Node.js/TypeScript)
 - **Express** - Web framework
@@ -391,7 +386,6 @@ WebSocket  - /ready endpoint
 - **Dotenv** - Environment management
 - **Speakeasy** - 2FA/TOTP
 - **PDF-lib** - PDF generation
-- **Stripe** - Payment processing
 
 ### Python Services (Backend)
 - **FastAPI** - Modern async web framework
@@ -417,7 +411,6 @@ WebSocket  - /ready endpoint
 
 ### External APIs & Services
 - **Tiingo API** - Market data (EOD, real-time, fundamentals, crypto)
-- **Stripe API** - Payment processing
 - **Cloudflare** - DNS & SSL/TLS certificates
 
 ### Development Tools

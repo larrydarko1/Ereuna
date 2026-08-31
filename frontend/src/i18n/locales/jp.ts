@@ -211,7 +211,6 @@ export default {
         twoFactor: '二段階認証',
         menu: {
             account: 'アカウント',
-            subscription: 'サブスクリプション',
             themes: 'テーマ',
             security2fa: 'セキュリティ / 2FA',
         },
@@ -232,7 +231,6 @@ export default {
         deleteWarningDetails: 'この操作は永久的であり、元に戻すことはできません。すべてのデータが永久に削除されます。',
         deleteRecommendation: 'アカウントを削除する前に、以下をお勧めします：',
         deleteRecommendation1: '保持したいデータをエクスポートする',
-        deleteRecommendation2: 'アクティブなサブスクリプションをキャンセルする',
         deleteReview: '続行する前に、この決定を慎重に見直してください。',
         translationDisclaimer: 'AI生成のため、一部の翻訳は不正確な場合があります。',
     },
@@ -1728,89 +1726,6 @@ export default {
         weekly: '週次',
         monthly: '月次',
         yearly: '年次',
-    },
-
-    // Subscription
-    subscription: {
-        title: 'サブスクリプション状況',
-        username: 'ユーザー名',
-        daysLeft: 'サブスクリプション残り日数',
-        moneyLeft: '残金額',
-        renew: '更新',
-        askForRefund: '返金をリクエスト',
-        renewSubscription: 'サブスクリプションを更新',
-        requestRefund: '返金をリクエスト',
-        duration: {
-            oneMonth: '1ヶ月',
-            fourMonths: '4ヶ月',
-            sixMonths: '6ヶ月',
-            oneYear: '1年',
-            oneMonthShort: '1M',
-            fourMonthsShort: '4M',
-            sixMonthsShort: '6M',
-            oneYearShort: '1Y',
-            unknown: '不明',
-        },
-        total: '合計',
-        vat: '付加価値税',
-        paymentMethod: '支払方法',
-        paymentIntent: '支払意図',
-        country: '国',
-    },
-
-    // Receipts
-    receipts: {
-        title: '領収証',
-        paymentDate: '支払日',
-        amount: '金額',
-        paidWith: '支払方法',
-        subscriptionPlan: 'サブスクリプションプラン',
-        download: 'ダウンロード',
-        loading: '領収証を読み込んでいます...',
-        noReceipts: '領収証が見つかりません',
-        downloadDesktopOnly: '領収証をダウンロードするにはデスクトップ版をご利用ください。',
-        downloadFailed: '領収証PDFの生成に失敗しました',
-        paymentMethod: {
-            card: 'カード',
-            crypto: '暗号資産',
-        },
-        pdfFooter: {
-            refundInfo: '購入後14日以内は自動返金が可能です。手動返金の場合は領収証番号と支払意図IDをサポートに提供してください。',
-            disclaimer: 'この領収証は支払いの証明です。サポートはcontact@ereuna.ioまでメールでお願いします。Ereunaは金融機関ではなく、投資助言を提供しません。',
-        },
-    },
-
-    // Refund
-    refund: {
-        title: '返金をリクエスト',
-        eligible: '自動返金の対象です。',
-        notEligible: '購入後14日以降は自動返金が無効です。カスタムサポートは支援にお問い合わせください。',
-        moneyLeft: '残金額',
-        daysLeftInSubscription: 'サブスクリプション残り日数',
-        disclaimer: '免責事項:',
-        disclaimerText: '付加価値税は返金されません。自動返金は5営業日以内に元の支払い方法に処理されます。問題がある場合はcontact@ereuna.ioにお問い合わせください。',
-        important: '重要:',
-        importantText: '返金をリクエストすると、アクセスが即座に剥奪されログアウトされます。サブスクリプションを更新しない限り再ログインできません。',
-        downloadDataWarning: '返金をリクエストする前に、すべての領収証と必要なデータをダウンロードしてください。',
-        requestButton: '返金をリクエスト',
-        success: '返金リクエストを送信しました！スタッフが間もなく処理します。',
-        failed: '返金リクエストが失敗しました。',
-    },
-
-    // Renew
-    renew: {
-        title: 'サブスクリプションを更新',
-        total: '合計',
-        selectDuration: '期間を選択',
-        processing: '処理中...',
-        renewButton: '更新',
-        success: '更新と支払いが成功しました！',
-        failed: '更新または支払いに失敗しました。',
-        vatLoadFailed: '付加価値税率を読み込めませんでした。更新は一時的に無効です。',
-        paymentFormNotReady: '支払いフォームが準備されていません。お待ちください。',
-        paymentMethodError: '支払い方法エラー。',
-        serverError: 'サーバーエラー: 無効な応答。',
-        networkError: 'ネットワークエラー。接続を確認してください。',
     },
 
     // Two-Factor Authentication
