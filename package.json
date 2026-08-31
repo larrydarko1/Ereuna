@@ -1,94 +1,62 @@
 {
-  "name": "ereuna",
-  "private": true,
-  "version": "2026.5",
-  "type": "module",
-  "description": "Web app for screening and researching financial markets",
-  "author": "Lorenzo Mazzola",
-  "license": "SEE LICENSE IN LICENSE.md",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/larrydarko1/Ereuna.git"
-  },
-  "bugs": {
-    "url": "https://github.com/larrydarko1/Ereuna/issues"
-  },
-  "homepage": "https://github.com/larrydarko1/Ereuna#readme",
-  "keywords": [
-    "stock-market",
-    "portfolio-simulation",
-    "finance",
-    "screening",
-    "vue",
-    "typescript"
-  ],
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "backend": "nodemon --exec \"node --import 'data:text/javascript,import { register } from \\\"node:module\\\"; import { pathToFileURL } from \\\"node:url\\\"; register(\\\"ts-node/esm\\\", pathToFileURL(\\\"./\\\"));'\" api/server.ts",
-    "dbstart": "brew services start mongodb-community@7.0",
-    "dbstop": "brew services stop mongodb-community@7.0",
-    "redisstart": "brew services start redis",
-    "redisstop": "brew services stop redis",
-    "redis": "redis-server",
-    "docker:dev": "docker compose -f docker/docker-compose.dev.yml up --build -d",
-    "docker:prod": "docker compose -f docker/docker-compose.prod.yml up --build -d",
-    "dockerstop": "docker compose -f docker/docker-compose.dev.yml down --remove-orphans --rmi all && docker system prune -f",
-    "dockerstop:prod": "docker compose -f docker/docker-compose.prod.yml down",
-    "dbup": "mongodump --db=EreunaDB --out=db/dump",
-    "websocket": "uvicorn server.websocket.websocket:app --host 0.0.0.0 --port 8000",
-    "ingestor": "uvicorn server.ingestor.ingestor:app --host 0.0.0.0 --port 8001",
-    "aggregator": "uvicorn server.aggregator.app:app --host 0.0.0.0 --port 8002"
-  },
-  "dependencies": {
-    "@stripe/stripe-js": "^5.0.0",
-    "argon2": "^0.41.1",
-    "chart.js": "^4.5.0",
-    "chartjs-plugin-annotation": "^3.1.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.21.2",
-    "express-rate-limit": "^7.4.1",
-    "express-validator": "^7.2.0",
-    "fancy-canvas": "^2.1.0",
-    "helmet": "^8.0.0",
-    "ioredis": "^5.8.2",
-    "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.8.0",
-    "pdf-lib": "^1.17.1",
-    "pinia": "^2.2.5",
-    "pino": "^9.5.0",
-    "pino-pretty": "^13.0.0",
-    "qrcode.vue": "^3.6.0",
-    "sortablejs": "^1.15.3",
-    "speakeasy": "^2.0.0",
-    "stripe": "^17.2.1",
-    "validator": "^13.12.0",
-    "vue": "^3.5.12",
-    "vue-chartjs": "^5.3.2",
-    "vue-i18n": "^9.14.5",
-    "vue-router": "^4.4.5"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
-    "@types/helmet": "^0.0.48",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/mongodb": "^4.0.6",
-    "@types/node": "^24.3.1",
-    "@types/speakeasy": "^2.0.10",
-    "@types/stripe": "^8.0.416",
-    "@types/validator": "^13.15.3",
-    "@vitejs/plugin-vue": "^5.2.1",
-    "buffer": "^6.0.3",
-    "nodemon": "^3.1.10",
-    "process": "^0.11.10",
-    "readable-stream": "^4.5.2",
-    "sass-embedded": "^1.85.1",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.2",
-    "vite": "^6.1.0",
-    "vite-plugin-node-polyfills": "^0.23.0"
-  }
+    "name": "ereuna",
+    "version": "2026.5",
+    "description": "Web app for screening and researching financial markets",
+    "homepage": "https://github.com/larrydarko1/Ereuna#readme",
+    "license": "SEE LICENSE IN LICENSE.md",
+    "author": "Lorenzo Mazzola",
+    "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/larrydarko1/Ereuna.git"
+    },
+    "bugs": {
+        "url": "https://github.com/larrydarko1/Ereuna/issues"
+    },
+    "keywords": [
+        "stock-market",
+        "portfolio-simulation",
+        "finance",
+        "screening",
+        "vue",
+        "typescript"
+    ],
+    "scripts": {
+        "dev": "concurrently -n front,api,aggr,ingest -c blue,green,yellow,magenta \"npm run dev:frontend\" \"npm run dev:api\" \"npm run dev:aggregator\" \"npm run dev:ingestor\"",
+        "dev:frontend": "npm -w frontend run dev",
+        "dev:api": "npm -w api run dev",
+        "dev:aggregator": "npm -w aggregator run dev",
+        "dev:ingestor": "npm -w ingestor run dev",
+        "dev:websocket": "npm -w aggregator run dev:websocket",
+        "build:all": "npm -w frontend run build && npm -w api run build",
+        "preview": "npm -w frontend run preview",
+        "aggregator": "npm -w aggregator run start",
+        "ingestor": "npm -w ingestor run start",
+        "websocket": "npm -w aggregator run start:websocket",
+        "py:install": "npm -w aggregator run py:install && npm -w ingestor run py:install",
+        "dbstart": "brew services start mongodb-community@7.0",
+        "dbstop": "brew services stop mongodb-community@7.0",
+        "dbup": "npm -w db run restore",
+        "dbdump": "npm -w db run dump",
+        "redisstart": "brew services start redis",
+        "redisstop": "brew services stop redis",
+        "redis": "redis-server"
+    },
+    "devDependencies": {
+        "concurrently": "^10.0.3",
+        "typescript": "~5.9.2"
+    },
+    "packageManager": "npm@11.16.0",
+    "engines": {
+        "node": ">=24"
+    },
+    "private": true,
+    "workspaces": [
+        "packages/shared",
+        "frontend",
+        "api",
+        "aggregator",
+        "ingestor",
+        "db"
+    ]
 }

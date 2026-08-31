@@ -1,0 +1,11 @@
+{
+    "name": "db",
+    "version": "2026.6",
+    "description": "Ereuna MongoDB dump, restore/index bootstrap script, and per-collection schema docs.",
+    "license": "UNLICENSED",
+    "scripts": {
+        "restore": "bash restore.sh",
+        "dump": "mongodump --db=EreunaDB --out=dump"
+    },
+    "private": true
+}

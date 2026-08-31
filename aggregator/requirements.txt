@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pydantic
+python-dotenv
+motor
+pymongo
+pandas
+numpy
+requests
+redis
+prometheus-client
+pytz
+python-dateutil

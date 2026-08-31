@@ -1,0 +1,12 @@
+{
+    "name": "ingestor",
+    "version": "2026.6",
+    "description": "Ereuna ingestor service — Tiingo websocket intake fanned into Redis for the aggregator.",
+    "license": "UNLICENSED",
+    "scripts": {
+        "dev": "cd .. && uvicorn ingestor.ingestor:app --host 0.0.0.0 --port 8001 --reload",
+        "start": "cd .. && uvicorn ingestor.ingestor:app --host 0.0.0.0 --port 8001",
+        "py:install": "pip install -r requirements.txt"
+    },
+    "private": true
+}

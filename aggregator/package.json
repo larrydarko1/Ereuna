@@ -1,0 +1,14 @@
+{
+    "name": "aggregator",
+    "version": "2026.6",
+    "description": "Ereuna aggregator service — candle aggregation, organizer, IPO/delist scans, signal analysis, and the realtime websocket fan-out (to be folded into api).",
+    "license": "UNLICENSED",
+    "scripts": {
+        "dev": "cd .. && uvicorn aggregator.app:app --host 0.0.0.0 --port 8002 --reload",
+        "start": "cd .. && uvicorn aggregator.app:app --host 0.0.0.0 --port 8002",
+        "dev:websocket": "cd .. && uvicorn aggregator.websocket.websocket:app --host 0.0.0.0 --port 8000 --reload",
+        "start:websocket": "cd .. && uvicorn aggregator.websocket.websocket:app --host 0.0.0.0 --port 8000",
+        "py:install": "pip install -r requirements.txt"
+    },
+    "private": true
+}

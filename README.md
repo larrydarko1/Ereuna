@@ -192,97 +192,75 @@ Once everything is up, your app should be accessible at your domain, and Grafana
 # Architecture
 
 ```
-Ereuna/
-├── api/                          # Node.js/TypeScript REST API
-│   ├── routes/                   # API route handlers
-│   │   ├── Charts.ts            # Chart data endpoints
-│   │   ├── Dashboard.ts         # Dashboard endpoints
-│   │   ├── Maintenance.ts       # Maintenance mode control
-│   │   ├── Notes.ts             # User notes management
-│   │   ├── Portfolio.ts         # Portfolio tracking
-│   │   ├── Screener.ts          # Stock screener
-│   │   ├── Users.ts             # Authentication & user management
-│   │   └── Watchlists.ts        # Watchlist management
-│   ├── utils/                    # Utility modules
-│   │   ├── cache.ts             # Redis caching layer
-│   │   ├── config.ts            # Configuration management
-│   │   ├── dividends.ts         # Dividend calculations
-│   │   ├── logger.ts            # Structured logging
-│   │   ├── portfolioStats.ts    # Portfolio analytics
-│   │   ├── priceVolumeUtils.ts  # Price/volume utilities
-│   │   └── validationUtils.ts   # Input validation & sanitization
-│   └── server.ts                 # Express server entry point
+Ereuna/                              # npm workspaces monorepo
+├── packages/
+│   └── shared/                      # @ereuna/shared — cross-workspace contracts
+│       └── src/index.ts
 │
-├── server/                       # Python backend services (websocket + aggregator)
-│   ├── aggregator/              # Data aggregation service
-│   │   ├── aggregator.py        # Real-time candle aggregator
-│   │   ├── app.py               # FastAPI application
-│   │   ├── delist.py            # Delisting scanner
-│   │   ├── helper.py            # Maintenance utilities
-│   │   ├── ipo.py               # New ticker onboarding
-│   │   ├── organizer.py         # Daily data orchestrator
-│   │   └── signal_analyzer.py   # Technical trading signals
-│   ├── ingestor/                # Data ingestion service
-│   │   └── ingestor.py          # Tiingo data stream consumer
-│   └── websocket/               # WebSocket server
-│       └── websocket.py         # Real-time price streaming
+├── frontend/                        # Vue 3 single-page app (workspace)
+│   ├── public/                      # Public static files
+│   │   ├── Basic/                   # Basic asset data
+│   │   ├── CRYPTO/                  # Crypto listings
+│   │   ├── NASDAQ/                  # NASDAQ listings
+│   │   ├── NYSE/                    # NYSE listings
+│   │   ├── NMFQS/                   # Mutual fund listings
+│   │   ├── docs/                    # Documentation files
+│   │   ├── robots.txt               # SEO configuration
+│   │   └── sitemap.xml              # Sitemap
+│   ├── src/
+│   │   ├── assets/                  # Icons & images
+│   │   ├── components/              # blog, charts, Docs, Portfolio,
+│   │   │                            #   Screener, sidebar, User
+│   │   ├── composables/             # Vue composables
+│   │   ├── config/                  # Frontend configuration
+│   │   ├── constants/               # Constants & enums
+│   │   ├── i18n/locales/            # Translation files
+│   │   ├── lib/lightweight-charts/  # Forked TradingView Lightweight Charts
+│   │   ├── router/                  # Vue Router configuration
+│   │   ├── store/                   # Pinia state management
+│   │   ├── types/                   # TypeScript type definitions
+│   │   ├── views/                   # Page components
+│   │   ├── App.vue                  # Root component
+│   │   ├── main.ts                  # Application entry point
+│   │   └── style.scss               # Global styles
+│   ├── index.html                   # HTML entry point
+│   ├── vite.config.ts               # Vite build configuration
+│   └── tsconfig*.json               # app / node project references
 │
-├── src/                         # Vue.js frontend application
-│   ├── assets/                  # Static assets
-│   │   ├── icons/              # SVG icons
-│   │   └── images/             # Images
-│   ├── components/              # Vue components
-│   │   ├── blog/               # Blog components
-│   │   ├── charts/             # Charting components
-│   │   ├── Docs/               # Documentation components
-│   │   ├── Portfolio/          # Portfolio views
-│   │   ├── Screener/           # Screener components
-│   │   ├── sidebar/            # Navigation sidebar
-│   │   └── User/               # User profile components
-│   ├── composables/            # Vue composables
-│   ├── config/                 # Frontend configuration
-│   ├── constants/              # Constants & enums
-│   ├── i18n/                   # Internationalization
-│   │   └── locales/           # Translation files
-│   ├── lib/                    # Third-party libraries
-│   │   └── lightweight-charts/ # TradingView Lightweight Charts
-│   ├── router/                 # Vue Router configuration
-│   ├── store/                  # Pinia state management
-│   ├── types/                  # TypeScript type definitions
-│   ├── views/                  # Page components
-│   ├── App.vue                 # Root component
-│   ├── main.ts                 # Application entry point
-│   └── style.scss              # Global styles
+├── api/                             # Node.js/TypeScript REST API (workspace)
+│   ├── src/
+│   │   ├── routes/                  # Charts, Dashboard, Maintenance, Notes,
+│   │   │                            #   Portfolio, Screener, Users, Watchlists
+│   │   ├── utils/                   # cache, config, dividends, logger,
+│   │   │                            #   portfolioStats, priceVolumeUtils,
+│   │   │                            #   validationUtils
+│   │   └── index.ts                 # Express server entry point
+│   └── tsconfig.json
 │
-├── docker/                      # Docker & orchestration
-│   ├── docker-compose.dev.yml  # Development environment
-│   ├── docker-compose.prod.yml # Production environment
-│   ├── Dockerfile.*            # Service dockerfiles
-│   ├── nginx.conf              # Nginx reverse proxy
-│   ├── traefik.yml             # Traefik edge router
-│   ├── prometheus.yml          # Metrics configuration
-│   ├── loki.yml                # Log aggregation
-│   └── dashboards.yml          # Grafana dashboards
+├── aggregator/                      # Python aggregation service (workspace)
+│   ├── aggregator.py                # Real-time candle aggregator
+│   ├── app.py                       # FastAPI application
+│   ├── delist.py                    # Delisting scanner
+│   ├── helper.py                    # Maintenance utilities
+│   ├── ipo.py                       # New ticker onboarding
+│   ├── organizer.py                 # Daily data orchestrator
+│   ├── signal_analyzer.py           # Technical trading signals
+│   ├── websocket/                   # Real-time price streaming
+│   │   └── websocket.py             #   (to be folded into api)
+│   └── requirements.txt             # Python dependencies
 │
-├── public/                      # Public static files
-│   ├── Basic/                  # Basic asset data
-│   ├── CRYPTO/                 # Crypto listings
-│   ├── NASDAQ/                 # NASDAQ listings
-│   ├── NYSE/                   # NYSE listings
-│   ├── docs/                   # Documentation files
-│   ├── robots.txt              # SEO configuration
-│   └── sitemap.xml             # Sitemap
+├── ingestor/                        # Python ingestion service (workspace)
+│   ├── ingestor.py                  # Tiingo data stream consumer
+│   └── requirements.txt             # Python dependencies
 │
-├── db/                         # Database utilities & documentation
-│   ├── dump/                   # Database backups
-│   └── docs/                   # MongoDB schema documentation → [see DATABASE.md](db/docs/DATABASE.md)
+├── db/                              # Database utilities & docs (workspace)
+│   ├── dump/                        # Database backups (gitignored)
+│   ├── docs/                        # MongoDB schema docs → [see DATABASE.md](db/docs/DATABASE.md)
+│   └── restore.sh                   # Restore + index bootstrap
 │
-├── index.html                  # HTML entry point
-├── package.json                # Node.js dependencies
-├── vite.config.ts              # Vite build configuration
-├── tsconfig.json               # TypeScript configuration
-├── requirements.txt            # Python dependencies
-└── README.md                   # Project summary documentation
+├── package.json                     # Workspace root — scripts & shared devDeps
+├── package-lock.json
+└── README.md                        # Project summary documentation
 ```
 ----
 

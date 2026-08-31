@@ -10,8 +10,7 @@ node_modules
 dist
 dist-ssr
 *.local
-.env
-src/assets
+frontend/src/assets
 mongodb-init
 .vscode/*
 !.vscode/extensions.json
@@ -31,8 +30,7 @@ certs/
 *.pem
 .EreunaWS
 *.EreunaWS
-server/.EreunaWS
-*.pem
+aggregator/.EreunaWS
 *.key
 *.crt
 *.cert

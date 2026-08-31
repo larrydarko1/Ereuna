@@ -1,0 +1,37 @@
+{
+    "name": "frontend",
+    "version": "2026.6",
+    "description": "Ereuna web client — Vue 3, Pinia, vue-i18n, and a forked lightweight-charts single-page app.",
+    "license": "UNLICENSED",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@ereuna/shared": "*",
+        "@stripe/stripe-js": "^5.0.0",
+        "chart.js": "^4.5.0",
+        "chartjs-plugin-annotation": "^3.1.0",
+        "fancy-canvas": "^2.1.0",
+        "pdf-lib": "^1.17.1",
+        "pinia": "^2.2.5",
+        "qrcode.vue": "^3.6.0",
+        "sortablejs": "^1.15.3",
+        "vue": "^3.5.12",
+        "vue-chartjs": "^5.3.2",
+        "vue-i18n": "^9.14.5",
+        "vue-router": "^4.4.5"
+    },
+    "devDependencies": {
+        "@types/node": "^24.3.1",
+        "@vitejs/plugin-vue": "^5.2.1",
+        "@vue/tsconfig": "^0.8.1",
+        "sass-embedded": "^1.85.1",
+        "typescript": "~5.9.2",
+        "vite": "^6.1.0",
+        "vue-tsc": "^2.2.0"
+    },
+    "private": true
+}
